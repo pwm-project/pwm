@@ -1,0 +1,87 @@
+/*
+ * Password Management Servlets (PWM)
+ *
+ * http://developer.novell.com/wiki/index.php/Pwm
+ *
+ *         Copyright © 2007 Novell, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+body, html{ font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px; width: 320px; border: 0; margin: 0; padding: 0}
+div { border: 0; }
+
+a { color:#2D2D2D; text-decoration:underline; }
+
+h1 { font-size:16px; }
+h2 { font-size:14px; }
+h2 { font-size:12px; }
+
+table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:96%; margin-left: 2%; margin-right: 2% }
+table td { border: 1px solid #D4D4D4; padding-left: 5px;}
+table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }
+table td.key { text-align:right; font-weight:bold; padding-right: 10px }
+
+.inputfield { width:200px; }
+
+#wrapper { height:480px; width:320px; margin:0 auto; padding: 0 0 3em; min-height:100%;  clear: both}
+
+#header { width:320px; height:70px; background-image:url(header-mobile.gif); border: 0; margin: 0}
+#header .logo { float:left; }
+#headinfo { float:right; width:320px; margin:0 0 0 0; height:20px; padding:05px 0 10px 0; background:url(headinfobg.gif) no-repeat; text-align:center; }
+#headinfo a { color:#EFEFEF; }
+#headinfo a:hover { color:#D2D2D2; border-bottom:1px solid #D2D2D2; }
+
+.logotext { float:left; width:320px; margin:10px 0 10px 10px; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }
+.logotext strong { color:#EFEFEF; }
+.logotext2 { font-size:14px; }
+
+#nav { width:100%; overflow:auto; padding:1px; margin:0; background-color:#D2D2D2; }
+#nav ul { margin:0; padding:0; }
+#nav ul li { float:left; list-style:none; padding:0; }
+#nav ul li a { display:block; width:100px; height:15px; padding:8px 0; margin:0 1px 0 0; background-color:#EFEFEF; text-align:center; }
+#nav ul li a:hover { background-color: #FFFFFF; color:#999999; }
+
+#content { width:100%; }
+
+#centerbody { width:320px; margin-top: 3px;; }
+#centerbody .postinfo { display:block; width:320px; padding:6px; background-color:#EFEFEF; border:1px solid #D4D4D4; }
+#centerbody a p { color:#FFCD59; font-weight:bold; text-decoration:underline; }
+#centerbody hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }
+
+#buttonbar { margin-top: 30px; width:300px; margin-bottom: 15px; text-align: center}
+#buttonbar .btn { font-family:Trebuchet MS, sans-serif }
+
+.menubutton { float:left; width:20%; }
+.menubutton a { color:#333333; font-weight:normal; text-decoration:none; display:block; width:120px; margin:0; padding:5px; background-color:#E6E6E6;  }
+.menubutton a:hover { background-color:#FFCD59; }
+
+.menudetail { float:left; width:80%; }
+
+/* used for password complexity meter */  /* start width 28 */
+
+#vertgraph          { width: 28px !important; height: 60px; float: right; position: relative; border:2px solid #A4A4A4; }
+#vertgraph ul       { width: 28px !important; height: 207px; margin: 0; padding: 0; }
+#vertgraph ul li    { width: 28px !important; position: absolute; height: 160px; bottom: 0px; padding: 0 !important; margin: 0 !important; background: url("progress_bar_bg.jpg") no-repeat !important; text-align: center; font-weight: bold; color: white; line-height: 2.5em; }
+#vertgraph li.bar   { left: 0px; background-position: 0px bottom !important; }
+
+.clear { clear:both; }
+
+.msg-info    { display:block; padding:6px; background-color:#DDDDDD; border:1px solid #D4D4D4; width: 300px;}
+.msg-error   { display:block; padding:6px; background-color:#FFCD59; border:1px solid #D4D4D4; width: 300px;}
+.msg-success { display:block; padding:6px; background-color:#EFEFEF; border:1px solid #D4D4D4; width: 300px;}
+
+#footer { text-align: center; bottom:0; width:320px; height:3em; ; color: #BBBBBB; font-size: 11px; }
+#footer .idle_status { color: #333333; }

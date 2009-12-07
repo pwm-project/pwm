@@ -1,0 +1,98 @@
+#--
+#-- Password Management Servlet (PWM) schema ldif
+#-- The PWM schema is used to manage additional
+#-- password related attributes for users.
+#--
+#-- Last updated - 1/25/2008
+#--
+#------------------------------------------------------
+#-- Object ID Syntax
+#--
+#-- ASN1 Object ID's Defined as Follows:
+#--    joint-iso-ccitt(2)
+#--    country(16)
+#--    us(840)
+#--    organization(1)
+#--    Novell(113719)
+#--    applications(1)
+#--    product (121 == iChain, 23 = brdsrvs)
+#--    type (4 == attribute, 6 == class)
+#--    sequence number(1..xxx)
+#------------------------------------------------------
+#--
+
+#------------------------------------------------------
+#-- Attribute:  	pwmEventLog
+#-- Syntax:      	OCTET STRING
+#-- Description:	User event log
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  pwmeventlog-oid
+  NAME 'pwmEventLog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmResponseSet
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores the user's challenge/response answers
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  pwmresponseset-oid
+  NAME 'pwmResponseSet'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmLastPwdUpdate
+#-- Syntax:      	TIME
+#-- Description:	Marks the last time the password was changed by user.
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  pwmlastpwdupdate-oid
+  NAME 'pwmLastPwdUpdate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+ )
+
+#------------------------------------------------------
+#-- Class:        pwmUser
+#-- Description:  Aux class
+#-- Req:          none
+#--
+#-- The add then delete/add takes care of cases where the schema is already extended
+#--
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: objectClasses
+objectClasses: (
+  pwmuser-oid
+  NAME 'pwmUser'
+  AUXILIARY
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet )
+ )
+
+dn: cn=schema
+changetype: modify
+delete: objectClasses
+objectClasses: (
+  pwmuser-oid
+  NAME 'pwmUser'
+ )
+-
+add: objectClasses
+objectClasses: (
+  pwmuser-oid
+  NAME 'pwmUser'
+  AUXILIARY
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet )
+ )

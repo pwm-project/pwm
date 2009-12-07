@@ -1,0 +1,358 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package password.pwm.servlet;
+
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ChaiValidationException;
+import password.pwm.*;
+import password.pwm.bean.ForgottenPasswordBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Message;
+import password.pwm.config.ParameterConfig;
+import password.pwm.config.PasswordStatus;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmException;
+import password.pwm.error.ValidationException;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.StatisticsManager;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * User interaction servlet for recovering user's password using secret question/answer
+ *
+ * @author Jason D. Rivard
+ */
+public class ForgottenPasswordServlet extends TopServlet {
+// ------------------------------ FIELDS ------------------------------
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public void processRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws ServletException, IOException, ChaiUnavailableException, PwmException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ContextManager theManager = pwmSession.getContextManager();
+        final ForgottenPasswordBean recoverServletBean = PwmSession.getForgottenPasswordBean(req);
+
+        if (recoverServletBean.getTheUser() != null) {
+            theManager.getIntruderManager().checkUser(recoverServletBean.getTheUser().getEntryDN(), pwmSession);
+        }
+
+        final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+
+        if (recoverServletBean.getTheUser() != null) {
+            theManager.getIntruderManager().checkUser(recoverServletBean.getTheUser().getEntryDN(), pwmSession);
+        }
+
+        if (processRequestParam.equalsIgnoreCase("search")) {
+            this.processSearch(req, resp);
+        } else if (processRequestParam.equalsIgnoreCase("checkResponses")) {
+            this.processCheckResponses(req, resp);
+        } else if (recoverServletBean.isResponsesSatisfied() && processRequestParam.equalsIgnoreCase("selectUnlock")) {
+            this.processUnlock(req,resp);
+        } else if (recoverServletBean.isResponsesSatisfied() && processRequestParam.equalsIgnoreCase("selectResetPassword")) {
+            this.processResetPassword(req,resp);
+        } else {
+            this.forwardToSearchJSP(req, resp);
+        }
+    }
+
+    private void processSearch(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ChaiUnavailableException, PwmException, IOException, ServletException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ContextManager theManager = pwmSession.getContextManager();
+        final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
+
+        final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
+        final String contextParam = Validator.readStringFromRequest(req, "context", 256);
+
+        // convert the username field to a DN.
+        final String userDN = AuthenticationFilter.convertUsernameFieldtoDN(usernameParam, pwmSession, contextParam);
+
+        if (userDN == null) {
+            theManager.getIntruderManager().addBadUserAttempt(usernameParam,pwmSession);
+            theManager.getIntruderManager().checkUser(usernameParam, pwmSession);
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_RESPONSES_NORESPONSES));
+            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            this.forwardToSearchJSP(req, resp);
+            return;
+        }
+
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, theManager.getProxyChaiProvider());
+
+        // retreive the responses for the user from ldap
+        final ResponseSet responseSet = PasswordUtility.readUserResponseSet(pwmSession, theUser);
+
+        if (responseSet != null) {
+            LOGGER.trace("loaded responseSet from user: " + responseSet.toString());
+
+            Locale responseSetLocale = pwmSession.getSessionStateBean().getLocale();
+            try {
+                responseSetLocale = responseSet.getLocale();
+            } catch (Exception e) {
+                LOGGER.error("error retreiving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
+            }
+
+            // read the user's assigned response set.
+            final ChallengeSet challengeSet = PasswordUtility.readUserChallengeSet(pwmSession, theUser, null, responseSetLocale);
+
+            try {
+                if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
+                    if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
+                        forgottenPasswordBean.setChallengeSet(challengeSet);
+                        forgottenPasswordBean.setResponseSet(responseSet);
+                        forgottenPasswordBean.setTheUser(theUser);
+                        this.forwardToResponsesJSP(req, resp);
+                        return;
+                    } else {
+                        LOGGER.info(pwmSession, "configured challenge set policy for " + usernameParam + " is empty, user not qualified to recover password");
+                    }
+                }
+            } catch(ChaiValidationException e){
+                LOGGER.error(pwmSession, "stored response set for user '" + userDN + "' do not meet current challenge set requirements: " + e.getLocalizedMessage());
+            }
+        } else {
+            LOGGER.info(pwmSession, "could not find a response set for " + usernameParam);
+        }
+
+        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_RESPONSES_NORESPONSES));
+
+        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        this.forwardToSearchJSP(req, resp);
+    }
+
+    private void forwardToResponsesJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+    {
+        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_RECOVER_PASSWORD_RESPONSES).forward(req, resp);
+    }
+
+    private void processCheckResponses(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ChaiUnavailableException, IOException, ServletException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ContextManager theManager = pwmSession.getContextManager();
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
+
+        final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+
+        if (theUser == null) {
+            this.forwardToSearchJSP(req, resp);
+            return;
+        }
+
+        try {
+            // validate the required ldap attributes (throws validation exception if incorrect attributes)
+            validateRequredAttributes(theUser, req, pwmSession);
+
+            // note the recovery attempt to the statistics manager
+            theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.RECOVERY_ATTEMPTS);
+
+            // read the suppled responses from the user
+            final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
+
+            final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
+
+            final boolean responsesSatisfied = responseSet.test(crMap);
+            forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
+
+            if (responsesSatisfied) {
+                // update the status bean
+                theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.RECOVERY_SUCCESSES);
+                LOGGER.debug(pwmSession, "user '" + theUser.getEntryDN() + "' has supplied correct responses");
+
+                if (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_ALLOW_UNLOCK)) {
+                    final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser);
+                    final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, theUser, passwordPolicy);
+
+                    if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
+                        try {
+                            if (theUser.isLocked()) {
+                                this.forwardToChoiceJSP(req, resp);
+                                return;
+                            }
+                        } catch (ChaiOperationException e) {
+                            LOGGER.error(pwmSession, "chai operation error checking user lock status: " + e.getMessage());
+                        }
+                    }
+                }
+
+                this.processResetPassword(req, resp);
+                return;
+            }
+
+            ssBean.setSessionError(new ErrorInformation(Message.ERROR_WRONGANSWER));
+            LOGGER.debug(pwmSession,"incorrect response answer during check for " + theUser.getEntryDN());
+        } catch (ChaiValidationException e) {
+            LOGGER.debug(pwmSession, "chai validation error checking user responses: " + e.getMessage());
+            ssBean.setSessionError(new ErrorInformation(Message.forResourceKey(e.getValidationError().getErrorKey())));
+        } catch (ValidationException e) {
+            LOGGER.debug(pwmSession, "validation error checking user responses: " + e.getMessage());
+            ssBean.setSessionError(new ErrorInformation(Message.ERROR_WRONGANSWER));
+        }
+
+        theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
+        theManager.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getTheUser().getEntryDN(), pwmSession);
+        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        this.forwardToResponsesJSP(req, resp);
+    }
+
+    private void processUnlock(final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException, ServletException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
+
+        if (forgottenPasswordBean.isResponsesSatisfied()) {
+            final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+            try {
+                theUser.unlock();
+                pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_UNLOCK_ACCOUNT));
+                Helper.forwardToSuccessPage(req,resp, this.getServletContext());
+                return;
+            } catch (ChaiOperationException e) {
+                LOGGER.info(pwmSession, "error unlocking user: " + theUser.getEntryDN());
+            }
+        }
+
+        this.forwardToChoiceJSP(req, resp);
+    }
+
+
+    private void processResetPassword(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ChaiUnavailableException, IOException, ServletException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
+
+        try {
+
+            if (!forgottenPasswordBean.isResponsesSatisfied()) {
+                forwardToResponsesJSP(req,resp);
+                return;
+            }
+
+            final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+
+            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
+
+            LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
+
+            // mark the event log
+            UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.RECOVER_PASSWORD, null);
+
+            // redirect user to change password screen.
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
+        } catch (PwmException e) {
+            if (e.getError().getError().equals(Message.ERROR_BAD_SESSION_PASSWORD)) {
+                LOGGER.warn(pwmSession, "unable to set session password for user, proxy ldap user does not have enough rights");
+            }
+        }
+    }
+
+    public static Map<Challenge, String> readResponsesFromHttpRequest(
+            final HttpServletRequest req,
+            final ChallengeSet challengeSet)
+            throws ChaiValidationException, ChaiUnavailableException
+    {
+        final Map<Challenge, String> responses = new LinkedHashMap<Challenge, String>();
+
+        int counter = 0;
+        for (final Challenge loopChallenge : challengeSet.getChallenges()) {
+            counter++;
+            final String answer = Validator.readStringFromRequest(req, Constants.PARAM_RESPONSE_PREFIX + counter, 1024);
+
+            responses.put(loopChallenge, answer.length() > 0 ? answer : "");
+        }
+
+        return responses;
+    }
+
+    private void forwardToSearchJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+    {
+        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_RECOVER_PASSWORD_SEARCH).forward(req, resp);
+    }
+
+    private void forwardToChoiceJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+    {
+        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_RECOVER_PASSWORD_CHOICE).forward(req, resp);
+    }
+
+    private void validateRequredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
+            throws ChaiUnavailableException, ValidationException
+    {
+        final Map<String, ParameterConfig> paramConfigs = pwmSession.getLocaleConfig().getChallengeRequiredAttributes();
+
+        if (paramConfigs.isEmpty()) {
+            return;
+        }
+
+        Validator.updateParamValues(pwmSession, req, paramConfigs);
+
+        for (final ParameterConfig paramConfig : paramConfigs.values()) {
+            final String attrName = paramConfig.getAttributeName();
+
+            try {
+                if (!theUser.compareStringAttribute(attrName, paramConfig.getValue())) {
+                    throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_WRONGANSWER, "incorrect value for '" + attrName + "'",attrName));
+                }
+                LOGGER.trace(pwmSession,"successful validation of ldap value for '" + attrName + "'");
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession,"error during param validation of '" + attrName + "', error: " + e.getMessage());
+                throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_WRONGANSWER, "ldap error testing value for '" + attrName + "'",attrName));
+            }
+        }
+    }
+}
+

@@ -1,0 +1,66 @@
+#
+# Sample LDIF for creating rights for PWM in eDirectory.  
+#
+# In this sample:
+#  - the proxy user is created is "cn=PwmProxy,ou=OU,o=O"
+#  - users exist in "ou=USERS,o=O"
+#
+# Search and replace the values as appropriate for your environment.
+#
+
+# Grant users rights for users to configure responses
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#[This]#pwmResponseSet
+
+#Create the PWM proxy user.
+dn: cn=PwmProxy,ou=OU,o=O
+changetype: add
+givenName: PwmProxy
+sn: PwmProxy
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 1#subtree#cn=PwmProxy,ou=OU,o=O#[Entry Rights]
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 3#subtree#cn=PwmProxy,ou=OU,o=O#cn
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 3#subtree#cn=PwmProxy,ou=OU,o=O#pwmResponseSet
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#cn=PwmProxy,ou=OU,o=O#pwmLastPwdUpdate
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#cn=PwmProxy,ou=OU,o=O#objectClass
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#cn=PwmProxy,ou=OU,o=O#pwmEventLog
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#cn=PwmProxy,ou=OU,o=O#passwordManagement

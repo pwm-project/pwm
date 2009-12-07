@@ -1,0 +1,284 @@
+[------legend----------------]
+[ + Added feature            ]
+[ * Improved/changed feature ]
+[ - Bug fixed/refactoring    ]
+[ ! security bug fix         ]
+[ ~ partial implementation   ]
+[----------------------------]
+
+v1.4.3
+---
++ Improved handling of servlet container clustering and session pausing
+
+* Refined password strength meter to allow full strength, and to be more permissive
+* Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
+* Tuned ajax communications to decrease request traffic.
+* Added "eventLog.localDbMaxAge" setting to control age of pwmDB event log storage
+
+- Fixed bug where "previously used" error incorrectly results in unknown error when using non-nmas password method (defect #51)
+- Removed setting "passwordSetMethod", for edirectory, this is replaced by "ldap.edirectory.enableNmas"
+- Refactored ajax channels to use JSON encoding
+- Fixed bug where WARN log status inacurately reported no discovered nmas challenge set policy (defect #50)
+- Fixed bug where forgotten password doesn't work when there are no required challenges configured (defect #52)
+- Renamed "password.readEdirectoryPasswordPolicy" setting to "ldap.edirectory.readPasswordPolicies"
+- Replaced "authUsingBind" setting with "ldap.edirectory.alwaysUseProxy" setting
+- Fixed bug where newer Client32 clients forced users to configure responses after PWM saves responses using nmas (defect #53)
+
+
+v1.4.2 (7/23/2009) build 842
+------
++ Added "usernameSearchFilter" config property to allow non "cn" based usernames throught pwm
++ Added "challenge.requiredAttributes" config property to require ldap attribute values during forgotten password recovery
++ Added "forceBasicAuth" web.xml parameter
++ Added captcha functionality using reCaptcha with "recaptcha.privateKey" / "recaptcha.publicKey" settings.
++ Added "activateUser.searchFilter" setting, and changed "activateUser.attributes" functionality to allow
+    arbitrary searching for users without having to know the username
++ Added "aggressiveUrlParsing" web.xml parameter
++ Added "password.ADComplexity" config property
++ PWM now honors universal password policy "AD Complexity" configurations
++ Added "challenge.forceSetup" config property
++ Added "challenge.allowDuplicateResponses" config property
++ Added "challenge.forgottenStyle" parameter to allow for mixing unlock/or password reset options during forgotten password use.
++ Preliminary, undocumented, support for using Active Directory as the ldap directory
++ Updated logging model to use local PWM database for persistance.  Log4j interface is still available to support external log systems.
+
+* Moved misleading and infrequently changed config property 'userNameAttribute' to web.xml parameter 'ldapNamingAttribute' (defect #36)
+* ChangePassword doesn't work when the "password.WordlistFile" config property is blank (defect #29)
+* ChangePassword screen only no longer shows expiration warning on new user creation, activation or forgotten password.
+
+! Corrected a scenario where multiple forgotten password attempts could exceed pwm user intruder limits over different http sessions
+! Change to prevent response values from being written to debug log.
+
+v1.4.1 (unreleased)
+
+v1.4.0 (10/4/2008) build 776  
+------
++ Added "cookie-less" functionality and "allowUrlSessions" web.xml setting.  Help for restricted
+     browsers which disallow cookies.
++ Added "expireWarnTime" setting and feature to pre-warn users of a soon to be expired pw
+
+* HTML look overhaul, now CSS based with graceful degradation for low-capability devices
+
+- Fixed a problem where email alerts are sent with a non-configurable from address (defect #27)
+- Problem where "challenge.caseInsensitive" setting was not honored (defect #28)
+- "Bad Session Proxy" error during forgotten password recovery (defect #26)
+- Placed a commented out text string on the change password jsp to show grace logins remaining (defect #23)
+
+v1.3.1 (unpublished)
+------
++ Added "Shortcuts" servlet and "shortcut.query.[x]" settings
+* Added Shared Password History functionality and "password.sharedHistory.age" setting
+
+* Updated BerkelyDB version to v3.6.74 to correct a DB corruption bug
+* Removed duplicates from published wordlist files to speed up imports
+* Added a "Apache Derby" implementation of PwmDB
+
+- Fixed password change screen so the clear button resets the strength (defect #13)
+- Fixed password change screen so the clear button moves focus to the new
+    password field (defect #14)
+- Minor log file output enhancements
+- Fixed password change screen to show "too soon for password change" error correctly (defect #18)
+- Fixed password change screen to show "too soon for password change" requirement correctly (defect #18)
+
+v1.3.0 (1/14/2008)
+------
++ PWM Responses are now case-insensitive (defect#1)
++ can now read challenge set policy from Universal Password policy
++ added "challenge.randomStyle" setting to change random behavior
++ can set c/r min/max length in pwmServlet.properties local and i18n files
++ localized nmas challenge policies are now supported
++ PWM Admin status is now determined by ldap query string instead of configured uid/pwd
++ rebuilt password wordlist checker, supports massive wordlists and doesn't
+    require gobs of memory (uses pluggable DB type, default is embedded berkelyDB),
+    tested with 20 million word dictionary.
++ added animated gif to pwd sync wait page
++ support for user-selectable random questions at population time
++ added password.allowChange.queryMatch setting, to control which user populations
+     can use pwm for changing password.
++ added UserDebugServlet for checking user password debug info
++ all user-related log events now use syntax of '{1} event text [ip]' where {1} is a session
+    number, and [ip] is the user's IP/dns address.
++ added a unique "instanceID" value to all headers, to track which server a user
+    is accessing when multiple servers exsist.
++ updated ldapChai API to v0.4.1, moved all PWM c/r code into Chai.  Thus, there
+    is now a stand alone API available for manipulating PWM style c/r values in ldap.
++ upgraded JavaMail API to fix some i18n issues with email.
++ most URLs have been modified so "Servlet" isn't part of the name.  For example,
+    "ChangePasswordServlet" has been changed to "ChangePassword"
++ added "strength" meter to password change screen
+
+* random password generation is wordlist based instead of purely random characters, also
+    one passsword is generated at a time instead of displaying a bunch to the user at once.
+* enhanced ajax password verification to improve reliability with different types of browsers
+* enhanced ajax password verification to clear "confirm password" field when "new password field" is modified.
+* added back capability to read NMAS challenge/response policies configured in eDirectory.
+* added nmas check for password history during ajax password verification
+* "debugMode" setting removed from pwmServlet.properties, replaced with log4jconfig.xml "trace" level.
+* XForwadedFor configuration now in web.xml, moved from pwmServlet.properties
+
+! SHA1 Responses are now stored with a random salt to prevent dictionary attacks against
+    response values in ldap
+! disallow "<.*script.*>" and other junk in input feilds to combat against xss attacks,
+    configurable in web.xml.
+! refactored many operations to use the user's ldap bind instead of the proxy user.
+
+
+v1.2.2 (6/20/2006) build 628
+------
+- Updated ldap api to prevent memory leaks
+- Fixed NPE while changing password when used with older eDirectory versions (pre 8.6)
+
+
+v1.2.1 (1/21/2006)
+------
+
++ Optional NMAS functionality:
+    + Added PWMSHA1+NMAS option for challenge/response storage in nmas to challenge.storageMethod configuration.
+    + Added nmasChange option to passwordSetMethod
+    + Added nmas pre-change policy checker
++ Encoded language files properly with native2ascii
+- Fixed several encoding issues, UTF-8 is now used for all web traffic
+- Fixed idletimer (missing javascript) method in v1.2.0 distribution
+- Updated to LDAP Chai v0.1.1 (failover fixes to prevent intruder lockout when using authUsingBind option)
++ Added more configuration options
++ Added buildNumber information to build process
+
+
+v1.2.0 (12/8/2005)
+------
++ Integrated LDAP Chai v0.1.0 (Novell Forge LDAP library) (includes several fail-over and pooler fixes)
+- Codebase updated for Java 1.5 language specification
++ added checkAll command to CommandServlet.
++ password.MaximumOldPasswordChars option
+
+
+v1.1.4 (unpublished)
+------
++ All user-viewable screens are now internationalized
++ Added localizations for spanish, portugese, polish, italian, french, czech
++ Added support for enforcing universal password password policy option during login
++ Enhanced idletimer
++ All HTML pages now use CSS properly, and all have the same borders and tables.
+
+
+v1.1.3 (9/30/2005)
+------
+- fixed thread locked wordList issues under heavy load
+* general enhancements for performance
+    - better ldap connection handling
+    - "proper" session timeout handling
+    - removed synchronization blocks for password checking
+    * vastly improved performance of while-you-type javascript password checker
++ added Threads admin servlet to see the list of currently running JVM threads
++ added Configuration admin servlet to view (partially) the running PWM config
+- made PWM more freindly to container restarts (memory leak issues)
+* remove "wordListCache" option from pwmConfig, wordLists are now always cached
++ added thread list in the admin stats
++ more stats: users created, users activated
+- bugfix: account sessions stats goes negative after restarting pwm container
+- bugfix: logging timestamps using minutes in place of month field
++ added "passwordSetMethod" option pwmConfig
+~ refactored all logging code to make replacing/improving log4j easier
++ removed scriptlets from most user-facing pages (replaced with taglibs)
++ html/jsp cleanup.  Most pages pass w3c validation now
++ added idle timeout countdown timer in status bar
+- fixed problem where smtp email errors would backlog in the queue forever
++ added logout.jsp page (just for default, logout page should still be configured to something else)
++ idle ldap connections are now closed quickly
+
+
+v1.1.2 (8/30/2005)
+------
++ random passwords on changepassword.jsp are now cached in the session (performance boost)
++ ip address intruder detection
++ userDN intruder detection (seperate from edirectory intruder detection)
+- newuserservlet and general intruder code refactoring
++ added newUser.writeAttributes option to write admin defined attributes during new user creation
++ added show/hide button on change password screen (not available in IE due to IE bug)
+- per-keystroke javascript refactoring to improve reliability
++ added admin-only section and configurable PWM admin username/password
++ added intruder-lockout status screen
++ added session monitor
++ added web-based log monitor
++ increased scalability of ldap connector
++ added update attributes functionality (companion checkAttributes function to be added in future)
++ newuser, activate user and update attribute forms now automatically generated.
+- loginContexts settings now are orderd properly
+
+
+v1.1.1 (8/5/2005)
+------
+- bugfix: "hint to long" error during setuphints
+! security: recover password would allow reset password for users with no responses set in some cases
+
+
+v1.1.0 (8/3/2005)
+------
++ added support for reading universal password challenge/response sets from ldap
++ added javascript client side caching for changepassword page
++ added wordlist (dictionary) server-side caching
++ added support for multiple hints
++ added support for user defined hints
++ added support for random hints
++ hint answers are now stored using SHA1 hashes
++ changed default color scheme to more 'novellish' color
++ added per/user xml history log and viewing jsp
++ new "activateuser" servlet replaces "validation" functionality in  "newuser" servlet.
++ support for location (context) selection list on login and password recovery servlets for ldap trees with duplicate userIDs
+- additional bugfixes
+
+
+v1.0.7 (07/11/05)
+------
+- bugfix: tld.fmt caused jsp exceptions on tomcat 4.x
+- bugfix: null pointer when user's 'passwordMinimumLength' attr missing
+- bugfix: ldapchai: ldaps not working with > 1.4.1 jdk, also added more debug info to log
+
+
+v1.0.6 (07/06/05)
+------
++ bugfix: Passwords with any of these chars: "*()?/" (excluding quotes) would not be able to auth using normal (non-bind) auth
++ bugfix: no longer confused by aliases.  eDirectory user aliases are now completely ignored.
++ added auto-suggest passwords on change password page.
++ added ldap timeout setting
+
+v1.0.5 (unreleased)
+------
++ added real time check-while-typing functionality for password validations
++ renamed "nonAlphaNumeric" password rules to "special" to be in line with universal password policies
++ added edirectory password policy reader, now will read per-user password policies from eDirectory (including universal password policies))
++ added a pile of password rules to conform with universal password
++ added regular expression checks for password rules
++ new scheme for handling password recovery through ldap, should be more reliable
+
+v1.0.4 (06/13/05)
+------
++ added externalPasswordMethods options
++ modified pwmSchema.ldif
++ On a clear day, you can refactor forever.....
++ added passwordSyncMaxWaitTime options, PWM now waits for the password to be synchronized accross all known servers
++ fixed bug where iChain SSO was dependent on ichain profile being configured using lowercase.
++ enhanced iChain auth intergration
+
+
+v1.0.3 (05/19/2005)
+------
++ fixed a bug where expireCheckDuringAuth didn't always work
++ updated ant script and zip distribution so war file is buildable
+
+
+v1.0.2 (05/11/2005)
+------
++ changed war packaging to remove compression to better support certain platforms (ie, NetWare)
++ added "authUsingBind" configuration option
++ changed default log4jconfig.xml to default logging to stdout
++ added footer.jsp
++ added auto-text for password rules on change password pages
++ added "expireCheckDuringAuth" configuration option
+- removed unused "expirePauseTime" configuration option
+~ expiremental code for pre-expire password email notifications
+
+
+v1.0.1 (04/06/2005)
+------
+first public release of PWM.

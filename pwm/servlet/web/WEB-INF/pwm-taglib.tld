@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://code.google.com/p/pwm/
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<!DOCTYPE taglib
+        PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN"
+        "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd">
+<taglib>
+    <tlib-version>1.2</tlib-version>
+    <jsp-version>1.2</jsp-version>
+    <short-name>pwm-taglib</short-name>
+    <tag>
+        <name>ErrorMessage</name>
+        <tag-class>password.pwm.tag.ErrorMessageTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the current error message (if any)</description>
+    </tag>
+    <tag>
+        <name>SuccessMessage</name>
+        <tag-class>password.pwm.tag.SuccessMessageTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the current success message (if any)</description>
+    </tag>
+    <tag>
+        <name>ParamValue</name>
+        <tag-class>password.pwm.tag.ParamValueTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Retreives the last user-supplied value</description>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>DisplayLocationOptions</name>
+        <tag-class>
+            password.pwm.tag.DisplayLocationOptionsTag
+        </tag-class>
+        <body-content>empty</body-content>
+        <description>Shows the list of ldap contexts available during a
+            login
+        </description>
+        <attribute>
+            <name>name</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>UserInfo</name>
+        <tag-class>password.pwm.tag.UserInfoTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Retreives attributes from the logged-in user's ldap
+            entry
+        </description>
+        <attribute>
+            <name>attribute</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>DisplayPasswordRequirements</name>
+        <tag-class>
+            password.pwm.tag.PasswordRequirementsTag
+        </tag-class>
+        <body-content>empty</body-content>
+        <description>Displays (in english) selected currently configured
+            password requirements
+        </description>
+        <attribute>
+            <name>seperator</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>prepend</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>GenerateRandomPassword</name>
+        <tag-class>
+            password.pwm.tag.GenerateRandomPasswordTag
+        </tag-class>
+        <body-content>empty</body-content>
+        <description>Generates a random password that meets the user's rule
+            requirements
+        </description>
+        <attribute>
+            <name>instance</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>ParameterForm</name>
+        <tag-class>password.pwm.tag.ParameterFormTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays a form using the supplied Map of ParameterConfig
+            values
+        </description>
+        <attribute>
+            <name>formName</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>Display</name>
+        <tag-class>password.pwm.tag.DisplayTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Display localized message</description>
+        <attribute>
+            <name>key</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>bundle</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>value1</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>value2</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>LdapValue</name>
+        <tag-class>password.pwm.tag.LdapValueTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Retreives the attribute value for the user from ldap</description>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>url</name>
+        <tag-class>password.pwm.tag.URLRewriter</tag-class>
+        <body-content>empty</body-content>
+        <description>Rewrite/Encode outbound URLs</description>
+        <attribute>
+            <name>url</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+</taglib>
+
+

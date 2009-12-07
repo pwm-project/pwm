@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://code.google.com/p/pwm/
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<web-app id="PWM"
+         version="2.4"
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+    <display-name>PWM</display-name>
+    <description>Password Management Servlet</description>
+    <context-param>
+        <description>Explicit location of pwmServlet.properties file. Without a value, PWM will look for the
+            pwmServlet.properties file inside the servlet's WEB-INF directory.  The .properties extension should not
+            be part of the value.
+        </description>
+        <param-name>pwmConfigPath</param-name>
+        <param-value>pwmServlet</param-value>
+    </context-param>
+    <context-param>
+        <description>Percentage of time the wordlist populator should sleep every second.  Settings less than one will cause much cpu and disk access during load.  Lower settings cause faster populating, but more system load.</description>
+        <param-name>wordlistLoadFactor</param-name>
+        <param-value>50</param-value>
+    </context-param>
+    <context-param>
+        <description>If true, the wordlist will be treated as "case sensitive" for all matches. Changing this value will
+            cause the wordlist to be recompiled.
+        </description>
+        <param-name>wordlistCaseSensitive</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <description>Location of where to store the "pwm-db" directory. If the specified path is relative, the pwm-db
+            directory will be placed in the servlet's "META-INF" directory.
+        </description>
+        <param-name>pwmDbLocation</param-name>
+        <param-value>pwm-db</param-value>
+    </context-param>
+    <context-param>
+        <description>database implementation used by pwmDb, primarily for wordlist management. Default is embedded berekeley db.</description>
+        <param-name>pwmDbImplementation</param-name>
+        <param-value>password.pwm.util.db.Berkeley_PwmDb</param-value>
+        <!--<param-value>password.pwm.util.db.Derby_PwmDb</param-value>-->
+        <!--<param-value>password.pwm.util.db.JDBM_PwmDb</param-value>-->
+        <!--<param-value>password.pwm.util.db.Memory_PwmDb</param-value>-->
+    </context-param>
+    <context-param>
+        <description>value pased to the pwmDbImplementation class during initialization.</description>
+        <param-name>pwmDbInitString</param-name>
+        <param-value> </param-value>
+    </context-param>
+    <context-param>
+        <description><![CDATA[Values disallowed in all form inputs. Regex patterns seperated by three semi-colons ";;;". default list is:  html "<script>" tag ;;; XML document header ;;; LDAP search string ;;; SQL SELECT ;;; SQL UPDATE  ]]></description>
+        <param-name>disallowedInputs</param-name>
+        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*]]>;;;(?i)SELECT;;;(?i)UPDATE</param-value>
+    </context-param>
+    <context-param>
+        <description>If present, use the X-Forwarded-For HTTP header value as the client IP address instead of the src IP address of the connection.</description>
+        <param-name>useXForwardedFor</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <description>If true, allow sessions to be managed via parameter on URL when cookies are not enabled.</description>
+        <param-name>allowUrlSessions</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <description>attribute used as the naming attribute on ldap user entries. This value is also the first part of
+            the distinguished name. This must always be "cn" for eDirectory, even if a different attribute is used for
+            logging in.</description>
+        <param-name>ldapNamingAttribute</param-name>
+        <param-value>cn</param-value>
+    </context-param>
+    <context-param>
+        <description>force HTTP Basic Authentication.  If 'false', then the form page will be presented for
+            un-authenticated users, however if a basic auth header is present it will always be used.</description>
+        <param-name>forceBasicAuth</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <description>Mimimum time to wait while testing for password synchronization time (ms)</description>
+        <param-name>minimumPasswordSyncWaitTime</param-name>
+        <param-value>5000</param-value>
+    </context-param>
+    <context-param>
+        <description>Name of PWM instance.  If blank a persistent, randomly generated value will be used.</description>
+        <param-name>instanceID</param-name>
+        <param-value> </param-value>
+    </context-param>
+    <context-param>
+        <description>Use aggressive URL parsing for forwardURL and logoutURL parameters.  If true, all subsequent
+            parameters after forwardURL or continueURL will be merged as part of the value assuming the first parameter
+            is the location.</description>
+        <param-name>aggressiveUrlParsing</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <filter>
+        <filter-name>SessionFilter</filter-name>
+        <filter-class>password.pwm.SessionFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>CaptchaFilter</filter-name>
+        <filter-class>password.pwm.CaptchaFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>AuthenticationFilter</filter-name>
+        <filter-class>password.pwm.AuthenticationFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>AuthorizationFilter</filter-name>
+        <filter-class>password.pwm.AuthorizationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>/public/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CaptchaFilter</filter-name>
+        <url-pattern>/public/NewUser</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CaptchaFilter</filter-name>
+        <url-pattern>/public/ActivateUser</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CaptchaFilter</filter-name>
+        <url-pattern>/public/ForgottenPassword</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/public/ChangePassword</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthorizationFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <listener>
+        <listener-class>password.pwm.EventManager</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.LoginServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ChangePasswordServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ChangePasswordServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SetupResponsesServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.SetupResponsesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ForgottenPasswordServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ForgottenPasswordServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CommandServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.CommandServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DebugServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.DebugServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UserDebugServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.UserDebugServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>NewUserServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.NewUserServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ActivateUserServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ActivateUserServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateAttributesServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.UpdateAttributesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ShortcutServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ShortcutServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CaptchaServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.CaptchaServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ConfigManagerServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/private/Login</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/private/Logout</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/public/Logout</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ChangePasswordServlet</servlet-name>
+        <url-pattern>/private/ChangePassword</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ChangePasswordServlet</servlet-name>
+        <url-pattern>/public/ChangePassword</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SetupResponsesServlet</servlet-name>
+        <url-pattern>/private/SetupResponses</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ForgottenPasswordServlet</servlet-name>
+        <url-pattern>/public/ForgottenPassword</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CommandServlet</servlet-name>
+        <url-pattern>/public/CommandServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CommandServlet</servlet-name>
+        <url-pattern>/private/CommandServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DebugServlet</servlet-name>
+        <url-pattern>/admin/DebugServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UserDebugServlet</servlet-name>
+        <url-pattern>/admin/UserDebugServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>NewUserServlet</servlet-name>
+        <url-pattern>/public/NewUser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ActivateUserServlet</servlet-name>
+        <url-pattern>/public/ActivateUser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateAttributesServlet</servlet-name>
+        <url-pattern>/private/UpdateAttributes</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ShortcutServlet</servlet-name>
+        <url-pattern>/private/Shortcuts</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CaptchaServlet</servlet-name>
+        <url-pattern>/public/Captcha</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigManagerServlet</servlet-name>
+        <url-pattern>/public/ConfigManager</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>55</session-timeout>
+    </session-config>
+    <jsp-config>
+        <taglib>
+            <taglib-uri>pwm</taglib-uri>
+            <taglib-location>/WEB-INF/pwm-taglib.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+</web-app>

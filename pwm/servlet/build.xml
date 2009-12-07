@@ -1,0 +1,109 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://code.google.com/p/pwm/
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<project default="makeWAR">
+    <target name="init">
+        <property file="build.properties"/>
+
+        <echo>PWM Build Script</echo>
+        <echo> working directory: ${basedir}</echo>
+        <echo> </echo>
+        <echo>settings:</echo>
+        <echo> source root: ${src.root}</echo>
+        <echo> destination: ${destination}</echo>
+        <echo> destination war: ${destination.war}</echo>
+        <echo> build lib: ${build_lib}</echo>
+    </target>
+
+    <target name="all" depends="init,clean,javadoc,makeZIP">
+        <delete dir="${destination}"/>
+        <delete file="${destination.war}"/>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="${destination}"/>
+        <delete file="${destination.war}"/>
+    </target>
+
+    <target name="compileCode" depends="init">
+        <mkdir dir="${destination}/bin"/>
+        <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.5" source="1.5">
+            <classpath>
+                <fileset dir="${src.root}/web/WEB-INF/lib" includes="*.jar"/>
+                <fileset dir="${build_lib}" includes="*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="copyResources" depends="init">
+        <mkdir dir="${destination}/bin"/>
+        <copy todir="${destination}/bin">
+            <fileset dir="${src.root}/src" includes="**/*.properties"/>
+        </copy>
+    </target>
+
+    <target name="makeWAR" depends="compileCode,copyResources">
+        <war zipfile="${destination.war}" compress="false" webxml="${src.root}/web/WEB-INF/web.xml">
+            <zipfileset dir="${destination}/bin" prefix="WEB-INF/classes"/>
+            <zipfileset dir="${src.root}/web"/>
+        </war>
+    </target>
+
+    <target name="javadoc" depends="init">
+        <mkdir dir="${destination}/javadoc"/>
+        <javadoc packagenames="password.pwm.*"
+                 sourcepath="${src.root}/src"
+                 destdir="${destination}/javadoc"
+                 private="yes" source="1.5">
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+            <link href="http://java.sun.com/products/servlet/2.3/javadoc"/>
+            <link href="http://ldapchai.googlecode.com/svn/trunk/javadoc/"/>
+            <classpath>
+                <fileset dir="${src.root}/web/WEB-INF/lib" includes="*.jar"/>
+                <fileset dir="${build_lib}" includes="*.jar"/>
+            </classpath>
+        </javadoc>
+    </target>
+
+    <target name="makeZIP" depends="incrementBuild,makeWAR">
+        <zip zipfile="${destination}/pwm.zip" filesonly="true">
+            <zipfileset file="${destination.war}"/>
+            <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
+            <zipfileset dir="${src.root}/src" prefix="servlet/src"/>
+            <zipfileset dir="${src.root}/web" prefix="servlet/web"/>
+            <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
+            <zipfileset dir="${src.root}/../supplemental" prefix="supplemental"/>
+            <zipfileset dir="${src.root}/." includes="build.**" prefix="servlet"/>
+        </zip>
+    </target>
+
+    <target name="incrementBuild" depends="init">
+        <property name="buildFilename" value="${src.root}/src/password/pwm/BuildInformation.properties"/>
+        <propertyfile file="${buildFilename}">
+            <entry key="build.java.vendor" value="${java.vendor}"/>
+            <entry key="build.java.version" value="${java.version}"/>
+            <entry key="build.time" type="date" value="now" pattern="yyyy.MM.dd HH:mm:ss z"/>
+            <entry key="build.user" value="${user.name}"/>
+        </propertyfile>
+        <buildnumber file="${buildFilename}"/>
+        <echo>build number: ${build.number}</echo>
+    </target>
+</project>
