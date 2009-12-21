@@ -45,7 +45,7 @@ public class PwmDBLogger {
     private final static String KEY_HEAD_POSITION = "HEAD_POSITION";
     private final static String KEY_TAIL_POSITION = "TAIL_POSITION";
     private final static String KEY_VERSION = "VERSION";
-    private final static String VALUE_VERSION = "3";
+    private final static String VALUE_VERSION = "4";
 
     private final static PwmDB.DB META_DB = PwmDB.DB.EVENTLOG_META;
     private final static PwmDB.DB EVENT_DB = PwmDB.DB.EVENTLOG_EVENTS;
@@ -60,6 +60,7 @@ public class PwmDBLogger {
     private final static int CYCLE_INTERVAL_MS =  1007; // 1 second
     private final static int DB_WARN_THRESHOLD = MAX_WRITES_PER_CYCLE + MAX_REMOVALS_PER_CYCLE;
     private final static int MAX_QUEUE_SIZE = 50 * 1000;
+    private final static int STARTING_POSITION = -1;
 
     private final PwmDB pwmDB;
     private volatile int headPosition;
@@ -107,8 +108,8 @@ public class PwmDBLogger {
 
         checkVersion();
 
-        headPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_HEAD_POSITION), MAXIMUM_POSITION - 1000);
-        tailPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_TAIL_POSITION), MAXIMUM_POSITION - 1000);
+        headPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_HEAD_POSITION), STARTING_POSITION);
+        tailPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_TAIL_POSITION), STARTING_POSITION);
 
         tailTimestampMs = readTailTimestamp();
 
@@ -141,8 +142,8 @@ public class PwmDBLogger {
         pwmDB.truncate(EVENT_DB);
         pwmDB.truncate(META_DB);
 
-        headPosition = 0;
-        tailPosition = 0;
+        headPosition = STARTING_POSITION;
+        tailPosition = STARTING_POSITION;
         pwmDB.put(META_DB,KEY_HEAD_POSITION,String.valueOf(headPosition));
         pwmDB.put(META_DB,KEY_TAIL_POSITION,String.valueOf(tailPosition));
 
@@ -182,7 +183,7 @@ public class PwmDBLogger {
             final int realItemCount = pwmDB.size(EVENT_DB);
             final int observedDifference = Math.abs(figuredItemCount - realItemCount);
             if ( observedDifference > DB_WARN_THRESHOLD) {
-                LOGGER.warn("event count discrepency: pwmDb.count()=" + realItemCount + " figuredItemCount()=" + figureItemCount());
+                LOGGER.warn("event count discrepancy: pwmDb.count()=" + realItemCount + " figuredItemCount()=" + figureItemCount());
             }
         } catch (Exception e) {
             LOGGER.error("error verifying item count: " + e.getMessage());
@@ -242,7 +243,7 @@ public class PwmDBLogger {
             sb.append("stub: ").append(System.currentTimeMillis()).append(", ");
             final int descrLength = random.nextInt(1000);
             while (sb.length() < descrLength) {
-                sb.append(Long.toHexString(random.nextLong()).toUpperCase());
+                sb.append(Long.toHexString(random.nextLong()));
                 sb.append(" ");
             }
 
@@ -315,7 +316,7 @@ public class PwmDBLogger {
         try {
             for (final PwmLogEvent event : events) {
                 final String encodedString = event.toEncodedString();
-                transactions.put(String.valueOf(nextPosition),encodedString);
+                transactions.put(keyForPosition(nextPosition),encodedString);
                 nextPosition = figureNextPosition(nextPosition);
             }
 
@@ -392,7 +393,7 @@ public class PwmDBLogger {
         try {
             int nextTailPosition = tailPosition;
             while ((removalKeys.size() < count) && (removalKeys.size() <= MAX_REMOVALS_PER_CYCLE) && open) {
-                removalKeys.add(String.valueOf(nextTailPosition));
+                removalKeys.add(keyForPosition(nextTailPosition));
                 nextTailPosition = figureNextPosition(nextTailPosition);
             }
             if (open) {
@@ -486,7 +487,7 @@ public class PwmDBLogger {
 
     private PwmLogEvent readEvent(final int position) {
         try {
-            final String strValue = pwmDB.get(EVENT_DB, String.valueOf(position));
+            final String strValue = pwmDB.get(EVENT_DB, keyForPosition(position));
             if (strValue != null && strValue.length() > 0) {
                 return PwmLogEvent.fromEncodedString(strValue);
             }
@@ -586,6 +587,15 @@ public class PwmDBLogger {
                 eventQueue.add(event);
             }
         }
+    }
+
+    private static String keyForPosition(final int position) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(Integer.toHexString(position));
+        while (sb.length() < 8) {
+            sb.insert(0,"0");
+        }
+        return sb.toString().toUpperCase();
     }
 
 // -------------------------- INNER CLASSES --------------------------

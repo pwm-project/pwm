@@ -47,6 +47,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -73,20 +74,24 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ContextManager theManager = pwmSession.getContextManager();
         final ForgottenPasswordBean recoverServletBean = PwmSession.getForgottenPasswordBean(req);
 
-        if (recoverServletBean.getTheUser() != null) {
-            theManager.getIntruderManager().checkUser(recoverServletBean.getTheUser().getEntryDN(), pwmSession);
+        if (recoverServletBean.getProxiedUser() != null) {
+            theManager.getIntruderManager().checkUser(recoverServletBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
         final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
 
-        if (recoverServletBean.getTheUser() != null) {
-            theManager.getIntruderManager().checkUser(recoverServletBean.getTheUser().getEntryDN(), pwmSession);
+        if (recoverServletBean.getProxiedUser() != null) {
+            theManager.getIntruderManager().checkUser(recoverServletBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
         if (processRequestParam.equalsIgnoreCase("search")) {
             this.processSearch(req, resp);
         } else if (processRequestParam.equalsIgnoreCase("checkResponses")) {
             this.processCheckResponses(req, resp);
+        /*
+        } else if (processRequestParam.equalsIgnoreCase("forgottenCode")) {
+            this.processEnterForgottenCode(req, resp);
+        */
         } else if (recoverServletBean.isResponsesSatisfied() && processRequestParam.equalsIgnoreCase("selectUnlock")) {
             this.processUnlock(req,resp);
         } else if (recoverServletBean.isResponsesSatisfied() && processRequestParam.equalsIgnoreCase("selectResetPassword")) {
@@ -118,9 +123,58 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, theManager.getProxyChaiProvider());
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, theManager.getProxyChaiProvider());
 
-        // retreive the responses for the user from ldap
+        // write a token to the user entry.
+        /* {
+            final String token = generateRecoverCode();
+            final String attributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLANGE_TOKEN_ATTRIBUTE);
+            try {
+                proxiedUser.writeStringAttribute(attributeName, token);
+                LOGGER.debug("wrote forgotten password token to user " + proxiedUser.getEntryDN());
+            } catch (ChaiOperationException e) {
+                LOGGER.error("error writing forgotten password token to user " + proxiedUser.getEntryDN() + ", " + e.getMessage());
+            }
+        } */
+
+        if (checkIfUserHasValidResponses(pwmSession, proxiedUser, forgottenPasswordBean)) {
+            this.forwardToResponsesJSP(req, resp);
+            return;
+        }
+
+        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_RESPONSES_NORESPONSES));
+        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        this.forwardToSearchJSP(req, resp);
+    }
+
+    /*
+    private void processEnterForgottenCode(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ChaiUnavailableException, PwmException, IOException, ServletException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
+
+        final String recoverCode = Validator.readStringFromRequest(req, "code", 256);
+
+        final ChaiUser proxiedUser = forgottenPasswordBean.getProxiedUser();
+
+        final boolean codeIsCorrect = testRecoverCode(pwmSession, proxiedUser, recoverCode);
+
+        if (codeIsCorrect) {
+            this.forwardToResponsesJSP(req, resp);
+            return;
+        }
+
+        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_RESPONSES_NORESPONSES));
+        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        this.forwardToEnterCodeJSP(req, resp);
+    }
+    */
+
+    private static boolean checkIfUserHasValidResponses(final PwmSession pwmSession, final ChaiUser theUser, final ForgottenPasswordBean forgottenPasswordBean)
+            throws ChaiUnavailableException
+    {
+        // retrieve the responses for the user from ldap
         final ResponseSet responseSet = PasswordUtility.readUserResponseSet(pwmSession, theUser);
 
         if (responseSet != null) {
@@ -141,24 +195,24 @@ public class ForgottenPasswordServlet extends TopServlet {
                     if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
                         forgottenPasswordBean.setChallengeSet(challengeSet);
                         forgottenPasswordBean.setResponseSet(responseSet);
-                        forgottenPasswordBean.setTheUser(theUser);
-                        this.forwardToResponsesJSP(req, resp);
-                        return;
+                        forgottenPasswordBean.setProxiedUser(theUser);
+                        return true;
                     } else {
-                        LOGGER.info(pwmSession, "configured challenge set policy for " + usernameParam + " is empty, user not qualified to recover password");
+                        LOGGER.info(pwmSession, "configured challenge set policy for " + theUser.getEntryDN() + " is empty, user not qualified to recover password");
                     }
                 }
             } catch(ChaiValidationException e){
-                LOGGER.error(pwmSession, "stored response set for user '" + userDN + "' do not meet current challenge set requirements: " + e.getLocalizedMessage());
+                LOGGER.error(pwmSession, "stored response set for user '" + theUser.getEntryDN() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage());
             }
         } else {
-            LOGGER.info(pwmSession, "could not find a response set for " + usernameParam);
+            LOGGER.info(pwmSession, "could not find a response set for " + theUser.getEntryDN()
+            );
         }
 
-        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_RESPONSES_NORESPONSES));
-
-        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
-        this.forwardToSearchJSP(req, resp);
+        forgottenPasswordBean.setChallengeSet(null);
+        forgottenPasswordBean.setResponseSet(null);
+        forgottenPasswordBean.setProxiedUser(null);
+        return false;
     }
 
     private void forwardToResponsesJSP(
@@ -178,7 +232,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+        final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
 
         if (theUser == null) {
             this.forwardToSearchJSP(req, resp);
@@ -187,7 +241,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         try {
             // validate the required ldap attributes (throws validation exception if incorrect attributes)
-            validateRequredAttributes(theUser, req, pwmSession);
+            validateRequiredAttributes(theUser, req, pwmSession);
 
             // note the recovery attempt to the statistics manager
             theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.RECOVERY_ATTEMPTS);
@@ -236,7 +290,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
-        theManager.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getTheUser().getEntryDN(), pwmSession);
+        theManager.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         this.forwardToResponsesJSP(req, resp);
     }
@@ -248,7 +302,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
         if (forgottenPasswordBean.isResponsesSatisfied()) {
-            final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+            final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
             try {
                 theUser.unlock();
                 pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_UNLOCK_ACCOUNT));
@@ -275,7 +329,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 return;
             }
 
-            final ChaiUser theUser = forgottenPasswordBean.getTheUser();
+            final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
 
             AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
 
@@ -329,7 +383,16 @@ public class ForgottenPasswordServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_RECOVER_PASSWORD_CHOICE).forward(req, resp);
     }
 
-    private void validateRequredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
+    private void forwardToEnterCodeJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+    {
+        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_RECOVER_PASSWORD_ENTER_CODE).forward(req, resp);
+    }
+
+    private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
             throws ChaiUnavailableException, ValidationException
     {
         final Map<String, ParameterConfig> paramConfigs = pwmSession.getLocaleConfig().getChallengeRequiredAttributes();
@@ -353,6 +416,76 @@ public class ForgottenPasswordServlet extends TopServlet {
                 throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_WRONGANSWER, "ldap error testing value for '" + attrName + "'",attrName));
             }
         }
+    }
+
+    public static String generateRecoverCode() {
+        final String RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        final PwmRandom RANDOM = PwmRandom.getInstance();
+        final long currentTime = System.currentTimeMillis();
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append(Long.toHexString(currentTime).toUpperCase());
+
+        while (sb.length() < 12) {
+            sb.insert(0, "0");
+        }
+
+        for (int i = 0; i < 32; i++) {
+            sb.insert(0,(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length()))));
+        }
+
+        return sb.toString().toUpperCase();
+    }
+
+    /*
+    public static boolean testRecoverCode(final PwmSession pwmSession, final ChaiUser proxedUser, final String recoverCode)
+            throws ChaiUnavailableException
+    {
+        if (recoverCode == null || recoverCode.length() != 12 + 32){
+            return false;
+        }
+
+        // read directory value
+        final String storedCode;
+        try {
+            storedCode = proxedUser.readStringAttribute(pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLANGE_TOKEN_ATTRIBUTE));
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmSession,"error reading recover key from directory: " + e.getMessage());
+            return false;
+        }
+
+        // test for match
+        if (!recoverCode.equals(storedCode)) {
+            LOGGER.debug(pwmSession,"user supplied and stored recovery codes do not match");
+        }
+
+        final String timeStampStr = recoverCode.substring(32, 12 + 32);
+        final long timeStampLng;
+        try {
+            timeStampLng = parseUnsignedLong(timeStampStr);
+        } catch (Exception e) {
+            LOGGER.error(pwmSession,"unexpected error determining timestamp of recover key: " + e.getMessage());
+            return false;
+        }
+
+
+        final long maxTokenAgeMs = pwmSession.getConfig().readSettingAsInt(PwmSetting.CHALLANGE_TOKEN_MAX_AGE) * 1000;
+        if (TimeDuration.fromCurrent(timeStampLng).isLongerThan(maxTokenAgeMs)) {
+            LOGGER.debug(pwmSession,"recovery code is too old for match");
+            return false;
+
+        }
+
+        return true;
+    }
+    */
+
+    private static long parseUnsignedLong(final String s) throws NumberFormatException {
+        final BigInteger maxUnsignedLong = new BigInteger(new byte[]{1, 0, 0, 0, 0, 0, 0, 0, 0});
+        final BigInteger big = new BigInteger(s, 16);
+        if (big.compareTo(BigInteger.ZERO) < 0 || big.compareTo(maxUnsignedLong) >= 0)
+            throw new NumberFormatException();
+        return big.longValue();
     }
 }
 

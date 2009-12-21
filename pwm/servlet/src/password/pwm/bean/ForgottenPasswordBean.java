@@ -33,10 +33,10 @@ import java.io.Serializable;
 public class ForgottenPasswordBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private transient ChaiUser theUser;
+    private transient ChaiUser proxiedUser;
     private transient ResponseSet responseSet;
     private ChallengeSet challengeSet;
-    private boolean responsesSatisfied; 
+    private boolean responsesSatisfied;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -48,12 +48,12 @@ public class ForgottenPasswordBean implements Serializable {
         this.responseSet = responseSet;
     }
 
-    public ChaiUser getTheUser() {
-        return theUser;
+    public ChaiUser getProxiedUser() {
+        return proxiedUser;
     }
 
-    public void setTheUser(ChaiUser theUser) {
-        this.theUser = theUser;
+    public void setProxiedUser(ChaiUser proxiedUser) {
+        this.proxiedUser = proxiedUser;
     }
 
     public boolean isResponsesSatisfied() {

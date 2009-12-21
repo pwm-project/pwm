@@ -282,7 +282,13 @@ public enum PwmSetting {
             "challenge.applyWorldlist", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
     CHALLANGE_SHOW_CONFIRMATION(
             "challenge.showConfirmation", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
-
+    /*
+    CHALLANGE_TOKEN_ATTRIBUTE(
+            "challenge.tokenAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
+    CHALLANGE_TOKEN_MAX_AGE(
+            "challenge.tokenMaxAge", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.RECOVERY),
+    */
+    
     // new user settings
     ENABLE_NEW_USER(
             "newUser.enable", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.NEWUSER),
@@ -322,11 +328,7 @@ public enum PwmSetting {
     CAPTCHA_SKIP_PARAM(
             "captcha.skip.param", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA),
     CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA),
-
-
-
-    ;
+            "captcha.skip.cookie", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA);
 
 
 

@@ -23,7 +23,7 @@
 // PWM Change Password JavaScript.
 // 
 
-var SETTING_SHOW_CHECKING_TIMEOUT = 1000;    // show "please wait, checking" if response not received in this time (ms)
+var SETTING_SHOW_CHECKING_TIMEOUT = 1500;    // show "please wait, checking" if response not received in this time (ms)
 
 var passwordsMasked = true;
 var previousP1 = "";

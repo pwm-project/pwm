@@ -49,7 +49,7 @@ public class UserInfoTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
+            throws JspTagException
     {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();

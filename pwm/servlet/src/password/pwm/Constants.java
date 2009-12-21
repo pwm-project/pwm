@@ -68,6 +68,7 @@ public abstract class Constants {
     public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "jsp/forgottenpassword-search.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "jsp/forgottenpassword-responses.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_CHOICE = "jsp/forgottenpassword-choice.jsp";
+    public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "jsp/forgottenpassword-entercode.jsp";
     public static final String URL_JSP_ACTIVATE_USER = "jsp/activateuser.jsp";
     public static final String URL_JSP_UPDATE_ATTRIBUTES = "jsp/updateattributes.jsp";
     public static final String URL_JSP_NEW_USER = "jsp/newuser.jsp";
@@ -111,7 +112,7 @@ public abstract class Constants {
             "chance of password=password? 92%",
             "from the next-time-just-phone-it-in dept",
             "this header contains 100% genuine nougat",
-            "are passwords really neccessary?  can't we all just get along?",
+            "are passwords really necessary?  can't we all just get along?",
             "That's amazing! I've got the same combination on my luggage!",
             "just because it looks plaintext doesn't mean there isn't a steganographic 1024bit AES key",
             "whatever happened to speech wreck a nation technology?",     // thx wk

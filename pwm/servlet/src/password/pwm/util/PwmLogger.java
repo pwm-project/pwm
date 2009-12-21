@@ -169,21 +169,23 @@ public class PwmLogger {
             case WARN:
                 log4jLogger.warn(wrapWithSessionInfo(pwmSession, message.toString()), e);
                 break;
+            case FATAL:
+                log4jLogger.fatal(wrapWithSessionInfo(pwmSession, message.toString()), e);
+                break;
         }
 
-            if (pwmDBLogger != null) {
-                final PwmLogEvent logEvent = new PwmLogEvent(
-                        new Date(),
-                        this.getName(),
-                        message.toString(),
-                        makeSrcString(pwmSession),
-                        makeActorString(pwmSession),
-                        e,
-                        level
-                );
-                pwmDBLogger.writeEvent(logEvent);
-            }
-
+        if (pwmDBLogger != null) {
+            final PwmLogEvent logEvent = new PwmLogEvent(
+                    new Date(),
+                    this.getName(),
+                    message.toString(),
+                    makeSrcString(pwmSession),
+                    makeActorString(pwmSession),
+                    e,
+                    level
+            );
+            pwmDBLogger.writeEvent(logEvent);
+        }
     }
 
 
