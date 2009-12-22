@@ -41,6 +41,7 @@ public class DisplayTag extends PwmAbstractTag {
     private String key;
     private String value1;
     private String value2;
+    private boolean displayIfMissing;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -74,7 +75,15 @@ public class DisplayTag extends PwmAbstractTag {
         this.value2 = value1;
     }
 
-// ------------------------ INTERFACE METHODS ------------------------
+    public boolean isDisplayIfMissing() {
+        return displayIfMissing;
+    }
+
+    public void setDisplayIfMissing(boolean displayIfMissing) {
+        this.displayIfMissing = displayIfMissing;
+    }
+
+    // ------------------------ INTERFACE METHODS ------------------------
 
 
 // --------------------- Interface Tag ---------------------
@@ -120,13 +129,17 @@ public class DisplayTag extends PwmAbstractTag {
 
                 return displayMessage;
             } else {
-                LOGGER.info("no value for: " + key);
+                if (!displayIfMissing) {
+                    LOGGER.info("no value for: " + key);
+                }
             }
         } catch (MissingResourceException e) {
-            LOGGER.info("error while executing jsp display tag: " + e.getMessage());
+            if (!displayIfMissing) {
+                LOGGER.info("error while executing jsp display tag: " + e.getMessage());
+            }
         }
 
-        return "";
+        return displayIfMissing ? key : "";
     }
 }
 

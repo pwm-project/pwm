@@ -34,14 +34,7 @@
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext">PWM Intruder Lockouts<br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
-    <div id="centerbody">
-        <br class="clear"/>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Intruder Lockouts"/></jsp:include>
 </div>
 <br class="clear"/>
 <table>

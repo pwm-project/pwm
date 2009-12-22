@@ -38,18 +38,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
+
 <div id="wrapper">
-<div id="header">
-    <p class="logotext">PWM Servlet Status<br/>
-        <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-    </p>
-</div>
+<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
 <br class="clear"/>
 <table>
     <tr>
         <td colspan="10" class="title">
-            PWM Servlet Status
+            PWM Status
         </td>
     </tr>
     <tr>

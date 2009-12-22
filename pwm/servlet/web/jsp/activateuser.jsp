@@ -29,11 +29,7 @@
 <%@ include file="header.jsp" %>
 <body onload="document.forms.activateUser.elements[0].focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_ActivateUser"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ActivateUser"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ActivateUser"/></p>
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"

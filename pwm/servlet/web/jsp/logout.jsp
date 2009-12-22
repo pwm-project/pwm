@@ -29,14 +29,9 @@
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_Logout"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Logout"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Logout"/></p>
-
         <%  //check to see if there is an error
             if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
         %>

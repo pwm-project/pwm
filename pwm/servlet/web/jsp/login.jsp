@@ -29,15 +29,11 @@
 <%@ include file="header.jsp" %>
 <body onload="if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_Login"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Login"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-                onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" autocomplete="off">
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" autocomplete="off">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>

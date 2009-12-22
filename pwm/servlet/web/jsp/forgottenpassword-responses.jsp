@@ -40,11 +40,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <body onload="startupPage(true); document.forms.responseForm.elements[0].focus();" onunload="unloadHandler();">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_RecoverPassword"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_RecoverPassword"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"

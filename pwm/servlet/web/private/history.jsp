@@ -38,11 +38,7 @@
 %>
 }
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_UserEventHistory"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_UserEventHistory"/></jsp:include>
     <div id="centerbody">
         <% final String timeZone = (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName(); %>
         <p><pwm:Display key="Display_UserEventHistory" value1="<%= timeZone %>"/></p>

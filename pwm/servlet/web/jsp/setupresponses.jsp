@@ -40,11 +40,7 @@
 <%@ include file="header.jsp" %>
 <body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_SetupResponses"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"

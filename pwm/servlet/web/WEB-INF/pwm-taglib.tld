@@ -134,7 +134,7 @@
         <attribute>
             <name>key</name>
             <required>true</required>
-            <rtexprvalue>false</rtexprvalue>
+            <rtexprvalue>true</rtexprvalue>
         </attribute>
         <attribute>
             <name>bundle</name>
@@ -151,12 +151,16 @@
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
+        <attribute>
+            <name>displayIfMissing</name>
+            <required>false</required>
+        </attribute>
     </tag>
     <tag>
         <name>LdapValue</name>
         <tag-class>password.pwm.tag.LdapValueTag</tag-class>
         <body-content>empty</body-content>
-        <description>Retreives the attribute value for the user from ldap</description>
+        <description>Retrieves the attribute value for the user from ldap</description>
         <attribute>
             <name>name</name>
             <required>true</required>

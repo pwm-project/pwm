@@ -28,11 +28,7 @@
 <%@ include file="header.jsp" %>
 <body onload="document.forms.updateAttributes.elements[0].focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_UpdateAttributes"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_UpdateAttributes"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_UpdateAttributes"/></p>
         <form action="<pwm:url url='UpdateAttributes'/>" method="post" name="updateAttributes"

@@ -89,7 +89,7 @@ public enum PwmSetting {
     LDAP_PROXY_USER_PASSWORD(
             "ldapProxyPassword", true, Syntax.PASSWORD, Static.STRING_VALUE_HELPER, false, Category.LDAP),
     LDAP_PROMISCUOUS_SSL(
-            "ldapPromiscuousSSL", true, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.LDAP),
+            "ldapPromiscuousSSL", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.LDAP),
     LDAP_TIMEOUT(
             "ldapTimeout", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LDAP),
     LDAP_CONTEXTLESS_ROOT(

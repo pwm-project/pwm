@@ -28,11 +28,7 @@
 <%@ include file="header.jsp" %>
 <body onload="document.forms.newUser.elements[0].focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_NewUser"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_NewUser"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_NewUser"/></p>
         <form action="<pwm:url url='NewUser'/>" method="post" name= "newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"

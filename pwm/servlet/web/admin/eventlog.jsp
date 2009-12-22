@@ -39,11 +39,7 @@
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
 <body onunload="unloadHandler();">
 <div id="wrapper" style="width: 900px; margin-left: auto; margin-right: auto">
-    <div id="header" style="width: 600px; margin-left: auto; margin-right: auto">
-        <p class="logotext">PWM Event Log<br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
     <div id="centerbody">
         <p>
             This page shows PWM debug log

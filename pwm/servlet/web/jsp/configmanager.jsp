@@ -34,14 +34,9 @@
 <%@ include file="header.jsp" %>
 <body>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
     <form action="<pwm:url url='ConfigManager'/>" method="post" name="configManager" enctype="application/x-www-form-urlencoded"
           onsubmit="" onreset="handleFormClear();">
-
-        <div id="header">
-            <p class="logotext">PWM Configuration Settings<br/>
-                <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-            </p>
-        </div>
         <div id="centerbody">
             PWM Configurations are controlled by the configuration file <i>pwm-configuration.xml</i>.  This
             page can be used to edit the contents of that file.  You can input an existing <i>pwm-configratuion.xml</i>

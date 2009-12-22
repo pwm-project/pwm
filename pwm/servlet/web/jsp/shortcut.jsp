@@ -31,11 +31,7 @@
 <body onunload="unloadHandler();">
 <% final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)session.getAttribute(password.pwm.Constants.SESSION_ATTR_SHORTCUTS);  %>
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_Shortcuts"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Shortcuts"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Shortcuts"/></p>
         <%  //check to see if there is an error

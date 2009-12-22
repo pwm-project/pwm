@@ -23,8 +23,8 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.lang.reflect.Method" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
-<%@ page import="password.pwm.PwmSession" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -36,62 +36,56 @@
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext">PWM Configuration Settings<br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
     <div id="centerbody">
         <br class="clear"/>
     </div>
+    <p>
+        Configuration load time <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfigReader().getLoadTime())) %>
+    </p>
+    <ol>
+        <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
+        <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
+        <% } %>
+        <li><a href="#locale-specifc">Locale-Specific Configuration Settings</a></li>
+    </ol>
+    <%
+        for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
+            final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
+    %>
     <table>
         <tr>
             <td class="title" colspan="10">
-                PWM Configuration Settings
+                <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %></a>
             </td>
         </tr>
+        <%  for (final PwmSetting loopSetting : loopSettings) { %>
         <tr>
-            <td class="key">
-                Configuration Load Time
+            <td class="key" style="width:100px; text-align:center;">
+                <%= loopSetting.getLabel(request.getLocale()) %>
             </td>
-            <td colspan="3">
-                <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfigReader().getLoadTime())) %>
+            <td>
+                <%= loopSetting.isConfidential() ? "* not shown *" : pwmConfig.toString(loopSetting) %>
             </td>
         </tr>
-
-        <%
-            for (final PwmSetting s : PwmSetting.values()) {
-                if (!s.isConfidential()) {
-        %>
-        <tr><td class="key">
-            <%= s.getKey() %>
-        </td><td colspan="3">
-            <%= pwmConfig.toString(s) %>
-        </td></tr>
-        <%
-                }
-            }
-        %>
-        <tr><td class="key">
-            Global Password Policy
-        </td><td colspan="3">
-            <%= pwmConfig.getGlobalPasswordPolicy() %>
-        </td></tr>
-
+        <% } %>
     </table>
     <br class="clear"/>
-    <p>
-        Below are settings for each of the local-specific configuration options in eachlocale
-        that has either been used to access PWM. If a specific configured locale does not list
-        here, access PWM with a browser configured for that locale.
-    </p>
+    <% } %>
+    <br class="clear"/>
     <% for (final Locale loopLocale : ContextManager.getContextManager(session).getConfigReader().getCurrentlyLoadedLocales()) { %>
     <br class="clear"/>
     <table class="tablemain">
         <tr>
             <td class="title" colspan="10">
-                Locale-Specific Configuration Settings for <b><%= loopLocale %>
-            </b>
+                <a name="locale-specifc">Locale-Specific Configuration Settings for "<%= loopLocale %>"</a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="10">
+                Below are settings for each of the local-specific configuration options in each locale
+                that has been used to access PWM. If a specific configured locale does not list
+                here, access PWM with a browser configured for that locale.
             </td>
         </tr>
         <%

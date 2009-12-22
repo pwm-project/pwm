@@ -29,11 +29,7 @@
 <%@ include file="header.jsp" %>
 <body onload="document.forms.verifyCaptcha.recaptcha_response_field.focus();"  onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_Captcha"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Captcha"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Captcha"/></p>
         <%  //check to see if there is an error

@@ -28,11 +28,7 @@
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_Error"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Error"/></jsp:include>
     <div id="centerbody">
         <span id="error_msg" class="msg-error">
             <pwm:ErrorMessage/>

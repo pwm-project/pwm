@@ -40,11 +40,7 @@
 <%@ include file="header.jsp" %>
 <body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_ConfirmResponses"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ConfirmResponses"/></p>
         <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show

@@ -28,15 +28,15 @@
                 out.write(" - ");
                 out.write(userField);
             }
-          %>
+        %>
     </title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="viewport" content="width=320, user-scalable=no">
     <link rel="icon" type="image/vnd.microsoft.icon" href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>" />
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
-            rel="stylesheet" type="text/css" media="screen"/>
+          rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)"
-            href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
+          href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
     <script type="text/javascript"
             src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
 </head>

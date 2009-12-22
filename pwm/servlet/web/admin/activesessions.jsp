@@ -37,11 +37,7 @@
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper" style="width: 900px;">
-    <div id="header" style="width: 600px; margin-left: 150px; margin-right: 150px;">
-        <p class="logotext">PWM Active Sessions<br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
 </div>
 <br class="clear"/>
 <table>

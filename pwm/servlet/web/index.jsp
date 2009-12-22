@@ -28,11 +28,7 @@
 <jsp:include page="jsp/header.jsp"/>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="APPLICATION-TITLE"/><br/>
-            <span class="logotext2"> </span>
-        </p>
-    </div>
+    <jsp:include page="jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/></jsp:include>
     <div id="content">
         <div id="centerbody">
             <p>Password self-service main menu.  From here you can change your current password, reset a forgotten password, or perform other related password activities.</p>

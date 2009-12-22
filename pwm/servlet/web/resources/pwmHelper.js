@@ -22,11 +22,13 @@
 var AJAX_TYPE_DELAY_MS = 500;
 
 function unloadHandler() {
+    /*
     var unloadPageURL = getObject("Js_CommandURL").value + "?processAction=pageUnload";
     var xmlhttp = createXmlHttpObject();
     xmlhttp.abort();
     xmlhttp.open("POST", unloadPageURL, true);
     xmlhttp.send(null);
+    */
 }
 
 function handleFormSubmit(buttonID) {

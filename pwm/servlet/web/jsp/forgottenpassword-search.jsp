@@ -27,11 +27,7 @@
 <%@ include file="header.jsp" %>
 <body onload="getObject('username').focus();" onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_ForgottenPassword"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ForgottenPassword"/></p>
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" autocomplete="off"

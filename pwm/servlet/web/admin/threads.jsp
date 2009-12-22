@@ -28,15 +28,10 @@
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext">Java Threads<br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
     <div id="centerbody">
         Java threads as reported by the Java virtual machine.
     </div>
-
 </div>
 <table class="tablemain">
     <tr>

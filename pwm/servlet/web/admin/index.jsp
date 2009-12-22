@@ -28,15 +28,10 @@
 <jsp:include page="../jsp/header.jsp"/>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="APPLICATION-TITLE"/><br/>
-            <span class="logotext2">Password Management Servlet (PWM) <%= password.pwm.Constants.SERVLET_VERSION %></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Password Management Servlet (PWM)"/></jsp:include>
     <div id="content">
         <div id="centerbody">
-            <p>This servlet provides password management functions for end users and administrators.</p>
-            <p>This index page and other pages can be customized (or removed) by editing the index.jsp files.</p>
+            <p>PWM Version <%=password.pwm.Constants.SERVLET_VERSION %></p>
 
             <h1>Administrator Functions</h1>
 

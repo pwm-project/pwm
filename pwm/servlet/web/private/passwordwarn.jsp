@@ -33,11 +33,7 @@
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <div id="header">
-        <p class="logotext"><pwm:Display key="Title_PasswordWarning"/><br/>
-            <span class="logotext2"><pwm:Display key="APPLICATION-TITLE"/></span>
-        </p>
-    </div>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_PasswordWarning"/></jsp:include>
     <div id="centerbody">
         <p>
             <pwm:Display key="Display_PasswordWarn" value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>

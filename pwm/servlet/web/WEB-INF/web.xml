@@ -288,7 +288,7 @@
         <url-pattern>/public/ConfigManager</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>55</session-timeout>
+        <session-timeout>5</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>
