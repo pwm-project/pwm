@@ -59,7 +59,7 @@
             <hr/>
 
             <h2><a href="admin" class="tablekey">Admin</a></h2>
-            <p>PWM Administrator functions</p>
+            <p>PWM administrative functions</p>
 
             <hr/>
 

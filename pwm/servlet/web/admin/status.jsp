@@ -160,11 +160,8 @@
                 <%= contextManager.getPwmSessions().size() %>
             </a>
         </td>
-        <td class="key">
-            Active LDAP Connections
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS) %>
+        <td colspan="2">
+            &nbsp;
         </td>
     </tr>
 </table>

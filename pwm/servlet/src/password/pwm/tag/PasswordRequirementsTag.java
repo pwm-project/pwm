@@ -166,15 +166,13 @@ public class PasswordRequirementsTag extends TagSupport
             returnValues.add(getLocalString(Message.REQUIREMENT_MINUNIQUE, value, locale));
         }
 
-        List setValue = ruleHelper.getDisallowedValues();
+        List<String> setValue = ruleHelper.getDisallowedValues();
         if (!setValue.isEmpty()) {
             final StringBuilder fieldValue = new StringBuilder();
-            for (Iterator iter = setValue.iterator(); iter.hasNext();) {
-                final String loopValue = (String) iter.next();
-                fieldValue.append("\"").append(loopValue).append("\"");
-                if (iter.hasNext()) fieldValue.append(", ");
+            for (final String loopValue : setValue) {
+                fieldValue.append(" ");
+                fieldValue.append(loopValue);
             }
-
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale));
         }
 

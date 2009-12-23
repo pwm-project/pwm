@@ -70,6 +70,7 @@ public enum Message {
     PASSWORD_TOO_MANY_OLD_CHARS("Password_TooManyOldChars",null),
     PASSWORD_HISTORY_FULL("Password_HistoryFull",null),
     PASSWORD_TOO_SOON("Password_TooSoon",null),
+    PASSWORD_USING_DISALLOWED_VALUE("Password_UsingDisallowedValue",null),
 
     ERROR_WRONGPASSWORD("Error_WrongPassword",null),
     ERROR_WRONGANSWER("Error_WrongAnswer",null),

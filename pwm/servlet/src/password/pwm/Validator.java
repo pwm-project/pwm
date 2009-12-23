@@ -588,16 +588,15 @@ public class Validator {
 
         // check against disallowed values;
         if (!ruleHelper.getDisallowedValues().isEmpty()) {
-            final Set paramValues = new HashSet<String>(ruleHelper.getDisallowedValues());
+            final String lcasePwd = password.toLowerCase();
+            final Set<String> paramValues = new HashSet<String>(ruleHelper.getDisallowedValues());
 
-            for (final Object paramValue : paramValues) {
-                final String value = (String) paramValue;
-                if (value.length() > 3) {
-                    if (password.toLowerCase().indexOf(value.toLowerCase()) != -1) {
-                        errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST));
+            for (final String loopValue : paramValues) {
+                if (loopValue != null && loopValue.length() > 0) {
+                    final String loweredLoop = loopValue.toLowerCase();
+                    if (lcasePwd.contains(loweredLoop)) {
+                        errorList.add(new ErrorInformation(Message.PASSWORD_USING_DISALLOWED_VALUE));
                     }
-                } else if (value.equalsIgnoreCase(password)) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST));
                 }
             }
         }
