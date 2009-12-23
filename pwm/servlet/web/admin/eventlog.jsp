@@ -38,8 +38,8 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
 <body onunload="unloadHandler();">
+<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
 <div id="wrapper" style="width: 900px; margin-left: auto; margin-right: auto">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
     <div id="centerbody">
         <p>
             This page shows PWM debug log

@@ -36,9 +36,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<div id="wrapper" style="width: 900px;">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
-</div>
+<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
 <br class="clear"/>
 <table>
     <tr>

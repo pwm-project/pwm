@@ -88,7 +88,6 @@
             <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
             <zipfileset dir="${src.root}/src" prefix="servlet/src"/>
             <zipfileset dir="${src.root}/web" prefix="servlet/web"/>
-            <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
             <zipfileset dir="${src.root}/../supplemental" prefix="supplemental"/>
             <zipfileset dir="${src.root}/." includes="build.**" prefix="servlet"/>
         </zip>

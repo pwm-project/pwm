@@ -39,8 +39,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
+<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ConfirmResponses"/></p>
         <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show

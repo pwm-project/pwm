@@ -38,9 +38,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-
-<div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
+<div id="wrapper">
 <div id="centerbody">
 <br class="clear"/>
 <table>

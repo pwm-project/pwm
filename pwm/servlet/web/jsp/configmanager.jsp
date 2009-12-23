@@ -33,8 +33,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body>
+<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
     <form action="<pwm:url url='ConfigManager'/>" method="post" name="configManager" enctype="application/x-www-form-urlencoded"
           onsubmit="" onreset="handleFormClear();">
         <div id="centerbody">

@@ -28,8 +28,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }" onunload="unloadHandler();">
+<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Login"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"

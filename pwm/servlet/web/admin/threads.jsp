@@ -27,8 +27,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
+<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
     <div id="centerbody">
         Java threads as reported by the Java virtual machine.
     </div>

@@ -27,8 +27,8 @@
 <meta http-equiv="refresh" content="0;url='<pwm:url url="<%=PwmSession.getSessionStateBean(session).getPostWaitURL()%>"/>'">
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
+<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_PleaseWait"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_PleaseWait"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_PleaseWaitBody"/></p>
         <%  //check to see if there is an error

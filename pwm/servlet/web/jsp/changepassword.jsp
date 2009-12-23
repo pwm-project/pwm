@@ -27,8 +27,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="startupPage(); getObject('password1').focus();" onunload="unloadHandler();" onunload="unloadHandler();">
+<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ChangePassword"/></jsp:include>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ChangePassword"/></jsp:include>
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:Display key="Display_PasswordExpired"/></h1>
