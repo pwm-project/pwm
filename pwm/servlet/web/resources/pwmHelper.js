@@ -23,12 +23,30 @@ var AJAX_TYPE_DELAY_MS = 500;
 
 function unloadHandler() {
     /*
-    var unloadPageURL = getObject("Js_CommandURL").value + "?processAction=pageUnload";
-    var xmlhttp = createXmlHttpObject();
-    xmlhttp.abort();
-    xmlhttp.open("POST", unloadPageURL, true);
-    xmlhttp.send(null);
-    */
+     var unloadPageURL = getObject("Js_CommandURL").value + "?processAction=pageUnload";
+     var xmlhttp = createXmlHttpObject();
+     xmlhttp.abort();
+     xmlhttp.open("POST", unloadPageURL, true);
+     xmlhttp.send(null);
+     */
+}
+
+
+function checkForCapsLock(e) {
+    var capsLockWarningElement = getObject('capslockwarning');
+    if (capsLockWarningElement == null) {
+        return;
+    }
+
+    var kc = e.keyCode?e.keyCode:e.which;
+    var sk = e.shiftKey?e.shiftKey:((kc == 16));
+    if(((kc >= 65 && kc <= 90) && !sk)||((kc >= 97 && kc <= 122) && sk)) {
+        if (e.target.type == 'password') {
+            capsLockWarningElement.style.visibility = 'visible';
+        }
+    } else {
+        capsLockWarningElement.style.visibility = 'hidden';
+    }
 }
 
 function handleFormSubmit(buttonID) {
@@ -141,6 +159,7 @@ function changeInputTypeField(object,type){
     if(object.onclick) newObject.onclick = object.onclick;
     if(object.onkeyup) newObject.onkeyup = object.onkeyup;
     if(object.onkeydown) newObject.onkeydown = object.onkeydown;
+    if(object.onkeypress) newObject.onkeypress = object.onkeypress;
     if(object.disabled) newObject.disabled = object.disabled;
     if(object.readonly) newObject.readonly = object.readonly;
 
@@ -176,7 +195,7 @@ function doAjaxRequest(requestorState, key)
         requestorState.busy = true;
 
         setTimeout(function() {processAjaxRequest(requestorState, key);}, AJAX_TYPE_DELAY_MS);
-     }
+    }
 }
 
 function processAjaxRequest(requestorState, key)

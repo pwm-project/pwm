@@ -30,8 +30,8 @@
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
 <% final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)session.getAttribute(password.pwm.Constants.SESSION_ATTR_SHORTCUTS);  %>
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Shortcuts"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Shortcuts"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Shortcuts"/></p>
         <%  //check to see if there is an error

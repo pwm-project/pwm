@@ -28,12 +28,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }" onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Login"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" autocomplete="off">
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" autocomplete="off" onkeypress="checkForCapsLock(event);">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -54,9 +54,12 @@
             <h2><pwm:Display key="Field_Username"/></h2>
             <input tabindex="1" type="text" name="username" id="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
             <h2><pwm:Display key="Field_Password"/></h2>
-            <input tabindex="2" type="password" name="password" id="password" class="inputfield"/>
+            <input tabindex="2" type="password" name="password" id="password" class="inputfield" onkeypress="checkForCapsLock(event)"/>
 
             <div id="buttonbar">
+                <span>
+                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+                </span>
                 <input tabindex="3" type="submit" class="btn"
                        name="button"
                        value="    <pwm:Display key="Button_Login"/>    "

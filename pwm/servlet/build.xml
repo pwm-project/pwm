@@ -82,7 +82,7 @@
         </javadoc>
     </target>
 
-    <target name="makeZIP" depends="incrementBuild,makeWAR">
+    <target name="makeZIP" depends="updateBuildInfo,makeWAR">
         <zip zipfile="${destination}/pwm.zip" filesonly="true">
             <zipfileset file="${destination.war}"/>
             <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
@@ -93,7 +93,7 @@
         </zip>
     </target>
 
-    <target name="incrementBuild" depends="init">
+    <target name="updateBuildInfo" depends="init">
         <property name="buildFilename" value="${src.root}/src/password/pwm/BuildInformation.properties"/>
         <propertyfile file="${buildFilename}">
             <entry key="build.java.vendor" value="${java.vendor}"/>

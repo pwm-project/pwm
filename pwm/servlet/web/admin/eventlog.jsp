@@ -38,13 +38,16 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
 <body onunload="unloadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
-<div id="wrapper" style="width: 900px; margin-left: auto; margin-right: auto">
-    <div id="centerbody">
+<div id="wrapper">
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
+    <div id="centerbody" style="width:98%">
+        <p style="text-align:center;">
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+        </p>        
         <p>
             This page shows PWM debug log
             history.  This history is stored in the pwmDB cache of the debug log. For a
-            permenant log
+            permanent log
             record of events, configure the log4jconfig.xml file.
             All times listed are in
             the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
@@ -53,7 +56,7 @@
         </p>
         <br class="clear"/>
         <form action="<pwm:url url='eventlog.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="eventlogParameters"
-                onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
+              onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
             <table style="border: 0; ">
                 <tr style="border: 0">
                     <td class="key" style="border: 0">
@@ -121,7 +124,7 @@
                             <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000</option>
                             <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000</option>
                             <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000</option>
-=                        </select>
+                            =                        </select>
                     </td>
                 </tr>
                 <tr style="border: 0">
@@ -141,90 +144,88 @@
             </table>
             <br/>
         </form>
-    </div>
-</div>
-<br class="clear"/>
-<table>
-    <tr>
-        <td class="title">
-            &nbsp;
-        </td>
-        <td class="title">
-            Timestamp
-        </td>
-        <td class="title">
-            Level
-        </td>
-        <td class="title">
-            Source Address
-        </td>
-        <td class="title">
-            User
-        </td>
-        <td class="title">
-            Component
-        </td>
-        <td class="title">
-            Detail
-        </td>
-    </tr>
-    <%
-        PwmLogLevel logLevel = PwmLogLevel.INFO;
-        PwmDBLogger.EventType logType = PwmDBLogger.EventType.User;
-        int eventCount = 100;
-        long maxTime = 10000;
-        final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
-        final String text = password.pwm.Validator.readStringFromRequest(request,"text", 255);
-        try { logLevel = PwmLogLevel.valueOf(request.getParameter("level")); } catch (Exception e) { }
-        try { logType = PwmDBLogger.EventType.valueOf(request.getParameter("type")); } catch (Exception e) { }
-        try { eventCount  = Integer.parseInt(request.getParameter("count")); } catch (Exception e) { }
-        try { maxTime  = Long.parseLong(request.getParameter("maxTime")); } catch (Exception e) { }
+        <br class="clear"/>
+        <table>
+            <tr>
+                <td class="title">
+                    &nbsp;
+                </td>
+                <td class="title">
+                    Timestamp
+                </td>
+                <td class="title">
+                    Level
+                </td>
+                <td class="title">
+                    Source Address
+                </td>
+                <td class="title">
+                    User
+                </td>
+                <td class="title">
+                    Component
+                </td>
+                <td class="title">
+                    Detail
+                </td>
+            </tr>
+            <%
+                PwmLogLevel logLevel = PwmLogLevel.INFO;
+                PwmDBLogger.EventType logType = PwmDBLogger.EventType.User;
+                int eventCount = 100;
+                long maxTime = 10000;
+                final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
+                final String text = password.pwm.Validator.readStringFromRequest(request,"text", 255);
+                try { logLevel = PwmLogLevel.valueOf(request.getParameter("level")); } catch (Exception e) { }
+                try { logType = PwmDBLogger.EventType.valueOf(request.getParameter("type")); } catch (Exception e) { }
+                try { eventCount  = Integer.parseInt(request.getParameter("count")); } catch (Exception e) { }
+                try { maxTime  = Long.parseLong(request.getParameter("maxTime")); } catch (Exception e) { }
 
-        final List<PwmLogEvent> logEntries = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
-        int counter = 0;
-        for (final PwmLogEvent event : logEntries) {
-    %>
-    <tr>
-        <td class="key">
-            <pre><%= ++counter %></pre>
-        </td>
-        <td>
-            <%= DateFormat.getDateTimeInstance().format(event.getDate()) %>
-        </td>
-        <td>
-            <%= event.getLevel() %>
-        </td>
-        <td>
-            <%= event.getSource() %>
-        </td>
-        <td>
-            <%= event.getActor() %>
-        </td>
-        <td>
-            <%
-                final int lastDot = event.getTopic().lastIndexOf(".");
-                out.write(lastDot != -1 ? event.getTopic().substring(lastDot + 1,event.getTopic().length()) : event.getTopic());
+                final List<PwmLogEvent> logEntries = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+                int counter = 0;
+                for (final PwmLogEvent event : logEntries) {
             %>
-        </td>
-        <td>
-            <%= event.getMessage() %>
-            <%
-                //noinspection ThrowableResultOfMethodCallIgnored
-                if (event.getThrowable() != null) {
-                    out.append("<br/>Throwable: ");
-                    out.append("<pre>");
-                    final PrintWriter strWriter = new PrintWriter(new StringWriter());
-                    //noinspection ThrowableResultOfMethodCallIgnored
-                    event.getThrowable().printStackTrace(strWriter);
-                    out.append(strWriter.toString());
-                    out.append("</pre>");
-                }
-            %>
-        </td>
-    </tr>
-    <% } %>
-</table>
-<br class="clear"/>
-<%@ include file="../jsp/footer.jsp" %>
+            <tr>
+                <td class="key">
+                    <pre><%= ++counter %></pre>
+                </td>
+                <td>
+                    <%= DateFormat.getDateTimeInstance().format(event.getDate()) %>
+                </td>
+                <td>
+                    <%= event.getLevel() %>
+                </td>
+                <td>
+                    <%= event.getSource() %>
+                </td>
+                <td>
+                    <%= event.getActor() %>
+                </td>
+                <td>
+                    <%
+                        final int lastDot = event.getTopic().lastIndexOf(".");
+                        out.write(lastDot != -1 ? event.getTopic().substring(lastDot + 1,event.getTopic().length()) : event.getTopic());
+                    %>
+                </td>
+                <td>
+                    <%= event.getMessage() %>
+                    <%
+                        //noinspection ThrowableResultOfMethodCallIgnored
+                        if (event.getThrowable() != null) {
+                            out.append("<br/>Throwable: ");
+                            out.append("<pre>");
+                            final PrintWriter strWriter = new PrintWriter(new StringWriter());
+                            //noinspection ThrowableResultOfMethodCallIgnored
+                            event.getThrowable().printStackTrace(strWriter);
+                            out.append(strWriter.toString());
+                            out.append("</pre>");
+                        }
+                    %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+    <%@ include file="../jsp/footer.jsp" %>
 </body>
 </html>

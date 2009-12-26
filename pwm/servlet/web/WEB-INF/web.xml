@@ -283,10 +283,6 @@
         <servlet-name>CaptchaServlet</servlet-name>
         <url-pattern>/public/Captcha</url-pattern>
     </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ConfigManagerServlet</servlet-name>
-        <url-pattern>/public/ConfigManager</url-pattern>
-    </servlet-mapping>
     <session-config>
         <session-timeout>5</session-timeout>
     </session-config>

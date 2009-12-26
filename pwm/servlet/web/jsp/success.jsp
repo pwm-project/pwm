@@ -27,8 +27,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Success"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Success"/></jsp:include>
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
               enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn');">

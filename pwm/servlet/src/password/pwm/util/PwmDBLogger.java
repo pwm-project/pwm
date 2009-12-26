@@ -55,8 +55,8 @@ public class PwmDBLogger {
     private final static int MAXIMUM_POSITION = Integer.MAX_VALUE - 10;
     private final static int MINIMUM_POSITION = Integer.MIN_VALUE + 10;
 
-    private final static int MAX_WRITES_PER_CYCLE = 701;
-    private final static int MAX_REMOVALS_PER_CYCLE = 1003;
+    private final static int MAX_WRITES_PER_CYCLE = 7001;
+    private final static int MAX_REMOVALS_PER_CYCLE = 7003;
     private final static int CYCLE_INTERVAL_MS =  1007; // 1 second
     private final static int DB_WARN_THRESHOLD = MAX_WRITES_PER_CYCLE + MAX_REMOVALS_PER_CYCLE;
     private final static int MAX_QUEUE_SIZE = 50 * 1000;
@@ -255,7 +255,7 @@ public class PwmDBLogger {
             if (i % 10000 == 0 && i > 0) {
                 final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
                 final TimeDuration tickDuration = TimeDuration.fromCurrent(tickTime);
-                System.out.println("tick-" + i + " " + totalDuration.asCompactString() + " " + figureItemCount() + " " + tickDuration.getTotalMilliseconds());
+                //System.out.println("tick-" + i + " " + totalDuration.asCompactString() + " " + figureItemCount() + " " + tickDuration.getTotalMilliseconds());
                 tickTime = System.currentTimeMillis();
             }
 
@@ -311,6 +311,7 @@ public class PwmDBLogger {
 
     private void doWrite(final Collection<PwmLogEvent> events)
     {
+        final long startTime = System.currentTimeMillis();
         final Map<String,String> transactions = new HashMap<String,String>();
         int nextPosition = figureNextPosition(headPosition);
         try {
@@ -323,6 +324,10 @@ public class PwmDBLogger {
             pwmDB.putAll(EVENT_DB, transactions);
             pwmDB.put(META_DB, KEY_HEAD_POSITION, String.valueOf(nextPosition));
             headPosition = nextPosition;
+
+            if (transactions.size() >= MAX_WRITES_PER_CYCLE) {
+                LOGGER.trace("added max records (" + transactions.size() + ") in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
+            }            
         } catch (Exception e) {
             LOGGER.error("error writing to pwmDBLogger: " + e.getMessage(),e);
         }
@@ -389,6 +394,7 @@ public class PwmDBLogger {
 
     private void removeTail(final int count)
     {
+        final long startTime = System.currentTimeMillis();
         final List<String> removalKeys = new ArrayList<String>();
         try {
             int nextTailPosition = tailPosition;
@@ -400,6 +406,10 @@ public class PwmDBLogger {
                 pwmDB.removeAll(EVENT_DB, removalKeys);
                 pwmDB.put(META_DB, KEY_TAIL_POSITION, String.valueOf(nextTailPosition));
                 tailPosition = nextTailPosition;
+            }
+
+            if (removalKeys.size() >= MAX_REMOVALS_PER_CYCLE) {
+                LOGGER.trace("removed max records (" + removalKeys.size() + ") in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
             }
         } catch (PwmDBException e) {
             LOGGER.error("error trimming pwmDBLogger: " + e.getMessage(),e);

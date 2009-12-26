@@ -26,9 +26,9 @@
 <% PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="startupPage(); getObject('password1').focus();" onunload="unloadHandler();" onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ChangePassword"/></jsp:include>
+<body onload="startupPage(); getObject('password1').focus();" onunload="unloadHandler();" onunload="unloadHandler();" onkeypress="">
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ChangePassword"/></jsp:include>
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:Display key="Display_PasswordExpired"/></h1>
@@ -60,7 +60,7 @@
         </script>
         <% } %>
 
-        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);" 
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button');" name="changePassword" autocomplete="off">
 
             <%-- strength-meter [not shown if javascript is disabled; see also changepassword.js:markStrength() --%>
@@ -81,12 +81,15 @@
 
             <div style="width:70%">
                 <h2><pwm:Display key="Field_NewPassword"/></h2>
-                <input tabindex="1" type="password" name="password1" id="password1" onkeyup="validatePasswords();" class="inputfield"/>
+                <input tabindex="1" type="password" name="password1" id="password1" class="inputfield"/>
                 <h2><pwm:Display key="Field_ConfirmPassword"/></h2>
-                <input tabindex="2" type="password" name="password2" id="password2" onkeyup="validatePasswords();" class="inputfield"/>
+                <input tabindex="2" type="password" name="password2" id="password2" class="inputfield"/>
             </div>
 
             <div id="buttonbar">
+                <span>
+                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+                </span>                
                 <input type="hidden" name="processAction" value="change"/>
                 <input tabindex="3" type="submit" name="change" class="btn"
                        id="password_button"

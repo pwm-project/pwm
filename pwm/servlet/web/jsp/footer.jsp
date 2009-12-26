@@ -23,8 +23,9 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='idletimer.js'/>"></script>
 <div id="footer">
+    
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='idletimer.js'/>"></script>
     <span class="idle_status" id="idle_status">
         &nbsp;
     </span>
@@ -53,22 +54,22 @@
             out.write(userIP);
         }
     %>
-</div>
-<%-- hidden fields for javascript display fields --%>
-<form action="" name="footer_i18n">
-    <input type="hidden" name="Js_Display_IdleTimeout" id="Js_Display_IdleTimeout" value="<pwm:Display key="Display_IdleTimeout"/>"/>
-    <input type="hidden" name="Js_Display_Day" id="Js_Display_Day" value="<pwm:Display key="Display_Day"/>"/>
-    <input type="hidden" name="Js_Display_Days" id="Js_Display_Days" value="<pwm:Display key="Display_Days"/>"/>
-    <input type="hidden" name="Js_Display_Hour" id="Js_Display_Hour" value="<pwm:Display key="Display_Hour"/>"/>
-    <input type="hidden" name="Js_Display_Hours" id="Js_Display_Hours" value="<pwm:Display key="Display_Hours"/>"/>
-    <input type="hidden" name="Js_Display_Minute" id="Js_Display_Minute" value="<pwm:Display key="Display_Minute"/>"/>
-    <input type="hidden" name="Js_Display_Minutes" id="Js_Display_Minutes" value="<pwm:Display key="Display_Minutes"/>"/>
-    <input type="hidden" name="Js_Display_Second" id="Js_Display_Second" value="<pwm:Display key="Display_Second"/>"/>
-    <input type="hidden" name="Js_Display_Seconds" id="Js_Display_Seconds" value="<pwm:Display key="Display_Seconds"/>"/>
-    <input type="hidden" name="Js_Display_PleaseWait" id="Js_Display_PleaseWait" value="   <pwm:Display key="Display_PleaseWait"/>   "/>
+    <%-- hidden fields for javascript display fields --%>
+    <form action="" name="footer_i18n">
+        <input type="hidden" name="Js_Display_IdleTimeout" id="Js_Display_IdleTimeout" value="<pwm:Display key="Display_IdleTimeout"/>"/>
+        <input type="hidden" name="Js_Display_Day" id="Js_Display_Day" value="<pwm:Display key="Display_Day"/>"/>
+        <input type="hidden" name="Js_Display_Days" id="Js_Display_Days" value="<pwm:Display key="Display_Days"/>"/>
+        <input type="hidden" name="Js_Display_Hour" id="Js_Display_Hour" value="<pwm:Display key="Display_Hour"/>"/>
+        <input type="hidden" name="Js_Display_Hours" id="Js_Display_Hours" value="<pwm:Display key="Display_Hours"/>"/>
+        <input type="hidden" name="Js_Display_Minute" id="Js_Display_Minute" value="<pwm:Display key="Display_Minute"/>"/>
+        <input type="hidden" name="Js_Display_Minutes" id="Js_Display_Minutes" value="<pwm:Display key="Display_Minutes"/>"/>
+        <input type="hidden" name="Js_Display_Second" id="Js_Display_Second" value="<pwm:Display key="Display_Second"/>"/>
+        <input type="hidden" name="Js_Display_Seconds" id="Js_Display_Seconds" value="<pwm:Display key="Display_Seconds"/>"/>
+        <input type="hidden" name="Js_Display_PleaseWait" id="Js_Display_PleaseWait" value="   <pwm:Display key="Display_PleaseWait"/>   "/>
 
-    <%-- add the url's here so that anything rewriting html (ichain/nam) has an opportunity to see these --%>
-    <input type="hidden" name="Js_LogoutURL" id="Js_LogoutURL" value="<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>"/>
-    <input type="hidden" name="Js_CommandURL" id="Js_CommandURL" value="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>"/>
-</form>
-<script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() - 10 %>);</script>
+        <%-- add the url's here so that anything rewriting html (ichain/nam) has an opportunity to see these --%>
+        <input type="hidden" name="Js_LogoutURL" id="Js_LogoutURL" value="<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>"/>
+        <input type="hidden" name="Js_CommandURL" id="Js_CommandURL" value="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>"/>
+    </form>
+    <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() - 10 %>);</script>
+</div>

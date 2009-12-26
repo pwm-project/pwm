@@ -27,8 +27,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="document.forms.newUser.elements[0].focus();" onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_NewUser"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_NewUser"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_NewUser"/></p>
         <form action="<pwm:url url='NewUser'/>" method="post" name= "newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"

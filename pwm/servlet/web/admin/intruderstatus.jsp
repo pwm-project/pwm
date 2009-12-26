@@ -33,134 +33,137 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Intruder Lockouts"/></jsp:include>
-<br class="clear"/>
-<table>
-    <tr>
-        <td class="title" colspan="10">
-            User Table
-        </td>
-    </tr>
-    <tr>
-        <td class="title">
-            Username
-        </td>
-        <td class="title">
-            Status
-        </td>
-        <td class="title">
-            Time Remaining
-        </td>
-        <td class="title">
-            Bad Attempts
-        </td>
-        <td class="title">
-            Last Bad Attempt
-        </td>
-    </tr>
+<div id="wrapper">
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Intruder Lockouts"/></jsp:include>
+    <div id="centerbody" style="width:98%">
+        <p style="text-align:center;">
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+        </p>
+        <table>
+            <tr>
+                <td class="title" colspan="10">
+                    User Table
+                </td>
+            </tr>
+            <tr>
+                <td class="title">
+                    Username
+                </td>
+                <td class="title">
+                    Status
+                </td>
+                <td class="title">
+                    Time Remaining
+                </td>
+                <td class="title">
+                    Bad Attempts
+                </td>
+                <td class="title">
+                    Last Bad Attempt
+                </td>
+            </tr>
+            <%
+                final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getContextManager(session).getIntruderManager().getUserLockTable();
+                for (final String key : userLockTable.keySet()) {
+                    final IntruderManager.IntruderRecord record = userLockTable.get(key);
+            %>
+            <tr>
+                <td>
+                    <%= key %>
+                </td>
+                <td>
+                    <% if (record.isLocked()) { %>
+                    locked
+                    <% } else { %>
+                    <% if (record.timeRemaining() < 0) { %>
+                    retired
+                    <% } else { %>
+                    watching
+                    <% } %>
+                    <% } %>
+                </td>
+                <td>
+                    <% if (record.timeRemaining() < 0) { %>
+                    n/a
+                    <% } else { %>
+                    <%= TimeDuration.asCompactString(record.timeRemaining()) %>
+                    <% } %>
+                </td>
+                <td>
+                    <%= record.getAttemptCount() %>
+                </td>
+                <td>
+                    <%= (DateFormat.getDateTimeInstance()).format(new Date(record.getTimeStamp())) %>
+                </td>
 
-    <%
-        final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getContextManager(session).getIntruderManager().getUserLockTable();
-        for (final String key : userLockTable.keySet()) {
-            final IntruderManager.IntruderRecord record = userLockTable.get(key);
-    %>
+            </tr>
+            <% } %>
+        </table>
+        <br class="clear"/>
+        <table>
+            <tr>
+                <td class="title" colspan="10">
+                    Address Table
+                </td>
+            </tr>
+            <tr>
+                <td class="title">
+                    Address
+                </td>
+                <td class="title">
+                    Status
+                </td>
+                <td class="title">
+                    Time Remaining
+                </td>
+                <td class="title">
+                    Bad Attempts
+                </td>
+                <td class="title">
+                    Last Bad Attempt
+                </td>
+            </tr>
 
-    <tr>
-        <td>
-            <%= key %>
-        </td>
-        <td>
-            <% if (record.isLocked()) { %>
-            locked
-            <% } else { %>
-            <% if (record.timeRemaining() < 0) { %>
-            retired
-            <% } else { %>
-            watching
-            <% } %>
-            <% } %>
-        </td>
-        <td>
-            <% if (record.timeRemaining() < 0) { %>
-            n/a
-            <% } else { %>
-            <%= TimeDuration.asCompactString(record.timeRemaining()) %>
-            <% } %>
-        </td>
-        <td>
-            <%= record.getAttemptCount() %>
-        </td>
-        <td>
-            <%= (DateFormat.getDateTimeInstance()).format(new Date(record.getTimeStamp())) %>
-        </td>
+            <%
+                final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getContextManager(session).getIntruderManager().getAddressLockTable();
+                for(final String key: addressLockTable.keySet()){
+                    final IntruderManager.IntruderRecord record = addressLockTable.get(key);
+            %>
 
-    </tr>
-    <% } %>
-</table>
-<br class="clear"/>
-<table>
-    <tr>
-        <td class="title" colspan="10">
-            Address Table
-        </td>
-    </tr>
-    <tr>
-        <td class="title">
-            Address
-        </td>
-        <td class="title">
-            Status
-        </td>
-        <td class="title">
-            Time Remaining
-        </td>
-        <td class="title">
-            Bad Attempts
-        </td>
-        <td class="title">
-            Last Bad Attempt
-        </td>
-    </tr>
+            <tr>
+                <td>
+                    <%= key %>
+                </td>
+                <td>
+                    <% if (record.isLocked()) { %>
+                    locked
+                    <% } else { %>
+                    <% if (record.timeRemaining() < 0) { %>
+                    retired
+                    <% } else { %>
+                    watching
+                    <% } %>
+                    <% } %>
+                </td>
+                <td>
+                    <% if (record.timeRemaining() < 0) { %>
+                    n/a
+                    <% } else { %>
+                    <%= TimeDuration.asCompactString(record.timeRemaining()) %>
+                    <% } %>
+                </td>
+                <td>
+                    <%= record.getAttemptCount() %>
+                </td>
+                <td>
+                    <%= (DateFormat.getDateTimeInstance()).format(new Date(record.getTimeStamp())) %>
+                </td>
 
-    <%
-        final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getContextManager(session).getIntruderManager().getAddressLockTable();
-        for(final String key: addressLockTable.keySet()){
-            final IntruderManager.IntruderRecord record = addressLockTable.get(key);
-    %>
-
-    <tr>
-        <td>
-            <%= key %>
-        </td>
-        <td>
-            <% if (record.isLocked()) { %>
-            locked
-            <% } else { %>
-            <% if (record.timeRemaining() < 0) { %>
-            retired
-            <% } else { %>
-            watching
+            </tr>
             <% } %>
-            <% } %>
-        </td>
-        <td>
-            <% if (record.timeRemaining() < 0) { %>
-            n/a
-            <% } else { %>
-            <%= TimeDuration.asCompactString(record.timeRemaining()) %>
-            <% } %>
-        </td>
-        <td>
-            <%= record.getAttemptCount() %>
-        </td>
-        <td>
-            <%= (DateFormat.getDateTimeInstance()).format(new Date(record.getTimeStamp())) %>
-        </td>
-
-    </tr>
-    <% } %>
-</table>
-<br class="clear"/>
+        </table>
+    </div>
+</div>
 <%@ include file="../jsp/footer.jsp" %>
 </body>
 </html>

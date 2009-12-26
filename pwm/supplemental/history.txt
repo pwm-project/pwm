@@ -9,12 +9,14 @@
 v1.4.3
 ---
 + Improved handling of servlet container clustering and session pausing
++ Added caps-lock detector during password entry
 
 * Refined password strength meter to allow full strength to be reached, and to be more permissive
 * Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
 * Tuned ajax communications to decrease request traffic.
 * Added "eventLog.localDbMaxAge" setting to control age of pwmDB event log storage
 * Added "ldapPromiscuousSSL" setting instead of using "autocert" param in the ldap server url configuration
+* Refactored HTML/CSS to improve appearance, correctness
 
 - Fixed bug where "previously used" error incorrectly results in unknown error when using non-nmas password method (defect #51)
 - Removed setting "passwordSetMethod", for edirectory, this is replaced by "ldap.edirectory.enableNmas"

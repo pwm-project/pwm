@@ -23,7 +23,7 @@
 // PWM Change Password JavaScript.
 // 
 
-var SETTING_SHOW_CHECKING_TIMEOUT = 1500;    // show "please wait, checking" if response not received in this time (ms)
+var SETTING_SHOW_CHECKING_TIMEOUT = 400;    // show "please wait, checking" if response not received in this time (ms)
 
 var passwordsMasked = true;
 var previousP1 = "";
@@ -33,7 +33,7 @@ var previousP1 = "";
 function validatePasswords()
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
-        return;
+         return;
     }
 
     if (previousP1 != getObject("password1").value) {
@@ -44,7 +44,7 @@ function validatePasswords()
 
     var key = makeValidationKey();
 
-    //if the response isnt received quickly, this timeout will cause a "working" message to be displayed
+    //if the response isn't received quickly, this timeout will cause a "working" message to be displayed
     setTimeout( function() {
         if (validatorAjaxState.busy) {
             showWorking();
@@ -63,10 +63,11 @@ function makeValidationKey() {
 function handleValidationResponse(key, resultString)
 {    
     if (resultString != null && resultString.length > 0) {
-        updateDisplay(resultString);
         validatorAjaxState.cache[key] = resultString;
         if (key != makeValidationKey()) {
-            setTimeout(function() {validatePasswords();}, 100);
+            setTimeout(function() {validatePasswords();}, 1);
+        } else {
+            updateDisplay(resultString);
         }
         return;
     }

@@ -20,55 +20,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-body, html{ font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px }
-div { border: 5px; }
+html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px; height:100%; margin:0 }
 
-a { color:#2D2D2D; text-decoration:underline; }
+a { color:#2D2D2D; text-decoration:underline; font-weight:bold }
+p { max-width: 600px; color:#2D2D2D; position:relative; margin-left: auto; margin-right: auto}
+hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }
 
 h1 { font-size:16px; }
 h2 { font-size:14px; }
 h2 { font-size:12px; }
 
-table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:96%; margin-left: 2%; margin-right: 2% }
+table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }
 table td { border: 1px solid #D4D4D4; padding-left: 5px;}
 table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }
 table td.key { text-align:right; font-weight:bold; padding-right: 10px }
 
-.inputfield { width:400px; }
+.inputfield { width:400px; margin: 5px; }
 
-#wrapper { width:600px; margin:0 auto; padding-top:0; padding-left:0; padding-right: 0; padding-bottom: 3em; min-height:100%; position:relative; clear: both}
+/* main body wrapper, all elements (except footer) should be within wrapper */
+#wrapper { width:100%; min-height: 100%; height: auto !important; height: 100%; margin: 0; }
 
-#header { width:100%; height:70px; background-image:url(header.gif); }
-#header .logo { float:left; }
-#headinfo { float:right; width:400px; margin:10px 5px 0 0; height:20px; padding:05px 0 10px 0; background:url(headinfobg.gif) no-repeat; text-align:center; }
-#headinfo a { color:#EFEFEF; }
-#headinfo a:hover { color:#D2D2D2; border-bottom:1px solid #D2D2D2; }
+/* main content section, all content should be inside a centerbody div */
+#centerbody { width:600px; min-width:600px; padding:0; position:relative; ; margin-left:auto; margin-right:auto; margin-top: 10px; clear:both; padding-bottom:40px;}
 
-.logotext { float:left; width:400px; margin:10px 0 10px 10px; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }
-.logotext strong { color:#EFEFEF; }
-.logotext2 { font-size:14px; }
-
-#nav { width:100%; overflow:auto; padding:1px; margin:0; background-color:#D2D2D2; }
-#nav ul { margin:0; padding:0; }
-#nav ul li { float:left; list-style:none; padding:0; }
-#nav ul li a { display:block; width:100px; height:15px; padding:8px 0; margin:0 1px 0 0; background-color:#EFEFEF; text-align:center; }
-#nav ul li a:hover { background-color: #FFFFFF; color:#999999; }
-
-#content { width:100%; }
-
-#centerbody { float:left; width:100%; margin-top: 10px; clear:both }
-#centerbody .postinfo { display:block; width:400px; padding:6px; background-color:#EFEFEF; border:1px solid #D4D4D4; }
-#centerbody a p { color:#FFCD59; font-weight:bold; text-decoration:underline; }
-#centerbody hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }
-
+/* all forms use a buttonbar div containing the action buttons */
 #buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}
-#buttonbar .btn { font-family:Trebuchet MS, sans-serif }
-
-.menubutton { float:left; width:20%; }
-.menubutton a { color:#333333; font-weight:normal; text-decoration:none; display:block; width:120px; margin:0; padding:5px; background-color:#E6E6E6;  }
-.menubutton a:hover { background-color:#FFCD59; }
-
-.menudetail { float:left; width:80%; }
+#buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px }
 
 /* used for password complexity meter */  /* start width 28 */
 #vertgraph          { width: 28px !important; height: 60px; float: right; position: relative; border:2px solid #A4A4A4; }
@@ -82,5 +59,9 @@ table td.key { text-align:right; font-weight:bold; padding-right: 10px }
 .msg-error   { display:block; padding:6px; background-color:#FFCD59; border:1px solid #D4D4D4; width: 560px;}
 .msg-success { display:block; padding:6px; background-color:#EFEFEF; border:1px solid #D4D4D4; width: 560px;}
 
-#footer { text-align: center; bottom:0; width:100%; height:3em; margin: auto; color: #BBBBBB; font-size: 11px; }
+#footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
 #footer .idle_status { color: #333333; }
+
+#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #d20734; font-weight:bold; font-variant:small-caps; margin-bottom: 5px;}
+
+

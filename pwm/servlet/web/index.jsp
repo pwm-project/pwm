@@ -25,49 +25,47 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<jsp:include page="jsp/header.jsp"/>
+<%@ include file="jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/></jsp:include>
 <div id="wrapper">
-    <div id="content">
-        <div id="centerbody">
-            <p>Password self-service main menu.  From here you can change your current password, reset a forgotten password, or perform other related password activities.</p>
-            <h2><a href="<pwm:url url='private/ChangePassword'/>">Change Password</a></h2>
-            <p>Change your current password.</p>
+    <jsp:include page="jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/></jsp:include>
+    <div id="centerbody">
+        <p>Password self-service main menu.  From here you can change your current password, reset a forgotten password, or perform other related password activities.</p>
+        <h2><a href="<pwm:url url='private/ChangePassword'/>">Change Password</a></h2>
+        <p>Change your current password.</p>
 
-            <h2><a href="<pwm:url url='public/ForgottenPassword'/>">Forgotten Password</a></h2>
-            <p>Recover your forgotten password.  If you have previously configured your forgotten password responses you will be able to recover a forgotten password.</p>
+        <h2><a href="<pwm:url url='public/ForgottenPassword'/>">Forgotten Password</a></h2>
+        <p>Recover your forgotten password.  If you have previously configured your forgotten password responses you will be able to recover a forgotten password.</p>
 
-            <h2><a href="<pwm:url url='private/SetupResponses'/>">Setup Responses</a></h2>
-            <p>Setup your forgotten password responses.  These secret questions will allow you to recover your password if you forget it.</p>
+        <h2><a href="<pwm:url url='private/SetupResponses'/>">Setup Responses</a></h2>
+        <p>Setup your forgotten password responses.  These secret questions will allow you to recover your password if you forget it.</p>
 
-            <h2><a href="<pwm:url url='public/ActivateUser'/>">Account Activation</a></h2>
-            <p>Activate a pre-configured account and establish a new password.</p>
+        <h2><a href="<pwm:url url='public/ActivateUser'/>">Account Activation</a></h2>
+        <p>Activate a pre-configured account and establish a new password.</p>
 
-            <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey">New User Registration</a></h2>
-            <p>Register a new user account</p>
+        <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey">New User Registration</a></h2>
+        <p>Register a new user account</p>
 
-            <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey">Update User Info</a></h2>
-            <p>Update your user information</p>
+        <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey">Update User Info</a></h2>
+        <p>Update your user information</p>
 
-            <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey">History</a></h2>
-            <p>Password event history</p>
+        <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey">History</a></h2>
+        <p>Password event history</p>
 
-            <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey">Shortcuts</a></h2>
-            <p>Personalized shortcuts</p>
+        <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey">Shortcuts</a></h2>
+        <p>Personalized shortcuts</p>
 
-            <hr/>
+        <hr/>
 
-            <h2><a href="admin" class="tablekey">Admin</a></h2>
-            <p>PWM administrative functions</p>
+        <h2><a href="admin" class="tablekey">Admin</a></h2>
+        <p>PWM administrative functions</p>
 
-            <hr/>
+        <hr/>
 
-            <h2><a href="<pwm:url url='public/Logout'/>">Logout</a></h2>
-            <p>Logout of the Password Management Servlet</p>
-        </div>
+        <h2><a href="<pwm:url url='public/Logout'/>">Logout</a></h2>
+        <p>Logout of the Password Management Servlet</p>
     </div>
-    <br class="clear" />    
 </div>
+<%@ include file="jsp/footer.jsp" %>
 </body>
 </html>

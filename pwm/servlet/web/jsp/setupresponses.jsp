@@ -39,11 +39,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupResponses"/></p>
-        <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
+        <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses" onkeypress="checkForCapsLock(event);"
               enctype="application/x-www-form-urlencoded" onreset="handleFormClear();" autocomplete="off">
             <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
                 // the error block if javascript is available (for ajax use).
@@ -140,6 +140,9 @@
             <% } %>
 
             <div id="buttonbar">
+                <span>
+                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+                </span>
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <input tabindex="<%=++tabIndexer%>" type="submit" name="setResponses" class="btn" id="setresponses_button"
                        value="    <pwm:Display key="Button_SetResponses"/>    "/>

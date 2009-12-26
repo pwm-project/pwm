@@ -36,81 +36,86 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
-<br class="clear"/>
-<table>
-    <tr>
-        <td class="title">
-            Label
-        </td>
-        <td class="title">
-            Creation Time
-        </td>
-        <td class="title">
-            Idle
-        </td>
-        <td class="title">
-            Address
-        </td>
-        <td class="title">
-            Locale
-        </td>
-        <td class="title">
-            User DN
-        </td>
-        <td class="title">
-            Bad Auths
-        </td>
-        <td class="title">
-            Last Error
-        </td>
-    </tr>
+<div id="wrapper">
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
+    <div id="centerbody" style="width:98%">
+        <p style="text-align:center;">
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+        </p>
+        <table>
+            <tr>
+                <td class="title">
+                    Label
+                </td>
+                <td class="title">
+                    Creation Time
+                </td>
+                <td class="title">
+                    Idle
+                </td>
+                <td class="title">
+                    Address
+                </td>
+                <td class="title">
+                    Locale
+                </td>
+                <td class="title">
+                    User DN
+                </td>
+                <td class="title">
+                    Bad Auths
+                </td>
+                <td class="title">
+                    Last Error
+                </td>
+            </tr>
 
-    <%
-        final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-        final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
-        for (final PwmSession loopSession : activeSessions) {
-            try {
-                final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-                final password.pwm.bean.UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-    %>
+            <%
+                final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
+                final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
+                for (final PwmSession loopSession : activeSessions) {
+                    try {
+                        final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
+                        final password.pwm.bean.UserInfoBean loopUiBean = loopSession.getUserInfoBean();
+            %>
 
-    <tr>
-        <td>
-            <%= loopSession.getSessionLabel() %>
-        </td>
-        <td style="white-space: nowrap;">
-            <%= DateFormat.getDateTimeInstance().format(new Date(loopSession.getCreationTime())) %>
-        </td>
-        <td>
-            <%= TimeDuration.asCompactString(loopSsBean.getIdleTime()) %>
-        </td>
-        <td>
-            <%=loopSsBean.getSrcAddress() %>
-        </td>
-        <td>
-            <%= loopSsBean.getLocale() %>
-        </td>
-        <td>
-            <%= loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "&nbsp;" %>
-        </td>
-        <td>
+            <tr>
+                <td>
+                    <%= loopSession.getSessionLabel() %>
+                </td>
+                <td style="white-space: nowrap;">
+                    <%= DateFormat.getDateTimeInstance().format(new Date(loopSession.getCreationTime())) %>
+                </td>
+                <td>
+                    <%= TimeDuration.asCompactString(loopSsBean.getIdleTime()) %>
+                </td>
+                <td>
+                    <%=loopSsBean.getSrcAddress() %>
+                </td>
+                <td>
+                    <%= loopSsBean.getLocale() %>
+                </td>
+                <td>
+                    <%= loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "&nbsp;" %>
+                </td>
+                <td>
 
-            <%= loopSsBean.getIncorrectLogins() %>
-        </td>
-        <td>
-            <% final ErrorInformation lastError = loopSsBean.getSessionError(); %>
-            <%= lastError != null ? lastError.toUserStr(loopSession) : "&nbsp;" %>
-        </td>
-    </tr>
-    <%
-            } catch (IllegalStateException e) {
-                //don't care, session is invalidated
-            }
-        }
-    %>
-</table>
-<br class="clear"/>
+                    <%= loopSsBean.getIncorrectLogins() %>
+                </td>
+                <td>
+                    <% final ErrorInformation lastError = loopSsBean.getSessionError(); %>
+                    <%= lastError != null ? lastError.toUserStr(loopSession) : "&nbsp;" %>
+                </td>
+            </tr>
+            <%
+                    } catch (IllegalStateException e) {
+                        //don't care, session is invalidated
+                    }
+                }
+            %>
+        </table>
+    </div>
+</div>
 <%@ include file="../jsp/footer.jsp" %>
 </body>
 </html>

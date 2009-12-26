@@ -39,8 +39,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
-<jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
 <div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ConfirmResponses"/></p>
         <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
@@ -62,18 +62,18 @@
         <% } %>
         <br/>
         <div id="buttonbar">
+            <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
+                  enctype="application/x-www-form-urlencoded">
+                <input tabindex="2" type="submit" name="change_btn" class="btn"
+                       value="    « <pwm:Display key="Button_ChangeResponses"/> «    "/>
+                <input type="hidden" name="processAction" value="changeResponses"/>
+            </form>
+            <br/>
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded">
                 <input tabindex="1" type="submit" name="confirm_btn" class="btn"
                        value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
-            </form>
-            <br/>
-            <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded">
-                <input tabindex="2" type="submit" name="change_btn" class="btn"
-                       value="    <pwm:Display key="Button_ChangeResponses"/>    "/>
-                <input type="hidden" name="processAction" value="changeResponses"/>
             </form>
         </div>
     </div>

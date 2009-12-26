@@ -27,58 +27,61 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
 <div id="wrapper">
-    <div id="centerbody">
-        Java threads as reported by the Java virtual machine.
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
+    <div id="centerbody" style="width:90%">
+        <p style="text-align:center;">
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+        </p>
+        <p>Java threads as reported by the Java virtual machine.</p>
+        <br/>
+        <table class="tablemain">
+            <tr>
+                <td class="title">
+                    Iteration
+                </td>
+                <td class="title">
+                    Name
+                </td>
+                <td class="title">
+                    Prioirty
+                </td>
+                <td class="title">
+                    State
+                </td>
+                <td class="title">
+                    Daemon
+                </td>
+            </tr>
+            <%
+                final Thread[] tArray = new Thread[Thread.activeCount()];
+                Thread.enumerate(tArray);
+                try {
+                    for (int i = 0; i < tArray.length; i++) {
+                        final Thread t = tArray[i];
+            %>
+            <tr>
+                <td>
+                    <%= i %>
+                </td>
+                <td>
+                    <%= t.getName() != null ? t.getName() : "n/a" %>
+                </td>
+                <td>
+                    <%= t.getPriority() %>
+                </td>
+                <td>
+                    <%= t.getState().toString().toLowerCase() %>
+                </td>
+                <td>
+                    <%= String.valueOf(t.isDaemon()) %>
+                </td>
+            </tr>
+            <% } %>
+            <% } catch (Exception e) {  e.printStackTrace(); } %>
+        </table>
     </div>
 </div>
-<table class="tablemain">
-    <tr>
-        <td class="title">
-            Iteration
-        </td>
-        <td class="title">
-            Name
-        </td>
-        <td class="title">
-            Prioirty
-        </td>
-        <td class="title">
-            State
-        </td>
-        <td class="title">
-            Daemon
-        </td>
-    </tr>
-    <%
-        final Thread[] tArray = new Thread[Thread.activeCount()];
-        Thread.enumerate(tArray);
-        try {
-            for (int i = 0; i < tArray.length; i++) {
-                final Thread t = tArray[i];
-    %>
-    <tr>
-        <td>
-            <%= i %>
-        </td>
-        <td>
-            <%= t.getName() != null ? t.getName() : "n/a" %>
-        </td>
-        <td>
-            <%= t.getPriority() %>
-        </td>
-        <td>
-            <%= t.getState().toString().toLowerCase() %>
-        </td>
-        <td>
-            <%= String.valueOf(t.isDaemon()) %>
-        </td>
-    </tr>
-    <% } %>
-    <% } catch (Exception e) {  e.printStackTrace(); } %>
-</table>
-<br class="clear"/>
 <%@ include file="../jsp/footer.jsp" %>
 </body>
 </html>

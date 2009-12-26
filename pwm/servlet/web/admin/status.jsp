@@ -41,7 +41,9 @@
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="wrapper">
 <div id="centerbody">
-<br class="clear"/>
+<p style="text-align:center;">
+    <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+</p>
 <table>
     <tr>
         <td colspan="10" class="title">
@@ -669,7 +671,6 @@
     </tr>
 </table>
 </div>
-<br class="clear"/>
 </div>
 <%@ include file="../jsp/footer.jsp" %>
 </body>
