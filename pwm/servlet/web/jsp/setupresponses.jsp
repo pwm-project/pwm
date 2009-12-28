@@ -88,7 +88,7 @@
                 for (int i = 0; i < challengeSet.getMinRandomRequired(); i++) {
             %>
             <h2>
-                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();">
+                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" tabindex="<%=++tabIndexer%>">
                     <option value=""><pwm:Display key="Field_Option_Select"/></option>
                     <option value="">───────────────</option>
                     <%

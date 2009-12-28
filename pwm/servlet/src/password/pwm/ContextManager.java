@@ -195,11 +195,17 @@ public class ContextManager implements Serializable
 
     public Configuration getConfig()
     {
+        if (configReader == null) {
+            return null;
+        }
         return configReader.getGlobalConfig();
     }
 
     public LocalizedConfiguration getLocaleConfig(final Locale locale)
     {
+        if (configReader == null) {
+            return null;
+        }
         return configReader.getLocalizedConfiguration(locale);
     }
 
@@ -241,8 +247,9 @@ public class ContextManager implements Serializable
         try {
             configReader = new ConfigReader(figureFilepath(getParameter(Constants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext));
         } catch (Exception e) {
-            LOGGER.fatal("unable to load configuration file: " + e.toString());
-            throw  e;
+            LOGGER.fatal("unable to load configuration file", e);
+            LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
+            return;
         }
 
         // initialize the pwmDB

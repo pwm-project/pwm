@@ -21,7 +21,9 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
 import password.pwm.PwmSession;
+import password.pwm.config.LocalizedConfiguration;
 import password.pwm.config.Message;
 import password.pwm.util.PwmLogger;
 
@@ -95,12 +97,18 @@ public class DisplayTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getSessionStateBean(req.getSession()).getLocale();
 
-            String displayMessage = "";
+            String displayMessage = "PWM Default Configuration";
 
             if ("APPLICATION-TITLE".equals(key)) { // special case, this one value is set via configuration, net .properties files setting
-                final String pwmSettingValue = PwmSession.getPwmSession(req).getContextManager().getLocaleConfig(locale).getApplicationTitle();
-                if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
-                    displayMessage = pwmSettingValue;
+                final ContextManager contextManager = PwmSession.getPwmSession(req).getContextManager();
+                if (contextManager != null) {
+                    final LocalizedConfiguration localizedConfiguration = contextManager.getLocaleConfig(locale);
+                    if (localizedConfiguration != null) {
+                        final String pwmSettingValue = localizedConfiguration.getApplicationTitle();
+                        if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
+                            displayMessage = pwmSettingValue;
+                        }
+                    }
                 }
             } else {
                 displayMessage = figureDisplayMessage(locale);
@@ -114,7 +122,10 @@ public class DisplayTag extends PwmAbstractTag {
         return EVAL_PAGE;
     }
 
-    private String figureDisplayMessage(final Locale locale) {
+    private String figureDisplayMessage(Locale locale) {
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
         try {
             String displayMessage = Message.getDisplayString(key, locale);
 

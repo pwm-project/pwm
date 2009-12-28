@@ -44,8 +44,8 @@
             <pwm:ParameterForm formName="updateattributes"/>
 
             <div id="buttonbar">
-                <input type="submit" class="btn" name="button" value="    Update    "/>
-                <input type="reset"  class="btn" name="reset" value="    Reset    "/>
+                <input type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>
+                <input type="reset"  class="btn" name="reset" value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="updateAttributes"/>
             </div>
         </form>

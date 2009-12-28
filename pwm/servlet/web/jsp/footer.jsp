@@ -41,7 +41,7 @@
 
     <%
         final password.pwm.bean.SessionStateBean sessionStateBean = PwmSession.getSessionStateBean(request.getSession());
-        final java.text.DateFormat df = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.DEFAULT, SimpleDateFormat.DEFAULT, sessionStateBean.getLocale());
+        final java.text.DateFormat df = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.DEFAULT, SimpleDateFormat.DEFAULT, request.getLocale());
         out.write(df.format(new java.util.Date()));
     %>
     |

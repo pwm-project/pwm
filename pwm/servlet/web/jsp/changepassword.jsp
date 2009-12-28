@@ -73,7 +73,7 @@
                             </ul>
                         </div>
                     </div>
-                    <div style="float: none; margin-top: 65px; margin-left: 30%; margin-right: 30%; text-align:center; font-size: 85%;">
+                    <div class="strengthdisplay">
                         <pwm:Display key="Display_StrengthMeter"/>
                     </div>
                 </div>

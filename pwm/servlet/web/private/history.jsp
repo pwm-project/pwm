@@ -36,7 +36,6 @@
     UserHistory userHistory = new UserHistory(0);
     try { userHistory = UserHistory.readUserHistory(PwmSession.getPwmSession(session)); } catch (Exception e) { }
 %>
-}
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_UserEventHistory"/></jsp:include>
     <div id="centerbody">

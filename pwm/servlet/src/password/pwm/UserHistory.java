@@ -232,15 +232,14 @@ public class UserHistory implements Serializable {
      */
     public static class Record implements Comparable, Serializable {
         public enum Event {
-            CHANGE_PASSWROD(Message.EVENT_LOG_CHANGE_PASSWORD),
+            CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD),
             RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD),
             SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES),
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
             UPDATE_ATTRIBUTES(Message.EVENT_UPDATE_ATTRIBUTES),
             INTRUDER_LOCK(Message.EVENT_INTRUDER_LOCKOUT),
 
-            UNKNOWN(Message.ERROR_UNKNOWN),
-            ;
+            UNKNOWN(Message.ERROR_UNKNOWN);
 
             final private Message message;
 

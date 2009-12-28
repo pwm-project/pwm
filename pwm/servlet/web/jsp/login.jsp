@@ -71,7 +71,6 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
 </div>
 <%@ include file="footer.jsp" %>
 </body>

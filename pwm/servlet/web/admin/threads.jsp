@@ -33,7 +33,6 @@
         <p style="text-align:center;">
             <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
         </p>
-        <p>Java threads as reported by the Java virtual machine.</p>
         <br/>
         <table class="tablemain">
             <tr>

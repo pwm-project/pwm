@@ -104,6 +104,7 @@ public enum Message {
     ERROR_MISSING_RANDOM_RESPONSE("Error_MissingRandomResponse",null),
     ERROR_BAD_CAPTCHA_RESPONSE("Error_BadCaptchaResponse",null),
     ERROR_CAPTCHA_API_ERROR("Error_CaptchaAPIError",null),
+    ERROR_INVALID_CONFIG("Error_InvalidConfig",null),
 
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired",null),
@@ -176,9 +177,7 @@ public enum Message {
     REQUIREMENT_NOTCASESENSITIVE("Requirement_NotCaseSensitive",null),
     REQUIREMENT_MINIMUMFREQUENCY("Requirement_MinimumFrequency",null),
     REQUIREMENT_AD_COMPLEXITY("Requirement_ADComplexity",null),
-    REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired",null),
-
-    ;
+    REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired",null);
 
 // ------------------------------ FIELDS ------------------------------
 

@@ -161,6 +161,13 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+        if (theManager == null || theManager.getConfig() == null) {
+            LOGGER.warn("unable to find a valid configuration");
+            ssBean.setSessionError(new ErrorInformation(Message.ERROR_INVALID_CONFIG));
+            Helper.forwardToErrorPage(req, resp, servletContext, false);
+            return;
+        }
+
         // chaeck page unloading
         checkPageUnloading(pwmSession);
 

@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,12 +48,13 @@ public class PwmSession implements Serializable {
     private final SessionStateBean sessionStateBean = new SessionStateBean();
     private ForgottenPasswordBean forgottenPasswordBean = new ForgottenPasswordBean();
     private UserInfoBean userInfoBean = new UserInfoBean();
-    private NewUserServletBean newUserServletBean = new NewUserServletBean();
-    private UpdateAttributesServletBean updateAttributesServletBean = new UpdateAttributesServletBean();
     private ChangePasswordBean changePasswordBean = new ChangePasswordBean();
-    private ActivateUserServletBean activateUserServletBean = new ActivateUserServletBean();
     private SessionManager sessionManager = new SessionManager(this);
     private SetupResponsesBean setupResponseBean = new SetupResponsesBean();
+
+    private NewUserServletBean newUserServletBean;
+    private UpdateAttributesServletBean updateAttributesServletBean;
+    private ActivateUserServletBean activateUserServletBean;
 
     private transient HttpSession httpSession;
 
@@ -78,9 +80,9 @@ public class PwmSession implements Serializable {
 
         PwmSession returnSession = (PwmSession)httpSession.getAttribute(Constants.SESSION_ATTR_PWM_SESSION);
         if (returnSession == null) {
-            final PwmSession newBean = new PwmSession(httpSession);
-            httpSession.setAttribute(Constants.SESSION_ATTR_PWM_SESSION, newBean);
-            returnSession = newBean;
+            final PwmSession newPwmSession = new PwmSession(httpSession);
+            httpSession.setAttribute(Constants.SESSION_ATTR_PWM_SESSION, newPwmSession);
+            returnSession = newPwmSession;
         } else if (returnSession.httpSession == null) { // stale session (was previously passivated)
             returnSession.httpSession = httpSession;
             ContextManager.getContextManager(httpSession).addPwmSession(returnSession);
@@ -119,38 +121,29 @@ public class PwmSession implements Serializable {
     {
         this.creationTime = System.currentTimeMillis();
         this.httpSession = httpSession;
+        this.getSessionStateBean().setSessionID("");        
 
-        this.initFormBeans();
-
-        final String sessionID = getContextManager().getStatisticsManager().getCurrentStat(StatisticsManager.Statistic.HTTP_SESSIONS);
-        this.getSessionStateBean().setSessionID(sessionID);
-
-    }
-
-    private void initFormBeans() {
-        {
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getUpdateAttributesAttributes();
-            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
-            updateAttributesServletBean.setUpdateAttributesParams(paramMap);
+        final ContextManager contextManager = getContextManager();
+        if (contextManager != null) {
+            final StatisticsManager statisticsManager = contextManager.getStatisticsManager();
+            if (statisticsManager != null) {
+                final String sessionID = getContextManager().getStatisticsManager().getCurrentStat(StatisticsManager.Statistic.HTTP_SESSIONS);
+                this.getSessionStateBean().setSessionID(sessionID);
+            }
         }
 
-        {
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getActivateUserAttributes();
-            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
-            activateUserServletBean.setActivateUserParams(paramMap);
-        }
-
-        {
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getNewUserCreationAttributes();
-            final Map<String, ParameterConfig> paramMap =  new LinkedHashMap<String, ParameterConfig>(configMap);
-            newUserServletBean.setCreationParams(paramMap);
-        }
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public ActivateUserServletBean getActivateUserServletBean()
     {
+        if (activateUserServletBean == null) {
+            activateUserServletBean = new ActivateUserServletBean();
+            final Map<String, ParameterConfig> configMap = getLocaleConfig().getActivateUserAttributes();
+            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
+            activateUserServletBean.setActivateUserParams(paramMap);
+        }
         return activateUserServletBean;
     }
 
@@ -171,6 +164,12 @@ public class PwmSession implements Serializable {
 
     public NewUserServletBean getNewUserServletBean()
     {
+        if (newUserServletBean == null) {
+            newUserServletBean = null;
+            final Map<String, ParameterConfig> configMap = getLocaleConfig().getNewUserCreationAttributes();
+            final Map<String, ParameterConfig> paramMap =  new LinkedHashMap<String, ParameterConfig>(configMap);
+            newUserServletBean.setCreationParams(paramMap);
+        }
         return newUserServletBean;
     }
 
@@ -186,6 +185,12 @@ public class PwmSession implements Serializable {
 
     public UpdateAttributesServletBean getUpdateAttributesServletBean()
     {
+        if (updateAttributesServletBean == null) {
+            updateAttributesServletBean = new UpdateAttributesServletBean();
+            final Map<String, ParameterConfig> configMap = getLocaleConfig().getUpdateAttributesAttributes();
+            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
+            updateAttributesServletBean.setUpdateAttributesParams(paramMap);
+        }
         return updateAttributesServletBean;
     }
 
@@ -208,18 +213,17 @@ public class PwmSession implements Serializable {
     {
         forgottenPasswordBean = new ForgottenPasswordBean();
         userInfoBean = new UserInfoBean();
-        newUserServletBean = new NewUserServletBean();
-        updateAttributesServletBean = new UpdateAttributesServletBean();
         changePasswordBean = new ChangePasswordBean();
-        activateUserServletBean = new ActivateUserServletBean();
         setupResponseBean = new SetupResponsesBean();
+
+        updateAttributesServletBean = null;
+        newUserServletBean = null;
+        activateUserServletBean = null;
 
         if (sessionManager != null) {
             sessionManager.closeConnections();
         }
         sessionManager = new SessionManager(this);
-
-        initFormBeans();
     }
 
     public Configuration getConfig()
@@ -232,7 +236,10 @@ public class PwmSession implements Serializable {
     }
 
     public LocalizedConfiguration getLocaleConfig() {
-        return getContextManager().getLocaleConfig(getSessionStateBean().getLocale());
+        final SessionStateBean ssBean = getSessionStateBean();
+        final Locale sessionLocale = ssBean.getLocale();
+        final ContextManager contextManager = getContextManager();
+        return contextManager.getLocaleConfig(sessionLocale);
     }
 
     public boolean isValid() {
