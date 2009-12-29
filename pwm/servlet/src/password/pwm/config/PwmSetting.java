@@ -46,7 +46,7 @@ public enum PwmSetting {
             "title", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, true, Category.GENERAL),
     URL_LOGOUT(
             "logoutURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
-    URL_FORWARD(
+    URL_CONTINUE(
             "forwardURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),

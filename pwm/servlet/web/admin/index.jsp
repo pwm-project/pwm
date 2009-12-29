@@ -28,7 +28,7 @@
 <jsp:include page="../jsp/header.jsp"/>
 <body onunload="unloadHandler();">
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Password Management Servlet (PWM)"/></jsp:include>
+    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Administration"/></jsp:include>
     <div id="content">
         <div id="centerbody">
             <p>PWM Version <%=password.pwm.Constants.SERVLET_VERSION %></p>
@@ -96,8 +96,8 @@
             <h2><a href="<pwm:url url='../adminguide.html'/>">PWM Admin Guide</a></h2>
             <p>PWM Administrator Guide</p>
 
-            <h2><a href="<pwm:url url='http://developer.novell.com/wiki/index.php/Pwm'/>">PWM Home Page</a></h2>
-            <p>The PWM project homepage on developer.novell.com</p>
+            <h2><a href="<pwm:url url='http://code.google.com/p/pwm'/>">PWM Home Page</a></h2>
+            <p>The PWM project homepage</p>
         </div>
     </div>
     <br class="clear" />

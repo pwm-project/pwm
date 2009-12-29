@@ -247,7 +247,6 @@ public class ChangePasswordServlet extends TopServlet {
         outputMap.put("passed",String.valueOf(cacheEntry.isPassed()));
 
         return JSONObject.toJSONString(outputMap);
-
     }
 
     /**
@@ -267,10 +266,13 @@ public class ChangePasswordServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession);
-        final String outputString = "random:" + randomPassword;
-        resp.setContentType("text/plain;charset=utf-8");
-        resp.getOutputStream().print(outputString);
 
+        final Map<String,String> outputMap = new HashMap<String,String>();
+        outputMap.put("version","1");
+        outputMap.put("password",randomPassword);
+
+        resp.setContentType("text/plain;charset=utf-8");
+        resp.getOutputStream().print(JSONObject.toJSONString(outputMap));
 
         {
             final StringBuilder sb = new StringBuilder();

@@ -10,23 +10,26 @@ v1.4.3
 ---
 + Improved handling of servlet container clustering and session pausing
 + Added caps-lock detector during password entry
++ Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
++ Added user information debugging page (/pwm/private/userinfo.jsp) to aid in troubleshooting
 
 * Refined password strength meter to allow full strength to be reached, and to be more permissive
-* Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
 * Tuned ajax communications to decrease request traffic.
 * Added "eventLog.localDbMaxAge" setting to control age of pwmDB event log storage
 * Added "ldapPromiscuousSSL" setting instead of using "autocert" param in the ldap server url configuration
-* Refactored HTML/CSS to improve appearance, correctness
+* Refactored HTML/CSS to improve appearance, correctness of both normal and mobile viewing
 
 - Fixed bug where "previously used" error incorrectly results in unknown error when using non-nmas password method (defect #51)
 - Removed setting "passwordSetMethod", for edirectory, this is replaced by "ldap.edirectory.enableNmas"
 - Refactored ajax channels to use JSON encoding
-- Fixed bug where WARN log status inacurately reported no discovered nmas challenge set policy (defect #50)
+- Fixed bug where WARN log status inaccurately reported no discovered nmas challenge set policy (defect #50)
 - Fixed bug where forgotten password doesn't work when there are no required challenges configured (defect #52)
 - Renamed "password.readEdirectoryPasswordPolicy" setting to "ldap.edirectory.readPasswordPolicies"
 - Replaced "authUsingBind" setting with "ldap.edirectory.alwaysUseProxy" setting
 - Fixed bug where newer Client32 clients forced users to configure responses after PWM saves responses using nmas (defect #53)
-- Refactored ant build.xml script to accomedate new layout used in google project svn
+- Refactored ant build.xml script to accommodate new layout used in google project svn
+- Moved XForwardedFor setting to pwmServlet.properties from web.xml as "useXForwardedForHeader" setting.
+- Fixed issue where random password generation sometimes generated out-of-policy passwords 
 
 
 v1.4.2 (7/23/2009) build 842

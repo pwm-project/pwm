@@ -52,7 +52,7 @@ public class SessionStateBean implements Serializable {
     private String originalRequestURL;
     private String srcAddress;
     private String srcHostname;
-    private String forwardURL;
+    private String continueURL;
     private String logoutURL;
     private String postWaitURL;
     private Locale locale;
@@ -88,14 +88,14 @@ public class SessionStateBean implements Serializable {
         this.finishAction = finishAction;
     }
 
-    public String getForwardURL()
+    public String getContinueURL()
     {
-        return forwardURL;
+        return continueURL;
     }
 
-    public void setForwardURL(final String forwardURL)
+    public void setContinueURL(final String continueURL)
     {
-        this.forwardURL = forwardURL;
+        this.continueURL = continueURL;
     }
 
     public int getIncorrectLogins()

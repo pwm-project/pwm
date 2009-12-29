@@ -65,7 +65,7 @@
 
             <%-- strength-meter [not shown if javascript is disabled; see also changepassword.js:markStrength() --%>
             <div id="strengthMeterBox" style="display:none"> <%-- by default, this section is not visable.  see changepassword.js:startupPage() --%>
-                <div style="display:inherit; float: right; position: relative; top: 0; width: 25%; height: 100px; margin-top:10px;">
+                <div style="display:inherit; float: right; position: relative; top: 0; width: 25%; height: 100px; margin-top:30px;">
                     <div style="margin-left:40%; margin-right:40%">
                         <div style="height: 60px;" id="vertgraph">
                             <ul id="graph2">

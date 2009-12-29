@@ -33,7 +33,7 @@ var previousP1 = "";
 function validatePasswords()
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
-         return;
+        return;
     }
 
     if (previousP1 != getObject("password1").value) {
@@ -61,7 +61,7 @@ function makeValidationKey() {
 }
 
 function handleValidationResponse(key, resultString)
-{    
+{
     if (resultString != null && resultString.length > 0) {
         validatorAjaxState.cache[key] = resultString;
         if (key != makeValidationKey()) {
@@ -127,9 +127,9 @@ function clearError(message)
 
 function showWorking()
 {
-        getObject("password_button").disabled = true;
-        getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_CheckingPassword").value;
-        getObject("error_msg").className = "msg-error";
+    getObject("password_button").disabled = true;
+    getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_CheckingPassword").value;
+    getObject("error_msg").className = "msg-error";
 }
 
 function showError(errorMsg)
@@ -193,10 +193,22 @@ function fetchNewRandom()
 
 function handleRandomResponse(key, resultString)
 {
-    if (resultString != null && resultString.substring(0, 7) == "random:") {
-        copyToPasswordFields(resultString.substring(8,resultString.length));
-        getObject("password2").focus();
+    try {
+        var resultInfo = JSON.parse(resultString);
+    } catch (Exception) {
+        clearError(getObject("Js_Display_CommunicationError").value);
+        return;
     }
+
+    if (resultInfo["version"] != "1") {
+        showError("[ unexpected randomgen version string from server ]");
+        return;
+    }
+
+    var password = resultInfo["password"];
+
+    copyToPasswordFields(password);
+    getObject("password2").focus();
 }
 
 function clearForm() {
@@ -215,7 +227,7 @@ function startupPage()
         changeInputTypeField(getObject("hide_button"),"button");
     } catch (e) {
     }
-                                                 
+
     /************* show progressbar if browser is capable */
     /* if browser is javascript capable (must be to get here, then show strengthBar */
     var showStrengthMeterBox = true;

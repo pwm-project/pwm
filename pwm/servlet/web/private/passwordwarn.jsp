@@ -36,7 +36,11 @@
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_PasswordWarning"/></jsp:include>
     <div id="centerbody">
         <p>
+            <% if (uiBean.getPasswordExpirationTime() != null) { %>
             <pwm:Display key="Display_PasswordWarn" value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
+            <% } else { %>
+            <pwm:Display key="Display_PasswordNoExpire"/>
+            <% } %>
         </p>
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/private/<pwm:url url='ChangePassword'/>" method="post"

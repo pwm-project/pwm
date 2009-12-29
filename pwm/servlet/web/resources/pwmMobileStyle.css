@@ -20,15 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:16px; height:100%; margin:0; width:320px}
+html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:14px; height:100%; margin:0; width:320px}
 
 a { margin-left: 10px; color:#2D2D2D; text-decoration:underline; font-weight:bold;  }
 p { max-width: 300px; color:#2D2D2D; position:relative; margin-left: auto; margin-right: auto}
 hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }
 
-h1 { font-size:22px; margin-left: 5px; }
-h2 { font-size:20px; margin-left: 5px; }
-h3 { font-size:18px; margin-left: 5px; }
+h1 { font-size:18px; margin-left: 5px; }
+h2 { font-size:16px; margin-left: 5px; }
+h3 { font-size:14px; margin-left: 5px; }
 
 table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }
 table td { border: 1px solid #D4D4D4; padding-left: 5px;}

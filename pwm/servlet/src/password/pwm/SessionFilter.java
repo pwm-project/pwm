@@ -109,7 +109,7 @@ public class SessionFilter implements Filter {
 
     /**
      * Returns the IP address of the user.  If there is an X-Forwarded-For header in the request, that address will
-     * be used.  Otherwse, the source address of the request is used.
+     * be used.  Otherwise, the source address of the request is used.
      *
      * @param req        A valid HttpServletRequest.
      * @param pwmSession pwmSession used for config lookup
@@ -200,7 +200,7 @@ public class SessionFilter implements Filter {
         }
 
         //check intruder detection, if it is tripped, send user to error page
-        try {
+        try {                               
             theManager.getIntruderManager().checkAddress(pwmSession);
         } catch (PwmException e) {
             Helper.forwardToErrorPage(req, resp, servletContext, false);
@@ -211,7 +211,7 @@ public class SessionFilter implements Filter {
 
         final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", aggressiveUrlParsing, pwmSession);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
-            ssBean.setForwardURL(forwardURLParam);
+            ssBean.setContinueURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 

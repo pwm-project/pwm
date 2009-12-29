@@ -210,6 +210,14 @@ public class PwmPasswordPolicy implements Serializable {
                         }
                         break;
 
+                    case ExpirationInterval:
+                        newPasswordPolicies.put(ruleKey,mergeMin(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                        break;
+                    
+                    case MinimumLifetime:
+                        newPasswordPolicies.put(ruleKey,mergeMin(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                        break;
+
                     default:
                         switch (rule.getRuleType()) {
                             case MIN:
