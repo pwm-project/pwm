@@ -51,7 +51,6 @@ public abstract class Constants {
     public static final String CONTEXT_ATTR_STATUS_BEAN = "StatusBean";
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
-    public static final String SESSION_ATTR_SHORTCUTS = "ShortcutItems";
 
     public static final String DEFAULT_LOG4JCONFIG_FILENAME = "log4jconfig.xml";
     public static final String DEFAULT_WORDLIST_DB_DIR = "pwm-db";
@@ -85,6 +84,7 @@ public abstract class Constants {
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
     public static final String URL_SERVLET_NEW_USER = "NewUser";
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
+    public static final String URL_SERVLET_COMMAND = "CommandServlet";
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_VERIFICATIN_KEY = "session_verificiation_key";

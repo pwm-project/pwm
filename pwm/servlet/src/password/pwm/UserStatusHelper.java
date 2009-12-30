@@ -164,7 +164,7 @@ public class UserStatusHelper {
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
 
         if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligable for checkIfResponseConfigNeeded due to query match");
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
             return false;
         }
 

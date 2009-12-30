@@ -23,12 +23,11 @@ package password.pwm.config;
 
 import com.novell.ldapchai.cr.CrMode;
 import com.novell.ldapchai.util.StringHelper;
+import org.jdom.CDATA;
+import org.jdom.Element;
 
 import java.io.Serializable;
 import java.util.*;
-
-import org.jdom.Element;
-import org.jdom.CDATA;
 
 
 /**
@@ -46,7 +45,7 @@ public enum PwmSetting {
             "title", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, true, Category.GENERAL),
     URL_LOGOUT(
             "logoutURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
-    URL_CONTINUE(
+    URL_FORWARD(
             "forwardURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),

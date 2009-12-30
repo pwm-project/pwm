@@ -35,8 +35,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.*;
-import com.novell.security.nmas.jndi.ldap.ext.GetPwdRequest;
-import com.novell.security.nmas.jndi.ldap.ext.GetPwdResponse;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -495,25 +493,29 @@ public class AuthenticationFilter implements Filter {
 
         String currentPass = null;
 
-        // use nmas to retreive user password
+        // use chai (nmas) to retrieve user password
         try {
-            final GetPwdRequest request = new GetPwdRequest("", theUser.getEntryDN());
-            final GetPwdResponse response = (GetPwdResponse) theUser.getChaiProvider().extendedOperation(request);
-            currentPass = response.getPwdStr();
-        } catch (ChaiOperationException e) {
-            LOGGER.error(pwmSession, "error retreiving user password via nmas; " + e.getMessage());
+            final String readPassword = theUser.readPassword();
+            if (readPassword != null && readPassword.length() > 0) {
+                currentPass = readPassword;
+                LOGGER.debug(pwmSession, "successfully retrieved password from directory");
+            }
+        } catch (Exception e) {
+            if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)) {
+                LOGGER.error(pwmSession, "error retrieving user password from directory; " + e.getMessage());
+            } else {
+                LOGGER.trace(pwmSession, "error retrieving user password from directory; " + e.getMessage());
+            }
         }
 
-        // if nmas didn't work, set to random password.
-        if (currentPass != null && currentPass.length() > 0) {
-            LOGGER.debug(pwmSession, "successfully retreived user's password via nmas");
-        } else {
-            LOGGER.debug(pwmSession, "unable to retreive user password via nmas (allow retreive passwords for admin is probably disabled), will set to temporary random password");
+        // if retrieval didn't work, set to random password.
+        if (currentPass == null || currentPass.length() <= 0) {
+            LOGGER.debug(pwmSession, "unable to retrieving user password from directory (allow retrieving passwords for admin is probably disabled), will set to temporary random password");
             try {
                 final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser);
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
-                // createSharedHistoryManager random password for user
 
+                // createSharedHistoryManager random password for user
                 currentPass = RandomPasswordGenerator.createRandomPassword(pwmSession);
 
                 // write the random password for the user.

@@ -211,7 +211,7 @@ public class SessionFilter implements Filter {
 
         final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", aggressiveUrlParsing, pwmSession);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
-            ssBean.setContinueURL(forwardURLParam);
+            ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 

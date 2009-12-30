@@ -25,13 +25,18 @@
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.DateFormat" %>
+<%@ page import="com.novell.ldapchai.exception.ChaiUnavailableException" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="com.novell.ldapchai.cr.ResponseSet" %>
+<%@ page import="password.pwm.PasswordUtility" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInfoBean uiBean = pwmSession.getUserInfoBean(); %>
 <% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
-<% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
+<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL,SimpleDateFormat.FULL,request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
@@ -49,7 +54,7 @@
                     UserID
                 </td>
                 <td colspan="2">
-                     <%= uiBean.getUserID() %>
+                    <%= uiBean.getUserID() %>
                 </td>
             </tr>
             <tr>
@@ -57,7 +62,7 @@
                     UserDN
                 </td>
                 <td colspan="2">
-                     <%= uiBean.getUserDN() %>
+                    <%= uiBean.getUserDN() %>
                 </td>
             </tr>
         </table>
@@ -73,7 +78,7 @@
                     Locale
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getLocale() %>
+                    <%= ssBean.getLocale() %>
                 </td>
             </tr>
             <tr>
@@ -81,7 +86,7 @@
                     Source Address
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
+                    <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
                 </td>
             </tr>
             <tr>
@@ -89,7 +94,7 @@
                     SessionID
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getSessionID() %>
+                    <%= ssBean.getSessionID() %>
                 </td>
             </tr>
             <tr>
@@ -97,7 +102,7 @@
                     Session Verification Key
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getSessionVerificationKey() %>
+                    <%= ssBean.getSessionVerificationKey() %>
                 </td>
             </tr>
             <tr>
@@ -105,15 +110,15 @@
                     Logout URL
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getLogoutURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
+                    <%= ssBean.getLogoutURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
                 </td>
             </tr>
             <tr>
                 <td class="key" colspan="2">
-                    Continue URL
+                    Forward URL
                 </td>
                 <td colspan="2">
-                     <%= ssBean.getContinueURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_CONTINUE) : ssBean.getContinueURL() %>
+                    <%= ssBean.getForwardURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_FORWARD) : ssBean.getForwardURL() %>
                 </td>
             </tr>
         </table>
@@ -125,42 +130,83 @@
                 </td>
             </tr>
             <tr>
-                <td class="key">
-                    Password Is Expired
+                <td class="key" colspan="2">
+                    Expired
                 </td>
                 <td>
                     <%= uiBean.getPasswordState().isExpired() %>
                 </td>
-                <td class="key">
-                    Password Is Pre-Expired
+            </tr>
+            <tr>
+                <td class="key" colspan="2">
+                    Pre-Expired
                 </td>
                 <td>
                     <%= uiBean.getPasswordState().isPreExpired() %>
                 </td>
             </tr>
             <tr>
-                <td class="key">
-                    Password Violates Policy
+                <td class="key" colspan="2">
+                    Violates Policy
                 </td>
                 <td>
                     <%= uiBean.getPasswordState().isViolatesPolicy() %>
                 </td>
-                <td class="key">
-                    Password is within warning period
+            </tr>
+            <tr>
+                <td class="key" colspan="2">
+                    Within Warning Period
                 </td>
                 <td>
                     <%= uiBean.getPasswordState().isWarnPeriod() %>
                 </td>
             </tr>
             <tr>
-                <td class="key" >
-                    Password expiration
+                <td class="key" colspan="2">
+                    Expiration Time
                 </td>
                 <td>
                     <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : "n/a"%>
                 </td>
-                <td colspan="2">
+                <td class="key" colspan="2">
                     &nbsp;
+                </td>
+            </tr>
+        </table>
+        <br class="clear"/>
+        <table>
+            <tr>
+                <td colspan="10" class="title">
+                    Forgotten Password Status
+                    <%
+                        boolean responsesConfigured = false;
+                        ResponseSet userResponses = null;
+                        PasswordUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
+                        try {
+                            responsesConfigured = !password.pwm.UserStatusHelper.checkIfResponseConfigNeeded(pwmSession);
+                            userResponses = PasswordUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
+                        } catch (ChaiUnavailableException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        } catch (PwmException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
+                    %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key" colspan="2">
+                    Responses Configured
+                </td>
+                <td>
+                    <%= responsesConfigured %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key" colspan="2">
+                    Response Timestamp
+                </td>
+                <td>
+                    <%= userResponses != null && userResponses.getTimestamp() != null ? dateFormatter.format(userResponses.getTimestamp()) : "n/a" %>
                 </td>
             </tr>
         </table>

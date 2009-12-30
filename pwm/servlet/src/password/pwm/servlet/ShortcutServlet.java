@@ -22,9 +22,8 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Constants;
-import password.pwm.Permission;
-import password.pwm.PwmSession;
+import password.pwm.*;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
@@ -33,8 +32,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ShortcutServlet extends TopServlet {
 
@@ -45,12 +45,20 @@ public class ShortcutServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final List<ShortcutItem> visableItems = (List<ShortcutItem>)req.getSession().getAttribute(Constants.SESSION_ATTR_SHORTCUTS);
-        if (visableItems == null) {
+        if (pwmSession.getSessionStateBean().getVisableShortcutItems() == null) {
             LOGGER.debug(pwmSession,"building visable shortcut list for user");
-            req.getSession().setAttribute(Constants.SESSION_ATTR_SHORTCUTS,figureVisableShortcuts(pwmSession));
+            final Map<String,ShortcutItem> visableItems  = figureVisableShortcuts(pwmSession);
+            pwmSession.getSessionStateBean().setVisableShortcutItems(visableItems);
         } else {
             LOGGER.trace(pwmSession,"using cashed shortcut values");
+        }
+
+        final String action = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        LOGGER.trace(pwmSession, "received request for action " + action);
+
+        if (action.equalsIgnoreCase("selectShortcut")) {
+            handleUserSelection(req, resp, pwmSession);
+            return;
         }
 
         this.forwardToJSP(req,resp);
@@ -73,9 +81,9 @@ public class ShortcutServlet extends TopServlet {
      * @throws PwmException if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
-    private static List<ShortcutItem> figureVisableShortcuts(final PwmSession session) throws PwmException, ChaiUnavailableException {
+    private static Map<String,ShortcutItem> figureVisableShortcuts(final PwmSession session) throws PwmException, ChaiUnavailableException {
         final List<ShortcutItem> configuredItems = session.getLocaleConfig().getShortcutItems();
-        final List<ShortcutItem> visableItems = new ArrayList<ShortcutItem>();
+        final Map<String, ShortcutItem> visableItems = new HashMap<String,ShortcutItem>();
 
         for (final ShortcutItem item : configuredItems ) {
             final boolean queryMatch = Permission.testQueryMatch(
@@ -86,10 +94,33 @@ public class ShortcutServlet extends TopServlet {
             );
 
             if (queryMatch) {
-                visableItems.add(item);
+                visableItems.put(item.getLabel(), item);
             }
         }
 
         return visableItems;
+    }
+
+    private void handleUserSelection(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
+            throws PwmException, ChaiUnavailableException, IOException, ServletException
+    {
+        final String link = Validator.readStringFromRequest(req, "link", 255);
+        final Map<String,ShortcutItem> visableItems  = figureVisableShortcuts(pwmSession);
+
+        if (link != null && visableItems.keySet().contains(link)) {
+            final ShortcutItem item = visableItems.get(link);
+            LOGGER.trace(pwmSession, "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI());
+            pwmSession.getSessionStateBean().setForwardURL(item.getShortcutURI().toString());
+
+            final StringBuilder continueURL = new StringBuilder();
+            continueURL.append(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE));
+            continueURL.append("/public/" + Constants.URL_SERVLET_COMMAND);
+            continueURL.append("?processAction=continue");
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(continueURL.toString(), req, resp));
+            return;
+        }
+
+        LOGGER.error(pwmSession,"unknown/unexpected link requested to " + link);
+        forwardToJSP(req,resp);
     }
 }

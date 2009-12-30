@@ -20,7 +20,7 @@
   --%>
 
 <%@ page import="password.pwm.config.ShortcutItem" %>
-<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -29,7 +29,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onunload="unloadHandler();">
-<% final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)session.getAttribute(password.pwm.Constants.SESSION_ATTR_SHORTCUTS);  %>
+<% final Map<String,ShortcutItem> shortcutItems = PwmSession.getSessionStateBean(session).getVisableShortcutItems();  %>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Shortcuts"/></jsp:include>
     <div id="centerbody">
@@ -45,8 +45,8 @@
         <% if (shortcutItems.isEmpty()) { %>
             <p>No shortcuts</p>
         <% } else { %>
-        <% for (final ShortcutItem item : shortcutItems) { %>
-            <h2><a href="<%= item.getShortcutURI().toString() %>" class="tablekey"><%= item.getLabel() %></a></h2>
+        <% for (final ShortcutItem item : shortcutItems.values()) { %>
+            <h2><a href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>" class="tablekey"><%= item.getLabel() %></a></h2>
             <p><%= item.getDescription() %></p>
         <% } %>
         <% } %>

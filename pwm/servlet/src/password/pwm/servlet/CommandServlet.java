@@ -300,9 +300,9 @@ public class CommandServlet extends TopServlet {
             return;
         }
 
-        String redirectURL = ssBean.getContinueURL();
+        String redirectURL = ssBean.getForwardURL();
         if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_CONTINUE);
+            redirectURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
         }
 
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);

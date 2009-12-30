@@ -99,21 +99,6 @@
         </attribute>
     </tag>
     <tag>
-        <name>GenerateRandomPassword</name>
-        <tag-class>
-            password.pwm.tag.GenerateRandomPasswordTag
-        </tag-class>
-        <body-content>empty</body-content>
-        <description>Generates a random password that meets the user's rule
-            requirements
-        </description>
-        <attribute>
-            <name>instance</name>
-            <required>false</required>
-            <rtexprvalue>false</rtexprvalue>
-        </attribute>
-    </tag>
-    <tag>
         <name>ParameterForm</name>
         <tag-class>password.pwm.tag.ParameterFormTag</tag-class>
         <body-content>empty</body-content>

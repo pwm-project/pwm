@@ -23,6 +23,7 @@ package password.pwm.bean;
 
 import password.pwm.BasicAuthInfo;
 import password.pwm.Validator;
+import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +44,7 @@ public class SessionStateBean implements Serializable {
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
     /**
-     * if the current session is beleived to be autheticated
+     * if the current session is believed to be authenticated
      */
     private boolean authenticated;
 
@@ -52,13 +53,11 @@ public class SessionStateBean implements Serializable {
     private String originalRequestURL;
     private String srcAddress;
     private String srcHostname;
-    private String continueURL;
+    private String forwardURL;
     private String logoutURL;
     private String postWaitURL;
     private Locale locale;
     private String sessionID;
-
-    private final Map<String, String> randomPasswordCache = new HashMap<String, String>();
 
     private int incorrectLogins;
 
@@ -74,6 +73,8 @@ public class SessionStateBean implements Serializable {
     private long lastAccessTime = System.currentTimeMillis();
     private long lastPageUnloadTime = 0;
 
+    private Map<String, ShortcutItem> visableShortcutItems;
+
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -88,14 +89,14 @@ public class SessionStateBean implements Serializable {
         this.finishAction = finishAction;
     }
 
-    public String getContinueURL()
+    public String getForwardURL()
     {
-        return continueURL;
+        return forwardURL;
     }
 
-    public void setContinueURL(final String continueURL)
+    public void setForwardURL(final String forwardURL)
     {
-        this.continueURL = continueURL;
+        this.forwardURL = forwardURL;
     }
 
     public int getIncorrectLogins()
@@ -166,11 +167,6 @@ public class SessionStateBean implements Serializable {
     public void setPostWaitURL(final String postWaitURL)
     {
         this.postWaitURL = postWaitURL;
-    }
-
-    public Map<String, String> getRandomPasswordCache()
-    {
-        return randomPasswordCache;
     }
 
     public ErrorInformation getSessionError()
@@ -297,6 +293,14 @@ public class SessionStateBean implements Serializable {
 
     public void setSessionVerified(final boolean sessionVerified) {
         this.sessionVerified = sessionVerified;
+    }
+
+    public Map<String, ShortcutItem> getVisableShortcutItems() {
+        return visableShortcutItems;
+    }
+
+    public void setVisableShortcutItems(Map<String, ShortcutItem> visableShortcutItems) {
+        this.visableShortcutItems = visableShortcutItems;
     }
 
     // -------------------------- ENUMERATIONS --------------------------
