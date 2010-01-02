@@ -33,7 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -142,8 +142,8 @@ public class Validator {
             LOGGER.warn(pwmSession, "PwmException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {

@@ -41,7 +41,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -244,7 +244,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             validateRequiredAttributes(theUser, req, pwmSession);
 
             // note the recovery attempt to the statistics manager
-            theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.RECOVERY_ATTEMPTS);
+            theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_ATTEMPTS);
 
             // read the suppled responses from the user
             final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
@@ -256,7 +256,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
             if (responsesSatisfied) {
                 // update the status bean
-                theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.RECOVERY_SUCCESSES);
+                theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
                 LOGGER.debug(pwmSession, "user '" + theUser.getEntryDN() + "' has supplied correct responses");
 
                 if (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_ALLOW_UNLOCK)) {

@@ -37,7 +37,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -148,7 +148,7 @@ public class ActivateUserServlet extends TopServlet {
                 ssBean.setSessionSuccess(Message.SUCCESS_ACTIVATE_USER.toInfo());
 
                 // update the stats bean
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.ACTIVATED_USERS);
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
 
                 // redirect user to change password screen.
                 Helper.forwardToSuccessPage(req, resp, this.getServletContext());

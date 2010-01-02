@@ -22,7 +22,7 @@
 package password.pwm;
 
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -57,7 +57,7 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
         final ContextManager contextManager = ContextManager.getContextManager(httpSessionEvent.getSession().getServletContext());
 
-        contextManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.HTTP_SESSIONS);
+        contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
         contextManager.addPwmSession(pwmSession);
 
         LOGGER.trace(pwmSession, "http session created: " + httpSessionEvent.getSession().getId());

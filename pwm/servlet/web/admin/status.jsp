@@ -19,22 +19,28 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.novell.ldapchai.ChaiConstant" %>
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.util.StatisticsManager" %>
+<%@ page import="password.pwm.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.stats.Statistic" %>
+<%@ page import="password.pwm.util.stats.StatisticsBundle" %>
+<%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="password.pwm.Helper" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final StatisticsManager stats = ContextManager.getContextManager(session).getStatisticsManager(); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(); %>
-<% final DateFormat dateFormat = DateFormat.getInstance(); %>
+<% final StatisticsManager statsManager = ContextManager.getContextManager(session).getStatisticsManager(); %>
+<% final String statsPeriodSelect = request.getParameter("statsPeriodSelect"); %>
+<% final String statsChartSelect = request.getParameter("statsChartSelect") != null && request.getParameter("statsChartSelect").length() > 0 ? request.getParameter("statsChartSelect") : Statistic.PASSWORD_CHANGES.toString() ; %>
+<% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
+<% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
+<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
@@ -44,6 +50,8 @@
 <p style="text-align:center;">
     <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
 </p>
+<form action="<pwm:url url='status.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="statsUpdateForm"
+      id="statsUpdateForm" onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
 <table>
     <tr>
         <td colspan="10" class="title">
@@ -63,7 +71,7 @@
             Start Time
         </td>
         <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.PWM_START_TIME) %>
+            <%= dateFormat.format(contextManager.getStartupTime()) %>
         </td>
     </tr>
     <tr>
@@ -71,7 +79,7 @@
             Current Time
         </td>
         <td>
-            <%= new java.util.Date().toString() %>
+            <%= dateFormat.format(new java.util.Date()) %>
         </td>
     </tr>
     <tr>
@@ -106,7 +114,7 @@
             Last LDAP Unavailable Time
         </td>
         <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME) %>
+            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "" %> 
         </td>
     </tr>
     <tr>
@@ -171,295 +179,98 @@
 <table class="tablemain">
     <tr>
         <td class="title" colspan="10">
-            Counters
+            Statistics
         </td>
     </tr>
     <tr>
         <td colspan="10" style="text-align: center">
-            since pwm startup ( <%= stats.getCurrentStat(StatisticsManager.Statistic.PWM_START_TIME) %> )
+            <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
+                <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since installation - <%= dateFormat.format(contextManager.getInstallTime()) %></option>
+                <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since startup - <%= dateFormat.format(contextManager.getStartupTime()) %></option>
+                <% final Map<StatisticsManager.Key,String> availableKeys = statsManager.getAvailabileKeys(request.getLocale()); %>
+                <% for (final StatisticsManager.Key key : availableKeys.keySet()) { %>
+                <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %> GMT</option>
+                <% } %>
+            </select>
+            <noscript>
+                <input type="submit" id="submit_button_period" class="btn" value="Update"/>
+            </noscript>
         </td>
     </tr>
+    <% for (Iterator<Statistic> iter = Statistic.sortedValues(request.getLocale()).iterator(); iter.hasNext() ;) { %>
     <tr>
+        <% Statistic leftStat = iter.next(); %>
         <td class="key">
-            Locked Users
+            <%= leftStat.getLabel(request.getLocale()) %>
         </td>
         <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.LOCKED_USERS) %>
+            <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
         </td>
+        <% if (iter.hasNext()) { %>
+        <% Statistic rightStat = iter.next(); %>
         <td class="key">
-            Locked Addresses
+            <%= rightStat.getLabel(request.getLocale()) %>
         </td>
         <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.LOCKED_ADDRESSES) %>
+            <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
         </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Servlet HTTP Requests
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.HTTP_REQUESTS) %>
-        </td>
-        <td class="key">
-            PWM Logins
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.PWM_AUTHENTICATIONS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Failed Logins
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.FAILED_LOGIN_ATTEMPTS) %>
-        </td>
-        <td class="key">
-            Passwords Changed
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.PASSWORD_CHANGES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Activated Users
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.ACTIVATED_USERS) %>
-        </td>
-        <td class="key">
-            New Users Created
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.NEW_USERS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Password Recoveries
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.RECOVERY_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Password Recovery Attempts
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.RECOVERY_ATTEMPTS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Emails Sent
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.EMAIL_SEND_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Email Send Failures
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.EMAIL_SEND_FAILURES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Captcha Attempts
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.CAPTCHA_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Captcha Failures
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.CAPTCHA_FAILURES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            HTTP Sessions
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.HTTP_SESSIONS) %>
-        </td>
-        <td class="key">
-            LDAP Unavailable Errors
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Average Password Replicate Time
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.AVG_PASSWORD_SYNC_TIME) %>
-            ms
-        </td>
-        <td class="key">
-            Average word check time
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.AVG_WORDLIST_CHECK_TIME) %>
-            ms
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Real-Time Password Validations
-        </td>
-        <td>
-            <%= stats.getCurrentStat(StatisticsManager.Statistic.PASSWORD_RULE_CHECKS) %>
-        </td>
+        <% } else { %>
         <td colspan="2">
             &nbsp;
         </td>
+        <% } %>
     </tr>
-</table>
-<br class="clear"/>
-<% if (stats.hasCummulativeValues()) { %>
-<table class="tablemain">
+    <% } %>
     <tr>
         <td class="title" colspan="10">
-            Cummulative Counters
+            Activity
         </td>
     </tr>
     <tr>
         <td colspan="10" style="text-align: center">
-            since pwm installation ( <%= stats.getCumulativeStat(StatisticsManager.Statistic.PWM_INSTALL_TIME) %> )
+            <select name="statsChartSelect" onchange="getObject('statsUpdateForm').submit();">
+                <% for (final Statistic loopStat : Statistic.sortedValues(request.getLocale())) { %>
+                <option value="<%=loopStat %>" <%= loopStat.toString().equals(statsChartSelect) ? "selected=\"selected\"" : "" %>><%=loopStat.getLabel(request.getLocale())%></option>
+                <% } %>
+            </select>
+            <br/>
+            <noscript>
+                <input type="submit" id="submit_button_chart" class="btn" value="Update"/>
+            </noscript>
+            <%
+                final Statistic selectedStat = Statistic.valueOf(statsChartSelect);
+                final Map<String,String> chartData = statsManager.getStatHistory(selectedStat,31);
+                int topValue = 0;
+                for (final String value: chartData.values()) topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
+                final StringBuilder imgURL = new StringBuilder();
+                imgURL.append("http://chart.apis.google.com/chart");
+                imgURL.append("?cht=bvs");
+                imgURL.append("&chs=598x150");
+                imgURL.append("&chds=0," + topValue);
+                imgURL.append("&chco=d20734");
+                imgURL.append("&chxt=x,y");
+                imgURL.append("&chxr=1,0," + topValue);
+                imgURL.append("&chbh=14");
+                imgURL.append("&chd=t:");
+                for (final String value: chartData.values()) imgURL.append(value).append(",");
+                imgURL.delete(imgURL.length() - 1, imgURL.length());
+                imgURL.append("&chl=");
+                int counter = 0;
+                for (final String value: chartData.keySet()) {
+                    if (counter % 3 == 0) {
+                        imgURL.append(value).append("|");
+                    } else {
+                        imgURL.append(" |");
+                    }
+                    counter++;
+                }
+                imgURL.delete(imgURL.length() - 1, imgURL.length());
+            %>
+            <img src="<%=imgURL.toString()%>" alt="[ Google Chart Image ]"/>
         </td>
     </tr>
-    <tr>
-        <td class="key">
-            Locked Users
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.LOCKED_USERS) %>
-        </td>
-        <td class="key">
-            Locked Addresses
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.LOCKED_ADDRESSES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Servlet HTTP Requests
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.HTTP_REQUESTS) %>
-        </td>
-        <td class="key">
-            PWM Logins
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.PWM_AUTHENTICATIONS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Failed Logins
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.FAILED_LOGIN_ATTEMPTS) %>
-        </td>
-        <td class="key">
-            Passwords Changed
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.PASSWORD_CHANGES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Activated Users
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.ACTIVATED_USERS) %>
-        </td>
-        <td class="key">
-            New Users Created
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.NEW_USERS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Password Recoveries
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.RECOVERY_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Password Recovery Attempts
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.RECOVERY_ATTEMPTS) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Emails Sent
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.EMAIL_SEND_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Email Send Failures
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.EMAIL_SEND_FAILURES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Captcha Attempts
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.CAPTCHA_SUCCESSES) %>
-        </td>
-        <td class="key">
-            Captcha Failures
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.CAPTCHA_FAILURES) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            HTTP Sessions
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.HTTP_SESSIONS) %>
-        </td>
-        <td class="key">
-            LDAP Unavailable Errors
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Real-Time Password Validations
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.PASSWORD_RULE_CHECKS) %>
-        </td>
-        <td class="key">
-            PWM Startups
-        </td>
-        <td>
-            <%= stats.getCumulativeStat(StatisticsManager.Statistic.PWM_STARTUPS) %>
-        </td>
-    </tr>
+
 </table>
-<% } %>
 <br class="clear"/>
 <table class="tablemain">
     <tr>
@@ -658,7 +469,7 @@
             Chai API Version
         </td>
         <td>
-            <%= ChaiConstant.CHAI_API_VERSION %>
+            <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %>
         </td>
     </tr>
     <tr>
@@ -666,10 +477,11 @@
             Chai API Build Number
         </td>
         <td>
-            <%= ChaiConstant.CHAI_API_BUILD_INFO %>
+            <%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>
         </td>
     </tr>
 </table>
+</form>
 </div>
 </div>
 <%@ include file="../jsp/footer.jsp" %>

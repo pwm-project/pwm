@@ -30,7 +30,6 @@ import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
 import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;
@@ -75,11 +74,9 @@ public class SessionManager implements Serializable {
 
                 if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) && pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     chaiProvider = Helper.createChaiProvider(pwmSession.getContextManager(), config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN), config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
-                    pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS);
                     debugLogText.append("opened new proxy ldap connection for ");
                 } else {
                     chaiProvider = Helper.createChaiProvider(pwmSession.getContextManager(), pwmSession.getUserInfoBean().getUserDN(), pwmSession.getUserInfoBean().getUserCurrentPassword());
-                    pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS);
                     debugLogText.append("opened new ldap connection for ");
                 }
 
@@ -123,8 +120,6 @@ public class SessionManager implements Serializable {
                 } catch (Exception e) {
                     LOGGER.error(pwmSession, "error while closing user connection: " + e.getMessage());
                 }
-
-                pwmSession.getContextManager().getStatisticsManager().decrementValue(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS);
             }
         }
     }

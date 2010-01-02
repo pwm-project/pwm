@@ -28,7 +28,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Message;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -73,10 +73,10 @@ public abstract class TopServlet extends HttpServlet {
         try {
             this.processRequest(req, resp);
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getContextManager().setLastLdapFailure();
             ssBean.setSessionError(Message.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
-            pwmSession.getContextManager().getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME);
+            pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmException e) {

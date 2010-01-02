@@ -26,7 +26,7 @@ import password.pwm.PwmSession;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.Sleeper;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
 
@@ -252,7 +252,7 @@ abstract class AbstractWordlist implements Wordlist {
 
             if (pwmSession != null) {
                 LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + TimeDuration.asCompactString(totalTime));
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(StatisticsManager.Statistic.AVG_WORDLIST_CHECK_TIME,totalTime);
+                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_WORDLIST_CHECK_TIME,totalTime);
             }
 
             return result;

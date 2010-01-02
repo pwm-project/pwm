@@ -28,7 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
 
 import javax.servlet.*;
@@ -256,7 +256,7 @@ public class SessionFilter implements Filter {
             throw new ServletException(e);
         }
 
-        theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.HTTP_REQUESTS);
+        theManager.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
 
         ssBean.setLastAccessTime(System.currentTimeMillis());
     }

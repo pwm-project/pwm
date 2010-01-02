@@ -42,7 +42,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
@@ -242,7 +242,7 @@ public class PasswordUtility {
                     LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
                 }
                 final long totalTime = System.currentTimeMillis() - delayStartTime;
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(StatisticsManager.Statistic.AVG_PASSWORD_SYNC_TIME,totalTime);
+                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME,totalTime);
             }
         }
 
@@ -259,7 +259,7 @@ public class PasswordUtility {
         Helper.sendChangePasswordEmailNotice(pwmSession);
 
         // update the status bean
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.PASSWORD_CHANGES);
+        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
 
         // add the old password to the global history list (if the old password is known)
         if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw()) {

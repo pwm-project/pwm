@@ -29,6 +29,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.config.*;
 import password.pwm.error.PwmException;
 import password.pwm.process.emailer.EmailEvent;
@@ -36,10 +37,11 @@ import password.pwm.process.emailer.EmailQueueManager;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBFactory;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.wordlist.SeedlistManager;
 import password.pwm.wordlist.SharedHistoryManager;
 import password.pwm.wordlist.WordlistManager;
-import org.apache.log4j.xml.DOMConfigurator;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -63,6 +65,7 @@ public class ContextManager implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ContextManager.class);
     private static final String DB_KEY_INSTANCE_ID = "context_instanceID";
     private static final String DEFAULT_INSTANCE_ID = "-1";
+    private static final String KEY_INSTALL_DATE = "KEY_INSTALL_DATE";
 
     int sessionTimeout = -1;
     private String instanceID = "-1";
@@ -83,6 +86,10 @@ public class ContextManager implements Serializable
     private transient PwmDB pwmDB;
     private transient PwmDBLogger pwmDBLogger;
     private transient volatile ChaiProvider proxyChaiProvider;
+
+    private Date startupTime = new Date();
+    private Date installTime = new Date();
+    private Date lastLdapFailure = null;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -161,10 +168,9 @@ public class ContextManager implements Serializable
 
             try {
                 proxyChaiProvider = ChaiProviderFactory.createProvider(chaiConfig);
-                getStatisticsManager().incrementValue(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS);
             } catch (ChaiUnavailableException e) {
-                getStatisticsManager().incrementValue(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT);
-                getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME);
+                getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                setLastLdapFailure();
                 LOGGER.fatal("check ldap proxy settings: " + e.getMessage());
                 throw e;
             }
@@ -191,7 +197,15 @@ public class ContextManager implements Serializable
         return seedlistManager;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    public Date getLastLdapFailure() {
+        return lastLdapFailure;
+    }
+
+    public void setLastLdapFailure() {
+        this.lastLdapFailure = new Date();
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
 
     public Configuration getConfig()
     {
@@ -280,14 +294,13 @@ public class ContextManager implements Serializable
         instanceID = fetchInstanceID(pwmDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for this pwm instance's ID (instanceID)");
 
+        // get the pwm installation date
+        installTime = fetchInstallDate(pwmDB, startupTime);
+        LOGGER.debug("this pwm instance first installed on " + installTime.toString());
+
         // startup the stats engine;
         statisticsManager = new StatisticsManager(pwmDB);
-        getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.PWM_START_TIME);
-        getStatisticsManager().incrementValue(StatisticsManager.Statistic.PWM_STARTUPS);
-
-        if ("Never".equalsIgnoreCase(getStatisticsManager().getCurrentStat(StatisticsManager.Statistic.PWM_INSTALL_TIME))) {
-            getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.PWM_INSTALL_TIME);
-        }
+        getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
 
         // initialize wordlist
         {
@@ -383,6 +396,24 @@ public class ContextManager implements Serializable
         }
         return 0;
     }
+
+    private static Date fetchInstallDate(final PwmDB pwmDB, final Date startupTime) {
+        if (pwmDB != null) {
+            try {
+                final String storedDateStr = pwmDB.get(PwmDB.DB.PWM_META, KEY_INSTALL_DATE);
+                if (storedDateStr == null || storedDateStr.length() < 1) {
+                    pwmDB.put(PwmDB.DB.PWM_META, KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                } else {
+                    return new Date(Long.parseLong(storedDateStr));
+                }
+            } catch (Exception e) {
+                LOGGER.error("error retrieving installation date from pwmDB: " + e.getMessage());
+            }
+        }
+        return new Date();
+    }
+
+
 
     private static String fetchInstanceID(final PwmDB pwmDB, final ContextManager contextManager) {
 
@@ -555,7 +586,7 @@ public class ContextManager implements Serializable
             try {
                 pwmDB.close();
             } catch (Exception e) {
-                LOGGER.fatal("error destroing pwm context DB: " + e, e);
+                LOGGER.fatal("error destroying pwm context DB: " + e, e);
             }
             pwmDB = null;
         }
@@ -570,7 +601,6 @@ public class ContextManager implements Serializable
             LOGGER.trace("closing ldap proxy connection");
             final ChaiProvider existingProvider = proxyChaiProvider;
             proxyChaiProvider = null;
-            getStatisticsManager().decrementValue(StatisticsManager.Statistic.CURENT_LDAP_CONNECTIONS);
 
             try {
                 existingProvider.close();
@@ -584,7 +614,15 @@ public class ContextManager implements Serializable
         activeSessions.add(pwmSession);
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    public Date getStartupTime() {
+        return startupTime;
+    }
+
+    public Date getInstallTime() {
+        return installTime;
+    }
+
+    // -------------------------- INNER CLASSES --------------------------
 
     public class DebugLogOutputter extends TimerTask {
         public void run()

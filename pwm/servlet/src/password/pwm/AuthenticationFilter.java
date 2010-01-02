@@ -35,6 +35,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.*;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -163,8 +165,8 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().getStatisticsManager().updateTimestamp(StatisticsManager.Statistic.LDAP_UNAVAILABLE_TIME);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getContextManager().setLastLdapFailure();
             ssBean.setSessionError(Message.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
@@ -220,7 +222,7 @@ public class AuthenticationFilter implements Filter {
             intruderManager.addBadAddressAttempt(pwmSession);
             intruderManager.addBadUserAttempt(username,pwmSession);
             intruderManager.checkUser(username,pwmSession);
-            statusBean.incrementValue(StatisticsManager.Statistic.FAILED_LOGIN_ATTEMPTS);
+            statusBean.incrementValue(Statistic.FAILED_LOGIN_ATTEMPTS);
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
             return false;
         }
@@ -241,7 +243,7 @@ public class AuthenticationFilter implements Filter {
             debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
             LOGGER.info(pwmSession, debugMsg);
 
-            statusBean.incrementValue(StatisticsManager.Statistic.PWM_AUTHENTICATIONS);
+            statusBean.incrementValue(Statistic.PWM_AUTHENTICATIONS);
 
             //attempt to add the object class to the user
             Helper.addConfiguredUserObjectClass(userDN, pwmSession);
@@ -258,7 +260,7 @@ public class AuthenticationFilter implements Filter {
         intruderManager.addBadAddressAttempt(pwmSession);
         intruderManager.addBadUserAttempt(userDN, pwmSession);
         LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: wrong password");
-        statusBean.incrementValue(StatisticsManager.Statistic.FAILED_LOGIN_ATTEMPTS);
+        statusBean.incrementValue(Statistic.FAILED_LOGIN_ATTEMPTS);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         return false;
     }

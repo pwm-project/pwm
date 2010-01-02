@@ -26,7 +26,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.LocalizedConfiguration;
 import password.pwm.config.ParameterConfig;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -127,7 +128,7 @@ public class PwmSession implements Serializable {
         if (contextManager != null) {
             final StatisticsManager statisticsManager = contextManager.getStatisticsManager();
             if (statisticsManager != null) {
-                final String sessionID = getContextManager().getStatisticsManager().getCurrentStat(StatisticsManager.Statistic.HTTP_SESSIONS);
+                final String sessionID = getContextManager().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CURRENT).getStatistic(Statistic.HTTP_SESSIONS);
                 this.getSessionStateBean().setSessionID(sessionID);
             }
         }

@@ -25,7 +25,8 @@ import password.pwm.Constants;
 import password.pwm.ContextManager;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -143,11 +144,11 @@ public class EmailQueueManager extends TimerTask {
 
             Transport.send(message);
             LOGGER.debug("successfully sent email: " + emailEvent.toString());
-            statsMgr.incrementValue(StatisticsManager.Statistic.EMAIL_SEND_SUCCESSES);
+            statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
 
             return true;
         } catch (MessagingException e) {
-            statsMgr.incrementValue(StatisticsManager.Statistic.EMAIL_SEND_FAILURES);
+            statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
             this.lastErrorTime = System.currentTimeMillis();
 
             LOGGER.error("error during email send attempt: " + e); //todo explain _which_ email failed.

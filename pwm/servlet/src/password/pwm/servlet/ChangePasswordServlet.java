@@ -33,7 +33,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import org.json.simple.JSONObject;
 
 import javax.servlet.ServletException;
@@ -165,7 +165,7 @@ public class ChangePasswordServlet extends TopServlet {
             LOGGER.trace(pwmSession, sb.toString());
         }
 
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.PASSWORD_RULE_CHECKS);
+        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(outputString);

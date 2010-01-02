@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.process.emailer.EmailEvent;
+import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -193,7 +194,7 @@ public class IntruderManager implements Serializable {
                                 " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining())
                 );
                 theManager.sendEmailUsingQueue(emailEvent);
-                theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.LOCKED_USERS);
+                theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
 
                 record.setAlerted(true);
             }
@@ -222,7 +223,7 @@ public class IntruderManager implements Serializable {
                         " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining())
         );
         theManager.sendEmailUsingQueue(emailEvent);
-        theManager.getStatisticsManager().incrementValue(StatisticsManager.Statistic.LOCKED_USERS);
+        theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
 
         try {
             final String userDN = AuthenticationFilter.convertUsernameFieldtoDN(username, pwmSession, null);

@@ -317,8 +317,10 @@ public class PwmDBLogger {
         try {
             for (final PwmLogEvent event : events) {
                 final String encodedString = event.toEncodedString();
-                transactions.put(keyForPosition(nextPosition),encodedString);
-                nextPosition = figureNextPosition(nextPosition);
+                if (encodedString.length() < PwmDB.MAX_VALUE_LENGTH) {
+                    transactions.put(keyForPosition(nextPosition),encodedString);
+                    nextPosition = figureNextPosition(nextPosition);
+                }
             }
 
             pwmDB.putAll(EVENT_DB, transactions);
@@ -327,7 +329,7 @@ public class PwmDBLogger {
 
             if (transactions.size() >= MAX_WRITES_PER_CYCLE) {
                 LOGGER.trace("added max records (" + transactions.size() + ") in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
-            }            
+            }
         } catch (Exception e) {
             LOGGER.error("error writing to pwmDBLogger: " + e.getMessage(),e);
         }

@@ -12,6 +12,7 @@ v1.4.3
 + Added caps-lock detector during password entry
 + Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
 + Added user information debugging page (/pwm/private/userinfo.jsp) to aid in troubleshooting
++ Added daily stats viewer and chart history in administrator status screen
 
 * Refined password strength meter to allow full strength to be reached, and to be more permissive
 * Tuned ajax communications to decrease request traffic.

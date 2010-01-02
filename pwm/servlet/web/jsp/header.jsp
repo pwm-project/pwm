@@ -32,7 +32,7 @@
     </title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="Description" content="PWM Password Self Service Servlets"/>
-    <meta name="viewport" content="width=320, user-scalable=no">
+    <meta name="viewport" content="width=320, user-scalable=no"/>
     <link rel="icon" type="image/vnd.microsoft.icon" href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>" />
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>

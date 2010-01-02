@@ -40,7 +40,7 @@ import password.pwm.error.ValidationException;
 import password.pwm.process.emailer.EmailEvent;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -243,7 +243,7 @@ public class NewUserServlet extends TopServlet {
             this.sendNewUserEmailConfirmation(pwmSession);
             ssBean.setSessionSuccess(Message.SUCCESS_CREATE_USER.toInfo());
 
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.NEW_USERS);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
             Helper.forwardToSuccessPage(req, resp, this.getServletContext());
             return;
         }

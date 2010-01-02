@@ -31,7 +31,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.StatisticsManager;
+import password.pwm.util.stats.Statistic;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -114,7 +114,7 @@ public class CaptchaServlet extends TopServlet {
 
         if (verified) { // passed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.CAPTCHA_SUCCESSES);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
             LOGGER.debug(pwmSession, "captcha passcode verified");
             pwmSession.getContextManager().getIntruderManager().addGoodAddressAttempt(pwmSession);
@@ -123,7 +123,7 @@ public class CaptchaServlet extends TopServlet {
         } else { //failed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(false);
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_BAD_CAPTCHA_RESPONSE));
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(StatisticsManager.Statistic.CAPTCHA_FAILURES);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
             pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
