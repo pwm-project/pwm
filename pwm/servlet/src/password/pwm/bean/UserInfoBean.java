@@ -42,7 +42,7 @@ import java.util.Properties;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.UserStatusHelper#populateUserInfoBean(password.pwm.PwmSession, String, String)
+ * @see password.pwm.UserStatusHelper#populateActorUserInfoBean(password.pwm.PwmSession, String, String)
  */
 public class UserInfoBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -69,6 +69,7 @@ public class UserInfoBean implements Serializable {
     private ChallengeSet challengeSet = null;
 
     private Date passwordExpirationTime;
+    private Date passwordLastModifiedTime;
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<Permission, Permission.PERMISSION_STATUS>();
 
@@ -195,6 +196,14 @@ public class UserInfoBean implements Serializable {
 
     public void setRequiresResponseConfig(final boolean requiresResponseConfig) {
         this.requiresResponseConfig = requiresResponseConfig;
+    }
+
+    public Date getPasswordLastModifiedTime() {
+        return passwordLastModifiedTime;
+    }
+
+    public void setPasswordLastModifiedTime(Date passwordLastModifiedTime) {
+        this.passwordLastModifiedTime = passwordLastModifiedTime;
     }
 
     // -------------------------- OTHER METHODS --------------------------

@@ -27,6 +27,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -75,9 +76,9 @@ public class ShortcutServlet extends TopServlet {
 
 
     /**
-     * Loop through each configured shortcut setting to determine if the shortcut is isable to the user session.
+     * Loop through each configured shortcut setting to determine if the shortcut is is able to the user session.
      * @param session Valid (authenticated) PwmSession
-     * @return List of visable ShortcutItems
+     * @return List of visible ShortcutItems
      * @throws PwmException if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
@@ -109,6 +110,8 @@ public class ShortcutServlet extends TopServlet {
 
         if (link != null && visableItems.keySet().contains(link)) {
             final ShortcutItem item = visableItems.get(link);
+
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SHORTCUTS_SELECTED);
             LOGGER.trace(pwmSession, "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI());
             pwmSession.getSessionStateBean().setForwardURL(item.getShortcutURI().toString());
 

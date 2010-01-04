@@ -55,7 +55,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
 
             sb.append("<option value=\"").append(contextDN).append("\"");
             if (contextDN.equals(selectedValue)) {
-                sb.append("selected=\"true\"");
+                sb.append("selected=\"selected\"");
             }
             sb.append(">");
             sb.append(displayName);

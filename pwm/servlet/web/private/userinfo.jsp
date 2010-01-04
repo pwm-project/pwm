@@ -50,75 +50,19 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     UserID
                 </td>
-                <td colspan="2">
+                <td>
                     <%= uiBean.getUserID() %>
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     UserDN
                 </td>
-                <td colspan="2">
+                <td>
                     <%= uiBean.getUserDN() %>
-                </td>
-            </tr>
-        </table>
-        <br class="clear"/>
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    Session Information
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    Locale
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getLocale() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    Source Address
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    SessionID
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getSessionID() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    Session Verification Key
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getSessionVerificationKey() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    Logout URL
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getLogoutURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key" colspan="2">
-                    Forward URL
-                </td>
-                <td colspan="2">
-                    <%= ssBean.getForwardURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_FORWARD) : ssBean.getForwardURL() %>
                 </td>
             </tr>
         </table>
@@ -130,7 +74,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Expired
                 </td>
                 <td>
@@ -138,7 +82,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Pre-Expired
                 </td>
                 <td>
@@ -146,7 +90,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Violates Policy
                 </td>
                 <td>
@@ -154,7 +98,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Within Warning Period
                 </td>
                 <td>
@@ -162,14 +106,19 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
+                    Last Modified Time (PWM)
+                </td>
+                <td>
+                    <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : "n/a"%>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
                     Expiration Time
                 </td>
                 <td>
                     <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : "n/a"%>
-                </td>
-                <td class="key" colspan="2">
-                    &nbsp;
                 </td>
             </tr>
         </table>
@@ -179,11 +128,8 @@
                 <td colspan="10" class="title">
                     Forgotten Password Status
                     <%
-                        boolean responsesConfigured = false;
                         ResponseSet userResponses = null;
-                        PasswordUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
                         try {
-                            responsesConfigured = !password.pwm.UserStatusHelper.checkIfResponseConfigNeeded(pwmSession);
                             userResponses = PasswordUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
                         } catch (ChaiUnavailableException e) {
                             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -194,19 +140,75 @@
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Responses Configured
                 </td>
                 <td>
-                    <%= responsesConfigured %>
+                    <%= !uiBean.isRequiresResponseConfig() %>
                 </td>
             </tr>
             <tr>
-                <td class="key" colspan="2">
+                <td class="key">
                     Response Timestamp
                 </td>
                 <td>
                     <%= userResponses != null && userResponses.getTimestamp() != null ? dateFormatter.format(userResponses.getTimestamp()) : "n/a" %>
+                </td>
+            </tr>
+        </table>
+        <br class="clear"/>
+        <table>
+            <tr>
+                <td colspan="10" class="title">
+                    Session Information
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Locale
+                </td>
+                <td>
+                    <%= ssBean.getLocale() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Source Address
+                </td>
+                <td>
+                    <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    SessionID
+                </td>
+                <td>
+                    <%= ssBean.getSessionID() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Session Verification Key
+                </td>
+                <td>
+                    <%= ssBean.getSessionVerificationKey() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Logout URL
+                </td>
+                <td>
+                    <%= ssBean.getLogoutURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Forward URL
+                </td>
+                <td>
+                    <%= ssBean.getForwardURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_FORWARD) : ssBean.getForwardURL() %>
                 </td>
             </tr>
         </table>

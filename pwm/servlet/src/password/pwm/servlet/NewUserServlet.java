@@ -75,7 +75,7 @@ public class NewUserServlet extends TopServlet {
             final ParameterConfig paramConfig = paramConfigs.get(namingAttribute);
             if (paramConfig != null) {
                 final String username = paramConfig.getValue();
-                final String userDN = AuthenticationFilter.convertUsernameFieldtoDN(username, pwmSession, null);
+                final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
 
                 if (userDN == null) {
                     throw ValidationException.createValidationException(Message.ERROR_CANT_MATCH_USER.toInfo());

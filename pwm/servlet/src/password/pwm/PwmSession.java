@@ -57,6 +57,8 @@ public class PwmSession implements Serializable {
     private UpdateAttributesServletBean updateAttributesServletBean;
     private ActivateUserServletBean activateUserServletBean;
 
+    private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
+
     private transient HttpSession httpSession;
 
 // -------------------------- STATIC METHODS --------------------------
@@ -203,6 +205,7 @@ public class PwmSession implements Serializable {
         return userInfoBean;
     }
 
+    
 // -------------------------- OTHER METHODS --------------------------
 
     public void clearChangePasswordBean()
@@ -220,6 +223,8 @@ public class PwmSession implements Serializable {
         updateAttributesServletBean = null;
         newUserServletBean = null;
         activateUserServletBean = null;
+
+        userInformationServletBean = new UserInformationServletBean();
 
         if (sessionManager != null) {
             sessionManager.closeConnections();
@@ -302,5 +307,9 @@ public class PwmSession implements Serializable {
 
     public SetupResponsesBean getSetupResponseBean() {
         return setupResponseBean;
+    }
+
+    public UserInformationServletBean getUserInformationServletBean() {
+        return userInformationServletBean;
     }
 }

@@ -104,7 +104,7 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession)) {
+        if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_SETUP_RESPONSES, req, resp));
         } else {
             processContinue(req, resp);
@@ -249,7 +249,7 @@ public class CommandServlet extends TopServlet {
 
         if (checkIfPasswordExpired(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession)) {
+        } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
         } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_UPDATE_ATTRIBUTES) && !checkAttributes(pwmSession)) {
             processCheckAttributes(req, resp);

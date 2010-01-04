@@ -44,11 +44,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onunload="unloadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="wrapper">
+<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
 <p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+    <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
 </p>
 <form action="<pwm:url url='status.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="statsUpdateForm"
       id="statsUpdateForm" onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
@@ -134,51 +134,6 @@
 <table class="tablemain">
     <tr>
         <td class="title" colspan="10">
-            Current Status
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <a href="<pwm:url url='intruderstatus.jsp'/>">
-                Locked Users
-            </a>
-        </td>
-        <td>
-            <a href="<pwm:url url='intruderstatus.jsp'/>">
-                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedUsers()) %>
-            </a>
-        </td>
-        <td class="key">
-            <a href="<pwm:url url='intruderstatus.jsp'/>">
-                Locked Addresses
-            </a>
-        </td>
-        <td>
-            <a href="<pwm:url url='intruderstatus.jsp'/>">
-                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedAddresses()) %>
-            </a>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <a href="<pwm:url url='activesessions.jsp'/>">
-                Active HTTP Sessions
-            </a>
-        </td>
-        <td>
-            <a href="<pwm:url url='activesessions.jsp'/>">
-                <%= contextManager.getPwmSessions().size() %>
-            </a>
-        </td>
-        <td colspan="2">
-            &nbsp;
-        </td>
-    </tr>
-</table>
-<br class="clear"/>
-<table class="tablemain">
-    <tr>
-        <td class="title" colspan="10">
             Statistics
         </td>
     </tr>
@@ -243,9 +198,9 @@
                 int topValue = 0;
                 for (final String value: chartData.values()) topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
                 final StringBuilder imgURL = new StringBuilder();
-                imgURL.append("http://chart.apis.google.com/chart");
+                imgURL.append(request.isSecure() ? "https://www.google.com/charts" : "http://chart.apis.google.com/chart");
                 imgURL.append("?cht=bvs");
-                imgURL.append("&chs=598x150");
+                imgURL.append("&chs=590x150");
                 imgURL.append("&chds=0," + topValue);
                 imgURL.append("&chco=d20734");
                 imgURL.append("&chxt=x,y");
@@ -269,7 +224,51 @@
             <img src="<%=imgURL.toString()%>" alt="[ Google Chart Image ]"/>
         </td>
     </tr>
-
+</table>
+<br class="clear"/>
+<table class="tablemain">
+    <tr>
+        <td class="title" colspan="10">
+            Current Status
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <a href="<pwm:url url='intruderstatus.jsp'/>">
+                Locked Users
+            </a>
+        </td>
+        <td>
+            <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedUsers()) %>
+            </a>
+        </td>
+        <td class="key">
+            <a href="<pwm:url url='intruderstatus.jsp'/>">
+                Locked Addresses
+            </a>
+        </td>
+        <td>
+            <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedAddresses()) %>
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <a href="<pwm:url url='activesessions.jsp'/>">
+                Active HTTP Sessions
+            </a>
+        </td>
+        <td>
+            <a href="<pwm:url url='activesessions.jsp'/>">
+                <%= contextManager.getPwmSessions().size() %>
+            </a>
+        </td>
+        <td colspan="2">
+            &nbsp;
+        </td>
+    </tr>
 </table>
 <br class="clear"/>
 <table class="tablemain">
@@ -322,7 +321,7 @@
     </tr>
     <tr>
         <td class="key">
-            Oldest Shared Password History Entry
+            Oldest Shared Password Entry
         </td>
         <td>
             <% final long oldestEntryAge = contextManager.getSharedHistoryManager().getOldestEntryAge(); %>

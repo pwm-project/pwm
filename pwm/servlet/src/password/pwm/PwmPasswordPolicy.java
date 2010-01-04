@@ -301,13 +301,13 @@ public class PwmPasswordPolicy implements Serializable {
             }
             if (userPolicy != null) {
                 if (userPolicy.getChaiPasswordPolicy() != null && userPolicy.getChaiPasswordPolicy().getPolicyEntry() != null) {
-                    LOGGER.debug(pwmSession, "found user's assigned password policy " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
+                    LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " at " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
                 } else {
-                    LOGGER.debug(pwmSession, "loaded user's traditional password policy " + userPolicy.toString());
+                    LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + userPolicy.toString());
                 }
                 final PwmPasswordPolicy mergedPolicy = returnPolicy.merge(userPolicy);
                 returnPolicy = mergedPolicy;
-                LOGGER.debug(pwmSession, "merged user password policy with PWM configured policy: " + mergedPolicy.toString());
+                LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
             } else {
                 LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
             }

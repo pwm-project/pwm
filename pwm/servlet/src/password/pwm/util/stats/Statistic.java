@@ -3,38 +3,45 @@ package password.pwm.util.stats;
 import java.util.*;
 
 public enum Statistic {
-    PWM_AUTHENTICATIONS(Type.INCREMENTOR,"Authentications"),
-    PWM_STARTUPS(Type.INCREMENTOR, "PWM Startups"),
-    PASSWORD_CHANGES(Type.INCREMENTOR, "Password Changes"),
-    FAILED_LOGIN_ATTEMPTS(Type.INCREMENTOR, "Authentication Failures"),
-    RECOVERY_SUCCESSES(Type.INCREMENTOR, "Recovery Successes"),
-    RECOVERY_ATTEMPTS(Type.INCREMENTOR, "Recovery Attempts"),
-    EMAIL_SEND_SUCCESSES(Type.INCREMENTOR, "Email Send Successes"),
-    EMAIL_SEND_FAILURES(Type.INCREMENTOR, "Email Send Failures"),
-    PASSWORD_RULE_CHECKS(Type.INCREMENTOR, "Password Rule Checks"),
-    HTTP_REQUESTS(Type.INCREMENTOR, "HTTP Requests"),
-    ACTIVATED_USERS(Type.INCREMENTOR, "Activated Users"),
-    NEW_USERS(Type.INCREMENTOR, "New Users"),
-    LOCKED_USERS(Type.INCREMENTOR, "Locked Users"),
-    LOCKED_ADDRESSES(Type.INCREMENTOR, "Locked Addresses"),
-    CAPTCHA_SUCCESSES(Type.INCREMENTOR, "Captcha Successes"),
-    CAPTCHA_FAILURES(Type.INCREMENTOR, "Captcha Failures"),
-    LDAP_UNAVAILABLE_COUNT(Type.INCREMENTOR, "LDAP Unavailable Count"),
-    HTTP_SESSIONS(Type.INCREMENTOR, "HTTP Sessions"),
+    AUTHENTICATIONS(Type.INCREMENTOR, "Authentications"),
+    AUTHENTICATION_FAILURES(Type.INCREMENTOR, "AuthenticationFailures"),
+    AUTHENTICATION_EXPIRED(Type.INCREMENTOR, "Authentications_Expired"),
+    AUTHENTICATION_PRE_EXPIRED(Type.INCREMENTOR, "Authentications_PreExpired"),
+    AUTHENTICATION_EXPIRED_WARNING(Type.INCREMENTOR, "Authentications_ExpiredWarning"),
+    PWM_STARTUPS(Type.INCREMENTOR, "PWM_Startups"),
+    PWM_UNKNOWN_ERRORS(Type.INCREMENTOR, "PWM_UnknownErrors"),
+    PASSWORD_CHANGES(Type.INCREMENTOR, "PasswordChanges"),
+    RECOVERY_SUCCESSES(Type.INCREMENTOR, "RecoverySuccesses"),
+    RECOVERY_FAILURES(Type.INCREMENTOR, "RecoveryFailures"),
+    EMAIL_SEND_SUCCESSES(Type.INCREMENTOR, "EmailSendSuccesses"),
+    EMAIL_SEND_FAILURES(Type.INCREMENTOR, "EmailSendFailures"),
+    PASSWORD_RULE_CHECKS(Type.INCREMENTOR, "PasswordRuleChecks"),
+    HTTP_REQUESTS(Type.INCREMENTOR, "HttpRequests"),
+    HTTP_SESSIONS(Type.INCREMENTOR, "HttpSessions"),
+    ACTIVATED_USERS(Type.INCREMENTOR, "ActivatedUsers"),
+    NEW_USERS(Type.INCREMENTOR, "NewUsers"),
+    LOCKED_USERS(Type.INCREMENTOR, "LockedUsers"),
+    LOCKED_ADDRESSES(Type.INCREMENTOR, "LockedAddresses"),
+    CAPTCHA_SUCCESSES(Type.INCREMENTOR, "CaptchaSuccessess"),
+    CAPTCHA_FAILURES(Type.INCREMENTOR, "CaptchaFailures"),
+    LDAP_UNAVAILABLE_COUNT(Type.INCREMENTOR, "LdapUnavailableCount"),
+    SETUP_RESPONSES(Type.INCREMENTOR, "SetupResponses"),
+    UPDATE_ATTRIBUTES(Type.INCREMENTOR, "UpdateAttributes"),
+    SHORTCUTS_SELECTED(Type.INCREMENTOR, "ShortcutsSelected"),
 
-    AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "Average Password Sync Time"),
-    AVG_WORDLIST_CHECK_TIME(Type.AVERAGE, "Average Wordlist Check Time");
+    AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
+    AVG_WORDLIST_CHECK_TIME(Type.AVERAGE, "AvgWordlistCheckTime");
 
     private final Type type;
-    private final String label;
+    private final String key;
 
-    Statistic(final Type type, final String label) {
+    Statistic(final Type type, final String key) {
         this.type = type;
-        this.label = label;
+        this.key = key;
     }
 
-    public String getLabel(final Locale locale) {
-        return label;
+    public String getKey() {
+        return key;
     }
 
     public Type getType() {
@@ -56,4 +63,18 @@ public enum Statistic {
         INCREMENTOR,
         AVERAGE,
     }
+
+    public String getLabel(final Locale locale) {
+        return readProps(this.getKey(), locale);
+    }
+
+    private static String readProps(final String key, final Locale locale) {
+        try {
+            final ResourceBundle bundle = ResourceBundle.getBundle(Statistic.class.getName(), locale);
+            return bundle.getString(key);
+        } catch (Exception e) {
+            return "--RESOURCE MISSING--";
+        }
+    }
+
 }

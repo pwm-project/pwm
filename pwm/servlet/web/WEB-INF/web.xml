@@ -200,12 +200,8 @@
         <servlet-class>password.pwm.servlet.CommandServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>DebugServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.DebugServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>UserDebugServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.UserDebugServlet</servlet-class>
+        <servlet-name>UserInformationServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.UserInformationServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>NewUserServlet</servlet-name>
@@ -268,12 +264,8 @@
         <url-pattern>/private/CommandServlet</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>DebugServlet</servlet-name>
-        <url-pattern>/admin/DebugServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>UserDebugServlet</servlet-name>
-        <url-pattern>/admin/UserDebugServlet</url-pattern>
+        <servlet-name>UserInformationServlet</servlet-name>
+        <url-pattern>/admin/UserInformation</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>NewUserServlet</servlet-name>

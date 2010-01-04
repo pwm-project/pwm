@@ -31,7 +31,7 @@
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Java Threads"/></jsp:include>
     <div id="centerbody" style="width:90%">
         <p style="text-align:center;">
-            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
         </p>
         <br/>
         <table class="tablemain">

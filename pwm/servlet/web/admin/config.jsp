@@ -39,7 +39,7 @@
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
     <div id="centerbody">
         <p style="text-align:center;">
-            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
         </p>
         <p>
             Configuration load time <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfigReader().getLoadTime())) %>
@@ -96,7 +96,7 @@
                     if (name.matches("(?i)^get.*|^is.*") && !name.matches("(?i).*password.*|^getClass$")) {
                         out.append("<tr><td class=\"key\">");
                         out.append(name.replaceAll("^is|^get", ""));
-                        out.append("    </td><td colspan=\"3\">");
+                        out.append("    </td><td colspan=\"1\">");
                         try {
                             out.append(method.invoke(localeConfig).toString());
                         } catch (Exception e) { /*blah*/ }

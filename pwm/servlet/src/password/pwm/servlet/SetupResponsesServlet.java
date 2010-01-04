@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import org.json.simple.JSONObject;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SetupResponsesBean;
@@ -39,8 +40,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistManager;
-import org.json.simple.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -234,6 +235,7 @@ public class SetupResponsesServlet extends TopServlet {
             for (final CrMode crMode : pwmSession.getConfig().getResponseStorageMethod()) {
                 responses.write(crMode);
                 LOGGER.info(pwmSession, "saved responses for user");
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
             }
             pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
             pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_SETUP_RESPONSES));
@@ -248,8 +250,6 @@ public class SetupResponsesServlet extends TopServlet {
                 LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
             }
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
-
-
         }
 
         return false;

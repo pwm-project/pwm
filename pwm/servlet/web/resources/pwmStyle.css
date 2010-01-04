@@ -35,7 +35,7 @@ select { font-family:Trebuchet MS, sans-serif }
 table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }
 table td { border: 1px solid #D4D4D4; padding-left: 5px;}
 table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }
-table td.key { text-align:right; font-weight:bold; padding-right: 10px }
+table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 200px;}
 
 .inputfield { width:400px; margin: 5px; }
 

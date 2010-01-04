@@ -37,6 +37,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -155,9 +156,10 @@ public class UpdateAttributesServlet extends TopServlet {
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);
 
             // re-populate the uiBean because we have changed some values.
-            UserStatusHelper.populateUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+            UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
             
             // success, so forward to success page
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
             ssBean.setSessionSuccess(new ErrorInformation(Message.SUCCESS_UPDATE_ATTRIBUTES));
             Helper.forwardToSuccessPage(req, resp, this.getServletContext());
 

@@ -59,9 +59,9 @@ public class LoginServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String processLoginParam = req.getParameter(Constants.PARAM_ACTION_REQUEST);
+        final String actionParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 1024);
 
-        if (processLoginParam != null && processLoginParam.equalsIgnoreCase("login")) {
+        if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String password = Validator.readStringFromRequest(req, "password", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);

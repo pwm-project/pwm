@@ -53,11 +53,11 @@
             <h2><a href="<pwm:url url='threads.jsp'/>">Threads</a></h2>
             <p>Current table of Java VM threads</p>
 
-            <h2><a href="<pwm:url url='DebugServlet'/>">Session Debug</a></h2>
-            <p>Useful for debugging HTTP session</p>
-
-            <h2><a href="<pwm:url url='UserDebugServlet'/>">User Debug</a></h2>
+            <h2><a href="<pwm:url url='UserInformation'/>">User Information</a></h2>
             <p>Useful for debugging user password issues</p>
+
+            <h2><a href="<pwm:url url='http-request-information.jsp'/>">HTTP Request Information</a></h2>
+            <p>Useful for debugging HTTP request issues</p>
 
             <h2><a href="<pwm:url url='../public/Logout'/>">Logout</a></h2>
             <p>Logout of the Password Management Servlet</p>

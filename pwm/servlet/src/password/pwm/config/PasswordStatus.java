@@ -62,4 +62,16 @@ public class PasswordStatus implements Serializable {
     public void setWarnPeriod(final boolean warnPeriod) {
         this.warnPeriod = warnPeriod;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("PasswordStatus {");
+        sb.append("expired=").append(expired);
+        sb.append(", pre-expired=").append(preExpired);
+        sb.append(", warn=").append(warnPeriod);
+        sb.append(", violatesPolicy=").append(violatesPolicy);
+        sb.append("}");
+        return sb.toString();
+    }
 }

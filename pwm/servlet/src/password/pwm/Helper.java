@@ -366,7 +366,9 @@ public class Helper {
         if (updateAttribute != null && updateAttribute.length() > 0) {
             final String currentTimestamp = EdirEntries.convertDateToZulu(new Date(System.currentTimeMillis()));
             try {
-                theUser.writeStringAttribute(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), currentTimestamp);
+                final String pwdLastModifiedAttr = pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+                theUser.writeStringAttribute(pwdLastModifiedAttr, currentTimestamp);
+                LOGGER.debug(pwmSession, "wrote pwdLastModified update attribute for " + theUser.getEntryDN());
                 success = true;
             } catch (ChaiOperationException e) {
                 LOGGER.debug(pwmSession, "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage());

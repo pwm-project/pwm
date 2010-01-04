@@ -76,6 +76,8 @@ public abstract class Constants {
     public static final String URL_JSP_CAPTCHA = "jsp/captcha.jsp";
     public static final String URL_JSP_CONFIG_MANAGER = "jsp/configmanager.jsp";
 
+    public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
+
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_LOGOUT = "Logout";
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";

@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -42,8 +41,6 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -210,19 +207,19 @@ public class AuthenticationFilter implements Filter {
     {
         final long methodStartTime = System.currentTimeMillis();
         final ContextManager theManager = pwmSession.getContextManager();
-        final StatisticsManager statusBean = theManager.getStatisticsManager();
+        final StatisticsManager statisticsManager = theManager.getStatisticsManager();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final IntruderManager intruderManager = theManager.getIntruderManager();
 
         //see if we need to a contextless search.
-        final String userDN = convertUsernameFieldtoDN(username, pwmSession, context);
+        final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, context);
 
         if (userDN == null) { // if no user info then end authentication attempt
             LOGGER.debug(pwmSession, "DN for user " + username + " not found");
             intruderManager.addBadAddressAttempt(pwmSession);
             intruderManager.addBadUserAttempt(username,pwmSession);
             intruderManager.checkUser(username,pwmSession);
-            statusBean.incrementValue(Statistic.FAILED_LOGIN_ATTEMPTS);
+            statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
             return false;
         }
@@ -234,7 +231,7 @@ public class AuthenticationFilter implements Filter {
 
         if (successPasswordCheck) { // auth succeed
             ssBean.setAuthenticated(true);
-            UserStatusHelper.populateUserInfoBean(pwmSession, userDN, password);
+            UserStatusHelper.populateActorUserInfoBean(pwmSession, userDN, password);
 
             final StringBuilder debugMsg = new StringBuilder();
             debugMsg.append("successful ");
@@ -243,7 +240,19 @@ public class AuthenticationFilter implements Filter {
             debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
             LOGGER.info(pwmSession, debugMsg);
 
-            statusBean.incrementValue(Statistic.PWM_AUTHENTICATIONS);
+            statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
+
+            if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
+                statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED);
+            }
+
+            if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired()) {
+                statisticsManager.incrementValue(Statistic.AUTHENTICATION_PRE_EXPIRED);
+            }
+
+            if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
+                statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
+            }
 
             //attempt to add the object class to the user
             Helper.addConfiguredUserObjectClass(userDN, pwmSession);
@@ -260,100 +269,9 @@ public class AuthenticationFilter implements Filter {
         intruderManager.addBadAddressAttempt(pwmSession);
         intruderManager.addBadUserAttempt(userDN, pwmSession);
         LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: wrong password");
-        statusBean.incrementValue(Statistic.FAILED_LOGIN_ATTEMPTS);
+        statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         return false;
-    }
-
-    /**
-     * For a given username, find an appropriate objectDN.  Uses parameters in the PWM
-     * configuration to specify how the search should be performed.
-     * <p/>
-     * If exactly one match is discovered, then that value is returned.  Otherwise if
-     * no matches or if multiple matches are discovered then null is returned.  Multiple
-     * matches are considered an error condition.
-     * <p/>
-     * If the username appears to already be a valid DN, then the context search is not performed
-     * and instead the username value is returned.
-     *
-     * @param username          username to search for
-     * @param pwmSession        for grabbing required beans
-     * @param context           specify context to use to search, or null to use pwm configured attribute
-     * @return the discovered objectDN of the user, or null if none found.
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException of directory is unavailable
-     */
-    public static String convertUsernameFieldtoDN(
-            final String username,
-            final PwmSession pwmSession,
-            final String context
-    )
-            throws ChaiUnavailableException
-    {
-        if (username == null || username.length() < 1) {
-            return "";
-        }
-
-        String baseDN = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-
-        // see if the baseDN should be the context parameter
-        if (context != null && context.length() > 0) {
-            if (pwmSession.getConfig().getLoginContexts().containsKey(context)) {
-                if (context.endsWith(baseDN)) {
-                    baseDN = context;
-                } else {
-                    LOGGER.debug(pwmSession, "attempt to use '" + context + "' context for search, but does not end with configured contextless root: " + baseDN);
-                }
-            }
-        }
-
-        if (baseDN == null || baseDN.length() < 1) {
-            return username;
-        }
-
-        final String usernameAttribute = pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
-
-        //if supplied user name starts with username attr assume its the full dn and skip the contextless login
-        if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
-            LOGGER.trace(pwmSession, "username appears to be a DN; skipping contextless search");
-            return username;
-        }
-
-        LOGGER.trace(pwmSession, "attempting contextless login search for '" + username + "'");
-
-        final String filterSetting = pwmSession.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
-        final String filter = filterSetting.replace(Constants.VALUE_REPLACEMENT_USERNAME,username);
-
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilter(filter);
-        searchHelper.setAttributes("");
-        searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-
-        LOGGER.trace(pwmSession, "search for contextless login: " + searchHelper.getFilter() + ", baseDN: " + baseDN);
-
-        try {
-            final SessionManager sessionMgr = pwmSession.getSessionManager();
-            assert sessionMgr != null;
-
-            final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
-            assert provider != null;
-
-            final Map<String, Properties> results = provider.search(baseDN, searchHelper);
-
-            if (results == null || results.size() == 0) {
-                LOGGER.trace(pwmSession, "no matches found");
-                return null;
-            } else if (results.size() > 1) {
-                LOGGER.trace(pwmSession, "multiple matches found");
-                LOGGER.warn(pwmSession, "multiple matches found when doing search for userID: " + username);
-            } else {
-                final String userDN = results.keySet().iterator().next();
-                LOGGER.trace(pwmSession, "match found: " + userDN);
-                return userDN;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error during contextless search: " + e.getMessage());
-        }
-        return null;
     }
 
     public static boolean testCredentials(
@@ -401,7 +319,7 @@ public class AuthenticationFilter implements Filter {
                     LOGGER.debug(pwmSession, "ldap error during credential test: " + e.getMessage());
                 }
             }
-        } else { //try authetnicating the user using a normal ldap BIND operation.
+        } else { //try authenticating the user using a normal ldap BIND operation.
             LOGGER.trace(pwmSession, "attempting authentication using ldap BIND");
             ChaiProvider provider = null;
             try {
@@ -545,7 +463,7 @@ public class AuthenticationFilter implements Filter {
         authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, req.isSecure());
         // repopulate the uib, including setting the currentPass as the current password.
 
-        UserStatusHelper.populateUserInfoBean(pwmSession, theUser.getEntryDN(), currentPass);
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, theUser.getEntryDN(), currentPass);
 
         // get the uib out of the session again (it may have been replaced) and mark
         // the password as expired to force a user password change.

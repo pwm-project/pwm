@@ -213,19 +213,20 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
 
         //update the current last password update field in ldap
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(theUser.getEntryDN(), pwmSession.getContextManager().getProxyChaiProvider());
 
         final long delayStartTime = System.currentTimeMillis();
+        final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
 
         if (pwmSession.getConfig().getLdapServerURLs().size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
         } else {
             final long maxWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
 
-            if (Helper.updateLastUpdateAttribute(pwmSession, proxiedUser) && maxWaitTime > 0) {
+            if (successfullyWrotePwdUpdateAttr && maxWaitTime > 0) {
                 LOGGER.trace(pwmSession, "beginning password replication checking");
                 // if the last password update worked, test that it is replicated accross all ldap servers.
                 boolean isReplicated = false;

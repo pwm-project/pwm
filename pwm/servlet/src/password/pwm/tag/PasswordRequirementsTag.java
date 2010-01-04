@@ -21,6 +21,7 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.config.Message;
@@ -31,7 +32,10 @@ import password.pwm.wordlist.WordlistStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
 /**
  * @author Jason D. Rivard
@@ -48,12 +52,12 @@ public class PasswordRequirementsTag extends TagSupport
 
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy pwordPolicy,
-            final PwmSession pwmSession
+            final ContextManager contextManager,
+            final Locale locale
     )
     {
         final List<String> returnValues = new ArrayList<String>();
 
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
         int value = 0;
 
         final PwmPasswordPolicy.RuleHelper ruleHelper = pwordPolicy.getRuleHelper();
@@ -181,7 +185,7 @@ public class PasswordRequirementsTag extends TagSupport
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale));
         }
 
-        if (pwmSession.getContextManager().getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
+        if (contextManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
             returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale));
         }
 
@@ -284,7 +288,7 @@ public class PasswordRequirementsTag extends TagSupport
         try {
             final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
             final String sep = seperator != null && seperator.length() > 0 ? seperator : "<br/>";
-            final List<String> requirementsList = getPasswordRequirementsStrings(pwmSession.getUserInfoBean().getPasswordPolicy(), pwmSession);
+            final List<String> requirementsList = getPasswordRequirementsStrings(pwmSession.getUserInfoBean().getPasswordPolicy(), pwmSession.getContextManager(), pwmSession.getSessionStateBean().getLocale());
 
             final StringBuilder requirementsText = new StringBuilder();
             for (final String requirementStatement : requirementsList) {

@@ -112,7 +112,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final String contextParam = Validator.readStringFromRequest(req, "context", 256);
 
         // convert the username field to a DN.
-        final String userDN = AuthenticationFilter.convertUsernameFieldtoDN(usernameParam, pwmSession, contextParam);
+        final String userDN = UserStatusHelper.convertUsernameFieldtoDN(usernameParam, pwmSession, contextParam);
 
         if (userDN == null) {
             theManager.getIntruderManager().addBadUserAttempt(usernameParam,pwmSession);
@@ -243,9 +243,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             // validate the required ldap attributes (throws validation exception if incorrect attributes)
             validateRequiredAttributes(theUser, req, pwmSession);
 
-            // note the recovery attempt to the statistics manager
-            theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_ATTEMPTS);
-
             // read the suppled responses from the user
             final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
 
@@ -279,6 +276,8 @@ public class ForgottenPasswordServlet extends TopServlet {
                 return;
             }
 
+            // note the recovery failure to the statistics manager
+            theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
             ssBean.setSessionError(new ErrorInformation(Message.ERROR_WRONGANSWER));
             LOGGER.debug(pwmSession,"incorrect response answer during check for " + theUser.getEntryDN());
         } catch (ChaiValidationException e) {

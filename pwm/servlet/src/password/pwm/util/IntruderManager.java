@@ -226,7 +226,7 @@ public class IntruderManager implements Serializable {
         theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
 
         try {
-            final String userDN = AuthenticationFilter.convertUsernameFieldtoDN(username, pwmSession, null);
+            final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
             if (userDN != null) {
                 final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
                 UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK,"");

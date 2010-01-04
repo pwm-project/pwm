@@ -26,15 +26,12 @@ import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
 
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class StatisticsManager {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
-
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
 
     private static final int DB_WRITE_FREQUENCY_MS = 3 * 60 * 1000;  // 3 minutes
 
@@ -59,6 +56,15 @@ public class StatisticsManager {
     private StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
+
+    private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
+        @Override
+        protected boolean removeEldestEntry(final Map.Entry<String, StatisticsBundle> eldest) {
+            return this.size() > 50;
+        }
+    };
+
+
 
     public StatisticsManager(final PwmDB pwmDB) {
         this.pwmDB = pwmDB;
@@ -112,13 +118,20 @@ public class StatisticsManager {
             return statsDaily;
         }
 
+        if (cachedStoredStats.containsKey(key)) {
+            return cachedStoredStats.get(key);
+        }
+
         try {
             final String storedStat = pwmDB.get(PwmDB.DB.PWM_STATS, key);
+            final StatisticsBundle returnBundle;
             if (storedStat != null && storedStat.length() > 0) {
-                return StatisticsBundle.input(storedStat);
+                returnBundle = StatisticsBundle.input(storedStat);
             } else {
-                return new StatisticsBundle();
+                returnBundle = new StatisticsBundle();
             }
+            cachedStoredStats.put(key, returnBundle);
+            return returnBundle;
         } catch (PwmDBException e) {
             LOGGER.error("error retrieving stored stat for " + key + ": " + e.getMessage());
         }
@@ -194,10 +207,10 @@ public class StatisticsManager {
         pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
     }
 
+    /*
     private void writeTestData() throws PwmDBException {
-        StatisticsBundle sb = new StatisticsBundle();
-
-        Key initTestKey = new Key(DB_KEY_PREFIX_DAILY + "2009_3");
+        final StatisticsBundle sb = new StatisticsBundle();
+        final Key initTestKey = new Key(DB_KEY_PREFIX_DAILY + "2009_3");
         Key loopKey = new Key(new Date());
         pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initTestKey.toString());
         while (!loopKey.equals(initTestKey)) {
@@ -206,6 +219,7 @@ public class StatisticsManager {
             loopKey = loopKey.previous();
         }
     }
+    */
 
     private void writeDbValues() {
         lastDbWrite = System.currentTimeMillis();

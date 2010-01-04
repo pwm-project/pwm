@@ -81,9 +81,10 @@ public abstract class TopServlet extends HttpServlet {
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmException e) {
             if (Message.ERROR_UNKNOWN.equals(e.getError().getError())) {
-                LOGGER.warn(pwmSession, "unexpected error during page generation: " + e.getMessage(),e);
+                LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(),e);
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
             } else {
-                LOGGER.error(pwmSession, "error during page generation: " + e.getMessage());
+                LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
             }
             if (e.getMessage() == null) {
                 ssBean.setSessionError(Message.ERROR_UNKNOWN.toInfo());
@@ -92,7 +93,8 @@ public abstract class TopServlet extends HttpServlet {
             }
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "unexpected error during page generation: " + e.toString(), e);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+            LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
             ssBean.setSessionError(Message.ERROR_UNKNOWN.toInfo());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             //throw new ServletException(e);

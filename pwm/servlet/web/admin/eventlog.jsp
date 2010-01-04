@@ -42,8 +42,8 @@
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
     <div id="centerbody" style="width:98%">
         <p style="text-align:center;">
-            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a>
-        </p>        
+            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+        </p>
         <p>
             This page shows PWM debug log
             history.  This history is stored in the pwmDB cache of the debug log. For a
@@ -57,7 +57,7 @@
         <br class="clear"/>
         <form action="<pwm:url url='eventlog.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="eventlogParameters"
               onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
-            <table style="border: 0; ">
+            <table style="border: 0; max-width:600px;">
                 <tr style="border: 0">
                     <td class="key" style="border: 0">
                         Level
@@ -124,7 +124,7 @@
                             <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000</option>
                             <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000</option>
                             <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000</option>
-                            =                        </select>
+                        </select>
                     </td>
                 </tr>
                 <tr style="border: 0">
