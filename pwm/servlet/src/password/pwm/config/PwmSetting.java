@@ -79,6 +79,8 @@ public enum PwmSetting {
             "passwordLastUpdateAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
             "password.sharedHistory.age", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.GENERAL),
+    GOOGLE_ANAYLTICS_TRACKER(
+            "google.analytics.tracker", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
 
     //ldap directory
     LDAP_SERVER_URLS(

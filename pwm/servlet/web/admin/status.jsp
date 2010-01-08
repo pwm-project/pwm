@@ -198,13 +198,14 @@
                 int topValue = 0;
                 for (final String value: chartData.values()) topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
                 final StringBuilder imgURL = new StringBuilder();
-                imgURL.append(request.isSecure() ? "https://www.google.com/charts" : "http://chart.apis.google.com/chart");
+                //imgURL.append(request.isSecure() ? "https://www.google.com/chart" : "http://chart.apis.google.com/chart");
+                imgURL.append("http://chart.apis.google.com/chart");
                 imgURL.append("?cht=bvs");
                 imgURL.append("&chs=590x150");
-                imgURL.append("&chds=0," + topValue);
+                imgURL.append("&chds=0,").append(topValue);
                 imgURL.append("&chco=d20734");
                 imgURL.append("&chxt=x,y");
-                imgURL.append("&chxr=1,0," + topValue);
+                imgURL.append("&chxr=1,0,").append(topValue);
                 imgURL.append("&chbh=14");
                 imgURL.append("&chd=t:");
                 for (final String value: chartData.values()) imgURL.append(value).append(",");
@@ -221,7 +222,7 @@
                 }
                 imgURL.delete(imgURL.length() - 1, imgURL.length());
             %>
-            <img src="<%=imgURL.toString()%>" alt="[ Google Chart Image ]"/>
+            <img src="<%=imgURL.toString()%>" alt="[ Gogol Chart Image ]"/>
         </td>
     </tr>
 </table>

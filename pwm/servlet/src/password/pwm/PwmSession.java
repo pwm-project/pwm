@@ -168,7 +168,7 @@ public class PwmSession implements Serializable {
     public NewUserServletBean getNewUserServletBean()
     {
         if (newUserServletBean == null) {
-            newUserServletBean = null;
+            newUserServletBean = new NewUserServletBean();
             final Map<String, ParameterConfig> configMap = getLocaleConfig().getNewUserCreationAttributes();
             final Map<String, ParameterConfig> paramMap =  new LinkedHashMap<String, ParameterConfig>(configMap);
             newUserServletBean.setCreationParams(paramMap);

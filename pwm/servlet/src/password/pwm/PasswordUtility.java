@@ -188,7 +188,7 @@ public class PasswordUtility {
             final Message returnMsg = Message.forChaiPasswordError(e.getErrorCode()) == null ? Message.ERROR_UNKNOWN : Message.forChaiPasswordError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(returnMsg,e.getMessage());
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr());
+            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
             return false;
         } catch (ChaiPasswordPolicyException e) {
             final ErrorInformation error = new ErrorInformation(Message.forResourceKey(e.getPasswordError().getErrorKey()));

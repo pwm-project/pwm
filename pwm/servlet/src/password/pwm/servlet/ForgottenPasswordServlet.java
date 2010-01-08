@@ -184,7 +184,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 responseSetLocale = responseSet.getLocale();
             } catch (Exception e) {
-                LOGGER.error("error retreiving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
+                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
             }
 
             // read the user's assigned response set.

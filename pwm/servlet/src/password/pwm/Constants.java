@@ -44,6 +44,8 @@ public abstract class Constants {
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
     public static final String HTTP_BASIC_AUTH_PREFIX = "Basic ";
     public static final String HTTP_HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
+    public static final String HTTP_HEADER_PWM_SHORTCUT = "X-PWM-Shortcut";
+
 
     public static final String REQUEST_CONFIG_MAP = "ConfigMap";
 

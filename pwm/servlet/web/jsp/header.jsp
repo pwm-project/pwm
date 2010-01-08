@@ -40,4 +40,17 @@
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
     <script type="text/javascript"
             src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
+    <% final String googleTrackingCode =  password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
+    <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+        try{
+            var pageTracker = _gat._getTracker("<%=googleTrackingCode%>");
+            pageTracker._trackPageview();
+        } catch(err) {}
+    </script>
+    <% } %>
 </head>

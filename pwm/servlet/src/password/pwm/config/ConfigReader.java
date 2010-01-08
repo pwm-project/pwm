@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URI;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -143,7 +142,7 @@ public class ConfigReader {
                 }
             }
 
-            
+
             config.globalPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
 
         }
@@ -274,16 +273,9 @@ public class ConfigReader {
                 final String rawSetting = readStr("shortcut.query." + i);
                 if (rawSetting != null && rawSetting.length() > 0) {
                     try {
-                        final String[] splitSettings = rawSetting.split(";;;");
-                        final ShortcutItem item = new ShortcutItem(
-                                splitSettings[0],
-                                URI.create(splitSettings[1]),
-                                splitSettings[2],
-                                splitSettings[3]
-                        );
-                        settings.add(item);
+                        settings.add(ShortcutItem.parsePwmConfigInput(rawSetting));
                     } catch (Exception e) {
-                        LOGGER.warn("skipping mailformed setting for 'shortcut.query" + i + "', check configuration: " + e.getMessage());
+                        LOGGER.warn("bad config value for 'shortcut.query" + i + "', " + e.getMessage());
                     }
                 }
             }
@@ -313,7 +305,7 @@ public class ConfigReader {
 
     private static Map<String, ParameterConfig> readParameterConfigSetting(final String configLine)
     {
-        // first seperate each parameter into a set.
+        // first separate each parameter into a set.
         final List<String> parameterStringSet = StringHelper.tokenizeString(configLine, ",");
 
         final Map<String, ParameterConfig> parameterConfigs = new LinkedHashMap<String, ParameterConfig>();

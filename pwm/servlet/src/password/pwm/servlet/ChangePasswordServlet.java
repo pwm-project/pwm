@@ -315,7 +315,7 @@ public class ChangePasswordServlet extends TopServlet {
                 Validator.testPasswordAgainstPolicy(password1, pwmSession, true);
             } catch (ValidationException e) {
                 ssBean.setSessionError(e.getError());
-                LOGGER.debug(pwmSession, "failed password vaildation check: " + e.getMessage());
+                LOGGER.debug(pwmSession, "failed password validation check: " + e.getError().toDebugStr());
                 this.forwardToJSP(req, resp);
                 return;
             }

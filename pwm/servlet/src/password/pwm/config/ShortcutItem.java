@@ -21,16 +21,21 @@
 
 package password.pwm.config;
 
+import password.pwm.util.PwmLogger;
+
 import java.io.Serializable;
 import java.net.URI;
 
 public class ShortcutItem implements Serializable {
-    private String ldapQuery;
-    private URI shortcutURI;
-    private String label;
-    private String description;
 
-    public ShortcutItem(String ldapQuery, URI shortcutURI, String label, String description) {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(ShortcutItem.class);
+
+    private final String ldapQuery;
+    private final URI shortcutURI;
+    private final String label;
+    private final String description;
+
+    public ShortcutItem(final String ldapQuery, final URI shortcutURI, final String label, final String description) {
         this.ldapQuery = ldapQuery;
         this.shortcutURI = shortcutURI;
         this.label = label;
@@ -61,5 +66,40 @@ public class ShortcutItem implements Serializable {
                 ", label='" + label + '\'' +
                 ", description='" + description + '\'' +
                 '}';
+    }
+
+    public static ShortcutItem parsePwmConfigInput(final String input) {
+        if (input != null && input.length() > 0) {
+            try {
+                final String[] splitSettings = input.split(";;;");
+                return new ShortcutItem(
+                        splitSettings[0],
+                        URI.create(splitSettings[1]),
+                        splitSettings[2],
+                        splitSettings[3]
+                );
+            } catch (Exception e) {
+                LOGGER.warn("malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage());
+            }
+        }
+        throw new IllegalArgumentException("malformed ShortcutItem configuration value of '" + input + "'");
+    }
+
+
+    public static ShortcutItem parseHeaderInput(final String input) {
+        if (input != null && input.length() > 0) {
+            try {
+                final String[] splitSettings = input.split(";;;");
+                return new ShortcutItem(
+                        "",
+                        URI.create(splitSettings[0]),
+                        splitSettings[1],
+                        splitSettings[2]
+                );
+            } catch (Exception e) {
+                LOGGER.warn("malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage());
+            }
+        }
+        throw new IllegalArgumentException("malformed ShortcutItem configuration value of '" + input + "'");
     }
 }

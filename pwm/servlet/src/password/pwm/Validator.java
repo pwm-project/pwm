@@ -371,22 +371,22 @@ public class Validator {
 
         public boolean isFirstNumeric()
         {
-            return Character.isDigit(password.charAt(0));
+            return password.length() > 0 && Character.isDigit(password.charAt(0));
         }
 
         public boolean isLastNumeric()
         {
-            return Character.isDigit(password.charAt(password.length() - 1));
+            return password.length() > 0 && Character.isDigit(password.charAt(password.length() - 1));
         }
 
         public boolean isFirstSpecial()
         {
-            return !Character.isLetterOrDigit(password.charAt(0));
+            return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(0));
         }
 
         public boolean isLastSpecial()
         {
-            return !Character.isLetterOrDigit(password.charAt(password.length() - 1));
+            return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(password.length() - 1));
         }
     }
 

@@ -33,6 +33,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,9 +48,9 @@ public class ShortcutServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (pwmSession.getSessionStateBean().getVisableShortcutItems() == null) {
-            LOGGER.debug(pwmSession,"building visable shortcut list for user");
-            final Map<String,ShortcutItem> visableItems  = figureVisableShortcuts(pwmSession);
-            pwmSession.getSessionStateBean().setVisableShortcutItems(visableItems);
+            LOGGER.debug(pwmSession,"building visible shortcut list for user");
+            final Map<String,ShortcutItem> visibleItems  = figureVisibleShortcuts(pwmSession, req);
+            pwmSession.getSessionStateBean().setVisableShortcutItems(visibleItems);
         } else {
             LOGGER.trace(pwmSession,"using cashed shortcut values");
         }
@@ -82,9 +83,11 @@ public class ShortcutServlet extends TopServlet {
      * @throws PwmException if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
-    private static Map<String,ShortcutItem> figureVisableShortcuts(final PwmSession session) throws PwmException, ChaiUnavailableException {
+    private static Map<String,ShortcutItem> figureVisibleShortcuts(final PwmSession session, final HttpServletRequest request)
+            throws PwmException, ChaiUnavailableException
+    {
         final List<ShortcutItem> configuredItems = session.getLocaleConfig().getShortcutItems();
-        final Map<String, ShortcutItem> visableItems = new HashMap<String,ShortcutItem>();
+        final Map<String, ShortcutItem> visibleItems = new HashMap<String,ShortcutItem>();
 
         for (final ShortcutItem item : configuredItems ) {
             final boolean queryMatch = Permission.testQueryMatch(
@@ -95,21 +98,23 @@ public class ShortcutServlet extends TopServlet {
             );
 
             if (queryMatch) {
-                visableItems.put(item.getLabel(), item);
+                visibleItems.put(item.getLabel(), item);
             }
         }
 
-        return visableItems;
+        visibleItems.putAll(ShortcutServlet.parseHeaderForShortcuts(request));
+
+        return visibleItems;
     }
 
     private void handleUserSelection(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
             throws PwmException, ChaiUnavailableException, IOException, ServletException
     {
         final String link = Validator.readStringFromRequest(req, "link", 255);
-        final Map<String,ShortcutItem> visableItems  = figureVisableShortcuts(pwmSession);
+        final Map<String,ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisableShortcutItems();
 
-        if (link != null && visableItems.keySet().contains(link)) {
-            final ShortcutItem item = visableItems.get(link);
+        if (link != null && visibleItems.keySet().contains(link)) {
+            final ShortcutItem item = visibleItems.get(link);
 
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SHORTCUTS_SELECTED);
             LOGGER.trace(pwmSession, "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI());
@@ -125,5 +130,20 @@ public class ShortcutServlet extends TopServlet {
 
         LOGGER.error(pwmSession,"unknown/unexpected link requested to " + link);
         forwardToJSP(req,resp);
+    }
+
+    private static Map<String,ShortcutItem> parseHeaderForShortcuts(final HttpServletRequest request) {
+        final Map<String,ShortcutItem> returnMap = new HashMap<String,ShortcutItem>();
+        for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements(); ) {
+            final String loopHeader = (String)headerEnum.nextElement();
+            for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements(); ) {
+                final String loopValue = (String)valueEnum.nextElement();
+                if (loopHeader.toLowerCase().startsWith(Constants.HTTP_HEADER_PWM_SHORTCUT.toLowerCase())) {
+                    final ShortcutItem item = ShortcutItem.parseHeaderInput(loopValue);
+                    returnMap.put(item.getLabel(),item);
+                }
+            }
+        }
+        return returnMap;
     }
 }
