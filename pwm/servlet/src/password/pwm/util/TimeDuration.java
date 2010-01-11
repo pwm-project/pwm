@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@
 
 package password.pwm.util;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -29,11 +31,11 @@ import java.util.Date;
  * stored as milliseconds.
  * <p/>
  * Negative time durations are not permitted.  Operations that would result in a negative value
- * are negated and will instead result in postive values.
+ * are negated and will instead result in positive values.
  *
  * @author  Jason D. Rivard
  */
-public class TimeDuration implements Comparable {
+public class TimeDuration implements Comparable, Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     public static final TimeDuration ZERO = new TimeDuration(0);
@@ -42,6 +44,7 @@ public class TimeDuration implements Comparable {
     public static final TimeDuration MINUTE = new TimeDuration(1000 * 60);
     public static final TimeDuration HOUR = new TimeDuration(1000 * 60 * 60);
     public static final TimeDuration DAY = new TimeDuration(1000 * 60 * 60 * 24);
+
     private long ms;
     private TimeDetail cachedTimeDetail;
 
@@ -333,7 +336,7 @@ public class TimeDuration implements Comparable {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private static class TimeDetail {
+    private static class TimeDetail implements Serializable {
         private final long milliseconds;
         private final long seconds;
         private final long minutes;

@@ -3,6 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2010 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -32,7 +33,6 @@
 <%
     final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession());
     final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
-    final List<Challenge> allChallenges = challengeSet.getChallenges();
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
     int tabIndexer = 0;
 %>
@@ -56,7 +56,7 @@
             </script>
             <% } %>
             <br/>
-            <% // display fields for REQUIRED clallenges.
+            <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {
             %>
             <%--<h1><pwm:Display key="Title_SetupRequiredResponses"/></h1>--%>
@@ -95,7 +95,7 @@
                         for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {
                             final Challenge challenge = responseBean.getIndexedChallenges().get(indexKey);
                             if (!challenge.isRequired()) {
-                                boolean selected = indexKey.equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i,""));
+                                final boolean selected = indexKey.equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i,""));
                     %>
                     <option <%=selected ? "selected=\"yes\"" : ""%> value="<%=indexKey%>"><%=challenge.getChallengeText()%></option>
                     <% } %>
@@ -110,10 +110,9 @@
             </p>
             <% } %>
             <% } else { %>
-            <% // display fields for RANDOM clallenges.
+            <% // display fields for RANDOM challenges.
                 if (!challengeSet.getRandomChallenges().isEmpty()) {
             %>
-            <hr/>
             <p><pwm:Display key="Display_SetupRandomResponses" value1="<%= String.valueOf(challengeSet.getMinRandomRequired()) %>"/></p>
             <%
                 for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {

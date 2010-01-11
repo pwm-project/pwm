@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,10 +160,6 @@ public enum PwmSetting {
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
             "password.RegExNoMatch", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.PASSWORD_POLICY),
 
-
-
-
-
     // edirectory settings
     EDIRECTORY_ALWAYS_USE_PROXY(
             "ldap.edirectory.alwaysUseProxy", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
@@ -170,6 +167,10 @@ public enum PwmSetting {
             "ldap.edirectory.readPasswordPolicies", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
     EDIRECTORY_ENABLE_NMAS(
             "ldap.edirectory.enableNmas", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+    EDIRECTORY_STORE_NMAS_RESPONSES(
+            "ldap.edirectory.storeNmasResponses", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+    EDIRECTORY_READ_CHALLENGE_SET(
+            "ldap.edirectory.readChallengeSets", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
@@ -214,64 +215,26 @@ public enum PwmSetting {
                 }
             },
             false, Category.RECOVERY),
-    CHALLANGE_ALLOW_UNLOCK(
+    CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
     CHALLENGE_STORAGE_METHOD(
             "challenge.storageMethod", false, Syntax.TEXT_ARRAY, new Static.ValueHelper() {
                 Object parseImpl(final PwmSetting setting, final String value)
                 {
-                    final List<CrMode> list = new ArrayList<CrMode>();
-                    if (value.contains("PWMSHA1"))
-                        list.add(CrMode.CHAI_SHA1_SALT);
-                    if (value.contains("PWMTEXT"))
-                        list.add(CrMode.CHAI_TEXT);
-                    if (value.contains("NMAS"))
-                        list.add(CrMode.NMAS);
-                    return list.toArray(new CrMode[list.size()]);
+                    if (value.equalsIgnoreCase("PWMSHA1")) {
+                        return CrMode.CHAI_SHA1_SALT;
+                    } else if (value.equalsIgnoreCase("PWMTEXT")) {
+                        return CrMode.CHAI_TEXT;
+                    }
+
+                    throw new IllegalArgumentException("unsupported challenge storage method '" + value + "'");
                 }
 
                 String debugStringImpl(final Object value)
                 {
-                    final CrMode[] v = (CrMode[]) value;
-                    final StringBuilder sb = new StringBuilder();
-                    for (final CrMode mode : v) {
-                        sb.append(mode.toString());
-                    }
+                    final CrMode v = (CrMode)value;
 
-                    if (sb.length() > 2) {
-                        sb.delete(sb.length() - 2, sb.length());
-                    }
-
-                    return sb.toString();
-                }
-            },
-            false, Category.RECOVERY),
-    CHALLENGE_POLICY_METHOD(
-            "challenge.policyMethod", false, Syntax.TEXT_ARRAY, new Static.ValueHelper() {
-                Object parseImpl(final PwmSetting setting, final String value)
-                {
-                    final List<Configuration.CR_POLICY_READ_METHOD> list = new ArrayList<Configuration.CR_POLICY_READ_METHOD>();
-                    if (value.contains("NMAS"))
-                        list.add(Configuration.CR_POLICY_READ_METHOD.NMAS);
-                    if (value.contains("PWM"))
-                        list.add(Configuration.CR_POLICY_READ_METHOD.PWM);
-                    return list.toArray(new Configuration.CR_POLICY_READ_METHOD[list.size()]);
-                }
-
-                String debugStringImpl(final Object value)
-                {
-                    final Configuration.CR_POLICY_READ_METHOD[] v = (Configuration.CR_POLICY_READ_METHOD[]) value;
-                    final StringBuilder sb = new StringBuilder();
-                    for (final Configuration.CR_POLICY_READ_METHOD mode : v) {
-                        sb.append(mode.toString());
-                        sb.append(", ");
-                    }
-
-                    if (sb.length() > 2) {
-                        sb.delete(sb.length() - 2, sb.length());
-                    }
-
-                    return sb.toString();
+                    return v != null ? v.toString() : "";
                 }
             },
             false, Category.RECOVERY),

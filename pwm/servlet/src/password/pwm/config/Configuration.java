@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,15 +180,9 @@ public class Configuration implements Serializable {
         return readSettingAsInt(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME);
     }
 
-    public List<CR_POLICY_READ_METHOD> getPolicyReadMethod()
+    public CrMode getResponseStorageMethod()
     {
-        final CR_POLICY_READ_METHOD[] values = (CR_POLICY_READ_METHOD[]) readSetting(PwmSetting.CHALLENGE_POLICY_METHOD);
-        return Arrays.asList(values);
-    }
-
-    public CrMode[] getResponseStorageMethod()
-    {
-        return (CrMode[]) readSetting(PwmSetting.CHALLENGE_STORAGE_METHOD);
+        return (CrMode)readSetting(PwmSetting.CHALLENGE_STORAGE_METHOD);
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting)
@@ -217,10 +212,6 @@ public class Configuration implements Serializable {
     public enum CR_RANDOM_STYLE {
         SETUP,
         RECOVER
-    }
-
-    public enum CR_POLICY_READ_METHOD {
-        PWM, NMAS
     }
 }
 

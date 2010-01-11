@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,7 +152,7 @@ public class UserStatusHelper {
         }
 
         // check to be sure there are actually challenges in the challenge set
-        if (challengeSet.getChallenges().isEmpty()) {
+        if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userDN);
             return false;
         }

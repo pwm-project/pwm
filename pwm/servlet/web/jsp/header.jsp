@@ -3,6 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2010 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -40,6 +41,7 @@
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
     <script type="text/javascript"
             src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
+    <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
     <% final String googleTrackingCode =  password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
     <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
     <script type="text/javascript">
@@ -52,5 +54,6 @@
             pageTracker._trackPageview();
         } catch(err) {}
     </script>
+    <% } %>
     <% } %>
 </head>

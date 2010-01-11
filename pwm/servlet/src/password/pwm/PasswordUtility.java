@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,15 +36,14 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.stats.Statistic;
 
 import java.util.*;
 
@@ -65,24 +65,25 @@ public class PasswordUtility {
     )
     {
         final long methodStartTime = System.currentTimeMillis();
-        final Set<Configuration.CR_POLICY_READ_METHOD> policies = new HashSet<Configuration.CR_POLICY_READ_METHOD>(pwmSession.getConfig().getPolicyReadMethod());
 
         ChallengeSet returnSet = null;
 
-        if (policies.contains(Configuration.CR_POLICY_READ_METHOD.NMAS)) {
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_CHALLENGE_SET)) {
             try {
-                if (policy != null && policy.getChaiPasswordPolicy() != null) {
-                    returnSet = CrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
-                }
+                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                    if (policy != null && policy.getChaiPasswordPolicy() != null) {
+                        returnSet = CrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
+                    }
 
-                if (returnSet == null) {
-                    returnSet = CrFactory.readAssignedChallengeSet(theUser, locale);
-                }
+                    if (returnSet == null) {
+                        returnSet = CrFactory.readAssignedChallengeSet(theUser, locale);
+                    }
 
-                if (returnSet == null) {
-                    LOGGER.debug(pwmSession, "no nmas c/r policy found for user " + theUser.getEntryDN());
-                } else {
-                    LOGGER.debug(pwmSession, "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+                    if (returnSet == null) {
+                        LOGGER.debug(pwmSession, "no nmas c/r policy found for user " + theUser.getEntryDN());
+                    } else {
+                        LOGGER.debug(pwmSession, "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+                    }
                 }
             } catch (ChaiException e) {
                 LOGGER.error(pwmSession, "error reading nmas c/r policy for user " + theUser.getEntryDN() + ": " + e.getMessage());
@@ -90,10 +91,15 @@ public class PasswordUtility {
         }
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
-        if (returnSet == null && policies.contains(Configuration.CR_POLICY_READ_METHOD.PWM)) {
+        if (returnSet == null) {
             returnSet = pwmSession.getContextManager().getLocaleConfig(pwmSession.getSessionStateBean().getLocale()).getChallengeSet();
-            LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
-            return returnSet;
+            if (returnSet != null) {
+                LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+            }
+        }
+
+        if (returnSet == null) {
+            LOGGER.warn(pwmSession, "no available c/r policy for user" + theUser.getEntryDN() + ": ");
         }
 
         LOGGER.trace(pwmSession, "readUserChallengeSet completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());

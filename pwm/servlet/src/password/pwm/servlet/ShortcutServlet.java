@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,24 +78,24 @@ public class ShortcutServlet extends TopServlet {
 
 
     /**
-     * Loop through each configured shortcut setting to determine if the shortcut is is able to the user session.
-     * @param session Valid (authenticated) PwmSession
+     * Loop through each configured shortcut setting to determine if the shortcut is is able to the user pwmSession.
+     * @param pwmSession Valid (authenticated) PwmSession
      * @return List of visible ShortcutItems
      * @throws PwmException if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
-    private static Map<String,ShortcutItem> figureVisibleShortcuts(final PwmSession session, final HttpServletRequest request)
+    private static Map<String,ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
             throws PwmException, ChaiUnavailableException
     {
-        final List<ShortcutItem> configuredItems = session.getLocaleConfig().getShortcutItems();
+        final List<ShortcutItem> configuredItems = pwmSession.getLocaleConfig().getShortcutItems();
         final Map<String, ShortcutItem> visibleItems = new HashMap<String,ShortcutItem>();
 
         for (final ShortcutItem item : configuredItems ) {
             final boolean queryMatch = Permission.testQueryMatch(
-                    session.getSessionManager().getActor(),
+                    pwmSession.getSessionManager().getActor(),
                     item.getLdapQuery(),
                     null,
-                    session
+                    pwmSession
             );
 
             if (queryMatch) {
@@ -102,7 +103,7 @@ public class ShortcutServlet extends TopServlet {
             }
         }
 
-        visibleItems.putAll(ShortcutServlet.parseHeaderForShortcuts(request));
+        visibleItems.putAll(ShortcutServlet.parseHeaderForShortcuts(pwmSession,request));
 
         return visibleItems;
     }
@@ -132,15 +133,19 @@ public class ShortcutServlet extends TopServlet {
         forwardToJSP(req,resp);
     }
 
-    private static Map<String,ShortcutItem> parseHeaderForShortcuts(final HttpServletRequest request) {
+    private static Map<String,ShortcutItem> parseHeaderForShortcuts(final PwmSession pwmSession, final HttpServletRequest request) {
         final Map<String,ShortcutItem> returnMap = new HashMap<String,ShortcutItem>();
         for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements(); ) {
             final String loopHeader = (String)headerEnum.nextElement();
             for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements(); ) {
                 final String loopValue = (String)valueEnum.nextElement();
                 if (loopHeader.toLowerCase().startsWith(Constants.HTTP_HEADER_PWM_SHORTCUT.toLowerCase())) {
+                    try {
                     final ShortcutItem item = ShortcutItem.parseHeaderInput(loopValue);
                     returnMap.put(item.getLabel(),item);
+                    } catch (Exception e) {
+                        LOGGER.error(pwmSession, "error parsing header value for " + loopHeader + ", " + e.getMessage());
+                    }
                 }
             }
         }

@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,12 +101,8 @@ public class ConfigReader {
         for (final PwmSetting setting : PwmSetting.values()) {
             final String value = readStr(setting.getKey());
             config.setSetting(setting, value);
-            {
-                final StringBuilder sb = new StringBuilder();
-                sb.append("reading setting '").append(setting.getKey()).append("' value: ");
-                sb.append(setting.isConfidential() ? "***removed***" : config.toString(setting));
-                LOGGER.trace(sb.toString());
-            }
+            LOGGER.trace("  reading " + setting + " (\"" + setting.getKey() + "\")");
+            LOGGER.trace("value for " + setting + " is " + (setting.isConfidential() ? "***removed***" : config.toString(setting)));
         }
 
 

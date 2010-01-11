@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -256,7 +257,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
                 LOGGER.debug(pwmSession, "user '" + theUser.getEntryDN() + "' has supplied correct responses");
 
-                if (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_ALLOW_UNLOCK)) {
+                if (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
                     final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser);
                     final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, theUser, passwordPolicy);
 

@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@ import password.pwm.PwmSession;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -420,7 +422,7 @@ public class PwmDBLogger {
 
     public enum EventType { User, System, Both }
 
-    public List<PwmLogEvent> readStoredEvents(
+    public SearchResults readStoredEvents(
             final PwmSession pwmSession,
             final PwmLogLevel minimumLevel,
             final int count,
@@ -466,6 +468,7 @@ public class PwmDBLogger {
 
         Collections.sort(returnList);
         Collections.reverse(returnList);
+        final TimeDuration searchTime = TimeDuration.fromCurrent(startTime);
 
         {
             final StringBuilder debugMsg = new StringBuilder();
@@ -479,14 +482,14 @@ public class PwmDBLogger {
                 debugMsg.append(", text=").append(text);
             }
             debugMsg.append(")");
-            debugMsg.append(" in ").append(TimeDuration.fromCurrent(startTime).asCompactString());
+            debugMsg.append(" in ").append(searchTime.asCompactString());
             if (timeExceeded) {
                 debugMsg.append(" (maximum query time reached)");
             }
             LOGGER.debug(pwmSession, debugMsg.toString());
         }
 
-        return returnList;
+        return new SearchResults(returnList, examinedPositions, searchTime);
     }
 
     public TimeDuration getDirtyQueueTime() {
@@ -644,6 +647,30 @@ public class PwmDBLogger {
                     Helper.pause(CYCLE_INTERVAL_MS);
                 }
             }
+        }
+    }
+
+    public static class SearchResults implements Serializable {
+        final private List<PwmLogEvent> events;
+        final private int searchedEvents;
+        final private TimeDuration searchTime;
+
+        private SearchResults(final List<PwmLogEvent> events, final int searchedEvents, final TimeDuration searchTime) {
+            this.events = events;
+            this.searchedEvents = searchedEvents;
+            this.searchTime = searchTime;
+        }
+
+        public List<PwmLogEvent> getEvents() {
+            return events;
+        }
+
+        public int getSearchedEvents() {
+            return searchedEvents;
+        }
+
+        public TimeDuration getSearchTime() {
+            return searchTime;
         }
     }
 }

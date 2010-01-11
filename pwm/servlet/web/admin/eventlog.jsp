@@ -3,6 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2010 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
@@ -51,7 +53,7 @@
             record of events, configure the log4jconfig.xml file.
             All times listed are in
             the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-            timezone.  The pwmDB contains <%=NumberFormat.getInstance().format(pwmDBLogger.getEventCount())%> events in
+            timezone.  The pwmDB contains <%=numberFormat.format(pwmDBLogger.getEventCount())%> events in
             <%= Helper.formatDiskSize(PwmSession.getPwmSession(session).getContextManager().getPwmDbDiskSize()) %>.
         </p>
         <br class="clear"/>
@@ -144,6 +146,24 @@
             </table>
             <br/>
         </form>
+        <%
+            PwmLogLevel logLevel = PwmLogLevel.INFO;
+            PwmDBLogger.EventType logType = PwmDBLogger.EventType.User;
+            int eventCount = 100;
+            long maxTime = 10000;
+            final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
+            final String text = password.pwm.Validator.readStringFromRequest(request,"text", 255);
+            try { logLevel = PwmLogLevel.valueOf(request.getParameter("level")); } catch (Exception e) { }
+            try { logType = PwmDBLogger.EventType.valueOf(request.getParameter("type")); } catch (Exception e) { }
+            try { eventCount  = Integer.parseInt(request.getParameter("count")); } catch (Exception e) { }
+            try { maxTime  = Long.parseLong(request.getParameter("maxTime")); } catch (Exception e) { }
+
+            final PwmDBLogger.SearchResults searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+        %>
+        <% if (searchResults.getEvents().isEmpty()) { %>
+        <p>No events matched your search.  Please refine your search query and try again.</p>
+        <% } else { %>
+        <p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getEvents().size()) %> entries after searching <%= numberFormat.format(searchResults.getSearchedEvents()) %> log entries in <%= searchResults.getSearchTime().asCompactString() %>.</p>
         <br class="clear"/>
         <table>
             <tr>
@@ -169,22 +189,7 @@
                     Detail
                 </td>
             </tr>
-            <%
-                PwmLogLevel logLevel = PwmLogLevel.INFO;
-                PwmDBLogger.EventType logType = PwmDBLogger.EventType.User;
-                int eventCount = 100;
-                long maxTime = 10000;
-                final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
-                final String text = password.pwm.Validator.readStringFromRequest(request,"text", 255);
-                try { logLevel = PwmLogLevel.valueOf(request.getParameter("level")); } catch (Exception e) { }
-                try { logType = PwmDBLogger.EventType.valueOf(request.getParameter("type")); } catch (Exception e) { }
-                try { eventCount  = Integer.parseInt(request.getParameter("count")); } catch (Exception e) { }
-                try { maxTime  = Long.parseLong(request.getParameter("maxTime")); } catch (Exception e) { }
-
-                final List<PwmLogEvent> logEntries = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
-                int counter = 0;
-                for (final PwmLogEvent event : logEntries) {
-            %>
+            <% int counter = 0; for (final PwmLogEvent event : searchResults.getEvents()) { %>
             <tr>
                 <td class="key">
                     <pre><%= ++counter %></pre>
@@ -208,8 +213,13 @@
                     %>
                 </td>
                 <td>
-                    <%= event.getMessage() %>
                     <%
+                        final String eventMessage = event.getMessage().replaceAll("<","&lt;").replaceAll(">","&gt;");
+                        if (eventMessage.contains("\n")) {
+                            out.append("<pre>").append(eventMessage).append("</pre>");
+                        } else {
+                            out.append(eventMessage);
+                        }
                         //noinspection ThrowableResultOfMethodCallIgnored
                         if (event.getThrowable() != null) {
                             out.append("<br/>Throwable: ");
@@ -225,6 +235,7 @@
             </tr>
             <% } %>
         </table>
+        <% } %>
     </div>
     <%@ include file="../jsp/footer.jsp" %>
 </body>

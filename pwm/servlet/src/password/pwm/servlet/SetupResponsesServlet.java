@@ -3,6 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2010 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public License        
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
@@ -50,7 +51,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * User interaction servlet for seting up secret question/answer
+ * User interaction servlet for setting up secret question/answer
  *
  * @author Jason D. Rivard
  */
@@ -84,7 +85,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         // check to see if the user has any challenges assigned
-        if (assignedCs.getChallenges().isEmpty()) {
+        if (assignedCs == null || assignedCs.getChallenges().isEmpty()) {
             ssBean.setSessionError(new ErrorInformation(Message.ERROR_NO_CHALLENGES));
             LOGGER.debug(pwmSession, "no challenge sets configured for user " + uiBean.getUserDN());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -231,27 +232,54 @@ public class SetupResponsesServlet extends TopServlet {
             throws PwmException, ChaiUnavailableException
     {
         //it was good...
-        try {
-            for (final CrMode crMode : pwmSession.getConfig().getResponseStorageMethod()) {
-                responses.write(crMode);
-                LOGGER.info(pwmSession, "saved responses for user");
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
-            }
-            pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-            pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_SETUP_RESPONSES));
-            UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
-            return true;
 
-        } catch (ChaiOperationException e) {
-            if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
-                LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
-                LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
-            } else {
-                LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+        int attempts = 0, successes = 0;
+
+        if (pwmSession.getConfig().getResponseStorageMethod() != null) {
+            try {
+                attempts++;
+                responses.write(pwmSession.getConfig().getResponseStorageMethod());
+                LOGGER.info(pwmSession, "saved responses for user using method " + pwmSession.getConfig().getResponseStorageMethod());
+                successes++;
+            } catch (ChaiOperationException e) {
+                if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
+                    LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+                    LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
+                } else {
+                    LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+                }
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
             }
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
         }
 
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            try {
+                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                    attempts++;
+                    responses.write(CrMode.NMAS);
+                    LOGGER.info(pwmSession, "saved responses for user using method " + CrMode.NMAS);
+                    successes++;
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession,"error writing user's supplied new responses to nmas: " + e.getMessage());
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
+            }
+        }
+
+        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
+        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
+        pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_SETUP_RESPONSES));
+        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
+
+        if (attempts == successes) {
+            if (attempts == 0) {
+                LOGGER.warn(pwmSession, "no response saving methods available or configured");
+                return false;
+            }
+            return true;
+        }
+
+        LOGGER.warn(pwmSession, "response storage only partially successful; attempts=" + attempts + ", successes=" + successes);
         return false;
     }
 
@@ -264,7 +292,7 @@ public class SetupResponsesServlet extends TopServlet {
         final Set<String> problemParams = new HashSet<String>();
         ErrorInformation errorInfo = null;
 
-        { // check for duplicate questions.  need to check the actual req params because the following lupes wont populate duplicates
+        { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
             final Set<String> questionTexts = new HashSet<String>();
             for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements(); ) {
                 final String paramName = nameEnum.nextElement().toString();
