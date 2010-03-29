@@ -36,7 +36,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
@@ -159,7 +159,7 @@ public class PasswordUtility {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession)) {
-            ssBean.setSessionError(Message.ERROR_UNAUTHORIZED.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_UNAUTHORIZED.toInfo());
             LOGGER.debug(pwmSession, "attempt to setUserPassword, but user does not have password change permission");
             return false;
         }
@@ -180,7 +180,7 @@ public class PasswordUtility {
 
         // Check to make sure we actually have an old password
         if (oldPassword == null || oldPassword.length() < 1) {
-            ssBean.setSessionError(Message.ERROR_WRONGPASSWORD.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_WRONGPASSWORD.toInfo());
             LOGGER.warn(pwmSession, pwmSession.getUserInfoBean().getUserDN() + "can't set password for user, old passwod is null");
             return false;
         }
@@ -191,13 +191,13 @@ public class PasswordUtility {
         try {
             theUser.changePassword(oldPassword,newPassword); // this method handles AD, edir or nmas password changes.
         } catch (ChaiOperationException e) {
-            final Message returnMsg = Message.forChaiPasswordError(e.getErrorCode()) == null ? Message.ERROR_UNKNOWN : Message.forChaiPasswordError(e.getErrorCode());
+            final PwmError returnMsg = PwmError.forChaiPasswordError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiPasswordError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(returnMsg,e.getMessage());
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
             return false;
         } catch (ChaiPasswordPolicyException e) {
-            final ErrorInformation error = new ErrorInformation(Message.forResourceKey(e.getPasswordError().getErrorKey()));
+            final ErrorInformation error = new ErrorInformation(PwmError.forResourceKey(e.getPasswordError().getErrorKey()));
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr());
             return false;
@@ -236,13 +236,13 @@ public class PasswordUtility {
                 LOGGER.trace(pwmSession, "beginning password replication checking");
                 // if the last password update worked, test that it is replicated accross all ldap servers.
                 boolean isReplicated = false;
-                Helper.pause(Constants.PASSWORD_UPDATE_INITIAL_DELAY);
+                Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY);
                 try {
                     long timeSpentTrying = 0;
                     while (!isReplicated && timeSpentTrying < (maxWaitTime)) {
                         timeSpentTrying = System.currentTimeMillis() - delayStartTime;
                         isReplicated = ChaiUtility.testAttributeReplication(proxiedUser, pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
-                        Helper.pause(Constants.PASSWORD_UPDATE_CYCLE_DELAY);
+                        Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY);
                     }
                 } catch (ChaiOperationException e) {
                     //oh well, give up.
@@ -254,7 +254,7 @@ public class PasswordUtility {
         }
 
         // be sure minimum wait time has passed
-        final long minWaitTime = Long.parseLong(pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.MIN_PASSWORD_SYNC_WAIT_TIME));
+        final long minWaitTime = Long.parseLong(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.MIN_PASSWORD_SYNC_WAIT_TIME));
         if((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {
             LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
             while ((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {
@@ -326,7 +326,7 @@ public class PasswordUtility {
         boolean isReplicated = false;
         try {
             isReplicated = ChaiUtility.testAttributeReplication(user, pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
-            Helper.pause(Constants.PASSWORD_UPDATE_CYCLE_DELAY);
+            Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY);
         } catch (ChaiOperationException e) {
             //oh well, give up.
             LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
@@ -338,60 +338,54 @@ public class PasswordUtility {
      * Judge a password's strength
      *
      * @param password password to check
-     * @return 0-9, 0 being a very week password, 9 being a strong password.
+     * @return 0-100, 0 being a very week password, 100 being a strong password.
      */
     public static int judgePassword(final String password)
     {
-        if (password == null || password.length() < 4) {
+        if (password == null || password.length() < 1) {
             return 0;
         }
 
         int score = 0;
         final Validator.PasswordCharCounter charCounter = new Validator.PasswordCharCounter(password);
 
-        // total 1
-        if (password.length() > 8)
-            score++;
+        // -- Additions --
+        // amount of unique chars
+        if (charCounter.getUniqueChars() > 7) {
+            score = score + 10;
+        }
+        score = score + ((charCounter.getUniqueChars()) * 3);
 
-        // total 2
-        if (charCounter.getNumericChars() > 0)
-            score++;
-
-        // total 3
-        if (charCounter.getNumericChars() > 1)
-            score++;
-
-        // total 4
-        if (charCounter.getSpecialChars() > 0)
-            score++;
-
-        // total 5
-        if (charCounter.getSpecialChars() > 1)
-            score++;
-
-        // total 6
-        if (charCounter.getLowerChars() > 0 && charCounter.getUpperChars() > 1)
-            score++;
-
-        // total 7
-        if (charCounter.getLowerChars() > 1 && charCounter.getUpperChars() > 0)
-            score++;
-
-        // total 8
-        if (password.length() > 6 && charCounter.getUniqueChars() > password.length() * .70) {
-            score++;
+        // Numbers
+        if (charCounter.getNumericChars() > 0) {
+            score = score + 8;
+            score = score + (charCounter.getNumericChars()) * 4;
         }
 
-        // total 9
-        if (password.length() > 6 && charCounter.getUniqueChars() > password.length() * .90) {
-            score++;
+        // specials
+        if (charCounter.getSpecialChars() > 0) {
+            score = score + 14;
+            score = score + (charCounter.getSpecialChars()) * 5;
         }
 
-        // boost the score by 20% due to feedback about meeter being too restrictive.
-        score = (int)(score * 1.2);
-        score = score > 9 ? 9 : score;
+        // mixed case
+        if ((charCounter.getAlphaChars() != charCounter.getUpperChars()) && (charCounter.getAlphaChars() != charCounter.getLowerChars())) {
+            score = score + 10;
+        }
 
-        return score;
+        // -- Deductions --
+
+        // sequential numbers
+        if (charCounter.getSequentialNumericChars() > 2) {
+            score = score - (charCounter.getSequentialNumericChars() - 1) * 4;
+        }
+
+        // sequential chars
+        if (charCounter.getSequentialRepeatedChars() > 1) {
+            score = score - (charCounter.getSequentialRepeatedChars()) * 5;
+        }
+
+        return score > 100 ? 100 : score < 0 ? 0 : score;
     }
 
     enum ReplicationStatus {

@@ -30,7 +30,7 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserInformationServletBean;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
@@ -64,14 +64,16 @@ public class UserInformationServlet extends TopServlet {
 
         uisBean.setUserExists(false);        
 
-        final String actionParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 1024);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("search")) {
+            Validator.checkFormID(req);
+
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);
 
             if (username.length() < 1) {
-                ssBean.setSessionError(new ErrorInformation(Message.ERROR_MISSING_PARAMETER));
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -79,7 +81,7 @@ public class UserInformationServlet extends TopServlet {
             processUserSearch(pwmSession, username, context);
 
             if (!uisBean.isUserExists()) {
-                ssBean.setSessionError(new ErrorInformation(Message.ERROR_CANT_MATCH_USER));
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
             }
         }
 
@@ -160,7 +162,7 @@ public class UserInformationServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_USER_INFORMATION).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_USER_INFORMATION).forward(req, resp);
     }
 
 

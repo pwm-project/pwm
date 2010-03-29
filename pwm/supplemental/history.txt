@@ -12,7 +12,7 @@ v1.4.3 (1/10/2010) build 922
 + Added caps-lock detector during password entry
 + Enhanced SetupResponses to show select lists when challenge.randomStyle=SETUP and there are no user defined random challenges
 + Added admin user information debugging page to aid in troubleshooting for admins
-+ Added usser user information debugging page to aid in troubleshooting for end users
++ Added user user information debugging page to aid in troubleshooting for end users
 + Added daily stats viewer and chart history in administrator status screen
 
 * Refined password strength meter to allow full strength to be reached, and to be more permissive
@@ -32,7 +32,10 @@ v1.4.3 (1/10/2010) build 922
 - Fixed bug where newer Client32 clients forced users to configure responses after PWM saves responses using nmas (defect #53)
 - Refactored ant build.xml script to accommodate new layout used in google project svn
 - Moved XForwardedFor setting to pwmServlet.properties from web.xml as "useXForwardedForHeader" setting.
-- Fixed issue where random password generation sometimes generated out-of-policy passwords 
+- Fixed issue where random password generation sometimes generated out-of-policy passwords
+- Added "ldap.edirectory.readChallengeSets" and removed "challenge.policyMethod" setting
+- Added "ldap.edirectory.storeNmasResponses" setting, removing NMAS options from "challenge.storageMethod" setting
+
 
 
 v1.4.2 (7/23/2009) build 842

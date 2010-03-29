@@ -24,12 +24,17 @@ package password.pwm.bean;
 
 import password.pwm.BasicAuthInfo;
 import password.pwm.Validator;
+import password.pwm.config.Message;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
+import password.pwm.util.PwmRandom;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  *  Only information that is particular to the http session is stored in the
@@ -50,7 +55,7 @@ public class SessionStateBean implements Serializable {
     private boolean authenticated;
 
     private ErrorInformation sessionError;
-    private ErrorInformation sessionSuccess;
+    private Message sessionSuccess;
     private String originalRequestURL;
     private String srcAddress;
     private String srcHostname;
@@ -67,14 +72,14 @@ public class SessionStateBean implements Serializable {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private boolean sessionVerified;
-    private String sessionVerificationKey;
+    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
+    private String formNonce = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
 
     private boolean passedCaptcha;
 
     private long lastAccessTime = System.currentTimeMillis();
-    private long lastPageUnloadTime = 0;
 
-    private Map<String, ShortcutItem> visableShortcutItems;
+    private Map<String, ShortcutItem> visibleShortcutItems;
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
@@ -190,12 +195,12 @@ public class SessionStateBean implements Serializable {
         this.sessionID = sessionID;
     }
 
-    public ErrorInformation getSessionSuccess()
+    public Message getSessionSuccess()
     {
         return sessionSuccess;
     }
 
-    public void setSessionSuccess(final ErrorInformation sessionSuccess)
+    public void setSessionSuccess(final Message sessionSuccess)
     {
         this.sessionSuccess = sessionSuccess;
     }
@@ -296,26 +301,28 @@ public class SessionStateBean implements Serializable {
         this.sessionVerified = sessionVerified;
     }
 
-    public Map<String, ShortcutItem> getVisableShortcutItems() {
-        return visableShortcutItems;
+    public Map<String, ShortcutItem> getVisibleShortcutItems() {
+        return visibleShortcutItems;
     }
 
-    public void setVisableShortcutItems(Map<String, ShortcutItem> visableShortcutItems) {
-        this.visableShortcutItems = visableShortcutItems;
+    public void setVisibleShortcutItems(Map<String, ShortcutItem> visibleShortcutItems) {
+        this.visibleShortcutItems = visibleShortcutItems;
     }
 
-    // -------------------------- ENUMERATIONS --------------------------
+    public String getFormNonce() {
+        return formNonce;
+    }
+
+    public void setFormNonce(String formNonce) {
+        this.formNonce = formNonce;
+    }
+
+// -------------------------- ENUMERATIONS --------------------------
 
     public enum FINISH_ACTION {
         LOGOUT, FORWARD
     }
 
-    public long getLastPageUnloadTime() {
-        return lastPageUnloadTime;
-    }
 
-    public void setLastPageUnloadTime(final long lastPageUnloadTime) {
-        this.lastPageUnloadTime = lastPageUnloadTime;
-    }
 }
 

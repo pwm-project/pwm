@@ -23,7 +23,6 @@
 package password.pwm.error;
 
 import password.pwm.PwmSession;
-import password.pwm.config.Message;
 
 import java.io.Serializable;
 import java.util.*;
@@ -31,17 +30,17 @@ import java.util.*;
 public class ErrorInformation implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private Message error = Message.ERROR_UNKNOWN;
+    private PwmError error = PwmError.ERROR_UNKNOWN;
     private String detailedError;
     private final List<String> fieldValues = new ArrayList<String>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ErrorInformation(final Message error) {
+    public ErrorInformation(final PwmError error) {
         this(error, null);
     }
 
-    public ErrorInformation(final Message error, final String detailedError, final String... fields) {
+    public ErrorInformation(final PwmError error, final String detailedError, final String... fields) {
         if (detailedError != null && detailedError.length() > 0) {
             this.detailedError = detailedError;
         }
@@ -61,7 +60,7 @@ public class ErrorInformation implements Serializable {
         return detailedError;
     }
 
-    public Message getError() {
+    public PwmError getError() {
         return error;
     }
 
@@ -93,9 +92,9 @@ public class ErrorInformation implements Serializable {
 
         final String userStr;
         if (fieldValues.isEmpty()) {
-            userStr = Message.getLocalizedMessage(userLocale, this.getError());
+            userStr = PwmError.getLocalizedMessage(userLocale, this.getError());
         } else {
-            userStr = Message.getLocalizedMessage(userLocale, this.getError(), fieldValues.get(0));
+            userStr = PwmError.getLocalizedMessage(userLocale, this.getError(), fieldValues.get(0));
         }
 
         return userStr;

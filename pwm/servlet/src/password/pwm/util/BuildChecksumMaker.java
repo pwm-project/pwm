@@ -22,7 +22,7 @@
 
 package password.pwm.util;
 
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.Helper;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class BuildChecksumMaker {
 
     private static final String[] IGNORE_LIST = new String[] {
             "MANIFEST.MF",
-            Constants.DEFAULT_BUILD_CHECKSUM_FILENAME
+            PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME
     };
 
 // --------------------------- main() method ---------------------------
@@ -97,7 +97,7 @@ public class BuildChecksumMaker {
         final Properties outputProps = new Properties();
         outputProps.putAll(props);
 
-        outputProps.store(new FileOutputStream(new File(args[1] + File.separator + Constants.DEFAULT_BUILD_CHECKSUM_FILENAME)),"");
+        outputProps.store(new FileOutputStream(new File(args[1] + File.separator + PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME)),"");
 
         output("build Build Checksum Maker completed successfully");
     }

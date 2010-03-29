@@ -26,6 +26,7 @@ import com.novell.ldapchai.cr.CrMode;
 import com.novell.ldapchai.util.StringHelper;
 import org.jdom.CDATA;
 import org.jdom.Element;
+import password.pwm.util.PwmLogLevel;
 
 import java.io.Serializable;
 import java.util.*;
@@ -193,6 +194,17 @@ public enum PwmSetting {
             "eventLog.userAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LOGGING),
     EVENT_LOG_MAX_EVENTS_USER(
             "eventLog.maxEvents", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LOGGING),
+    EVENT_LOG_LOCAL_LEVEL(
+            "eventLog.localDbLevel", false, Syntax.TEXT, new Static.ValueHelper() {
+                Object parseImpl(final PwmSetting setting, final String value)
+                {
+                    try {
+                        return PwmLogLevel.valueOf(value);
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("unknown or unsupported log level value '" + value + "'");
+                    }
+                }
+            }, false, Category.LOGGING),
 
     // recovery settings
     CHALLANGE_FORCE_SETUP(
@@ -242,17 +254,15 @@ public enum PwmSetting {
             "challenge.caseInsensitive", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
     ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
-    CHALLANGE_APPLY_WORDLIST(
+    CHALLENGE_APPLY_WORDLIST(
             "challenge.applyWorldlist", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
-    CHALLANGE_SHOW_CONFIRMATION(
+    CHALLENGE_SHOW_CONFIRMATION(
             "challenge.showConfirmation", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
-    /*
-    CHALLANGE_TOKEN_ATTRIBUTE(
+    CHALLENGE_TOKEN_ATTRIBUTE(
             "challenge.tokenAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
-    CHALLANGE_TOKEN_MAX_AGE(
+    CHALLENGE_TOKEN_MAX_AGE(
             "challenge.tokenMaxAge", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.RECOVERY),
-    */
-    
+
     // new user settings
     ENABLE_NEW_USER(
             "newUser.enable", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.NEWUSER),

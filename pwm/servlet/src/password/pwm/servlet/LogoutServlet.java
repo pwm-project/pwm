@@ -23,7 +23,7 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
 import password.pwm.Validator;
@@ -81,7 +81,7 @@ public class LogoutServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        final String url = SessionFilter.rewriteURL('/' + Constants.URL_JSP_LOGOUT, req, resp);
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGOUT, req, resp);
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 

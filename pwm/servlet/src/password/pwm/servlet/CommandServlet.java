@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.ParameterConfig;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
@@ -59,7 +59,7 @@ public class CommandServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final String action = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("idleUpdate")) {
@@ -74,8 +74,6 @@ public class CommandServlet extends TopServlet {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(req, resp);
-        } else if (action.equalsIgnoreCase("pageUnload")) {
-            processPageUnload(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -106,7 +104,7 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_SETUP_RESPONSES, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
         } else {
             processContinue(req, resp);
         }
@@ -123,7 +121,7 @@ public class CommandServlet extends TopServlet {
 
         if (!ssBean.isAuthenticated() && !AuthenticationFilter.authUserUsingBasicHeader(req)) {
             LOGGER.info("checkExpire: authentication required");
-            ssBean.setSessionError(Message.ERROR_AUTHENTICATION_REQUIRED.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return false;
         }
@@ -143,9 +141,9 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (checkIfPasswordExpired(pwmSession) || pwmSession.getUserInfoBean().isRequiresNewPassword()) {
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         } else if (checkPasswordWarn(pwmSession)) {
-            final String passwordWarnURL = req.getContextPath() + "/private/" + Constants.URL_JSP_PASSWORD_WARN;
+            final String passwordWarnURL = req.getContextPath() + "/private/" + PwmConstants.URL_JSP_PASSWORD_WARN;
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(passwordWarnURL, req, resp));
         }   else  {
             processContinue(req, resp);
@@ -199,7 +197,7 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!checkAttributes(pwmSession)) {
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_UPDATE_ATTRIBUTES, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_ATTRIBUTES, req, resp));
         } else {
             processContinue(req, resp);
         }
@@ -278,7 +276,7 @@ public class CommandServlet extends TopServlet {
                 } else {
                     LOGGER.debug(pwmSession, "user password appears expired, redirecting to ChangePassword url");
                 }
-                final String changePassServletURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/public/" + Constants.URL_SERVLET_CHANGE_PASSWORD;
+                final String changePassServletURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD;
 
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(changePassServletURL, req, resp));
                 return;
@@ -287,7 +285,7 @@ public class CommandServlet extends TopServlet {
             //check if we force response configuration, and user requires it.
             if (uiBean.isRequiresResponseConfig() && (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirectiong to setupresponses page");
-                final String setupResponsesURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + Constants.URL_SERVLET_SETUP_RESPONSES;
+                final String setupResponsesURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
 
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(setupResponsesURL, req, resp));
                 return;
@@ -297,7 +295,7 @@ public class CommandServlet extends TopServlet {
         // log the user out if our finish action is currently set to log out.
         if (ssBean.getFinishAction() == SessionStateBean.FINISH_ACTION.LOGOUT) {
             LOGGER.trace(pwmSession, "logging out user; password has been modified");
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_LOGOUT, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));
             return;
         }
 
@@ -308,19 +306,6 @@ public class CommandServlet extends TopServlet {
 
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL,req, resp));
-    }
-
-    private void processPageUnload(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException
-    {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            pwmSession.getSessionStateBean().setLastPageUnloadTime(System.currentTimeMillis());
-        }
-        resp.flushBuffer();
     }
 }
 

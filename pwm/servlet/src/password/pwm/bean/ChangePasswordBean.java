@@ -40,9 +40,9 @@ public class ChangePasswordBean implements Serializable {
     private String newPassword;
     private long newPasswordSetTime;
     private ErrorInformation passwordChangeError;
-    private final Map<String,PasswordCacheEntry> passwordTestCache = new LinkedHashMap<String,PasswordCacheEntry>() {
+    private final Map<String, ChangePasswordServlet.PasswordCheckInfo> passwordTestCache = new LinkedHashMap<String, ChangePasswordServlet.PasswordCheckInfo>() {
         @Override
-        protected boolean removeEldestEntry(final Map.Entry<String, PasswordCacheEntry> eldest) {
+        protected boolean removeEldestEntry(final Map.Entry<String, ChangePasswordServlet.PasswordCheckInfo> eldest) {
             return this.size() > ChangePasswordServlet.MAX_CACHE_SIZE;
         }
     };
@@ -67,7 +67,7 @@ public class ChangePasswordBean implements Serializable {
         this.passwordChangeError = passwordChangeError;
     }
 
-    public Map<String,PasswordCacheEntry> getPasswordTestCache()
+    public Map<String, ChangePasswordServlet.PasswordCheckInfo> getPasswordTestCache()
     {
         return passwordTestCache;
     }
@@ -83,36 +83,6 @@ public class ChangePasswordBean implements Serializable {
     {
         this.newPassword = newPassword;
         this.newPasswordSetTime = System.currentTimeMillis();
-    }
-
-// -------------------------- INNER CLASSES --------------------------
-
-    public static class PasswordCacheEntry implements Serializable {
-        private final String userStr;
-        private final boolean passed;
-        private final int strength;
-
-        public PasswordCacheEntry(final String userStr, final boolean passed, final int strength)
-        {
-            this.userStr = userStr;
-            this.passed = passed;
-            this.strength = strength;
-        }
-
-        public String getUserStr()
-        {
-            return userStr;
-        }
-
-        public boolean isPassed()
-        {
-            return passed;
-        }
-
-        public int getStrength()
-        {
-            return strength;
-        }
     }
 }
 

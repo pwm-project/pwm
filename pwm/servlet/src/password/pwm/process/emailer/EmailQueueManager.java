@@ -22,7 +22,7 @@
 
 package password.pwm.process.emailer;
 
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.ContextManager;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
@@ -78,7 +78,7 @@ public class EmailQueueManager extends TimerTask {
     public void addMailToQueue(final String to, final String from, final String subject, final String body)
     {
         final EmailEvent event = new EmailEvent(to, from, subject, body);
-        if (queueList.size() < Constants.MAX_EMAIL_QUEUE_SIZE) {
+        if (queueList.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
             queueList.add(event);
         } else {
             LOGGER.warn("email queue full, discarding email send request: ");

@@ -22,7 +22,7 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
@@ -45,11 +45,11 @@ class Populator {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Populator.class);
 
-    private static final long LOW_GOAL = 500; //try to do as many transacations as possible above this time limit (ms)
-    private static final long HIGH_GOAL = 800; //try to do as many transacations as possible below this time limit (ms)
+    private static final long LOW_GOAL = 600; //try to do as many transactions as possible above this time limit (ms)
+    private static final long HIGH_GOAL = 900; //try to do as many transactions as possible below this time limit (ms)
     private static final long OUT_OF_RANGE = 2000;
 
-    private static final int MAX_TRANSACTION_SIZE = 50 * 1000; // maximum number of transactions (to big would cause OO<)
+    private static final int MAX_TRANSACTION_SIZE = 50 * 1000; // maximum number of transactions (to big would cause OOM)
     private static final int MIN_TRANSACTION_SIZE = 10; // minimum number of transactions (to big
 
     private static final int MAX_LINE_LENGTH = 64; // words truncated to this length, prevents massive words if the input
@@ -237,7 +237,7 @@ class Populator {
                 sleeper.sleep();
 
                 if (abortFlag) {
-                    throw PwmException.createPwmException(new ErrorInformation(Message.ERROR_UNKNOWN,"pausing " + DEBUG_LABEL + " population"));
+                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"pausing " + DEBUG_LABEL + " population"));
                 }
 
                 overallStats.incrementLines();
@@ -349,9 +349,10 @@ class Populator {
     {
         flushBuffer();
         LOGGER.info(makeStatString());
-
+        LOGGER.trace("beginning wordlist size query");
         final int wordlistSize = pwmDB.size(wordlistDB);
         if (wordlistSize > 0) {
+            pwmDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
         } else {
             throw new Exception(DEBUG_LABEL + " population completed, but no words stored");
@@ -366,34 +367,23 @@ class Populator {
     }
 
     private static class PopulationStats {
-    // ------------------------------ FIELDS ------------------------------
+        // ------------------------------ FIELDS ------------------------------
 
         private long startTime = System.currentTimeMillis();
         private int lines;
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+        // --------------------- GETTER / SETTER METHODS ---------------------
 
         public int getLines()
         {
             return lines;
         }
 
-        public long getStartTime()
-        {
-            return startTime;
-        }
-
-    // -------------------------- OTHER METHODS --------------------------
+        // -------------------------- OTHER METHODS --------------------------
 
         public void incrementLines()
         {
             lines++;
-        }
-
-        public int linesPerSecond()
-        {
-            final int elapsedSeconds = getElapsedSeconds();
-            return elapsedSeconds == 0 ? lines : lines / elapsedSeconds;
         }
 
         public int getElapsedSeconds()

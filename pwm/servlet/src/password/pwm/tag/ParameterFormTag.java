@@ -23,7 +23,7 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.ParameterConfig;
 import password.pwm.util.PwmLogger;
 
@@ -83,7 +83,7 @@ public class ParameterFormTag extends TagSupport {
         {
             sb.append("<h2>");
             if (confirm) {
-                final String confirmPrefix = Message.getDisplayString("Field_Confirm_Prefix",pwmSession.getSessionStateBean().getLocale());
+                final String confirmPrefix = PwmError.getDisplayString("Field_Confirm_Prefix",pwmSession.getSessionStateBean().getLocale());
                 sb.append(confirmPrefix);
                 sb.append(" ");
             }

@@ -30,7 +30,7 @@ import java.util.Date;
 public class UserInformationServletBean implements Serializable {
     private boolean userExists;
     private UserInfoBean userInfoBean = new UserInfoBean();
-    private ResponseSet responseSet;
+    private transient ResponseSet responseSet;
     private boolean intruderLocked;
     private boolean pwmIntruder;
     private boolean passwordRetrievable;

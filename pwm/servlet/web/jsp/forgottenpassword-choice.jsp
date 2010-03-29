@@ -25,7 +25,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="getObject('username').focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();getObject('username').focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/></jsp:include>
     <div id="centerbody">
@@ -43,6 +43,7 @@
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn" value="    <pwm:Display key="Button_UnlockPassword"/>    "/>
                         <input type="hidden" name="processAction" value="selectUnlock"/>
+                        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
                 <td style="border: 0">
@@ -59,6 +60,7 @@
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn" value="   <pwm:Display key="Button_ChangePassword"/>  "/>
                         <input type="hidden" name="processAction" value="selectResetPassword"/>
+                        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
                 <td style="border: 0">

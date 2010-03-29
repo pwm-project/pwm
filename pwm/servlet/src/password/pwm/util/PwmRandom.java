@@ -31,6 +31,8 @@ public class PwmRandom {
 
     private final static PwmRandom SINGLETON = new PwmRandom();
 
+    private final static String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     private PwmRandom() {
     }
 
@@ -42,12 +44,24 @@ public class PwmRandom {
         return internalRand.nextLong();
     }
 
-    public int nextInt(int n) {
+    public int nextInt(final int n) {
         return internalRand.nextInt(n);
+    }
+
+    public boolean nextBoolean() {
+        return internalRand.nextBoolean();
     }
 
     public String nextLongHex() {
         return Long.toHexString(internalRand.nextLong()).toUpperCase();
+    }
+
+    public String alphaNumericString(final int length) {
+        final StringBuilder sb = new StringBuilder();
+        while (sb.length() < length) {
+            sb.append(ALPHANUMERIC_STRING.charAt(nextInt(ALPHANUMERIC_STRING.length())));
+        }
+        return sb.toString();
     }
 
 }

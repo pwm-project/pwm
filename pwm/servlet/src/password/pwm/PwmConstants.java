@@ -29,7 +29,7 @@ import java.util.ResourceBundle;
  *
  * @author Jason D. Rivard
  */
-public abstract class Constants {
+public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
@@ -38,9 +38,9 @@ public abstract class Constants {
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER;
 
-    public static final int INTRUDER_RETENTION_TIME = 5 * 24 * 60 * 60 * 1000;
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
-    public static final int MAX_LDAP_IDLE_TIME = 90000;
+    public static final int DEFAULT_LDAP_IDLE_TIMEOUT_MS = 60 * 1000;
+
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
     public static final String HTTP_BASIC_AUTH_PREFIX = "Basic ";
@@ -90,6 +90,7 @@ public abstract class Constants {
     public static final String URL_SERVLET_NEW_USER = "NewUser";
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
     public static final String URL_SERVLET_COMMAND = "CommandServlet";
+    public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_VERIFICATIN_KEY = "session_verificiation_key";
@@ -123,7 +124,9 @@ public abstract class Constants {
             "whatever happened to speech wreck a nation technology?",     // thx wk
             "Password schmassword, I can't even remember my user name...",
             "The Mummy's password is in crypted",   // thx wk
+            "The zombie's password is expired", // wk
             "Chuck Yeager's password is in plane text", // thx wk
+            "Fruit flies have one time use passwords",
             "As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic password.",
             "NOTICE: This header is protected by the Digital Millennium Copyright Act of 1996.  Reading this header is strictly forbidden."
     };

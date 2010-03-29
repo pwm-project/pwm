@@ -27,12 +27,12 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="document.forms.newUser.elements[0].focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_NewUser"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_NewUser"/></p>
-        <form action="<pwm:url url='NewUser'/>" method="post" name= "newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"
+        <form action="<pwm:url url='NewUser'/>" method="post" name= "newUser" enctype="application/x-www-form-urlencoded"
                 onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
@@ -51,6 +51,7 @@
                        id="submitBtn"/>
                 <input tabindex="4" type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

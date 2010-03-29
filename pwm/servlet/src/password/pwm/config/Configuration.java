@@ -24,6 +24,7 @@ package password.pwm.config;
 
 import com.novell.ldapchai.cr.CrMode;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.util.PwmLogLevel;
 
 import java.io.Serializable;
 import java.util.*;
@@ -75,12 +76,10 @@ public class Configuration implements Serializable {
         final StringBuilder sb = new StringBuilder();
 
         for (final PwmSetting setting : PwmSetting.values()) {
-            if (!setting.isConfidential()) {
-                sb.append(setting.getKey());
-                sb.append("=");
-                sb.append(readSetting(setting));
-                sb.append(", ");
-            }
+            sb.append(setting.getKey());
+            sb.append("=");
+            sb.append(!setting.isConfidential() ? readSetting(setting) : "*removed*");
+            sb.append(", ");
         }
 
         if (sb.length() > 2) {  // chop off last ", "
@@ -138,6 +137,11 @@ public class Configuration implements Serializable {
     {
         final String[] values = (String[]) readSetting(PwmSetting.AUTO_ADD_OBJECT_CLASSES);
         return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(values)));
+    }
+
+    public PwmLogLevel getEventLogLocalLevel()
+    {
+        return (PwmLogLevel) readSetting(PwmSetting.EVENT_LOG_LOCAL_LEVEL);
     }
 
     public CR_RANDOM_STYLE getChallengeRandomStyle()

@@ -22,21 +22,21 @@
 
 package password.pwm.error;
 
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 
 public class PasswordValidationException extends PwmException {
 // ------------------------------ FIELDS ------------------------------
 
-    private Message errorMessage;
+    private PwmError errorMessage;
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PasswordValidationException createPasswordValidationException(final Message message) {
+    public static PasswordValidationException createPasswordValidationException(final PwmError message) {
         if (message == null) {
             throw new IllegalArgumentException();
         }
 
-        final PasswordValidationException pve = new PasswordValidationException(new ErrorInformation(Message.ERROR_WRONGPASSWORD, message.toString()));
+        final PasswordValidationException pve = new PasswordValidationException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD, message.toString()));
         pve.errorMessage = message;
         return pve;
     }

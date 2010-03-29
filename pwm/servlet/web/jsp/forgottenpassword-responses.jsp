@@ -38,13 +38,13 @@
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
 --%>
-<body onload="startupPage(true); document.forms.responseForm.elements[0].focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler(); startupResponsesPage(true); document.forms.responseForm.elements[0].focus();">
 <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_RecoverPassword"/></jsp:include>
 <div id="wrapper">
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
-        <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"
+        <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
                 onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
@@ -84,7 +84,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="hidden" name="hideButton" tabindex="<%=++tabIndex%>" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
-
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

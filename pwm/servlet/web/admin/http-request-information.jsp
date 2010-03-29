@@ -3,6 +3,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.Enumeration" %>
+<%@ page import="password.pwm.Validator" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +33,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="HTTP Request Information"/></jsp:include>
 <div id="wrapper">
     <div id="centerbody">
@@ -145,7 +146,7 @@
             </tr>
             <% for (final Enumeration parameterEnum = request.getParameterNames(); parameterEnum.hasMoreElements(); ) { %>
             <% final String loopParameter = (String)parameterEnum.nextElement(); %>
-            <% for (final String loopValue : request.getParameterValues(loopParameter)) { %>
+            <% for (final String loopValue : Validator.readStringsFromRequest(request, loopParameter, 1024)) { %>
             <tr>
                 <td class="key">
                     <%= loopParameter %>

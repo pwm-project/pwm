@@ -39,6 +39,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -75,18 +76,18 @@ public class SetupResponsesServlet extends TopServlet {
         final ChallengeSet assignedCs = uiBean.getChallengeSet();
 
         // read the action request parameter
-        final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         // check to see if the user is permitted to setup responses
         if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession)) {
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_UNAUTHORIZED));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
         // check to see if the user has any challenges assigned
         if (assignedCs == null || assignedCs.getChallenges().isEmpty()) {
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_NO_CHALLENGES));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES));
             LOGGER.debug(pwmSession, "no challenge sets configured for user " + uiBean.getUserDN());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -133,7 +134,7 @@ public class SetupResponsesServlet extends TopServlet {
             throws IOException, ServletException, PwmException, ChaiUnavailableException
     {
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_RESPONSES_MEET_RULES);
+        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES);
 
         try {
             // read in the responses from the request
@@ -167,6 +168,8 @@ public class SetupResponsesServlet extends TopServlet {
     {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+        Validator.checkFormID(req);
+
         final ResponseSet responses;
         final Map<Challenge,String> responseMap;
         try {
@@ -184,7 +187,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         LOGGER.trace(pwmSession, "user's supplied new responses appear to be acceptable");
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_SHOW_CONFIRMATION)) {
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
             pwmSession.getSetupResponseBean().setResponseMap(responseMap);
             this.forwardToConfirmJSP(req,resp);
         } else {
@@ -205,6 +208,8 @@ public class SetupResponsesServlet extends TopServlet {
             throws PwmException, IOException, ServletException, ChaiUnavailableException
     {
         boolean saveSuccess = false;
+
+        Validator.checkFormID(req);
 
         final Map<Challenge,String> responseMap = pwmSession.getSetupResponseBean().getResponseMap();
         if (responseMap != null && !responseMap.isEmpty()) {
@@ -248,7 +253,7 @@ public class SetupResponsesServlet extends TopServlet {
                 } else {
                     LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
                 }
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
             }
         }
 
@@ -262,13 +267,13 @@ public class SetupResponsesServlet extends TopServlet {
                 }
             } catch (ChaiOperationException e) {
                 LOGGER.debug(pwmSession,"error writing user's supplied new responses to nmas: " + e.getMessage());
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN, e.getMessage()));
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
             }
         }
 
         pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmSession.getSessionStateBean().setSessionSuccess(new ErrorInformation(Message.SUCCESS_SETUP_RESPONSES));
+        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES);
         UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
 
         if (attempts == successes) {
@@ -297,9 +302,9 @@ public class SetupResponsesServlet extends TopServlet {
             for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements(); ) {
                 final String paramName = nameEnum.nextElement().toString();
                 final String paramValue = Validator.readStringFromRequest(req, paramName, 1024);
-                if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(Constants.PARAM_QUESTION_PREFIX)) {
+                if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(PwmConstants.PARAM_QUESTION_PREFIX)) {
                     if (questionTexts.contains(paramValue.toLowerCase())) {
-                        errorInfo = new ErrorInformation(Message.ERROR_CHALLENGE_DUPLICATE);
+                        errorInfo = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE);
                         problemParams.add(paramName);
                     } else {
                         questionTexts.add(paramValue.toLowerCase());
@@ -317,11 +322,11 @@ public class SetupResponsesServlet extends TopServlet {
                 if (loopChallenge.isRequired() || !responsesBean.isSimpleMode()) {
 
                     if (!loopChallenge.isAdminDefined()) {
-                        final String questionText = Validator.readStringFromRequest(req, Constants.PARAM_QUESTION_PREFIX + indexKey, 1024);
+                        final String questionText = Validator.readStringFromRequest(req, PwmConstants.PARAM_QUESTION_PREFIX + indexKey, 1024);
                         loopChallenge.setChallengeText(questionText);
                     }
 
-                    final String answer = Validator.readStringFromRequest(req, Constants.PARAM_RESPONSE_PREFIX + indexKey, 1024);
+                    final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + indexKey, 1024);
 
                     if (answer.length() > 0) {
                         readResponses.put(loopChallenge, answer);
@@ -331,10 +336,10 @@ public class SetupResponsesServlet extends TopServlet {
 
             if (responsesBean.isSimpleMode()) { // if in simple mode, read the select-based random challenges
                 for (int i = 0; i < challengeSet.getMinRandomRequired(); i++ ) {
-                    final String questionKey = Validator.readStringFromRequest(req, Constants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i), 1024);
+                    final String questionKey = Validator.readStringFromRequest(req, PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i), 1024);
                     if (questionKey != null && responsesBean.getIndexedChallenges().containsKey(questionKey)) {
                         final Challenge challenge = responsesBean.getIndexedChallenges().get(questionKey);
-                        final String answer = Validator.readStringFromRequest(req, Constants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i), 1024);
+                        final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i), 1024);
                         if (answer != null && answer.length() > 0) {
                             readResponses.put(challenge, answer);
                         }
@@ -368,19 +373,19 @@ public class SetupResponsesServlet extends TopServlet {
 
         if (randomStyle == Configuration.CR_RANDOM_STYLE.RECOVER) { // if using recover style, then all readResponses must be supplied at this point.
             if (randomCount < challengeSet.getRandomChallenges().size()) {
-                final ErrorInformation errorInfo = new ErrorInformation(Message.ERROR_MISSING_RANDOM_RESPONSE);
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
                 throw new SetupResponsesException(errorInfo);
             }
         }
 
-        final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_APPLY_WORDLIST);
+        final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
         final WordlistManager wordlistManager = pwmSession.getContextManager().getWordlistManager();
 
         if (applyWordlist && wordlistManager.getStatus().isAvailable()) {
             for (final Challenge loopChallenge : responseMap.keySet()) {
                 final String answer = responseMap.get(loopChallenge);
                 if (wordlistManager.containsWord(pwmSession, answer)) {
-                    final ErrorInformation errorInfo = new ErrorInformation(Message.ERROR_RESPONSE_WORDLIST,null,loopChallenge.getChallengeText());
+                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST,null,loopChallenge.getChallengeText());
                     throw new SetupResponsesException(errorInfo);
                 }
             }
@@ -428,7 +433,7 @@ public class SetupResponsesServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_SETUP_RESPONSES).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_RESPONSES).forward(req, resp);
     }
 
     private void forwardToConfirmJSP(
@@ -437,7 +442,7 @@ public class SetupResponsesServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_CONFIRM_RESPONSES).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIRM_RESPONSES).forward(req, resp);
     }
 
     private static ErrorInformation convertChaiValidationException(
@@ -446,26 +451,26 @@ public class SetupResponsesServlet extends TopServlet {
     {
         switch (e.getValidationError()) {
             case TOO_FEW_CHALLENGES:
-                return new ErrorInformation(Message.ERROR_MISSING_REQUIRED_RESPONSE, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, e.getValidationField());
 
             case TOO_FEW_RANDOM_RESPONSES:
-                return new ErrorInformation(Message.ERROR_MISSING_RANDOM_RESPONSE, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, e.getValidationField());
 
             case MISSING_REQUIRED_CHALLENGE_TEXT:
-                return new ErrorInformation(Message.ERROR_MISSING_CHALLENGE_TEXT, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, e.getValidationField());
 
             case RESPONSE_TOO_LONG:
-                return new ErrorInformation(Message.ERROR_RESPONSE_TOO_LONG, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_LONG, null, e.getValidationField());
 
             case RESPONSE_TOO_SHORT:
             case MISSING_REQUIRED_RESPONSE_TEXT:
-                return new ErrorInformation(Message.ERROR_RESPONSE_TOO_SHORT, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_SHORT, null, e.getValidationField());
 
             case DUPLICATE_RESPONSES:
-                return new ErrorInformation(Message.ERROR_RESPONSE_DUPLICATE, null, e.getValidationField());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, e.getValidationField());
 
             default:
-                return new ErrorInformation(Message.ERROR_UNKNOWN);
+                return new ErrorInformation(PwmError.ERROR_UNKNOWN);
         }
     }
 
@@ -482,6 +487,10 @@ public class SetupResponsesServlet extends TopServlet {
                     if (!challenge.isRequired() && !challenge.isAdminDefined()) {
                         useSimple = false;
                     }
+                }
+
+                if (challengeSet.getRandomChallenges().size() == challengeSet.getMinRandomRequired()) {
+                    useSimple = false;
                 }
             }
         }

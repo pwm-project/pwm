@@ -29,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="document.forms.verifyCaptcha.recaptcha_response_field.focus();"  onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();document.forms.verifyCaptcha.recaptcha_response_field.focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Captcha"/></jsp:include>
     <div id="centerbody">
@@ -43,11 +43,11 @@
         <% } %>
         <br/>
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button');"  autocomplete="off">
+              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button');">
             <%-- begin reCaptcha section (http://recaptcha.net/apidocs/captcha/client.html) --%>
-            <% String reCaptchaPublicKey = password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
-            <% String userLocale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale().getLanguage(); %>
-            <% String reCaptchaURL = request.isSecure() ? "https://api-secure.recaptcha.net" : "http://api.recaptcha.net"; %>
+            <% final String reCaptchaPublicKey = password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
+            <% final String userLocale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale().getLanguage(); %>
+            <% final String reCaptchaURL = request.isSecure() ? "https://api-secure.recaptcha.net" : "http://api.recaptcha.net"; %>
             <script type="text/javascript">
                 var RecaptchaOptions = {
                     theme : 'clean',
@@ -70,6 +70,7 @@
                 <input tabindex="4" type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "
                        />
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

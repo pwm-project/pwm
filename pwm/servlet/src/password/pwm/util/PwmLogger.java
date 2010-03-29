@@ -37,6 +37,7 @@ public class PwmLogger {
     private static PwmDBLogger pwmDBLogger;
     private final String name;
     private final org.apache.log4j.Logger log4jLogger;
+    private static PwmLogLevel minimumDbLogLevel;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -50,8 +51,14 @@ public class PwmLogger {
         return new PwmLogger(name);
     }
 
-    public static PwmDBLogger initContextManager(final PwmDB pwmDB, final int maxEvents, final int maxAge) {
+    public static PwmDBLogger initContextManager(
+            final PwmDB pwmDB,
+            final int maxEvents,
+            final int maxAge,
+            final PwmLogLevel minimumDbLogLevel
+    ) {
         PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge);
+        PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
         return PwmLogger.pwmDBLogger;
     }
 
@@ -85,9 +92,12 @@ public class PwmLogger {
         output.append(message);
 
         final StringBuilder srcStr = new StringBuilder();
-        srcStr.append(" [");
-        srcStr.append(makeSrcString(pwmSession));
-        srcStr.append("]");
+        final String srcAddrString = makeSrcString(pwmSession);
+        if (srcAddrString != null && srcAddrString.length() > 0) {
+            srcStr.append(" [");
+            srcStr.append(makeSrcString(pwmSession));
+            srcStr.append("]");
+        }
 
         final int firstCR = output.indexOf("\n");
         if (firstCR == -1) {
@@ -176,16 +186,18 @@ public class PwmLogger {
         }
 
         if (pwmDBLogger != null) {
-            final PwmLogEvent logEvent = new PwmLogEvent(
-                    new Date(),
-                    this.getName(),
-                    message.toString(),
-                    makeSrcString(pwmSession),
-                    makeActorString(pwmSession),
-                    e,
-                    level
-            );
-            pwmDBLogger.writeEvent(logEvent);
+            if (minimumDbLogLevel == null || level.compareTo(minimumDbLogLevel) >= 0) {
+                final PwmLogEvent logEvent = new PwmLogEvent(
+                        new Date(),
+                        this.getName(),
+                        message.toString(),
+                        makeSrcString(pwmSession),
+                        makeActorString(pwmSession),
+                        e,
+                        level
+                );
+                pwmDBLogger.writeEvent(logEvent);
+            }
         }
     }
 

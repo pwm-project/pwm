@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.Constants" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.Arrays" %>
@@ -30,7 +30,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final Map<String,Map<String,String>> configMap = (Map<String,Map<String,String>>)request.getAttribute(password.pwm.Constants.REQUEST_CONFIG_MAP); %>
+<% final Map<String,Map<String,String>> configMap = (Map<String,Map<String,String>>)request.getAttribute(PwmConstants.REQUEST_CONFIG_MAP); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body>
@@ -44,123 +44,122 @@
             or create a new one from scratch.  Once you have completed the configuration, Generate a configuration file
             and save it in PWM's <i>WEB-INF</i> subdirectory.
             <br class="clear"/>
-        </div>
-        <br class="clear"/>
-        <table style="border: 0;">
-            <tr style="border: 0">
-                <td style="border: 0">
-                    <ol>
-                        <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
-                        <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
-                        <% } %>
-                    </ol>
-                </td>
-                <td style="border: 0">
-                    <table style="border: 0">
-                        <tr style="border: 0">
-                            <td style="border: 0; text-align: center;">
-                                <input tabindex="3" type="file" class="btn"
-                                       name="fileInput"
-                                       id="fileInput"/>
-                            </td>
-                        </tr>
-                        <tr style="border: 0">
-                            <td style="border: 0; text-align: center;">
-                                <input tabindex="3" type="submit" class="btn"
-                                       name="generate"
-                                       value="   Input Configuration File  "
-                                       id="uploadFile"/>
-                            </td>
-                        </tr>
-                        <tr style="border: 0">
-                            <td style="border: 0; text-align: center;">
-                                &nbsp;
-                                <br/>
-                                &nbsp;
-                            </td>
-                        </tr>
-                        <tr style="border: 0">
-                            <td style="border: 0; text-align: center;">
-                                <input tabindex="3" type="submit" class="btn"
-                                       name="generate"
-                                       value="   Generate Configuration File  "
-                                       id="generateBtn"/>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-        <br class="clear"/>
-        <br class="clear"/>
-        <%
-            for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
-                final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
-        %>
-        <table>
-            <tr>
-                <td class="title" colspan="10">
-                    <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %></a>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="10">
-                    <%= loopCategory.getDescription(request.getLocale()) %>
-                </td>
-            </tr>
-            <%  for (final PwmSetting loopSetting : loopSettings) { %>
-            <tr>
-                <td class="key" style="width:100px; text-align:center;">
-                    <%= loopSetting.getLabel(request.getLocale()) %>
-                </td>
-                <td>
-                    <p><%= loopSetting.getDescription(request.getLocale()) %></p>
-                    <% if (loopSetting.isLocalizable()) { %>
-                    <b>Default</b> <input name="setting_<%=loopSetting.getKey()%>" size="60"
-                                   value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                    <%
-                        Map<String,String> localizedValues = configMap.get(loopSetting.getKey());
-                        localizedValues.remove("");
-                        for (String localeKey : localizedValues.keySet()) {
-                    %>
-                    <%= localeKey %> <input name="setting_<%=loopSetting.getKey()%>_<%=localeKey%>" size="60"
-                                            value="<%= configMap.get(localizedValues.get(localeKey)) %>"/>
+            <table style="border: 0;">
+                <tr style="border: 0">
+                    <td style="border: 0">
+                        <ol>
+                            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
+                            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
+                            <% } %>
+                        </ol>
+                    </td>
+                    <td style="border: 0">
+                        <table style="border: 0">
+                            <tr style="border: 0">
+                                <td style="border: 0; text-align: center;">
+                                    <input tabindex="3" type="file" class="btn"
+                                           name="fileInput"
+                                           id="fileInput"/>
+                                </td>
+                            </tr>
+                            <tr style="border: 0">
+                                <td style="border: 0; text-align: center;">
+                                    <input tabindex="3" type="submit" class="btn"
+                                           name="generate"
+                                           value="   Input Configuration File  "
+                                           id="uploadFile"/>
+                                </td>
+                            </tr>
+                            <tr style="border: 0">
+                                <td style="border: 0; text-align: center;">
+                                    &nbsp;
+                                    <br/>
+                                    &nbsp;
+                                </td>
+                            </tr>
+                            <tr style="border: 0">
+                                <td style="border: 0; text-align: center;">
+                                    <input tabindex="3" type="submit" class="btn"
+                                           name="generate"
+                                           value="   Generate Configuration File  "
+                                           id="generateBtn"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br class="clear"/>
+            <br class="clear"/>
+            <%
+                for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
+                    final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
+            %>
+            <table>
+                <tr>
+                    <td class="title" colspan="10">
+                        <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10">
+                        <%= loopCategory.getDescription(request.getLocale()) %>
+                    </td>
+                </tr>
+                <%  for (final PwmSetting loopSetting : loopSettings) { %>
+                <tr>
+                    <td class="key" style="width:100px; text-align:center;">
+                        <%= loopSetting.getLabel(request.getLocale()) %>
+                    </td>
+                    <td>
+                        <p><%= loopSetting.getDescription(request.getLocale()) %></p>
+                        <% if (loopSetting.isLocalizable()) { %>
+                        <b>Default</b> <input name="setting_<%=loopSetting.getKey()%>" size="60"
+                                              value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
+                        <%
+                            Map<String,String> localizedValues = configMap.get(loopSetting.getKey());
+                            localizedValues.remove("");
+                            for (String localeKey : localizedValues.keySet()) {
+                        %>
+                        <%= localeKey %> <input name="setting_<%=loopSetting.getKey()%>_<%=localeKey%>" size="60"
+                                                value="<%= configMap.get(localizedValues.get(localeKey)) %>"/>
 
-                    <% } %>
-                    <select name="addLocale_<%=loopSetting.getKey()%>">
-                        <% for (Locale loopLocale : Locale.getAvailableLocales()) { %>
-                        <option value="<%=loopLocale.toString() %>"><%=loopLocale.getDisplayName()%> </option>
                         <% } %>
-                    </select>
-                    <input tabindex="3" type="submit" class="btn"
-                           name="generate"
-                           value=" Add "
-                           id="add_locale"/>
+                        <select name="addLocale_<%=loopSetting.getKey()%>">
+                            <% for (Locale loopLocale : Locale.getAvailableLocales()) { %>
+                            <option value="<%=loopLocale.toString() %>"><%=loopLocale.getDisplayName()%> </option>
+                            <% } %>
+                        </select>
+                        <input tabindex="3" type="submit" class="btn"
+                               name="generate"
+                               value=" Add "
+                               id="add_locale"/>
 
-                    <% } else { %>
-                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
-                    <select name="setting_<%=loopSetting.getKey()%>">
-                        <option value="true" <%="true".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>True</option>
-                        <option value="false" <%="false".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>False</option>
-                    </select>
-                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
-                    <input name="setting_<%=loopSetting.getKey()%>" size="60" type="password"
-                           value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
-                    <input name="setting_<%=loopSetting.getKey()%>" size="6" 
-                           value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                    <% } else { %>
-                    <input name="setting_<%=loopSetting.getKey()%>" size="60"
-                           value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                    <% } %>
-                    <% } %>
-                </td>
-            </tr>
+                        <% } else { %>
+                        <% if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
+                        <select name="setting_<%=loopSetting.getKey()%>">
+                            <option value="true" <%="true".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>True</option>
+                            <option value="false" <%="false".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>False</option>
+                        </select>
+                        <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
+                        <input name="setting_<%=loopSetting.getKey()%>" size="60" type="password"
+                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
+                        <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
+                        <input name="setting_<%=loopSetting.getKey()%>" size="6"
+                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
+                        <% } else { %>
+                        <input name="setting_<%=loopSetting.getKey()%>" size="60"
+                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
+                        <% } %>
+                        <% } %>
+                    </td>
+                </tr>
+                <% } %>
+            </table>
+            <br class="clear"/>
             <% } %>
-        </table>
-        <br class="clear"/>
-        <% } %>
-        <br class="clear"/>
+            <br class="clear"/>
+        </div>
     </form>
 </div>
 <br class="clear"/>

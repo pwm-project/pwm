@@ -22,8 +22,6 @@
 
 package password.pwm.error;
 
-import password.pwm.config.Message;
-
 
 /**
  * A general exception thrown by PWM.
@@ -35,7 +33,7 @@ public class PwmException extends Exception {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PwmException createPwmException(final Message Messages) {
+    public static PwmException createPwmException(final PwmError Messages) {
         return createPwmException(new ErrorInformation(Messages));
     }
 

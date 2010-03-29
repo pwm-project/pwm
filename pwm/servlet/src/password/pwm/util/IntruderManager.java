@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
@@ -55,6 +55,8 @@ import java.util.TimerTask;
 public class IntruderManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
+    public static final int INTRUDER_RETENTION_TIME = 60 * 60 * 1000; //1 hr
+
     private static final PwmLogger LOGGER = PwmLogger.getLogger(IntruderManager.class);
     private final Map<String, IntruderRecord> addressLockTable = new HashMap<String, IntruderRecord>();
     private final Map<String, IntruderRecord> userLockTable = new HashMap<String, IntruderRecord>();
@@ -65,7 +67,7 @@ public class IntruderManager implements Serializable {
 
     private static void cleanup(final Map<String, IntruderRecord> table)
     {
-        final int cleanTime = Constants.INTRUDER_RETENTION_TIME;
+        final int cleanTime = INTRUDER_RETENTION_TIME;
         final Map<String, IntruderRecord> copiedMap = new HashMap<String, IntruderRecord>(table);
         for (final String key : copiedMap.keySet()) {
             final IntruderRecord record = copiedMap.get(key);
@@ -154,7 +156,7 @@ public class IntruderManager implements Serializable {
 
         if (ssBean.getIncorrectLogins() > config.readSettingAsInt(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS)) {
             LOGGER.warn(pwmSession, "session intruder limit exceeded for " + addressString);
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_INTRUDER_SESSION);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_SESSION);
             ssBean.setSessionError(error);
             throw PwmException.createPwmException(error);
         }
@@ -163,7 +165,7 @@ public class IntruderManager implements Serializable {
         final IntruderRecord record = addressLockTable.get(addressString);
         if (record != null && record.isLocked()) {
             LOGGER.warn(pwmSession, "address intruder limit exceeded for " + addressString + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_INTRUDER_ADDRESS);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_ADDRESS);
             ssBean.setSessionError(error);
             throw PwmException.createPwmException(error);
         }
@@ -259,7 +261,7 @@ public class IntruderManager implements Serializable {
         final IntruderRecord record = userLockTable.get(username);
         if (record != null && record.isLocked()) {
             LOGGER.info(pwmSession, "user intruder limit exceeded for " + username + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_INTRUDER_USER);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_USER);
             ssBean.setSessionError(error);
             throw PwmException.createPwmException(error);
         }

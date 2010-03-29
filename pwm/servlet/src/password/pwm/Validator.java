@@ -27,10 +27,11 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.config.Message;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.config.ParameterConfig;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
@@ -53,25 +54,22 @@ public class Validator {
 
     public static final String PARAM_CONFIRM_SUFFIX = "_confirm";
 
+    public static final int DEFAULT_PARAM_READ_LENGTH = 255;
+
+
 // -------------------------- STATIC METHODS --------------------------
 
     public static int checkPasswordStrength(final PwmSession pwmSession, final String password)
     {
         final ContextManager theManager = pwmSession.getContextManager();
 
+        final int judgedValue = PasswordUtility.judgePassword(password);
+
         if (theManager.getWordlistManager().containsWord(pwmSession, password)) {
-            return 0;
+            return (int)(judgedValue * 0.50f);
         }
 
-        if (theManager.getSeedlistManager().containsWord(pwmSession, password)) {
-            return 0;
-        }
-
-        if (theManager.getSharedHistoryManager().containsWord(pwmSession, password)) {
-            return 0;
-        }
-
-        return PasswordUtility.judgePassword(password);
+        return judgedValue;
     }
 
     public static boolean readBooleanFromRequest(
@@ -148,7 +146,7 @@ public class Validator {
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
-            final ErrorInformation info = new ErrorInformation(Message.forResourceKey(e.getPasswordError().getErrorKey()));
+            final ErrorInformation info = new ErrorInformation(PwmError.forResourceKey(e.getPasswordError().getErrorKey()));
             LOGGER.trace(pwmSession, "ChaiPasswordPolicyException was thrown while validating password: " + e.toString());
             errorResults.add(info);
         }
@@ -179,7 +177,7 @@ public class Validator {
                 final String confirmValue = readStringFromRequest(req, paramConfig.getAttributeName() + PARAM_CONFIRM_SUFFIX, 512);
 
                 if (!confirmValue.equals(value)) {
-                    final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_BAD_CONFIRM, null, paramConfig.getLabel());
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, null, paramConfig.getLabel());
                     LOGGER.trace(pwmSession, "bad field confirmation for " + paramConfig.getLabel());
                     throw ValidationException.createValidationException(error);
                 }
@@ -191,51 +189,119 @@ public class Validator {
 
     public static String readStringFromRequest(
             final HttpServletRequest req,
+            final String value
+    )
+    {
+        final Set<String> results = readStringsFromRequest(req, value, DEFAULT_PARAM_READ_LENGTH);
+        if (results == null || results.isEmpty()) {
+            return "";
+        }
+
+        return results.iterator().next();
+    }
+
+    public static void checkFormID(final HttpServletRequest req) throws PwmException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final String formID = ssBean.getFormNonce();
+        if (formID != null) {
+            final String submittedFormID = req.getParameter("formID");
+            if (submittedFormID == null || submittedFormID.length() < 1) {
+                LOGGER.warn(pwmSession, "form submitted with missing formID value");
+                throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
+            }
+
+            if (!formID.equals(submittedFormID)) {
+                LOGGER.warn(pwmSession, "form submitted with incorrect formID value");
+                throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
+            }
+        }
+    }
+
+    public static String readStringFromRequest(
+            final HttpServletRequest req,
+            final String value,
+            final int maxLength,
+            final String defaultValue
+    )
+    {
+
+        final String result = readStringFromRequest(req, value, maxLength);
+        if (result == null || result.isEmpty()) {
+            return defaultValue;
+        }
+
+        return result;
+    }
+
+    public static String readStringFromRequest(
+            final HttpServletRequest req,
             final String value,
             final int maxLength
     )
     {
-        final ContextManager theManager = ContextManager.getContextManager(req);
-
-        if (req == null) {
+        final Set<String> results = readStringsFromRequest(req, value, maxLength);
+        if (results == null || results.isEmpty()) {
             return "";
+        }
+
+        return results.iterator().next();
+    }
+
+    public static Set<String> readStringsFromRequest(
+            final HttpServletRequest req,
+            final String value,
+            final int maxLength
+    )
+    {
+        if (req == null) {
+            return Collections.emptySet();
         }
 
         if (req.getParameter(value) == null) {
-            return "";
+            return Collections.emptySet();
         }
 
-        String theString = req.getParameter(value);
+        final ContextManager theManager = ContextManager.getContextManager(req);
 
-        if (req.getCharacterEncoding() == null) {
-            try {
-                final byte[] stringBytesISO = theString.getBytes("ISO-8859-1");
-                theString = new String(stringBytesISO, "UTF-8");
-            } catch(UnsupportedEncodingException e) {
-                LOGGER.error("error attempting to decode request: " + e.getMessage());
-            }
-        }
+        final String theStrings[] = req.getParameterValues(value);
+        final Set<String> resultSet = new HashSet<String>();
 
-        theString = theString.trim();
-
-        // strip off any length beyond the specified maxLength.
-        if (theString.length() > maxLength) {
-            theString = theString.substring(0, maxLength);
-        }
-
-        // strip off any disallowed chars.
-        final String disallowedInputs = theManager.getParameter(Constants.CONTEXT_PARAM.DISALLOWED_INPUTS);
-        if (disallowedInputs != null) {
-            for (final String testString : disallowedInputs.split(";;;")) {
-                if (theString.matches(testString)) {
-                    final String newString = theString.replaceAll(testString, "");
-                    LOGGER.warn("removing potentially malicious string values from input field: " + testString + " newValue: " + newString);
-                    theString = newString;
+        for (String theString : theStrings) {
+            if (req.getCharacterEncoding() == null) {
+                try {
+                    final byte[] stringBytesISO = theString.getBytes("ISO-8859-1");
+                    theString = new String(stringBytesISO, "UTF-8");
+                } catch(UnsupportedEncodingException e) {
+                    LOGGER.warn("suspicious input: error attempting to decode request: " + e.getMessage());
                 }
             }
+
+            theString = theString.trim();
+
+            // strip off any length beyond the specified maxLength.
+            if (theString.length() > maxLength) {
+                theString = theString.substring(0, maxLength);
+            }
+
+            // strip off any disallowed chars.
+            final String disallowedInputs = theManager.getParameter(PwmConstants.CONTEXT_PARAM.DISALLOWED_INPUTS);
+            if (disallowedInputs != null) {
+                for (final String testString : disallowedInputs.split(";;;")) {
+                    if (theString.matches(testString)) {
+                        final String newString = theString.replaceAll(testString, "");
+                        LOGGER.warn("removing potentially malicious string values from input field: " + testString + " newValue: " + newString);
+                        theString = newString;
+                    }
+                }
+            }
+
+            if (theString.length() > 0) {
+                resultSet.add(theString);
+            }
         }
 
-        return theString;
+        return resultSet;
     }
 
     /**
@@ -358,6 +424,40 @@ public class Validator {
             return numberOfRepeats;
         }
 
+        public int getSequentialNumericChars()
+        {
+            int numberOfRepeats = 0;
+
+            for (int i = 0; i < passwordLength - 1; i++) {
+                int loopRepeats = 0;
+                for (int j = i; j < passwordLength; j++)
+                    if (Character.isDigit(password.charAt(j)))
+                        loopRepeats++;
+                    else
+                        break;
+                if (loopRepeats > numberOfRepeats)
+                    numberOfRepeats = loopRepeats;
+            }
+            return numberOfRepeats;
+        }
+
+        public int getSequentialAlphaChars()
+        {
+            int numberOfRepeats = 0;
+
+            for (int i = 0; i < passwordLength - 1; i++) {
+                int loopRepeats = 0;
+                for (int j = i; j < passwordLength; j++)
+                    if (Character.isLetter(password.charAt(j)))
+                        loopRepeats++;
+                    else
+                        break;
+                if (loopRepeats > numberOfRepeats)
+                    numberOfRepeats = loopRepeats;
+            }
+            return numberOfRepeats;
+        }
+
         public int getUniqueChars()
         {
             final StringBuilder sb = new StringBuilder();
@@ -414,7 +514,7 @@ public class Validator {
     {
         // null check
         if (password == null) {
-            return Collections.singletonList(new ErrorInformation(Message.ERROR_UNKNOWN,"empty (null) new password"));
+            return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN,"empty (null) new password"));
         }
 
         final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
@@ -426,7 +526,7 @@ public class Validator {
             final String oldPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
             if (oldPassword != null && oldPassword.length() > 0) {
                 if (oldPassword.equalsIgnoreCase(password)) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_SAMEASOLD));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASOLD));
                 }
             }
 
@@ -446,7 +546,7 @@ public class Validator {
 
                     //count the number of (unique) set elements.
                     if (dupeChars.size() >= maxOldAllowed) {
-                        errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_OLD_CHARS));
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_OLD_CHARS));
                     }
                 }
             }
@@ -456,14 +556,14 @@ public class Validator {
 
         //Check minimum length
         if (passwordLength < ruleHelper.readIntValue(PwmPasswordRule.MinimumLength)) {
-            errorList.add(new ErrorInformation(Message.PASSWORD_TOO_SHORT));
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_SHORT));
         }
 
         //Check maximum length
         {
             final int passwordMaximumLength = ruleHelper.readIntValue(PwmPasswordRule.MaximumLength);
             if (passwordMaximumLength > 0 && passwordLength > passwordMaximumLength) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_LONG));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_LONG));
             }
         }
 
@@ -477,24 +577,24 @@ public class Validator {
             final int numberOfNumericChars = charCounter.getNumericChars();
             if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
                 if (numberOfNumericChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric)) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_NUM));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
                 }
 
                 final int maxNumeric = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
                 if (maxNumeric > 0 && numberOfNumericChars > maxNumeric) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_NUMERIC));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
                 }
 
                 if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharNumeric) && charCounter.isFirstNumeric()) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_FIRST_IS_NUMERIC));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_NUMERIC));
                 }
 
                 if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharNumeric) && charCounter.isLastNumeric()) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_LAST_IS_NUMERIC));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_NUMERIC));
                 }
             } else {
                 if (numberOfNumericChars > 0) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_NUMERIC));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
                 }
             }
         }
@@ -503,12 +603,12 @@ public class Validator {
         {
             final int numberOfUpperChars = charCounter.getUpperChars();
             if (numberOfUpperChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase)) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_UPPER));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
             }
 
             final int maxUpper = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
             if (maxUpper > 0 && numberOfUpperChars > maxUpper) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_UPPER));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
             }
         }
 
@@ -516,12 +616,12 @@ public class Validator {
         {
             final int numberOfAlphaChars = charCounter.getAlphaChars();
             if (numberOfAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha)) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_ALPHA));
             }
 
             final int maxAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
             if (maxAlpha > 0 && numberOfAlphaChars > maxAlpha) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_ALPHA));
             }
         }
 
@@ -529,12 +629,12 @@ public class Validator {
         {
             final int numberOfLowerChars = charCounter.getLowerChars();
             if (numberOfLowerChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase)) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_LOWER));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
             }
 
             final int maxLower = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
             if (maxLower > 0 && numberOfLowerChars > maxLower) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_UPPER));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
             }
         }
 
@@ -543,24 +643,24 @@ public class Validator {
             final int numberOfSpecialChars = charCounter.getSpecialChars();
             if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
                 if (numberOfSpecialChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial)) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_SPECIAL));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
                 }
 
                 final int maxSpecial = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
                 if (maxSpecial > 0 && numberOfSpecialChars > maxSpecial) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_SPECIAL));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
                 }
 
                 if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharSpecial) && charCounter.isFirstSpecial()) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_FIRST_IS_SPECIAL));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_SPECIAL));
                 }
 
                 if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharSpecial) && charCounter.isLastSpecial()) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_LAST_IS_SPECIAL));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_SPECIAL));
                 }
             } else {
                 if (numberOfSpecialChars > 0) {
-                    errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_SPECIAL));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
                 }
             }
         }
@@ -569,13 +669,13 @@ public class Validator {
         {
             final int maxSequentialRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
             if (maxSequentialRepeat > 0 && charCounter.getSequentialRepeatedChars() > maxSequentialRepeat) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_REPEAT));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
             }
 
             //Check maximum character repeats (overall)
             final int maxRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumRepeat);
             if (maxRepeat > 0 && charCounter.getRepeatedChars() > maxRepeat) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_TOO_MANY_REPEAT));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
             }
         }
 
@@ -583,7 +683,7 @@ public class Validator {
         {
             final int minUnique = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
             if (minUnique > 0 && charCounter.getUniqueChars() < minUnique) {
-                errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_UNIQUE));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UNIQUE));
             }
         }
 
@@ -596,7 +696,7 @@ public class Validator {
                 if (loopValue != null && loopValue.length() > 0) {
                     final String loweredLoop = loopValue.toLowerCase();
                     if (lcasePwd.contains(loweredLoop)) {
-                        errorList.add(new ErrorInformation(Message.PASSWORD_USING_DISALLOWED_VALUE));
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
                     }
                 }
             }
@@ -613,13 +713,13 @@ public class Validator {
                 // if the password is greater then 1 char and the value is contained within it then disallow
                 if (userValue.length() > 1 && lcasePwd.indexOf(userValue) != -1) {
                     LOGGER.trace("password rejected, same as user attr " + attr);
-                    errorList.add(new ErrorInformation(Message.PASSWORD_SAMEASATTR));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
                 }
 
                 // if the password is 1 char and the value is the same then disallow
                 if (lcasePwd.equalsIgnoreCase(userValue)) {
                     LOGGER.trace("password rejected, same as user attr " + attr);
-                    errorList.add(new ErrorInformation(Message.PASSWORD_SAMEASATTR));
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
                 }
             }
         }
@@ -632,7 +732,7 @@ public class Validator {
 
             if (found) {
                 LOGGER.trace(pwmSession, "password rejected, in wordlist file");
-                errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
             }
         }
 
@@ -641,7 +741,7 @@ public class Validator {
 
             if (found) {
                 LOGGER.trace(pwmSession, "password rejected, in global history");
-                errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
             }
         }
 
@@ -703,14 +803,14 @@ public class Validator {
         List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
         if (password.length() < 6) {
             LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password too short (6 char minimum)");
-            errorList.add(new ErrorInformation(Message.PASSWORD_TOO_SHORT));
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_SHORT));
         }
 
         final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
         if (userAttrs != null) {
-            if (checkContains(password, userAttrs.getProperty("cn"),2)) { errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST)); }
-            if (checkContains(password, userAttrs.getProperty("displayName"),2)) { errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST)); }
-            if (checkContains(password, userAttrs.getProperty("fullName"),2)) { errorList.add(new ErrorInformation(Message.PASSWORD_INWORDLIST)); }
+            if (checkContains(password, userAttrs.getProperty("cn"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
+            if (checkContains(password, userAttrs.getProperty("displayName"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
+            if (checkContains(password, userAttrs.getProperty("fullName"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
         }
 
         int complexityPoints = 0;
@@ -721,10 +821,10 @@ public class Validator {
 
         if (complexityPoints < 3) {
             LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password not complex enough");
-            if (charCounter.getUpperChars() < 1) { errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_UPPER)); }
-            if (charCounter.getLowerChars() < 1) { errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_LOWER)); }
-            if (charCounter.getNumericChars() < 1) { errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_NUM)); }
-            if (charCounter.getSpecialChars() < 1) { errorList.add(new ErrorInformation(Message.PASSWORD_NOT_ENOUGH_SPECIAL)); }
+            if (charCounter.getUpperChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER)); }
+            if (charCounter.getLowerChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER)); }
+            if (charCounter.getNumericChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM)); }
+            if (charCounter.getSpecialChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL)); }
         }
 
         return errorList;

@@ -34,7 +34,7 @@ import password.pwm.util.PwmLogger;
 import java.util.Map;
 import java.util.Properties;
 
-/**
+/**                    
  * @author Jason D. Rivard
  */
 public enum Permission {
@@ -75,7 +75,7 @@ public enum Permission {
         if (queryMatch == null || queryMatch.length() < 1) {
             LOGGER.trace(pwmSession, "no " + permissionName + " defined, skipping check for " + permissionName);
         } else if ("(objectClass=*)".equals(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
-            LOGGER.trace(pwmSession, "permission check is guarenteed to be true, skipping ldap query");
+            LOGGER.trace(pwmSession, "permission check is guaranteed to be true, skipping ldap query");
             result = true;
         } else {
             try {

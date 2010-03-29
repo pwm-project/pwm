@@ -23,14 +23,13 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.stats.Statistic;
-import password.pwm.util.TimeDuration;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +39,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
@@ -74,11 +74,11 @@ public class SessionFilter implements Filter {
 
             for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
                 final String paramName = (String) paramNameEnum.nextElement();
-                final String[] paramValues = req.getParameterValues(paramName);
+                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
 
                 for (final String paramValue : paramValues) {
                     sb.append("  ").append(paramName).append("=");
-                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(Constants.PARAM_RESPONSE_PREFIX)) {
+                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
                         sb.append("***removed***");
                     } else {
                         sb.append('\'');
@@ -94,8 +94,6 @@ public class SessionFilter implements Filter {
         }
         LOGGER.trace(pwmSession, sb.toString());
     }
-
-
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession)
     {
@@ -123,7 +121,7 @@ public class SessionFilter implements Filter {
 
         if (useXForwardedFor) {
             try {
-                userIP = req.getHeader(Constants.HTTP_HEADER_X_FORWARDED_FOR);
+                userIP = req.getHeader(PwmConstants.HTTP_HEADER_X_FORWARDED_FOR);
             } catch (Exception e) {
                 //ip address not in header (no X-Forwarded-For)
             }
@@ -164,13 +162,10 @@ public class SessionFilter implements Filter {
 
         if (theManager == null || theManager.getConfig() == null) {
             LOGGER.warn("unable to find a valid configuration");
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_INVALID_CONFIG));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
             Helper.forwardToErrorPage(req, resp, servletContext, false);
             return;
         }
-
-        // chaeck page unloading
-        checkPageUnloading(pwmSession);
 
         // mark the user's IP address in the session bean
         ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
@@ -208,7 +203,7 @@ public class SessionFilter implements Filter {
             return;
         }
 
-        final boolean aggressiveUrlParsing = "true".equalsIgnoreCase(pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.AGGRESIVE_URL_PARSING));
+        final boolean aggressiveUrlParsing = "true".equalsIgnoreCase(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.AGGRESIVE_URL_PARSING));
 
         final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", aggressiveUrlParsing, pwmSession);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
@@ -239,11 +234,11 @@ public class SessionFilter implements Filter {
 
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            resp.setHeader("X-Pwm-Version", Constants.SERVLET_VERSION);
+            resp.setHeader("X-Pwm-Version", PwmConstants.SERVLET_VERSION);
             resp.setHeader("X-Pwm-Instance", String.valueOf(theManager.getInstanceID()));
 
             if (PwmRandom.getInstance().nextInt(5) == 0) {
-                resp.setHeader("X-Pwm-Amb", Constants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(Constants.X_AMB_HEADER.length)]);
+                resp.setHeader("X-Pwm-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
             }
         }
 
@@ -299,7 +294,7 @@ public class SessionFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) request;
         final ContextManager theManager = ContextManager.getContextManager(req);
         if (theManager != null) {
-            final String setting = theManager.getParameter(Constants.CONTEXT_PARAM.ALLOW_URL_SESSIONS);
+            final String setting = theManager.getParameter(PwmConstants.CONTEXT_PARAM.ALLOW_URL_SESSIONS);
             if (setting != null && "true".equalsIgnoreCase(setting)) {
                 return true;
             }
@@ -325,17 +320,15 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String keyFromRequest = Validator.readStringFromRequest(req, Constants.PARAM_VERIFICATIN_KEY,255);
+        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATIN_KEY,255);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
-            LOGGER.trace(pwmSession,"session has not been validated, redirecting to self with verification key");
 
-            // create new key
-            final String newValidationKey = PwmRandom.getInstance().nextLongHex().toLowerCase() + System.currentTimeMillis();
-            ssBean.setSessionVerificationKey(newValidationKey);
+            final String returnURL = figureValidationURL(req, ssBean.getSessionVerificationKey());
 
-            final String returnURL = figureValidationURL(req, newValidationKey);
+            LOGGER.trace(pwmSession,"session has not been validated, redirecting with verification key to " + returnURL);
+
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL,req,resp));
             return;
         }
@@ -353,7 +346,7 @@ public class SessionFilter implements Filter {
 
         // user's session is messed up.  send to error page.
         LOGGER.error(pwmSession, "incorrect verification key sent during session verification check");
-        ssBean.setSessionError(new ErrorInformation(Message.ERROR_BAD_SESSION));
+        ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION));
         Helper.forwardToErrorPage(req,resp,servletContext);
     }
 
@@ -367,9 +360,9 @@ public class SessionFilter implements Filter {
             sb.append("?");
             for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
                 final String paramName = (String) paramNameEnum.nextElement();
-                final String[] paramValues = req.getParameterValues(paramName);
+                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
 
-                if (validationKey != null || !Constants.PARAM_VERIFICATIN_KEY.equals(paramName)) {
+                if (validationKey != null || !PwmConstants.PARAM_VERIFICATIN_KEY.equals(paramName)) {
                     for (final String paramValue : paramValues) {
                         sb.append(paramName);
                         sb.append("=");
@@ -389,7 +382,7 @@ public class SessionFilter implements Filter {
             } else {
                 sb.append("&");
             }
-            sb.append(Constants.PARAM_VERIFICATIN_KEY).append("=").append(validationKey);
+            sb.append(PwmConstants.PARAM_VERIFICATIN_KEY).append("=").append(validationKey);
         }
 
         return sb.toString();
@@ -437,21 +430,5 @@ public class SessionFilter implements Filter {
         }
 
         return paramValue;
-    }
-
-    private void checkPageUnloading(final PwmSession pwmSession) {
-        final long lastUnloadTime = pwmSession.getSessionStateBean().getLastPageUnloadTime();
-        if (lastUnloadTime != 0) {
-            final TimeDuration duration = TimeDuration.fromCurrent(lastUnloadTime);
-            if (duration.isLongerThan(10000)) {
-                if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                    LOGGER.info(pwmSession, "unauthenticating session due to user leaving site");
-                    pwmSession.unauthenticateUser();
-                }
-            } else {
-                LOGGER.trace(pwmSession, "clearing page unload watcher");
-            }
-            pwmSession.getSessionStateBean().setLastPageUnloadTime(0);
-        }
     }
 }

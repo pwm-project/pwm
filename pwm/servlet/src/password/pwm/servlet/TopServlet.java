@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Helper;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -76,19 +76,19 @@ public abstract class TopServlet extends HttpServlet {
         } catch (ChaiUnavailableException e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmSession.getContextManager().setLastLdapFailure();
-            ssBean.setSessionError(Message.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmException e) {
-            if (Message.ERROR_UNKNOWN.equals(e.getError().getError())) {
+            if (PwmError.ERROR_UNKNOWN.equals(e.getError().getError())) {
                 LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(),e);
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
             } else {
                 LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
             }
             if (e.getMessage() == null) {
-                ssBean.setSessionError(Message.ERROR_UNKNOWN.toInfo());
+                ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
             } else {
                 ssBean.setSessionError(e.getError());
             }
@@ -96,7 +96,7 @@ public abstract class TopServlet extends HttpServlet {
         } catch (Exception e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
             LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
-            ssBean.setSessionError(Message.ERROR_UNKNOWN.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             //throw new ServletException(e);
         }

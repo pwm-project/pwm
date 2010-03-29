@@ -36,6 +36,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.process.emailer.EmailEvent;
 import password.pwm.util.PwmLogger;
@@ -70,11 +71,12 @@ public class Helper {
     public static ChaiProvider createChaiProvider(
             final ContextManager theManager,
             final String userDN,
-            final String userPassword
+            final String userPassword,
+            final int idleTimeoutMs
     )
             throws ChaiUnavailableException
     {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(theManager, userDN, userPassword);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(theManager, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -82,7 +84,8 @@ public class Helper {
     public static ChaiConfiguration createChaiConfiguration(
             final ContextManager theManager,
             final String userDN,
-            final String userPassword
+            final String userPassword,
+            final int idleTimeoutMs
     )
             throws ChaiUnavailableException
     {
@@ -113,11 +116,10 @@ public class Helper {
             chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(caseInsensitive));
         }
 
-        // if possible, set the ldap timeout to five minutes past the point of the idle session timeout.
-        if (theManager.getSessionTimeout() > 0) {
-            final String timeoutValue = Long.toString((theManager.getSessionTimeout() * 1000) + (5 * 60 * 1000));
+        // if possible, set the ldap timeout to one minute past the point of the idle session timeout.
+        if (idleTimeoutMs > 0) {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE,"true");
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT,timeoutValue);
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, Long.toString(idleTimeoutMs));
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY,Long.toString(60 * 1000));
         } else {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE,"false");
@@ -214,10 +216,10 @@ public class Helper {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (ssBean.getSessionError() == null) {
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_UNKNOWN));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN));
         }
 
-        final String url = SessionFilter.rewriteURL('/' + Constants.URL_JSP_ERROR, req, resp);
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
         theContext.getRequestDispatcher(url).forward(req, resp);
 
         if (forceLogout) {
@@ -233,7 +235,7 @@ public class Helper {
     {
         final ContextManager theManager = ContextManager.getContextManager(req.getSession().getServletContext());
         final Configuration config = theManager.getConfig();
-        final String loginServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + Constants.URL_SERVLET_LOGIN;
+        final String loginServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
     }
 
@@ -249,7 +251,7 @@ public class Helper {
 
         String destURL = ssBean.getOriginalRequestURL();
 
-        if (destURL == null || destURL.indexOf(Constants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
+        if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
             destURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE);
         }
 
@@ -266,10 +268,10 @@ public class Helper {
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
 
         if (ssBean.getSessionSuccess() == null) {
-            ssBean.setSessionSuccess(new ErrorInformation(Message.SUCCESS_UNKNOWN));
+            ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN);
         }
 
-        final String url = SessionFilter.rewriteURL('/' + Constants.URL_JSP_SUCCESS, req, resp);
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
         theContext.getRequestDispatcher(url).forward(req, resp);
     }
 
@@ -284,7 +286,7 @@ public class Helper {
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
         ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
 
-        final String url = SessionFilter.rewriteURL('/' + Constants.URL_JSP_WAIT, req, resp);
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);
         theContext.getRequestDispatcher(url).forward(req, resp);
     }
 
@@ -410,7 +412,7 @@ public class Helper {
         // process any configured external change password methods configured.
         for (final String className : externalMethods) {
             try {
-                // load up the class and get an instnance.
+                // load up the class and get an instance.
                 final Class<?> theClass = Class.forName(className);
                 final ExternalPasswordMethod externalClass = (ExternalPasswordMethod) theClass.newInstance();
 

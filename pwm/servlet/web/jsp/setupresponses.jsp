@@ -38,13 +38,13 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses" onkeypress="checkForCapsLock(event);"
-              enctype="application/x-www-form-urlencoded" onreset="handleFormClear();" autocomplete="off">
+              enctype="application/x-www-form-urlencoded" onreset="handleFormClear();">
             <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
                 // the error block if javascript is available (for ajax use).
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
@@ -67,16 +67,16 @@
                     if (challenge.isRequired()) {
             %>
             <% if (challenge.isAdminDefined()) { %>
-            <h2><%= challenge.getChallengeText() %></h2>
+            <h2><label for="PwmResponse_R_<%=indexKey%>"><%= challenge.getChallengeText() %><></label></h2>
             <% } else { %>
-            <pwm:Display key="Field_User_Supplied_Question"/>:&nbsp;
+            <label for="PwmResponse_R_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
                    tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
-                <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
+                <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"") %>"
                        tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
             </p>
@@ -85,10 +85,10 @@
             <% } %>
             <% // display fields for RANDOM challenges using SIMPLE mode
                 if (responseBean.isSimpleMode()) {
-                for (int i = 0; i < challengeSet.getMinRandomRequired(); i++) {
+                    for (int i = 0; i < challengeSet.getMinRandomRequired(); i++) {
             %>
             <h2>
-                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" tabindex="<%=++tabIndexer%>">
+                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" tabindex="<%=++tabIndexer%>" id="PwmResponse_Q_Random_<%=i%>">
                     <option value=""><pwm:Display key="Field_Option_Select"/></option>
                     <option value="">───────────────</option>
                     <%
@@ -104,7 +104,7 @@
             </h2>
             <p>
                 &nbsp;»&nbsp;
-                <input type="text" name="PwmResponse_R_Random_<%=i%>" class="inputfield" maxlength="255"
+                <input type="text" name="PwmResponse_R_Random_<%=i%>" class="inputfield" maxlength="255" type="text" id="PwmResponse_R_Random_<%=i%>"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_Random_" + i,"") %>"
                        tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
             </p>
@@ -119,14 +119,14 @@
                     final Challenge challenge = responseBean.getIndexedChallenges().get(indexKey);
                     if (!challenge.isRequired()) {
             %>
-                <% if (challenge.isAdminDefined()) { %>
-                <h2><%= challenge.getChallengeText() %></h2>
-                <% } else { %>
-                <pwm:Display key="Field_User_Supplied_Question"/>&nbsp;
-                <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
-                       value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
-                       tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
-                <% } %>
+            <% if (challenge.isAdminDefined()) { %>
+            <h2><%= challenge.getChallengeText() %></h2>
+            <% } else { %>
+            <pwm:Display key="Field_User_Supplied_Question"/>&nbsp;
+            <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
+                   value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
+                   tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+            <% } %>
             <p>
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
@@ -150,7 +150,7 @@
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
-
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

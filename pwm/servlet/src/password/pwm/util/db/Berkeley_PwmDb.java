@@ -36,18 +36,18 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.db.PwmDB.TransactionItem;
+
 /**
  * @author Jason D. Rivard
  */
-public class Berkeley_PwmDb implements PwmDB {
+public class Berkeley_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);
 
-    private final static String DEFAULT_CACHE_BYTES =               String.valueOf(10 * 1000 * 1000);    // 10mb
-    private final static String DEFAULT_LOG_FILE_SIZE =             String.valueOf(10 * 1000 * 1000);    // 10mb
-    private final static String DEFAULT_LOG_UTILIZATION_PERCENT =   String.valueOf(80);                  // 80%
-    private final static boolean IS_TRANSACTIONAL =                 true;
+    private final static boolean IS_TRANSACTIONAL = true;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -59,8 +59,6 @@ public class Berkeley_PwmDb implements PwmDB {
     private final Map<DB, DbIterator> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator>());
 
     private volatile boolean open = false;
-
-    private Thread cleanupThread;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -93,9 +91,6 @@ public class Berkeley_PwmDb implements PwmDB {
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(IS_TRANSACTIONAL);
-        environmentConfig.setConfigParam(EnvironmentConfig.MAX_MEMORY, DEFAULT_CACHE_BYTES);
-        environmentConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, DEFAULT_LOG_FILE_SIZE);
-        environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_MIN_UTILIZATION, DEFAULT_LOG_UTILIZATION_PERCENT);
 
         for (final String key : initProps.keySet()) {
             environmentConfig.setConfigParam(key,initProps.get(key));
@@ -195,8 +190,6 @@ public class Berkeley_PwmDb implements PwmDB {
         } catch (DatabaseException e) {
             throw new PwmDBException(e);
         }
-
-        triggerCleanup();
 
         open = true;
     }
@@ -316,35 +309,6 @@ public class Berkeley_PwmDb implements PwmDB {
             LOGGER.error("error during truncate: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
-        triggerCleanup();
-    }
-
-    private void triggerCleanup()
-    {
-        if (cleanupThread != null) {
-            return;
-        }
-
-        cleanupThread = new Thread() {
-            public void run() {
-                final long startTime = System.currentTimeMillis();
-                LOGGER.debug("starting cleanup");
-                try {
-                    for (int i = 0; i < 2; i++) {
-                        environment.compress();
-                        environment.checkpoint(null);
-                        environment.cleanLog();
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("unexpected error during cleanup: " + e.getMessage());
-                }
-                cleanupThread = null;
-                LOGGER.debug("cleanup completed (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
-            }
-        };
-        cleanupThread.setDaemon(true);
-        cleanupThread.setName("pwm-Berkeley_Pwm_Db cleanup thread");
-        cleanupThread.start();
     }
 
 // -------------------------- INNER CLASSES --------------------------

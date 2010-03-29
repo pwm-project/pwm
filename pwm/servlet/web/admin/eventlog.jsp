@@ -28,8 +28,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.Helper" %>
-<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.*" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -39,12 +38,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
-<body onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
     <div id="centerbody" style="width:98%">
         <p style="text-align:center;">
-            <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+            <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
         </p>
         <p>
             This page shows PWM debug log
@@ -65,14 +64,14 @@
                         Level
                     </td>
                     <td style="border: 0">
-                        <% final String selectedLevel = request.getParameter("level");%>
+                        <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request,"level",255, "INFO");%>
                         <select name="level">
-                            <option value="TRACE" <%= "TRACE".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>TRACE</option>
-                            <option value="DEBUG" <%= "DEBUG".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>DEBUG</option>
-                            <option value="INFO" <%= "INFO".equals(selectedLevel) || selectedLevel == null ? "selected=\"selected\"" : "" %>>INFO</option>
-                            <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR</option>
-                            <option value="WARN" <%= "WARN".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>WARN</option>
                             <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL</option>
+                            <option value="WARN" <%= "WARN".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>WARN</option>
+                            <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR</option>
+                            <option value="INFO" <%= "INFO".equals(selectedLevel)   ? "selected=\"selected\"" : "" %>>INFO</option>
+                            <option value="DEBUG" <%= "DEBUG".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>DEBUG</option>
+                            <option value="TRACE" <%= "TRACE".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>TRACE</option>
                         </select>
                     </td>
                 </tr>
@@ -81,7 +80,7 @@
                         Type
                     </td>
                     <td style="border: 0">
-                        <% final String selectedType = request.getParameter("type");%>
+                        <% final String selectedType = password.pwm.Validator.readStringFromRequest(request,"type",255);%>
                         <select name="type">
                             <option value="User" <%= "User".equals(selectedType) ? "selected=\"selected\"" : "" %>>User</option>
                             <option value="System" <%= "System".equals(selectedType) ? "selected=\"selected\"" : "" %>>System</option>
@@ -118,7 +117,7 @@
                         Maximum Count
                     </td>
                     <td style="border: 0">
-                        <% final String selectedCount = request.getParameter("count");%>
+                        <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request,"count",255);%>
                         <select name="count">
                             <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
                             <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
@@ -134,7 +133,7 @@
                         Maximum Search Time
                     </td>
                     <td style="border: 0">
-                        <% final String selectedTime = request.getParameter("maxTime");%>
+                        <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request,"maxTime",255);%>
                         <select name="maxTime">
                             <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds</option>
                             <option value="30000" <%= "30000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>30 seconds </option>
@@ -153,10 +152,10 @@
             long maxTime = 10000;
             final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
             final String text = password.pwm.Validator.readStringFromRequest(request,"text", 255);
-            try { logLevel = PwmLogLevel.valueOf(request.getParameter("level")); } catch (Exception e) { }
-            try { logType = PwmDBLogger.EventType.valueOf(request.getParameter("type")); } catch (Exception e) { }
-            try { eventCount  = Integer.parseInt(request.getParameter("count")); } catch (Exception e) { }
-            try { maxTime  = Long.parseLong(request.getParameter("maxTime")); } catch (Exception e) { }
+            try { logLevel = PwmLogLevel.valueOf(password.pwm.Validator.readStringFromRequest(request,"level",255)); } catch (Exception e) { }
+            try { logType = PwmDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request,"type",255)); } catch (Exception e) { }
+            try { eventCount  = Integer.parseInt(password.pwm.Validator.readStringFromRequest(request,"count",255)); } catch (Exception e) { }
+            try { maxTime  = Long.parseLong(password.pwm.Validator.readStringFromRequest(request,"maxTime",255)); } catch (Exception e) { }
 
             final PwmDBLogger.SearchResults searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
         %>

@@ -32,13 +32,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.db.PwmDB.TransactionItem;
+
 /**
  * Apache Derby Wrapper for {@link password.pwm.util.db.PwmDB} interface.   Uses a single table per DB, with
  * two columns each.  This class would be easily adaptable for a generic JDBC implementation.
  *
  * @author Jason D. Rivard
  */
-public class Derby_PwmDb implements PwmDB {
+public class Derby_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Derby_PwmDb.class);

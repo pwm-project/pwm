@@ -23,6 +23,7 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.json.simple.JSONObject;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
 import password.pwm.bean.SessionStateBean;
@@ -30,17 +31,18 @@ import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.stats.Statistic;
-import org.json.simple.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,16 +70,16 @@ public class ChangePasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
 
         if (!ssBean.isAuthenticated()) {
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_AUTHENTICATION_REQUIRED));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
         if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession)) {
-            ssBean.setSessionError(new ErrorInformation(Message.ERROR_UNAUTHORIZED));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
@@ -137,16 +139,16 @@ public class ChangePasswordServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final Map<String, ChangePasswordBean.PasswordCacheEntry> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
+        final Map<String, PasswordCheckInfo> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
         final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
         final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
 
         final boolean foundInCache = cache.containsKey(password1);
-        final ChangePasswordBean.PasswordCacheEntry result = foundInCache ? cache.get(password1) : checkEnteredPassword(pwmSession, password1);
+        final PasswordCheckInfo passwordCheckInfo = foundInCache ? cache.get(password1) : checkEnteredPassword(pwmSession, password1);
         final MATCH_STATUS matchStatus = figureMatchStatus(pwmSession, password1, password2);
-        cache.put(password1, result); //update the cache
+        cache.put(password1, passwordCheckInfo); //update the cache
 
-        final String outputString = generateOutputString(pwmSession, result, matchStatus);
+        final String outputString = generateOutputString(pwmSession, passwordCheckInfo, matchStatus);
 
         {
             final StringBuilder sb = new StringBuilder();
@@ -155,14 +157,14 @@ public class ChangePasswordServlet extends TopServlet {
             sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append(", cached: ").append(foundInCache);
             sb.append(", cacheSize: ").append(cache.size());
-            sb.append(", pass: ").append(result.isPassed());
+            sb.append(", pass: ").append(passwordCheckInfo.isPassed());
             sb.append(", confirm: ").append(matchStatus);
-            sb.append(", strength: ").append(result.getStrength());
-            if (!result.isPassed()) {
-                sb.append(", err: ").append(result.getUserStr());
+            sb.append(", strength: ").append(passwordCheckInfo.getStrength());
+            if (!passwordCheckInfo.isPassed()) {
+                sb.append(", err: ").append(passwordCheckInfo.getUserStr());
             }
             sb.append("\n");
-            sb.append("  result string: ").append(outputString);
+            sb.append("  passwordCheckInfo string: ").append(outputString);
             LOGGER.trace(pwmSession, sb.toString());
         }
 
@@ -172,32 +174,30 @@ public class ChangePasswordServlet extends TopServlet {
         resp.getWriter().print(outputString);
     }
 
-    private static ChangePasswordBean.PasswordCacheEntry checkEnteredPassword(
+    private static PasswordCheckInfo checkEnteredPassword(
             final PwmSession pwmSession,
             final String password1
     )
             throws PwmException, ChaiUnavailableException
     {
-        int strength = 0;
         boolean pass = false;
         String userMessage;
 
         if (password1.length() < 0) {
-            userMessage = new ErrorInformation(Message.PASSWORD_MISSING).toUserStr(pwmSession);
+            userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(pwmSession);
         } else {
             try {
                 Validator.testPasswordAgainstPolicy(password1, pwmSession, true);
-                userMessage = new ErrorInformation(Message.PASSWORD_MEETS_RULES).toUserStr(pwmSession);
+                userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession);
                 pass = true;
             } catch (ValidationException e) {
                 userMessage = e.getError().toUserStr(pwmSession);
                 pass = false;
             }
-
-            strength = Validator.checkPasswordStrength(pwmSession, password1);
         }
 
-        return new ChangePasswordBean.PasswordCacheEntry(userMessage, pass, strength);
+        final int strength = Validator.checkPasswordStrength(pwmSession, password1);
+        return new PasswordCheckInfo(userMessage, pass, strength);
     }
 
     private static MATCH_STATUS figureMatchStatus(final PwmSession session, final String password1, final String password2) {
@@ -217,35 +217,35 @@ public class ChangePasswordServlet extends TopServlet {
 
     private static String generateOutputString(
             final PwmSession pwmSession,
-            final ChangePasswordBean.PasswordCacheEntry cacheEntry,
+            final PasswordCheckInfo checkInfo,
             final MATCH_STATUS matchStatus
     )
     {
         final String userMessage;
-        if (cacheEntry.isPassed()) {
+        if (checkInfo.isPassed()) {
             switch (matchStatus) {
                 case EMPTY:
-                    userMessage = new ErrorInformation(Message.PASSWORD_MISSING_CONFIRM).toUserStr(pwmSession);
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(pwmSession);
                     break;
                 case MATCH:
-                    userMessage = new ErrorInformation(Message.PASSWORD_MEETS_RULES).toUserStr(pwmSession);
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession);
                     break;
                 case NO_MATCH:
-                    userMessage = new ErrorInformation(Message.PASSWORD_DOESNOTMATCH).toUserStr(pwmSession);
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH).toUserStr(pwmSession);
                     break;
                 default:
                     userMessage = "";
             }
         } else {
-            userMessage = cacheEntry.getUserStr();
+            userMessage = checkInfo.getUserStr();
         }
 
         final Map<String,String> outputMap = new HashMap<String,String>();
-        outputMap.put("version","1");
-        outputMap.put("strength",String.valueOf(cacheEntry.getStrength()));
+        outputMap.put("version","2");
+        outputMap.put("strength",String.valueOf(checkInfo.getStrength()));
         outputMap.put("match",matchStatus.toString());
         outputMap.put("message", userMessage);
-        outputMap.put("passed",String.valueOf(cacheEntry.isPassed()));
+        outputMap.put("passed",String.valueOf(checkInfo.isPassed()));
 
         return JSONObject.toJSONString(outputMap);
     }
@@ -280,6 +280,7 @@ public class ChangePasswordServlet extends TopServlet {
             sb.append("real-time random password generator called");
             sb.append(" (").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append(")");
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
             LOGGER.trace(pwmSession, sb.toString());
         }
     }
@@ -307,6 +308,7 @@ public class ChangePasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = ContextManager.getContextManager(this.getServletContext());
 
+        Validator.checkFormID(req);
         final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
         final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
 
@@ -324,7 +326,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         //make sure the two passwords match
         if (MATCH_STATUS.MATCH != figureMatchStatus(pwmSession, password1, password2)) {
-            ssBean.setSessionError(new ErrorInformation(Message.PASSWORD_DOESNOTMATCH));
+            ssBean.setSessionError(new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH));
             this.forwardToJSP(req, resp);
             return;
         }
@@ -338,7 +340,7 @@ public class ChangePasswordServlet extends TopServlet {
             final StringBuilder returnURL = new StringBuilder();
             returnURL.append(theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE));
             returnURL.append(req.getServletPath());
-            returnURL.append("?" + Constants.PARAM_ACTION_REQUEST + "=" + "doChange");
+            returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
             Helper.forwardToWaitPage(req, resp, this.getServletContext(), returnURL.toString());
         }
     }
@@ -368,12 +370,12 @@ public class ChangePasswordServlet extends TopServlet {
         final String newPassword = cpb.getNewPassword();
 
         if (newPassword == null || newPassword.length() < 1) {
-            LOGGER.warn(pwmSession, "entered doChange, but bean does not have a valid password stored");
+            LOGGER.warn(pwmSession, "entered doChange, but bean does not have a valid password stored in server session");
             cpb.clearPassword();
             return;
         }
 
-        LOGGER.trace(pwmSession, "retreived password from changePasswordBean");
+        LOGGER.trace(pwmSession, "retrieved password from server session");
 
         final boolean success = PasswordUtility.setUserPassword(pwmSession, newPassword);
 
@@ -382,22 +384,22 @@ public class ChangePasswordServlet extends TopServlet {
                 ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
             }
 
-            ssBean.setSessionSuccess(new ErrorInformation(Message.SUCCESS_PASSWORDCHANGE));
+            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE);
 
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.CHANGE_PASSWORD, null);
 
             Helper.forwardToSuccessPage(req, resp, this.getServletContext());
         } else {
             final ErrorInformation errorMsg = ssBean.getSessionError();
-            if (errorMsg != null) { // add the badd password to the history cache
-                cpb.getPasswordTestCache().put(newPassword,new ChangePasswordBean.PasswordCacheEntry(
+            if (errorMsg != null) { // add the bad password to the history cache
+                cpb.getPasswordTestCache().put(newPassword,new PasswordCheckInfo(
                         errorMsg.toUserStr(pwmSession),
                         false,
                         Validator.checkPasswordStrength(pwmSession, newPassword)
                 ));
             }
             cpb.setPasswordChangeError(errorMsg);
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(Constants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         }
 
         cpb.clearPassword();
@@ -409,13 +411,35 @@ public class ChangePasswordServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
     }
-
-// -------------------------- ENUMERATIONS --------------------------
 
     private enum MATCH_STATUS {
         MATCH, NO_MATCH, EMPTY
+    }
+
+    public static class PasswordCheckInfo implements Serializable {
+        private final String userStr;
+        private final boolean passed;
+        private final int strength;
+
+        public PasswordCheckInfo(final String userStr, final boolean passed, final int strength) {
+            this.userStr = userStr;
+            this.passed = passed;
+            this.strength = strength;
+        }
+
+        public String getUserStr() {
+            return userStr;
+        }
+
+        public boolean isPassed() {
+            return passed;
+        }
+
+        public int getStrength() {
+            return strength;
+        }
     }
 }
 

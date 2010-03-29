@@ -39,7 +39,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="startupPage(false); document.forms.setupResponses.elements[0].focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();startupResponsesPage()(false); document.forms.setupResponses.elements[0].focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/></jsp:include>
     <div id="centerbody">
@@ -75,6 +75,7 @@
                 <input tabindex="1" type="submit" name="confirm_btn" class="btn"
                        value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </form>
         </div>
     </div>

@@ -35,6 +35,7 @@ import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
@@ -139,7 +140,7 @@ public class UserStatusHelper {
             throws ChaiUnavailableException, PwmException
     {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw PwmException.createPwmException(new ErrorInformation(Message.ERROR_AUTHENTICATION_REQUIRED,"user must be authenticated to check if response configuration is needed"));
+            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"user must be authenticated to check if response configuration is needed"));
         }
 
         LOGGER.trace(pwmSession,"beginning check to determine if responses need to be configured for user");
@@ -226,7 +227,7 @@ public class UserStatusHelper {
             final Set<String> interestingUserAttributes = pwmSession.getConfig().getAllUsedLdapAttributes();
             interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-            interestingUserAttributes.add(pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE));
+            interestingUserAttributes.add(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE));
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 interestingUserAttributes.add("cn");
                 interestingUserAttributes.add("displayName");
@@ -234,7 +235,7 @@ public class UserStatusHelper {
             }
             final Properties allUserAttrs = theUser.readStringAttributes(null);
             uiBean.setAllUserAttributes(allUserAttrs);
-            uiBean.setUserID(allUserAttrs.getProperty(pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE)));
+            uiBean.setUserID(allUserAttrs.getProperty(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE)));
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
         }
@@ -310,7 +311,7 @@ public class UserStatusHelper {
             return username;
         }
 
-        final String usernameAttribute = pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
+        final String usernameAttribute = pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
 
         //if supplied user name starts with username attr assume its the full dn and skip the contextless login
         if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
@@ -321,7 +322,7 @@ public class UserStatusHelper {
         LOGGER.trace(pwmSession, "attempting username search for '" + username + "'" + ((context != null && context.length() > 0) ? " in context " + context : ""));
 
         final String filterSetting = pwmSession.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
-        final String filter = filterSetting.replace(Constants.VALUE_REPLACEMENT_USERNAME,username);
+        final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME,username);
 
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setFilter(filter);

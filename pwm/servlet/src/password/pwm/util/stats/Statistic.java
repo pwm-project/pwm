@@ -50,6 +50,9 @@ public enum Statistic {
     SETUP_RESPONSES(Type.INCREMENTOR, "SetupResponses"),
     UPDATE_ATTRIBUTES(Type.INCREMENTOR, "UpdateAttributes"),
     SHORTCUTS_SELECTED(Type.INCREMENTOR, "ShortcutsSelected"),
+    PWMDB_READS(Type.INCREMENTOR, "PwmDB_Reads"),
+    PWMDB_WRITES(Type.INCREMENTOR, "PwmDB_Writes"),
+    GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_WORDLIST_CHECK_TIME(Type.AVERAGE, "AvgWordlistCheckTime");

@@ -20,18 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var AJAX_TYPE_DELAY_MS = 0;
+var AJAX_TYPE_DELAY_MS = 100;
 
-function unloadHandler() {
-    /*
-     var unloadPageURL = getObject("Js_CommandURL").value + "?processAction=pageUnload";
-     var xmlhttp = createXmlHttpObject();
-     xmlhttp.abort();
-     xmlhttp.open("POST", unloadPageURL, true);
-     xmlhttp.send(null);
-     */
+var dirtyPageLeaveFlag = false;
+
+function pwmPageLoadHandler() {
+    for (var j = 0; j < document.forms.length; j++) {
+        var loopForm = document.forms[j];
+        loopForm.setAttribute('autocomplete','off');
+    }
 }
-
 
 function checkForCapsLock(e) {
     var capsLockWarningElement = getObject('capslockwarning');
@@ -42,7 +40,7 @@ function checkForCapsLock(e) {
     var kc = e.keyCode?e.keyCode:e.which;
     var sk = e.shiftKey?e.shiftKey:((kc == 16));
     if(((kc >= 65 && kc <= 90) && !sk)||((kc >= 97 && kc <= 122) && sk)) {
-        if (e.target.type == 'password') {
+        if ((e.target != null && e.target.type == 'password') || (e.srcElement != null && e.srcElement.type == 'password')) {
             capsLockWarningElement.style.visibility = 'visible';
         }
     } else {

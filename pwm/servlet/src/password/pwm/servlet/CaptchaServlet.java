@@ -23,11 +23,11 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.Helper;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
@@ -86,7 +86,7 @@ public class CaptchaServlet extends TopServlet {
             return;
         }
         
-        final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("doVerify")) {
@@ -102,7 +102,8 @@ public class CaptchaServlet extends TopServlet {
     private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
+        Validator.checkFormID(req);
+        
         final boolean verified;
         try {
             verified = verifyReCaptcha(req, pwmSession);
@@ -123,7 +124,7 @@ public class CaptchaServlet extends TopServlet {
             forwardToOriginalLocation(req,resp);
         } else { //failed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(false);
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(Message.ERROR_BAD_CAPTCHA_RESPONSE));
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE));
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
@@ -160,7 +161,7 @@ public class CaptchaServlet extends TopServlet {
 
             if (statusCode != HttpStatus.SC_OK) {
                 throw PwmException.createPwmException(new ErrorInformation(
-                        Message.ERROR_CAPTCHA_API_ERROR,
+                        PwmError.ERROR_CAPTCHA_API_ERROR,
                         "unexpected HTTP status code (" + statusCode + ")"
                 ));
             }
@@ -177,7 +178,7 @@ public class CaptchaServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "reCaptcha error response: " + errorCode);
             }
         } catch (Exception e) {
-            final PwmException pwmE = PwmException.createPwmException(new ErrorInformation(Message.ERROR_CAPTCHA_API_ERROR,e.getMessage()));
+            final PwmException pwmE = PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR,e.getMessage()));
             pwmE.initCause(e);
             throw pwmE;
         } finally {
@@ -219,7 +220,7 @@ public class CaptchaServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_CAPTCHA).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CAPTCHA).forward(req, resp);
     }
 
     private void forwardToOriginalLocation(

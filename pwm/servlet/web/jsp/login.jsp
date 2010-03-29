@@ -28,13 +28,13 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_Login"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Login"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" autocomplete="off" onkeypress="checkForCapsLock(event);">
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" onkeypress="checkForCapsLock(event);">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -46,17 +46,15 @@
             <%  //check to see if any locations are configured.
                 if (!ContextManager.getContextManager(this.getServletConfig().getServletContext()).getConfig().getLoginContexts().isEmpty()) {
             %>
-            <h2><pwm:Display key="Field_Location"/></h2>
+            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
             <select name="context">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-
-            <h2><pwm:Display key="Field_Username"/></h2>
+            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
             <input tabindex="1" type="text" name="username" id="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
-            <h2><pwm:Display key="Field_Password"/></h2>
+            <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
             <input tabindex="2" type="password" name="password" id="password" class="inputfield" onkeypress="checkForCapsLock(event)"/>
-
             <div id="buttonbar">
                 <span>
                     <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
@@ -69,6 +67,7 @@
                        name="reset"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="login">
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

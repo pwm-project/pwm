@@ -2015,10 +2015,5 @@ public class Base64Util
         public void resumeEncoding() {
             this.suspendEncoding = false;
         }   // end resumeEncoding
-
-
-
     }   // end inner class OutputStream
-
-
 }   // end class Base64Util

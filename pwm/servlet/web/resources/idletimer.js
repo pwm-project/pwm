@@ -81,6 +81,7 @@ function countDownTimer()
     var amount = calcIdleSeconds();
     var idleDisplayString = makeIdleDisplayString(amount);
     if (amount < 0) {
+        dirtyPageLeaveFlag = false;
         window.location = getObject("Js_LogoutURL").value;
         return;
     }

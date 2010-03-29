@@ -36,7 +36,7 @@
          contentType="text/html; charset=UTF-8" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body class="bodymain" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <%
     final PwmSession beanMgr = PwmSession.getPwmSession(session);
     final ChaiProvider provider = ContextManager.getContextManager(session).getProxyChaiProvider();
@@ -125,13 +125,13 @@
                                 //alphabetic sort
                                 final Map<String, Properties> results = new TreeMap<String, Properties>(
                                         new Comparator<String>() {
-                                            public int compare(String o1, String o2)
+                                            public int compare(final String o1, final String o2)
                                             {
                                                 return ((o1).toLowerCase().compareTo((o2).toLowerCase()));
                                             }
                                         });
                                 results.putAll(provider.search(searchRoot, searchFilter));
-                                for (String dn : results.keySet()) {
+                                for (final String dn : results.keySet()) {
                                     out.print(dn);
                                     out.println("<br/>");
                                 }

@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
@@ -31,7 +32,7 @@
         &nbsp;
     </span>
     <br/>
-    PWM <%= password.pwm.Constants.SERVLET_VERSION %> |
+    PWM <%= PwmConstants.SERVLET_VERSION %> |
     <% // can't use <jsp:UseBean> because it will cause duplicate useBean error.
         final password.pwm.bean.UserInfoBean uiBean = PwmSession.getUserInfoBean(request.getSession());
         final String userID = uiBean.getUserID();
@@ -72,5 +73,5 @@
         <input type="hidden" name="Js_LogoutURL" id="Js_LogoutURL" value="<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>"/>
         <input type="hidden" name="Js_CommandURL" id="Js_CommandURL" value="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>"/>
     </form>
-    <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() - 10 %>);</script>
+    <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);</script>
 </div>

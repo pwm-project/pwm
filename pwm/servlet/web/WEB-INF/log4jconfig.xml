@@ -26,7 +26,6 @@
    This configuration file controls where and to what level PWM will output log messages
 -->
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
-
     <appender name="PWMstdout" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n"/>
@@ -42,7 +41,7 @@
 
     <!-- this appender logs information about PWM itself -->
     <category name="password.pwm">
-        <priority value="info"/>
+        <priority value="trace"/>
         <!-- possible priority values are "trace,debug,info,error,warn,fatal" -->
 
         <appender-ref ref="PWMstdout"/>

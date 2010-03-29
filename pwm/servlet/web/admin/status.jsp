@@ -30,29 +30,24 @@
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final StatisticsManager statsManager = ContextManager.getContextManager(session).getStatisticsManager(); %>
-<% final String statsPeriodSelect = request.getParameter("statsPeriodSelect"); %>
-<% final String statsChartSelect = request.getParameter("statsChartSelect") != null && request.getParameter("statsChartSelect").length() > 0 ? request.getParameter("statsChartSelect") : Statistic.PASSWORD_CHANGES.toString() ; %>
-<% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
 <% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
 <p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
 </p>
-<form action="<pwm:url url='status.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="statsUpdateForm"
-      id="statsUpdateForm" onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
 <table>
     <tr>
         <td colspan="10" class="title">
@@ -64,7 +59,7 @@
             PWM Version
         </td>
         <td>
-            <%= password.pwm.Constants.SERVLET_VERSION %>
+            <%= PwmConstants.SERVLET_VERSION %>
         </td>
     </tr>
     <tr>
@@ -115,7 +110,7 @@
             Last LDAP Unavailable Time
         </td>
         <td>
-            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "" %> 
+            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "" %>
         </td>
     </tr>
     <tr>
@@ -128,102 +123,6 @@
                 try { vendor = contextManager.getProxyChaiProvider().getDirectoryVendor().toString(); } catch (Exception e) { /* nothing */ }
             %>
             <%= vendor %>
-        </td>
-    </tr>
-</table>
-<br class="clear"/>
-<table class="tablemain">
-    <tr>
-        <td class="title" colspan="10">
-            Statistics
-        </td>
-    </tr>
-    <tr>
-        <td colspan="10" style="text-align: center">
-            <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
-                <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since installation - <%= dateFormat.format(contextManager.getInstallTime()) %></option>
-                <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since startup - <%= dateFormat.format(contextManager.getStartupTime()) %></option>
-                <% final Map<StatisticsManager.Key,String> availableKeys = statsManager.getAvailabileKeys(request.getLocale()); %>
-                <% for (final StatisticsManager.Key key : availableKeys.keySet()) { %>
-                <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %> GMT</option>
-                <% } %>
-            </select>
-            <noscript>
-                <input type="submit" id="submit_button_period" class="btn" value="Update"/>
-            </noscript>
-        </td>
-    </tr>
-    <% for (Iterator<Statistic> iter = Statistic.sortedValues(request.getLocale()).iterator(); iter.hasNext() ;) { %>
-    <tr>
-        <% Statistic leftStat = iter.next(); %>
-        <td class="key">
-            <%= leftStat.getLabel(request.getLocale()) %>
-        </td>
-        <td>
-            <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
-        </td>
-        <% if (iter.hasNext()) { %>
-        <% Statistic rightStat = iter.next(); %>
-        <td class="key">
-            <%= rightStat.getLabel(request.getLocale()) %>
-        </td>
-        <td>
-            <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
-        </td>
-        <% } else { %>
-        <td colspan="2">
-            &nbsp;
-        </td>
-        <% } %>
-    </tr>
-    <% } %>
-    <tr>
-        <td class="title" colspan="10">
-            Activity
-        </td>
-    </tr>
-    <tr>
-        <td colspan="10" style="text-align: center">
-            <select name="statsChartSelect" onchange="getObject('statsUpdateForm').submit();">
-                <% for (final Statistic loopStat : Statistic.sortedValues(request.getLocale())) { %>
-                <option value="<%=loopStat %>" <%= loopStat.toString().equals(statsChartSelect) ? "selected=\"selected\"" : "" %>><%=loopStat.getLabel(request.getLocale())%></option>
-                <% } %>
-            </select>
-            <br/>
-            <noscript>
-                <input type="submit" id="submit_button_chart" class="btn" value="Update"/>
-            </noscript>
-            <%
-                final Statistic selectedStat = Statistic.valueOf(statsChartSelect);
-                final Map<String,String> chartData = statsManager.getStatHistory(selectedStat,31);
-                int topValue = 0;
-                for (final String value: chartData.values()) topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
-                final StringBuilder imgURL = new StringBuilder();
-                //imgURL.append(request.isSecure() ? "https://www.google.com/chart" : "http://chart.apis.google.com/chart");
-                imgURL.append("http://chart.apis.google.com/chart");
-                imgURL.append("?cht=bvs");
-                imgURL.append("&chs=590x150");
-                imgURL.append("&chds=0,").append(topValue);
-                imgURL.append("&chco=d20734");
-                imgURL.append("&chxt=x,y");
-                imgURL.append("&chxr=1,0,").append(topValue);
-                imgURL.append("&chbh=14");
-                imgURL.append("&chd=t:");
-                for (final String value: chartData.values()) imgURL.append(value).append(",");
-                imgURL.delete(imgURL.length() - 1, imgURL.length());
-                imgURL.append("&chl=");
-                int counter = 0;
-                for (final String value: chartData.keySet()) {
-                    if (counter % 3 == 0) {
-                        imgURL.append(value).append("|");
-                    } else {
-                        imgURL.append(" |");
-                    }
-                    counter++;
-                }
-                imgURL.delete(imgURL.length() - 1, imgURL.length());
-            %>
-            <img src="<%=imgURL.toString()%>" alt="[ Gogol Chart Image ]"/>
         </td>
     </tr>
 </table>
@@ -359,7 +258,7 @@
             Oldest Log Event in Write Queue
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger().getDirtyQueueTime().asCompactString() %>
+            <%= contextManager.getPwmDBLogger() != null ? contextManager.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
         </td>
         <td class="key">
             Database Size
@@ -482,7 +381,6 @@
         </td>
     </tr>
 </table>
-</form>
 </div>
 </div>
 <%@ include file="../jsp/footer.jsp" %>

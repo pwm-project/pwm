@@ -23,7 +23,7 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
-import password.pwm.error.ErrorInformation;
+import password.pwm.config.Message;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -43,10 +43,10 @@ public class SuccessMessageTag extends PwmAbstractTag {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final ErrorInformation successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
+            final Message successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
 
             if (successMsg != null) {
-                final String errorMsg = successMsg.toUserStr(pwmSession);
+                final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale());
                 pageContext.getOut().write(errorMsg);
             }
         } catch (Exception e) {

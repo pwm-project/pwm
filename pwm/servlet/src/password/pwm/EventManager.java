@@ -27,9 +27,7 @@ import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.http.HttpSessionActivationListener;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
+import javax.servlet.http.*;
 
 /**
  * Servlet event listener, defined in web.xml
@@ -55,21 +53,20 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-        final ContextManager contextManager = ContextManager.getContextManager(httpSessionEvent.getSession().getServletContext());
+        final HttpSession httpSession = httpSessionEvent.getSession();
+        final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
+        final ContextManager contextManager = pwmSession.getContextManager();
 
         contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
         contextManager.addPwmSession(pwmSession);
 
-        LOGGER.trace(pwmSession, "http session created: " + httpSessionEvent.getSession().getId());
-
-        contextManager.sessionTimeout = httpSessionEvent.getSession().getMaxInactiveInterval();
+        LOGGER.trace(pwmSession, "http session created");
     }
 
     public void sessionDestroyed(final HttpSessionEvent httpSessionEvent)
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-        LOGGER.trace(pwmSession, "http session destroyed: " + httpSessionEvent.getSession().getId());
+        LOGGER.trace(pwmSession, "http session destroyed");
         pwmSession.getSessionManager().closeConnections();
     }
 
@@ -77,7 +74,7 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
     public void contextInitialized(final ServletContextEvent servletContextEvent)
     {
-        if (null != servletContextEvent.getServletContext().getAttribute(Constants.CONTEXT_ATTR_CONTEXT_MANAGER)) {
+        if (null != servletContextEvent.getServletContext().getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER)) {
             LOGGER.warn("notice, previous servlet ContextManager exists");
         }
 
@@ -85,7 +82,7 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         try {
             final ContextManager newContextManager = new ContextManager();
             newContextManager.initialize(servletContextEvent.getServletContext());
-            servletContextEvent.getServletContext().setAttribute(Constants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
+            servletContextEvent.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
         } catch (OutOfMemoryError e) {
             LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
             throw e;

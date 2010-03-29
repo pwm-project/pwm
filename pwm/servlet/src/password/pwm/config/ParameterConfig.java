@@ -27,6 +27,7 @@ import password.pwm.Helper;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
@@ -264,7 +265,7 @@ public class ParameterConfig implements Serializable {
     {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_REQUIRED, null, this.label);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, this.label);
             throw ValidationException.createValidationException(error);
         }
 
@@ -273,7 +274,7 @@ public class ParameterConfig implements Serializable {
                 try {
                     Integer.parseInt(this.getValue());
                 } catch (NumberFormatException e) {
-                    final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_NOT_A_NUMBER, null, this.label);
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER, null, this.label);
                     throw ValidationException.createValidationException(error);
                 }
                 break;
@@ -281,7 +282,7 @@ public class ParameterConfig implements Serializable {
 
             case EMAIL:
                 if (!Helper.testEmailAddress(this.getValue())) {
-                    final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_INVALID_EMAIL, null, this.label);
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
                     throw ValidationException.createValidationException(error);
                 }
                 break;
@@ -292,12 +293,12 @@ public class ParameterConfig implements Serializable {
         }
 
         if ((this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_TOO_SHORT, null, this.label);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_SHORT, null, this.label);
             throw ValidationException.createValidationException(error);
         }
 
         if (value.length() > this.maximumLength) {
-            final ErrorInformation error = new ErrorInformation(Message.ERROR_FIELD_TOO_LONG, null, this.label);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_LONG, null, this.label);
             throw ValidationException.createValidationException(error);
         }
     }

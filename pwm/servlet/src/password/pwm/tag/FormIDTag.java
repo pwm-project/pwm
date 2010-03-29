@@ -20,11 +20,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.tag;
 
+import password.pwm.PwmSession;
 
-/**
- * Empty class to facilitate easy resourcebundle loading of "Display" resource bundle.
- */
-public class Messages {
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspTagException;
+import javax.servlet.jsp.tagext.TagSupport;
+
+public class FormIDTag extends TagSupport {
+// --------------------- Interface Tag ---------------------
+
+    public int doEndTag()
+            throws javax.servlet.jsp.JspTagException
+    {
+        try {
+            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final String formID = pwmSession.getSessionStateBean().getFormNonce();
+
+            if (formID != null) {
+                pageContext.getOut().write(formID);
+            }
+        } catch (Exception e) {
+            throw new JspTagException(e.getMessage());
+        }
+        return EVAL_PAGE;
+    }
+
 }

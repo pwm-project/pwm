@@ -40,7 +40,7 @@
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL,SimpleDateFormat.FULL,request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_UserInformation"/></jsp:include>
     <div id="centerbody">

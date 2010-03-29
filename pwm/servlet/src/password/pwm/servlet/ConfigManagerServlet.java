@@ -23,8 +23,8 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmConstants;
 import password.pwm.error.PwmException;
-import password.pwm.Constants;
 import password.pwm.Validator;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
@@ -56,10 +56,10 @@ public class ConfigManagerServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmException
     {
 
-        final String processRequestParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
 
         final Map<String,Map<String,String>> configMap = readConfigMapFromRequest(req);
-        req.setAttribute(Constants.REQUEST_CONFIG_MAP, configMap);
+        req.setAttribute(PwmConstants.REQUEST_CONFIG_MAP, configMap);
 
         if ("generateXml".equalsIgnoreCase(processRequestParam)) {
             this.doGenerateXmlDoc(req,resp);
@@ -84,12 +84,12 @@ public class ConfigManagerServlet extends TopServlet {
             settingsElement.addContent(setting.toXmlElement(valueMap.get(setting)));
         }
 
-        Element pwmConfigElement = new Element("PwmConfiguration");
+        Element pwmConfigElement = new Element("PwmConfigurationBean");
         pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
         pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Servlet"));
         pwmConfigElement.addContent(settingsElement);
-        pwmConfigElement.setAttribute("version", Constants.PWM_VERSION);
-        pwmConfigElement.setAttribute("build", Constants.BUILD_NUMBER);
+        pwmConfigElement.setAttribute("version", PwmConstants.PWM_VERSION);
+        pwmConfigElement.setAttribute("build", PwmConstants.BUILD_NUMBER);
         pwmConfigElement.setAttribute("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
         XMLOutputter outputter = new XMLOutputter();
@@ -106,7 +106,7 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_CONFIG_MANAGER).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER).forward(req, resp);
     }
 
     private Map<String,Map<String,String>> readConfigMapFromRequest(HttpServletRequest request) {

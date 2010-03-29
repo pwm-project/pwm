@@ -27,13 +27,15 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.config.Configuration;
-import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Wraps an <i>HttpSession</i> to provide additional PWM-related session
@@ -51,6 +53,8 @@ public class SessionManager implements Serializable {
 
     final private PwmSession pwmSession;
 
+    final Lock providerLock = new ReentrantLock();
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public SessionManager(final PwmSession pwmSession)
@@ -60,46 +64,75 @@ public class SessionManager implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+    public ChaiProvider getChaiProvider(final String userDN, final String userPassword)
+            throws ChaiUnavailableException
+    {
+        try {
+            providerLock.lock();
+            closeConnectionImpl();
+            chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword);
+            return chaiProvider;
+        } finally {
+            providerLock.unlock();
+        }
+    }
+
+
     public ChaiProvider getChaiProvider()
             throws ChaiUnavailableException, PwmException
     {
-        synchronized (this) {
+        try
+        {
+            providerLock.lock();
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                throw PwmException.createPwmException(Message.ERROR_AUTHENTICATION_REQUIRED);
+                throw PwmException.createPwmException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
 
             if (chaiProvider == null) {
-                final long startTime = System.currentTimeMillis();
-                final StringBuilder debugLogText = new StringBuilder();
-                final Configuration config = pwmSession.getConfig();
-
-                if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) && pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                    chaiProvider = Helper.createChaiProvider(pwmSession.getContextManager(), config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN), config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
-                    debugLogText.append("opened new proxy ldap connection for ");
-                } else {
-                    chaiProvider = Helper.createChaiProvider(pwmSession.getContextManager(), pwmSession.getUserInfoBean().getUserDN(), pwmSession.getUserInfoBean().getUserCurrentPassword());
-                    debugLogText.append("opened new ldap connection for ");
-                }
-
-                debugLogText.append(pwmSession.getUserInfoBean().getUserDN());
-                debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
-                LOGGER.trace(pwmSession, debugLogText.toString());
+                final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+                final String userDN = pwmSession.getUserInfoBean().getUserDN();
+                chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword);
             }
 
             return chaiProvider;
+        } finally {
+            providerLock.unlock();
         }
     }
 
-    public void setChaiProvider(final ChaiProvider chaiProvider)
-            throws ChaiUnavailableException, PwmException
+    private static ChaiProvider makeChaiProvider(final PwmSession pwmSession, final String userDN, final String userPassword)
+            throws ChaiUnavailableException
     {
-        synchronized (this) {
-            if (this.chaiProvider == null) {
-                this.chaiProvider = chaiProvider;
-            }
-        }
-    }
+        final long startTime = System.currentTimeMillis();
+        final StringBuilder debugLogText = new StringBuilder();
+        final Configuration config = pwmSession.getConfig();
+        final int ldapIdleTimeoutMs = pwmSession.getMaxInactiveInterval() + 60 * 1000;
 
+        final ChaiProvider returnProvider;
+        final String username;
+        final String password;
+
+        if (
+                config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) &&
+                        pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY
+                )
+        {
+            username = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            password = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            debugLogText.append("opened new proxy ldap connection for ");
+        } else {
+            username = userDN;
+            password = userPassword;
+            debugLogText.append("opened new ldap connection for ");
+        }
+
+        debugLogText.append(pwmSession.getUserInfoBean().getUserDN());
+        debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
+        LOGGER.trace(pwmSession, debugLogText.toString());
+
+        returnProvider = Helper.createChaiProvider(pwmSession.getContextManager(), username, password, ldapIdleTimeoutMs);
+        return returnProvider;
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
@@ -110,17 +143,21 @@ public class SessionManager implements Serializable {
         this.closeConnections();
     }
 
-    public synchronized void closeConnections()
+    public void closeConnections()
     {
-        synchronized (this) {
-            if (chaiProvider != null) {
-                try {
-                    LOGGER.debug(pwmSession, "closing user ldap connection");
-                    chaiProvider.close();
-                    chaiProvider = null;
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "error while closing user connection: " + e.getMessage());
-                }
+        synchronized (providerLock) {
+            closeConnectionImpl();
+        }
+    }
+
+    private void closeConnectionImpl() {
+        if (chaiProvider != null) {
+            try {
+                LOGGER.debug(pwmSession, "closing user ldap connection");
+                chaiProvider.close();
+                chaiProvider = null;
+            } catch (Exception e) {
+                LOGGER.error(pwmSession, "error while closing user connection: " + e.getMessage());
             }
         }
     }

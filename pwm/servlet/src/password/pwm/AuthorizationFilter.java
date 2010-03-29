@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.*;
@@ -79,7 +79,7 @@ public class AuthorizationFilter implements Filter {
             return;
         }
 
-        ssBean.setSessionError(Message.ERROR_UNAUTHORIZED.toInfo());
+        ssBean.setSessionError(PwmError.ERROR_UNAUTHORIZED.toInfo());
         Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
     }
 

@@ -22,6 +22,7 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.bean.UserInformationServletBean" %>
@@ -38,14 +39,14 @@
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL,SimpleDateFormat.FULL,request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onunload="unloadHandler();" onload="getObject('username').focus();">
+<body onload="pwmPageLoadHandler();getObject('username').focus();">
 <div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="User Information"/></jsp:include>
 <div id="centerbody">
 <p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruder Status</a> | <a href="activesessions.jsp">Active Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
 </p>
-<form action="<pwm:url url='UserInformation'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" autocomplete="off"
+<form action="<pwm:url url='UserInformation'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
       onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
     <%  //check to see if there is an error
         if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
@@ -78,6 +79,7 @@
         <input tabindex="4" type="reset" class="btn"
                name="reset" onclick="getObject('username').value = '';getObject('username').focus();"
                value="     <pwm:Display key="Button_Reset"/>     "/>
+        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
     </div>
 </form>
 <br class="clear"/>
@@ -91,10 +93,10 @@
     </tr>
     <tr>
         <td class="key">
-            UserID
+            <%= pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE) %>
         </td>
         <td>
-            <%= searchedUserInfo.getUserID() %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE)) %>
         </td>
     </tr>
     <tr>

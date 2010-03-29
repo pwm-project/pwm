@@ -26,7 +26,7 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.util.PwmLogger;
 
@@ -99,10 +99,15 @@ public class ConfigReader {
         final Configuration config = new Configuration();
 
         for (final PwmSetting setting : PwmSetting.values()) {
-            final String value = readStr(setting.getKey());
-            config.setSetting(setting, value);
-            LOGGER.trace("  reading " + setting + " (\"" + setting.getKey() + "\")");
-            LOGGER.trace("value for " + setting + " is " + (setting.isConfidential() ? "***removed***" : config.toString(setting)));
+
+            try {
+                final String value = readStr(setting.getKey());
+                config.setSetting(setting, value);
+                LOGGER.trace("  reading " + setting + " (\"" + setting.getKey() + "\")");
+                LOGGER.trace("value for " + setting + " is " + (setting.isConfidential() ? "***removed***" : config.toString(setting)));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("error reading setting '" + setting.getKey() + "' " + e.getMessage());
+            }
         }
 
 
@@ -239,7 +244,7 @@ public class ConfigReader {
             }
 
             try {
-                config.challengeSet = CrFactory.newChallengeSet(challenges, locale, minimumRands, "pwm-defined " + Constants.SERVLET_VERSION);
+                config.challengeSet = CrFactory.newChallengeSet(challenges, locale, minimumRands, "pwm-defined " + PwmConstants.SERVLET_VERSION);
             } catch (ChaiValidationException e) {
                 LOGGER.warn("invalid challenge set configuration: " + e.getMessage());
             }

@@ -22,7 +22,6 @@
 
 package password.pwm.util.db;
 
-import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -51,14 +50,12 @@ public interface PwmDB {
     void close()
             throws PwmDBException;
 
+    @ReadOperation
     boolean contains(DB db, String key)
             throws PwmDBException;
 
+    @ReadOperation
     String get(DB db, String key)
-            throws PwmDBException;
-
-    @WriteOperation
-    void init(File dbDirectory, String initString)
             throws PwmDBException;
 
     Iterator<TransactionItem> iterator(DB db)
@@ -96,6 +93,7 @@ public interface PwmDB {
     void returnIterator(DB db)
             throws PwmDBException;
 
+    @ReadOperation
     int size(DB db)
             throws PwmDBException;
 
@@ -104,6 +102,10 @@ public interface PwmDB {
             throws PwmDBException;
 
     long diskSpaceUsed();
+
+    void addEventListener(PwmDBEventListener eventListener);
+
+    void removeEventListener(PwmDBEventListener eventListener);
 
 // -------------------------- ENUMERATIONS --------------------------
 
@@ -121,12 +123,35 @@ public interface PwmDB {
         EVENTLOG_EVENTS,
     }
 
+    interface PwmDBEventListener {
+        void processAction(PwmDBEvent event);
+    }
+
+    interface PwmDBEvent {
+        EventType getEventType();
+        DB getDB();
+        String getKey();
+        String getValue();
+    }
+
+    enum EventType {
+        READ, WRITE
+    }
+
+
 // -------------------------- INNER CLASSES --------------------------
+
+    public
+    @Retention(RetentionPolicy.RUNTIME)
+            @interface ReadOperation {
+    }
 
     public
     @Retention(RetentionPolicy.RUNTIME)
             @interface WriteOperation {
     }
+
+
 
     public static class TransactionItem implements Serializable, Comparable {
         private final DB db;
@@ -198,5 +223,7 @@ public interface PwmDB {
 
             return result;
         }
+
+
     }
 }

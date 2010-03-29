@@ -28,10 +28,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ConfigObjectRecord;
-import password.pwm.config.Message;
-import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
-import password.pwm.util.PwmLogger;
 import org.jdom.CDATA;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -39,6 +35,10 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import password.pwm.config.Message;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
+import password.pwm.util.PwmLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -237,10 +237,10 @@ public class UserHistory implements Serializable {
             RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD),
             SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES),
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
-            UPDATE_ATTRIBUTES(Message.EVENT_UPDATE_ATTRIBUTES),
-            INTRUDER_LOCK(Message.EVENT_INTRUDER_LOCKOUT),
+            UPDATE_ATTRIBUTES(Message.EVENT_LOG_UPDATE_ATTRIBUTES),
+            INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
 
-            UNKNOWN(Message.ERROR_UNKNOWN);
+            UNKNOWN(null);
 
             final private Message message;
 

@@ -138,7 +138,7 @@ function toggleHideResponses()
     responsesHidden = !responsesHidden;
 }
 
-function startupPage(fieldsAreHidden)
+function startupResponsesPage(fieldsAreHidden)
 {
     responsesHidden = fieldsAreHidden;
     try {

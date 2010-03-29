@@ -25,7 +25,7 @@ package password.pwm.tag;
 import password.pwm.ContextManager;
 import password.pwm.PwmSession;
 import password.pwm.config.LocalizedConfiguration;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -128,7 +128,7 @@ public class DisplayTag extends PwmAbstractTag {
             locale = Locale.getDefault();
         }
         try {
-            String displayMessage = Message.getDisplayString(key, locale);
+            String displayMessage = PwmError.getDisplayString(key, locale);
 
             if (displayMessage != null) {
                 if (value1 != null && value1.length() > 0) {

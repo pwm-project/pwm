@@ -34,7 +34,7 @@ public class StatisticsManager {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
 
-    private static final int DB_WRITE_FREQUENCY_MS = 3 * 60 * 1000;  // 3 minutes
+    private static final int DB_WRITE_FREQUENCY_MS = 30 * 60 * 1000;  // 30 minutes
 
     private static final String DB_KEY_VERSION = "STATS_VERSION";
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
@@ -64,8 +64,6 @@ public class StatisticsManager {
             return this.size() > 50;
         }
     };
-
-
 
     public StatisticsManager(final PwmDB pwmDB) {
         this.pwmDB = pwmDB;
@@ -97,9 +95,11 @@ public class StatisticsManager {
         int counter = days;
         while (counter > 0) {
             final StatisticsBundle bundle = getStatBundleForKey(loopKey.toString());
-            final String value = bundle.getStatistic(statistic);
-            final String key = (new SimpleDateFormat("MMM dd")).format(loopKey.calendar().getTime());
-            returnMap.put(key,value);
+            if (bundle != null) {
+                final String key = (new SimpleDateFormat("MMM dd")).format(loopKey.calendar().getTime());
+                final String value = bundle.getStatistic(statistic);
+                returnMap.put(key,value);
+            }
             loopKey = loopKey.previous();
             counter--;
         }
@@ -123,6 +123,10 @@ public class StatisticsManager {
             return cachedStoredStats.get(key);
         }
 
+        if (pwmDB == null) {
+            return null;
+        }
+
         try {
             final String storedStat = pwmDB.get(PwmDB.DB.PWM_STATS, key);
             final StatisticsBundle returnBundle;
@@ -140,7 +144,7 @@ public class StatisticsManager {
         return null;
     }
 
-    public Map<Key,String> getAvailabileKeys(final Locale locale) {
+    public Map<Key,String> getAvailableKeys(final Locale locale) {
         if (currentDailyKey.equals(initialDailyKey)) {
             return Collections.emptyMap();
         }
@@ -177,8 +181,12 @@ public class StatisticsManager {
     }
 
     private void initialize(final PwmDB pwmDB)
-            throws PwmDBException 
+            throws PwmDBException
     {
+        if (pwmDB == null) {
+            return;
+        }
+
         {
             final String storedCummulativeBundleStr = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE);
             if (storedCummulativeBundleStr != null && storedCummulativeBundleStr.length() > 0) {
@@ -239,7 +247,7 @@ public class StatisticsManager {
             statsDaily = new StatisticsBundle();
             LOGGER.debug("reset daily statistics");
         }
-        LOGGER.trace("output current statistics to pwmDB");
+        LOGGER.trace("saved statistics to pwmDB");
     }
 
     public void flush() {

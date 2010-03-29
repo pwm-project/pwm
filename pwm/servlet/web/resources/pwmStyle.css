@@ -37,7 +37,7 @@ table td { border: 1px solid #D4D4D4; padding-left: 5px;}
 table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }
 table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 200px;}
 
-.inputfield { width:400px; margin: 5px; }
+.inputfield { width:400px; margin: 5px; height:18px }
 
 /* main body wrapper, all elements (except footer) should be within wrapper */
 #wrapper { width:100%; min-height: 100%; height: auto !important; height: 100%; margin: 0; }
@@ -49,12 +49,9 @@ table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 2
 #buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}
 #buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px }
 
-/* used for password complexity meter */  /* start width 28 */
-#vertgraph          { width: 28px !important; height: 60px; float: right; position: relative; border:2px solid #A4A4A4; }
-#vertgraph ul       { width: 28px !important; height: 207px; margin: 0; padding: 0; }
-#vertgraph ul li    { width: 28px !important; position: absolute; height: 160px; bottom: 0px; padding: 0 !important; margin: 0 !important; background: url("progress_bar_bg.jpg") no-repeat !important; text-align: center; font-weight: bold; color: white; line-height: 2.5em; }
-#vertgraph li.bar   { left: 0px; background-position: 0px bottom !important; }
-.strengthdisplay    { float: none; margin-top: 65px; margin-left: 30%; margin-right: 30%; text-align:center; font-size: 85%; }
+/* used for password complexity meter */
+div.progress-container { border: 1px solid #ccc; width: 90px; margin: 2px 5px 2px 0; padding: 1px; float: left; background: white; }
+div.progress-container > div { background-color: #ffffff; height: 10px; }
 
 /* header stuff */
 #header         { width: 100%; height: 70px; margin: 0; background-image:url('header-gradient.gif') }
@@ -71,5 +68,4 @@ table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 2
 #footer .idle_status { color: #333333; }
 
 #capslockwarning { font-family: Trebuchet MS, sans-serif; color: #d20734; font-weight:bold; font-variant:small-caps; margin-bottom: 5px;}
-
 

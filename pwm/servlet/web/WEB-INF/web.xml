@@ -27,6 +27,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
     <display-name>PWM</display-name>
+    <distributable/>
     <description>Password Management Servlet</description>
     <context-param>
         <description>Explicit location of pwmServlet.properties file. Without a value, PWM will look for the
@@ -49,14 +50,14 @@
         <param-value>false</param-value>
     </context-param>
     <context-param>
-        <description>Location of where to store the "pwm-db" directory. If the specified path is relative, the pwm-db
-            directory will be placed in the servlet's "META-INF" directory.
+        <description>Location of where to store the "pwmDB" directory. If the specified path is relative, the pwm-db
+            directory will be placed in the servlet's "WEB-INF" directory.
         </description>
         <param-name>pwmDbLocation</param-name>
-        <param-value>pwm-db</param-value>
+        <param-value>pwmDB</param-value>
     </context-param>
     <context-param>
-        <description>database implementation used by pwmDb, primarily for wordlist management. Default is embedded berekeley db.</description>
+        <description>database implementation used by pwmDb, primarily for wordlist management. Default is embedded berkeley db.</description>
         <param-name>pwmDbImplementation</param-name>
         <param-value>password.pwm.util.db.Berkeley_PwmDb</param-value>
         <!--<param-value>password.pwm.util.db.Derby_PwmDb</param-value>-->
@@ -64,14 +65,14 @@
         <!--<param-value>password.pwm.util.db.Memory_PwmDb</param-value>-->
     </context-param>
     <context-param>
-        <description>value pased to the pwmDbImplementation class during initialization.</description>
+        <description>value passed to the pwmDbImplementation class during initialization.</description>
         <param-name>pwmDbInitString</param-name>
-        <param-value> </param-value>
+        <param-value>je.maxMemory=10000000;;;je.cleaner.minUtilization=80</param-value>
     </context-param>
     <context-param>
         <description><![CDATA[Values disallowed in all form inputs. Regex patterns seperated by three semi-colons ";;;". default list is:  html "<script>" tag ;;; XML document header ;;; LDAP search string ;;; SQL SELECT ;;; SQL UPDATE  ]]></description>
         <param-name>disallowedInputs</param-name>
-        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*]]>;;;(?i)SELECT;;;(?i)UPDATE</param-value>
+        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*;;;(?i)SELECT;;;(?i)UPDATE;;;(?i)<.*img.*>;;;(?i)<.*src.*>]]></param-value>
     </context-param>
     <context-param>
         <description>If present, use the X-Forwarded-For HTTP header value as the client IP address instead of the src IP address of the connection.</description>
@@ -97,7 +98,7 @@
         <param-value>false</param-value>
     </context-param>
     <context-param>
-        <description>Mimimum time to wait while testing for password synchronization time (ms)</description>
+        <description>Minimum time to wait while testing for password synchronization time (ms)</description>
         <param-name>minimumPasswordSyncWaitTime</param-name>
         <param-value>5000</param-value>
     </context-param>
@@ -143,7 +144,11 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
-        <url-pattern>/admin/*</url-pattern>
+        <url-pattern>/</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
@@ -288,8 +293,12 @@
         <servlet-name>CaptchaServlet</servlet-name>
         <url-pattern>/public/Captcha</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigManagerServlet</servlet-name>
+        <url-pattern>/config/ConfigManager</url-pattern>
+    </servlet-mapping>
     <session-config>
-        <session-timeout>5</session-timeout>
+        <session-timeout>23</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>

@@ -24,7 +24,6 @@
 <%@ page import="password.pwm.config.Message" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Date" %>
-<%@ page import="password.pwm.PwmSession" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -32,7 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();">
 <%
     UserHistory userHistory = new UserHistory(0);
     try { userHistory = UserHistory.readUserHistory(PwmSession.getPwmSession(session)); } catch (Exception e) { }

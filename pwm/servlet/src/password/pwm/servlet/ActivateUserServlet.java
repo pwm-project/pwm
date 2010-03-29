@@ -34,6 +34,7 @@ import password.pwm.bean.ActivateUserServletBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
@@ -73,10 +74,10 @@ public class ActivateUserServlet extends TopServlet {
         final ContextManager theManager = ContextManager.getContextManager(req);
         final Configuration config = theManager.getConfig();
 
-        final String actionParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (!config.readSettingAsBoolean(PwmSetting.ENABLE_ACTIVATE_USER)) {
-            ssBean.setSessionError(Message.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
@@ -84,6 +85,8 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
 
         if (actionParam != null && actionParam.equalsIgnoreCase("activate")) {
+            Validator.checkFormID(req);
+
             final Map<String, ParameterConfig> validationParams = activateBean.getActivateUserParams();
 
             ChaiUser theUser = null;
@@ -107,7 +110,7 @@ public class ActivateUserServlet extends TopServlet {
                 final String queryString = config.readSettingAsString(PwmSetting.QUERY_MATCH_ACTIVATE_USER);
                 if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
                     LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " attempted activation, but does not match query string");
-                    ssBean.setSessionError(Message.ERROR_ACTIVATE_USER_NO_QUERY_MATCH.toInfo());
+                    ssBean.setSessionError(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH.toInfo());
                     theManager.getIntruderManager().addBadUserAttempt(theUser.getEntryDN(), pwmSession);
                     theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
                     Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -146,7 +149,7 @@ public class ActivateUserServlet extends TopServlet {
                 UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);
 
                 // set the session success message
-                ssBean.setSessionSuccess(Message.SUCCESS_ACTIVATE_USER.toInfo());
+                ssBean.setSessionSuccess(Message.SUCCESS_ACTIVATE_USER);
 
                 // update the stats bean
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
@@ -156,13 +159,13 @@ public class ActivateUserServlet extends TopServlet {
 
                 return;
             } catch (ImpossiblePasswordPolicyException e) {
-                final ErrorInformation info = new ErrorInformation(Message.ERROR_UNKNOWN,"unexpected ImpossiblePasswordPolicyException error while activating user");
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected ImpossiblePasswordPolicyException error while activating user");
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
                 this.forwardToJSP(req, resp);
                 return;
             } catch (ChaiOperationException e) {
-                final ErrorInformation info = new ErrorInformation(Message.ERROR_UNKNOWN,"unexpected error writing to ldap: " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error writing to ldap: " + e.getMessage());
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
                 Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -233,7 +236,7 @@ public class ActivateUserServlet extends TopServlet {
         final ChaiUser theUser = performUserSearch(pwmSession, searchFilter);
 
         if (theUser == null) {
-            final String usernameAttribute = pwmSession.getContextManager().getParameter(Constants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
+            final String usernameAttribute = pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
             final ParameterConfig usernameParam = paramConfigs.get(usernameAttribute);
             if (usernameParam != null) {
                 final String usernameValue = usernameParam.getValue();
@@ -241,7 +244,7 @@ public class ActivateUserServlet extends TopServlet {
                     pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(usernameValue,pwmSession);
                 }
             }
-            throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_NEW_USER_VALIDATION_FAILED));
+            throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED));
         }
 
         return theUser;
@@ -263,12 +266,12 @@ public class ActivateUserServlet extends TopServlet {
 
             try {
                 if (!theUser.compareStringAttribute(attrName, paramConfig.getValue())) {
-                    throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'",attrName));
+                    throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'",attrName));
                 }
                 LOGGER.trace(pwmSession,"successful validation of ldap value for '" + attrName + "'");
             } catch (ChaiOperationException e) {
                 LOGGER.error(pwmSession,"error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw ValidationException.createValidationException(new ErrorInformation(Message.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'",attrName));
+                throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'",attrName));
             }
         }
     }
@@ -279,7 +282,7 @@ public class ActivateUserServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_ACTIVATE_USER).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER).forward(req, resp);
     }
 }
 

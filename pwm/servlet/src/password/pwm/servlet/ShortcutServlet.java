@@ -48,15 +48,15 @@ public class ShortcutServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (pwmSession.getSessionStateBean().getVisableShortcutItems() == null) {
+        if (pwmSession.getSessionStateBean().getVisibleShortcutItems() == null) {
             LOGGER.debug(pwmSession,"building visible shortcut list for user");
             final Map<String,ShortcutItem> visibleItems  = figureVisibleShortcuts(pwmSession, req);
-            pwmSession.getSessionStateBean().setVisableShortcutItems(visibleItems);
+            pwmSession.getSessionStateBean().setVisibleShortcutItems(visibleItems);
         } else {
             LOGGER.trace(pwmSession,"using cashed shortcut values");
         }
 
-        final String action = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 255);
+        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("selectShortcut")) {
@@ -73,7 +73,7 @@ public class ShortcutServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + Constants.URL_JSP_SHORTCUT).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SHORTCUT).forward(req, resp);
     }
 
 
@@ -112,7 +112,7 @@ public class ShortcutServlet extends TopServlet {
             throws PwmException, ChaiUnavailableException, IOException, ServletException
     {
         final String link = Validator.readStringFromRequest(req, "link", 255);
-        final Map<String,ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisableShortcutItems();
+        final Map<String,ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
 
         if (link != null && visibleItems.keySet().contains(link)) {
             final ShortcutItem item = visibleItems.get(link);
@@ -123,7 +123,7 @@ public class ShortcutServlet extends TopServlet {
 
             final StringBuilder continueURL = new StringBuilder();
             continueURL.append(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE));
-            continueURL.append("/public/" + Constants.URL_SERVLET_COMMAND);
+            continueURL.append("/public/" + PwmConstants.URL_SERVLET_COMMAND);
             continueURL.append("?processAction=continue");
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(continueURL.toString(), req, resp));
             return;
@@ -139,7 +139,7 @@ public class ShortcutServlet extends TopServlet {
             final String loopHeader = (String)headerEnum.nextElement();
             for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements(); ) {
                 final String loopValue = (String)valueEnum.nextElement();
-                if (loopHeader.toLowerCase().startsWith(Constants.HTTP_HEADER_PWM_SHORTCUT.toLowerCase())) {
+                if (loopHeader.toLowerCase().startsWith(PwmConstants.HTTP_HEADER_PWM_SHORTCUT.toLowerCase())) {
                     try {
                     final ShortcutItem item = ShortcutItem.parseHeaderInput(loopValue);
                     returnMap.put(item.getLabel(),item);

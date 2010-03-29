@@ -51,13 +51,13 @@ public class BasicAuthInfo implements Serializable {
      */
     public static BasicAuthInfo parseAuthHeader(final HttpServletRequest req)
     {
-        final String authHeader = req.getHeader(Constants.HTTP_HEADER_BASIC_AUTH);
+        final String authHeader = req.getHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH);
 
         if (authHeader != null) {
-            if (authHeader.indexOf(Constants.HTTP_BASIC_AUTH_PREFIX) != -1) {
+            if (authHeader.indexOf(PwmConstants.HTTP_BASIC_AUTH_PREFIX) != -1) {
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
-                final String encoded = authHeader.substring(Constants.HTTP_BASIC_AUTH_PREFIX.length(), authHeader.length());
+                final String encoded = authHeader.substring(PwmConstants.HTTP_BASIC_AUTH_PREFIX.length(), authHeader.length());
 
                 try {
                     // ***** Decode the username/chpass string

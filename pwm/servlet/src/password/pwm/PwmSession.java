@@ -82,10 +82,10 @@ public class PwmSession implements Serializable {
             throw e;
         }
 
-        PwmSession returnSession = (PwmSession)httpSession.getAttribute(Constants.SESSION_ATTR_PWM_SESSION);
+        PwmSession returnSession = (PwmSession)httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
         if (returnSession == null) {
             final PwmSession newPwmSession = new PwmSession(httpSession);
-            httpSession.setAttribute(Constants.SESSION_ATTR_PWM_SESSION, newPwmSession);
+            httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION, newPwmSession);
             returnSession = newPwmSession;
         } else if (returnSession.httpSession == null) { // stale session (was previously passivated)
             returnSession.httpSession = httpSession;
@@ -125,7 +125,7 @@ public class PwmSession implements Serializable {
     {
         this.creationTime = System.currentTimeMillis();
         this.httpSession = httpSession;
-        this.getSessionStateBean().setSessionID("");        
+        this.getSessionStateBean().setSessionID("");
 
         final ContextManager contextManager = getContextManager();
         if (contextManager != null) {
@@ -206,7 +206,7 @@ public class PwmSession implements Serializable {
         return userInfoBean;
     }
 
-    
+
 // -------------------------- OTHER METHODS --------------------------
 
     public void clearChangePasswordBean()
@@ -312,5 +312,9 @@ public class PwmSession implements Serializable {
 
     public UserInformationServletBean getUserInformationServletBean() {
         return userInformationServletBean;
+    }
+
+    public int getMaxInactiveInterval() {
+        return httpSession == null ? - 1 : httpSession.getMaxInactiveInterval();
     }
 }

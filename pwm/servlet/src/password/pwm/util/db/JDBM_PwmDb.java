@@ -36,10 +36,13 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.db.PwmDB.TransactionItem;
+
 /**
  * @author Jason D. Rivard
  */
-public class JDBM_PwmDb implements PwmDB {
+public class JDBM_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(JDBM_PwmDb.class);

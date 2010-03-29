@@ -22,7 +22,7 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.Constants;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 
 
@@ -33,9 +33,10 @@ public interface Wordlist {
     static final String KEY_VERSION = "VERSION";
     static final String KEY_CHECKSUM = "CHECKSUM";
     static final String KEY_ELAPSEDSECONDS = "RUNTIME";
+    static final String KEY_SIZE = "SIZE";
 
     // string used as db version checksum, if different then value in db, db will be cleared.
-    static final String VALUE_VERSION = "pwm-wordlist-db-8-t2" + "_" + Constants.BUILD_NUMBER + "_" + Constants.PWM_VERSION;
+    static final String VALUE_VERSION = "pwm-wordlist-db-10-a1" + "_" + PwmConstants.BUILD_NUMBER + "_" + PwmConstants.PWM_VERSION;
 
     public boolean containsWord(final PwmSession pwmSession, final String word);
 

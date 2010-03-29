@@ -164,6 +164,12 @@
             <rtexprvalue>true</rtexprvalue>
         </attribute>
     </tag>
+    <tag>
+        <name>FormID</name>
+        <tag-class>password.pwm.tag.FormIDTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the proper formID value for the session</description>
+    </tag>
 </taglib>
 
 

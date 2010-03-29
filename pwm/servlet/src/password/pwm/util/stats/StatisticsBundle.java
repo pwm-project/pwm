@@ -56,9 +56,9 @@ public class StatisticsBundle {
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {
-            final String value = (String)srcMap.get(loopStat.toString());
+            final Object value = srcMap.get(loopStat.toString());
             if (value != null && !value.equals("")) {
-                bundle.valueMap.put(loopStat,value);
+                bundle.valueMap.put(loopStat,value.toString());
             }
         }
 

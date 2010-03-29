@@ -27,7 +27,7 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.Message;
+import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
@@ -60,15 +60,16 @@ public class LoginServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String actionParam = Validator.readStringFromRequest(req, Constants.PARAM_ACTION_REQUEST, 1024);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
+            Validator.checkFormID(req);
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String password = Validator.readStringFromRequest(req, "password", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);
 
             if (username.length() < 1 || password.length() < 1) {
-                ssBean.setSessionError(new ErrorInformation(Message.ERROR_MISSING_PARAMETER));
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -76,7 +77,7 @@ public class LoginServlet extends TopServlet {
             final boolean authSuccessful = AuthenticationFilter.authenticateUser(username, password, context, pwmSession, req.isSecure());
 
             if (!authSuccessful) {
-                ssBean.setSessionError(new ErrorInformation(Message.ERROR_WRONGPASSWORD));
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD));
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -96,7 +97,7 @@ public class LoginServlet extends TopServlet {
                 }
                 if (mismatch) {
                     pwmSession.unauthenticateUser();
-                    ssBean.setSessionError(new ErrorInformation(Message.ERROR_USER_MISMATCH));
+                    ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_USER_MISMATCH));
                     Helper.forwardToErrorPage(req, resp, this.getServletContext());
                     return;
                 }
@@ -108,7 +109,7 @@ public class LoginServlet extends TopServlet {
             // see if there is a an original request url
             final String originalURL = ssBean.getOriginalRequestURL();
 
-            if (originalURL != null && originalURL.indexOf(Constants.URL_SERVLET_LOGIN) == -1) {
+            if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(ssBean.getOriginalRequestURL(), req, resp));
             } else {
                 final Configuration config = ContextManager.getContextManager(this.getServletContext()).getConfig();
@@ -125,7 +126,7 @@ public class LoginServlet extends TopServlet {
     )
             throws IOException, ServletException
     {                                        
-        final String url = SessionFilter.rewriteURL('/' + Constants.URL_JSP_LOGIN, req, resp);
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 }

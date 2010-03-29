@@ -47,7 +47,7 @@ public class CaptchaFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         final Configuration config = pwmSession.getConfig();
-        final String captchaServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/public/" + Constants.URL_SERVLET_CAPTCHA;
+        final String captchaServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
 
         checkIfCaptchaEnabled(pwmSession,ssBean);
 

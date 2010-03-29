@@ -30,13 +30,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.db.PwmDB.TransactionItem;
+
+
 /**
  * @author Jason D. Rivard
  */
-public class Memory_PwmDb implements PwmDB {
+public class Memory_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final long MIN_FREE_MEMORY = 100 * 1024;  // 100kb
+    private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
     private STATE state = STATE.NEW;
     private final Map<DB, Map<String, String>> maps = new HashMap<DB, Map<String, String>>();
 
@@ -69,7 +73,7 @@ public class Memory_PwmDb implements PwmDB {
 
 // --------------------- Interface PwmDB ---------------------
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public void close()
             throws PwmDBException
     {
@@ -96,7 +100,7 @@ public class Memory_PwmDb implements PwmDB {
         return map.get(key);
     }
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public void init(final File dbDirectory, final String initString)
             throws PwmDBException
     {
@@ -113,7 +117,7 @@ public class Memory_PwmDb implements PwmDB {
         return new DbIterator(db);
     }
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public void putAll(final DB db, final Map<String,String> keyValueMap)
             throws PwmDBException
     {
@@ -129,7 +133,7 @@ public class Memory_PwmDb implements PwmDB {
         }
     }
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public boolean put(final DB db, final String key, final String value)
             throws PwmDBException
     {
@@ -147,7 +151,7 @@ public class Memory_PwmDb implements PwmDB {
         return preExistingKey;
     }
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public boolean remove(final DB db, final String key)
             throws PwmDBException
     {
@@ -172,7 +176,7 @@ public class Memory_PwmDb implements PwmDB {
         return map.size();
     }
 
-    @WriteOperation
+    @PwmDB.WriteOperation
     public void truncate(final DB db)
             throws PwmDBException
     {

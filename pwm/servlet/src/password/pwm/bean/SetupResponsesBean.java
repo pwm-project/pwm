@@ -37,7 +37,7 @@ public class SetupResponsesBean implements Serializable {
         return challengeList;
     }
 
-    public void setChallengeList(Map<String, Challenge> challengeList) {
+    public void setChallengeList(final Map<String, Challenge> challengeList) {
         this.challengeList = challengeList;
     }
 
@@ -45,7 +45,7 @@ public class SetupResponsesBean implements Serializable {
         return simpleMode;
     }
 
-    public void setSimpleMode(boolean simpleMode) {
+    public void setSimpleMode(final boolean simpleMode) {
         this.simpleMode = simpleMode;
     }
 

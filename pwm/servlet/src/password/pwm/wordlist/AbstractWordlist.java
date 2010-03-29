@@ -27,6 +27,7 @@ import password.pwm.PwmSession;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.Sleeper;
+import password.pwm.util.db.PwmDBException;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
@@ -49,6 +50,8 @@ abstract class AbstractWordlist implements Wordlist {
 
     protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
     protected String DEBUG_LABEL = "Generic Wordlist";
+
+    protected int storedSize = 0;
 
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -105,6 +108,14 @@ abstract class AbstractWordlist implements Wordlist {
             return;
         }
 
+        //read stored size
+        try {
+            final String storedSizeStr = pwmDB.get(META_DB, KEY_SIZE);
+            storedSize = Integer.valueOf(storedSizeStr);
+        } catch (PwmDBException e) {
+            LOGGER.warn(DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage());
+        }
+
         if (wlStatus == WordlistStatus.OPENING || wlStatus == WordlistStatus.POPULATING) {
             wlStatus = WordlistStatus.OPEN;
             final int wordlistSize = size();
@@ -134,24 +145,23 @@ abstract class AbstractWordlist implements Wordlist {
             throws Exception
     {
         LOGGER.trace("calculating checksum of " + wordlistFile.getAbsolutePath());
-        final StringBuilder checksum = new StringBuilder();
-        checksum.append("checksum=").append(Helper.md5sum(wordlistFile));
-        checksum.append(",caseSensitive=").append(caseSensitive);
-        checksum.append(",lastModifed=").append(wordlistFile.lastModified());
-        checksum.append(",length=").append(wordlistFile.length());
-        LOGGER.trace("checksum of " + wordlistFile.getAbsolutePath() + " complete, result: " + checksum);
+        final StringBuilder checksumString = new StringBuilder();
+        checksumString.append("checksum=").append(Helper.md5sum(wordlistFile));
+        checksumString.append(",length=").append(wordlistFile.length());
+        checksumString.append(",caseSensitive=").append(caseSensitive);
+        LOGGER.trace("checksum of " + wordlistFile.getAbsolutePath() + " complete, result: " + checksumString);
 
-        final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksum.toString());
+        final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString.toString());
         final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS)));
 
         if (!clearRequired && isComplete) {
             return;
         }
 
-        LOGGER.debug(DEBUG_LABEL + " population incomplete, running populator");
+        LOGGER.debug(DEBUG_LABEL + " previous population incomplete, resuming");
 
         if (clearRequired) {
-            resetDB(checksum.toString());
+            resetDB(checksumString.toString());
         }
 
         if (wlStatus != WordlistStatus.OPENING) {
@@ -226,7 +236,7 @@ abstract class AbstractWordlist implements Wordlist {
         pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
 
         for (final PwmDB.DB db : new PwmDB.DB[]{META_DB, WORD_DB}) {
-            LOGGER.debug("clearing " + db + " (" + pwmDB.size(db) + ")");
+            LOGGER.debug("clearing " + db);
             pwmDB.truncate(db);
         }
 
@@ -266,6 +276,9 @@ abstract class AbstractWordlist implements Wordlist {
 
     public int size()
     {
+        if (storedSize != 0) {
+            return storedSize;
+        }
         return getDbSize(WORD_DB);
     }
 

@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="document.forms.updateAttributes.elements[0].focus();" onunload="unloadHandler();">
+<body onload="pwmPageLoadHandler();document.forms.updateAttributes.elements[0].focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_UpdateAttributes"/></jsp:include>
     <div id="centerbody">
@@ -48,6 +48,7 @@
                 <input type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>
                 <input type="reset"  class="btn" name="reset" value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="updateAttributes"/>
+                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

@@ -22,15 +22,16 @@
 
 package password.pwm.util.db;
 
+import password.pwm.ContextManager;
+import password.pwm.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.Helper;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * @author Jason D. Rivard                                                 
+ * @author Jason D. Rivard
  */
 public class PwmDBFactory {
 // ------------------------------ FIELDS ------------------------------
@@ -38,53 +39,49 @@ public class PwmDBFactory {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBFactory.class);
     private static final String DEFAULT_IMPLEMENTATION = Berkeley_PwmDb.class.getName();
 
-    private static final Collection<String> SIZE_CACHE_USERS = Collections.unmodifiableList(Arrays.asList(
-            Berkeley_PwmDb.class.getName(),
-            Derby_PwmDb.class.getName(),
-            JDBM_PwmDb.class.getName())
-    );
-
     private static final Map<File, PwmDB> singletonMap = Collections.synchronizedMap(new HashMap<File, PwmDB>());
 
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static synchronized PwmDB getInstance(final File dbDirectory, String className, final String initString)
+    public static synchronized PwmDB getInstance(
+            final File dbDirectory,
+            final String className,
+            final String initString,
+            final ContextManager contextManager
+    )
             throws Exception
     {
         PwmDB db = singletonMap.get(dbDirectory);
 
         if (db == null) {
             final long startTime = System.currentTimeMillis();
-            className = className != null ? className : DEFAULT_IMPLEMENTATION;
-            db = createInstance(className);
-            LOGGER.debug("initializing " + className + " pwmDB instance");
+            final String theClass = className != null ? className : DEFAULT_IMPLEMENTATION;
+            final PwmDBProvider dbProvider = createInstance(theClass);
+            LOGGER.debug("initializing " + theClass + " pwmDBProvider instance");
 
-            if (SIZE_CACHE_USERS.contains(className)) {
-                db = PwmDBSizeCache.createDbSizeCachePwmDB(db);
-            }
 
-            db = ValidatingPwmDB.createValidatingPwmDB(db);
+            db = new PwmDBAdaptor(dbProvider);
 
-            initInstance(db, dbDirectory, initString);
+            initInstance(dbProvider, dbDirectory, initString, theClass);
             final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
-            LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", space on disk: " + Helper.formatDiskSize(db.diskSpaceUsed()));
+            LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()));
         }
 
         return db;
     }
 
-    private static PwmDB createInstance(final String className)
+    private static PwmDBProvider createInstance(final String className)
             throws Exception
     {
-        final PwmDB pwmDB;
+        final PwmDBProvider pwmDB;
         try {
             final Class c = Class.forName(className);
             final Object impl = c.newInstance();
-            if (!(impl instanceof PwmDB)) {
-                throw new Exception("unable to createSharedHistoryManager new PwmDB, " + className + " is not instance of " + PwmDB.class.getName());
+            if (!(impl instanceof PwmDBProvider)) {
+                throw new Exception("unable to createSharedHistoryManager new PwmDB, " + className + " is not instance of " + PwmDBProvider.class.getName());
             }
-            pwmDB = (PwmDB) impl;
+            pwmDB = (PwmDBProvider) impl;
         } catch (Exception e) {
             LOGGER.warn("error creating new PwmDB instance: " + e.getClass().getName() + ":" + e.getMessage());
             throw new Exception("Messages instantiating new PwmDB instance: " + e.getMessage(), e);
@@ -93,163 +90,20 @@ public class PwmDBFactory {
         return pwmDB;
     }
 
-    private static void initInstance(final PwmDB pwmDB, final File dbFileLocation, final String initString)
+    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final String initString, final String theClass)
             throws Exception
     {
         try {
             if (dbFileLocation.mkdir()) {
-                LOGGER.trace("createad directory at " + dbFileLocation.getAbsolutePath());
+                LOGGER.trace("created directory at " + dbFileLocation.getAbsolutePath());
             }
-            pwmDB.init(dbFileLocation, initString);
+            pwmDBProvider.init(dbFileLocation, initString);
         } catch (Exception e) {
             LOGGER.warn("error while initializing pwmDB instance: " + e.getMessage());
             throw e;
         }
 
-        LOGGER.trace("db init completed for " + pwmDB.getClass().toString());
+        LOGGER.trace("db init completed for " + theClass);
     }
 
-    public static class ValidatingPwmDB implements PwmDB {
-        private final PwmDB innerDB;
-
-        private ValidatingPwmDB(final PwmDB innerDB) {
-            if (innerDB == null) {
-                throw new IllegalArgumentException("innerDB can not be null");
-            }
-
-            this.innerDB = innerDB;
-        }
-
-        public long diskSpaceUsed() {
-            return innerDB.diskSpaceUsed();
-        }
-
-        public static ValidatingPwmDB createValidatingPwmDB(final PwmDB innerDB) {
-            if (innerDB instanceof ValidatingPwmDB) {
-                return (ValidatingPwmDB)innerDB;
-            }
-            return new ValidatingPwmDB(innerDB);
-        }
-
-        @WriteOperation
-        public void close() throws PwmDBException {
-            innerDB.close();
-        }
-
-        public boolean contains(final DB db, final String key) throws PwmDBException {
-            validateDBValue(db);
-            ValidateKeyValue(key);
-            return innerDB.contains(db,key);
-        }
-
-        public String get(final DB db, final String key) throws PwmDBException {
-            validateDBValue(db);
-            ValidateKeyValue(key);
-            return innerDB.get(db,key);
-        }
-
-        @WriteOperation
-        public void init(final File dbDirectory, final String initString) throws PwmDBException {
-            innerDB.init(dbDirectory, initString);
-        }
-
-        public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {
-            validateDBValue(db);
-            return innerDB.iterator(db);
-        }
-
-        @WriteOperation
-        public void putAll(final DB db, final Map<String,String> keyValueMap) throws PwmDBException {
-            validateDBValue(db);
-            for (final String loopKey : keyValueMap.keySet()) {
-                try {
-                    ValidateKeyValue(loopKey);
-                    validateValueValue(keyValueMap.get(loopKey));
-                } catch (NullPointerException e) {
-                    throw new NullPointerException(e.getMessage() + " for transaction record: '" + loopKey + "'");
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException(e.getMessage() + " for transaction record: '" + loopKey + "'");
-                }
-            }
-
-            innerDB.putAll(db, keyValueMap);
-        }
-
-        @WriteOperation
-        public boolean put(final DB db, final String key, final String value) throws PwmDBException {
-            validateDBValue(db);
-            ValidateKeyValue(key);
-            validateValueValue(value);
-            return innerDB.put(db,key,value);
-        }
-
-        @WriteOperation
-        public boolean remove(final DB db, final String key) throws PwmDBException {
-            validateDBValue(db);
-            ValidateKeyValue(key);
-            return innerDB.remove(db,key);
-        }
-
-        @WriteOperation
-        public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
-            validateDBValue(db);
-            for (final String loopKey : keys) {
-                try {
-                    validateValueValue(loopKey);
-                } catch (NullPointerException e) {
-                    throw new NullPointerException(e.getMessage() + " for transaction record: '" + loopKey + "'");
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException(e.getMessage() + " for transaction record: '" + loopKey + "'");
-                }
-            }
-
-            innerDB.removeAll(db, keys);
-        }
-
-        public void returnIterator(final DB db) throws PwmDBException {
-            validateDBValue(db);
-            innerDB.returnIterator(db);
-        }
-
-        public int size(final DB db) throws PwmDBException {
-            validateDBValue(db);
-            return innerDB.size(db);
-        }
-
-        @WriteOperation
-        public void truncate(final DB db) throws PwmDBException {
-            validateDBValue(db);
-            innerDB.truncate(db);
-        }
-
-        private void validateDBValue(final DB db) {
-            if (db == null) {
-                throw new NullPointerException("db cannot be null");
-            }
-        }
-
-        private void ValidateKeyValue(final String key) {
-            if (key == null) {
-                throw new NullPointerException("key cannot be null");
-            }
-
-            if (key.length() < 0) {
-                throw new IllegalArgumentException("key length cannot be zero length");
-            }
-
-            if (key.length() > PwmDB.MAX_KEY_LENGTH) {
-                throw new IllegalArgumentException("key length cannot be greater than " + PwmDB.MAX_KEY_LENGTH);
-            }
-        }
-
-        private void validateValueValue(final String value) {
-            if (value == null) {
-                throw new NullPointerException("value cannot be null");
-            }
-
-            if (value.length() > PwmDB.MAX_VALUE_LENGTH) {
-                throw new IllegalArgumentException("key length cannot be greater than " + PwmDB.MAX_VALUE_LENGTH);
-            }
-        }
-    }
 }

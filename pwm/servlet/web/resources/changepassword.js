@@ -22,18 +22,23 @@
 
 //
 // PWM Change Password JavaScript.
-// 
+//
 
-var SETTING_SHOW_CHECKING_TIMEOUT = 400;    // show "please wait, checking" if response not received in this time (ms)
+var SETTING_SHOW_CHECKING_TIMEOUT = 1000;    // show "please wait, checking" if response not received in this time (ms)
 
 var passwordsMasked = true;
 var previousP1 = "";
+
+var COLOR_BAR_TOP       = 0x8ced3f;
+var COLOR_BAR_BOTTOM    = 0xcc0e3e;
+
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validatePasswords()
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
+        clearForm();
         return;
     }
 
@@ -88,10 +93,11 @@ function updateDisplay(resultString)
 
     var message = resultInfo["message"];
 
-    if (resultInfo["version"] != "1") {
+    if (resultInfo["version"] != "2") {
         showError("[ unexpected version string from server ]");
         return;
     }
+
 
     if (resultInfo["passed"] == "true") {
         if (resultInfo["match"] == "MATCH") {
@@ -99,23 +105,65 @@ function updateDisplay(resultString)
         } else {
             showConfirm(message);
         }
-        markStrength(resultInfo["strength"]);
     } else {
         showError(message);
-        markStrength(0);
+    }
+
+
+    markConfirmationMark(resultInfo["match"]);
+    markStrength(resultInfo["strength"]);
+}
+
+function markConfirmationMark(matchStatus) {
+    if (matchStatus == "MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'visible';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '15';
+        getObject("confirmCrossMark").width = '0';
+    } else if (matchStatus == "NO_MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'visible';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '15';
+    } else {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '0';
     }
 }
 
 function markStrength(strength) { //strength meter
-    if (strength == 9) {
-        strength = 100;
+    if (getObject("password1").value.length > 0) {
+        getObject("strengthBox").style.visibility = 'visible';
     } else {
-        strength = strength * 10;
+        getObject("strengthBox").style.visibility = 'hidden';
     }
 
-    var objectBar = getObject("graph2");
-    if (objectBar != null) {
-        objectBar.innerHTML = '<li class="bar" style="height: ' + strength + '%;"><!--comment--></li>';
+    var strengthLabel = "";
+    var barColor = "";
+
+    if (strength > 70) {
+        strengthLabel = getObject("Js_Strength_High").value;
+    } else if (strength > 45) {
+        strengthLabel = getObject("Js_Strength_Medium").value;
+    } else {
+        strengthLabel = getObject("Js_Strength_Low").value;
+    }
+
+    var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
+    var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
+
+
+    var barObject = getObject("strengthBar");
+    if (barObject != null) {
+        barObject.style.width = strength + '%';
+        barObject.style.backgroundColor = '#' + gradColor;
+    }
+
+    var labelObject = getObject("strengthLabel");
+    if (labelObject != null) {
+        labelObject.innerHTML = strengthLabel == null ? "" : strengthLabel;
     }
 }
 
@@ -123,7 +171,7 @@ function clearError(message)
 {
     getObject("password_button").disabled = false;
     getObject("error_msg").firstChild.nodeValue = message;
-    getObject("error_msg").className = "msg-info";
+    getObject("error_msg").className = "msg-success";
 }
 
 function showWorking()
@@ -165,7 +213,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     alert(getObject("Js_Display_PasswordChangedTo").value + "\n\n" + text);
 }
 
-function toggleHide()
+function toggleMaskPasswords()
 {
     if (passwordsMasked) {
         getObject("hide_button").value = " " + getObject("Js_Button_Hide").value + " ";
@@ -184,6 +232,7 @@ function handleChangePasswordSubmit()
 {
     getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_PleaseWait").value;
     getObject("error_msg").className = "notice";
+    dirtyPageLeaveFlag = false;
 }
 
 function fetchNewRandom()
@@ -216,40 +265,53 @@ function clearForm() {
     getObject("password1").value = "";
     getObject("password2").value = "";
     clearError('\u00A0'); //&nbsp;
+    markConfirmationMark("EMPTY");
     markStrength(0);
+    setTimeout( function() { getObject("password1").focus(); }, 10); // hack for IE
 }
 
-function startupPage()
+function startupChangePasswordPage()
 {
-    /************* enable the hide button only if the toggle works */
+    /* enable the hide button only if the toggle works */
     try {
-        toggleHide();
-        toggleHide();
+        toggleMaskPasswords();
+        toggleMaskPasswords();
         changeInputTypeField(getObject("hide_button"),"button");
     } catch (e) {
     }
 
-    /************* show progressbar if browser is capable */
-    /* if browser is javascript capable (must be to get here, then show strengthBar */
-    var showStrengthMeterBox = true;
-
-    /* if browser is ie 6 or less, then don't show strengthBar, ie6 cant handle the css. */
+    /* check if browser is ie6 or less. */
+    var isIe6orLess = false;
     if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){ //test for MSIE x.x;
         var ieversion=new Number(RegExp.$1) // capture x.x portion and store as a number
         if (ieversion<=6) {
-            showStrengthMeterBox = false;
+            isIe6orLess = false;
         }
     }
 
-    if (showStrengthMeterBox) {
-        var strengthMeterBox = getObject('strengthMeterBox');
-        try {
-            strengthMeterBox.style.display = "inherit";
-        } catch (e) {
-        }
+    // show the auto generate password panel
+    var autoGenPasswordElement = getObject("autoGeneratePassword");
+    if (autoGenPasswordElement != null) {
+        autoGenPasswordElement.style.visibility = 'visible';
+    }    
+
+    // show the error panel
+    var autoGenPasswordElement = getObject("error_msg");
+    if (autoGenPasswordElement != null) {
+        autoGenPasswordElement.style.visibility = 'visible';
     }
 
     validatePasswords();
+
+    // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
+    window.onbeforeunload = function() {
+        if (dirtyPageLeaveFlag) {
+            var message = getObject("Js_LeaveDirtyPasswordPage").value;
+            return message;
+        }
+    };
+
+    dirtyPageLeaveFlag = true;
 }
 
 var validatorAjaxState = new AjaxRequestorState(getObject("Js_ChangePasswordURL").value, handleValidationResponse);
