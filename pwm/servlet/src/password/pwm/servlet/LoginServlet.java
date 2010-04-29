@@ -45,7 +45,8 @@ import java.io.IOException;
  *
  * @author Jason D. Rivard
  */
-public class LoginServlet extends TopServlet {
+public class
+        LoginServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LoginServlet.class.getName());
@@ -63,7 +64,7 @@ public class LoginServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
-            Validator.checkFormID(req);
+            //Validator.checkFormID(req);
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String password = Validator.readStringFromRequest(req, "password", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);

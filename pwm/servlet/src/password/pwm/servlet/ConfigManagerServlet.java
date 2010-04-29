@@ -23,31 +23,30 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import password.pwm.PwmConstants;
-import password.pwm.error.PwmException;
+import password.pwm.PwmSession;
 import password.pwm.Validator;
+import password.pwm.bean.ConfigManagerBean;
+import password.pwm.config.NewConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
-import java.text.SimpleDateFormat;
-
-import org.jdom.Element;
-import org.jdom.Document;
-import org.jdom.Comment;
-import org.jdom.output.XMLOutputter;
-import org.jdom.output.Format;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConfigManagerServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
-    private static final int DEFAULT_INPUT_LENGTH = 1024;
-    private static final String SETTING_PREFIX = "setting_";
+    private static final int DEFAULT_INPUT_LENGTH = 1024 * 10;
 
     protected void processRequest(
             final HttpServletRequest req,
@@ -57,47 +56,69 @@ public class ConfigManagerServlet extends TopServlet {
     {
 
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
-        final Map<String,Map<String,String>> configMap = readConfigMapFromRequest(req);
-        req.setAttribute(PwmConstants.REQUEST_CONFIG_MAP, configMap);
+        if (configManagerBean.getConfiguration() == null) {
+            configManagerBean.setConfiguration(NewConfiguration.getDefaultConfiguration());
+        }
 
         if ("generateXml".equalsIgnoreCase(processRequestParam)) {
-            this.doGenerateXmlDoc(req,resp);
+            //this.doGenerateXmlDoc(req,resp);
+            return;
+        } else if ("readSetting".equalsIgnoreCase(processRequestParam)) {
+            this.readSetting(req,resp);
+            return;
+        } else if ("writeSetting".equalsIgnoreCase(processRequestParam)) {
+            this.writeSetting(req,resp);
             return;
         }
 
         this.forwardToJSP(req, resp);
     }
 
-    private void doGenerateXmlDoc(
+    private void readSetting(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws IOException {
-        final Map<PwmSetting, String> valueMap = new HashMap<PwmSetting, String>();
-        for (PwmSetting setting : PwmSetting.values()) {
-            final String value = Validator.readStringFromRequest(req, SETTING_PREFIX + setting.getKey(), DEFAULT_INPUT_LENGTH);
-            valueMap.put(setting, value);
+    ) throws IOException, PwmException {
+        Validator.checkFormID(req);
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final NewConfiguration configuration = configManagerBean.getConfiguration();
+        final String settingKey = Validator.readStringFromRequest(req,"key",1024 * 10);
+        if (settingKey.equals("expirePreTime")) {
+            System.out.println("yep!");
         }
 
-        Element settingsElement = new Element("settings");
-        for (PwmSetting setting : PwmSetting.values()) {
-            settingsElement.addContent(setting.toXmlElement(valueMap.get(setting)));
+        final PwmSetting theSetting = PwmSetting.forKey(settingKey);
+
+        final Map<String,String> returnMap = new HashMap<String,String>();
+        returnMap.put("key", theSetting.getKey());
+        returnMap.put("value", configuration.readStringSetting(theSetting));
+        final String outputString = JSONObject.toJSONString(returnMap);
+        resp.setContentType("text/plain;charset=utf-8");
+        resp.getWriter().print(outputString);
+    }
+
+    private void writeSetting(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    ) throws IOException, PwmException {
+        Validator.checkFormID(req);
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final NewConfiguration configuration= configManagerBean.getConfiguration();
+
+        final String bodyString = readRequestBody(req);
+
+        System.out.println("received body: " + bodyString);
+
+        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+
+        if (srcMap != null) {
+            final String key = String.valueOf(srcMap.get("key"));
+            final String value = String.valueOf(srcMap.get("value"));
+
+            final PwmSetting setting = PwmSetting.forKey(key);
+            configuration.writeStringSetting(setting, value);
         }
-
-        Element pwmConfigElement = new Element("PwmConfigurationBean");
-        pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
-        pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Servlet"));
-        pwmConfigElement.addContent(settingsElement);
-        pwmConfigElement.setAttribute("version", PwmConstants.PWM_VERSION);
-        pwmConfigElement.setAttribute("build", PwmConstants.BUILD_NUMBER);
-        pwmConfigElement.setAttribute("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-
-        XMLOutputter outputter = new XMLOutputter();
-        outputter.setFormat(Format.getPrettyFormat());
-        String asString = outputter.outputString(new Document(pwmConfigElement));
-
-        resp.setContentType("text/xml");
-        resp.getOutputStream().write(asString.getBytes());
     }
 
     private void forwardToJSP(
@@ -109,40 +130,18 @@ public class ConfigManagerServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER).forward(req, resp);
     }
 
-    private Map<String,Map<String,String>> readConfigMapFromRequest(HttpServletRequest request) {
-        final Map<String,Map<String,String>> configMap = new HashMap<String,Map<String,String>>();
-        @SuppressWarnings({"unchecked"}) final Set<String> parameterNames = new HashSet<String>(request.getParameterMap().keySet());
-        for (String paramName : parameterNames) {
-            for (final PwmSetting loopSetting: PwmSetting.values()) {
-                if (paramName.startsWith(SETTING_PREFIX + loopSetting.getKey())) {
-                    final Map<String,String> localizedMap = new HashMap<String,String>();
-                    final String defaultValue = Validator.readStringFromRequest(request, SETTING_PREFIX + paramName, DEFAULT_INPUT_LENGTH);
-                    localizedMap.put("",defaultValue);
-                    if (loopSetting.isLocalizable()) {
-                        for (final Locale loopLocale : Locale.getAvailableLocales()) {
-                            final String key = SETTING_PREFIX + loopSetting.getKey() + "_" + loopLocale.toString();
-                            if (parameterNames.contains(key)) {
-                                final String value = Validator.readStringFromRequest(request, key, DEFAULT_INPUT_LENGTH);
-                                localizedMap.put(loopLocale.toString(), value);
-                            }
-                        }
-                    }
-
-                    configMap.put(loopSetting.getKey(), localizedMap);
-                }
-            }
-
-        }
-
-        if (configMap.isEmpty()) {
-            LOGGER.debug("initializing default values");
-            for (final PwmSetting loopSetting: PwmSetting.values()) {
-                final Map<String,String> localizedMap = new HashMap<String,String>();
-                localizedMap.put("",loopSetting.getDefaultValue());
-                configMap.put(loopSetting.getKey(), localizedMap);
+    private static String readRequestBody(HttpServletRequest request) throws IOException {
+        StringBuffer json = new StringBuffer();
+        String line = null;
+        try {
+            BufferedReader reader = request.getReader();
+            while((line = reader.readLine()) != null) {
+                json.append(line);
             }
         }
-
-        return configMap;
+        catch(Exception e) {
+            System.out.println("Error reading JSON string: " + e.toString());
+        }
+        return json.toString();
     }
 }

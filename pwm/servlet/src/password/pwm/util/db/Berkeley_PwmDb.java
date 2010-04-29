@@ -46,7 +46,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);
-
+                                                              
     private final static boolean IS_TRANSACTIONAL = true;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
@@ -59,6 +59,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private final Map<DB, DbIterator> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator>());
 
     private volatile boolean open = false;
+    private volatile boolean cleanupThreadActive = true;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -139,7 +140,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             LOGGER.info("closed (" + td.asCompactString() + ")");
         } catch (DatabaseException e) {
             throw new PwmDBException(e);
-        }
+        }        
     }
 
     public boolean contains(final DB db, final String key)
@@ -192,6 +193,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
 
         open = true;
+        initiateCleanup();
     }
 
     public synchronized Iterator<TransactionItem> iterator(final DB db)
@@ -299,7 +301,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         try {
             cachedMaps.remove(db);
             cachedDatabases.remove(db).close();
-                      
+
             environment.truncateDatabase(null, db.toString(), false);
 
             final Database database = openDatabase(db, environment);
@@ -309,6 +311,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             LOGGER.error("error during truncate: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
+        initiateCleanup();
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -359,5 +362,29 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         if (!open) {
             throw new PwmDBException("pwmDB is closed, cannot begin a new transaction");
         }
+    }
+
+    private synchronized void initiateCleanup() {
+        if (cleanupThreadActive) {
+            return;
+        }
+
+        cleanupThreadActive = true;
+        final Thread cleanupThread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    environment.checkpoint(null);
+                    environment.compress();
+                    environment.cleanLog();
+                } catch (Exception e) {
+                    // do nothing
+                }
+                cleanupThreadActive = false;
+            }
+        };
+        cleanupThread.setDaemon(true);
+        cleanupThread.setName("pwm-BerkeleyPwmDB cleaner");
+        cleanupThread.start();
     }
 }

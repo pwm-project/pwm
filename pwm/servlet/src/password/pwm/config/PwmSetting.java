@@ -62,17 +62,15 @@ public enum PwmSetting {
     ADMIN_ALERT_FROM_ADDRESS(
             "adminAlertFromAddress", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.GENERAL),
+            "expirePreTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.GENERAL),
+            "expireWarnTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
     EXPIRE_CHECK_DURING_AUTH(
             "expireCheckDuringAuth", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),
     EXTERNAL_PASSWORD_METHODS(
-            "externalPasswordMethods", false, Syntax.BOOLEAN, Static.STRING_ARRAY_VALUE_HELPER, false, Category.GENERAL),
+            "externalPasswordMethods", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.GENERAL),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.GENERAL),
-    WORDLIST_FILENAME(
-            "password.WordlistFile", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "passwordSyncMaxWaitTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,60 * 15), false, Category.GENERAL),
     SEEDLIST_FILENAME(
             "password.SeedlistFile", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     QUERY_MATCH_CHECK_RESPONSES(
@@ -80,7 +78,7 @@ public enum PwmSetting {
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.GENERAL),
+            "password.sharedHistory.age", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
 
@@ -94,7 +92,7 @@ public enum PwmSetting {
     LDAP_PROMISCUOUS_SSL(
             "ldapPromiscuousSSL", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.LDAP),
     LDAP_TIMEOUT(
-            "ldapTimeout", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LDAP),
+            "ldapTimeout", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LDAP),
     LDAP_CONTEXTLESS_ROOT(
             "ldapContextlessLoginRoot", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
     QUERY_MATCH_PWM_ADMIN(
@@ -111,13 +109,13 @@ public enum PwmSetting {
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
-            "password.MinimumLength", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumLength", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
-            "password.MaximumLength", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumLength", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_REPEAT(
-            "password.MaximumRepeat", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumRepeat", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT(
-            "password.MaximumSequentialRepeat", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumSequentialRepeat", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ALLOW_NUMERIC(
             "password.AllowNumeric", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_NUMERIC(
@@ -125,9 +123,9 @@ public enum PwmSetting {
     PASSWORD_POLICY_ALLOW_LAST_CHAR_NUMERIC(
             "password.AllowLastCharNumeric", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_NUMERIC(
-            "password.MaximumNumeric", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumNumeric", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_NUMERIC(
-            "password.MinimumNumeric", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumNumeric", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ALLOW_SPECIAL(
             "password.AllowSpecial", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_SPECIAL(
@@ -135,31 +133,33 @@ public enum PwmSetting {
     PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL(
             "password.AllowLastCharSpecial", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_SPECIAL(
-            "password.MaximumSpecial", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumSpecial", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_SPECIAL(
-            "password.MinimumSpecial", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumSpecial", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_ALPHA(
-            "password.MaximumAlpha", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumAlpha", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_ALPHA(
-            "password.MinimumAlpha", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumAlpha", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_UPPERCASE(
-            "password.MaximumUpperCase", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumUpperCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_UPPERCASE(
-            "password.MinimumUpperCase", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumUpperCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_LOWERCASE(
-            "password.MaximumLowerCase", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumLowerCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LOWERCASE(
-            "password.MinimumLowerCase", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumLowerCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_UNIQUE(
-            "password.MinimumUnique", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MinimumUnique", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
-            "password.MaximumOldPasswordChars", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.MaximumOldPasswordChars", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.ADComplexity", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH(
             "password.RegExMatch", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
             "password.RegExNoMatch", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+    WORDLIST_FILENAME(
+            "password.WordlistFile", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.PASSWORD_POLICY),
 
     // edirectory settings
     EDIRECTORY_ALWAYS_USE_PROXY(
@@ -175,25 +175,25 @@ public enum PwmSetting {
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.INTRUDER),
+            "intruder.user.resetTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
     INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.INTRUDER),
+            "intruder.user.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.INTRUDER),
+            "intruder.address.resetTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.INTRUDER),
+            "intruder.address.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
     INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.INTRUDER),
+            "intruder.session.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
 
     // logger settings
     EVENT_LOG_MAX_LOCAL_EVENTS(
-            "eventLog.localDbMaxEvents", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LOGGING),
+            "eventLog.localDbMaxEvents", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
     EVENT_LOG_MAX_LOCAL_AGE(
-            "eventLog.localDbMaxAge", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LOGGING),
+            "eventLog.localDbMaxAge", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
     EVENT_LOG_ATTRIBUTE(
             "eventLog.userAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LOGGING),
     EVENT_LOG_MAX_EVENTS_USER(
-            "eventLog.maxEvents", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.LOGGING),
+            "eventLog.maxEvents", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
     EVENT_LOG_LOCAL_LEVEL(
             "eventLog.localDbLevel", false, Syntax.TEXT, new Static.ValueHelper() {
                 Object parseImpl(final PwmSetting setting, final String value)
@@ -261,7 +261,7 @@ public enum PwmSetting {
     CHALLENGE_TOKEN_ATTRIBUTE(
             "challenge.tokenAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
     CHALLENGE_TOKEN_MAX_AGE(
-            "challenge.tokenMaxAge", false, Syntax.NUMERIC, Static.INT_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.tokenMaxAge", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.RECOVERY),
 
     // new user settings
     ENABLE_NEW_USER(
@@ -382,6 +382,20 @@ public enum PwmSetting {
         return this.valueHelper.debugStringImpl(value);
     }
 
+    public int getMinimumValue() {
+        if (this.valueHelper instanceof Static.IntValueHelper) {
+            return ((Static.IntValueHelper)this.valueHelper).getMinimumValue();
+        }
+        throw new IllegalArgumentException("this setting type does not have a minimum value");
+    }
+
+    public int getMaximumValue() {
+        if (this.valueHelper instanceof Static.IntValueHelper) {
+            return ((Static.IntValueHelper)this.valueHelper).getMaximumValue();
+        }
+        throw new IllegalArgumentException("this setting type does not have a maximum value");
+    }
+
     Object parse(final String value)
     {
         return this.valueHelper.parseImpl(this,value);
@@ -484,16 +498,42 @@ public enum PwmSetting {
             }
         };
 
-        static final ValueHelper INT_VALUE_HELPER = new ValueHelper() {
+        static class IntValueHelper extends ValueHelper {
+            int minimumValue;
+            int maximumValue;
+
+            IntValueHelper(int minimumValue, int maximumValue) {
+                this.minimumValue = minimumValue;
+                this.maximumValue = maximumValue;
+            }
+
+            public int getMinimumValue() {
+                return minimumValue;
+            }
+
+            public int getMaximumValue() {
+                return maximumValue;
+            }
+
             public Object parseImpl(final PwmSetting setting, final String value)
             {
                 try {
-                    return Integer.parseInt(value);
+                    final int intValue = Integer.parseInt(value);
+                    
+                    if (intValue < minimumValue) {
+                        throw new IllegalArgumentException("setting is below minimum value of " + getMinimumValue());
+                    }
+
+                    if (intValue > maximumValue) {
+                        throw new IllegalArgumentException("setting is above maximum value of " + getMinimumValue());
+                    }
+
+                    return intValue;
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("setting " + setting.toString() + " requires a numeric value ");
+                    throw new IllegalArgumentException("setting requires a numeric value ");
                 }
             }
-        };
+        }
     }
 
     public enum Syntax {
@@ -531,6 +571,15 @@ public enum PwmSetting {
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory() {
         return VALUES_BY_CATEGORY;
+    }
+
+    public static PwmSetting forKey(final String key) {
+        for (final PwmSetting loopSetting : values()) {
+            if (loopSetting.getKey().equals(key)) {
+                return loopSetting;
+            }
+        }
+        return null;
     }
 }
 

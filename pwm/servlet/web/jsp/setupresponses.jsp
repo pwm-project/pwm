@@ -67,7 +67,7 @@
                     if (challenge.isRequired()) {
             %>
             <% if (challenge.isAdminDefined()) { %>
-            <h2><label for="PwmResponse_R_<%=indexKey%>"><%= challenge.getChallengeText() %><></label></h2>
+            <h2><label for="PwmResponse_R_<%=indexKey%>"><%= challenge.getChallengeText() %></label></h2>
             <% } else { %>
             <label for="PwmResponse_R_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"

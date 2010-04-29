@@ -44,7 +44,7 @@
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="User Information"/></jsp:include>
 <div id="centerbody">
 <p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
 </p>
 <form action="<pwm:url url='UserInformation'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
       onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">

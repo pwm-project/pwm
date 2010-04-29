@@ -25,8 +25,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
-<div id="footer">
-    
+<div id="footer">    
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='idletimer.js'/>"></script>
     <span class="idle_status" id="idle_status">
         &nbsp;

@@ -20,150 +20,183 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="java.util.*" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.Arrays" %>
+<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.Locale" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final Map<String,Map<String,String>> configMap = (Map<String,Map<String,String>>)request.getAttribute(PwmConstants.REQUEST_CONFIG_MAP); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="header.jsp" %>
-<body>
+<%@ include file="../jsp/header.jsp" %>
+<body class="tundra">
+<link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css"
+      rel="stylesheet" type="text/css"/>
+<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css"
+      rel="stylesheet" type="text/css"/>
+<link href="<%=request.getContextPath()%>/resources/dojo/dojox/grid/enhanced/resources/tundraEnhancedGrid.css"
+      rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"
+        djConfig="parseOnLoad: true"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"
+        djConfig="parseOnLoad: true"></script>
+<script type="text/javascript">
+    dojo.require("dojo.parser");
+    dojo.require("dijit.layout.ContentPane");
+    dojo.require("dijit.layout.TabContainer");
+    dojo.require("dijit.form.Button");
+    dojo.require("dijit.form.NumberTextBox");
+    dojo.require("dijit.Dialog");
+    dojo.require("dijit.TitlePane");
+
+    function writeSetting(keyName, valueData) {
+        var jsonData = { key:keyName, value:valueData };
+        var jsonString = dojo.toJson(jsonData);
+
+        var options =
+        {
+            url: "ConfigManager?processAction=writeSetting&formID=<pwm:FormID/>",
+            postData: jsonString,
+            contentType: "application/json;charset=utf-8",
+            dataType: "json"
+        };
+        //Call the asynchronous xhrPost
+        dojo.xhrPost(options);
+    }
+
+    function toggleBooleanSetting(keyName) {
+        var valueElement = getObject('value_' + keyName);
+        var buttonElement = getObject('button_' + keyName);
+        var innerValue = valueElement.value;
+        if (innerValue == 'true') {
+            valueElement.value = 'false';
+            buttonElement.innerHTML = ' False ';
+        } else {
+            valueElement.value = 'true';
+            buttonElement.innerHTML = ' True ';
+        }
+    }
+
+    function addLocalizedInputField(parentDiv, settingKey, localeString) {
+        var newInputElement = document.createElement("input");
+        newInputElement.setAttribute("name", settingKey);
+        newInputElement.setAttribute("value", "element_value");
+        var parentDivElement = getObject(parentDiv);
+        parentDivElement.appendChild(newInputElement);
+    }
+
+    function readSetting(keyName, valueWriter, locale) {
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=readSetting&key=" + keyName + "&formID=<pwm:FormID/>",
+            handleAs:"json",
+            timeout: 5000,
+            error: function(errorObj) {
+                alert("error loading " + keyName + ", reason: " + errorObj)
+            },
+            load: function(data){
+                var resultValue = data.value;
+                valueWriter(resultValue);
+            }
+        });
+
+    }
+</script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
     <form action="<pwm:url url='ConfigManager'/>" method="post" name="configManager" enctype="application/x-www-form-urlencoded"
           onsubmit="" onreset="handleFormClear();">
-        <div id="centerbody">
+        <div id="centerbody" style="width: 700px">
             PWM Configurations are controlled by the configuration file <i>pwm-configuration.xml</i>.  This
             page can be used to edit the contents of that file.  You can input an existing <i>pwm-configratuion.xml</i>
             or create a new one from scratch.  Once you have completed the configuration, Generate a configuration file
             and save it in PWM's <i>WEB-INF</i> subdirectory.
             <br class="clear"/>
-            <table style="border: 0;">
-                <tr style="border: 0">
-                    <td style="border: 0">
-                        <ol>
-                            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
-                            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
-                            <% } %>
-                        </ol>
-                    </td>
-                    <td style="border: 0">
-                        <table style="border: 0">
-                            <tr style="border: 0">
-                                <td style="border: 0; text-align: center;">
-                                    <input tabindex="3" type="file" class="btn"
-                                           name="fileInput"
-                                           id="fileInput"/>
-                                </td>
-                            </tr>
-                            <tr style="border: 0">
-                                <td style="border: 0; text-align: center;">
-                                    <input tabindex="3" type="submit" class="btn"
-                                           name="generate"
-                                           value="   Input Configuration File  "
-                                           id="uploadFile"/>
-                                </td>
-                            </tr>
-                            <tr style="border: 0">
-                                <td style="border: 0; text-align: center;">
-                                    &nbsp;
-                                    <br/>
-                                    &nbsp;
-                                </td>
-                            </tr>
-                            <tr style="border: 0">
-                                <td style="border: 0; text-align: center;">
-                                    <input tabindex="3" type="submit" class="btn"
-                                           name="generate"
-                                           value="   Generate Configuration File  "
-                                           id="generateBtn"/>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            <br class="clear"/>
-            <br class="clear"/>
-            <%
-                for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
-                    final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
-            %>
-            <table>
-                <tr>
-                    <td class="title" colspan="10">
-                        <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %></a>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="10">
-                        <%= loopCategory.getDescription(request.getLocale()) %>
-                    </td>
-                </tr>
-                <%  for (final PwmSetting loopSetting : loopSettings) { %>
-                <tr>
-                    <td class="key" style="width:100px; text-align:center;">
-                        <%= loopSetting.getLabel(request.getLocale()) %>
-                    </td>
-                    <td>
-                        <p><%= loopSetting.getDescription(request.getLocale()) %></p>
+            <br class="clear" style="height:3px"/>
+
+            <div id="mainTabContainer" dojoType="dijit.layout.TabContainer" class="tundra" doLayout="false"
+                 style="width:700px">
+
+                <%
+                    for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
+                        if (loopCategory == PwmSetting.Category.GENERAL) {
+                            final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
+                %>
+                <div id="<%=loopCategory%>" dojoType="dijit.layout.ContentPane" title="<%=loopCategory.getLabel(request.getLocale())%>">
+                    <%= loopCategory.getDescription(request.getLocale())%>
+                    <%  for (final PwmSetting loopSetting : loopSettings) { %>
+                    <div dojoType="dijit.TitlePane" title="<%= loopSetting.getLabel(request.getLocale()) %> [<%= loopSetting.getKey() %>]">
+                        <%= loopSetting.getDescription(request.getLocale()) %>
+                        <br class="clear"/>
                         <% if (loopSetting.isLocalizable()) { %>
-                        <b>Default</b> <input name="setting_<%=loopSetting.getKey()%>" size="60"
-                                              value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                        <%
-                            Map<String,String> localizedValues = configMap.get(loopSetting.getKey());
-                            localizedValues.remove("");
-                            for (String localeKey : localizedValues.keySet()) {
-                        %>
-                        <%= localeKey %> <input name="setting_<%=loopSetting.getKey()%>_<%=localeKey%>" size="60"
-                                                value="<%= configMap.get(localizedValues.get(localeKey)) %>"/>
-
-                        <% } %>
-                        <select name="addLocale_<%=loopSetting.getKey()%>">
-                            <% for (Locale loopLocale : Locale.getAvailableLocales()) { %>
-                            <option value="<%=loopLocale.toString() %>"><%=loopLocale.getDisplayName()%> </option>
+                        <div id="setting_<%=loopSetting.getKey()%>_i18n_list">
+                            <label>Default</label>
+                            <input name="setting_<%=loopSetting.getKey()%>" size="60"
+                                   value="nyet!"/>
+                        </div>
+                        <select name="setting_<%=loopSetting.getKey()%>" onclick="">
+                            <option value="">Add Locale</option>
+                            <option value="">----------</option>
+                            <% for (final Locale locale : Locale.getAvailableLocales()) { %>
+                            <option value="" onclick="addLocalizedInputField('setting_<%=loopSetting.getKey()%>_i18n_list','setting_<%=loopSetting.getKey()%>_<%=locale.getCountry()%>','french');"><%=locale.getDisplayName()%></option>
                             <% } %>
                         </select>
-                        <input tabindex="3" type="submit" class="btn"
-                               name="generate"
-                               value=" Add "
-                               id="add_locale"/>
-
+                        <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
+                        <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
+                        <button id="button_<%=loopSetting.getKey()%>" dojoType="dijit.form.Button" type="button"
+                                onclick="toggleBooleanSetting('<%=loopSetting.getKey()%>');writeSetting('<%=loopSetting.getKey()%>', getObject('value_' + '<%=loopSetting.getKey()%>').value);">
+                            Loading...
+                        </button>
+                        <script type="text/javascript">
+                            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                                var valueElement = getObject('value_' + '<%=loopSetting.getKey()%>');
+                                var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
+                                if (dataValue == 'true') {
+                                    valueElement.value = 'true';
+                                    buttonElement.innerHTML = ' True ';
+                                } else {
+                                    valueElement.value = 'false';
+                                    buttonElement.innerHTML = ' False ';
+                                }
+                            },null);
+                        </script>
                         <% } else { %>
-                        <% if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
-                        <select name="setting_<%=loopSetting.getKey()%>">
-                            <option value="true" <%="true".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>True</option>
-                            <option value="false" <%="false".equalsIgnoreCase(configMap.get(loopSetting.getKey()).get("")) ? "selected=\"true\"" :""%>>False</option>
-                        </select>
-                        <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
-                        <input name="setting_<%=loopSetting.getKey()%>" size="60" type="password"
-                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                        <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
-                        <input name="setting_<%=loopSetting.getKey()%>" size="6"
-                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
-                        <% } else { %>
-                        <input name="setting_<%=loopSetting.getKey()%>" size="60"
-                               value="<%= configMap.get(loopSetting.getKey()).get("") %>"/>
+                        <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                               value="[LOADING...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);"
+                                <% if (loopSetting.getSyntax() == PwmSetting.Syntax.TEXT) { %>
+                               size="100"
+                                <% } %>
+                                <% if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
+                               type="password" autocomplete="off" size="60"
+                                <% } %>
+                                <% if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
+                               size="30" dojoType="dijit.form.NumberTextBox" constraints="{min:<%=loopSetting.getMinimumValue()%>,max:<%=loopSetting.getMaximumValue()%>,places:0}" invalidMessage="invalid value"
+                                <% } %>
+                                />
+                        <script type="text/javascript">
+                            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {getObject('value_<%=loopSetting.getKey()%>').value = dataValue;},null);
+                        </script>
                         <% } %>
-                        <% } %>
-                    </td>
-                </tr>
+                    </div>
+                    <% } %>
+                </div>
                 <% } %>
-            </table>
+                <% } %>
+            </div>
             <br class="clear"/>
-            <% } %>
+            <input tabindex="3" type="submit" class="btn"
+                   name="generate"
+                   value="   Generate Configuration File  "
+                   id="generateBtn"/>
             <br class="clear"/>
         </div>
     </form>
 </div>
 <br class="clear"/>
-<%@ include file="footer.jsp" %>
+footer
 </body>
 </html>
 

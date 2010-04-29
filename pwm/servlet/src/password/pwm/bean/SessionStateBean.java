@@ -72,8 +72,10 @@ public class SessionStateBean implements Serializable {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private boolean sessionVerified;
-    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
-    private String formNonce = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
+
+    private static int sequenceNumber = PwmRandom.getInstance().nextInt();
+    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Integer.toHexString(sequenceNumber++) + Long.toHexString(System.currentTimeMillis());
+    private String formNonce = PwmRandom.getInstance().alphaNumericString(32) + Integer.toHexString(sequenceNumber++) + Long.toHexString(System.currentTimeMillis());
 
     private boolean passedCaptcha;
 

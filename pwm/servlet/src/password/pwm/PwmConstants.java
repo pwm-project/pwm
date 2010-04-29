@@ -48,8 +48,6 @@ public abstract class PwmConstants {
     public static final String HTTP_HEADER_PWM_SHORTCUT = "X-PWM-Shortcut";
 
 
-    public static final String REQUEST_CONFIG_MAP = "ConfigMap";
-
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String CONTEXT_ATTR_STATUS_BEAN = "StatusBean";
 

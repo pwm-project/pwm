@@ -44,6 +44,10 @@ public class PwmRandom {
         return internalRand.nextLong();
     }
 
+    public int nextInt() {
+        return internalRand.nextInt();
+    }
+
     public int nextInt(final int n) {
         return internalRand.nextInt(n);
     }

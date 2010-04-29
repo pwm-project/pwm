@@ -588,28 +588,16 @@ public class ContextManager implements Serializable
 
     private static class PwmInitializer {
         public static void initializePwmDB(final ContextManager contextManager) {
-            File databaseDirectory;
-
-            // see if META-INF / pwm directory exists, if so use that.
-            try {
-                databaseDirectory = figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_LOCATION), "META-INF", contextManager.getServletContext());
-                if (!databaseDirectory.exists()) {
-                    databaseDirectory = null;
-                }
-            } catch (Exception e) {
-                LOGGER.trace("error auto-detecting existing META-INF based pwmDB directory: " + e.getMessage());
-                databaseDirectory = null;
-            }
-
+            final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                if (databaseDirectory == null) {
                     databaseDirectory = figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_LOCATION), "WEB-INF", contextManager.getServletContext());
-                }
             } catch (Exception e) {
-                LOGGER.trace("error locating configured pwmDB directory: " + e.getMessage());
+                LOGGER.warn("error locating configured pwmDB directory: " + e.getMessage());
                 return;
             }
+
+            LOGGER.debug("using pwmDB path " + databaseDirectory);
 
             // initialize the pwmDB
             try {

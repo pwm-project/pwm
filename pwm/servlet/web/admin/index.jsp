@@ -55,9 +55,6 @@
             <h2><a href="<pwm:url url='config.jsp'/>">Configuration</a></h2>
             <p>Selected PWM configuration settings</p>
 
-            <h2><a href="<pwm:url url='threads.jsp'/>">Threads</a></h2>
-            <p>Current table of Java VM threads</p>
-
             <h2><a href="<pwm:url url='UserInformation'/>">User Information</a></h2>
             <p>Useful for debugging user password issues</p>
 

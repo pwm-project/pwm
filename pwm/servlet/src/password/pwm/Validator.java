@@ -227,7 +227,7 @@ public class Validator {
     {
 
         final String result = readStringFromRequest(req, value, maxLength);
-        if (result == null || result.isEmpty()) {
+        if (result == null || result.length() < 1) {
             return defaultValue;
         }
 
@@ -288,9 +288,10 @@ public class Validator {
             final String disallowedInputs = theManager.getParameter(PwmConstants.CONTEXT_PARAM.DISALLOWED_INPUTS);
             if (disallowedInputs != null) {
                 for (final String testString : disallowedInputs.split(";;;")) {
-                    if (theString.matches(testString)) {
-                        final String newString = theString.replaceAll(testString, "");
-                        LOGGER.warn("removing potentially malicious string values from input field: " + testString + " newValue: " + newString);
+                    final String newString = theString.replaceAll(testString, "");
+                    if (!newString.equals(theString)) {
+                        LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString  + "'");
+
                         theString = newString;
                     }
                 }

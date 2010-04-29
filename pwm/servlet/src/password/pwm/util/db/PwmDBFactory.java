@@ -65,7 +65,7 @@ public class PwmDBFactory {
 
             initInstance(dbProvider, dbDirectory, initString, theClass);
             final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
-            LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()));
+            LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()) + " at " + dbDirectory.toString());
         }
 
         return db;

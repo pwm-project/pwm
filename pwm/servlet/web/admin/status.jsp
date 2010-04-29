@@ -46,7 +46,7 @@
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
 <p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="threads.jsp">Threads</a> | <a href="UserInformation">User Information</a>
+    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
 </p>
 <table>
     <tr>
@@ -64,6 +64,14 @@
     </tr>
     <tr>
         <td class="key">
+            Current Time
+        </td>
+        <td>
+            <%= dateFormat.format(new java.util.Date()) %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
             Start Time
         </td>
         <td>
@@ -72,10 +80,10 @@
     </tr>
     <tr>
         <td class="key">
-            Current Time
+            Install Time
         </td>
         <td>
-            <%= dateFormat.format(new java.util.Date()) %>
+            <%= dateFormat.format(contextManager.getInstallTime()) %>
         </td>
     </tr>
     <tr>
@@ -110,7 +118,7 @@
             Last LDAP Unavailable Time
         </td>
         <td>
-            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "" %>
+            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "n/a" %>
         </td>
     </tr>
     <tr>
@@ -357,10 +365,10 @@
     </tr>
     <tr>
         <td class="key">
-            <a href="<pwm:url url='threads.jsp'/>">Threads</a>
+            <a href="#threads">Threads</a>
         </td>
         <td>
-            <a href="<pwm:url url='threads.jsp'/>"><%= Thread.activeCount() %>
+            <a href="#threads"><%= Thread.activeCount() %>
             </a>
         </td>
     </tr>
@@ -380,6 +388,56 @@
             <%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>
         </td>
     </tr>
+</table>
+<br class="clear"/>
+<table class="tablemain">
+    <tr>
+        <td class="title" colspan="10">
+            <a name="threads"></a>Java Threads
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold;">
+            Id
+        </td>
+        <td style="font-weight:bold;">
+            Name
+        </td>
+        <td style="font-weight:bold;">
+            Priority
+        </td>
+        <td style="font-weight:bold;">
+            State
+        </td>
+        <td style="font-weight:bold;">
+            Daemon
+        </td>
+    </tr>
+    <%
+        final Thread[] tArray = new Thread[Thread.activeCount()];
+        Thread.enumerate(tArray);
+        try {
+            for (final Thread t : tArray) {
+    %>
+    <tr>
+        <td>
+            <%= t.getId() %>
+        </td>
+        <td>
+            <%= t.getName() != null ? t.getName() : "n/a" %>
+        </td>
+        <td>
+            <%= t.getPriority() %>
+        </td>
+        <td>
+            <%= t.getState().toString().toLowerCase() %>
+        </td>
+        <td>
+            <%= String.valueOf(t.isDaemon()) %>
+        </td>
+    </tr>
+    <% } %>
+    <% } catch (Exception e) { /* */ } %>
 </table>
 </div>
 </div>

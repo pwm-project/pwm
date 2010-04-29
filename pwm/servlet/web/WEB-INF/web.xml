@@ -67,12 +67,13 @@
     <context-param>
         <description>value passed to the pwmDbImplementation class during initialization.</description>
         <param-name>pwmDbInitString</param-name>
+        <!--<param-value>je.maxMemory=500000000;;;je.cleaner.minUtilization=50;;;je.log.fileMax=1073741824;;;je.cleaner.forceCleanFiles=1b496-1b4b3</param-value>-->
         <param-value>je.maxMemory=10000000;;;je.cleaner.minUtilization=80</param-value>
     </context-param>
     <context-param>
-        <description><![CDATA[Values disallowed in all form inputs. Regex patterns seperated by three semi-colons ";;;". default list is:  html "<script>" tag ;;; XML document header ;;; LDAP search string ;;; SQL SELECT ;;; SQL UPDATE  ]]></description>
+        <description><![CDATA[Values disallowed in all form inputs. Regex patterns separated by three semi-colons ";;;". default list is:  html "<script>" tag ;;; XML document header ;;; LDAP search string ;;; SQL SELECT ;;; SQL UPDATE  ]]></description>
         <param-name>disallowedInputs</param-name>
-        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*;;;(?i)SELECT;;;(?i)UPDATE;;;(?i)<.*img.*>;;;(?i)<.*src.*>]]></param-value>
+        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*;;;(?i)<.*img.*>;;;(?i)<.*src.*>]]></param-value>
     </context-param>
     <context-param>
         <description>If present, use the X-Forwarded-For HTTP header value as the client IP address instead of the src IP address of the connection.</description>
@@ -141,6 +142,10 @@
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/public/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>/config/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
@@ -298,7 +303,7 @@
         <url-pattern>/config/ConfigManager</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>23</session-timeout>
+        <session-timeout>5</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>
