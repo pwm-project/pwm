@@ -42,7 +42,8 @@ import static password.pwm.util.db.PwmDB.TransactionItem;
 /**
  * @author Jason D. Rivard
  */
-public class Berkeley_PwmDb implements PwmDBProvider {
+public class
+        Berkeley_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);

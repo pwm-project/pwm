@@ -106,6 +106,7 @@ public enum PwmError {
     ERROR_CAPTCHA_API_ERROR(            "Error_CaptchaAPIError",            5032, null),
     ERROR_INVALID_CONFIG(               "Error_InvalidConfig",              5033, null),
     ERROR_INVALID_FORMID(               "Error_InvalidFormID",              5034, null),
+    ERROR_MISSING_NAMING_ATTR(          "Error_MissingNamingAttr",          5035, null),
 
     ERROR_FIELD_REQUIRED(               "Error_FieldRequired",              5100, null),
     ERROR_FIELD_NOT_A_NUMBER(           "Error_FieldNotANumber",            5101, null),
@@ -114,6 +115,11 @@ public enum PwmError {
     ERROR_FIELD_TOO_LONG(               "Error_FieldTooLong",               5104, null),
     ERROR_FIELD_DUPLICATE(              "Error_FieldDuplicate",             5105, null),
     ERROR_FIELD_BAD_CONFIRM(            "Error_FieldBadConfirm",            5106, null),
+
+    CONFIG_UPLOAD_SUCCESS(              "Error_ConfigUploadSuccess",        5200, null),
+    CONFIG_UPLOAD_FAILURE(              "Error_ConfigUploadFailure",        5201, null),
+    CONFIG_FORMAT_ERROR(                "Error_ConfigFormatError",          5203, null),
+    CONFIG_RESET_SUCCESS(               "Error_ResetSuccess",               5203, null),
     ;
 
 // ------------------------------ FIELDS ------------------------------

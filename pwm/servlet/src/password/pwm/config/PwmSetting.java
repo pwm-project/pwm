@@ -22,290 +22,286 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.cr.CrMode;
-import com.novell.ldapchai.util.StringHelper;
-import org.jdom.CDATA;
-import org.jdom.Element;
-import password.pwm.util.PwmLogLevel;
-
-import java.io.Serializable;
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 /**
- * Each of the standard (non-localizable) settings configured via the pwmServlet.properties file
- * are identified here.
- *
+ * PwmConfiguration settings.
  * @author Jason D. Rivard
  */
 public enum PwmSetting {
     // general settings
-    /**
-     * Title of the application, displayed on most html pages seen by users.
-     */
     APPLICATION_TILE(
-            "title", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, true, Category.GENERAL),
-    URL_LOGOUT(
-            "logoutURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "title", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
     URL_FORWARD(
-            "forwardURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "forwardURL", Syntax.STRING, Category.GENERAL, true),
+    URL_LOGOUT(
+            "logoutURL", Syntax.STRING, Category.GENERAL, false),
     LOGOUT_AFTER_PASSWORD_CHANGE(
-            "logoutAfterPasswordChange", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),
-    URL_SERVET_RELATIVE(
-            "servletRelativeURL", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true),
     EMAIL_SERVER_ADDRESS(
-            "smtpServerAddress", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
-    USE_X_FORWARDED_FOR_HEADER(
-            "useXForwardedForHeader", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),
+            "smtpServerAddress", Syntax.STRING, Category.GENERAL, false),
     ADMIN_ALERT_EMAIL_ADDRESS(
-            "adminAlertEmailAddress", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "adminAlertToAddress", Syntax.STRING, Category.GENERAL, false),
     ADMIN_ALERT_FROM_ADDRESS(
-            "adminAlertFromAddress", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "adminAlertFromAddress", Syntax.STRING, Category.GENERAL, false),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
+            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
+            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true),
     EXPIRE_CHECK_DURING_AUTH(
-            "expireCheckDuringAuth", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.GENERAL),
-    EXTERNAL_PASSWORD_METHODS(
-            "externalPasswordMethods", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.GENERAL),
+            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.GENERAL, true),
+    PASSWORD_SYNC_MIN_WAIT_TIME(
+            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,60 * 15), false, Category.GENERAL),
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
+    WORDLIST_FILENAME(
+            "password.WordlistFile", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
-            "password.SeedlistFile", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
-    QUERY_MATCH_CHECK_RESPONSES(
-            "command.checkResponses.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
-    PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "password.SeedlistFile", Syntax.STRING, Category.GENERAL, false),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.GENERAL),
+            "password.sharedHistory.age", Syntax.NUMERIC, Category.GENERAL, true),
     GOOGLE_ANAYLTICS_TRACKER(
-            "google.analytics.tracker", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.GENERAL),
+            "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
+    SHORTCUT_ITEMS(
+            "shortCutItem", Syntax.LOCALIZED_STRING_ARRAY, Category.GENERAL, false),
 
     //ldap directory
     LDAP_SERVER_URLS(
-            "ldapServerURLs", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.LDAP),
+            "ldapServerURLs", Syntax.STRING_ARRAY, Category.LDAP, true),
     LDAP_PROXY_USER_DN(
-            "ldapProxyDN", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
+            "ldapProxyDN", Syntax.STRING, Category.LDAP, true),
     LDAP_PROXY_USER_PASSWORD(
-            "ldapProxyPassword", true, Syntax.PASSWORD, Static.STRING_VALUE_HELPER, false, Category.LDAP),
+            "ldapProxyPassword", Syntax.PASSWORD, Category.LDAP, true),
     LDAP_PROMISCUOUS_SSL(
-            "ldapPromiscuousSSL", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.LDAP),
-    LDAP_TIMEOUT(
-            "ldapTimeout", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LDAP),
+            "ldapPromiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
     LDAP_CONTEXTLESS_ROOT(
-            "ldapContextlessLoginRoot", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
+            "ldapContextlessLoginRoot", Syntax.STRING, Category.LDAP, false),
+    LDAP_LOGIN_CONTEXTS(
+            "ldapLoginContexts", Syntax.STRING_ARRAY, Category.LDAP, false),
     QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
-    LOGIN_CONTEXTS(
-            "loginContexts", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.LDAP),
+            "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true),
     USERNAME_SEARCH_FILTER(
-            "usernameSearchFilter", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
+            "usernameSearchFilter", Syntax.STRING, Category.LDAP, true),
     AUTO_ADD_OBJECT_CLASSES(
-            "autoAddObjectClasses", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.LDAP),
+            "autoAddObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false),
     QUERY_MATCH_CHANGE_PASSWORD(
-            "password.allowChange.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LDAP),
+            "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true),
+    LDAP_TIMEOUT(
+            "ldapTimeout", Syntax.NUMERIC, Category.LDAP, true),
+    LDAP_NAMING_ATTRIBUTE(
+            "ldapNamingAttribute", Syntax.STRING, Category.LDAP, true),
+    PASSWORD_LAST_UPDATE_ATTRIBUTE(
+            "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true),
 
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
-            "password.MinimumLength", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
-            "password.MaximumLength", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_REPEAT(
-            "password.MaximumRepeat", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT(
-            "password.MaximumSequentialRepeat", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumSequentialRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_NUMERIC(
-            "password.AllowNumeric", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_NUMERIC(
-            "password.AllowFirstCharNumeric", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowFirstCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_NUMERIC(
-            "password.AllowLastCharNumeric", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowLastCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_NUMERIC(
-            "password.MaximumNumeric", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_NUMERIC(
-            "password.MinimumNumeric", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_SPECIAL(
-            "password.AllowSpecial", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_SPECIAL(
-            "password.AllowFirstCharSpecial", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowFirstCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL(
-            "password.AllowLastCharSpecial", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.AllowLastCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_SPECIAL(
-            "password.MaximumSpecial", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_SPECIAL(
-            "password.MinimumSpecial", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_ALPHA(
-            "password.MaximumAlpha", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_ALPHA(
-            "password.MinimumAlpha", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_UPPERCASE(
-            "password.MaximumUpperCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_UPPERCASE(
-            "password.MinimumUpperCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_LOWERCASE(
-            "password.MaximumLowerCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_LOWERCASE(
-            "password.MinimumLowerCase", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_UNIQUE(
-            "password.MinimumUnique", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MinimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
-            "password.MaximumOldPasswordChars", false, Syntax.NUMERIC, new Static.IntValueHelper(0,1024), false, Category.PASSWORD_POLICY),
+            "password.MaximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+    PASSWORD_POLICY_ENABLE_WORDLIST(
+            "password.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.ADComplexity", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.ADComplexity", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH(
-            "password.RegExMatch", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.RegExMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
-            "password.RegExNoMatch", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.PASSWORD_POLICY),
-    WORDLIST_FILENAME(
-            "password.WordlistFile", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.PASSWORD_POLICY),
+            "password.RegExNoMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+    PASSWORD_POLICY_DISALLOWED_VALUES(
+            "password.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+    PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
+            "password.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+    PASSWORD_EMAIL_FROM(
+            "password.email.from", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
+    PASSWORD_EMAIL_SUBJECT(
+            "password.email.subject", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
+    PASSWORD_EMAIL_BODY(
+            "password.email.body", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
+
 
     // edirectory settings
     EDIRECTORY_ALWAYS_USE_PROXY(
-            "ldap.edirectory.alwaysUseProxy", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_READ_PASSWORD_POLICY(
-            "ldap.edirectory.readPasswordPolicies", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.EDIRECTORY),
+            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true),
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
+            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true),
     INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
+            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
+            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
+            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
     INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.INTRUDER),
+            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
 
     // logger settings
     EVENT_LOG_MAX_LOCAL_EVENTS(
-            "eventLog.localDbMaxEvents", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
+            "eventLog.localDbMaxEvents", Syntax.NUMERIC, Category.LOGGING, true),
     EVENT_LOG_MAX_LOCAL_AGE(
-            "eventLog.localDbMaxAge", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
+            "eventLog.localDbMaxAge", Syntax.NUMERIC, Category.LOGGING, true),
     EVENT_LOG_ATTRIBUTE(
-            "eventLog.userAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.LOGGING),
+            "eventLog.userAttribute", Syntax.STRING, Category.LOGGING, true),
     EVENT_LOG_MAX_EVENTS_USER(
-            "eventLog.maxEvents", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.LOGGING),
+            "eventLog.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
     EVENT_LOG_LOCAL_LEVEL(
-            "eventLog.localDbLevel", false, Syntax.TEXT, new Static.ValueHelper() {
-                Object parseImpl(final PwmSetting setting, final String value)
-                {
-                    try {
-                        return PwmLogLevel.valueOf(value);
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("unknown or unsupported log level value '" + value + "'");
-                    }
-                }
-            }, false, Category.LOGGING),
+            "eventLog.localDbLevel", Syntax.STRING, Category.LOGGING, true),
 
     // recovery settings
     CHALLANGE_FORCE_SETUP(
-            "challenge.forceSetup", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true),
     QUERY_MATCH_SETUP_RESPONSE(
-            "challenge.allowSetup.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true),
     CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
-    CHALLENGE_RANDOM_STYLE(
-            "challenge.randomStyle", false, Syntax.TEXT_ARRAY, new Static.ValueHelper() {
-                Object parseImpl(final PwmSetting setting, final String value)
-                {
-                    Configuration.CR_RANDOM_STYLE s = Configuration.CR_RANDOM_STYLE.RECOVER;
-                    if (value.equalsIgnoreCase(Configuration.CR_RANDOM_STYLE.RECOVER.toString())) {
-                        s = Configuration.CR_RANDOM_STYLE.RECOVER;
-                    } else if (value.equalsIgnoreCase(Configuration.CR_RANDOM_STYLE.SETUP.toString())) {
-                        s = Configuration.CR_RANDOM_STYLE.SETUP;
-                    }
-                    return s;
-                }
-            },
-            false, Category.RECOVERY),
+            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, true),
+    CHALLENGE_FORCE_ALL_RANDOMS(
+            "challenge.forceAllRandoms", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_ALLOW_UNLOCK(
-            "challenge.allowUnlock", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
-    CHALLENGE_STORAGE_METHOD(
-            "challenge.storageMethod", false, Syntax.TEXT_ARRAY, new Static.ValueHelper() {
-                Object parseImpl(final PwmSetting setting, final String value)
-                {
-                    if (value.equalsIgnoreCase("PWMSHA1")) {
-                        return CrMode.CHAI_SHA1_SALT;
-                    } else if (value.equalsIgnoreCase("PWMTEXT")) {
-                        return CrMode.CHAI_TEXT;
-                    }
-
-                    throw new IllegalArgumentException("unsupported challenge storage method '" + value + "'");
-                }
-
-                String debugStringImpl(final Object value)
-                {
-                    final CrMode v = (CrMode)value;
-
-                    return v != null ? v.toString() : "";
-                }
-            },
-            false, Category.RECOVERY),
+            "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true),
+    CHALLENGE_STORAGE_HASHED(
+            "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true),
     CASE_INSENSITIVE_CHALLENGE(
-            "challenge.caseInsensitive", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.caseInsensitive", Syntax.BOOLEAN, Category.RECOVERY, true),
     ALLOW_DUPLICATE_RESPONSES(
-            "challenge.allowDuplicateResponses", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_SHOW_CONFIRMATION(
-            "challenge.showConfirmation", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_TOKEN_ATTRIBUTE(
-            "challenge.tokenAttribute", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.RECOVERY),
+            "challenge.tokenAttribute", Syntax.STRING, Category.RECOVERY, true),
     CHALLENGE_TOKEN_MAX_AGE(
-            "challenge.tokenMaxAge", false, Syntax.NUMERIC, new Static.IntValueHelper(0,Integer.MAX_VALUE), false, Category.RECOVERY),
+            "challenge.tokenMaxAge", Syntax.NUMERIC, Category.RECOVERY, true),
+    CHALLENGE_REQUIRED_CHALLENGES(
+            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+    CHALLENGE_RANDOM_CHALLENGES(
+            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+    CHALLENGE_MIN_RANDOM_REQUIRED(
+            "challenge.minRandomRequired", Syntax.NUMERIC, Category.RECOVERY, true),
+    CHALLENGE_REQUIRED_ATTRIBUTES(
+            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+    QUERY_MATCH_CHECK_RESPONSES(
+            "command.checkResponses.queryMatch", Syntax.STRING, Category.RECOVERY, true),
 
     // new user settings
     ENABLE_NEW_USER(
-            "newUser.enable", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.NEWUSER),
+            "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true),
     NEWUSER_CONTEXT(
-            "newUser.createContext", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.NEWUSER),
+            "newUser.createContext", Syntax.STRING, Category.NEWUSER, true),
+    NEWUSER_FORM(
+            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true),
     NEWUSER_UNIQUE_ATTRIBUES(
-            "newUser.creationUniqueAttributes", false, Syntax.TEXT_ARRAY, Static.STRING_ARRAY_VALUE_HELPER, false, Category.NEWUSER),
-    NEWUSER_CREATION_ATTRIBUTES(
-            "newUser.createAttributes", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, true, Category.NEWUSER),
+            "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
     NEWUSER_WRITE_ATTRIBUTES(
-            "newUser.writeAttributes", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.NEWUSER),
+            "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
+    NEWUSER_EMAIL_SUBJECT(
+            "newUser.email.subject", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
+    NEWUSER_EMAIL_FROM(
+            "newUser.email.from", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
+    NEWUSER_EMAIL_BODY(
+            "newUser.email.body", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
 
     // activation settings
     ENABLE_ACTIVATE_USER(
-            "activateUser.enable", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.ACTIVATION),
+            "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true),
     QUERY_MATCH_ACTIVATE_USER(
-            "activateUser.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.ACTIVATION),
+            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true),
     ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.ACTIVATION),
+            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true),
     ACTIVATE_USER_WRITE_ATTRIBUTES(
-            "activateUser.writeAttributes", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.ACTIVATION),
-
+            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false),
+    ACTIVATE_USER_FORM(
+            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true),
 
     // update attributes
     ENABLE_UPDATE_ATTRIBUTES(
-            "updateAttributes.enable", false, Syntax.BOOLEAN, Static.BOOLEAN_VALUE_HELPER, false, Category.UPDATE),
+            "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true),
     QUERY_MATCH_UPDATE_USER(
-            "updateAttributes.queryMatch", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.UPDATE),
+            "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true),
     UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.UPDATE),
+            "updateAttributes.writeAttributes", Syntax.STRING, Category.UPDATE, false),
+    UPDATE_ATTRIBUTES_FORM(
+            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true),
 
     // captcha
     RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA),
+            "captcha.recaptcha.privateKey", Syntax.STRING, Category.CAPTCHA, false),
     RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA),
+            "captcha.recaptcha.publicKey", Syntax.STRING, Category.CAPTCHA, false),
     CAPTCHA_SKIP_PARAM(
-            "captcha.skip.param", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA),
+            "captcha.skip.param", Syntax.STRING, Category.CAPTCHA, false),
     CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", false, Syntax.TEXT, Static.STRING_VALUE_HELPER, false, Category.CAPTCHA);
+            "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false),
 
+    // advanced
+    URL_SERVET_RELATIVE(
+            "servletRelativeURL", Syntax.STRING, Category.ADVANCED, true),
+    EXTERNAL_PASSWORD_METHODS(
+            "externalPasswordMethods", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    DISALLOWED_HTTP_INPUTS(
+            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    LDAP_CHAI_SETTINGS(
+            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    USE_X_FORWARDED_FOR_HEADER(
+            "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true),
+    ALLOW_URL_SESSIONS(
+            "allowUrlSessions", Syntax.BOOLEAN, Category.ADVANCED, true),
+    FORCE_BASIC_AUTH(
+            "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true),
+    WORDLIST_CASE_SENSITIVE(
+            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true),
 
-
+    ;
 // ------------------------------ STATICS ------------------------------
 
     private static final Map<Category,List<PwmSetting>> VALUES_BY_CATEGORY;
@@ -328,29 +324,28 @@ public enum PwmSetting {
 
 // ------------------------------ FIELDS ------------------------------
 
+    private static class Static {
+        private static final String RESOURCE_MISSING = "--RESOURCE MISSING--";
+    }
+
     private final String key;
-    private final Category category;
-    private final boolean confidential;
     private final Syntax syntax;
-    private final Static.ValueHelper valueHelper;
-    private final boolean localizable;
+    private final Category category;
+    private final boolean required;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     PwmSetting(
-            final String paramName,
-            final boolean conceal,
+            final String key,
             final Syntax syntax,
-            final Static.ValueHelper valueHelper,
-            final boolean localizable,
-            final Category category)
+            final Category category,
+            final boolean required
+    )
     {
-        this.key = paramName;
-        this.confidential = conceal;
+        this.key = key;
         this.syntax = syntax;
-        this.valueHelper = valueHelper;
-        this.localizable = localizable;
         this.category = category;
+        this.required = required;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -363,7 +358,7 @@ public enum PwmSetting {
 
     public boolean isConfidential()
     {
-        return confidential;
+        return Syntax.PASSWORD == this.getSyntax();
     }
 
     public Category getCategory() {
@@ -374,32 +369,9 @@ public enum PwmSetting {
         return syntax;
     }
 
+ 
 
     // -------------------------- OTHER METHODS --------------------------
-
-    String debugValueString(final Object value)
-    {
-        return this.valueHelper.debugStringImpl(value);
-    }
-
-    public int getMinimumValue() {
-        if (this.valueHelper instanceof Static.IntValueHelper) {
-            return ((Static.IntValueHelper)this.valueHelper).getMinimumValue();
-        }
-        throw new IllegalArgumentException("this setting type does not have a minimum value");
-    }
-
-    public int getMaximumValue() {
-        if (this.valueHelper instanceof Static.IntValueHelper) {
-            return ((Static.IntValueHelper)this.valueHelper).getMaximumValue();
-        }
-        throw new IllegalArgumentException("this setting type does not have a maximum value");
-    }
-
-    Object parse(final String value)
-    {
-        return this.valueHelper.parseImpl(this,value);
-    }
 
     public String getDefaultValue()
     {
@@ -414,8 +386,18 @@ public enum PwmSetting {
         return readProps("DESCR_" + this.getKey(), locale);
     }
 
-    public Element toXmlElement(final String value) {
-        return this.valueHelper.toXmlElement(this, value);
+    public boolean isRequired() {
+        return required;
+    }
+
+    public Pattern getRegExPattern() {
+        final String value = readProps("REGEX_" + this.getKey(), Locale.getDefault());
+
+        if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value) ) {
+            return Pattern.compile(".*");
+        }
+
+        return Pattern.compile(value);
     }
 
     private static String readProps(final String key, final Locale locale) {
@@ -423,123 +405,16 @@ public enum PwmSetting {
             final ResourceBundle bundle = ResourceBundle.getBundle(PwmSetting.class.getName(), locale);
             return bundle.getString(key);
         } catch (Exception e) {
-            return "--RESOURCE MISSING--";
-        }
-    }
-
-    public boolean isLocalizable() {
-        return localizable;
-    }
-
-    // -------------------------- INNER CLASSES --------------------------
-
-    private static class Static {
-        private abstract static class ValueHelper implements Serializable {
-            abstract Object parseImpl(PwmSetting setting, String value);
-
-            Object parse(final PwmSetting setting, final String value)
-            {
-                final String strValue = value != null && value.length() > 0 ? value : setting.getDefaultValue();
-                return parseImpl(setting, strValue);
-            }
-
-            String debugStringImpl(final Object value)
-            {
-                return value.toString();
-            }
-
-            Element toXmlElement(final PwmSetting pwmSetting, final String value) {
-                final Element settingElement = new Element("setting");
-                settingElement.setAttribute("key", pwmSetting.getKey());
-
-                final Element valueElement = new Element("value");
-                valueElement.addContent(new CDATA(value));
-                settingElement.addContent(valueElement);
-
-                return settingElement;
-            }
-        }
-
-        static final ValueHelper STRING_VALUE_HELPER = new ValueHelper() {
-            public Object parseImpl(final PwmSetting setting, final String value)
-            {
-                return value;
-            }
-        };
-
-        static final ValueHelper STRING_ARRAY_VALUE_HELPER = new ValueHelper() {
-            public Object parseImpl(final PwmSetting setting, final String value)
-            {
-                final List<String> values = StringHelper.tokenizeString(value, ",");
-                return values.toArray(new String[values.size()]);
-            }
-
-            String debugStringImpl(final Object value)
-            {
-                final String[] v = (String[]) value;
-                final StringBuilder sb = new StringBuilder();
-                for (final String s : v) {
-                    sb.append(s);
-                    sb.append(", ");
-                }
-
-                if (sb.length() > 2) {
-                    sb.delete(sb.length() - 2, sb.length());
-                }
-
-                return sb.toString();
-            }
-        };
-
-        static final ValueHelper BOOLEAN_VALUE_HELPER = new ValueHelper() {
-            public Object parseImpl(final PwmSetting setting, final String value)
-            {
-                return ConfigReader.convertStrToBoolean(value);
-            }
-        };
-
-        static class IntValueHelper extends ValueHelper {
-            int minimumValue;
-            int maximumValue;
-
-            IntValueHelper(int minimumValue, int maximumValue) {
-                this.minimumValue = minimumValue;
-                this.maximumValue = maximumValue;
-            }
-
-            public int getMinimumValue() {
-                return minimumValue;
-            }
-
-            public int getMaximumValue() {
-                return maximumValue;
-            }
-
-            public Object parseImpl(final PwmSetting setting, final String value)
-            {
-                try {
-                    final int intValue = Integer.parseInt(value);
-                    
-                    if (intValue < minimumValue) {
-                        throw new IllegalArgumentException("setting is below minimum value of " + getMinimumValue());
-                    }
-
-                    if (intValue > maximumValue) {
-                        throw new IllegalArgumentException("setting is above maximum value of " + getMinimumValue());
-                    }
-
-                    return intValue;
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("setting requires a numeric value ");
-                }
-            }
+            return Static.RESOURCE_MISSING;
         }
     }
 
     public enum Syntax {
-        TEXT,
+        STRING,
+        STRING_ARRAY,
+        LOCALIZED_STRING,
+        LOCALIZED_STRING_ARRAY,
         PASSWORD,
-        TEXT_ARRAY,
         NUMERIC,
         BOOLEAN,
     }
@@ -556,6 +431,7 @@ public enum PwmSetting {
         ACTIVATION,
         UPDATE,
         CAPTCHA,
+        ADVANCED
         ;
 
         public String getLabel(final Locale locale)

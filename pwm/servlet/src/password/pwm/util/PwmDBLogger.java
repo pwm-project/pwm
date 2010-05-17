@@ -243,6 +243,7 @@ public class PwmDBLogger {
         sb.append(", tailPosition=").append(keyForPosition(tailPosition));
         sb.append(", maxEvents=").append(setting_maxEvents);
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
+        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(pwmDB.diskSpaceUsed()));
         return sb.toString();
     }
 
@@ -252,25 +253,26 @@ public class PwmDBLogger {
         while (eventsRemaining > 0 && open) {
             while (eventQueue.size() >= MAX_WRITES_PER_CYCLE) Helper.pause(100);
 
-            final Collection<PwmLogEvent> events = makeBulkEvents(MAX_WRITES_PER_CYCLE);
+            final Collection<PwmLogEvent> events = makeBulkEvents(MAX_WRITES_PER_CYCLE + 1);
             eventQueue.addAll(events);
             eventsRemaining = eventsRemaining - events.size();
-            //Helper.pause(500);
         }
     }
 
     private static Collection<PwmLogEvent> makeBulkEvents(final int count) {
 
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
-        final StringBuilder description = new StringBuilder();
+        final PwmRandom random = PwmRandom.getInstance();
 
         for(int i = 0; i < count; i++) {
-            final PwmLogLevel level = PwmLogLevel.TRACE;
+            final StringBuilder description = new StringBuilder();
             description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
+            description.append(random.alphaNumericString(1024 * 8));
+
             final PwmLogEvent event = new PwmLogEvent(
                     new Date(),
                     PwmDBLogger.class.getName(),
-                    "", "", "", null, level);
+                    description.toString(), "", "", null, PwmLogLevel.TRACE);
             events.add(event);
         }
 

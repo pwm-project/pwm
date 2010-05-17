@@ -62,8 +62,8 @@ public enum PwmPasswordRule {
     EnforceAtLogin          (ChaiPasswordRule.EnforceAtLogin           ,null                                                    ,ChaiPasswordRule.EnforceAtLogin          .getRuleType(), ChaiPasswordRule.EnforceAtLogin          .getDefaultValue(),false),
     ChallengeResponseEnabled(ChaiPasswordRule.ChallengeResponseEnabled ,null                                                    ,ChaiPasswordRule.ChallengeResponseEnabled.getRuleType(), ChaiPasswordRule.ChallengeResponseEnabled.getDefaultValue(),false),
     UniqueRequired          (ChaiPasswordRule.UniqueRequired           ,null                                                    ,ChaiPasswordRule.UniqueRequired          .getRuleType(), ChaiPasswordRule.UniqueRequired          .getDefaultValue(),true),
-    DisallowedValues        (ChaiPasswordRule.DisallowedValues         ,null                                                    ,ChaiPasswordRule.DisallowedValues        .getRuleType(), ChaiPasswordRule.DisallowedValues        .getDefaultValue(),false),
-    DisallowedAttributes    (ChaiPasswordRule.DisallowedAttributes     ,null                                                    ,ChaiPasswordRule.DisallowedAttributes    .getRuleType(), ChaiPasswordRule.DisallowedAttributes    .getDefaultValue(),false),
+    DisallowedValues        (ChaiPasswordRule.DisallowedValues         ,PwmSetting.PASSWORD_POLICY_DISALLOWED_VALUES            ,ChaiPasswordRule.DisallowedValues        .getRuleType(), ChaiPasswordRule.DisallowedValues        .getDefaultValue(),false),
+    DisallowedAttributes    (ChaiPasswordRule.DisallowedAttributes     ,PwmSetting.PASSWORD_POLICY_DISALLOWED_ATTRIBUTES        ,ChaiPasswordRule.DisallowedAttributes    .getRuleType(), ChaiPasswordRule.DisallowedAttributes    .getDefaultValue(),false),
     ADComplexity            (ChaiPasswordRule.ADComplexity             ,PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY                ,ChaiPasswordRule.ADComplexity            .getRuleType(), ChaiPasswordRule.ADComplexity            .getDefaultValue(),true),
 
     // pwm specific rules
@@ -72,12 +72,13 @@ public enum PwmPasswordRule {
     RegExNoMatch            (null                                      ,PwmSetting.PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH   ,ChaiPasswordRule.RuleType.OTHER, "",false),
     MinimumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MIN, "0",false),
     MaximumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MAX, "0",false),
+    EnableWordlist          (null                                      ,PwmSetting.PASSWORD_POLICY_ENABLE_WORDLIST              ,ChaiPasswordRule.RuleType.BOOLEAN, "true", true),
 
     ;
 
     static {
-        Set<String> keys = new HashSet<String>();
-        for (PwmSetting setting : PwmSetting.values()) keys.add(setting.getKey());
+        final Set<String> keys = new HashSet<String>();
+        for (final PwmSetting setting : PwmSetting.values()) keys.add(setting.getKey());
         assert keys.size() == PwmSetting.values().length;
     }
 
@@ -99,8 +100,8 @@ public enum PwmPasswordRule {
         return null != chaiPasswordRule ? chaiPasswordRule.getKey() : pwmSetting.getKey();
     }
 
-    public String getPwmConfigName() {
-        return pwmSetting != null ? pwmSetting.getKey() : null;
+    public PwmSetting getPwmSetting() {
+        return pwmSetting;
     }
 
     public ChaiPasswordRule.RuleType getRuleType() {

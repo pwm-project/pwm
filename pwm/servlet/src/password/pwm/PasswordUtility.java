@@ -92,7 +92,7 @@ public class PasswordUtility {
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
         if (returnSet == null) {
-            returnSet = pwmSession.getContextManager().getLocaleConfig(pwmSession.getSessionStateBean().getLocale()).getChallengeSet();
+            returnSet = pwmSession.getContextManager().getConfig().getGlobalChallengeSet(pwmSession.getSessionStateBean().getLocale());
             if (returnSet != null) {
                 LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
             }
@@ -227,7 +227,7 @@ public class PasswordUtility {
         final long delayStartTime = System.currentTimeMillis();
         final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
 
-        if (pwmSession.getConfig().getLdapServerURLs().size() <= 1) {
+        if (pwmSession.getConfig().readStringArraySetting(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
         } else {
             final long maxWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
@@ -254,7 +254,7 @@ public class PasswordUtility {
         }
 
         // be sure minimum wait time has passed
-        final long minWaitTime = Long.parseLong(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.MIN_PASSWORD_SYNC_WAIT_TIME));
+        final long minWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
         if((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {
             LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
             while ((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {

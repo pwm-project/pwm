@@ -67,7 +67,7 @@ public class UserInformationServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("search")) {
-            Validator.checkFormID(req);
+            Validator.validateFormID(req);
 
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);

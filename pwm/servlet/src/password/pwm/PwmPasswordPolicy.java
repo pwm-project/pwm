@@ -25,7 +25,6 @@ package password.pwm;
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
@@ -111,60 +110,6 @@ public class PwmPasswordPolicy implements Serializable {
 
         return sb.toString();
     }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    /*
-    public boolean testPassword(final String password)
-            throws ChaiPasswordPolicyException
-    {
-        final boolean chaiResult = super.testPassword(password);
-
-        //check number of alpha characters
-        {
-            final int passwordLength = password.length();
-            int numberOfAlphaChars = 0;
-            for (int i = 0; i < passwordLength; i++) {
-                if (Character.isLetter(password.charAt(i))) {
-                    numberOfAlphaChars++;
-                }
-            }
-
-            if (this.getMaximumAlpha() > 0 && numberOfAlphaChars > this.getMaximumAlpha()) {
-                throw new ChaiPasswordPolicyException(ChaiPasswordPolicyException.PASSWORD_ERROR.TOO_MANY_ALPHA);
-            }
-
-            if (this.getMinimumAlpha() > 0 && numberOfAlphaChars < this.getMaximumAlpha()) {
-                throw new ChaiPasswordPolicyException(ChaiPasswordPolicyException.PASSWORD_ERROR.NOT_ENOUGH_ALPHA);
-            }
-        }
-
-        // check regex match
-        {
-            for (final Pattern pattern : getRegexPatterns()) {
-                final Matcher matcher = pattern.matcher(password);
-                if (!matcher.matches()) {
-                    LOGGER.debug("password failed validation of regex required pattern: " + pattern.toString());
-                    throw new ChaiPasswordPolicyException(ChaiPasswordPolicyException.PASSWORD_ERROR.BADPASSWORD);
-                }
-            }
-        }
-
-        // check regex no match
-        {
-            for (final Pattern pattern : getRegexNoPatterns()) {
-                final Matcher matcher = pattern.matcher(password);
-                if (matcher.matches()) {
-                    LOGGER.debug("password failed validation of regex non-permitted pattern: " + pattern.toString());
-                    throw new ChaiPasswordPolicyException(ChaiPasswordPolicyException.PASSWORD_ERROR.BADPASSWORD);
-                }
-            }
-        }
-
-
-        return chaiResult;
-    }
-    */
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -297,7 +242,7 @@ public class PwmPasswordPolicy implements Serializable {
                     }
                     userPolicy = new PwmPasswordPolicy(ruleMap,chaiPolicy);
                 }
-            } catch (ChaiOperationException e) {
+            } catch (Exception e) {
                 LOGGER.trace(pwmSession, "unable to read ldap password policy: " + e.getMessage());
             }
             if (userPolicy != null) {

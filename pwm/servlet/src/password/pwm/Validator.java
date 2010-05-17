@@ -28,8 +28,9 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.ParameterConfig;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -161,7 +162,7 @@ public class Validator {
     public static void updateParamValues(
             final PwmSession pwmSession,
             final HttpServletRequest req,
-            final Map<String, ParameterConfig> parameterConfigs
+            final Map<String, FormConfiguration> parameterConfigs
     )
             throws ValidationException
     {
@@ -169,8 +170,8 @@ public class Validator {
             return;
         }
         parameterConfigs.entrySet();
-        for (final Map.Entry<String,ParameterConfig> entry : parameterConfigs.entrySet()) {
-            final ParameterConfig paramConfig = entry.getValue();
+        for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
+            final FormConfiguration paramConfig = entry.getValue();
             final String value = readStringFromRequest(req, paramConfig.getAttributeName(), 512);
 
             if (paramConfig.isConfirmationRequired()) {
@@ -200,7 +201,7 @@ public class Validator {
         return results.iterator().next();
     }
 
-    public static void checkFormID(final HttpServletRequest req) throws PwmException {
+    public static void validateFormID(final HttpServletRequest req) throws PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String formID = ssBean.getFormNonce();
@@ -285,9 +286,9 @@ public class Validator {
             }
 
             // strip off any disallowed chars.
-            final String disallowedInputs = theManager.getParameter(PwmConstants.CONTEXT_PARAM.DISALLOWED_INPUTS);
-            if (disallowedInputs != null) {
-                for (final String testString : disallowedInputs.split(";;;")) {
+            if (theManager != null && theManager.getConfig() != null) {
+                final List<String> disallowedInputs = theManager.getConfig().readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+                for (final String testString : disallowedInputs) {
                     final String newString = theString.replaceAll(testString, "");
                     if (!newString.equals(theString)) {
                         LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString  + "'");
@@ -296,6 +297,7 @@ public class Validator {
                     }
                 }
             }
+
 
             if (theString.length() > 0) {
                 resultSet.add(theString);
@@ -316,12 +318,12 @@ public class Validator {
      * @throws password.pwm.error.PwmException if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
-            final Map<String, ParameterConfig> parameterConfigs,
+            final Map<String, FormConfiguration> parameterConfigs,
             final PwmSession pwmSession
     )
             throws PwmException, ChaiUnavailableException
     {
-        for (final Map.Entry<String,ParameterConfig> entry : parameterConfigs.entrySet()) {
+        for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
             entry.getValue().valueIsValid(pwmSession);
         }
     }
@@ -728,12 +730,16 @@ public class Validator {
         final ContextManager theManager = pwmSession.getContextManager();
 
         // check if the password is in the dictionary.
-        if (theManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
-            final boolean found = theManager.getWordlistManager().containsWord(pwmSession, password);
+        if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
+            if (theManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
+                final boolean found = theManager.getWordlistManager().containsWord(pwmSession, password);
 
-            if (found) {
-                LOGGER.trace(pwmSession, "password rejected, in wordlist file");
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                if (found) {
+                    LOGGER.trace(pwmSession, "password rejected, in wordlist file");
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
+            } else {
+                LOGGER.warn(pwmSession, "password wordlist checking enabled, but wordlist is not available, skipping wordlist check");
             }
         }
 

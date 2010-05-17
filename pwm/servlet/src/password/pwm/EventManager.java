@@ -57,8 +57,12 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
         final ContextManager contextManager = pwmSession.getContextManager();
 
-        contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
-        contextManager.addPwmSession(pwmSession);
+        if (contextManager != null) {
+            if (contextManager.getStatisticsManager() != null) {
+                contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
+            }
+            contextManager.addPwmSession(pwmSession);
+        }
 
         LOGGER.trace(pwmSession, "http session created");
     }

@@ -23,8 +23,8 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
+import password.pwm.config.FormConfiguration;
 import password.pwm.error.PwmError;
-import password.pwm.config.ParameterConfig;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,7 +51,7 @@ public class ParameterFormTag extends TagSupport {
 
     private static String getForm(
             final Map<String,
-                    ParameterConfig> parameters,
+                    FormConfiguration> parameters,
             final Properties values,
             final PwmSession pwmSession)
     {
@@ -62,7 +62,7 @@ public class ParameterFormTag extends TagSupport {
         final StringBuilder sb = new StringBuilder();
 
         for (final String key : parameters.keySet()) {
-            final ParameterConfig param = parameters.get(key);
+            final FormConfiguration param = parameters.get(key);
             sb.append(getFormLine(param, values.getProperty(param.getAttributeName(), ""), false, pwmSession));
             if (param.isConfirmationRequired()) {
                 sb.append(getFormLine(param, values.getProperty(param.getAttributeName() + "_confirm", ""), true, pwmSession));
@@ -72,7 +72,7 @@ public class ParameterFormTag extends TagSupport {
     }
 
     private static String getFormLine(
-            final ParameterConfig param,
+            final FormConfiguration param,
             final String value,
             final boolean confirm,
             final PwmSession pwmSession
@@ -93,7 +93,7 @@ public class ParameterFormTag extends TagSupport {
 
             {
                 sb.append("<input");
-                if (param.getType() == ParameterConfig.Type.PASSWORD) {
+                if (param.getType() == FormConfiguration.Type.PASSWORD) {
                     sb.append(" type=\"password\"");
                 } else {
                     sb.append(" type=\"text\"");
@@ -151,7 +151,7 @@ public class ParameterFormTag extends TagSupport {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private Map<String, ParameterConfig> getParameterMap(final PwmSession pwmSession)
+    private Map<String, FormConfiguration> getParameterMap(final PwmSession pwmSession)
     {
         if (formName.equalsIgnoreCase("newuser")) {
             return pwmSession.getNewUserServletBean().getCreationParams();

@@ -31,8 +31,9 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UpdateAttributesServletBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
-import password.pwm.config.ParameterConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -93,7 +94,7 @@ public class UpdateAttributesServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
-        final Map<String, ParameterConfig> validationParams = pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
+        final Map<String, FormConfiguration> validationParams = pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
 
         final Collection<String> involvedAttrs = new HashSet<String>(validationParams.keySet());
 
@@ -124,10 +125,10 @@ public class UpdateAttributesServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         final UpdateAttributesServletBean updateBean = pwmSession.getUpdateAttributesServletBean();
-        final Map<String, ParameterConfig> validationParams = updateBean.getUpdateAttributesParams();
+        final Map<String, FormConfiguration> validationParams = updateBean.getUpdateAttributesParams();
 
         //read the values from the request
         try {
@@ -151,10 +152,15 @@ public class UpdateAttributesServlet extends TopServlet {
             // write values.
             LOGGER.info("updating attributes for " + uiBean.getUserDN());
 
-            //write the values
+            // write the form values
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
             Helper.writeMapToEdir(pwmSession, actor, validationParams);
+
+            // write configured values
+            final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES);
+            final Map<String,String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues,"=");
+            Helper.writeMapToEdir(pwmSession, actor, writeAttributesSettings);
 
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);

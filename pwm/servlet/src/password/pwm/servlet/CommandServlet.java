@@ -26,8 +26,9 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.error.PwmError;
-import password.pwm.config.ParameterConfig;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
@@ -38,6 +39,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -212,20 +214,21 @@ public class CommandServlet extends TopServlet {
         final String userDN = uiBean.getUserDN();
 
         if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.QUERY_MATCH_UPDATE_USER))) {
-            LOGGER.info(pwmSession, "checkAttributes: " + userDN + " is not eligable for checkAttributes due to query match");
+            LOGGER.info(pwmSession, "checkAttributes: " + userDN + " is not eligible for checkAttributes due to query match");
             return true;
         }
 
-        final Map<String, ParameterConfig> formParams = pwmSession.getLocaleConfig().getUpdateAttributesAttributes();
+        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM,pwmSession.getSessionStateBean().getLocale());
+        final Map<String,FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
 
         // populate the map with attribute values from the uiBean, which was populated through ldap.
-        for (final String key : formParams.keySet()) {
-            final ParameterConfig paramConfig = formParams.get(key);
+        for (final String key : formSettings.keySet()) {
+            final FormConfiguration paramConfig = formSettings.get(key);
             paramConfig.setValue(uiBean.getAllUserAttributes().getProperty(paramConfig.getAttributeName()));
         }
 
         try {
-            Validator.validateParmValuesMeetRequirements(formParams, pwmSession);
+            Validator.validateParmValuesMeetRequirements(formSettings, pwmSession);
             LOGGER.info(pwmSession, "checkAttributes: " + userDN + " has good attributes");
             return true;
         } catch (ValidationException e) {

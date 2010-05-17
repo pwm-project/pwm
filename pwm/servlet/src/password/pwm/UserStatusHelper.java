@@ -33,7 +33,10 @@ import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.PasswordStatus;
+import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -41,10 +44,7 @@ import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 public class UserStatusHelper {
 
@@ -219,15 +219,15 @@ public class UserStatusHelper {
         //populate password policy
         uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser));
 
-        //populate c/r challenge set.
+        //populate c/r challenge set. 
         uiBean.setChallengeSet(PasswordUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(),pwmSession.getSessionStateBean().getLocale()));
 
         //populate all user attributes.
         try {
-            final Set<String> interestingUserAttributes = pwmSession.getConfig().getAllUsedLdapAttributes();
+            final Set<String> interestingUserAttributes = new HashSet<String>(pwmSession.getConfig().getAllUsedLdapAttributes());
             interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-            interestingUserAttributes.add(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE));
+            interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 interestingUserAttributes.add("cn");
                 interestingUserAttributes.add("displayName");
@@ -235,7 +235,7 @@ public class UserStatusHelper {
             }
             final Properties allUserAttrs = theUser.readStringAttributes(null);
             uiBean.setAllUserAttributes(allUserAttrs);
-            uiBean.setUserID(allUserAttrs.getProperty(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE)));
+            uiBean.setUserID(allUserAttrs.getProperty(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)));
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
         }
@@ -298,7 +298,9 @@ public class UserStatusHelper {
 
         // see if the baseDN should be the context parameter
         if (context != null && context.length() > 0) {
-            if (pwmSession.getConfig().getLoginContexts().containsKey(context)) {
+            final List<String> values = pwmSession.getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS);
+            final Map<String,String> contextsSettings = Configuration.convertStringListToNameValuePair(values,"=");
+            if (contextsSettings.containsKey(context)) {
                 if (context.endsWith(baseDN)) {
                     baseDN = context;
                 } else {
@@ -311,7 +313,7 @@ public class UserStatusHelper {
             return username;
         }
 
-        final String usernameAttribute = pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
+        final String usernameAttribute = pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
 
         //if supplied user name starts with username attr assume its the full dn and skip the contextless login
         if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {

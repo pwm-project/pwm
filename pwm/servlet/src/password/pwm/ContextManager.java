@@ -76,7 +76,7 @@ public class ContextManager implements Serializable
     private final IntruderManager intruderManager = new IntruderManager(this);
 
     private transient ServletContext servletContext;
-    private transient ConfigReader configReader;
+    private transient Configuration configuration;
     private transient EmailQueueManager emailQueue;
 
     private transient StatisticsManager statisticsManager;
@@ -116,11 +116,6 @@ public class ContextManager implements Serializable
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public ConfigReader getConfigReader()
-    {
-        return this.configReader;
-    }
 
     public String getInstanceID()
     {
@@ -200,18 +195,10 @@ public class ContextManager implements Serializable
 
     public Configuration getConfig()
     {
-        if (configReader == null) {
+        if (configuration == null) {
             return null;
         }
-        return configReader.getGlobalConfig();
-    }
-
-    public LocalizedConfiguration getLocaleConfig(final Locale locale)
-    {
-        if (configReader == null) {
-            return null;
-        }
-        return configReader.getLocalizedConfiguration(locale);
+        return configuration;
     }
 
     public ChaiUser getProxyChaiUserActor(final PwmSession pwmSession)
@@ -250,7 +237,8 @@ public class ContextManager implements Serializable
 
         // initialize configuration
         try {
-            configReader = new ConfigReader(figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext));
+            final File configFile = figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
+            configuration = ConfigReader.loadConfiguration(configFile);
         } catch (Exception e) {
             //LOGGER.fatal("unable to load configuration file", e);
             LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
@@ -262,8 +250,8 @@ public class ContextManager implements Serializable
 
         // log the loaded configuration
         LOGGER.info(logContextParams());
-        LOGGER.info("loaded configuration: " + configReader.toDebugString());
-        LOGGER.info("loaded pwm global password policy: " + configReader.getGlobalConfig().getGlobalPasswordPolicy());
+        LOGGER.info("loaded configuration: " + configuration.getStoredConfiguration().toString());
+        LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy());
 
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(pwmDB, this);
@@ -603,7 +591,7 @@ public class ContextManager implements Serializable
             try {
                 final String classname = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_IMPLEMENTATION);
                 final String initString = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_INITSTRING);
-                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initString, contextManager);
+                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initString);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }
@@ -612,9 +600,9 @@ public class ContextManager implements Serializable
         public static void initializePwmDBLogger(final ContextManager contextManager) {
             // initialize the pwmDBLogger
             try {
-                final int maxEvents = contextManager.configReader.getGlobalConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_EVENTS);
-                final int maxAge = contextManager.configReader.getGlobalConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_AGE);
-                final PwmLogLevel localLogLevel = contextManager.configReader.getGlobalConfig().getEventLogLocalLevel();
+                final int maxEvents = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_EVENTS);
+                final int maxAge = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_AGE);
+                final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
                 contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
@@ -627,9 +615,9 @@ public class ContextManager implements Serializable
             try {
                 LOGGER.trace("opening wordlist");
 
-                final String setting = contextManager.configReader.getGlobalConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
+                final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
                 final File wordlistFile = setting == null || setting.length() < 1 ? null : figureFilepath(setting, "WEB-INF", contextManager.servletContext);
-                final boolean caseSensitive = Boolean.parseBoolean(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_CASE_SENSITIVE));
+                final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
 
                 contextManager.wordlistManager = WordlistManager.createWordlistManager(
                         wordlistFile,
@@ -647,7 +635,7 @@ public class ContextManager implements Serializable
             try {
                 LOGGER.trace("opening seedlist");
 
-                final String setting = contextManager.configReader.getGlobalConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
+                final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
                 final File seedlistFile = setting == null || setting.length() < 1 ? null : figureFilepath(setting, "WEB-INF", contextManager.servletContext);
                 contextManager.seedlistManager = SeedlistManager.createSeedlistManager(
                         seedlistFile,
@@ -662,9 +650,9 @@ public class ContextManager implements Serializable
         public static void initializeSharedHistory(final ContextManager contextManager) {
 
             try {
-                final long maxAgeSeconds = contextManager.configReader.getGlobalConfig().readSettingAsInt(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
+                final long maxAgeSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
                 final long maxAgeMS = maxAgeSeconds * 1000;  // convert to MS;
-                final boolean caseSensitive = Boolean.parseBoolean(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_CASE_SENSITIVE));
+                final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
 
                 contextManager.sharedHistoryManager = SharedHistoryManager.createSharedHistoryManager(contextManager.pwmDB, maxAgeMS, caseSensitive);
             } catch (Exception e) {

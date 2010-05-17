@@ -90,7 +90,7 @@ public class Helper {
             throws ChaiUnavailableException
     {
         final Configuration config = theManager.getConfig();
-        final List<String> ldapURLs = new ArrayList<String>(config.getLdapServerURLs());
+        final List<String> ldapURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
         final boolean autocert = config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL);
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
@@ -125,6 +125,18 @@ public class Helper {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE,"false");
         }
 
+        // write out any configured values;
+        final List<String> rawValues = config.readStringArraySetting(PwmSetting.LDAP_CHAI_SETTINGS);
+        final Map<String,String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues,"=");
+        for (final String key : configuredSettings.keySet()) {
+            final ChaiSetting theSetting = ChaiSetting.forKey(key);
+            if (theSetting == null) {
+                LOGGER.error("ignoring unknown chai setting '" + key + "'");
+            } else {
+                chaiConfig.setSetting(theSetting,configuredSettings.get(key));
+            }
+        }
+
         return chaiConfig;
     }
 
@@ -140,7 +152,7 @@ public class Helper {
     )
             throws ChaiUnavailableException
     {
-        final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().getAutoAddObjectClasses());
+        final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readStringArraySetting(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
         }
@@ -407,7 +419,7 @@ public class Helper {
             final String oldPassword,
             final String newPassword)
     {
-        final Set<String> externalMethods = pwmSession.getConfig().getExternalPasswordMethods();
+        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_PASSWORD_METHODS);
 
         // process any configured external change password methods configured.
         for (final String className : externalMethods) {
@@ -438,7 +450,12 @@ public class Helper {
 
     public static void sendChangePasswordEmailNotice(final PwmSession pwmSession)
     {
-        final EmailInfo emailInfo = pwmSession.getLocaleConfig().getChangePasswordEmail();
+        final Configuration config = pwmSession.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_FROM,locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_SUBJECT,locale);
+        final String body = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_BODY,locale);
 
         final String toAddress = pwmSession.getUserInfoBean().getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_EMAIL, "");
         if (toAddress.length() < 1) {
@@ -446,7 +463,7 @@ public class Helper {
             return;
         }
 
-        pwmSession.getContextManager().sendEmailUsingQueue(new EmailEvent(toAddress, emailInfo.getFrom(), emailInfo.getSubject(), emailInfo.getBody()));
+        pwmSession.getContextManager().sendEmailUsingQueue(new EmailEvent(toAddress, fromAddress, subject, body));
     }
 
     public static boolean testEmailAddress(final String address)
@@ -529,13 +546,13 @@ public class Helper {
     /**
      * Writes a Map of values to ldap onto the supplied user object.
      * The map key must be a string of attribute names.  The map value
-     * must be either a string, or a {@link ParameterConfig} object.
+     * must be either a string, or a {@link password.pwm.config.FormConfiguration} object.
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
      * @param pwmSession for looking up session info
      * @param theUser    User to write to
-     * @param stringOrParamMap  A map with String keys and String or {@link password.pwm.config.ParameterConfig} values. @throws ChaiUnavailableException
+     * @param stringOrParamMap  A map with String keys and String or {@link password.pwm.config.FormConfiguration} values. @throws ChaiUnavailableException
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws ChaiOperationException if their is an unexpected ldap problem
      */
@@ -548,8 +565,8 @@ public class Helper {
             String attrValue = null;
             if (mapValue instanceof String) {
                 attrValue = (String) mapValue;
-            } else if (mapValue instanceof ParameterConfig) {
-                attrValue = ((ParameterConfig) mapValue).getValue();
+            } else if (mapValue instanceof FormConfiguration) {
+                attrValue = ((FormConfiguration) mapValue).getValue();
             }
 
             if (attrValue != null && attrValue.length() > 0) {
@@ -659,6 +676,11 @@ public class Helper {
             if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
                 return loopLocale;
             }
+        }
+
+        final Locale emptyLocale = parseLocaleString("");
+        if (localePool.contains(emptyLocale)) {
+            return emptyLocale; 
         }
 
         return null;

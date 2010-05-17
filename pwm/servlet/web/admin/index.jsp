@@ -61,6 +61,9 @@
             <h2><a href="<pwm:url url='http-request-information.jsp'/>">HTTP Request Information</a></h2>
             <p>Useful for debugging HTTP request issues</p>
 
+            <h2><a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a></h2>
+            <p>PWM configuration manager and editor</p>
+
             <h2><a href="<pwm:url url='../public/Logout'/>">Logout</a></h2>
             <p>Logout of the Password Management Servlet</p>
 

@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.ParameterConfig;
+import password.pwm.config.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class UpdateAttributesServletBean implements Serializable {
 
     private String createUserDN;
 
-    private Map<String, ParameterConfig> updateAttributesParams;
+    private Map<String, FormConfiguration> updateAttributesParams;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -47,11 +47,11 @@ public class UpdateAttributesServletBean implements Serializable {
         this.createUserDN = createUserDN;
     }
 
-    public Map<String, ParameterConfig> getUpdateAttributesParams() {
+    public Map<String, FormConfiguration> getUpdateAttributesParams() {
         return updateAttributesParams;
     }
 
-    public void setUpdateAttributesParams(final Map<String, ParameterConfig> updateAttributesParams) {
+    public void setUpdateAttributesParams(final Map<String, FormConfiguration> updateAttributesParams) {
         this.updateAttributesParams = updateAttributesParams;
     }
 }

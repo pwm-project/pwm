@@ -308,7 +308,7 @@ public class ChangePasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = ContextManager.getContextManager(this.getServletContext());
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
         final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
         final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
 

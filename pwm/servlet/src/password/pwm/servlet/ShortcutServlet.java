@@ -34,10 +34,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ShortcutServlet extends TopServlet {
 
@@ -87,7 +84,14 @@ public class ShortcutServlet extends TopServlet {
     private static Map<String,ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
             throws PwmException, ChaiUnavailableException
     {
-        final List<ShortcutItem> configuredItems = pwmSession.getLocaleConfig().getShortcutItems();
+        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.SHORTCUT_ITEMS,pwmSession.getSessionStateBean().getLocale());
+
+        final List<ShortcutItem> configuredItems = new ArrayList<ShortcutItem>();
+        for (final String loopStr : configValues) {
+            final ShortcutItem item = ShortcutItem.parsePwmConfigInput(loopStr);
+            configuredItems.add(item);
+        }
+
         final Map<String, ShortcutItem> visibleItems = new HashMap<String,ShortcutItem>();
 
         for (final ShortcutItem item : configuredItems ) {

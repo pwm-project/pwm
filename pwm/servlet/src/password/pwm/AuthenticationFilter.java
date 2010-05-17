@@ -175,8 +175,8 @@ public class AuthenticationFilter implements Filter {
         }
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
-        if (Boolean.parseBoolean(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.FORCE_BASIC_AUTH))) {
-            String displayMessage = PwmSession.getPwmSession(req).getContextManager().getLocaleConfig(ssBean.getLocale()).getApplicationTitle();
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
+            String displayMessage = PwmSession.getPwmSession(req).getContextManager().getConfig().readLocalizedStringSetting(PwmSetting.APPLICATION_TILE,ssBean.getLocale());
             if (displayMessage == null) {
                 displayMessage =  "Password Self Service";
             }

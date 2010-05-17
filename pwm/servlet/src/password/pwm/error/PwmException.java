@@ -43,7 +43,7 @@ public class PwmException extends Exception {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    PwmException(final ErrorInformation error, final String exceptionMsg) {
+    public PwmException(final ErrorInformation error, final String exceptionMsg) {
         super(exceptionMsg);
         this.error = error;
     }

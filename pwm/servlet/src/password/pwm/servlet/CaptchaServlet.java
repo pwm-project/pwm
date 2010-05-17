@@ -102,7 +102,7 @@ public class CaptchaServlet extends TopServlet {
     private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
         
         final boolean verified;
         try {

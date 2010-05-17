@@ -26,8 +26,7 @@ package password.pwm;
  * Classes implementing this interface will be called during password change events.
  * <p/>
  * The {@link #passwordChange} method will be called just after a successful password change.
- * To be invoked, implementations of this class must be specified in the "externalPasswordMethods"
- * configuration option in the <i>pwmServlet.properties</i> file.
+ * To be invoked, implementations of this class must be specified by {@link password.pwm.config.PwmSetting#EXTERNAL_PASSWORD_METHODS}.
  *
  * @author Jason D. Rivard
  */

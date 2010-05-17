@@ -24,8 +24,8 @@ package password.pwm;
 
 import password.pwm.bean.*;
 import password.pwm.config.Configuration;
-import password.pwm.config.LocalizedConfiguration;
-import password.pwm.config.ParameterConfig;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -33,8 +33,8 @@ import password.pwm.util.stats.StatisticsManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Locale;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -48,12 +48,12 @@ public class PwmSession implements Serializable {
     private long creationTime;
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
+    private final ConfigManagerBean configManagerBean = new ConfigManagerBean();
     private ForgottenPasswordBean forgottenPasswordBean = new ForgottenPasswordBean();
     private UserInfoBean userInfoBean = new UserInfoBean();
     private ChangePasswordBean changePasswordBean = new ChangePasswordBean();
     private SessionManager sessionManager = new SessionManager(this);
     private SetupResponsesBean setupResponseBean = new SetupResponsesBean();
-    private ConfigManagerBean configManagerBean = new ConfigManagerBean();
 
     private NewUserServletBean newUserServletBean;
     private UpdateAttributesServletBean updateAttributesServletBean;
@@ -64,11 +64,6 @@ public class PwmSession implements Serializable {
     private transient HttpSession httpSession;
 
 // -------------------------- STATIC METHODS --------------------------
-
-    public static ChangePasswordBean getChangePasswordBean(final HttpSession session)
-    {
-        return PwmSession.getPwmSession(session).getChangePasswordBean();
-    }
 
     public static ForgottenPasswordBean getForgottenPasswordBean(final HttpServletRequest req)
     {
@@ -145,9 +140,9 @@ public class PwmSession implements Serializable {
     {
         if (activateUserServletBean == null) {
             activateUserServletBean = new ActivateUserServletBean();
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getActivateUserAttributes();
-            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
-            activateUserServletBean.setActivateUserParams(paramMap);
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.ACTIVATE_USER_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            activateUserServletBean.setActivateUserParams(Collections.unmodifiableMap(formMap));
         }
         return activateUserServletBean;
     }
@@ -176,9 +171,9 @@ public class PwmSession implements Serializable {
     {
         if (newUserServletBean == null) {
             newUserServletBean = new NewUserServletBean();
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getNewUserCreationAttributes();
-            final Map<String, ParameterConfig> paramMap =  new LinkedHashMap<String, ParameterConfig>(configMap);
-            newUserServletBean.setCreationParams(paramMap);
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.NEWUSER_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            newUserServletBean.setCreationParams(Collections.unmodifiableMap(formMap));
         }
         return newUserServletBean;
     }
@@ -197,9 +192,9 @@ public class PwmSession implements Serializable {
     {
         if (updateAttributesServletBean == null) {
             updateAttributesServletBean = new UpdateAttributesServletBean();
-            final Map<String, ParameterConfig> configMap = getLocaleConfig().getUpdateAttributesAttributes();
-            final Map<String, ParameterConfig> paramMap = new LinkedHashMap<String, ParameterConfig>(configMap);
-            updateAttributesServletBean.setUpdateAttributesParams(paramMap);
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            updateAttributesServletBean.setUpdateAttributesParams(Collections.unmodifiableMap(formMap));
         }
         return updateAttributesServletBean;
     }
@@ -246,13 +241,6 @@ public class PwmSession implements Serializable {
 
     public ContextManager getContextManager() {
         return ContextManager.getContextManager(httpSession);
-    }
-
-    public LocalizedConfiguration getLocaleConfig() {
-        final SessionStateBean ssBean = getSessionStateBean();
-        final Locale sessionLocale = ssBean.getLocale();
-        final ContextManager contextManager = getContextManager();
-        return contextManager.getLocaleConfig(sessionLocale);
     }
 
     public boolean isValid() {

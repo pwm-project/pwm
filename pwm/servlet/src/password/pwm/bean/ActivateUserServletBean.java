@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.ParameterConfig;
+import password.pwm.config.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -35,15 +35,15 @@ public class ActivateUserServletBean implements Serializable {
 
     private String createUserDN;
 
-    private Map<String, ParameterConfig> activateUserParams;
+    private Map<String, FormConfiguration> activateUserParams;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public Map<String, ParameterConfig> getActivateUserParams() {
+    public Map<String, FormConfiguration> getActivateUserParams() {
         return activateUserParams;
     }
 
-    public void setActivateUserParams(final Map<String, ParameterConfig> activateUserParams) {
+    public void setActivateUserParams(final Map<String, FormConfiguration> activateUserParams) {
         this.activateUserParams = activateUserParams;
     }
 

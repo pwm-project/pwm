@@ -20,7 +20,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.config.Configuration" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -44,7 +45,7 @@
             <% } %>
 
             <%  //check to see if any locations are configured.
-                if (!ContextManager.getContextManager(this.getServletConfig().getServletContext()).getConfig().getLoginContexts().isEmpty()) {
+                if (!Configuration.convertStringListToNameValuePair(PwmSession.getPwmSession(session).getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS),"=").isEmpty()) {
             %>
             <h2><pwm:Display key="Field_Location"/></h2>
             <select name="context">

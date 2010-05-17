@@ -20,12 +20,13 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.novell.ldapchai.util.StringHelper" %>
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.lang.reflect.Method" %>
+<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="java.util.Date" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -33,6 +34,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final password.pwm.config.Configuration pwmConfig = pwmSession.getConfig(); %>
+<% final StoredConfiguration storedConfig = pwmConfig.getStoredConfiguration(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
@@ -43,13 +45,12 @@
             <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
         </p>
         <p>
-            Configuration load time <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfigReader().getLoadTime())) %>
+            Configuration load time <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfig().getLoadTime())) %>
         </p>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
             <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
             <% } %>
-            <li><a href="#locale-specifc">Locale-Specific Configuration Settings</a></li>
         </ol>
         <%
             for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
@@ -67,7 +68,50 @@
                     <%= loopSetting.getLabel(request.getLocale()) %>
                 </td>
                 <td>
-                    <%= loopSetting.isConfidential() ? "* not shown *" : pwmConfig.toString(loopSetting) %>
+                    <%
+                        if (loopSetting.isConfidential()) {
+                            out.write("* not shown *");
+                        } else {
+                            switch (loopSetting.getSyntax()) {
+                                case STRING_ARRAY:
+                                {
+                                    final List<String> values = storedConfig.readStringArraySetting(loopSetting);
+                                    for (final String value : values) {
+                                        out.write(value + "<br/>");
+                                    }
+                                }
+                                break;
+
+                                case LOCALIZED_STRING:
+                                {
+                                    final Map<String,String> values = storedConfig.readLocalizedStringSetting(loopSetting);
+                                    for (final String locale : values.keySet()) {
+                                        out.write("<b>" + locale + "</b>" + values.get(locale) + "<br/>");
+                                    }
+
+                                }
+                                break;
+
+                                case LOCALIZED_STRING_ARRAY:
+                                {
+                                    final Map<String,List<String>> values = storedConfig.readLocalizedStringArraySetting(loopSetting);
+                                    for (final String locale : values.keySet()) {
+                                        out.write("<table><tr><td>");
+                                        out.write((locale == null || locale.length() < 1) ? "Default" : locale);
+                                        out.write("</td><td>");
+                                        for (final String value : values.get(locale)) {
+                                            out.write(value + "<br/>");
+                                        }
+                                        out.write("</td></tr></table>");
+                                    }
+                                }
+                                break;
+
+                                default:
+                                    out.write(storedConfig.readSetting(loopSetting));
+                            }
+                        }
+                    %>
                 </td>
             </tr>
             <% } %>
@@ -75,38 +119,6 @@
         <br class="clear"/>
         <% } %>
         <br class="clear"/>
-        <% for (final Locale loopLocale : ContextManager.getContextManager(session).getConfigReader().getCurrentlyLoadedLocales()) { %>
-        <br class="clear"/>
-        <table class="tablemain">
-            <tr>
-                <td class="title" colspan="10">
-                    <a name="locale-specifc">Locale-Specific Configuration Settings for "<%= loopLocale %>"</a>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="10">
-                    Below are settings for each of the local-specific configuration options in each locale
-                    that has been used to access PWM. If a specific configured locale does not list
-                    here, access PWM with a browser configured for that locale.
-                </td>
-            </tr>
-            <%
-                final password.pwm.config.LocalizedConfiguration localeConfig = ContextManager.getContextManager(session).getConfigReader().getLocalizedConfiguration(loopLocale);
-                for (final Method method : localeConfig.getClass().getMethods()) {
-                    final String name = method.getName();
-                    if (name.matches("(?i)^get.*|^is.*") && !name.matches("(?i).*password.*|^getClass$")) {
-                        out.append("<tr><td class=\"key\">");
-                        out.append(name.replaceAll("^is|^get", ""));
-                        out.append("    </td><td colspan=\"1\">");
-                        try {
-                            out.append(method.invoke(localeConfig).toString());
-                        } catch (Exception e) { /*blah*/ }
-                        out.append("</td></tr>");
-                    }
-                }
-            %>
-        </table>
-        <% } %>
     </div>
 </div>
 <br class="clear"/>

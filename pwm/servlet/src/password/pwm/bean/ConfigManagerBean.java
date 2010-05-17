@@ -22,20 +22,27 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.NewConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class ConfigManagerBean implements Serializable {
-    private NewConfiguration configuration;
+    private StoredConfiguration configuration;
+    private boolean editorMode;
 
-    public NewConfiguration getConfiguration() {
+    public StoredConfiguration getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(final NewConfiguration configuration) {
+    public void setConfiguration(final StoredConfiguration configuration) {
         this.configuration = configuration;
+    }
+
+    public boolean isEditorMode() {
+        return editorMode;
+    }
+
+    public void setEditorMode(final boolean editorMode) {
+        this.editorMode = editorMode;
     }
 }

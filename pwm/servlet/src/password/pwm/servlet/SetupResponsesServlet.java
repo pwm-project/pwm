@@ -35,7 +35,6 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -168,7 +167,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         final ResponseSet responses;
         final Map<Challenge,String> responseMap;
@@ -209,7 +208,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         boolean saveSuccess = false;
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         final Map<Challenge,String> responseMap = pwmSession.getSetupResponseBean().getResponseMap();
         if (responseMap != null && !responseMap.isEmpty()) {
@@ -236,25 +235,23 @@ public class SetupResponsesServlet extends TopServlet {
     private static boolean saveResponses(final PwmSession pwmSession, final ResponseSet responses)
             throws PwmException, ChaiUnavailableException
     {
-        //it was good...
-
         int attempts = 0, successes = 0;
 
-        if (pwmSession.getConfig().getResponseStorageMethod() != null) {
-            try {
-                attempts++;
-                responses.write(pwmSession.getConfig().getResponseStorageMethod());
-                LOGGER.info(pwmSession, "saved responses for user using method " + pwmSession.getConfig().getResponseStorageMethod());
-                successes++;
-            } catch (ChaiOperationException e) {
-                if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
-                    LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
-                    LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
-                } else {
-                    LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
-                }
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
+        try {
+            attempts++;
+            final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
+            final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
+            responses.write(writeMode);
+            LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
+            successes++;
+        } catch (ChaiOperationException e) {
+            if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
+                LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+                LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
+            } else {
+                LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
             }
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
         }
 
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
@@ -361,7 +358,7 @@ public class SetupResponsesServlet extends TopServlet {
             final Map<Challenge,String> responseMap
     )
             throws SetupResponsesException {
-        final Configuration.CR_RANDOM_STYLE randomStyle = pwmSession.getContextManager().getConfig().getChallengeRandomStyle();
+        final boolean forceAllRandoms = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS);
 
         int randomCount = 0;
         for (final Challenge loopChallenge : responseMap.keySet()) {
@@ -370,8 +367,7 @@ public class SetupResponsesServlet extends TopServlet {
             }
         }
 
-
-        if (randomStyle == Configuration.CR_RANDOM_STYLE.RECOVER) { // if using recover style, then all readResponses must be supplied at this point.
+        if (forceAllRandoms) { // if using recover style, then all readResponses must be supplied at this point.
             if (randomCount < challengeSet.getRandomChallenges().size()) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
                 throw new SetupResponsesException(errorInfo);
@@ -413,8 +409,8 @@ public class SetupResponsesServlet extends TopServlet {
 
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
-            final Configuration.CR_RANDOM_STYLE randomStyle = pwmSession.getContextManager().getConfig().getChallengeRandomStyle();
-            if (randomStyle == Configuration.CR_RANDOM_STYLE.RECOVER) { // if using recover style, then all readResponses must be supplied at this point.
+            final boolean forceAllRandoms = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS);
+            if (forceAllRandoms) { // if using recover style, then all readResponses must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
                     throw new ChaiValidationException(ChaiValidationException.VALIDATION_ERROR.TOO_FEW_RANDOM_RESPONSES);
                 }
@@ -479,7 +475,7 @@ public class SetupResponsesServlet extends TopServlet {
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<String, Challenge>();
         {
             {
-                if (pwmSession.getConfig().getChallengeRandomStyle() == Configuration.CR_RANDOM_STYLE.RECOVER) {
+                if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS)) {
                     useSimple = false;
                 }
 

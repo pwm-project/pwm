@@ -31,12 +31,12 @@ public class ShortcutItem implements Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ShortcutItem.class);
 
-    private final String ldapQuery;
-    private final URI shortcutURI;
     private final String label;
+    private final URI shortcutURI;
+    private final String ldapQuery;
     private final String description;
 
-    public ShortcutItem(final String ldapQuery, final URI shortcutURI, final String label, final String description) {
+    public ShortcutItem(final String label, final URI shortcutURI, final String ldapQuery, final String description) {
         this.ldapQuery = ldapQuery;
         this.shortcutURI = shortcutURI;
         this.label = label;
@@ -62,9 +62,9 @@ public class ShortcutItem implements Serializable {
 
     public String toString() {
         return "ShortcutItem{" +
-                "ldapQuery='" + ldapQuery + '\'' +
+                "label='" + label + '\'' +
                 ", shortcutURI=" + shortcutURI +
-                ", label='" + label + '\'' +
+                ", ldapQuery='" + ldapQuery + '\'' +
                 ", description='" + description + '\'' +
                 '}';
     }
@@ -72,7 +72,7 @@ public class ShortcutItem implements Serializable {
     public static ShortcutItem parsePwmConfigInput(final String input) {
         if (input != null && input.length() > 0) {
             try {
-                final String[] splitSettings = input.split(";;;");
+                final String[] splitSettings = input.split("::");
                 return new ShortcutItem(
                         splitSettings[0],
                         URI.create(splitSettings[1]),

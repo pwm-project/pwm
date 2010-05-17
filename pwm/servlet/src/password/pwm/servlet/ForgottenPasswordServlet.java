@@ -33,10 +33,7 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.ForgottenPasswordBean;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Message;
-import password.pwm.config.ParameterConfig;
-import password.pwm.config.PasswordStatus;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -51,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -109,7 +107,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ContextManager theManager = pwmSession.getContextManager();
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
         final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
         final String contextParam = Validator.readStringFromRequest(req, "context", 256);
 
@@ -235,7 +233,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
 
@@ -304,7 +302,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         if (forgottenPasswordBean.isResponsesSatisfied()) {
             final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
@@ -327,7 +325,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.checkFormID(req);
+        Validator.validateFormID(req);
 
         try {
 
@@ -402,15 +400,16 @@ public class ForgottenPasswordServlet extends TopServlet {
     private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
             throws ChaiUnavailableException, ValidationException
     {
-        final Map<String, ParameterConfig> paramConfigs = pwmSession.getLocaleConfig().getChallengeRequiredAttributes();
+        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES,pwmSession.getSessionStateBean().getLocale());
+        final Map<String,FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
 
-        if (paramConfigs.isEmpty()) {
+        if (formSettings.isEmpty()) {
             return;
         }
 
-        Validator.updateParamValues(pwmSession, req, paramConfigs);
+        Validator.updateParamValues(pwmSession, req, formSettings);
 
-        for (final ParameterConfig paramConfig : paramConfigs.values()) {
+        for (final FormConfiguration paramConfig : formSettings.values()) {
             final String attrName = paramConfig.getAttributeName();
 
             try {

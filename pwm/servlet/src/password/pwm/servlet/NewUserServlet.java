@@ -60,67 +60,6 @@ public class NewUserServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(NewUserServlet.class);
 
-// -------------------------- STATIC METHODS --------------------------
-
-    public static String validateParamsAgainstLDAP(
-            final Map<String, ParameterConfig> paramConfigs,
-            final PwmSession pwmSession
-    )
-            throws ChaiUnavailableException, ValidationException
-    {
-        // Returns the DN of the user objet if successfull or null if theres a failure;  @todo javadoc
-        final String namingAttribute = pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
-        final ChaiUser theUser;
-
-        //find the user
-        {
-            final ParameterConfig paramConfig = paramConfigs.get(namingAttribute);
-            if (paramConfig != null) {
-                final String username = paramConfig.getValue();
-                final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
-
-                if (userDN == null) {
-                    throw ValidationException.createValidationException(PwmError.ERROR_CANT_MATCH_USER.toInfo());
-                }
-
-                theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
-            } else {
-                throw ValidationException.createValidationException(PwmError.ERROR_CANT_MATCH_USER.toInfo());
-            }
-        }
-
-        for (final String key : paramConfigs.keySet()) {
-            final ParameterConfig paramConfig = paramConfigs.get(key);
-
-            try {
-                final String ldapValue = theUser.readStringAttribute(paramConfig.getAttributeName());
-                boolean match = ldapValue != null && ldapValue.equalsIgnoreCase(paramConfig.getValue());
-
-                if (!match && paramConfig.getType() == ParameterConfig.Type.INT) {
-                    try {
-                        final int ldapInt = Integer.parseInt(ldapValue);
-                        final int paramInt = Integer.parseInt(paramConfig.getValue());
-
-                        if (ldapInt == paramInt) {
-                            match = true;
-                        }
-                    } catch (NumberFormatException e) {
-                        //disregard
-                    }
-                }
-
-                if (!match) {
-                    throw ValidationException.createValidationException(PwmError.ERROR_NEW_USER_VALIDATION_FAILED.toInfo());
-                }
-            } catch (ChaiOperationException e) {
-                //ignore
-            }
-        }
-        return theUser.getEntryDN();
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
     protected void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -144,9 +83,9 @@ public class NewUserServlet extends TopServlet {
         final NewUserServletBean nuBean = pwmSession.getNewUserServletBean();
 
         if (actionParam != null && actionParam.equalsIgnoreCase("create")) {
-            final Map<String, ParameterConfig> creationParams = nuBean.getCreationParams();
+            final Map<String, FormConfiguration> creationParams = nuBean.getCreationParams();
 
-            Validator.checkFormID(req);
+            Validator.validateFormID(req);
 
             //read the values from the request
             try {
@@ -157,7 +96,7 @@ public class NewUserServlet extends TopServlet {
                 return;
             }
 
-            // see if the values meet requirements.
+            // see if the values meet form requirements.
             try {
                 Validator.validateParmValuesMeetRequirements(creationParams, pwmSession);
             } catch (ValidationException e) {
@@ -167,9 +106,20 @@ public class NewUserServlet extends TopServlet {
                 return;
             }
 
-            // check unique feilds
-            for (final String attr : config.getNewUserCreationUniqueAttributes()) {
-                final ParameterConfig paramConfig = creationParams.get(attr);
+            // verify naming attribute is present
+            {
+                final FormConfiguration formConfig = creationParams.get(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+                if (formConfig == null || formConfig.getValue() == null || formConfig.getValue().length() < 1) {
+                    ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_NAMING_ATTR));
+                    intruderMgr.addBadAddressAttempt(pwmSession);
+                    this.forwardToJSP(req, resp);
+                    return;
+                }
+            }
+
+            // check unique fields against ldap
+            for (final String attr : config.readStringArraySetting(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES)) {
+                final FormConfiguration paramConfig = creationParams.get(attr);
                 try {
                     validateAttributeUniqueness(pwmSession, paramConfig, nuBean.getCreateUserDN());
                 } catch (ValidationException e) {
@@ -183,17 +133,19 @@ public class NewUserServlet extends TopServlet {
             //create user
             try {
                 final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
-                final String cn = creationParams.get(ChaiConstant.ATTR_LDAP_COMMON_NAME).getValue();
-                final String sn = creationParams.get(ChaiConstant.ATTR_LDAP_SURNAME).getValue();
+                final String namingValue = creationParams.get(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)).getValue();
 
                 final StringBuilder dn = new StringBuilder();
-                dn.append(ChaiConstant.ATTR_LDAP_COMMON_NAME).append("=");
-                dn.append(cn);
+                dn.append(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)).append("=");
+                dn.append(namingValue);
                 dn.append(",");
                 dn.append(config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT));
 
                 final Properties createAttrs = new Properties();
-                createAttrs.put(ChaiConstant.ATTR_LDAP_SURNAME, sn);
+                for (final String key : creationParams.keySet()) {
+                    final FormConfiguration formConfig = creationParams.get(key);
+                    createAttrs.put(formConfig.getAttributeName(),formConfig.getValue());
+                }
 
                 provider.createEntry(dn.toString(), ChaiConstant.OBJECTCLASS_BASE_LDAP_USER, createAttrs);
 
@@ -215,18 +167,13 @@ public class NewUserServlet extends TopServlet {
             }
 
             try {
-                // write the params to edir
                 final ChaiUser theUser = ChaiFactory.createChaiUser(nuBean.getCreateUserDN(), pwmSession.getContextManager().getProxyChaiProvider());
-                final Map createAttributesFromForm = new HashMap<String, ParameterConfig>(creationParams);
-                createAttributesFromForm.remove(ChaiUser.ATTR_COMMON_NAME);
-
-                // write out form attributes
-                LOGGER.debug(pwmSession, "writing new user form attributes for user " + theUser.getEntryDN());
-                Helper.writeMapToEdir(pwmSession, theUser, createAttributesFromForm);
 
                 // write out configured attributes.
                 LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
-                Helper.writeMapToEdir(pwmSession, theUser, config.getNewUserWriteAttributes());
+                final List<String> configValues = config.readStringArraySetting(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
+                final Map<String,String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues,"=");
+                Helper.writeMapToEdir(pwmSession, theUser, configNameValuePairs);
 
                 AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
             } catch (ImpossiblePasswordPolicyException e) {
@@ -256,7 +203,7 @@ public class NewUserServlet extends TopServlet {
 
     public static void validateAttributeUniqueness(
             final PwmSession pwmSession,
-            final ParameterConfig paramConfig,
+            final FormConfiguration paramConfig,
             final String userDN
     )
             throws ValidationException, ChaiUnavailableException
@@ -287,17 +234,16 @@ public class NewUserServlet extends TopServlet {
 
     private void sendNewUserEmailConfirmation(final PwmSession pwmSession)
     {
-        final ContextManager theManager = ContextManager.getContextManager(this.getServletContext());
+        final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final Configuration config = pwmSession.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final EmailInfo emailInfo = pwmSession.getLocaleConfig().getNewUserEmail();
-
-        final String fromAddress = emailInfo.getFrom();
-        final String subject = emailInfo.getSubject();
-        final String body = emailInfo.getBody();
-
-
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_FROM,locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_SUBJECT,locale);
+        final String body = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_BODY,locale);
         final String toAddress = userInfoBean.getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_EMAIL, "");
+
         if (toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send new user email for '" + userInfoBean.getUserDN() + "' no email configured");
             return;

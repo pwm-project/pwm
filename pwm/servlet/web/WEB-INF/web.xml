@@ -30,24 +30,16 @@
     <distributable/>
     <description>Password Management Servlet</description>
     <context-param>
-        <description>Explicit location of pwmServlet.properties file. Without a value, PWM will look for the
-            pwmServlet.properties file inside the servlet's WEB-INF directory.  The .properties extension should not
-            be part of the value.
+        <description>Explicit location of PwmConfiguration.xml file. Without a value, PWM will look for the
+            file inside the servlet's WEB-INF directory.
         </description>
         <param-name>pwmConfigPath</param-name>
-        <param-value>pwmServlet</param-value>
+        <param-value>PwmConfiguration.xml</param-value>
     </context-param>
     <context-param>
         <description>Percentage of time the wordlist populator should sleep every second.  Settings less than one will cause much cpu and disk access during load.  Lower settings cause faster populating, but more system load.</description>
         <param-name>wordlistLoadFactor</param-name>
         <param-value>50</param-value>
-    </context-param>
-    <context-param>
-        <description>If true, the wordlist will be treated as "case sensitive" for all matches. Changing this value will
-            cause the wordlist to be recompiled.
-        </description>
-        <param-name>wordlistCaseSensitive</param-name>
-        <param-value>false</param-value>
     </context-param>
     <context-param>
         <description>Location of where to store the "pwmDB" directory. If the specified path is relative, the pwm-db
@@ -68,40 +60,7 @@
         <description>value passed to the pwmDbImplementation class during initialization.</description>
         <param-name>pwmDbInitString</param-name>
         <!--<param-value>je.maxMemory=500000000;;;je.cleaner.minUtilization=50;;;je.log.fileMax=1073741824;;;je.cleaner.forceCleanFiles=1b496-1b4b3</param-value>-->
-        <param-value>je.maxMemory=10000000;;;je.cleaner.minUtilization=80</param-value>
-    </context-param>
-    <context-param>
-        <description><![CDATA[Values disallowed in all form inputs. Regex patterns separated by three semi-colons ";;;". default list is:  html "<script>" tag ;;; XML document header ;;; LDAP search string ;;; SQL SELECT ;;; SQL UPDATE  ]]></description>
-        <param-name>disallowedInputs</param-name>
-        <param-value><![CDATA[(?i)<.*script.*>;;;(?i)<.*xml.*>*;;;(?i)\\(.*=*\\)*;;;(?i)<.*img.*>;;;(?i)<.*src.*>]]></param-value>
-    </context-param>
-    <context-param>
-        <description>If present, use the X-Forwarded-For HTTP header value as the client IP address instead of the src IP address of the connection.</description>
-        <param-name>useXForwardedFor</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    <context-param>
-        <description>If true, allow sessions to be managed via parameter on URL when cookies are not enabled.</description>
-        <param-name>allowUrlSessions</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    <context-param>
-        <description>attribute used as the naming attribute on ldap user entries. This value is also the first part of
-            the distinguished name. This must always be "cn" for eDirectory, even if a different attribute is used for
-            logging in.</description>
-        <param-name>ldapNamingAttribute</param-name>
-        <param-value>cn</param-value>
-    </context-param>
-    <context-param>
-        <description>force HTTP Basic Authentication.  If 'false', then the form page will be presented for
-            un-authenticated users, however if a basic auth header is present it will always be used.</description>
-        <param-name>forceBasicAuth</param-name>
-        <param-value>false</param-value>
-    </context-param>
-    <context-param>
-        <description>Minimum time to wait while testing for password synchronization time (ms)</description>
-        <param-name>minimumPasswordSyncWaitTime</param-name>
-        <param-value>5000</param-value>
+        <param-value>je.maxMemory=10000000;;;je.cleaner.minUtilization=80;;;je.log.fileMax=10000000</param-value>
     </context-param>
     <context-param>
         <description>Name of PWM instance.  If blank a persistent, randomly generated value will be used.</description>
@@ -143,10 +102,12 @@
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/public/*</url-pattern>
     </filter-mapping>
+    <!--
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/config/*</url-pattern>
     </filter-mapping>
+    -->
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/</url-pattern>
@@ -238,6 +199,10 @@
         <servlet-name>ConfigManagerServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ConfigUploadServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ConfigUploadServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/private/Login</url-pattern>
@@ -301,6 +266,10 @@
     <servlet-mapping>
         <servlet-name>ConfigManagerServlet</servlet-name>
         <url-pattern>/config/ConfigManager</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigUploadServlet</servlet-name>
+        <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>5</session-timeout>

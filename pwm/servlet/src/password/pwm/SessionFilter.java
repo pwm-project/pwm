@@ -59,7 +59,7 @@ public class SessionFilter implements Filter {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    private static void debugHttpRequest(final HttpServletRequest req, final PwmSession pwmSession)
+    public static void debugHttpRequest(final HttpServletRequest req, final PwmSession pwmSession)
     {
         final StringBuilder sb = new StringBuilder();
 
@@ -177,7 +177,7 @@ public class SessionFilter implements Filter {
         debugHttpRequest(req, pwmSession);
 
         //set the session's locale
-        final String langReqParamter = Validator.readStringFromRequest(req, "locale", 255);
+        final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
         if (langReqParamter != null && langReqParamter.length() > 0) {
             LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'locale' request parameter");
             ssBean.setLocale(new Locale(langReqParamter));
@@ -293,11 +293,8 @@ public class SessionFilter implements Filter {
     private static boolean urlSessionsAllowed(final ServletRequest request) {
         final HttpServletRequest req = (HttpServletRequest) request;
         final ContextManager theManager = ContextManager.getContextManager(req);
-        if (theManager != null) {
-            final String setting = theManager.getParameter(PwmConstants.CONTEXT_PARAM.ALLOW_URL_SESSIONS);
-            if (setting != null && "true".equalsIgnoreCase(setting)) {
-                return true;
-            }
+        if (theManager != null && theManager.getConfig() != null) {
+            return theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
         }
         return false;
     }

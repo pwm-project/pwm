@@ -21,12 +21,13 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.bean.UserInformationServletBean" %>
+<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
@@ -58,7 +59,7 @@
     <p>Use this page to check user information.  The data on this page is gathered using the privileges of the logged in user.  If you do not have the appropriate directory privileges, this information may not be accurate.</p>
 
     <%  //check to see if any locations are configured.
-        if (!ContextManager.getContextManager(this.getServletConfig().getServletContext()).getConfig().getLoginContexts().isEmpty()) {
+        if (!Configuration.convertStringListToNameValuePair(PwmSession.getPwmSession(session).getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS),"=").isEmpty()) {
     %>
     <h2><pwm:Display key="Field_Location"/></h2>
     <select name="context">
@@ -93,10 +94,10 @@
     </tr>
     <tr>
         <td class="key">
-            <%= pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE) %>
+            <%= pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE) %>
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE)) %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)) %>
         </td>
     </tr>
     <tr>

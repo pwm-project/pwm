@@ -22,9 +22,16 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.cr.CrMode;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.CrFactory;
+import com.novell.ldapchai.exception.ChaiValidationException;
+import com.novell.ldapchai.util.StringHelper;
+import password.pwm.Helper;
+import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.util.PwmLogLevel;
+import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
@@ -36,186 +43,240 @@ import java.util.*;
  * @author Jason D. Rivard
  */
 public class Configuration implements Serializable {
-// ------------------------------ FIELDS ------------------------------
+    private final static PwmLogger LOGGER = PwmLogger.getLogger(Configuration.class);
 
-    Map<String, String> newUserWriteAttributes = Collections.emptyMap();
-    Map<String, String> activateUserWriteAttributes = Collections.emptyMap();
-    Map<String, String> updateAttributesWriteAttributes = Collections.emptyMap();
-    Map<String, String> loginContexts = Collections.emptyMap();
+    private final StoredConfiguration storedConfiguration;
+    private final long loadTime = System.currentTimeMillis();
 
-    PwmPasswordPolicy globalPasswordPolicy = PwmPasswordPolicy.defaultPolicy();
-    private final Properties configProperties = new Properties();
+    private PwmPasswordPolicy cachedPasswordPolicy = null;
+    private ChallengeSet cachedChallengeSet = null;
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public Configuration()
-    {
+    public Configuration(final StoredConfiguration storedConfiguration) {
+        this.storedConfiguration = storedConfiguration;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public PwmPasswordPolicy getGlobalPasswordPolicy()
-    {
-        return globalPasswordPolicy;
+    public StoredConfiguration getStoredConfiguration() {
+        return storedConfiguration;
     }
 
-    public Map<String, String> getLoginContexts()
-    {
-        return loginContexts;
+    public long getLoadTime() {
+        return loadTime;
     }
-
-    public Map<String, String> getUpdateAttributesWriteAttributes()
-    {
-        return updateAttributesWriteAttributes;
-    }
-
-// ------------------------ CANONICAL METHODS ------------------------
-
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder();
-
-        for (final PwmSetting setting : PwmSetting.values()) {
-            sb.append(setting.getKey());
-            sb.append("=");
-            sb.append(!setting.isConfidential() ? readSetting(setting) : "*removed*");
-            sb.append(", ");
-        }
-
-        if (sb.length() > 2) {  // chop off last ", "
-            sb.delete(sb.length() - 2, sb.length());
-        }
-        return sb.toString();
-    }
-
-    public Object readSetting(final PwmSetting setting)
-    {
-        return setting.parse(configProperties.getProperty(setting.getKey()));
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
 
     public String readSettingAsString(final PwmSetting setting)
     {
-        final Object object = setting.parse(configProperties.getProperty(setting.getKey()));
-        if (!(object instanceof String)) {
-            throw new IllegalArgumentException("attempt to retreive string setting for " + setting + ", but setting type is not string");
-        }
-
-        return (String) object;
+        return storedConfiguration.readSetting(setting);
     }
 
-    public Map<String, String> getActivateUserWriteAttributes()
+    public List<String> readStringArraySetting(final PwmSetting setting)
     {
-        return Collections.unmodifiableMap(activateUserWriteAttributes);
+        return storedConfiguration.readStringArraySetting(setting);
     }
+
+    public List<String> readFormSetting(final PwmSetting setting, final Locale locale) {
+        final Map<String,List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
+        final Map<Locale,List<String>> availableLocaleMap = new HashMap<Locale,List<String>>();
+        for (final String localeStr : storedValues.keySet()) {
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr),storedValues.get(localeStr));
+        }
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+
+        return availableLocaleMap.get(matchedLocale);
+    }
+
+    public boolean readSettingAsBoolean(final PwmSetting setting)
+    {
+        return StringHelper.convertStrToBoolean(storedConfiguration.readSetting(setting));
+    }
+
+    public int readSettingAsInt(final PwmSetting setting)
+    {
+        return StringHelper.convertStrToInt(storedConfiguration.readSetting(setting),0);
+    }
+
+    public String readLocalizedStringSetting(final PwmSetting setting, final Locale locale) {
+        final Map<String,String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
+        final Map<Locale,String> availableLocaleMap = new HashMap<Locale,String>();
+        for (final String localeStr : availableValues.keySet()) {
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr),availableValues.get(localeStr));
+        }
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+
+        return availableLocaleMap.get(matchedLocale);
+    }
+
 
     public Set<String> getAllUsedLdapAttributes()
     {
         final Set<String> returnSet = new HashSet<String>();
 
-        returnSet.addAll(this.getActivateUserWriteAttributes().keySet());
+        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.ACTIVATE_USER_FORM,Locale.getDefault())).keySet());
+        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.NEWUSER_FORM,Locale.getDefault())).keySet());
+        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM,Locale.getDefault())).keySet());
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EVENT_LOG_ATTRIBUTE));
         returnSet.addAll(this.getGlobalPasswordPolicy().getRuleHelper().getDisallowedAttributes());
-        returnSet.addAll(this.getNewUserCreationUniqueAttributes());
-        returnSet.addAll(this.getNewUserWriteAttributes().keySet());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
-        returnSet.addAll(this.getUpdateAttributesWriteAttributes().keySet());
 
         return returnSet;
     }
 
-    public Set<String> getNewUserCreationUniqueAttributes()
-    {
-        final String[] values = (String[]) readSetting(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-        return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(values)));
-    }
-
-    public Set<String> getAutoAddObjectClasses()
-    {
-        final String[] values = (String[]) readSetting(PwmSetting.AUTO_ADD_OBJECT_CLASSES);
-        return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(values)));
-    }
-
     public PwmLogLevel getEventLogLocalLevel()
     {
-        return (PwmLogLevel) readSetting(PwmSetting.EVENT_LOG_LOCAL_LEVEL);
-    }
-
-    public CR_RANDOM_STYLE getChallengeRandomStyle()
-    {
-        return (CR_RANDOM_STYLE) readSetting(PwmSetting.CHALLENGE_RANDOM_STYLE);
-    }
-
-    public int readSettingAsInt(final PwmSetting setting)
-    {
-        final Object object = setting.parse(configProperties.getProperty(setting.getKey()));
-        if (!(object instanceof Integer)) {
-            throw new IllegalArgumentException("attempt to retreive int setting for " + setting + ", but setting type is not int");
+        final String value = readSettingAsString(PwmSetting.EVENT_LOG_LOCAL_LEVEL);
+        for (final PwmLogLevel logLevel : PwmLogLevel.values()) {
+            if (logLevel.toString().equalsIgnoreCase(value)) {
+                return logLevel;
+            }
         }
 
-        return (Integer) object;
+        return PwmLogLevel.TRACE;
     }
 
 
-
-    public Set<String> getExternalPasswordMethods()
-    {
-        final String[] values = (String[]) readSetting(PwmSetting.EXTERNAL_PASSWORD_METHODS);
-        return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(values)));
-    }
-
-    public List<String> getLdapServerURLs()
-    {
-        final String[] sA = (String[]) readSetting(PwmSetting.LDAP_SERVER_URLS);
-        final List<String> ldapURLs = new ArrayList<String>(Arrays.asList(sA));
-        return ldapURLs;
-    }
-
-    public Map<String, String> getNewUserWriteAttributes()
-    {
-        return Collections.unmodifiableMap(newUserWriteAttributes);
-    }
-
-    public int getPasswordSyncMaxWaitTime()
-    {
-        return readSettingAsInt(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME);
-    }
-
-    public CrMode getResponseStorageMethod()
-    {
-        return (CrMode)readSetting(PwmSetting.CHALLENGE_STORAGE_METHOD);
-    }
-
-    public boolean readSettingAsBoolean(final PwmSetting setting)
-    {
-        final Object object = setting.parse(configProperties.getProperty(setting.getKey()));
-        if (!(object instanceof Boolean)) {
-            throw new IllegalArgumentException("attempt to retreive boolean setting for " + setting + ", but setting type is not boolean");
+    public PwmPasswordPolicy getGlobalPasswordPolicy() {
+        if (cachedPasswordPolicy != null) {
+            return cachedPasswordPolicy;
         }
 
-        return (Boolean) object;
+        final Map<String,String> passwordPolicySettings = new HashMap<String,String>();
+        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+            if (rule.getPwmSetting() != null) {
+                final String value;
+                final PwmSetting pwmSetting = rule.getPwmSetting();
+                switch (rule) {
+                    case DisallowedAttributes:
+                    case DisallowedValues:
+                        value = StringHelper.stringCollectionToString(readStringArraySetting(pwmSetting),"\n");
+                        break;
+                    case RegExMatch:
+                    case RegExNoMatch:
+                        value = StringHelper.stringCollectionToString(readStringArraySetting(pwmSetting),";;;");
+                        break;
+                    default:
+                        value = readSettingAsString(pwmSetting);
+                }
+                passwordPolicySettings.put(rule.getKey(), value);
+            }
+        }
+
+        cachedPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
+        return cachedPasswordPolicy;
     }
 
-    void setSetting(final PwmSetting setting, final String value)
-    {
-        configProperties.setProperty(setting.getKey(), value);
+    public ChallengeSet getGlobalChallengeSet(final Locale locale) {
+        if (cachedChallengeSet != null) {
+            return cachedChallengeSet;
+        }
+
+        final List<String> requiredQuestions = readFormSetting(PwmSetting.CHALLENGE_REQUIRED_CHALLENGES, locale);
+        final List<String> randomQuestions = readFormSetting(PwmSetting.CHALLENGE_RANDOM_CHALLENGES, locale);
+
+
+        final List<Challenge> challenges = new ArrayList<Challenge>();
+        for (String question : requiredQuestions) {
+            int minLength = 2;
+            int maxLength = 255;
+
+            final String[] s1 = question == null ? new String[0] : question.split("::");
+            if (s1.length > 0) {
+                question = s1[0];
+            }
+            if (s1.length > 1) {
+                try {
+                    minLength = Integer.parseInt(s1[1]);
+                } catch (Exception e) {
+                    // nothing to catch
+                }
+            }
+            if (s1.length > 2) {
+                try {
+                    maxLength = Integer.parseInt(s1[2]);
+                } catch (Exception e) {
+                    // nothing to catch
+                }
+            }
+
+            boolean adminDefined = true;
+            if (question != null && question.equalsIgnoreCase("%user%")) {
+                question = null;
+                adminDefined = false;
+            }
+
+            challenges.add(CrFactory.newChallenge(true, question, minLength, maxLength, adminDefined));
+        }
+
+        for (String question : randomQuestions) {
+            int minLength = 2;
+            int maxLength = 255;
+
+            final String[] s1 = question == null ? new String[0] : question.split("::");
+            if (s1.length > 0) {
+                question = s1[0];
+            }
+            if (s1.length > 1) {
+                try {
+                    minLength = Integer.parseInt(s1[1]);
+                } catch (Exception e) {
+                    // nothing to catch
+                }
+            }
+            if (s1.length > 2) {
+                try {
+                    maxLength = Integer.parseInt(s1[2]);
+                } catch (Exception e) {
+                    // nothing to catch
+                }
+            }
+
+            boolean adminDefined = true;
+            if (question != null && question.equalsIgnoreCase("%user%")) {
+                question = null;
+                adminDefined = false;
+            }
+            challenges.add(CrFactory.newChallenge(false, question, minLength, maxLength, adminDefined));
+        }
+
+        int minimumRands = readSettingAsInt(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED);
+        if (minimumRands > randomQuestions.size()) {
+            minimumRands = randomQuestions.size();
+        }
+
+        try {
+            cachedChallengeSet = CrFactory.newChallengeSet(challenges, locale, minimumRands, "pwm-defined " + PwmConstants.SERVLET_VERSION);
+        } catch (ChaiValidationException e) {
+            LOGGER.warn("invalid challenge set configuration: " + e.getMessage());
+        }
+        return cachedChallengeSet;
     }
 
-    public String toString(final PwmSetting setting)
-    {
-        final Object value = readSetting(setting);
-        return setting.debugValueString(value);
+    public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
+        if (input == null) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String,String> returnMap = new HashMap<String,String>();
+        for (final String loopStr : input) {
+            final List<String> separatedValues = StringHelper.tokenizeString(loopStr,separator);
+            if (!separatedValues.isEmpty()) {
+                returnMap.put(separatedValues.get(0),separatedValues.size() > 1 ? separatedValues.get(1) : "");
+            }
+        }
+
+        return returnMap;
     }
 
-// -------------------------- ENUMERATIONS --------------------------
+    public static Map<String, FormConfiguration> convertMapToFormConfiguration(final Collection<String> input) {
+        if (input == null) {
+            return Collections.emptyMap();
+        }
 
-// ----------------------------- CONSTANTS ----------------------------
-    public enum CR_RANDOM_STYLE {
-        SETUP,
-        RECOVER
+        final Map<String, FormConfiguration> returnMap = new LinkedHashMap<String, FormConfiguration>();
+        for (final String loopString : input) {
+            final FormConfiguration formConfig = FormConfiguration.parseConfigString(loopString);
+            final String attrName = formConfig.getAttributeName();
+            returnMap.put(attrName, formConfig);
+        }
+        return returnMap;
     }
 }
-

@@ -45,6 +45,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -85,9 +86,9 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
 
         if (actionParam != null && actionParam.equalsIgnoreCase("activate")) {
-            Validator.checkFormID(req);
+            Validator.validateFormID(req);
 
-            final Map<String, ParameterConfig> validationParams = activateBean.getActivateUserParams();
+            final Map<String, FormConfiguration> validationParams = activateBean.getActivateUserParams();
 
             ChaiUser theUser = null;
 
@@ -138,9 +139,12 @@ public class ActivateUserServlet extends TopServlet {
 
             try {
                 // write out configured attributes.
-                LOGGER.debug(pwmSession, "writing activateUser.writeAttributes to user " + theUser.getEntryDN());
+                LOGGER.debug(pwmSession, "writing activate user attribute write values to user " + theUser.getEntryDN());
 
-                Helper.writeMapToEdir(pwmSession, theUser, theManager.getConfig().getActivateUserWriteAttributes());
+                final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
+                final Map<String,String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues,"=");
+                
+                Helper.writeMapToEdir(pwmSession, theUser, writeAttributesSettings);
 
                 //authenticate the pwm session
                 AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
@@ -176,7 +180,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private static String figureSearchFilterForParams(
-            final Map<String, ParameterConfig> paramConfigs,
+            final Map<String, FormConfiguration> paramConfigs,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmException
@@ -184,7 +188,7 @@ public class ActivateUserServlet extends TopServlet {
         String searchFilter = pwmSession.getConfig().readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
 
         for (final String key : paramConfigs.keySet()) {
-            final ParameterConfig loopParamConfig = paramConfigs.get(key);
+            final FormConfiguration loopParamConfig = paramConfigs.get(key);
             final String attrName = "%" + loopParamConfig.getAttributeName() + "%";
             searchFilter = searchFilter.replaceAll(attrName, loopParamConfig.getValue());
         }
@@ -226,7 +230,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private static ChaiUser getUserObjectForParams(
-            final Map<String, ParameterConfig> paramConfigs,
+            final Map<String, FormConfiguration> paramConfigs,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmException
@@ -236,8 +240,8 @@ public class ActivateUserServlet extends TopServlet {
         final ChaiUser theUser = performUserSearch(pwmSession, searchFilter);
 
         if (theUser == null) {
-            final String usernameAttribute = pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.LDAP_NAMING_ATTRIBUTE);
-            final ParameterConfig usernameParam = paramConfigs.get(usernameAttribute);
+            final String usernameAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            final FormConfiguration usernameParam = paramConfigs.get(usernameAttribute);
             if (usernameParam != null) {
                 final String usernameValue = usernameParam.getValue();
                 if (usernameValue != null) {
@@ -251,17 +255,17 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     public static void validateParamsAgainstLDAP(
-            final Map<String, ParameterConfig> paramConfigs,
+            final Map<String, FormConfiguration> paramConfigs,
             final PwmSession pwmSession,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException, ValidationException
     {
 
-        final HashMap<String, ParameterConfig> localConfigs = new HashMap<String, ParameterConfig>(paramConfigs);
+        final HashMap<String, FormConfiguration> localConfigs = new HashMap<String, FormConfiguration>(paramConfigs);
         localConfigs.remove(USERNAME_PARAM_NAME);
 
-        for (final ParameterConfig paramConfig : localConfigs.values()) {
+        for (final FormConfiguration paramConfig : localConfigs.values()) {
             final String attrName = paramConfig.getAttributeName();
 
             try {

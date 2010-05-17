@@ -63,12 +63,12 @@ import java.util.StringTokenizer;
  *
  * @author Jason D. Rivard
  */
-public class ParameterConfig implements Serializable {
+public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type { STRING, EMAIL, INT, PASSWORD }
+    public enum Type { STRING, EMAIL, NUMBER, PASSWORD }
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ParameterConfig.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 
     private int minimumLength = 0;
     private int maximumLength = 40;
@@ -82,13 +82,13 @@ public class ParameterConfig implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static ParameterConfig parseConfigString(final String config)
+    public static FormConfiguration parseConfigString(final String config)
     {
         if (config == null) {
             throw new NullPointerException();
         }
 
-        final ParameterConfig newConfig = new ParameterConfig();
+        final FormConfiguration newConfig = new FormConfiguration();
 
 
         final StringTokenizer st = new StringTokenizer(config, ":");
@@ -107,18 +107,18 @@ public class ParameterConfig implements Serializable {
         //type
         if (st.hasMoreTokens()) {
             final String type = st.nextToken();
-            if (type.equalsIgnoreCase("str")) {
-                newConfig.type = Type.STRING;
-            } else if (type.equalsIgnoreCase("int")) {
-                newConfig.type = Type.INT;
-            } else if (type.equalsIgnoreCase("mail") || type.equalsIgnoreCase("email")) {
+            if (type.equalsIgnoreCase(Type.NUMBER.toString())) {
+                newConfig.type = Type.NUMBER;
+            } else if (type.equalsIgnoreCase(Type.EMAIL.toString())) {
                 newConfig.type = Type.EMAIL;
-            } else if (type.equalsIgnoreCase("pwd") || type.equalsIgnoreCase("password")) {
+            } else if (type.equalsIgnoreCase(Type.PASSWORD.toString())) {
                 newConfig.type = Type.PASSWORD;
+            } else {
+                newConfig.type = Type.STRING;
             }
         }
 
-        //mimimum length
+        //minimum length
         if (st.hasMoreTokens()) {
             final String minLengthStr = st.nextToken();
             try {
@@ -160,7 +160,7 @@ public class ParameterConfig implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private ParameterConfig()
+    private FormConfiguration()
     {
         super();
 
@@ -227,11 +227,11 @@ public class ParameterConfig implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ParameterConfig)) {
+        if (!(o instanceof FormConfiguration)) {
             return false;
         }
 
-        final ParameterConfig parameterConfig = (ParameterConfig) o;
+        final FormConfiguration parameterConfig = (FormConfiguration) o;
 
         return !(attributeName != null ? !attributeName.equals(parameterConfig.attributeName) : parameterConfig.attributeName != null);
     }
@@ -245,7 +245,7 @@ public class ParameterConfig implements Serializable {
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("ParameterConfig (attrName=").append(this.getAttributeName());
+        sb.append("FormConfiguration (attrName=").append(this.getAttributeName());
         sb.append(", label=").append(this.getLabel());
         sb.append(", minLength=").append(this.getMinimumLength());
         sb.append(", maxLength=").append(this.getMaximumLength());
@@ -270,7 +270,7 @@ public class ParameterConfig implements Serializable {
         }
 
         switch (type) {
-            case INT:
+            case NUMBER:
                 try {
                     Integer.parseInt(this.getValue());
                 } catch (NumberFormatException e) {

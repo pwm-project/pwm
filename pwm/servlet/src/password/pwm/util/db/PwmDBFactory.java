@@ -22,13 +22,14 @@
 
 package password.pwm.util.db;
 
-import password.pwm.ContextManager;
 import password.pwm.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -47,8 +48,7 @@ public class PwmDBFactory {
     public static synchronized PwmDB getInstance(
             final File dbDirectory,
             final String className,
-            final String initString,
-            final ContextManager contextManager
+            final String initString
     )
             throws Exception
     {

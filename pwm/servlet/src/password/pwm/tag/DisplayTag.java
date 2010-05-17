@@ -23,8 +23,9 @@
 package password.pwm.tag;
 
 import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
-import password.pwm.config.LocalizedConfiguration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
@@ -98,17 +99,14 @@ public class DisplayTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getSessionStateBean(req.getSession()).getLocale();
 
-            String displayMessage = "PWM Default Configuration";
+            String displayMessage = PwmConstants.PWM_DEFAULT_APPLICATION_NAME;
 
             if ("APPLICATION-TITLE".equals(key)) { // special case, this one value is set via configuration, net .properties files setting
                 final ContextManager contextManager = PwmSession.getPwmSession(req).getContextManager();
-                if (contextManager != null) {
-                    final LocalizedConfiguration localizedConfiguration = contextManager.getLocaleConfig(locale);
-                    if (localizedConfiguration != null) {
-                        final String pwmSettingValue = localizedConfiguration.getApplicationTitle();
-                        if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
-                            displayMessage = pwmSettingValue;
-                        }
+                if (contextManager != null && contextManager.getConfig() != null) {
+                    final String pwmSettingValue = contextManager.getConfig().readLocalizedStringSetting(PwmSetting.APPLICATION_TILE, req.getLocale());
+                    if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
+                        displayMessage = pwmSettingValue;
                     }
                 }
             } else {

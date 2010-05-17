@@ -38,6 +38,8 @@ public abstract class PwmConstants {
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER;
 
+    public static final String PWM_DEFAULT_APPLICATION_NAME = "PWM Password Management";
+
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int DEFAULT_LDAP_IDLE_TIMEOUT_MS = 60 * 1000;
 
@@ -75,7 +77,9 @@ public abstract class PwmConstants {
     public static final String URL_JSP_SHORTCUT = "jsp/shortcut.jsp";
     public static final String URL_JSP_PASSWORD_WARN = "jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "jsp/captcha.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "jsp/configmanager-editor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER = "jsp/configmanager.jsp";
+
 
     public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
 
@@ -137,16 +141,9 @@ public abstract class PwmConstants {
     public static enum CONTEXT_PARAM {
         CONFIG_FILE("pwmConfigPath"),
         WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        WORDLIST_CASE_SENSITIVE("wordlistCaseSensitive"),
         PWMDB_LOCATION("pwmDbLocation"),
         PWMDB_IMPLEMENTATION("pwmDbImplementation"),
         PWMDB_INITSTRING("pwmDbInitString"),
-        DISALLOWED_INPUTS("disallowedInputs"),
-        SHARED_HISTORY_CLEAN_FREQUENCY("globalHistoryCleanFrequency"),
-        ALLOW_URL_SESSIONS("allowUrlSessions"),
-        LDAP_NAMING_ATTRIBUTE("ldapNamingAttribute"),
-        FORCE_BASIC_AUTH("forceBasicAuth"),
-        MIN_PASSWORD_SYNC_WAIT_TIME("minimumPasswordSyncWaitTime"),
         INSTANCE_ID("instanceID"),
         AGGRESIVE_URL_PARSING("aggressiveUrlParsing"),
         ;
