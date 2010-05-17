@@ -55,6 +55,7 @@ public class UserInfoBean implements Serializable {
      */
     private String userCurrentPassword;
     private String userID;
+    private String userEmailAddress;
 
     private boolean authFromUnknownPw;
 
@@ -205,6 +206,14 @@ public class UserInfoBean implements Serializable {
 
     public void setPasswordLastModifiedTime(Date passwordLastModifiedTime) {
         this.passwordLastModifiedTime = passwordLastModifiedTime;
+    }
+
+    public String getUserEmailAddress() {
+        return userEmailAddress;
+    }
+
+    public void setUserEmailAddress(String userEmailAddress) {
+        this.userEmailAddress = userEmailAddress;
     }
 
     // -------------------------- OTHER METHODS --------------------------

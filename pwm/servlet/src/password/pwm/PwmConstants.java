@@ -80,7 +80,6 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "jsp/configmanager-editor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER = "jsp/configmanager.jsp";
 
-
     public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
 
     public static final String URL_SERVLET_LOGIN = "Login";

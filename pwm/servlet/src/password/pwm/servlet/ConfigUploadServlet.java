@@ -56,7 +56,7 @@ public class ConfigUploadServlet extends TopServlet {
             final String uploadedFile = getUploadedFile(req);
             if (uploadedFile != null && uploadedFile.length() > 0) {
                 try {
-                final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
+                final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile, false);
                 if (storedConfig != null) {
                     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
                     configManagerBean.setConfiguration(storedConfig);

@@ -40,12 +40,6 @@ public enum PwmSetting {
             "logoutURL", Syntax.STRING, Category.GENERAL, false),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true),
-    EMAIL_SERVER_ADDRESS(
-            "smtpServerAddress", Syntax.STRING, Category.GENERAL, false),
-    ADMIN_ALERT_EMAIL_ADDRESS(
-            "adminAlertToAddress", Syntax.STRING, Category.GENERAL, false),
-    ADMIN_ALERT_FROM_ADDRESS(
-            "adminAlertFromAddress", Syntax.STRING, Category.GENERAL, false),
     PASSWORD_EXPIRE_PRE_TIME(
             "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_EXPIRE_WARN_TIME(
@@ -95,6 +89,27 @@ public enum PwmSetting {
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true),
 
+    // email settings
+    EMAIL_SERVER_ADDRESS(
+            "smtpServerAddress", Syntax.STRING, Category.EMAIL, false),
+    EMAIL_USER_MAIL_ATTRIBUTE(
+            "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true),
+    ADMIN_ALERT_EMAIL_ADDRESS(
+            "adminAlertToAddress", Syntax.STRING, Category.EMAIL, false),
+    ADMIN_ALERT_FROM_ADDRESS(
+            "adminAlertFromAddress", Syntax.STRING, Category.EMAIL, false),
+    PASSWORD_EMAIL_FROM(
+            "password.email.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    PASSWORD_EMAIL_SUBJECT(
+            "password.email.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    PASSWORD_EMAIL_BODY(
+            "password.email.body", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    NEWUSER_EMAIL_SUBJECT(
+            "newUser.email.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    NEWUSER_EMAIL_FROM(
+            "newUser.email.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    NEWUSER_EMAIL_BODY(
+            "newUser.email.body", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
@@ -153,13 +168,6 @@ public enum PwmSetting {
             "password.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
-    PASSWORD_EMAIL_FROM(
-            "password.email.from", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
-    PASSWORD_EMAIL_SUBJECT(
-            "password.email.subject", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
-    PASSWORD_EMAIL_BODY(
-            "password.email.body", Syntax.LOCALIZED_STRING, Category.PASSWORD_POLICY, false),
-
 
     // edirectory settings
     EDIRECTORY_ALWAYS_USE_PROXY(
@@ -244,12 +252,6 @@ public enum PwmSetting {
             "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
-    NEWUSER_EMAIL_SUBJECT(
-            "newUser.email.subject", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
-    NEWUSER_EMAIL_FROM(
-            "newUser.email.from", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
-    NEWUSER_EMAIL_BODY(
-            "newUser.email.body", Syntax.LOCALIZED_STRING, Category.NEWUSER, false),
 
     // activation settings
     ENABLE_ACTIVATE_USER(
@@ -413,6 +415,7 @@ public enum PwmSetting {
         STRING,
         STRING_ARRAY,
         LOCALIZED_STRING,
+        LOCALIZED_TEXT_AREA,
         LOCALIZED_STRING_ARRAY,
         PASSWORD,
         NUMERIC,
@@ -422,6 +425,7 @@ public enum PwmSetting {
     public enum Category {
         GENERAL,
         LDAP,
+        EMAIL,
         PASSWORD_POLICY,
         EDIRECTORY,
         INTRUDER,

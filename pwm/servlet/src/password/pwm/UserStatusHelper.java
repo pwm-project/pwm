@@ -235,10 +235,17 @@ public class UserStatusHelper {
             }
             final Properties allUserAttrs = theUser.readStringAttributes(null);
             uiBean.setAllUserAttributes(allUserAttrs);
-            uiBean.setUserID(allUserAttrs.getProperty(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)));
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
         }
+
+        // set userID
+        final String ldapNamingAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        uiBean.setUserID(uiBean.getAllUserAttributes().getProperty(ldapNamingAttribute));
+
+        // set email address
+        final String ldapEmailAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+        uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().getProperty(ldapEmailAttribute));
 
         // write password state
         uiBean.setPasswordState(readPasswordStatus(pwmSession, theUser, uiBean.getPasswordPolicy()));

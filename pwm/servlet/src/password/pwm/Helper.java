@@ -457,9 +457,9 @@ public class Helper {
         final String subject = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_SUBJECT,locale);
         final String body = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_BODY,locale);
 
-        final String toAddress = pwmSession.getUserInfoBean().getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_EMAIL, "");
-        if (toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no '" + ChaiConstant.ATTR_LDAP_EMAIL + "' attribute configured");
+        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
             return;
         }
 

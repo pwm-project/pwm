@@ -48,6 +48,7 @@ dojo.require("dijit.layout.TabContainer");
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.NumberTextBox");
 dojo.require("dijit.form.ValidationTextBox");
+dojo.require("dijit.form.Textarea");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.TitlePane");
@@ -125,19 +126,19 @@ function clearDivElements(parentDiv, showLoading) {
 
 // -------------------------- locale table handler ------------------------------------
 
-function initLocaleTable(parentDiv, keyName, regExPattern) {
+function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
     clearDivElements(parentDiv,true);
     readSetting(keyName, function(resultValue) {
         clearDivElements(parentDiv,false);
         for (var i in resultValue) {
-            addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern)
+            addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
         }
         clientSettingCache[keyName] = resultValue;
         dojo.parser.parse(parentDiv);
     },null);
 }
 
-function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPattern) {
+function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPattern, syntax) {
     var inputID = 'value-' + settingKey + '-' + localeString;
 
     // clear the old dijit node (if it exists)
@@ -162,15 +163,26 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
         var td2 = document.createElement("td");
         td2.setAttribute("width","100%");
         td2.setAttribute("style", "border-width: 0;");
-        var inputElement = document.createElement("input");
-        inputElement.setAttribute("id",inputID);
-        inputElement.setAttribute("value","[Loading....]");
-        inputElement.setAttribute("onchange","writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
-        inputElement.setAttribute("style","width: 500px");
-        inputElement.setAttribute("dojoType","dijit.form.ValidationTextBox");
-        inputElement.setAttribute("regExp",regExPattern);
-        inputElement.setAttribute("value",value);
-        td2.appendChild(inputElement);
+        if (syntax == 'LOCALIZED_TEXT_AREA') {
+            var textAreaElement = document.createElement("textarea");
+            textAreaElement.setAttribute("id",inputID);
+            textAreaElement.setAttribute("value","[Loading....]");
+            textAreaElement.setAttribute("onchange","writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+            textAreaElement.setAttribute("style","width: 550px;");
+            textAreaElement.setAttribute("dojoType","dijit.form.Textarea");
+            textAreaElement.setAttribute("value",value);
+            td2.appendChild(textAreaElement);
+        } else {
+            var inputElement = document.createElement("input");
+            inputElement.setAttribute("id",inputID);
+            inputElement.setAttribute("value","[Loading....]");
+            inputElement.setAttribute("onchange","writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+            inputElement.setAttribute("style","width: 500px");
+            inputElement.setAttribute("dojoType","dijit.form.ValidationTextBox");
+            inputElement.setAttribute("regExp",regExPattern);
+            inputElement.setAttribute("value",value);
+            td2.appendChild(inputElement);
+        }
         newTableRow.appendChild(td2);
 
         if (localeString != null && localeString.length > 0) {
@@ -203,20 +215,20 @@ function writeLocaleSetting(settingKey, locale, value) {
     clientSettingCache[settingKey] = currentValues;
 }
 
-function removeLocaleSetting(keyName, locale, parentDiv, regExPattern) {
+function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
     writeLocaleSetting(keyName, locale, null);
     clearDivElements(parentDiv, true);
-    initLocaleTable(parentDiv, keyName, regExPattern);
+    initLocaleTable(parentDiv, keyName, regExPattern,syntax);
 }
 
-function addLocaleSetting(keyName, parentDiv, regExPattern) {
+function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
     var inputValue = getObject(keyName + '-addLocaleValue').value;
     try {
         var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
         if (existingElementForLocale == null) {
             writeLocaleSetting(keyName, inputValue, '');
             clearDivElements(parentDiv,true);
-            initLocaleTable(parentDiv, keyName, regExPattern);
+            initLocaleTable(parentDiv, keyName, regExPattern,syntax);
         }
     } finally {}
 }
@@ -413,7 +425,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
                 imgElement.setAttribute("width","15");
                 imgElement.setAttribute("src","<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>");
                 imgElement.setAttribute("onclick","writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                    tdElement = document.createElement("td");
+                tdElement = document.createElement("td");
                 tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
 
                 localeTableRow.appendChild(tdElement);
@@ -507,7 +519,7 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
              style="width:700px">
             <%
                 for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
-                        final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
+                    final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
             %>
             <div id="<%=loopCategory%>" dojoType="dijit.layout.ContentPane" title="<%=loopCategory.getLabel(request.getLocale())%>">
                 <%= loopCategory.getDescription(request.getLocale())%>
@@ -516,7 +528,7 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
                     <%= loopSetting.getDescription(request.getLocale()) %>
                     <br class="clear"/>
                     <br class="clear"/>
-                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING) { %>
+                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
                     </table>
                     <select dojoType="dijit.form.ComboBox" id="<%=loopSetting.getKey()%>-addLocaleValue" style="width: 100px">
@@ -524,11 +536,11 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
                         <option value=""><%=loopLocale%></option>
                         <% } %>
                     </select>
-                    <button type="button" onclick="addLocaleSetting('<%=loopSetting.getKey()%>','table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');" dojoType="dijit.form.Button">
+                    <button type="button" onclick="addLocaleSetting('<%=loopSetting.getKey()%>','table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');" dojoType="dijit.form.Button">
                         Add Locale
                     </button>
                     <script type="text/javascript">
-                        dojo.addOnLoad(function() {initLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');});
+                        dojo.addOnLoad(function() {initLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');});
                     </script>
                     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING_ARRAY) { %>
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
@@ -546,7 +558,7 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
                     </select>
                     <button type="button" onclick="writeMultiLocaleSetting('<%=loopSetting.getKey()%>',getObject('<%=loopSetting.getKey()%>-addLocaleValue').value,'0','');initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');"          dojoType="dijit.form.Button">
                         Add Locale
-                    </button>                    
+                    </button>
                     <script type="text/javascript">
                         dojo.addOnLoad(function() {initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');});
                     </script>
@@ -572,20 +584,45 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
                         });
                     </script>
                     <% } else { %>
+
+                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
                     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
                            value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"
-                            <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
-                           style="width: 600px" dojoType="dijit.form.ValidationTextBox" regExp="<%=loopSetting.getRegExPattern().pattern()%>"
-                            <% } %>
-                            <% if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
-                           type="password" autocomplete="off" size="60"
-                            <% } %>
-                            <% if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
-                           size="30" dojoType="dijit.form.NumberTextBox" invalidMessage="must be a numeric value"
-                            <% } %>
-                            />
+                           style="width: 600px" dojoType="dijit.form.ValidationTextBox" regExp="<%=loopSetting.getRegExPattern().pattern()%>" invalidMessage="The value does not have the correct format."/>
+                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
+                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                           value="[Loading...]" required="<%=loopSetting.isRequired()%>"
+                           type="password" autocomplete="off" size="60" dojoType="dijit.form.ValidationTextBox"
+                            onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);"
+                            onkeypress="
+                            //alert('current validation value=' + getObject('value_<%=loopSetting.getKey()%>-validation').value);
+                            getObject('value_<%=loopSetting.getKey()%>-validation').value = '';
+                            dijit.byId('value_<%=loopSetting.getKey()%>-validation').validate(false);
+                            " />
+                    <br/>
+                    <input id="value_<%=loopSetting.getKey()%>-validation" name="setting_<%=loopSetting.getKey()%>-validation"
+                           type="password" value="" required="true" dojoType="dijit.form.ValidationTextBox" invalidMessage="The value does not match."/> (confirm)
                     <script type="text/javascript">
-                        dojo.addOnLoad(function() {readSetting('<%=loopSetting.getKey()%>', function(dataValue) {getObject('value_<%=loopSetting.getKey()%>').value = dataValue;},null);});
+                        dojo.addOnLoad(function() {
+                            dijit.byId("value_<%=loopSetting.getKey()%>-validation").validator = function (value, constraints) {
+                                var realValue = getObject('value_<%=loopSetting.getKey()%>').value;
+                                return realValue == value;
+                            }});
+                    </script>
+                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
+                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                           value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"
+                           size="30" dojoType="dijit.form.NumberTextBox" invalidMessage="The value must be numeric."/>
+
+                    <% } %>
+                    <br/>
+                    <script type="text/javascript">
+                        dojo.addOnLoad(function() {
+                            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                                getObject('value_<%=loopSetting.getKey()%>').value = dataValue;
+                                dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);
+                            },null);}
+                                );
                     </script>
                     <% } %>
                 </div>

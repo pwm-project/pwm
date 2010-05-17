@@ -117,6 +117,7 @@ public class Configuration implements Serializable {
         returnSet.add(this.readSettingAsString(PwmSetting.EVENT_LOG_ATTRIBUTE));
         returnSet.addAll(this.getGlobalPasswordPolicy().getRuleHelper().getDisallowedAttributes());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
 
         return returnSet;
     }

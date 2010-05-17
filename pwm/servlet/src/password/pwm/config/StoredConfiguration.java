@@ -79,6 +79,7 @@ public class StoredConfiguration implements Serializable {
             final String defaultValue = loopSetting.getDefaultValue();
             switch (loopSetting.getSyntax()) {
                 case LOCALIZED_STRING:
+                case LOCALIZED_TEXT_AREA:
                     config.writeLocalizedSetting(loopSetting, Collections.singletonMap("",defaultValue));
                     break;
 
@@ -137,8 +138,8 @@ public class StoredConfiguration implements Serializable {
     }
 
     public Map<String,String> readLocalizedStringSetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read LOCALIZED_STRING values for setting: " + setting.toString());
+        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read LOCALIZED_STRING or LOCALIZED_TEXT_AREA values for setting: " + setting.toString());
         }
 
         final String stringValue = settingMap.get(setting);
@@ -147,8 +148,8 @@ public class StoredConfiguration implements Serializable {
 
     public void writeLocalizedSetting(final PwmSetting setting, final Map<String,String> values) {
         checkModifyability();
-        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING setting: " + setting.toString());
+        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING or LOCALIZED_TEXT_AREA setting: " + setting.toString());
         }
 
         settingMap.put(setting, JSONConversions.mapToString(values));
@@ -208,6 +209,7 @@ public class StoredConfiguration implements Serializable {
 
                 switch (setting.getSyntax()) {
                     case LOCALIZED_STRING:
+                    case LOCALIZED_TEXT_AREA:
                     {
                         final Map<String,String> localizedSettings = this.readLocalizedStringSetting(setting);
                         for (final String locale : localizedSettings.keySet()) {
@@ -289,7 +291,7 @@ public class StoredConfiguration implements Serializable {
         return outputter.outputString(new Document(pwmConfigElement));
     }
 
-    public static StoredConfiguration fromXml(final String xmlData)
+    public static StoredConfiguration fromXml(final String xmlData, final boolean readPasswordSettings)
             throws Exception
     {
         final SAXBuilder builder = new SAXBuilder();
@@ -320,6 +322,7 @@ public class StoredConfiguration implements Serializable {
                 } else {
                     switch (pwmSetting.getSyntax()) {
                         case LOCALIZED_STRING:
+                        case LOCALIZED_TEXT_AREA:
                         {
                             final List valueElements = settingElement.getChildren("value");
                             final Map<String,String> values = new TreeMap<String,String>();
@@ -367,15 +370,19 @@ public class StoredConfiguration implements Serializable {
 
                         case PASSWORD:
                         {
-                            final Element valueElement = settingElement.getChild("value");
-                            final String encodedValue = valueElement.getText();
-                            try {
-                                final String key = STORED_DATE_FORMAT.format(newConfiguration.configurationTime) + StoredConfiguration.class.getSimpleName();
-                                final String decodedValue = TextConversations.decryptValue(encodedValue, key);
-                                newConfiguration.writeSetting(pwmSetting, decodedValue);
-                            } catch (Exception e) {
+                            if (readPasswordSettings) {
+                                final Element valueElement = settingElement.getChild("value");
+                                final String encodedValue = valueElement.getText();
+                                try {
+                                    final String key = STORED_DATE_FORMAT.format(newConfiguration.configurationTime) + StoredConfiguration.class.getSimpleName();
+                                    final String decodedValue = TextConversations.decryptValue(encodedValue, key);
+                                    newConfiguration.writeSetting(pwmSetting, decodedValue);
+                                } catch (Exception e) {
+                                    newConfiguration.writeSetting(pwmSetting, "");
+                                    throw new RuntimeException("unable to decode value: " + e.getMessage());
+                                }
+                            } else {
                                 newConfiguration.writeSetting(pwmSetting, "");
-                                throw new RuntimeException("unable to decode value: " + e.getMessage());
                             }
 
                         }
@@ -410,11 +417,11 @@ public class StoredConfiguration implements Serializable {
         return sb.toString();
     }
 
-    public String checkForValueErrors() {
+    public String checkValuesForErrors() {
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
             final StringBuilder errorString = new StringBuilder();
-            errorString.append(loopSetting.getCategory()).append("-").append(loopSetting.toString()).append(" (").append(loopSetting.getLabel(Locale.getDefault())).append(") ");
+            errorString.append(loopSetting.getCategory().getLabel(Locale.getDefault())).append("-").append(loopSetting.getLabel(Locale.getDefault())).append(" ");
 
             final Pattern loopPattern = loopSetting.getRegExPattern();
 
@@ -422,8 +429,67 @@ public class StoredConfiguration implements Serializable {
                 case NUMERIC:
                 {
                     final String value = this.readSetting(loopSetting);
+                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                        errorString.append(" missing required value");
+                        return errorString.toString();
+                    }
+
                     try { Integer.parseInt(value); } catch (Exception e) {
                         errorString.append(" can not parse integer value:").append(e.getMessage()); return errorString.toString();
+                    }
+                }
+                break;
+
+                case BOOLEAN:
+                {
+                    final String value = this.readSetting(loopSetting);
+                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                        errorString.append(" missing required value");
+                        return errorString.toString();
+                    }
+
+                    try { Boolean.parseBoolean(value); } catch (Exception e) {
+                        errorString.append(" can not parse boolean  value:").append(e.getMessage()); return errorString.toString();
+                    }
+                }
+                break;
+
+                case STRING_ARRAY:
+                {
+                    final List<String> values = this.readStringArraySetting(loopSetting);
+                    for (final String value : values) {
+                        if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                            errorString.append(" missing required value");
+                            return errorString.toString();
+                        }
+
+                        final Matcher matcher = loopPattern.matcher(value);
+                        if (value != null && value.length() > 0 && !matcher.matches()) {
+                            errorString.append(" incorrect value format for value: ").append(value);
+                            return errorString.toString();
+                        }
+                    }
+                }
+                break;
+
+                case LOCALIZED_STRING:
+                case LOCALIZED_TEXT_AREA:
+                {
+                    final Map<String,String> values = this.readLocalizedStringSetting(loopSetting);
+                    for (final String locale : values.keySet()) {
+                        final String value = values.get(locale);
+                        if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                            errorString.append(" missing required value");
+                            return errorString.toString();
+                        }
+
+                        if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING) {
+                            final Matcher matcher = loopPattern.matcher(value);
+                            if (value != null && value.length() > 0 && !matcher.matches()) {
+                                errorString.append(" incorrect value format for locale '").append(locale).append("': ").append(value);
+                                return errorString.toString();
+                            }
+                        }
                     }
                 }
                 break;
@@ -433,12 +499,32 @@ public class StoredConfiguration implements Serializable {
                     final Map<String,List<String>> values = this.readLocalizedStringArraySetting(loopSetting);
                     for (final String locale : values.keySet()) {
                         for (final String value : values.get(locale)) {
+                            if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                                errorString.append(" missing required value");
+                                return errorString.toString();
+                            }
+
                             final Matcher matcher = loopPattern.matcher(value);
-                            if (!matcher.matches()) {
+                            if (value != null && value.length() > 0 && !matcher.matches()) {
                                 errorString.append(" incorrect value format for locale '").append(locale).append("': ").append(value);
                                 return errorString.toString();
                             }
                         }
+                    }
+                }
+                break;
+
+                default:
+                {
+                    final String value = readSetting(loopSetting);
+                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
+                        errorString.append(" missing required value");
+                        return errorString.toString();
+                    }
+                    final Matcher matcher = loopPattern.matcher(value);
+                    if (value != null && value.length() > 0 && !matcher.matches()) {
+                        errorString.append(" incorrect value format for value: '").append(value);
+                        return errorString.toString();
                     }
                 }
             }

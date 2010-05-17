@@ -40,7 +40,7 @@ public class ConfigReader {
 
     public static Configuration loadConfiguration(final File configFile) throws Exception {
         final String theFileData = readFileAsString(configFile);
-        final StoredConfiguration storedConfiguration = StoredConfiguration.fromXml(theFileData);
+        final StoredConfiguration storedConfiguration = StoredConfiguration.fromXml(theFileData, true);
         storedConfiguration.lock();
         return new Configuration(storedConfiguration);
     }

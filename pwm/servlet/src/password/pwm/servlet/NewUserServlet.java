@@ -242,7 +242,7 @@ public class NewUserServlet extends TopServlet {
         final String fromAddress = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_FROM,locale);
         final String subject = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_SUBJECT,locale);
         final String body = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_BODY,locale);
-        final String toAddress = userInfoBean.getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_EMAIL, "");
+        final String toAddress = userInfoBean.getUserEmailAddress();
 
         if (toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send new user email for '" + userInfoBean.getUserDN() + "' no email configured");

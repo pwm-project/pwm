@@ -87,13 +87,13 @@ public class ConfigManagerServlet extends TopServlet {
                 configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
                 configManagerBean.setEditorMode(false);
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_RESET_SUCCESS));
-                LOGGER.info("configuration reset");
+                LOGGER.debug(pwmSession,"configuration reset");
             } else if ("switchToActionMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(false);
-                LOGGER.info("switching to action mode");
+                LOGGER.debug(pwmSession,"switching to action mode");
             } else if ("switchToEditMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
-                LOGGER.info("switching to edit mode");
+                LOGGER.debug(pwmSession,"switching to edit mode");
             }
         }
 
@@ -151,6 +151,7 @@ public class ConfigManagerServlet extends TopServlet {
                     break;
 
                     case LOCALIZED_STRING:
+                    case LOCALIZED_TEXT_AREA:
                         returnValue = new TreeMap<String,String>(storedConfig.readLocalizedStringSetting(theSetting));
                         break;
 
@@ -196,6 +197,7 @@ public class ConfigManagerServlet extends TopServlet {
                 break;
 
                 case LOCALIZED_STRING:
+                    case LOCALIZED_TEXT_AREA:
                 {
                     final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
                     final Map<String,String> outputMap = new TreeMap<String,String>();
@@ -242,7 +244,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration configuration = configManagerBean.getConfiguration();
 
-        final String errorString = configuration.checkForValueErrors();
+        final String errorString = configuration.checkValuesForErrors();
         if (errorString != null) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
             return false;
