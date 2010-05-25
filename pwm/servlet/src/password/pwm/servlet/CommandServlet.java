@@ -279,7 +279,7 @@ public class CommandServlet extends TopServlet {
                 } else {
                     LOGGER.debug(pwmSession, "user password appears expired, redirecting to ChangePassword url");
                 }
-                final String changePassServletURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD;
+                final String changePassServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD;
 
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(changePassServletURL, req, resp));
                 return;
@@ -288,7 +288,7 @@ public class CommandServlet extends TopServlet {
             //check if we force response configuration, and user requires it.
             if (uiBean.isRequiresResponseConfig() && (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirectiong to setupresponses page");
-                final String setupResponsesURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
+                final String setupResponsesURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
 
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(setupResponsesURL, req, resp));
                 return;

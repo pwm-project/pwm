@@ -107,7 +107,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ContextManager theManager = pwmSession.getContextManager();
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
         final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
         final String contextParam = Validator.readStringFromRequest(req, "context", 256);
 
@@ -233,7 +233,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
 
@@ -302,7 +302,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         if (forgottenPasswordBean.isResponsesSatisfied()) {
             final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
@@ -325,7 +325,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         try {
 

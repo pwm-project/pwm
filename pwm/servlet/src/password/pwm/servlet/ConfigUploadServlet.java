@@ -94,7 +94,7 @@ public class ConfigUploadServlet extends TopServlet {
                 // Create a new file upload handler
                 final ServletFileUpload upload = new ServletFileUpload();
 
-                boolean formIDvalidated = false;
+                boolean pwmFormIDvalidated = false;
                 String uploadFile = null;
 
                 // Parse the request
@@ -103,17 +103,17 @@ public class ConfigUploadServlet extends TopServlet {
 
                     if ("uploadFile".equals(item.getFieldName())) {
                         uploadFile = streamToString(item.openStream());
-                    } else if ("formID".equals(item.getFieldName())) {
-                        final String formNonce = PwmSession.getPwmSession(req).getSessionStateBean().getFormNonce();
-                        final String inputFormID = streamToString(item.openStream());
-                        if (formNonce.equals(inputFormID)) {
-                            formIDvalidated = true;
+                    } else if ("pwmFormID".equals(item.getFieldName())) {
+                        final String formNonce = PwmSession.getPwmSession(req).getSessionStateBean().getSessionVerificationKey();
+                        final String inputpwmFormID = streamToString(item.openStream());
+                        if (formNonce.equals(inputpwmFormID)) {
+                            pwmFormIDvalidated = true;
                         }
                     }
                 }
 
-                if (!formIDvalidated) {
-                    LOGGER.warn(PwmSession.getPwmSession(req), "form submitted with incorrect or missing formID value");
+                if (!pwmFormIDvalidated) {
+                    LOGGER.warn(PwmSession.getPwmSession(req), "form submitted with incorrect or missing pwmFormID value");
                     throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
                 }
 

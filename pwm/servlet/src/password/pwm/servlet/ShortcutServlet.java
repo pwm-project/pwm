@@ -126,7 +126,7 @@ public class ShortcutServlet extends TopServlet {
             pwmSession.getSessionStateBean().setForwardURL(item.getShortcutURI().toString());
 
             final StringBuilder continueURL = new StringBuilder();
-            continueURL.append(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE));
+            continueURL.append(req.getContextPath());
             continueURL.append("/public/" + PwmConstants.URL_SERVLET_COMMAND);
             continueURL.append("?processAction=continue");
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(continueURL.toString(), req, resp));

@@ -29,10 +29,9 @@ import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -145,8 +144,7 @@ public class AuthenticationFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final Configuration config = pwmSession.getConfig();
-        final String loginServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
+        final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
         final String requestedURL = req.getRequestURI();
 
         // check if current request is actually for the login servlet url, if it is, just do nothing.

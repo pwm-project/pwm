@@ -75,7 +75,6 @@ public class SessionStateBean implements Serializable {
 
     private static int sequenceNumber = PwmRandom.getInstance().nextInt();
     private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Integer.toHexString(sequenceNumber++) + Long.toHexString(System.currentTimeMillis());
-    private String formNonce = PwmRandom.getInstance().alphaNumericString(32) + Integer.toHexString(sequenceNumber++) + Long.toHexString(System.currentTimeMillis());
 
     private boolean passedCaptcha;
 
@@ -307,16 +306,8 @@ public class SessionStateBean implements Serializable {
         return visibleShortcutItems;
     }
 
-    public void setVisibleShortcutItems(Map<String, ShortcutItem> visibleShortcutItems) {
+    public void setVisibleShortcutItems(final Map<String, ShortcutItem> visibleShortcutItems) {
         this.visibleShortcutItems = visibleShortcutItems;
-    }
-
-    public String getFormNonce() {
-        return formNonce;
-    }
-
-    public void setFormNonce(String formNonce) {
-        this.formNonce = formNonce;
     }
 
 // -------------------------- ENUMERATIONS --------------------------

@@ -59,9 +59,9 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
                 for (final FormConfiguration paramConfig : requiredAttrParams.values()) {
             %>
-            <h2><%= paramConfig.getLabel() %></h2>
-            <input type="password" name="<%= paramConfig.getAttributeName() %>" class="inputfield" maxlength="255"
-                   tabindex="<%=++tabIndex%>"
+            <h2><label for="attribute-<%= paramConfig.getAttributeName()%>"><%= paramConfig.getLabel() %></label></h2>
+            <input type="password" name="<%= paramConfig.getAttributeName()%>" class="inputfield" maxlength="255"
+                   tabindex="<%=++tabIndex%>" id="attribute-<%= paramConfig.getAttributeName()%>"
                    value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getAttributeName(),"") %>"/>
             <% } %>
 
@@ -70,7 +70,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 for (final Challenge loopChallenge : recoverBean.getResponseSet().getChallengeSet().getChallenges()) {
                     counter++;
             %>
-            <h2><%= loopChallenge.getChallengeText() %></h2>
+            <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %></label></h2>
             <input type="password" name="PwmResponse_R_<%= counter %>" class="inputfield" maxlength="255"
                    tabindex="<%=++tabIndex%>" id="PwmResponse_R_<%=counter%>"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + counter,"") %>"/>
@@ -86,7 +86,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="hidden" name="hideButton" tabindex="<%=++tabIndex%>" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

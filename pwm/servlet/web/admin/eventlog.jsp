@@ -61,11 +61,11 @@
             <table style="border: 0; max-width:600px; width:600px">
                 <tr style="border: 0">
                     <td class="key" style="border: 0">
-                        Level
+                        <label for="level">Level</label>
                     </td>
                     <td style="border: 0">
-                        <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request,"level",255, "INFO");%>
-                        <select name="level">
+                        <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request,"level",255,"INFO");%>
+                        <select id="level" name="level">
                             <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL</option>
                             <option value="WARN" <%= "WARN".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>WARN</option>
                             <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR</option>
@@ -77,11 +77,11 @@
                 </tr>
                 <tr style="border: 0">
                     <td class="key" style="border: 0">
-                        Type
+                        <label for="type">Type</label>
                     </td>
                     <td style="border: 0">
-                        <% final String selectedType = password.pwm.Validator.readStringFromRequest(request,"type",255);%>
-                        <select name="type">
+                        <% final String selectedType = password.pwm.Validator.readStringFromRequest(request,"type",255,"Both");%>
+                        <select id="type" name="type">
                             <option value="User" <%= "User".equals(selectedType) ? "selected=\"selected\"" : "" %>>User</option>
                             <option value="System" <%= "System".equals(selectedType) ? "selected=\"selected\"" : "" %>>System</option>
                             <option value="Both" <%= "Both".equals(selectedType) ? "selected=\"selected\"" : "" %>>Both</option>
@@ -147,7 +147,7 @@
         </form>
         <%
             PwmLogLevel logLevel = PwmLogLevel.INFO;
-            PwmDBLogger.EventType logType = PwmDBLogger.EventType.User;
+            PwmDBLogger.EventType logType = PwmDBLogger.EventType.Both;
             int eventCount = 100;
             long maxTime = 10000;
             final String username = password.pwm.Validator.readStringFromRequest(request,"username", 255);
@@ -190,8 +190,8 @@
             </tr>
             <% int counter = 0; for (final PwmLogEvent event : searchResults.getEvents()) { %>
             <tr>
-                <td class="key">
-                    <pre><%= ++counter %></pre>
+                <td class="key" style="font-family: Courier, sans-serif">
+                    <%= ++counter %>
                 </td>
                 <td>
                     <%= DateFormat.getDateTimeInstance().format(event.getDate()) %>

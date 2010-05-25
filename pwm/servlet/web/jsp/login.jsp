@@ -68,7 +68,7 @@
                        name="reset"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="login">
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

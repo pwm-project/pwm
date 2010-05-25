@@ -201,19 +201,19 @@ public class Validator {
         return results.iterator().next();
     }
 
-    public static void validateFormID(final HttpServletRequest req) throws PwmException {
+    public static void validatePwmFormID(final HttpServletRequest req) throws PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String formID = ssBean.getFormNonce();
-        if (formID != null) {
-            final String submittedFormID = req.getParameter("formID");
-            if (submittedFormID == null || submittedFormID.length() < 1) {
-                LOGGER.warn(pwmSession, "form submitted with missing formID value");
+        final String pwmFormID = ssBean.getSessionVerificationKey();
+        if (pwmFormID != null) {
+            final String submittedpwmFormID = req.getParameter("pwmFormID");
+            if (submittedpwmFormID == null || submittedpwmFormID.length() < 1) {
+                LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
                 throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
             }
 
-            if (!formID.equals(submittedFormID)) {
-                LOGGER.warn(pwmSession, "form submitted with incorrect formID value");
+            if (!pwmFormID.equals(submittedpwmFormID)) {
+                LOGGER.warn(pwmSession, "form submitted with incorrect pwmFormID value");
                 throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
             }
         }

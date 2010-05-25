@@ -60,7 +60,8 @@ public class StoredConfiguration implements Serializable {
 
     private static final String XML_FORMAT_VERSION = "2";
 
-    private Date configurationTime = new Date();
+    private Date createTime = new Date();
+    private Date modifyTime = new Date();
     private Map<PwmSetting,String> settingMap = new HashMap<PwmSetting,String>();
     private boolean locked = false;
 
@@ -71,6 +72,10 @@ public class StoredConfiguration implements Serializable {
     public void lock() {
         locked = true;
         settingMap = Collections.unmodifiableMap(settingMap);
+    }
+
+    public Date getModifyTime() {
+        return modifyTime;
     }
 
     public static StoredConfiguration getDefaultConfiguration() {
@@ -256,7 +261,7 @@ public class StoredConfiguration implements Serializable {
                         final Element valueElement = new Element("value");
                         settingElement.addContent(valueElement);
                         try {
-                            final String key = STORED_DATE_FORMAT.format(configurationTime) + this.getClass().getSimpleName();
+                            final String key = STORED_DATE_FORMAT.format(createTime) + this.getClass().getSimpleName();
                             final String encodedValue = TextConversations.encryptValue(settingMap.get(setting), key);
                             valueElement.addContent(encodedValue);
                         } catch (Exception e) {
@@ -282,8 +287,8 @@ public class StoredConfiguration implements Serializable {
         pwmConfigElement.addContent(settingsElement);
         pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
         pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
-        pwmConfigElement.setAttribute("createTime", STORED_DATE_FORMAT.format(configurationTime));
-        pwmConfigElement.setAttribute("modifyTime", STORED_DATE_FORMAT.format(new Date()));
+        pwmConfigElement.setAttribute("createTime", STORED_DATE_FORMAT.format(createTime));
+        pwmConfigElement.setAttribute("modifyTime", STORED_DATE_FORMAT.format(modifyTime));
         pwmConfigElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
 
         final XMLOutputter outputter = new XMLOutputter();
@@ -303,20 +308,25 @@ public class StoredConfiguration implements Serializable {
             throw new Exception("error parsing xml data: " + e.getMessage());
         }
 
+        final Set<PwmSetting> seenSettings = new HashSet<PwmSetting>();
+
         final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
         try {
             final Element rootElement = inputDocument.getRootElement();
-            final String createTimestamp = rootElement.getAttributeValue("createTime");
-            if (createTimestamp == null) {
+            final String createTimeString = rootElement.getAttributeValue("createTime");
+            if (createTimeString == null) {
                 throw new IllegalArgumentException("missing createTime timestamp");
             }
-            newConfiguration.configurationTime = STORED_DATE_FORMAT.parse(createTimestamp);
+            final String modifyTimeString = rootElement.getAttributeValue("modifyTime");
+            newConfiguration.createTime = STORED_DATE_FORMAT.parse(createTimeString);
             final Element settingsElement = rootElement.getChild("settings");
             final List settingElements = settingsElement.getChildren("setting");
             for (final Object loopSetting : settingElements) {
                 final Element settingElement = (Element)loopSetting;
                 final String keyName = settingElement.getAttributeValue("key");
                 final PwmSetting pwmSetting = PwmSetting.forKey(keyName);
+                seenSettings.add(pwmSetting);
+
                 if (pwmSetting == null) {
                     LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
                 } else {
@@ -374,7 +384,7 @@ public class StoredConfiguration implements Serializable {
                                 final Element valueElement = settingElement.getChild("value");
                                 final String encodedValue = valueElement.getText();
                                 try {
-                                    final String key = STORED_DATE_FORMAT.format(newConfiguration.configurationTime) + StoredConfiguration.class.getSimpleName();
+                                    final String key = STORED_DATE_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
                                     final String decodedValue = TextConversations.decryptValue(encodedValue, key);
                                     newConfiguration.writeSetting(pwmSetting, decodedValue);
                                 } catch (Exception e) {
@@ -395,6 +405,17 @@ public class StoredConfiguration implements Serializable {
                     }
                 }
             }
+            if (modifyTimeString == null) {
+                throw new IllegalArgumentException("missing modifyTime timestamp");
+            }
+            newConfiguration.modifyTime = STORED_DATE_FORMAT.parse(modifyTimeString);
+
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (!seenSettings.contains(setting)) {
+                    LOGGER.info("missing setting key while parsing input configuration: " + setting.getKey() + ", will use default value");
+                }
+            }
+
         } catch (Exception e) {
             throw new Exception("Error reading configuration file format: " + e.getMessage());
         }
@@ -537,6 +558,7 @@ public class StoredConfiguration implements Serializable {
         if (locked) {
             throw new IllegalStateException("configuration is locked, can not be modified");
         }
+        modifyTime = new Date();
     }
 
     private static class TextConversations {

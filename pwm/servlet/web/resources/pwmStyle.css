@@ -60,9 +60,9 @@ div.progress-container > div { background-color: #ffffff; height: 10px; }
 
 .clear { clear:both; }
 
-.msg-info    { display:block; padding:6px; background-color:#DDDDDD; border:1px solid #D4D4D4; width: 560px;}
-.msg-error   { display:block; padding:6px; background-color:#FFCD59; border:1px solid #D4D4D4; width: 560px;}
-.msg-success { display:block; padding:6px; background-color:#EFEFEF; border:1px solid #D4D4D4; width: 560px;}
+.msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px;}
+.msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px;}
+.msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px;}
 
 #footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
 #footer .idle_status { color: #333333; }

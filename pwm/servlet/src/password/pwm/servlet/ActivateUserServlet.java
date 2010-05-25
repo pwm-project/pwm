@@ -31,7 +31,9 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.ActivateUserServletBean;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,10 +47,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * User interaction servlet for creating new users (self registration)
@@ -86,7 +85,7 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
 
         if (actionParam != null && actionParam.equalsIgnoreCase("activate")) {
-            Validator.validateFormID(req);
+            Validator.validatePwmFormID(req);
 
             final Map<String, FormConfiguration> validationParams = activateBean.getActivateUserParams();
 
@@ -157,6 +156,9 @@ public class ActivateUserServlet extends TopServlet {
 
                 // update the stats bean
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
+
+                // send email
+                sendActivationEmail(pwmSession);
 
                 // redirect user to change password screen.
                 Helper.forwardToSuccessPage(req, resp, this.getServletContext());
@@ -288,5 +290,28 @@ public class ActivateUserServlet extends TopServlet {
     {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER).forward(req, resp);
     }
+
+    private void sendActivationEmail(final PwmSession pwmSession)
+    {
+        final ContextManager theManager = pwmSession.getContextManager();
+        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final Configuration config = pwmSession.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_FROM,locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_SUBJECT,locale);
+        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY,locale);
+        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY_HTML,locale);
+
+        final String toAddress = userInfoBean.getUserEmailAddress();
+
+        if (toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send activation email for '" + userInfoBean.getUserDN() + "' no email configured");
+            return;
+        }
+
+        theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+    }
+
 }
 

@@ -26,13 +26,13 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
-import password.pwm.process.emailer.EmailEvent;
 import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * IntruderManager watches for login errors by users and from IP addresses.  When to many bad attempts
@@ -58,8 +59,8 @@ public class IntruderManager implements Serializable {
     public static final int INTRUDER_RETENTION_TIME = 60 * 60 * 1000; //1 hr
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(IntruderManager.class);
-    private final Map<String, IntruderRecord> addressLockTable = new HashMap<String, IntruderRecord>();
-    private final Map<String, IntruderRecord> userLockTable = new HashMap<String, IntruderRecord>();
+    private final Map<String, IntruderRecord> addressLockTable = new ConcurrentHashMap<String, IntruderRecord>();
+    private final Map<String, IntruderRecord> userLockTable = new ConcurrentHashMap<String, IntruderRecord>();
 
     private final ContextManager theManager;
 
@@ -107,13 +108,13 @@ public class IntruderManager implements Serializable {
             return;
         }
 
-        doBadAttempt(addressLockTable, addressString, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS));
+        markBadAttempt(addressLockTable, addressString, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS));
         final IntruderRecord record = addressLockTable.get(addressString);
 
         try {
             this.checkAddress(pwmSession);
         } catch (PwmException e) {
-            //send admin email alert
+            lockAddress(pwmSession, record, addressString);
         }
 
         {
@@ -130,7 +131,7 @@ public class IntruderManager implements Serializable {
         }
     }
 
-    private static void doBadAttempt(final Map<String, IntruderRecord> table, final String key, final long maxTime, final int maxAttempts)
+    private static void markBadAttempt(final Map<String, IntruderRecord> table, final String key, final long maxTime, final int maxAttempts)
     {
         IntruderRecord record = table.get(key);
         if (record == null) {
@@ -180,27 +181,13 @@ public class IntruderManager implements Serializable {
             return;
         }
 
-        doBadAttempt(userLockTable, username, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS));
+        markBadAttempt(userLockTable, username, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS));
         final IntruderRecord record = userLockTable.get(username);
 
         try {
             this.checkUser(username, pwmSession);
         } catch (PwmException e) {
-            //send admin email alert
-            if (!record.isAlerted()) {
-                lockUser(pwmSession, record, username);
-                final EmailEvent emailEvent = new EmailEvent(
-                        config.readSettingAsString(PwmSetting.ADMIN_ALERT_EMAIL_ADDRESS),
-                        config.readSettingAsString(PwmSetting.ADMIN_ALERT_FROM_ADDRESS),
-                        "PWM Intruder Lockout Alert",
-                        "The user " + username + " has been locked out after " + record.getAttemptCount() +
-                                " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining())
-                );
-                theManager.sendEmailUsingQueue(emailEvent);
-                theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
-
-                record.setAlerted(true);
-            }
+            lockUser(pwmSession, record, username);
         }
 
         {
@@ -218,12 +205,18 @@ public class IntruderManager implements Serializable {
     }
 
     private void lockUser(final PwmSession pwmSession, final IntruderRecord record, final String username) {
-        final EmailEvent emailEvent = new EmailEvent(
-                pwmSession.getConfig().readSettingAsString(PwmSetting.ADMIN_ALERT_EMAIL_ADDRESS),
-                pwmSession.getConfig().readSettingAsString(PwmSetting.ADMIN_ALERT_FROM_ADDRESS),
-                "PWM Intruder Lockout Alert",
+        if (record.isAlerted()) {
+            return;
+        }
+        record.setAlerted(true);
+
+        final EmailItemBean emailEvent = new EmailItemBean(
+                pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_TO),
+                pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM),
+                "PWM Intruder User Lockout Alert",
                 "The user " + username + " has been locked out after " + record.getAttemptCount() +
-                        " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining())
+                        " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining()),
+                null
         );
         theManager.sendEmailUsingQueue(emailEvent);
         theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
@@ -243,6 +236,24 @@ public class IntruderManager implements Serializable {
         } catch (PwmException e) {
             LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
         }
+    }
+
+    private void lockAddress(final PwmSession pwmSession, final IntruderRecord record, final String addressString) {
+        if (record.isAlerted()) {
+            return;
+        }
+        record.setAlerted(true);
+
+        final EmailItemBean emailEvent = new EmailItemBean(
+                pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_TO),
+                pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM),
+                "PWM Intruder Address Lockout Alert",
+                "The address " + addressString + " has been locked out after " + record.getAttemptCount() +
+                        " bad attempts.  The lockout will be reset in " + TimeDuration.asCompactString(record.timeRemaining()),
+                null
+        );
+        theManager.sendEmailUsingQueue(emailEvent);
+        theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_ADDRESSES);
     }
 
     /**

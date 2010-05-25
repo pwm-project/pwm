@@ -31,10 +31,10 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.log4j.xml.DOMConfigurator;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.config.*;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.process.emailer.EmailEvent;
 import password.pwm.process.emailer.EmailQueueManager;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
@@ -71,7 +71,7 @@ public class ContextManager implements Serializable
 
     private String instanceID = DEFAULT_INSTANCE_ID;
 
-    private final transient Set<PwmSession> activeSessions = Collections.synchronizedSet(new HashSet<PwmSession>());
+    private final transient Set<PwmSession> activeSessions = Collections.synchronizedSet(new WeakHashMap<PwmSession,PwmSession>().keySet());
 
     private final IntruderManager intruderManager = new IntruderManager(this);
 
@@ -154,7 +154,7 @@ public class ContextManager implements Serializable
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-            final ChaiConfiguration chaiConfig = Helper.createChaiConfiguration(this, proxyDN, proxyPW, PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
+            final ChaiConfiguration chaiConfig = Helper.createChaiConfiguration(this.getConfig(), proxyDN, proxyPW, PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
 
             try {
@@ -250,7 +250,7 @@ public class ContextManager implements Serializable
 
         // log the loaded configuration
         LOGGER.info(logContextParams());
-        LOGGER.info("loaded configuration: " + configuration.getStoredConfiguration().toString());
+        LOGGER.info("loaded configuration: " + configuration.toString());
         LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy());
 
         // get the pwm servlet instance id
@@ -277,8 +277,7 @@ public class ContextManager implements Serializable
 
         taskMaster = new Timer("pwm-ContextManager timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
-        taskMaster.schedule(emailQueue, 5000, 5000);
-        taskMaster.schedule(new SessionWatcher(), 5 * 1000, 5 * 1000);
+        taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
         taskMaster.scheduleAtFixedRate(new DebugLogOutputter(), 60 * 60 * 1000, 60 * 60 * 1000); //once every hour
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
@@ -337,7 +336,7 @@ public class ContextManager implements Serializable
 
     private static String fetchInstanceID(final PwmDB pwmDB, final ContextManager contextManager) {
 
-        String newInstanceID = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.INSTANCE_ID);
+        String newInstanceID = contextManager.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {
             return newInstanceID;
@@ -424,7 +423,7 @@ public class ContextManager implements Serializable
      *
      * Multiple strategies are used to determine the real path of files because different servlet containers
      * have different symantics.  In principal, servlets are not supposed
-     * @param filename A filename that will be appeneded to the end of the verified direcotry
+     * @param filename A filename that will be appended to the end of the verified directory
      * @param suggestedPath The desired path of the file, either relative to the servlet directory or an absolute path
      *   on the file system
      * @param servletContext The HttpServletContext to be used to retrieve a path.
@@ -471,16 +470,19 @@ public class ContextManager implements Serializable
         throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
     }
 
-    public void sendEmailUsingQueue(final EmailEvent event)
+    public void sendEmailUsingQueue(final EmailItemBean emailItem)
     {
-        emailQueue.addMailToQueue(event);
+        emailQueue.addMailToQueue(emailItem);
     }
 
     public void shutdown()
     {
         LOGGER.warn("shutting down");
 
-        getStatisticsManager().flush();
+        if (getStatisticsManager() != null) {
+            getStatisticsManager().flush();
+        }
+
         taskMaster.cancel();
 
         if (wordlistManager != null) {
@@ -531,7 +533,9 @@ public class ContextManager implements Serializable
     }
 
     public void addPwmSession(final PwmSession pwmSession) {
-        activeSessions.add(pwmSession);
+        try {
+            activeSessions.add(pwmSession);
+        } catch (Exception e) { /* */ }
     }
 
     public Date getStartupTime() {
@@ -551,7 +555,7 @@ public class ContextManager implements Serializable
         }
     }
 
-    public class SessionWatcher extends TimerTask {
+    public class SessionWatcherTask extends TimerTask {
         public void run()
         {
             final Set<PwmSession> copiedMap = new HashSet<PwmSession>();
@@ -579,7 +583,8 @@ public class ContextManager implements Serializable
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                    databaseDirectory = figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_LOCATION), "WEB-INF", contextManager.getServletContext());
+                final String pwmDBLocationSetting = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                databaseDirectory = figureFilepath(pwmDBLocationSetting, "WEB-INF", contextManager.getServletContext());
             } catch (Exception e) {
                 LOGGER.warn("error locating configured pwmDB directory: " + e.getMessage());
                 return;
@@ -589,8 +594,8 @@ public class ContextManager implements Serializable
 
             // initialize the pwmDB
             try {
-                final String classname = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_IMPLEMENTATION);
-                final String initString = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.PWMDB_INITSTRING);
+                final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
+                final String initString = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_INIT_STRING);
                 contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initString);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
@@ -600,8 +605,8 @@ public class ContextManager implements Serializable
         public static void initializePwmDBLogger(final ContextManager contextManager) {
             // initialize the pwmDBLogger
             try {
-                final int maxEvents = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_EVENTS);
-                final int maxAge = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_LOCAL_AGE);
+                final int maxEvents = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+                final int maxAge = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_AGE);
                 final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
                 contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel);
             } catch (Exception e) {

@@ -24,14 +24,14 @@
 // PWM Change Password JavaScript.
 //
 
-var SETTING_SHOW_CHECKING_TIMEOUT = 1000;    // show "please wait, checking" if response not received in this time (ms)
-
 var passwordsMasked = true;
 var previousP1 = "";
 
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
+var validationCache = { };
+var validationInProgress = false;
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
@@ -42,62 +42,67 @@ function validatePasswords()
         return;
     }
 
-    if (previousP1 != getObject("password1").value) {
-        // if p1 is changing, then clear out p2.
+    if (previousP1 != getObject("password1").value) {  // if p1 is changing, then clear out p2.
         getObject("password2").value = "";
         previousP1 = getObject("password1").value;
     }
 
-    var key = makeValidationKey();
-
-    //if the response isn't received quickly, this timeout will cause a "working" message to be displayed
-    setTimeout( function() {
-        if (validatorAjaxState.busy) {
-            showWorking();
+    var passwordData = makeValidationKey();
+    {
+        var cachedResult = validationCache[passwordData.cacheKey];
+        if (cachedResult != null) {
+            updateDisplay(cachedResult);
+            return;
         }
-    }, SETTING_SHOW_CHECKING_TIMEOUT);
+    }
 
-    doAjaxRequest(validatorAjaxState, key);
+    setTimeout(function(){
+        if (validationInProgress) {
+            showWorking();
+            //validatePasswords();
+        }
+    },200);
+    validationInProgress = true;
+    dojo.xhrPost({
+        url: getObject("Js_ChangePasswordURL").value + "?processAction=validate&pwmFormID=" + getObject('pwmFormID').value,
+        postData:  dojo.toJson(passwordData),
+        contentType: "application/json;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        error: function(errorObj) {
+            validationInProgress = false;
+            clearError(getObject("Js_Display_CommunicationError").value);
+            markStrength(0);
+            console.log('error: ' + errorObj);
+        },
+        load: function(data){
+            validationInProgress = false;
+            updateDisplay(data);
+            validationCache[passwordData.cacheKey] = data;
+            if (passwordData.cacheKey != makeValidationKey().cacheKey) {
+                setTimeout(function() {validatePasswords();}, 1);
+            }
+        }
+    });
 }
 
 function makeValidationKey() {
-    var p1enc = urlEncode(getObject("password1").value);
-    var p2enc = urlEncode(getObject("password2").value);
-    return "processAction=validate&password1=" + p1enc + "&password2=" + p2enc;
+    return {
+        password1:getObject("password1").value,
+        password2:getObject("password2").value,
+        cacheKey: getObject("password1").value + getObject("password2").value
+    };
+
 }
 
-function handleValidationResponse(key, resultString)
+function updateDisplay(resultInfo)
 {
-    if (resultString != null && resultString.length > 0) {
-        validatorAjaxState.cache[key] = resultString;
-        if (key != makeValidationKey()) {
-            setTimeout(function() {validatePasswords();}, 1);
-        } else {
-            updateDisplay(resultString);
-        }
-        return;
-    }
-
-    clearError(getObject("Js_Display_CommunicationError").value);
-    markStrength(0);
-}
-
-function updateDisplay(resultString)
-{
-    try {
-        var resultInfo = JSON.parse(resultString);
-    } catch (Exception) {
-        clearError(getObject("Js_Display_CommunicationError").value);
-        return;
-    }
-
     var message = resultInfo["message"];
 
     if (resultInfo["version"] != "2") {
         showError("[ unexpected version string from server ]");
         return;
     }
-
 
     if (resultInfo["passed"] == "true") {
         if (resultInfo["match"] == "MATCH") {
@@ -109,12 +114,11 @@ function updateDisplay(resultString)
         showError(message);
     }
 
-
-    markConfirmationMark(resultInfo["match"]);
+    markConfirmationCheck(resultInfo["match"]);
     markStrength(resultInfo["strength"]);
 }
 
-function markConfirmationMark(matchStatus) {
+function markConfirmationCheck(matchStatus) {
     if (matchStatus == "MATCH") {
         getObject("confirmCheckMark").style.visibility = 'visible';
         getObject("confirmCrossMark").style.visibility = 'hidden';
@@ -171,35 +175,55 @@ function clearError(message)
 {
     getObject("password_button").disabled = false;
     getObject("error_msg").firstChild.nodeValue = message;
-    getObject("error_msg").className = "msg-success";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFFFFF' }
+    }).play();
 }
 
 function showWorking()
 {
     getObject("password_button").disabled = true;
     getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_CheckingPassword").value;
-    getObject("error_msg").className = "msg-error";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFCD59' }
+    }).play();
 }
 
 function showError(errorMsg)
 {
     getObject("password_button").disabled = true;
     getObject("error_msg").firstChild.nodeValue = errorMsg;
-    getObject("error_msg").className = "msg-error";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFCD59' }
+    }).play();
 }
 
 function showConfirm(successMsg)
 {
     getObject("password_button").disabled = true;
     getObject("error_msg").firstChild.nodeValue = successMsg;
-    getObject("error_msg").className = "msg-success";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#DDDDDD' }
+    }).play();
 }
 
 function showSuccess(successMsg)
 {
     getObject("password_button").disabled = false;
     getObject("error_msg").firstChild.nodeValue = successMsg;
-    getObject("error_msg").className = "msg-success";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#EFEFEF' }
+    }).play();
 }
 
 function copyToPasswordFields(text)  // used to copy auto-generated passwords to password field
@@ -237,19 +261,23 @@ function handleChangePasswordSubmit()
 
 function fetchNewRandom()
 {
-    var key = "processAction=getrandom";
-    doAjaxRequest(randomAjaxState,key);
+    dojo.xhrPost({
+        url: getObject("Js_ChangePasswordURL").value + "?processAction=getrandom&pwmFormID=" + getObject('pwmFormID').value,
+        postData: "",
+        contentType: "application/json;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        error: function(errorObj) {
+            showError('[unable to fetch new random password');
+        },
+        load: function(data){
+            handleRandomResponse(data);
+        }
+    });
 }
 
-function handleRandomResponse(key, resultString)
+function handleRandomResponse(resultInfo)
 {
-    try {
-        var resultInfo = JSON.parse(resultString);
-    } catch (Exception) {
-        clearError(getObject("Js_Display_CommunicationError").value);
-        return;
-    }
-
     if (resultInfo["version"] != "1") {
         showError("[ unexpected randomgen version string from server ]");
         return;
@@ -265,7 +293,7 @@ function clearForm() {
     getObject("password1").value = "";
     getObject("password2").value = "";
     clearError('\u00A0'); //&nbsp;
-    markConfirmationMark("EMPTY");
+    markConfirmationCheck("EMPTY");
     markStrength(0);
     setTimeout( function() { getObject("password1").focus(); }, 10); // hack for IE
 }
@@ -293,7 +321,7 @@ function startupChangePasswordPage()
     var autoGenPasswordElement = getObject("autoGeneratePassword");
     if (autoGenPasswordElement != null) {
         autoGenPasswordElement.style.visibility = 'visible';
-    }    
+    }
 
     // show the error panel
     var autoGenPasswordElement = getObject("error_msg");
@@ -313,6 +341,3 @@ function startupChangePasswordPage()
 
     dirtyPageLeaveFlag = true;
 }
-
-var validatorAjaxState = new AjaxRequestorState(getObject("Js_ChangePasswordURL").value, handleValidationResponse);
-var randomAjaxState = new AjaxRequestorState(getObject("Js_ChangePasswordURL").value, handleRandomResponse);

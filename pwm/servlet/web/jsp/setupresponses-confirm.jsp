@@ -30,13 +30,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession());
-    final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
-    final List<Challenge> allChallenges = challengeSet.getChallenges();
-    final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
-    int tabIndexer = 0;
-%>
+<% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();startupResponsesPage()(false); document.forms.setupResponses.elements[0].focus();">
@@ -75,7 +69,7 @@
                 <input tabindex="1" type="submit" name="confirm_btn" class="btn"
                        value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
     </div>

@@ -33,6 +33,12 @@ public class SetupResponsesBean implements Serializable {
     private boolean simpleMode;
     private Map<Challenge, String> responseMap = Collections.emptyMap();
 
+    public void clear() {
+        challengeList = Collections.emptyMap();
+        simpleMode = false;
+        responseMap = Collections.emptyMap();
+    }
+
     public Map<String, Challenge> getIndexedChallenges() {
         return challengeList;
     }

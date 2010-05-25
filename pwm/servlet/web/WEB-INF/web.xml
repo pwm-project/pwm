@@ -26,7 +26,7 @@
          xmlns="http://java.sun.com/xml/ns/j2ee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-    <display-name>PWM</display-name>
+    <display-name>PWM Password Management</display-name>
     <distributable/>
     <description>Password Management Servlet</description>
     <context-param>
@@ -40,32 +40,6 @@
         <description>Percentage of time the wordlist populator should sleep every second.  Settings less than one will cause much cpu and disk access during load.  Lower settings cause faster populating, but more system load.</description>
         <param-name>wordlistLoadFactor</param-name>
         <param-value>50</param-value>
-    </context-param>
-    <context-param>
-        <description>Location of where to store the "pwmDB" directory. If the specified path is relative, the pwm-db
-            directory will be placed in the servlet's "WEB-INF" directory.
-        </description>
-        <param-name>pwmDbLocation</param-name>
-        <param-value>pwmDB</param-value>
-    </context-param>
-    <context-param>
-        <description>database implementation used by pwmDb, primarily for wordlist management. Default is embedded berkeley db.</description>
-        <param-name>pwmDbImplementation</param-name>
-        <param-value>password.pwm.util.db.Berkeley_PwmDb</param-value>
-        <!--<param-value>password.pwm.util.db.Derby_PwmDb</param-value>-->
-        <!--<param-value>password.pwm.util.db.JDBM_PwmDb</param-value>-->
-        <!--<param-value>password.pwm.util.db.Memory_PwmDb</param-value>-->
-    </context-param>
-    <context-param>
-        <description>value passed to the pwmDbImplementation class during initialization.</description>
-        <param-name>pwmDbInitString</param-name>
-        <!--<param-value>je.maxMemory=500000000;;;je.cleaner.minUtilization=50;;;je.log.fileMax=1073741824;;;je.cleaner.forceCleanFiles=1b496-1b4b3</param-value>-->
-        <param-value>je.maxMemory=10000000;;;je.cleaner.minUtilization=80;;;je.log.fileMax=10000000</param-value>
-    </context-param>
-    <context-param>
-        <description>Name of PWM instance.  If blank a persistent, randomly generated value will be used.</description>
-        <param-name>instanceID</param-name>
-        <param-value> </param-value>
     </context-param>
     <context-param>
         <description>Use aggressive URL parsing for forwardURL and logoutURL parameters.  If true, all subsequent
@@ -102,12 +76,10 @@
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/public/*</url-pattern>
     </filter-mapping>
-    <!--
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/config/*</url-pattern>
     </filter-mapping>
-    -->
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/</url-pattern>

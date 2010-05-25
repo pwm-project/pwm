@@ -43,7 +43,7 @@
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn" value="    <pwm:Display key="Button_UnlockPassword"/>    "/>
                         <input type="hidden" name="processAction" value="selectUnlock"/>
-                        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
                 <td style="border: 0">
@@ -60,7 +60,7 @@
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn" value="   <pwm:Display key="Button_ChangePassword"/>  "/>
                         <input type="hidden" name="processAction" value="selectResetPassword"/>
-                        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
                 <td style="border: 0">

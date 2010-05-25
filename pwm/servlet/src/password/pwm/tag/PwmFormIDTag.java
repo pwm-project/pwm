@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-public class FormIDTag extends TagSupport {
+public class PwmFormIDTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
@@ -37,10 +37,10 @@ public class FormIDTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final String formID = pwmSession.getSessionStateBean().getFormNonce();
+            final String pwmFormID = pwmSession.getSessionStateBean().getSessionVerificationKey();
 
-            if (formID != null) {
-                pageContext.getOut().write(formID);
+            if (pwmFormID != null) {
+                pageContext.getOut().write(pwmFormID);
             }
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

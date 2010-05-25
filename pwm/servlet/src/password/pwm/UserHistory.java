@@ -86,7 +86,7 @@ public class UserHistory implements Serializable {
     {
         final String corRecordIdentifer = "0001";
         final Record record = new Record(eventCode, message);
-        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENT_LOG_ATTRIBUTE);
+        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
         if (corAttribute == null || corAttribute.length() < 1) {
             LOGGER.debug(pwmSession,"no user event log attribute configured, skipping write of log data");
@@ -101,7 +101,7 @@ public class UserHistory implements Serializable {
             } else {
                 theCor = ConfigObjectRecord.createNew(theUser, corAttribute, corRecordIdentifer, null, null);
             }
-            final UserHistory history = new UserHistory(pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_EVENTS_USER), theCor.getPayload());
+            final UserHistory history = new UserHistory(pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENTS_LDAP_MAX_EVENTS), theCor.getPayload());
             history.addEvent(record);
             theCor.updatePayload(history.getCurrentPayload());
             LOGGER.info(pwmSession, "user log event " + eventCode + " written to user " + theUser.getEntryDN() );
@@ -149,8 +149,8 @@ public class UserHistory implements Serializable {
             throws ChaiUnavailableException, PwmException
     {
         final String corRecordIdentifer = "0001";
-        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENT_LOG_ATTRIBUTE);
-        final int maxUserEvents = pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENT_LOG_MAX_EVENTS_USER);
+        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final int maxUserEvents = pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
 
         if (corAttribute == null || corAttribute.length() < 1) {
             LOGGER.trace(pwmSession,"no user event log attribute configured, skipping write of log data");

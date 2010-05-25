@@ -140,10 +140,6 @@ public abstract class PwmConstants {
     public static enum CONTEXT_PARAM {
         CONFIG_FILE("pwmConfigPath"),
         WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        PWMDB_LOCATION("pwmDbLocation"),
-        PWMDB_IMPLEMENTATION("pwmDbImplementation"),
-        PWMDB_INITSTRING("pwmDbInitString"),
-        INSTANCE_ID("instanceID"),
         AGGRESIVE_URL_PARSING("aggressiveUrlParsing"),
         ;
 

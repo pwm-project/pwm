@@ -48,7 +48,7 @@
                 <input type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>
                 <input type="reset"  class="btn" name="reset" value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="updateAttributes"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

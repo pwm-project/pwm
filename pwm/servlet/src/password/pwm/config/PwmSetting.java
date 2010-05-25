@@ -33,11 +33,11 @@ import java.util.regex.Pattern;
 public enum PwmSetting {
     // general settings
     APPLICATION_TILE(
-            "title", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
+            "pwm.applicationTitle", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
     URL_FORWARD(
-            "forwardURL", Syntax.STRING, Category.GENERAL, true),
+            "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true),
     URL_LOGOUT(
-            "logoutURL", Syntax.STRING, Category.GENERAL, false),
+            "pwm.logoutURL", Syntax.STRING, Category.GENERAL, false),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true),
     PASSWORD_EXPIRE_PRE_TIME(
@@ -51,127 +51,137 @@ public enum PwmSetting {
     PASSWORD_SYNC_MAX_WAIT_TIME(
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     WORDLIST_FILENAME(
-            "password.WordlistFile", Syntax.STRING, Category.GENERAL, false),
+            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
-            "password.SeedlistFile", Syntax.STRING, Category.GENERAL, false),
+            "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
             "password.sharedHistory.age", Syntax.NUMERIC, Category.GENERAL, true),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
     SHORTCUT_ITEMS(
-            "shortCutItem", Syntax.LOCALIZED_STRING_ARRAY, Category.GENERAL, false),
+            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.GENERAL, false),
 
     //ldap directory
     LDAP_SERVER_URLS(
-            "ldapServerURLs", Syntax.STRING_ARRAY, Category.LDAP, true),
+            "ldap.serverUrls", Syntax.STRING_ARRAY, Category.LDAP, true),
     LDAP_PROXY_USER_DN(
-            "ldapProxyDN", Syntax.STRING, Category.LDAP, true),
+            "ldap.proxy.username", Syntax.STRING, Category.LDAP, true),
     LDAP_PROXY_USER_PASSWORD(
-            "ldapProxyPassword", Syntax.PASSWORD, Category.LDAP, true),
+            "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
     LDAP_PROMISCUOUS_SSL(
-            "ldapPromiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
+            "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
     LDAP_CONTEXTLESS_ROOT(
-            "ldapContextlessLoginRoot", Syntax.STRING, Category.LDAP, false),
+            "ldap.rootContexts", Syntax.STRING, Category.LDAP, false),
     LDAP_LOGIN_CONTEXTS(
-            "ldapLoginContexts", Syntax.STRING_ARRAY, Category.LDAP, false),
+            "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false),
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true),
     USERNAME_SEARCH_FILTER(
-            "usernameSearchFilter", Syntax.STRING, Category.LDAP, true),
+            "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true),
     AUTO_ADD_OBJECT_CLASSES(
-            "autoAddObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false),
+            "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false),
     QUERY_MATCH_CHANGE_PASSWORD(
             "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true),
-    LDAP_TIMEOUT(
-            "ldapTimeout", Syntax.NUMERIC, Category.LDAP, true),
     LDAP_NAMING_ATTRIBUTE(
-            "ldapNamingAttribute", Syntax.STRING, Category.LDAP, true),
+            "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
-            "smtpServerAddress", Syntax.STRING, Category.EMAIL, false),
+            "email.smtp.address", Syntax.STRING, Category.EMAIL, false),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true),
-    ADMIN_ALERT_EMAIL_ADDRESS(
-            "adminAlertToAddress", Syntax.STRING, Category.EMAIL, false),
-    ADMIN_ALERT_FROM_ADDRESS(
-            "adminAlertFromAddress", Syntax.STRING, Category.EMAIL, false),
-    PASSWORD_EMAIL_FROM(
-            "password.email.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
-    PASSWORD_EMAIL_SUBJECT(
-            "password.email.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
-    PASSWORD_EMAIL_BODY(
-            "password.email.body", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
-    NEWUSER_EMAIL_SUBJECT(
-            "newUser.email.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
-    NEWUSER_EMAIL_FROM(
-            "newUser.email.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
-    NEWUSER_EMAIL_BODY(
-            "newUser.email.body", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_ADMIN_ALERT_TO(
+            "email.adminAlert.toAddress", Syntax.STRING, Category.EMAIL, false),
+    EMAIL_ADMIN_ALERT_FROM(
+            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false),
+    EMAIL_CHANGEPASSWORD_FROM(
+            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_CHANGEPASSWORD_SUBJECT(
+            "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_CHANGEPASSWORD_BODY(
+            "email.changePassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_CHANGEPASSWORD_BODY_HMTL(
+            "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_NEWUSER_SUBJECT(
+            "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_NEWUSER_FROM(
+            "email.newUser.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_NEWUSER_BODY(
+            "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_NEWUSER_BODY_HTML(
+            "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_ACTIVATION_SUBJECT(
+            "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_ACTIVATION_FROM(
+            "email.activation.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+    EMAIL_ACTIVATION_BODY(
+            "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_ACTIVATION_BODY_HTML(
+            "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_ADVANCED_SETTINGS(
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false),
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
-            "password.MinimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
-            "password.MaximumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_REPEAT(
-            "password.MaximumRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT(
-            "password.MaximumSequentialRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumSequentialRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_NUMERIC(
-            "password.AllowNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_NUMERIC(
-            "password.AllowFirstCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowFirstCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_NUMERIC(
-            "password.AllowLastCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowLastCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_NUMERIC(
-            "password.MaximumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_NUMERIC(
-            "password.MinimumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_SPECIAL(
-            "password.AllowSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_SPECIAL(
-            "password.AllowFirstCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowFirstCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL(
-            "password.AllowLastCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowLastCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_SPECIAL(
-            "password.MaximumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_SPECIAL(
-            "password.MinimumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_ALPHA(
-            "password.MaximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_ALPHA(
-            "password.MinimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_UPPERCASE(
-            "password.MaximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_UPPERCASE(
-            "password.MinimumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_LOWERCASE(
-            "password.MaximumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_LOWERCASE(
-            "password.MinimumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_UNIQUE(
-            "password.MinimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
-            "password.MaximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_ENABLE_WORDLIST(
-            "password.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.ADComplexity", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.ADComplexity", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH(
-            "password.RegExMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.regExMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
-            "password.RegExNoMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.regExNoMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_DISALLOWED_VALUES(
-            "password.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
-            "password.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
 
     // edirectory settings
-    EDIRECTORY_ALWAYS_USE_PROXY(
-            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_READ_PASSWORD_POLICY(
             "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_ENABLE_NMAS(
@@ -180,6 +190,8 @@ public enum PwmSetting {
             "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true),
     EDIRECTORY_READ_CHALLENGE_SET(
             "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+    EDIRECTORY_ALWAYS_USE_PROXY(
+            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
@@ -194,16 +206,16 @@ public enum PwmSetting {
             "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
 
     // logger settings
-    EVENT_LOG_MAX_LOCAL_EVENTS(
-            "eventLog.localDbMaxEvents", Syntax.NUMERIC, Category.LOGGING, true),
-    EVENT_LOG_MAX_LOCAL_AGE(
-            "eventLog.localDbMaxAge", Syntax.NUMERIC, Category.LOGGING, true),
-    EVENT_LOG_ATTRIBUTE(
-            "eventLog.userAttribute", Syntax.STRING, Category.LOGGING, true),
-    EVENT_LOG_MAX_EVENTS_USER(
-            "eventLog.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
-    EVENT_LOG_LOCAL_LEVEL(
-            "eventLog.localDbLevel", Syntax.STRING, Category.LOGGING, true),
+    EVENTS_PWMDB_MAX_EVENTS(
+            "events.pwmDB.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
+    EVENTS_PWMDB_MAX_AGE(
+            "events.pwmDB.maxAge", Syntax.NUMERIC, Category.LOGGING, true),
+    EVENTS_PWMDB_LOG_LEVEL(
+            "events.pwmDB.logLevel", Syntax.STRING, Category.LOGGING, true),
+    EVENTS_LDAP_ATTRIBUTE(
+            "events.ldap.attribute", Syntax.STRING, Category.LOGGING, true),
+    EVENTS_LDAP_MAX_EVENTS(
+            "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
 
     // recovery settings
     CHALLANGE_FORCE_SETUP(
@@ -286,8 +298,6 @@ public enum PwmSetting {
             "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false),
 
     // advanced
-    URL_SERVET_RELATIVE(
-            "servletRelativeURL", Syntax.STRING, Category.ADVANCED, true),
     EXTERNAL_PASSWORD_METHODS(
             "externalPasswordMethods", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     DISALLOWED_HTTP_INPUTS(
@@ -302,6 +312,14 @@ public enum PwmSetting {
             "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true),
     WORDLIST_CASE_SENSITIVE(
             "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true),
+    PWMDB_LOCATION(
+            "pwmDb.location", Syntax.STRING, Category.ADVANCED, true),
+    PWMDB_IMPLEMENTATION(
+            "pwmDb.implementation", Syntax.STRING, Category.ADVANCED, true),
+    PWMDB_INIT_STRING(
+            "pwmDb.initString", Syntax.STRING, Category.ADVANCED, false),
+    PWM_INSTANCE_NAME(
+            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false),
 
     ;
 // ------------------------------ STATICS ------------------------------

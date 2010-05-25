@@ -28,6 +28,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler(); startupChangePasswordPage(); getObject('password1').focus();">
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: false"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ChangePassword"/></jsp:include>
     <div id="centerbody">
@@ -109,7 +111,7 @@
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Show"/>    "
                        onclick="toggleMaskPasswords();" id="hide_button"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" id="pwmFormID"value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
@@ -129,8 +131,6 @@
     <input type="hidden" name="Js_Strength_High" id="Js_Strength_High" value="<pwm:Display key="Display_PasswordStrengthHigh"/>"/>
 </form>
 <%-- end hidden fields --%>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='json2.js'/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <%@ include file="footer.jsp" %>
 </body>
 </html>

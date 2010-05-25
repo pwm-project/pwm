@@ -24,6 +24,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
 import password.pwm.bean.SessionStateBean;
@@ -87,16 +88,15 @@ public class ChangePasswordServlet extends TopServlet {
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("validate")) {
                 //randomize response delay - useful for for developer testing only
-                /* final int randomInt = new java.util.Random().nextInt(1000 * 3);
-                if (randomInt < 50) {
+                /*final int randomInt = new java.util.Random().nextInt(1000 * 2);
+                if (randomInt < 0) {
                     LOGGER.fatal("random delay: pause");
                     resp.getOutputStream().close();
                     return;
                 } else {
                     LOGGER.fatal("random delay: " + randomInt);
                     Helper.pause(randomInt);
-                }
-                */
+                } */
                 handleValidatePasswords(req,resp);
                 return;
             } else if (processRequestParam.equalsIgnoreCase("getrandom")) {     // ajax random generator
@@ -136,13 +136,15 @@ public class ChangePasswordServlet extends TopServlet {
             throws IOException, ServletException, PwmException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
-
+        Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final Map<String, PasswordCheckInfo> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
-        final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
-        final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
+        final String bodyString = Helper.readRequestBody(req, 10 * 1024);
+        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+        final String password1 = srcMap.get("password1") != null ? srcMap.get("password1").toString() : "";
+        final String password2 = srcMap.get("password2") != null ? srcMap.get("password2").toString() : "";
 
+        final Map<String, PasswordCheckInfo> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
         final boolean foundInCache = cache.containsKey(password1);
         final PasswordCheckInfo passwordCheckInfo = foundInCache ? cache.get(password1) : checkEnteredPassword(pwmSession, password1);
         final MATCH_STATUS matchStatus = figureMatchStatus(pwmSession, password1, password2);
@@ -261,10 +263,9 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws ServletException for an error
      */
     protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException, PwmException {
         final long startTime = System.currentTimeMillis();
-
+        Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession);
 
@@ -308,7 +309,7 @@ public class ChangePasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = ContextManager.getContextManager(this.getServletContext());
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
         final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
         final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
 
@@ -338,7 +339,7 @@ public class ChangePasswordServlet extends TopServlet {
             LOGGER.trace(pwmSession,"wrote password to changePasswordBean");
 
             final StringBuilder returnURL = new StringBuilder();
-            returnURL.append(theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE));
+            returnURL.append(req.getContextPath());
             returnURL.append(req.getServletPath());
             returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
             Helper.forwardToWaitPage(req, resp, this.getServletContext(), returnURL.toString());

@@ -88,6 +88,14 @@
     </tr>
     <tr>
         <td class="key">
+            Configuration Time
+        </td>
+        <td>
+            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
             Server Timezone
         </td>
         <td>

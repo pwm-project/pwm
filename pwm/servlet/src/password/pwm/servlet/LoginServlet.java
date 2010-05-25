@@ -26,10 +26,8 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.error.PwmError;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 
@@ -64,7 +62,7 @@ public class
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
-            Validator.validateFormID(req);
+            Validator.validatePwmFormID(req);
             final String username = Validator.readStringFromRequest(req, "username", 255);
             final String password = Validator.readStringFromRequest(req, "password", 255);
             final String context = Validator.readStringFromRequest(req, "context", 255);
@@ -113,8 +111,7 @@ public class
             if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(ssBean.getOriginalRequestURL(), req, resp));
             } else {
-                final Configuration config = ContextManager.getContextManager(this.getServletContext()).getConfig();
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE), req, resp));
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
             }
         } else {
             forwardToJSP(req,resp);

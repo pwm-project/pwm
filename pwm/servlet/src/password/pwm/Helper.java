@@ -34,11 +34,13 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.Message;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.process.emailer.EmailEvent;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -69,52 +71,36 @@ public class Helper {
     }
 
     public static ChaiProvider createChaiProvider(
-            final ContextManager theManager,
+            final Configuration config,
             final String userDN,
             final String userPassword,
             final int idleTimeoutMs
     )
             throws ChaiUnavailableException
     {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(theManager, userDN, userPassword, idleTimeoutMs);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
 
     public static ChaiConfiguration createChaiConfiguration(
-            final ContextManager theManager,
+            final Configuration config,
             final String userDN,
             final String userPassword,
             final int idleTimeoutMs
     )
             throws ChaiUnavailableException
     {
-        final Configuration config = theManager.getConfig();
         final List<String> ldapURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
-        final boolean autocert = config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL);
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
-        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)) {
-            chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS,String.valueOf(true));
-        } else {
-            chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS,String.valueOf(false));
-        }
+        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, Boolean.toString(config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)));
+        chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS,Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
 
-        chaiConfig.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT, String.valueOf(config.readSettingAsInt(PwmSetting.LDAP_TIMEOUT)));
-        chaiConfig.setSetting(ChaiSetting.WIRETRACE_ENABLE, "false");
         chaiConfig.setCrSetting(CrSetting.CHAI_ATTRIBUTE_NAME, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, Boolean.toString(autocert));
-
-        {
-            final boolean allowDuplicates = theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_DUPLICATE_RESPONSES);
-            chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, String.valueOf(allowDuplicates));
-        }
-
-        {
-            final boolean caseInsensitive = theManager.getConfig().readSettingAsBoolean(PwmSetting.CASE_INSENSITIVE_CHALLENGE);
-            chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(caseInsensitive));
-        }
+        chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.ALLOW_DUPLICATE_RESPONSES)));
+        chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(config.readSettingAsBoolean(PwmSetting.CASE_INSENSITIVE_CHALLENGE)));
 
         // if possible, set the ldap timeout to one minute past the point of the idle session timeout.
         if (idleTimeoutMs > 0) {
@@ -245,9 +231,7 @@ public class Helper {
     )
             throws IOException
     {
-        final ContextManager theManager = ContextManager.getContextManager(req.getSession().getServletContext());
-        final Configuration config = theManager.getConfig();
-        final String loginServletURL = config.readSettingAsString(PwmSetting.URL_SERVET_RELATIVE) + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
+        final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
     }
 
@@ -257,14 +241,13 @@ public class Helper {
     )
             throws IOException
     {
-        final ContextManager theManager = ContextManager.getContextManager(req.getSession().getServletContext());
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         String destURL = ssBean.getOriginalRequestURL();
 
         if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
-            destURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_SERVET_RELATIVE);
+            destURL = req.getContextPath();
         }
 
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
@@ -422,48 +405,32 @@ public class Helper {
         final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_PASSWORD_METHODS);
 
         // process any configured external change password methods configured.
-        for (final String className : externalMethods) {
-            try {
-                // load up the class and get an instance.
-                final Class<?> theClass = Class.forName(className);
-                final ExternalPasswordMethod externalClass = (ExternalPasswordMethod) theClass.newInstance();
+        for (final String classNameString : externalMethods) {
+            if (classNameString != null && classNameString.length() > 0 ) {
+                try {
+                    // load up the class and get an instance.
+                    final Class<?> theClass = Class.forName(classNameString);
+                    final ExternalPasswordMethod externalClass = (ExternalPasswordMethod) theClass.newInstance();
 
-                // invoke the passwordChange method;
-                final boolean success = externalClass.passwordChange(pwmSession.getUserInfoBean().getUserDN(), oldPassword, newPassword);
+                    // invoke the passwordChange method;
+                    final boolean success = externalClass.passwordChange(pwmSession.getUserInfoBean().getUserDN(), oldPassword, newPassword);
 
-                if (success) {
-                    LOGGER.info(pwmSession, "externalPasswordMethod '" + className + "' was successfull");
-                } else {
-                    LOGGER.warn(pwmSession, "externalPasswordMethod '" + className + "' was not successfull");
+                    if (success) {
+                        LOGGER.info(pwmSession, "externalPasswordMethod '" + classNameString + "' was successfull");
+                    } else {
+                        LOGGER.warn(pwmSession, "externalPasswordMethod '" + classNameString + "' was not successfull");
+                    }
+                } catch (ClassCastException e) {
+                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalPasswordMethod.class.getName());
+                } catch (ClassNotFoundException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
+                } catch (IllegalAccessException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                } catch (InstantiationException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
                 }
-            } catch (ClassCastException e) {
-                LOGGER.warn(pwmSession, "configured external class " + className + " is not an instance of " + ExternalPasswordMethod.class.getName());
-            } catch (ClassNotFoundException e) {
-                LOGGER.warn(pwmSession, "unable to load configured external class: " + className + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
-            } catch (IllegalAccessException e) {
-                LOGGER.warn(pwmSession, "unable to load configured external class: " + className + " " + e.getMessage());
-            } catch (InstantiationException e) {
-                LOGGER.warn(pwmSession, "unable to load configured external class: " + className + " " + e.getMessage());
             }
         }
-    }
-
-    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession)
-    {
-        final Configuration config = pwmSession.getConfig();
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_SUBJECT,locale);
-        final String body = config.readLocalizedStringSetting(PwmSetting.PASSWORD_EMAIL_BODY,locale);
-
-        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
-            return;
-        }
-
-        pwmSession.getContextManager().sendEmailUsingQueue(new EmailEvent(toAddress, fromAddress, subject, body));
     }
 
     public static boolean testEmailAddress(final String address)
@@ -619,7 +586,7 @@ public class Helper {
         return size;
     }
 
-    public static String formatDiskSize(long diskSize) {
+    public static String formatDiskSize(final long diskSize) {
         final float COUNT = 1000;
         if (diskSize < 1) {
             return "n/a";
@@ -629,7 +596,7 @@ public class Helper {
             return "0";
         }
 
-        NumberFormat nf = NumberFormat.getInstance();
+        final NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);
 
         if (diskSize > COUNT * COUNT * COUNT) {
@@ -680,7 +647,7 @@ public class Helper {
 
         final Locale emptyLocale = parseLocaleString("");
         if (localePool.contains(emptyLocale)) {
-            return emptyLocale; 
+            return emptyLocale;
         }
 
         return null;
@@ -712,4 +679,18 @@ public class Helper {
     }
 
 
+    public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
+        final StringBuilder inputData = new StringBuilder();
+        String line;
+        try {
+            final BufferedReader reader = request.getReader();
+            while(((line = reader.readLine()) != null) && inputData.length() < maxChars) {
+                inputData.append(line);
+            }
+        }
+        catch(Exception e) {
+            LOGGER.error("error reading request body stream: " + e.getMessage());
+        }
+        return inputData.toString();
+    }
 }

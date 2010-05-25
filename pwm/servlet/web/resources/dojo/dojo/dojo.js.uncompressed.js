@@ -6600,7 +6600,7 @@ if(dojo.isIE || dojo.isOpera){
 		//
 		//	example:
 		//	Set multiple values at once, including event handlers:
-		//	|	dojo.attr("formId", {
+		//	|	dojo.attr("pwmFormID", {
 		//	|		"foo": "bar",
 		//	|		"tabIndex": -1,
 		//	|		"method": "POST",
@@ -6614,7 +6614,7 @@ if(dojo.isIE || dojo.isOpera){
 		//	|			dojo.stopEvent(e);
 		//	|
 		//	|			// submit the form with Ajax
-		//	|			dojo.xhrPost({ form: "formId" });
+		//	|			dojo.xhrPost({ form: "pwmFormID" });
 		//	|		}
 		//	|	});
 		//

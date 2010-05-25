@@ -48,7 +48,7 @@ public class PwmSession implements Serializable {
     private long creationTime;
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
-    private final ConfigManagerBean configManagerBean = new ConfigManagerBean();
+    private ConfigManagerBean configManagerBean = new ConfigManagerBean();
     private ForgottenPasswordBean forgottenPasswordBean = new ForgottenPasswordBean();
     private UserInfoBean userInfoBean = new UserInfoBean();
     private ChangePasswordBean changePasswordBean = new ChangePasswordBean();
@@ -221,6 +221,8 @@ public class PwmSession implements Serializable {
         userInfoBean = new UserInfoBean();
         changePasswordBean = new ChangePasswordBean();
         setupResponseBean = new SetupResponsesBean();
+        configManagerBean = new ConfigManagerBean();
+
 
         updateAttributesServletBean = null;
         newUserServletBean = null;

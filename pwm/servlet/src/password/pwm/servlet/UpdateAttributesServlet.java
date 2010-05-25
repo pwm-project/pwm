@@ -125,7 +125,7 @@ public class UpdateAttributesServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         final UpdateAttributesServletBean updateBean = pwmSession.getUpdateAttributesServletBean();
         final Map<String, FormConfiguration> validationParams = updateBean.getUpdateAttributesParams();

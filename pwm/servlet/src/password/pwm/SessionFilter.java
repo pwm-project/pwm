@@ -116,7 +116,8 @@ public class SessionFilter implements Filter {
      */
     public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession)
     {
-        final boolean useXForwardedFor = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
+        final boolean useXForwardedFor = pwmSession.getConfig() != null && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
+
         String userIP = "";
 
         if (useXForwardedFor) {
@@ -160,11 +161,20 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+
+        // check for valid config
         if (theManager == null || theManager.getConfig() == null) {
-            LOGGER.warn("unable to find a valid configuration");
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
-            Helper.forwardToErrorPage(req, resp, servletContext, false);
-            return;
+            final String configServletPathPrefix = req.getContextPath() + "/config/";
+            final String requestedURL = req.getRequestURI();
+
+            // check if current request is actually for the login servlet url, if it is, just do nothing.
+            if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
+                LOGGER.warn(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
+                Helper.forwardToErrorPage(req, resp, servletContext, false);
+                return;
+            }
+
         }
 
         // mark the user's IP address in the session bean
@@ -196,11 +206,13 @@ public class SessionFilter implements Filter {
         }
 
         //check intruder detection, if it is tripped, send user to error page
-        try {                               
-            theManager.getIntruderManager().checkAddress(pwmSession);
-        } catch (PwmException e) {
-            Helper.forwardToErrorPage(req, resp, servletContext, false);
-            return;
+        if (theManager.getIntruderManager() != null && theManager.getConfig() != null) {
+            try {
+                theManager.getIntruderManager().checkAddress(pwmSession);
+            } catch (PwmException e) {
+                Helper.forwardToErrorPage(req, resp, servletContext, false);
+                return;
+            }
         }
 
         final boolean aggressiveUrlParsing = "true".equalsIgnoreCase(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.AGGRESIVE_URL_PARSING));
@@ -252,7 +264,9 @@ public class SessionFilter implements Filter {
             throw new ServletException(e);
         }
 
-        theManager.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
+        if (theManager.getStatisticsManager() != null) {
+            theManager.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
+        }
 
         ssBean.setLastAccessTime(System.currentTimeMillis());
     }

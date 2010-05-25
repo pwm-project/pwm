@@ -37,8 +37,8 @@ public class ConfigReader {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigReader.class.getName());
     private static final int MAX_FILE_CHARS = 100 * 1024;
 
-
     public static Configuration loadConfiguration(final File configFile) throws Exception {
+        LOGGER.debug("loading configuration file: " + configFile);
         final String theFileData = readFileAsString(configFile);
         final StoredConfiguration storedConfiguration = StoredConfiguration.fromXml(theFileData, true);
         storedConfiguration.lock();

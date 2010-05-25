@@ -65,7 +65,7 @@
                 <input tabindex="4" type="reset" class="btn"
                        name="reset"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

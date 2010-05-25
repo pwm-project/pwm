@@ -6,6 +6,28 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.4.4 beta
+---
+! Corrected a problem where XSS field inputs were not being properly validated and scrubbed
+! Added form "nonce" validations to prevent certain types of XSS attacks
+! Passwords stored in configuration file are now obfuscated (though config files still need to be protected securely)
+
++ Added graphical feedback on password confirmation field
++ Added web based configuration file editor (/pwm/config/ConfigManager) (issue #4)
++ Switched configuration file format to PwmConfiguration.xml from pwmServlet.properties
++ Basic support for 389 Directory Server (http://directory.fedoraproject.org/)
++ Ability to send html email
++ Added send email option for user activation
++ Added smtp advanced properties configuration setting
++ Added ldap advanced properties configuration setting
+
+- Replaced vertical strength meter with horizontal strength meter with better CSS degradation
+- Fixed issue with caps lock warning on IE browsers (issue #3)
+- Added/Updated some of the french localization strings (issue #5)
+- Fixed issue with User Information crashing if NMAS is not being used (issue #6)
+- Fixed issue with Log4j (issue #7)
+
+
 v1.4.3 (1/10/2010) build 922
 ---
 + Improved handling of servlet container clustering and session pausing

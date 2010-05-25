@@ -47,15 +47,12 @@
             <%  //check to see if any locations are configured.
                 if (!Configuration.convertStringListToNameValuePair(PwmSession.getPwmSession(session).getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS),"=").isEmpty()) {
             %>
-            <h2><pwm:Display key="Field_Location"/></h2>
-            <select name="context">
+            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
+            <select name="context" id="context">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-
-
             <pwm:ParameterForm formName="activateuser"/>
-
             <div id="buttonbar">
                 <input type="submit" name="button" class="btn"
                        value="     <pwm:Display key="Button_Activate"/>     "
@@ -65,7 +62,7 @@
                 <input type="hidden"
                        name="processAction"
                        value="activate"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

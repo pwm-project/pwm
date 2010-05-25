@@ -80,7 +80,7 @@
         <input tabindex="4" type="reset" class="btn"
                name="reset" onclick="getObject('username').value = '';getObject('username').focus();"
                value="     <pwm:Display key="Button_Reset"/>     "/>
-        <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </div>
 </form>
 <br class="clear"/>
@@ -113,7 +113,7 @@
             Given Name
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("givenName") %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty("givenName","") %>
         </td>
     </tr>
     <tr>
@@ -121,7 +121,7 @@
             Surname
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("sn") %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty("sn","") %>
         </td>
     </tr>
     <tr>

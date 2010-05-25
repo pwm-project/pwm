@@ -22,8 +22,10 @@
 
 package password.pwm.process.emailer;
 
-import password.pwm.PwmConstants;
 import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -33,23 +35,31 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import java.util.*;
+import javax.mail.internet.MimeMultipart;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author Jason D. Rivard
  */
-public class EmailQueueManager extends TimerTask {
+public class EmailQueueManager {
 // ------------------------------ FIELDS ------------------------------
 
     private static final int ERROR_RETRY_WAIT_TIME = 30;
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
-    private final List<EmailEvent> queueList = Collections.synchronizedList(new LinkedList<EmailEvent>());
+
+    private final Queue<EmailEvent> mailSendQueue = new ConcurrentLinkedQueue<EmailEvent>();
 
     private long lastErrorTime;
 
     private final ContextManager theManager;
+
+    private volatile EmailSendThread emailSendThread = null;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -70,81 +80,76 @@ public class EmailQueueManager extends TimerTask {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void addMailToQueue(final EmailEvent emailEvent)
+    public void addMailToQueue(final EmailItemBean emailItem)
     {
-        queueList.add(emailEvent);
-    }
+        final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+        if (serverAddress == null || serverAddress.length() < 1) {
+            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
+        }
 
-    public void addMailToQueue(final String to, final String from, final String subject, final String body)
-    {
-        final EmailEvent event = new EmailEvent(to, from, subject, body);
-        if (queueList.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
-            queueList.add(event);
+        if (emailItem.getFrom() == null || emailItem.getFrom().length() < 1) {
+            LOGGER.error("discarding email event (no from address): " + emailItem.toString());
+            return;
+        }
+
+        if (emailItem.getTo() == null || emailItem.getTo().length() < 1) {
+            LOGGER.error("discarding email event (no to address): " + emailItem.toString());
+            return;
+        }
+
+        if (emailItem.getSubject() == null || emailItem.getSubject().length() < 1) {
+            LOGGER.error("discarding email event (no subject): " + emailItem.toString());
+            return;
+        }
+
+        if ((emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1) && (emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1)) {
+            LOGGER.error("discarding email event (no body): " + emailItem.toString());
+            return;
+        }
+        
+        final EmailEvent event = new EmailEvent(emailItem);
+        if (mailSendQueue.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
+            mailSendQueue.add(event);
         } else {
             LOGGER.warn("email queue full, discarding email send request: ");
+        }
+
+        synchronized (this) {
+            if (emailSendThread == null) {
+                emailSendThread = new EmailSendThread();
+                emailSendThread.setDaemon(true);
+                emailSendThread.setName("PWM EmailSendThread");
+                emailSendThread.start();
+            }
         }
     }
 
     private synchronized void processQueue()
     {
         if (System.currentTimeMillis() - lastErrorTime > (ERROR_RETRY_WAIT_TIME * 1000)) {
-            while (!queueList.isEmpty()) {
-                final EmailEvent event = queueList.get(0);
-                final boolean success = this.sendEmail(event);
-                if (success) {
-                    queueList.remove(0);
-                } else {
-                    break;
+            while (!mailSendQueue.isEmpty()) {
+                final EmailEvent event = mailSendQueue.poll();
+                if (event != null) {
+                    final boolean success = this.sendEmail(event.getEmailItem());
+                    if (!success) {
+                        event.setSendAttempts(event.getSendAttempts() + 1);
+                    }
                 }
             }
         }
     }
 
-    private boolean sendEmail(final EmailEvent emailEvent)
+    private boolean sendEmail(final EmailItemBean emailItemBean)
     {
         final StatisticsManager statsMgr = theManager.getStatisticsManager();
 
-        final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
-
-        if (emailEvent.getFrom() == null || emailEvent.getFrom().length() < 1) {
-            LOGGER.debug("discarding email event (no from address): " + emailEvent.toString());
-            return true;
-        }
-
-        if (emailEvent.getTo() == null || emailEvent.getTo().length() < 1) {
-            LOGGER.debug("discarding email event (no to address): " + emailEvent.toString());
-            return true;
-        }
-
-        if (emailEvent.getSubject() == null || emailEvent.getSubject().length() < 1) {
-            LOGGER.debug("discarding email event (no subject): " + emailEvent.toString());
-            return true;
-        }
-
-        if (serverAddress == null || serverAddress.length() < 1) {
-            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailEvent.toString());
-            return true;
-        }
-
-        //Create a propertieds item to start setting up the mail
-        final Properties props = new Properties();
-
-        // createSharedHistoryManager a new Session object for the message
-        final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
-
-        //Specify the desired SMTP server
-        props.put("mail.smtp.host", serverAddress);
 
         // createSharedHistoryManager a new MimeMessage object (using the Session created above)
         try {
-            final Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(emailEvent.getFrom()));
-            message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(emailEvent.getTo())});
-            message.setSubject(emailEvent.getSubject());
-            message.setContent(emailEvent.getBody(), "text/plain; charset=utf-8");
+            final Message message = convertEmailItemToMessage(emailItemBean, this.theManager.getConfig());
 
             Transport.send(message);
-            LOGGER.debug("successfully sent email: " + emailEvent.toString());
+            LOGGER.debug("successfully sent email: " + emailItemBean.toString());
             statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
 
             return true;
@@ -152,21 +157,95 @@ public class EmailQueueManager extends TimerTask {
             statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
             this.lastErrorTime = System.currentTimeMillis();
 
-            LOGGER.error("error during email send attempt: " + e); //todo explain _which_ email failed.
+            LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
-                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailEvent.toString() + " will retry in " + ERROR_RETRY_WAIT_TIME + " seconds.");
+                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + " will retry in " + ERROR_RETRY_WAIT_TIME + " seconds.");
                 return false;
             } else {
-                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailEvent.toString() + ", permanant failure, discarding");
+                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding");
                 return true;
             }
         }
     }
 
+    private Message convertEmailItemToMessage(final EmailItemBean emailItemBean, final Configuration config)
+            throws MessagingException
+    {
+        final boolean hasPlainText = emailItemBean.getBodyPlain() != null && emailItemBean.getBodyPlain().length() > 0;
+        final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
+
+        //Create a properties item to start setting up the mail
+        final Properties props = new Properties();
+
+        // createSharedHistoryManager a new Session object for the message
+        final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
+
+        //Specify the desired SMTP server
+        props.put("mail.smtp.host", config.readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
+
+        //Specify configured advanced settings.
+        final Map<String,String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readStringArraySetting(PwmSetting.EMAIL_ADVANCED_SETTINGS),"=");
+        for (final String key : advancedSettingValues.keySet()) {
+            props.put(key, advancedSettingValues.get(key));
+        }
+
+        final Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(emailItemBean.getFrom()));
+        message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(emailItemBean.getTo())});
+        message.setSubject(emailItemBean.getSubject());
+
+        if (hasPlainText && hasHtml) {
+            final MimeMultipart content = new MimeMultipart("alternative");
+            final MimeBodyPart text = new MimeBodyPart();
+            final MimeBodyPart html = new MimeBodyPart();
+            text.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=utf-8");
+            html.setContent(emailItemBean.getBodyHtml(), "text/html");
+            content.addBodyPart(text);
+            content.addBodyPart(html);
+            message.setContent(content);
+        } else if (hasPlainText) {
+            message.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=utf-8");
+        } else if (hasHtml) {
+            message.setContent(emailItemBean.getBodyHtml(), "text/html");
+        }
+
+        return message;
+    }
+
     private static boolean sendIsRetryable(final MessagingException e)
     {
         return false;
+    }
+
+    private class EmailSendThread extends Thread {
+        public void run() {
+            while (!mailSendQueue.isEmpty()) {
+                processQueue();
+            }
+            emailSendThread = null;
+        }
+    }
+
+    private static class EmailEvent {
+        private final EmailItemBean emailItem;
+        private int sendAttempts = 0;
+
+        private EmailEvent(final EmailItemBean emailItem) {
+            this.emailItem = emailItem;
+        }
+
+        public EmailItemBean getEmailItem() {
+            return emailItem;
+        }
+
+        public int getSendAttempts() {
+            return sendAttempts;
+        }
+
+        public void setSendAttempts(final int sendAttempts) {
+            this.sendAttempts = sendAttempts;
+        }
     }
 }
 

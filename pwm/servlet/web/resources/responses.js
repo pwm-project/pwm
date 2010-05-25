@@ -24,59 +24,72 @@ var responsesHidden = false;
 var PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
 var PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 
-var SETTING_SHOW_CHECKING_TIMEOUT = 1300;    // show "please wait, checking" if response not received in this time (ms)
+var validationCache = { };
+var validationInProgress = false;
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateResponses() {
-    //if the response isnt received quickly, this timeout will cause a "working" message to be displayed
-    setTimeout( function() {
-        if (validatorAjaxState.busy) {
+    var parameterData = makeValidationKey();
+    {
+        var cachedResult = validationCache[parameterData.cacheKey];
+        if (cachedResult != null) {
+            updateDisplay(cachedResult);
+            return;
+        }
+    }
+
+    setTimeout(function(){
+        if (validationInProgress) {
             showWorking();
         }
-    }, SETTING_SHOW_CHECKING_TIMEOUT);
+    },200);
 
-    var key = makeValidationKey();
-    doAjaxRequest(validatorAjaxState, key);
+    validationInProgress = true;
+    dojo.xhrPost({
+        url: getObject("Js_SetupResponsesURL").value + "?processAction=validateResponses&pwmFormID=" + getObject('pwmFormID').value,
+        postData:  dojo.toJson(parameterData),
+        contentType: "application/json;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        error: function(errorObj) {
+            validationInProgress = false;
+            clearError(getObject("Js_Display_CommunicationError").value);
+            console.log('error: ' + errorObj);
+        },
+        load: function(data){
+            validationInProgress = false;
+            updateDisplay(data);
+            validationCache[parameterData.cacheKey] = data;
+            if (parameterData.cacheKey != makeValidationKey().cacheKey) {
+                setTimeout(function() {validatePasswords();}, 1);
+            }
+        }
+    });
 }
 
 function makeValidationKey() {
-    var output = "";
+    var cacheKeyValue = "";
+    var paramData = { };
 
     for (var j = 0; j < document.forms.length; j++) {
         for (var i = 0; i < document.forms[j].length; i++) {
             var current = document.forms[j].elements[i];
             if (current.name.substring(0,PARAM_QUESTION_PREFIX.length) == PARAM_QUESTION_PREFIX || current.name.substring(0,PARAM_RESPONSE_PREFIX.length) == PARAM_RESPONSE_PREFIX) {
-                output = output + '&' + (current.name + '=' + urlEncode(current.value));
+                cacheKeyValue = cacheKeyValue + (current.name + '=' + current.value) + '&';
+                paramData[current.name] = current.value;
             }
         }
     }
 
-    return "processAction=validateResponses" + output;
+    paramData['cacheKey'] = cacheKeyValue;
+
+    return paramData;
 }
 
-function handleValidationResponse(key, resultString)
+function updateDisplay(resultInfo)
 {
-    if (resultString != null && resultString.length > 0) {
-        updateDisplay(resultString);
-        validatorAjaxState.cache[key] = resultString;
-        if (key != makeValidationKey()) {
-            setTimeout(function() {validateResponses();}, 100);
-        }
-    } else {
-        clearError(getObject("Js_Display_CommunicationError").value);
-    }
-}
 
-function updateDisplay(resultString)
-{
-    try {
-        var resultInfo = JSON.parse(resultString);
-    } catch (Exception) {
-        clearError(getObject("Js_Display_CommunicationError").value);
-        return;
-    }
-    
     var result = resultInfo["message"];
 
     if (resultInfo["success"] == "true") {
@@ -86,33 +99,51 @@ function updateDisplay(resultString)
     }
 }
 
-function showError(errorMsg)
-{
-    getObject("setresponses_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = errorMsg;
-    getObject("error_msg").className = "msg-error";
-}
-
-function showSuccess(successMsg)
+function clearError(message)
 {
     getObject("setresponses_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = successMsg;
-    getObject("error_msg").className = "msg-success";
+    getObject("error_msg").firstChild.nodeValue = message;
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFFFFF' }
+    }).play();
 }
 
 function showWorking()
 {
     getObject("setresponses_button").disabled = true;
     getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_CheckingResponses").value;
-    getObject("error_msg").className = "msg-error";
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFCD59' }
+    }).play();
 }
 
-function clearError(message)
+function showError(errorMsg)
+{
+    getObject("setresponses_button").disabled = true;
+    getObject("error_msg").firstChild.nodeValue = errorMsg;
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#FFCD59' }
+    }).play();
+}
+
+function showSuccess(successMsg)
 {
     getObject("setresponses_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = message;
-    getObject("error_msg").className = "msg-info";
+    getObject("error_msg").firstChild.nodeValue = successMsg;
+    dojo.animateProperty({
+        node:"error_msg",
+        duration: 500,
+        properties: { backgroundColor:'#EFEFEF' }
+    }).play();
 }
+
+
 
 function toggleHideResponses()
 {
@@ -148,11 +179,6 @@ function startupResponsesPage(fieldsAreHidden)
     } catch (e) {
         //alert("can't show hide button: " + e)
     }
-}
-
-var returnURLobject = getObject("Js_SetupResponsesURL");
-if (returnURLobject != null) {
-    var validatorAjaxState = new AjaxRequestorState(returnURLobject.value,handleValidationResponse,makeValidationKey);
 }
 
 

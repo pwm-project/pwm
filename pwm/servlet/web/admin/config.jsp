@@ -20,12 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.novell.ldapchai.util.StringHelper" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.config.StoredConfiguration" %>
-<%@ page import="java.util.Date" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -34,7 +31,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final password.pwm.config.Configuration pwmConfig = pwmSession.getConfig(); %>
-<% final StoredConfiguration storedConfig = pwmConfig.getStoredConfiguration(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
@@ -43,9 +39,6 @@
     <div id="centerbody">
         <p style="text-align:center;">
             <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
-        </p>
-        <p>
-            Configuration load time <%= (java.text.DateFormat.getDateTimeInstance()).format(new Date(ContextManager.getContextManager(session).getConfig().getLoadTime())) %>
         </p>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
@@ -75,7 +68,7 @@
                             switch (loopSetting.getSyntax()) {
                                 case STRING_ARRAY:
                                 {
-                                    final List<String> values = storedConfig.readStringArraySetting(loopSetting);
+                                    final List<String> values = pwmConfig.readStringArraySetting(loopSetting);
                                     for (final String value : values) {
                                         out.write(value + "<br/>");
                                     }
@@ -83,10 +76,10 @@
                                 break;
 
                                 case LOCALIZED_STRING:
+                                case LOCALIZED_TEXT_AREA:
                                 {
-                                    final Map<String,String> values = storedConfig.readLocalizedStringSetting(loopSetting);
-                                    for (final String locale : values.keySet()) {
-                                        out.write("<b>" + locale + "</b>" + values.get(locale) + "<br/>");
+                                    for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
+                                        out.write("<b>" + locale + "</b>" + pwmConfig.readLocalizedStringSetting(loopSetting,locale) + "<br/>");
                                     }
 
                                 }
@@ -94,12 +87,11 @@
 
                                 case LOCALIZED_STRING_ARRAY:
                                 {
-                                    final Map<String,List<String>> values = storedConfig.readLocalizedStringArraySetting(loopSetting);
-                                    for (final String locale : values.keySet()) {
+                                    for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
                                         out.write("<table><tr><td>");
-                                        out.write((locale == null || locale.length() < 1) ? "Default" : locale);
+                                        out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
                                         out.write("</td><td>");
-                                        for (final String value : values.get(locale)) {
+                                        for (final String value : pwmConfig.readFormSetting(loopSetting,locale)) {
                                             out.write(value + "<br/>");
                                         }
                                         out.write("</td></tr></table>");
@@ -108,7 +100,7 @@
                                 break;
 
                                 default:
-                                    out.write(storedConfig.readSetting(loopSetting));
+                                    out.write(pwmConfig.readSettingAsString(loopSetting));
                             }
                         }
                     %>

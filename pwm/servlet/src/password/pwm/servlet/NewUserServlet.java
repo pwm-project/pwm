@@ -31,6 +31,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.NewUserServletBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -39,7 +40,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
-import password.pwm.process.emailer.EmailEvent;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -85,7 +85,7 @@ public class NewUserServlet extends TopServlet {
         if (actionParam != null && actionParam.equalsIgnoreCase("create")) {
             final Map<String, FormConfiguration> creationParams = nuBean.getCreationParams();
 
-            Validator.validateFormID(req);
+            Validator.validatePwmFormID(req);
 
             //read the values from the request
             try {
@@ -239,9 +239,11 @@ public class NewUserServlet extends TopServlet {
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_SUBJECT,locale);
-        final String body = config.readLocalizedStringSetting(PwmSetting.NEWUSER_EMAIL_BODY,locale);
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_FROM,locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_SUBJECT,locale);
+        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY,locale);
+        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY_HTML,locale);
+
         final String toAddress = userInfoBean.getUserEmailAddress();
 
         if (toAddress.length() < 1) {
@@ -249,7 +251,7 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        theManager.sendEmailUsingQueue(new EmailEvent(toAddress, fromAddress, subject, body));
+        theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
     }
 
     private void forwardToJSP(

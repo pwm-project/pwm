@@ -55,17 +55,13 @@ public class Configuration implements Serializable {
         this.storedConfiguration = storedConfiguration;
     }
 
-    public StoredConfiguration getStoredConfiguration() {
-        return storedConfiguration;
-    }
-
-    public long getLoadTime() {
-        return loadTime;
-    }
-
     public String readSettingAsString(final PwmSetting setting)
     {
         return storedConfiguration.readSetting(setting);
+    }
+
+    public Date getModifyTime() {
+        return storedConfiguration.getModifyTime();
     }
 
     public List<String> readStringArraySetting(final PwmSetting setting)
@@ -82,6 +78,26 @@ public class Configuration implements Serializable {
         final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
+    }
+
+    public Collection<Locale> localesForSetting(final PwmSetting setting) {
+        final Collection<Locale> returnCollection = new ArrayList<Locale>();
+        switch (setting.getSyntax()) {
+            case LOCALIZED_TEXT_AREA:
+            case LOCALIZED_STRING:
+                for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                }
+                break;
+
+            case LOCALIZED_STRING_ARRAY:
+                for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                }
+                break;
+        }
+
+        return returnCollection;
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting)
@@ -114,7 +130,7 @@ public class Configuration implements Serializable {
         returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.NEWUSER_FORM,Locale.getDefault())).keySet());
         returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM,Locale.getDefault())).keySet());
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.EVENT_LOG_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
         returnSet.addAll(this.getGlobalPasswordPolicy().getRuleHelper().getDisallowedAttributes());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
@@ -124,7 +140,7 @@ public class Configuration implements Serializable {
 
     public PwmLogLevel getEventLogLocalLevel()
     {
-        final String value = readSettingAsString(PwmSetting.EVENT_LOG_LOCAL_LEVEL);
+        final String value = readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL);
         for (final PwmLogLevel logLevel : PwmLogLevel.values()) {
             if (logLevel.toString().equalsIgnoreCase(value)) {
                 return logLevel;
@@ -166,13 +182,8 @@ public class Configuration implements Serializable {
     }
 
     public ChallengeSet getGlobalChallengeSet(final Locale locale) {
-        if (cachedChallengeSet != null) {
-            return cachedChallengeSet;
-        }
-
         final List<String> requiredQuestions = readFormSetting(PwmSetting.CHALLENGE_REQUIRED_CHALLENGES, locale);
         final List<String> randomQuestions = readFormSetting(PwmSetting.CHALLENGE_RANDOM_CHALLENGES, locale);
-
 
         final List<Challenge> challenges = new ArrayList<Challenge>();
         for (String question : requiredQuestions) {
@@ -244,11 +255,11 @@ public class Configuration implements Serializable {
         }
 
         try {
-            cachedChallengeSet = CrFactory.newChallengeSet(challenges, locale, minimumRands, "pwm-defined " + PwmConstants.SERVLET_VERSION);
+            return CrFactory.newChallengeSet(challenges, locale, minimumRands, "pwm-defined " + PwmConstants.SERVLET_VERSION);
         } catch (ChaiValidationException e) {
             LOGGER.warn("invalid challenge set configuration: " + e.getMessage());
         }
-        return cachedChallengeSet;
+        return null;
     }
 
     public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
@@ -280,4 +291,9 @@ public class Configuration implements Serializable {
         }
         return returnMap;
     }
+
+    public String toString() {
+        return storedConfiguration.toString();
+    }
+
 }

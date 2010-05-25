@@ -23,12 +23,15 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
 import password.pwm.bean.ConfigManagerBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -40,7 +43,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 
@@ -49,6 +51,7 @@ public class ConfigManagerServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
     private static final int MAX_INPUT_LENGTH = 1024 * 10;
+    private static final int MIN_SESSION_INACTIVITY_TIMER = 30 * 60; // 30 minutes
 
     protected void processRequest(
             final HttpServletRequest req,
@@ -63,8 +66,8 @@ public class ConfigManagerServlet extends TopServlet {
         //clear any errors in the session's state bean
         pwmSession.getSessionStateBean().setSessionError(null);
 
-        if (req.getSession().getMaxInactiveInterval() < 30 * 60) {
-            req.getSession().setMaxInactiveInterval(30 * 60);
+        if (req.getSession().getMaxInactiveInterval() < MIN_SESSION_INACTIVITY_TIMER) {
+            req.getSession().setMaxInactiveInterval(MIN_SESSION_INACTIVITY_TIMER);
         }
 
         if (configManagerBean.getConfiguration() == null) {
@@ -72,7 +75,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         if (processActionParam.length() > 0) {
-            Validator.validateFormID(req);
+            Validator.validatePwmFormID(req);
             if ("readSetting".equalsIgnoreCase(processActionParam)) {
                 this.readSetting(req,resp);
                 return;
@@ -83,6 +86,8 @@ public class ConfigManagerServlet extends TopServlet {
                 if (doGenerateXml(req,resp)) {
                     return;
                 }
+            } else if ("testLdapConnect".equalsIgnoreCase(processActionParam)) {
+                doTestLdapConnect(req);
             } else if ("resetConfig".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
                 configManagerBean.setEditorMode(false);
@@ -104,12 +109,10 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     ) throws IOException, PwmException {
-
-        final String bodyString = readRequestBody(req);
-
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
+        final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
         final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
         final Map<String,Object> returnMap = new HashMap<String,Object>();
 
@@ -171,11 +174,11 @@ public class ConfigManagerServlet extends TopServlet {
     private void writeSetting(
             final HttpServletRequest req
     ) throws IOException, PwmException {
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig= configManagerBean.getConfiguration();
 
-        final String bodyString = readRequestBody(req);
+        final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
 
         final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
 
@@ -197,7 +200,7 @@ public class ConfigManagerServlet extends TopServlet {
                 break;
 
                 case LOCALIZED_STRING:
-                    case LOCALIZED_TEXT_AREA:
+                case LOCALIZED_TEXT_AREA:
                 {
                     final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
                     final Map<String,String> outputMap = new TreeMap<String,String>();
@@ -256,6 +259,56 @@ public class ConfigManagerServlet extends TopServlet {
         return true;
     }
 
+    private void doTestLdapConnect(
+            final HttpServletRequest req
+    )
+            throws IOException, ServletException, PwmException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        if (pwmSession.getConfig() != null) {
+            final String errorString = "Test functionality is only available on unconfigured server";
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+            return;
+        }
+
+
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
+
+        {
+            final String errorString = storedConfiguration.checkValuesForErrors();
+            if (errorString != null) {
+                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
+                return;
+            }
+        }
+
+        final Configuration config = new Configuration(storedConfiguration);
+
+        ChaiProvider chaiProvider = null;
+        try {
+            chaiProvider = Helper.createChaiProvider(
+                    config,
+                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
+                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
+                    PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
+            chaiProvider.getDirectoryVendor();
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS));
+        } catch (Exception e) {
+            final String errorString = "error connecting to ldap server: " + e.getMessage();
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+        } finally {
+            if (chaiProvider != null) {
+                try {
+                    chaiProvider.close();
+                } catch (Exception e) {
+                    // don't care.
+                }
+            }
+        }
+    }
+
     static void forwardToJSP(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -271,18 +324,4 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
-    private static String readRequestBody(final HttpServletRequest request) throws IOException {
-        final StringBuilder json = new StringBuilder();
-        String line;
-        try {
-            final BufferedReader reader = request.getReader();
-            while(((line = reader.readLine()) != null) && json.length() < MAX_INPUT_LENGTH) {
-                json.append(line);
-            }
-        }
-        catch(Exception e) {
-            LOGGER.error("Error reading JSON string: " + e.toString());
-        }
-        return json.toString();
-    }
 }

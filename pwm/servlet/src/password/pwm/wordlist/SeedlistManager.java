@@ -98,7 +98,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
                     returnValue = obj.toString();
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception e) {                                                                
             LOGGER.warn("error while generating random word: " + e.getMessage());
         }
 
@@ -117,7 +117,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     protected void checkPopulation() throws Exception {
         final boolean isComplete = VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS)));
         if (!isComplete) {
-            LOGGER.info(DEBUG_LABEL + "prior population did not complete, clearing wordlist");
+            LOGGER.info(DEBUG_LABEL + " prior population did not complete, clearing wordlist");
             pwmDB.truncate(META_DB);
             pwmDB.truncate(WORD_DB);
         }

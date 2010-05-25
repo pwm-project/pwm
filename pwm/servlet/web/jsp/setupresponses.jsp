@@ -24,7 +24,6 @@
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -39,6 +38,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: false"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
     <div id="centerbody">
@@ -55,7 +56,6 @@
                 document.write('<span id="error_msg" class="msg-success">&nbsp;</span>');
             </script>
             <% } %>
-            <br/>
             <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {
             %>
@@ -150,7 +150,7 @@
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
-                <input type="hidden" name="formID" value="<pwm:FormID/>"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
@@ -163,8 +163,6 @@
     <input type="hidden" name="Js_Display_CommunicationError" id="Js_Display_CommunicationError" value="<pwm:Display key="Display_CommunicationError"/>"/>
     <input type="hidden" name="Js_SetupResponsesURL" id="Js_SetupResponsesURL" value="<pwm:url url='SetupResponses'/>"/>
 </form>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='json2.js'/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <%@ include file="footer.jsp" %>
 </body>
 </html>

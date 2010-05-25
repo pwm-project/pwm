@@ -31,6 +31,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SetupResponsesBean;
@@ -137,7 +138,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         try {
             // read in the responses from the request
-            final Map<Challenge, String> responseMap = readResponsesFromHttpRequest(req, pwmSession, challengeSet);
+            final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
             validateResponses(pwmSession, challengeSet, responseMap);
             generateResponseSet(pwmSession, challengeSet, responseMap);
         } catch (SetupResponsesException e) {
@@ -167,7 +168,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         final ResponseSet responses;
         final Map<Challenge,String> responseMap;
@@ -208,7 +209,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         boolean saveSuccess = false;
 
-        Validator.validateFormID(req);
+        Validator.validatePwmFormID(req);
 
         final Map<Challenge,String> responseMap = pwmSession.getSetupResponseBean().getResponseMap();
         if (responseMap != null && !responseMap.isEmpty()) {
@@ -278,6 +279,9 @@ public class SetupResponsesServlet extends TopServlet {
                 LOGGER.warn(pwmSession, "no response saving methods available or configured");
                 return false;
             }
+            final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+            UserStatusHelper.populateActorUserInfoBean(pwmSession,uiBean.getUserDN(),uiBean.getUserCurrentPassword());
+            //pwmSession.getSetupResponseBean().clear();
             return true;
         }
 
@@ -291,14 +295,49 @@ public class SetupResponsesServlet extends TopServlet {
             final ChallengeSet challengeSet)
             throws SetupResponsesException, PwmException
     {
+        final Map<String,String> inputMap = new HashMap<String,String>();
+
+        for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements(); ) {
+            final String paramName = nameEnum.nextElement().toString();
+            final String paramValue = Validator.readStringFromRequest(req, paramName, 1024);
+            inputMap.put(paramName, paramValue);
+        }
+
+        return paramMapToChallengeMap(inputMap, pwmSession, challengeSet);
+    }
+
+    private static Map<Challenge,String> readResponsesFromJsonRequest(
+            final HttpServletRequest req,
+            final PwmSession pwmSession,
+            final ChallengeSet challengeSet)
+            throws SetupResponsesException, PwmException, IOException {
+        final Map<String,String> inputMap = new HashMap<String,String>();
+
+        final String bodyString = Helper.readRequestBody(req, 10 * 1024);
+        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+
+        for (final Object key : srcMap.keySet()) {
+            final String paramName = key.toString();
+            final String paramValue = srcMap.get(key).toString();
+            inputMap.put(paramName, paramValue);
+        }
+
+        return paramMapToChallengeMap(inputMap, pwmSession, challengeSet);
+    }
+
+    private static Map<Challenge,String> paramMapToChallengeMap(
+            final Map<String,String> inputMap,
+            final PwmSession pwmSession,
+            final ChallengeSet challengeSet)
+            throws SetupResponsesException, PwmException
+    {
         final Set<String> problemParams = new HashSet<String>();
         ErrorInformation errorInfo = null;
 
         { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
             final Set<String> questionTexts = new HashSet<String>();
-            for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements(); ) {
-                final String paramName = nameEnum.nextElement().toString();
-                final String paramValue = Validator.readStringFromRequest(req, paramName, 1024);
+            for (final String paramName : inputMap.keySet()) {
+                final String paramValue = inputMap.get(paramName);
                 if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(PwmConstants.PARAM_QUESTION_PREFIX)) {
                     if (questionTexts.contains(paramValue.toLowerCase())) {
                         errorInfo = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE);
@@ -319,11 +358,11 @@ public class SetupResponsesServlet extends TopServlet {
                 if (loopChallenge.isRequired() || !responsesBean.isSimpleMode()) {
 
                     if (!loopChallenge.isAdminDefined()) {
-                        final String questionText = Validator.readStringFromRequest(req, PwmConstants.PARAM_QUESTION_PREFIX + indexKey, 1024);
+                        final String questionText = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + indexKey);
                         loopChallenge.setChallengeText(questionText);
                     }
 
-                    final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + indexKey, 1024);
+                    final String answer = inputMap.get(PwmConstants.PARAM_RESPONSE_PREFIX + indexKey);
 
                     if (answer.length() > 0) {
                         readResponses.put(loopChallenge, answer);
@@ -333,10 +372,10 @@ public class SetupResponsesServlet extends TopServlet {
 
             if (responsesBean.isSimpleMode()) { // if in simple mode, read the select-based random challenges
                 for (int i = 0; i < challengeSet.getMinRandomRequired(); i++ ) {
-                    final String questionKey = Validator.readStringFromRequest(req, PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i), 1024);
+                    final String questionKey = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i));
                     if (questionKey != null && responsesBean.getIndexedChallenges().containsKey(questionKey)) {
                         final Challenge challenge = responsesBean.getIndexedChallenges().get(questionKey);
-                        final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i), 1024);
+                        final String answer = inputMap.get(PwmConstants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i));
                         if (answer != null && answer.length() > 0) {
                             readResponses.put(challenge, answer);
                         }

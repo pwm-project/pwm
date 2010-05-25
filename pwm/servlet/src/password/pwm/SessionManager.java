@@ -130,7 +130,7 @@ public class SessionManager implements Serializable {
         debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
         LOGGER.trace(pwmSession, debugLogText.toString());
 
-        returnProvider = Helper.createChaiProvider(pwmSession.getContextManager(), username, password, ldapIdleTimeoutMs);
+        returnProvider = Helper.createChaiProvider(pwmSession.getConfig(), username, password, ldapIdleTimeoutMs);
         return returnProvider;
     }
 
