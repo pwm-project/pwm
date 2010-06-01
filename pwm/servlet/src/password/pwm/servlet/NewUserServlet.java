@@ -74,7 +74,7 @@ public class NewUserServlet extends TopServlet {
         final IntruderManager intruderMgr = pwmSession.getContextManager().getIntruderManager();
         final Configuration config = pwmSession.getConfig();
 
-        if (!config.readSettingAsBoolean(PwmSetting.ENABLE_NEW_USER)) {
+        if (!config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
             ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;

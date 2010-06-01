@@ -41,7 +41,7 @@
 
     <!-- this appender logs information about PWM itself -->
     <category name="password.pwm">
-        <priority value="trace"/>
+        <priority value="info"/>
         <!-- possible priority values are "trace,debug,info,error,warn,fatal" -->
 
         <appender-ref ref="PWMstdout"/>

@@ -38,6 +38,8 @@ public class ForgottenPasswordBean implements Serializable {
     private transient ResponseSet responseSet;
     private ChallengeSet challengeSet;
     private boolean responsesSatisfied;
+    private String token;
+    private boolean passedToken;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -45,7 +47,7 @@ public class ForgottenPasswordBean implements Serializable {
         return responseSet;
     }
 
-    public void setResponseSet(ResponseSet responseSet) {
+    public void setResponseSet(final ResponseSet responseSet) {
         this.responseSet = responseSet;
     }
 
@@ -53,7 +55,7 @@ public class ForgottenPasswordBean implements Serializable {
         return proxiedUser;
     }
 
-    public void setProxiedUser(ChaiUser proxiedUser) {
+    public void setProxiedUser(final ChaiUser proxiedUser) {
         this.proxiedUser = proxiedUser;
     }
 
@@ -61,7 +63,7 @@ public class ForgottenPasswordBean implements Serializable {
         return responsesSatisfied;
     }
 
-    public void setResponsesSatisfied(boolean responsesSatisfied) {
+    public void setResponsesSatisfied(final boolean responsesSatisfied) {
         this.responsesSatisfied = responsesSatisfied;
     }
 
@@ -69,8 +71,24 @@ public class ForgottenPasswordBean implements Serializable {
         return challengeSet;
     }
 
-    public void setChallengeSet(ChallengeSet challengeSet) {
+    public void setChallengeSet(final ChallengeSet challengeSet) {
         this.challengeSet = challengeSet;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(final String token) {
+        this.token = token;
+    }
+
+    public boolean isPassedToken() {
+        return passedToken;
+    }
+
+    public void setPassedToken(final boolean passedToken) {
+        this.passedToken = passedToken;
     }
 }
 

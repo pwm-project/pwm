@@ -68,6 +68,8 @@ public class PwmDBFactory {
             LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()) + " at " + dbDirectory.toString());
         }
 
+        //readDBSizes(db);
+
         return db;
     }
 
@@ -105,5 +107,26 @@ public class PwmDBFactory {
 
         LOGGER.trace("db init completed for " + theClass);
     }
+
+    /*
+    private static void readDBSizes(final PwmDB pwmDB) {
+        final Thread sizeReader = new Thread() {
+            public void run() {
+                try {
+                    Helper.pause(30 * 1000);
+                    for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+                        final int size = pwmDB.size(loopDB);
+                        LOGGER.debug("size of " + loopDB + " read as " + size);
+                    }
+                } catch (Exception e) {
+
+                }
+            }
+        };
+        sizeReader.setDaemon(true);
+        sizeReader.setName("PwmDB size reader");
+        sizeReader.start();
+    }
+    */
 
 }

@@ -71,7 +71,7 @@ public class UpdateAttributesServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_UPDATE_ATTRIBUTES)) {
+        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) {
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             Helper.forwardToErrorPage(req, resp, this.getServletContext());

@@ -99,8 +99,8 @@ public class Helper {
         chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS,Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
 
         chaiConfig.setCrSetting(CrSetting.CHAI_ATTRIBUTE_NAME, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.ALLOW_DUPLICATE_RESPONSES)));
-        chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(config.readSettingAsBoolean(PwmSetting.CASE_INSENSITIVE_CHALLENGE)));
+        chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
+        chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
 
         // if possible, set the ldap timeout to one minute past the point of the idle session timeout.
         if (idleTimeoutMs > 0) {

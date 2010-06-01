@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.4.4 beta
+v1.4.4 developer build
 ---
 ! Corrected a problem where XSS field inputs were not being properly validated and scrubbed
 ! Added form "nonce" validations to prevent certain types of XSS attacks
@@ -26,6 +26,8 @@ v1.4.4 beta
 - Added/Updated some of the french localization strings (issue #5)
 - Fixed issue with User Information crashing if NMAS is not being used (issue #6)
 - Fixed issue with Log4j (issue #7)
+- Refactored ajax calls to use dojo api, and also to resolve issue with incorrect encoding of i18n characters (issue #9)
+
 
 
 v1.4.3 (1/10/2010) build 922

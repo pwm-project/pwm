@@ -58,9 +58,9 @@
             // error block as hidden, and if javascript is enabled, changepassword.js.startupPage() will make it visible
             if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
         %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/>&nbsp;</span>
+        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
-        <span style="visibility:hidden;" id="error_msg" class="msg-success">&nbsp;</span>
+        <span style="visibility:hidden; background-color:#FFFFFF" id="error_msg" class="msg-success">&nbsp;</span>
         <% } %>
 
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);"

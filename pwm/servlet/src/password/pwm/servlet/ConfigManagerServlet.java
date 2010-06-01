@@ -254,6 +254,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         final String output = configuration.toXml();
+        resp.setHeader("content-disposition", "attachment;filename=PwmConfiguration.xml");
         resp.setContentType("text/xml;charset=utf-8");
         resp.getWriter().print(output);
         return true;

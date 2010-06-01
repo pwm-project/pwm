@@ -335,7 +335,6 @@ public class ContextManager implements Serializable
 
 
     private static String fetchInstanceID(final PwmDB pwmDB, final ContextManager contextManager) {
-
         String newInstanceID = contextManager.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {

@@ -58,8 +58,6 @@ public enum PwmSetting {
             "password.sharedHistory.age", Syntax.NUMERIC, Category.GENERAL, true),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
-    SHORTCUT_ITEMS(
-            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.GENERAL, false),
 
     //ldap directory
     LDAP_SERVER_URLS(
@@ -120,6 +118,14 @@ public enum PwmSetting {
             "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
     EMAIL_ACTIVATION_BODY_HTML(
             "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+    EMAIL_CHALLENGE_TOKEN_FROM(
+            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true),
+    EMAIL_CHALLENGE_TOKEN_SUBJECT(
+            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true),
+    EMAIL_CHALLENGE_TOKEN_BODY(
+            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true),
+    EMAIL_CHALLENGE_TOKEN_BODY_HTML(
+            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false),
 
@@ -230,18 +236,14 @@ public enum PwmSetting {
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_STORAGE_HASHED(
             "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true),
-    CASE_INSENSITIVE_CHALLENGE(
+    CHALLENGE_CASE_INSENSITIVE(
             "challenge.caseInsensitive", Syntax.BOOLEAN, Category.RECOVERY, true),
-    ALLOW_DUPLICATE_RESPONSES(
+    CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_APPLY_WORDLIST(
             "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_SHOW_CONFIRMATION(
             "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true),
-    CHALLENGE_TOKEN_ATTRIBUTE(
-            "challenge.tokenAttribute", Syntax.STRING, Category.RECOVERY, true),
-    CHALLENGE_TOKEN_MAX_AGE(
-            "challenge.tokenMaxAge", Syntax.NUMERIC, Category.RECOVERY, true),
     CHALLENGE_REQUIRED_CHALLENGES(
             "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
     CHALLENGE_RANDOM_CHALLENGES(
@@ -252,9 +254,15 @@ public enum PwmSetting {
             "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
     QUERY_MATCH_CHECK_RESPONSES(
             "command.checkResponses.queryMatch", Syntax.STRING, Category.RECOVERY, true),
+    CHALLENGE_TOKEN_ENABLE(
+            "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true),
+    CHALLENGE_TOKEN_CHARACTERS(
+            "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true),
+    CHALLENGE_TOKEN_LENGTH(
+            "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true),
 
     // new user settings
-    ENABLE_NEW_USER(
+    NEWUSER_ENABLE(
             "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true),
     NEWUSER_CONTEXT(
             "newUser.createContext", Syntax.STRING, Category.NEWUSER, true),
@@ -266,9 +274,9 @@ public enum PwmSetting {
             "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
 
     // activation settings
-    ENABLE_ACTIVATE_USER(
+    ACTIVATE_USER_ENABLE(
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true),
-    QUERY_MATCH_ACTIVATE_USER(
+    ACTIVATE_USER_QUERY_MATCH(
             "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true),
     ACTIVATE_USER_SEARCH_FILTER(
             "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true),
@@ -278,14 +286,23 @@ public enum PwmSetting {
             "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true),
 
     // update attributes
-    ENABLE_UPDATE_ATTRIBUTES(
+    UPDATE_ATTRIBUTES_ENABLE(
             "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true),
-    QUERY_MATCH_UPDATE_USER(
+    UPDATE_ATTRIBUTES_QUERY_MATCH(
             "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true),
     UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES(
             "updateAttributes.writeAttributes", Syntax.STRING, Category.UPDATE, false),
     UPDATE_ATTRIBUTES_FORM(
             "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true),
+
+    // shortcut settings
+    SHORTCUT_ENABLE(
+            "shortcut.enable", Syntax.BOOLEAN, Category.SHORTCUT, false),
+    SHORTCUT_ITEMS(
+            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false),
+    SHORTCUT_HEADER_NAMES(
+            "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false),
+
 
     // captcha
     RECAPTCHA_KEY_PRIVATE(
@@ -389,7 +406,7 @@ public enum PwmSetting {
         return syntax;
     }
 
- 
+
 
     // -------------------------- OTHER METHODS --------------------------
 
@@ -452,6 +469,7 @@ public enum PwmSetting {
         NEWUSER,
         ACTIVATION,
         UPDATE,
+        SHORTCUT,
         CAPTCHA,
         ADVANCED
         ;

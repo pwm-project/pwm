@@ -432,11 +432,13 @@ public class AuthenticationFilter implements Filter {
                     // if old password is not known, then mark the UIB accordingly.
                     pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
                 } catch (ChaiOperationException e) {
-                    LOGGER.warn(pwmSession, "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage());
-                    throw PwmException.createPwmException(PwmError.ERROR_BAD_SESSION_PASSWORD);
+                    final String errorStr ="error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
+                    LOGGER.warn(pwmSession, errorStr);
+                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD,errorStr));
                 } catch (ChaiPasswordPolicyException e) {
-                    LOGGER.warn(pwmSession, "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage());
-                    throw PwmException.createPwmException(PwmError.ERROR_BAD_SESSION_PASSWORD);
+                    final String errorStr ="error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
+                    LOGGER.warn(pwmSession, errorStr);
+                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD,errorStr));
                 }
             } finally {
                 pwmSession.getUserInfoBean().setPasswordPolicy(PwmPasswordPolicy.defaultPolicy());
@@ -447,9 +449,14 @@ public class AuthenticationFilter implements Filter {
         pwmSession.getSessionManager().closeConnections();
 
         // mark the session as being authenticated
-        authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, req.isSecure());
-        // repopulate the uib, including setting the currentPass as the current password.
+        final boolean authenticationSuccess =  authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, req.isSecure());
+        if (!authenticationSuccess) {
+            final String errorStr = "unable to authenticate user with temporary or retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
+            LOGGER.error(errorStr);
+            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD,errorStr));
+        }
 
+        // repopulate the uib, including setting the currentPass as the current password.
         UserStatusHelper.populateActorUserInfoBean(pwmSession, theUser.getEntryDN(), currentPass);
 
         // get the uib out of the session again (it may have been replaced) and mark

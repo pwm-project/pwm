@@ -66,7 +66,7 @@ public class CommandServlet extends TopServlet {
 
         if (action.equalsIgnoreCase("idleUpdate")) {
             processIdleUpdate(resp);
-        } else if (action.equalsIgnoreCase("checkIfResponseConfigNeeded")) {
+        } else if (action.equalsIgnoreCase("checkResponses") || action.equalsIgnoreCase("checkIfResponseConfigNeeded")) {
             processCheckResponses(req, resp);
         } else if (action.equalsIgnoreCase("checkExpire")) {
             processCheckExpire(req, resp);
@@ -213,7 +213,7 @@ public class CommandServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
-        if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.QUERY_MATCH_UPDATE_USER))) {
+        if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_ATTRIBUTES_QUERY_MATCH))) {
             LOGGER.info(pwmSession, "checkAttributes: " + userDN + " is not eligible for checkAttributes due to query match");
             return true;
         }
@@ -253,7 +253,7 @@ public class CommandServlet extends TopServlet {
             processCheckExpire(req, resp);
         } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_UPDATE_ATTRIBUTES) && !checkAttributes(pwmSession)) {
+        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE) && !checkAttributes(pwmSession)) {
             processCheckAttributes(req, resp);
         } else {
             processContinue(req, resp);

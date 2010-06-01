@@ -126,6 +126,14 @@
     </tr>
     <tr>
         <td class="key">
+            <%= pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
+        </td>
+        <td>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE),"") %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
             Last Login Time
         </td>
         <td>

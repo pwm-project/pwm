@@ -329,7 +329,7 @@ function startupChangePasswordPage()
         autoGenPasswordElement.style.visibility = 'visible';
     }
 
-    validatePasswords();
+//    validatePasswords();
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     window.onbeforeunload = function() {

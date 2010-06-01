@@ -49,7 +49,6 @@ public class Configuration implements Serializable {
     private final long loadTime = System.currentTimeMillis();
 
     private PwmPasswordPolicy cachedPasswordPolicy = null;
-    private ChallengeSet cachedChallengeSet = null;
 
     public Configuration(final StoredConfiguration storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
@@ -66,7 +65,14 @@ public class Configuration implements Serializable {
 
     public List<String> readStringArraySetting(final PwmSetting setting)
     {
-        return storedConfiguration.readStringArraySetting(setting);
+        final List<String> results = storedConfiguration.readStringArraySetting(setting);
+        for (final Iterator iter = results.iterator(); iter.hasNext(); ) {
+            final Object loopString = iter.next();
+            if (loopString == null || loopString.toString().length() < 1) {
+                iter.remove();
+            }
+        }
+        return results;
     }
 
     public List<String> readFormSetting(final PwmSetting setting, final Locale locale) {
@@ -269,9 +275,13 @@ public class Configuration implements Serializable {
 
         final Map<String,String> returnMap = new HashMap<String,String>();
         for (final String loopStr : input) {
-            final List<String> separatedValues = StringHelper.tokenizeString(loopStr,separator);
-            if (!separatedValues.isEmpty()) {
-                returnMap.put(separatedValues.get(0),separatedValues.size() > 1 ? separatedValues.get(1) : "");
+            if (loopStr != null && separator != null && loopStr.contains(separator)) {
+                final int seperatorLocation = loopStr.indexOf(separator);
+                final String key = loopStr.substring(0, seperatorLocation);
+                final String value = loopStr.substring(seperatorLocation + separator.length(), loopStr.length());
+                returnMap.put(key, value);
+            } else {
+                returnMap.put(loopStr,"");
             }
         }
 

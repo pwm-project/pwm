@@ -133,7 +133,9 @@ public class SetupResponsesServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmException, ChaiUnavailableException
     {
-        boolean success = true;
+        Validator.validatePwmFormID(req);
+
+        boolean success = true;        
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES);
 
         try {

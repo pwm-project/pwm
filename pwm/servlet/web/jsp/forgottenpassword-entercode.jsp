@@ -25,11 +25,11 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();">
+<body onload="pwmPageLoadHandler();getObject('code').focus();">
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/></jsp:include>
     <div id="centerbody">
-        <p>Type in your code</p>
+        <p>To verify your identity, a security code has been sent to you.  Please enter the security code here.</p>
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
                 onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%  //check to see if there is an error
@@ -39,20 +39,19 @@
                 <pwm:ErrorMessage/>
             </span>
             <% } %>
-            <h2>Code</h2>
+            <h2><label for="code">Code</label></h2>
             <input tabindex="1" type="text" id="code" name="code" class="inputfield" />
 
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="forgottenCode"/>
                 <input tabindex="3" type="submit" class="btn"
                        name="search"
-                       value="     Search     "
+                       value="     Check Code     "
                        id="submitBtn"/>
                 <input tabindex="4" type="reset" class="btn"
                        name="reset"
                        value="     Reset     "/>
+                <input type="hidden" id="processAction" name="processAction" value="forgottenCode"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

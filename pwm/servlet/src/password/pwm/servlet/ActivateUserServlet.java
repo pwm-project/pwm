@@ -76,7 +76,7 @@ public class ActivateUserServlet extends TopServlet {
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
-        if (!config.readSettingAsBoolean(PwmSetting.ENABLE_ACTIVATE_USER)) {
+        if (!config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
             ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -107,7 +107,7 @@ public class ActivateUserServlet extends TopServlet {
                 // see if the params match ldap values
                 validateParamsAgainstLDAP(validationParams, pwmSession, theUser);
 
-                final String queryString = config.readSettingAsString(PwmSetting.QUERY_MATCH_ACTIVATE_USER);
+                final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
                 if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
                     LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " attempted activation, but does not match query string");
                     ssBean.setSessionError(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH.toInfo());

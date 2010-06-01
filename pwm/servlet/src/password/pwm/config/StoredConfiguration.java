@@ -282,8 +282,9 @@ public class StoredConfiguration implements Serializable {
         }
 
         final Element pwmConfigElement = new Element("PwmConfiguration");
+        pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
         pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
-        pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Servlet"));
+        pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8.  Specifically, do not use Windows Notepad to save or edit this file."));
         pwmConfigElement.addContent(settingsElement);
         pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
         pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
@@ -420,6 +421,7 @@ public class StoredConfiguration implements Serializable {
             throw new Exception("Error reading configuration file format: " + e.getMessage());
         }
 
+        LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values");
         return newConfiguration;
     }
 

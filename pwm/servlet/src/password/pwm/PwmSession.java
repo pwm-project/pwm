@@ -33,6 +33,7 @@ import password.pwm.util.stats.StatisticsManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -87,8 +88,8 @@ public class PwmSession implements Serializable {
             returnSession.httpSession = httpSession;
             ContextManager.getContextManager(httpSession).addPwmSession(returnSession);
             final String oldSessionID = returnSession.getSessionStateBean().getSessionID();
-            if (!oldSessionID.contains("-stale")) {
-                returnSession.getSessionStateBean().setSessionID(oldSessionID + "-stale");
+            if (!oldSessionID.contains("-")) {
+                returnSession.getSessionStateBean().setSessionID(oldSessionID + "-");
             }
         }
 
@@ -127,7 +128,10 @@ public class PwmSession implements Serializable {
         if (contextManager != null) {
             final StatisticsManager statisticsManager = contextManager.getStatisticsManager();
             if (statisticsManager != null) {
-                final String sessionID = getContextManager().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CURRENT).getStatistic(Statistic.HTTP_SESSIONS);
+                String sessionID = getContextManager().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
+                try {
+                    sessionID = new BigInteger(sessionID).toString(Character.MAX_RADIX);
+                } catch (Exception e) { /* ignore */ }
                 this.getSessionStateBean().setSessionID(sessionID);
             }
         }
