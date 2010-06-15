@@ -25,7 +25,6 @@ var SETTING_PING_FREQUENCY = 10;
 
 var dateFuture = new Date();
 var idleTimeout = 0;
-var lastFormValue = getAllFormValues();
 var sendPing = false;
 var lastPingTime = 0;
 
@@ -33,21 +32,20 @@ function initCountDownTimer(secondsRemaining)
 {
     idleTimeout = secondsRemaining;
     dateFuture = new Date(new Date().getTime() + (secondsRemaining * 1000));
-    lastFormValue = getAllFormValues();
-    countDownTimer();
-    watchForActivity();
+    lastPingTime = new Date().getTime();
+    resetIdleCounter();
+    setInterval("pollActivity()",SETTING_LOOP_FREQUENCY); //poll scrolling
+    document.onmousemove=resetIdleCounter;
+    document.onclick=resetIdleCounter;
+    document.onkeydown=resetIdleCounter;
 }
 
-function watchForActivity()
-{
-    var allFormsValues = getAllFormValues();
-    if (lastFormValue != allFormsValues) {
-        lastFormValue = allFormsValues;
-        dateFuture = new Date(new Date().getTime() + (idleTimeout * 1000));
-        sendPing = true;
-    }
+function resetIdleCounter(){
+    var idleSeconds = calcIdleSeconds();
+    getObject("idle_status").firstChild.nodeValue = makeIdleDisplayString(idleSeconds);
 
-    if (sendPing) {
+    dateFuture = new Date(new Date().getTime() + (idleTimeout * 1000));
+    {
         var dateNow = new Date().getTime();
         var amount = dateNow - lastPingTime;
 
@@ -57,8 +55,15 @@ function watchForActivity()
             sendPing = false;
         }
     }
+}
 
-    setTimeout(function() {watchForActivity();},SETTING_LOOP_FREQUENCY);
+function pollActivity(){
+    var idleSeconds = calcIdleSeconds();
+    getObject("idle_status").firstChild.nodeValue = makeIdleDisplayString(idleSeconds);
+    if (idleSeconds < 0) {
+        dirtyPageLeaveFlag = false;
+        window.location = getObject("Js_LogoutURL").value;
+    }
 }
 
 function pingServer() {
@@ -75,21 +80,6 @@ function calcIdleSeconds()
     amount = Math.floor(amount / 1000); //kill the "milliseconds" so just secs
     return amount;
 }
-
-function countDownTimer()
-{
-    var amount = calcIdleSeconds();
-    var idleDisplayString = makeIdleDisplayString(amount);
-    if (amount < 0) {
-        dirtyPageLeaveFlag = false;
-        window.location = getObject("Js_LogoutURL").value;
-        return;
-    }
-    getObject("idle_status").firstChild.nodeValue = idleDisplayString;
-    setTimeout(function() {countDownTimer();}, SETTING_LOOP_FREQUENCY);
-}
-
-
 
 function makeIdleDisplayString(amount)
 {

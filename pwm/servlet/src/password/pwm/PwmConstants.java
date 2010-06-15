@@ -77,7 +77,9 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_WARN = "jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "jsp/captcha.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "jsp/configmanager-editor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER = "jsp/configmanager.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_EDITABLE = "jsp/configmanager-mode-editable.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "jsp/configmanager-mode-running.jsp";
+
 
     public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
 
@@ -139,7 +141,6 @@ public abstract class PwmConstants {
     public static enum CONTEXT_PARAM {
         CONFIG_FILE("pwmConfigPath"),
         WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        AGGRESIVE_URL_PARSING("aggressiveUrlParsing"),
         ;
 
         private final String key;

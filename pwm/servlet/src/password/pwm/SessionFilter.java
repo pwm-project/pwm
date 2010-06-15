@@ -23,6 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -35,7 +36,9 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -163,7 +166,7 @@ public class SessionFilter implements Filter {
 
 
         // check for valid config
-        if (theManager == null || theManager.getConfig() == null) {
+        if (theManager == null || theManager.getConfig() == null || theManager.getConfig().getConfigMode() == Configuration.MODE.NEW) {
             final String configServletPathPrefix = req.getContextPath() + "/config/";
             final String requestedURL = req.getRequestURI();
 
@@ -215,15 +218,13 @@ public class SessionFilter implements Filter {
             }
         }
 
-        final boolean aggressiveUrlParsing = "true".equalsIgnoreCase(pwmSession.getContextManager().getParameter(PwmConstants.CONTEXT_PARAM.AGGRESIVE_URL_PARSING));
-
-        final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", aggressiveUrlParsing, pwmSession);
+        final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", pwmSession);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
             ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 
-        final String logoutURL = readUrlParameterFromRequest(req, "logoutURL", aggressiveUrlParsing, pwmSession);
+        final String logoutURL = readUrlParameterFromRequest(req, "logoutURL", pwmSession);
         if (logoutURL != null && logoutURL.length() > 0) {
             ssBean.setLogoutURL(logoutURL);
             LOGGER.debug(pwmSession, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
@@ -399,45 +400,18 @@ public class SessionFilter implements Filter {
         return sb.toString();
     }
 
-    private static String readUrlParameterFromRequest(final HttpServletRequest req, final String paramName, final boolean aggressive, final PwmSession pwmSession) {
+    private static String readUrlParameterFromRequest(final HttpServletRequest req, final String paramName, final PwmSession pwmSession) {
         final String paramValue = Validator.readStringFromRequest(req, paramName, 4096);
         if (paramValue == null || paramValue.length() < 1) {
             return null;
         }
 
-        if (!aggressive) {
-            return paramValue;
-        }
-
         try {
-            final String entireRequestURL = req.getQueryString();
-            final int positionOfFirstParam = entireRequestURL.lastIndexOf(paramName);
-
-            String remainingUrl = entireRequestURL.substring(positionOfFirstParam + paramName.length() + 1, entireRequestURL.length());
-
-            // check if there is another url param after current, if so lop it off
-            final String[] potentialURls = { "logoutURL", "forwardURL" };
-            for (final String potentialURl : potentialURls) {
-                final int nextParam = remainingUrl.indexOf(potentialURl);
-                if (nextParam > 1) {
-                    remainingUrl = remainingUrl.substring(0, nextParam);
-                }
-            }
-
-            // lop off any remaining '?' or '&' characters 
-            while (remainingUrl.charAt(remainingUrl.length() - 1) == '?' || remainingUrl.charAt(remainingUrl.length() - 1) == '&') {
-                remainingUrl = remainingUrl.substring(0, remainingUrl.length() - 1);
-            }
-
-            // change the first '&' to a '?' if there isnt a '?' and if there is at least an '&'
-            if (remainingUrl.indexOf('?') == -1 && remainingUrl.indexOf('&') > 0) {
-                remainingUrl = remainingUrl.replaceFirst("&","?");
-            }
-
-            LOGGER.trace(pwmSession, "found url for " + paramName + " using aggressive parsing: " + paramName);
-            return remainingUrl;
-        } catch (Exception e) {
-            LOGGER.warn(pwmSession, "unexpected error during aggressive parsing of " + paramName + ": " + e.getMessage());
+            final String decodedValue = URLDecoder.decode(paramValue, "UTF-8");
+            LOGGER.trace(pwmSession, "decoded value for " + paramName + " to " + decodedValue);
+            return decodedValue;
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error(pwmSession, "unexpected error decoding " + paramName + " parameter: " + e.getMessage());
         }
 
         return paramValue;

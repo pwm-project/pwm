@@ -21,7 +21,11 @@
   --%>
 
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.*" %>
+<%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="java.util.TreeSet" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -40,15 +44,12 @@
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Editor"/></jsp:include>
     <div id="centerbody" style="width: 700px">
-        <div style="text-align: center;">
-            <h2><a href="#" onclick="setTimeout(function() {document.forms['switchToActionMode'].submit();},1000)">Finished Editing</a></h2>
-            <form action="<pwm:url url='ConfigManager'/>" method="post" name="switchToActionMode" enctype="application/x-www-form-urlencoded">
-                <input type="hidden" name="processAction" value="switchToActionMode"/>
-                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-        </div>
         <br class="clear"/>
-        <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success">&nbsp;</span>
+        <%  if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <% } else { %>
+        <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
+        <% } %>
         <br class="clear"/>
 
         <div id="mainTabContainer" dojoType="dijit.layout.TabContainer" class="tundra" doLayout="false"
@@ -58,23 +59,25 @@
                     final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
             %>
             <div id="<%=loopCategory%>" dojoType="dijit.layout.ContentPane" title="<%=loopCategory.getLabel(request.getLocale())%>">
-                <%= loopCategory.getDescription(request.getLocale())%>
+                <p style="border-top:0; padding-top:0; margin-top:0"><%= loopCategory.getDescription(request.getLocale())%></p>
                 <%  for (final PwmSetting loopSetting : loopSettings) { %>
                 <div dojoType="dijit.TitlePane" title="<%= loopSetting.getLabel(request.getLocale()) %>">
-                    <label for="value_<%=loopSetting.getKey()%>"><%= loopSetting.getDescription(request.getLocale()) %></label>
-                    <br class="clear"/>
+                    <label for="value_<%=loopSetting.getKey()%>">
+                        <%= loopSetting.getDescription(request.getLocale()) %>
+                    </label>
                     <br class="clear"/>
                     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+                        <tr style="border-width:0"><td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
                     <select dojoType="dijit.form.ComboBox" id="<%=loopSetting.getKey()%>-addLocaleValue" style="width: 100px">
-                        <% for (final String loopLocale : DEFAULT_LOCALES) { %>
-                        <option value=""><%=loopLocale%></option>
-                        <% } %>
+                        <% for (final String loopLocale : DEFAULT_LOCALES) { %><option><%=loopLocale%></option><% } %>
                     </select>
-                    <button type="button" onclick="addLocaleSetting('<%=loopSetting.getKey()%>','table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');" dojoType="dijit.form.Button">
-                        Add Locale
-                    </button>
+                    <label for="<%=loopSetting.getKey()%>-addLocaleValue">
+                        <button type="button" onclick="addLocaleSetting('<%=loopSetting.getKey()%>','table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');" dojoType="dijit.form.Button">
+                            Add Locale
+                        </button>
+                    </label>
                     <script type="text/javascript">
                         dojo.addOnLoad(function() {initLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');});
                     </script>
@@ -86,11 +89,10 @@
                     </script>
                     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING_ARRAY) { %>
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+                        <tr><td><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
                     <select dojoType="dijit.form.ComboBox" id="<%=loopSetting.getKey()%>-addLocaleValue" style="width: 100px">
-                        <% for (final String loopLocale : DEFAULT_LOCALES) { %>
-                        <option value=""><%=loopLocale%></option>
-                        <% } %>
+                        <% for (final String loopLocale : DEFAULT_LOCALES) { %><option><%=loopLocale%></option><% } %>
                     </select>
                     <button type="button" onclick="writeMultiLocaleSetting('<%=loopSetting.getKey()%>',getObject('<%=loopSetting.getKey()%>-addLocaleValue').value,'0','');initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');"          dojoType="dijit.form.Button">
                         Add Locale
@@ -100,7 +102,7 @@
                     </script>
                     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
                     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
-                    <button id="button_<%=loopSetting.getKey()%>" dojoType="dijit.form.Button" type="button"
+                    <button id="button_<%=loopSetting.getKey()%>" dojoType="dijit.form.Button" type="button" disabled="disabled"
                             onclick="toggleBooleanSetting('<%=loopSetting.getKey()%>');writeSetting('<%=loopSetting.getKey()%>', getObject('value_' + '<%=loopSetting.getKey()%>').value);">
                         [Loading...]
                     </button>
@@ -116,25 +118,31 @@
                                     valueElement.value = 'false';
                                     buttonElement.innerHTML = ' False ';
                                 }
+                                buttonElement.disabled = false;
+                                dijit.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
                             });
                         });
                     </script>
                     <% } else { %>
 
                     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
-                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" disabled="disabled"
                            value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"
                            style="width: 600px" dojoType="dijit.form.ValidationTextBox" regExp="<%=loopSetting.getRegExPattern().pattern()%>" invalidMessage="The value does not have the correct format."/>
                     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
                     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
                            value="[Loading...]" required="<%=loopSetting.isRequired()%>"
                            type="password" autocomplete="off" size="60" dojoType="dijit.form.ValidationTextBox"
-                            onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);"
-                            onkeypress="getObject('value_<%=loopSetting.getKey()%>-validation').value = '';dijit.byId('value_<%=loopSetting.getKey()%>-validation').validate(false);"/>
+                           onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);"
+                           onkeypress="getObject('value_<%=loopSetting.getKey()%>-validation').value = '';dijit.byId('value_<%=loopSetting.getKey()%>-validation').validate(false);"/>
                     <br/>
                     <input id="value_<%=loopSetting.getKey()%>-validation" name="setting_<%=loopSetting.getKey()%>-validation"
                            type="password" value="" required="true" dojoType="dijit.form.ValidationTextBox" invalidMessage="The value does not match."/> (confirm)
                     <script type="text/javascript">
+                        dojo.addOnLoad(function() {
+                            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                                getObject('value_<%=loopSetting.getKey()%>-validation').value = dataValue;
+                            })});
                         dojo.addOnLoad(function() {
                             dijit.byId("value_<%=loopSetting.getKey()%>-validation").validator = function (value, constraints) {
                                 var realValue = getObject('value_<%=loopSetting.getKey()%>').value;
@@ -142,7 +150,7 @@
                             }});
                     </script>
                     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
-                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" disabled="disabled"
                            value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"
                            size="30" dojoType="dijit.form.NumberTextBox" invalidMessage="The value must be numeric."/>
 
@@ -152,9 +160,11 @@
                         dojo.addOnLoad(function() {
                             readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
                                 getObject('value_<%=loopSetting.getKey()%>').value = dataValue;
+                                getObject('value_<%=loopSetting.getKey()%>').disabled = false;
                                 dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);
-                            });}
-                                );
+                                dijit.byId('value_<%=loopSetting.getKey()%>').setDisabled(false);
+                            })
+                        });
                     </script>
                     <% } %>
                 </div>
@@ -162,6 +172,13 @@
                 <% } %>
             </div>
             <% } %>
+        </div>
+        <div style="text-align: center;">
+            <h2><a href="#" onclick="showWaitDialog('Updating Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Finished Editing</a></h2>
+            <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing" enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="processAction" value="finishEditing"/>
+                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
         </div>
         <br class="clear"/>
     </div>

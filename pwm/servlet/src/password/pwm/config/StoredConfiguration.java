@@ -32,6 +32,7 @@ import org.jdom.output.XMLOutputter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.util.Base64Util;
 import password.pwm.util.PwmLogger;
@@ -55,22 +56,22 @@ import java.util.regex.Pattern;
 public class StoredConfiguration implements Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
-
     private static final DateFormat STORED_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
-
     private static final String XML_FORMAT_VERSION = "2";
+
+    public static final String PROPERTY_KEY_SETTING_CHECKSUM = "settingsChecksum";
+    public static final String PROPERTY_KEY_CONFIG_IS_EDITABLE = "configIsEditable";
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
     private Map<PwmSetting,String> settingMap = new HashMap<PwmSetting,String>();
-    private boolean locked = false;
+    private Map<String,String> propertyMap = new HashMap<String,String>();
 
     static {
         STORED_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
     }
 
     public void lock() {
-        locked = true;
         settingMap = Collections.unmodifiableMap(settingMap);
     }
 
@@ -86,6 +87,11 @@ public class StoredConfiguration implements Serializable {
                 case LOCALIZED_STRING:
                 case LOCALIZED_TEXT_AREA:
                     config.writeLocalizedSetting(loopSetting, Collections.singletonMap("",defaultValue));
+                    if (defaultValue != null && defaultValue.contains(";;;")) {
+                        final String[] values = defaultValue.split(";;;");
+                        final Map<String,String> localeValues = Configuration.convertStringListToNameValuePair(Arrays.asList(values),"=");
+                        config.writeLocalizedSetting(loopSetting, localeValues);
+                    }
                     break;
 
                 case LOCALIZED_STRING_ARRAY:
@@ -128,7 +134,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeSetting(final PwmSetting setting, final String value) {
-        checkModifyability();
+        updateModifyTime();
         switch (setting.getSyntax()) {
             case STRING:
             case BOOLEAN:
@@ -152,7 +158,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeLocalizedSetting(final PwmSetting setting, final Map<String,String> values) {
-        checkModifyability();
+        updateModifyTime();
         if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING or LOCALIZED_TEXT_AREA setting: " + setting.toString());
         }
@@ -170,7 +176,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeStringArraySetting(final PwmSetting setting, final List<String> values) {
-        checkModifyability();
+        updateModifyTime();
         if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write STRING_ARRAY value to setting: " + setting.toString());
         }
@@ -188,7 +194,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String,List<String>> values) {
-        checkModifyability();
+        updateModifyTime();
         if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write LOCALIZED_STRING_ARRAY value to setting: " + setting.toString());
         }
@@ -196,9 +202,43 @@ public class StoredConfiguration implements Serializable {
         settingMap.put(setting, JSONConversions.nestedListToString(values));
     }
 
+    public String readProperty(final String propertyName) {
+        return propertyMap.get(propertyName);
+    }
+
+    public void writeProperty(final String propertyName, final String propertyValue) {
+        updateModifyTime();
+        if (propertyValue == null) {
+            propertyMap.remove(propertyName);
+        } else {
+            propertyMap.put(propertyName, propertyValue);
+        }
+    }
+
+    public Set<String> readPropertyKeys() {
+        return Collections.unmodifiableSet(propertyMap.keySet());
+    }
+
     public String toXml()
             throws IOException
     {
+        final Element pwmConfigElement = new Element("PwmConfiguration");
+        pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
+        pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
+        pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8.  Specifically, do not use Windows Notepad to save or edit this file."));
+
+        { // write properties section
+            final Element propertiesElement = new Element("properties");
+            propertyMap.put(PROPERTY_KEY_SETTING_CHECKSUM, settingChecksum());
+            for (final String key : propertyMap.keySet()) {
+                final Element propertyElement = new Element("property");
+                propertyElement.setAttribute("key", key);
+                propertyElement.addContent(propertyMap.get(key));
+                propertiesElement.addContent(propertyElement);
+            }
+            pwmConfigElement.addContent(propertiesElement);
+        }
+
         final Element settingsElement = new Element("settings");
         final Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory = PwmSetting.valuesByCategory();
         for (final PwmSetting.Category category: valuesByCategory.keySet()) {
@@ -280,12 +320,9 @@ public class StoredConfiguration implements Serializable {
                 settingsElement.addContent(settingElement);
             }
         }
-
-        final Element pwmConfigElement = new Element("PwmConfiguration");
-        pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
-        pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
-        pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8.  Specifically, do not use Windows Notepad to save or edit this file."));
         pwmConfigElement.addContent(settingsElement);
+
+
         pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
         pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
         pwmConfigElement.setAttribute("createTime", STORED_DATE_FORMAT.format(createTime));
@@ -297,7 +334,7 @@ public class StoredConfiguration implements Serializable {
         return outputter.outputString(new Document(pwmConfigElement));
     }
 
-    public static StoredConfiguration fromXml(final String xmlData, final boolean readPasswordSettings)
+    public static StoredConfiguration fromXml(final String xmlData)
             throws Exception
     {
         final SAXBuilder builder = new SAXBuilder();
@@ -381,21 +418,16 @@ public class StoredConfiguration implements Serializable {
 
                         case PASSWORD:
                         {
-                            if (readPasswordSettings) {
-                                final Element valueElement = settingElement.getChild("value");
-                                final String encodedValue = valueElement.getText();
-                                try {
-                                    final String key = STORED_DATE_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
-                                    final String decodedValue = TextConversations.decryptValue(encodedValue, key);
-                                    newConfiguration.writeSetting(pwmSetting, decodedValue);
-                                } catch (Exception e) {
-                                    newConfiguration.writeSetting(pwmSetting, "");
-                                    throw new RuntimeException("unable to decode value: " + e.getMessage());
-                                }
-                            } else {
+                            final Element valueElement = settingElement.getChild("value");
+                            final String encodedValue = valueElement.getText();
+                            try {
+                                final String key = STORED_DATE_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
+                                final String decodedValue = TextConversations.decryptValue(encodedValue, key);
+                                newConfiguration.writeSetting(pwmSetting, decodedValue);
+                            } catch (Exception e) {
                                 newConfiguration.writeSetting(pwmSetting, "");
+                                throw new RuntimeException("unable to decode value: " + e.getMessage());
                             }
-
                         }
                         break;
 
@@ -406,6 +438,17 @@ public class StoredConfiguration implements Serializable {
                     }
                 }
             }
+
+            final Element propertiesElement = rootElement.getChild("properties");
+            if (propertiesElement != null) {
+                for (final Object loopElementObj : propertiesElement.getChildren("property")) {
+                    final Element element = (Element)loopElementObj;
+                    final String key = element.getAttributeValue("key");
+                    final String value = element.getText();
+                    newConfiguration.propertyMap.put(key,value);
+                }
+            }
+
             if (modifyTimeString == null) {
                 throw new IllegalArgumentException("missing modifyTime timestamp");
             }
@@ -440,7 +483,25 @@ public class StoredConfiguration implements Serializable {
         return sb.toString();
     }
 
-    public String checkValuesForErrors() {
+    public String settingChecksum() throws IOException {
+        final StringBuilder sb = new StringBuilder();
+
+        for (final PwmSetting loopSetting : PwmSetting.values()) {
+            sb.append(loopSetting.getKey());
+            sb.append("=");
+            sb.append(settingMap.get(loopSetting));
+        }
+
+        sb.append(modifyTime);
+        sb.append(createTime);
+
+        final InputStream is = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
+        return Helper.md5sum(is);
+    }
+
+    public List<String> validateValues() {
+
+        final List<String> errorStrings = new ArrayList<String>();
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
             final StringBuilder errorString = new StringBuilder();
@@ -453,12 +514,13 @@ public class StoredConfiguration implements Serializable {
                 {
                     final String value = this.readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append(" missing required value");
-                        return errorString.toString();
-                    }
-
-                    try { Integer.parseInt(value); } catch (Exception e) {
-                        errorString.append(" can not parse integer value:").append(e.getMessage()); return errorString.toString();
+                        errorString.append("missing required value");
+                        errorStrings.add(errorString.toString());
+                    } else {
+                        try { Integer.parseInt(value); } catch (Exception e) {
+                            errorString.append("can not parse integer value:").append(e.getMessage());
+                            errorStrings.add(errorString.toString());
+                        }
                     }
                 }
                 break;
@@ -467,12 +529,13 @@ public class StoredConfiguration implements Serializable {
                 {
                     final String value = this.readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append(" missing required value");
-                        return errorString.toString();
-                    }
-
-                    try { Boolean.parseBoolean(value); } catch (Exception e) {
-                        errorString.append(" can not parse boolean  value:").append(e.getMessage()); return errorString.toString();
+                        errorString.append("missing required value");
+                        errorStrings.add(errorString.toString());
+                    } else {
+                        try { Boolean.parseBoolean(value); } catch (Exception e) {
+                            errorString.append("can not parse boolean value:").append(e.getMessage());
+                            errorStrings.add(errorString.toString());
+                        }
                     }
                 }
                 break;
@@ -482,14 +545,14 @@ public class StoredConfiguration implements Serializable {
                     final List<String> values = this.readStringArraySetting(loopSetting);
                     for (final String value : values) {
                         if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                            errorString.append(" missing required value");
-                            return errorString.toString();
-                        }
-
-                        final Matcher matcher = loopPattern.matcher(value);
-                        if (value != null && value.length() > 0 && !matcher.matches()) {
-                            errorString.append(" incorrect value format for value: ").append(value);
-                            return errorString.toString();
+                            errorString.append("missing required value");
+                            errorStrings.add(errorString.toString());
+                        } else {
+                            final Matcher matcher = loopPattern.matcher(value);
+                            if (value != null && value.length() > 0 && !matcher.matches()) {
+                                errorString.append("incorrect value format for value: ").append(value);
+                                errorStrings.add(errorString.toString());
+                            }
                         }
                     }
                 }
@@ -502,15 +565,15 @@ public class StoredConfiguration implements Serializable {
                     for (final String locale : values.keySet()) {
                         final String value = values.get(locale);
                         if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                            errorString.append(" missing required value");
-                            return errorString.toString();
-                        }
-
-                        if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING) {
-                            final Matcher matcher = loopPattern.matcher(value);
-                            if (value != null && value.length() > 0 && !matcher.matches()) {
-                                errorString.append(" incorrect value format for locale '").append(locale).append("': ").append(value);
-                                return errorString.toString();
+                            errorString.append("missing required value");
+                            errorStrings.add(errorString.toString());
+                        } else {
+                            if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING) {
+                                final Matcher matcher = loopPattern.matcher(value);
+                                if (value != null && value.length() > 0 && !matcher.matches()) {
+                                    errorString.append("incorrect value format for locale '").append(locale).append("': ").append(value);
+                                    errorStrings.add(errorString.toString());
+                                }
                             }
                         }
                     }
@@ -523,14 +586,14 @@ public class StoredConfiguration implements Serializable {
                     for (final String locale : values.keySet()) {
                         for (final String value : values.get(locale)) {
                             if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                                errorString.append(" missing required value");
-                                return errorString.toString();
-                            }
-
-                            final Matcher matcher = loopPattern.matcher(value);
-                            if (value != null && value.length() > 0 && !matcher.matches()) {
-                                errorString.append(" incorrect value format for locale '").append(locale).append("': ").append(value);
-                                return errorString.toString();
+                                errorString.append("missing required value");
+                                errorStrings.add(errorString.toString());
+                            } else {
+                                final Matcher matcher = loopPattern.matcher(value);
+                                if (value != null && value.length() > 0 && !matcher.matches()) {
+                                    errorString.append("incorrect value format for locale '").append(locale).append("': ").append(value);
+                                    errorStrings.add(errorString.toString());
+                                }
                             }
                         }
                     }
@@ -541,25 +604,23 @@ public class StoredConfiguration implements Serializable {
                 {
                     final String value = readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append(" missing required value");
-                        return errorString.toString();
-                    }
-                    final Matcher matcher = loopPattern.matcher(value);
-                    if (value != null && value.length() > 0 && !matcher.matches()) {
-                        errorString.append(" incorrect value format for value: '").append(value);
-                        return errorString.toString();
+                        errorString.append("missing required value");
+                        errorStrings.add(errorString.toString());
+                    } else {
+                        final Matcher matcher = loopPattern.matcher(value);
+                        if (value != null && value.length() > 0 && !matcher.matches()) {
+                            errorString.append("incorrect value format for value: '").append(value);
+                            errorStrings.add(errorString.toString());
+                        }
                     }
                 }
             }
         }
 
-        return null;
+        return errorStrings;
     }
 
-    private void checkModifyability() {
-        if (locked) {
-            throw new IllegalStateException("configuration is locked, can not be modified");
-        }
+    private void updateModifyTime() {
         modifyTime = new Date();
     }
 
@@ -598,10 +659,10 @@ public class StoredConfiguration implements Serializable {
         {
             final MessageDigest md = MessageDigest.getInstance("SHA1");
             md.update(text.getBytes("iso-8859-1"), 0, text.length());
-            final byte[] key = Arrays.copyOf(md.digest(),16);
+            final byte[] key = new byte[16];
+            System.arraycopy(md.digest(),0,key,0,16);
             return  new SecretKeySpec(key,"AES");
         }
-
     }
 
     private static class JSONConversions {

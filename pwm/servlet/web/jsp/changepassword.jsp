@@ -40,7 +40,7 @@
         <pwm:Display key="Display_ChangePassword"/>
         <div id="PasswordRequirements">
             <ul>
-                <pwm:DisplayPasswordRequirements seperator="</li>" prepend="<li>"/>
+                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
             </ul>
         </div>
         <% final String passwordPolicyChangeMessage = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage(); %>

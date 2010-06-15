@@ -46,7 +46,7 @@ public class PasswordRequirementsTag extends TagSupport
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordRequirementsTag.class);
-    private String seperator;
+    private String separator;
     private String prepend;
 
 // -------------------------- STATIC METHODS --------------------------
@@ -258,14 +258,14 @@ public class PasswordRequirementsTag extends TagSupport
     }
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getSeperator()
+    public String getSeparator()
     {
-        return seperator;
+        return separator;
     }
 
-    public void setSeperator(final String seperator)
+    public void setSeparator(final String separator)
     {
-        this.seperator = seperator;
+        this.separator = separator;
     }
 
     public String getPrepend() {
@@ -288,7 +288,7 @@ public class PasswordRequirementsTag extends TagSupport
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         try {
             final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
-            final String sep = seperator != null && seperator.length() > 0 ? seperator : "<br/>";
+            final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
             final List<String> requirementsList = getPasswordRequirementsStrings(pwmSession.getUserInfoBean().getPasswordPolicy(), pwmSession.getContextManager(), pwmSession.getSessionStateBean().getLocale());
 
             final StringBuilder requirementsText = new StringBuilder();

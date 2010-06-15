@@ -20,6 +20,7 @@ v1.4.4 developer build
 + Added send email option for user activation
 + Added smtp advanced properties configuration setting
 + Added ldap advanced properties configuration setting
++ Added send email token functionality during forgotten password reset
 
 - Replaced vertical strength meter with horizontal strength meter with better CSS degradation
 - Fixed issue with caps lock warning on IE browsers (issue #3)
@@ -27,6 +28,7 @@ v1.4.4 developer build
 - Fixed issue with User Information crashing if NMAS is not being used (issue #6)
 - Fixed issue with Log4j (issue #7)
 - Refactored ajax calls to use dojo api, and also to resolve issue with incorrect encoding of i18n characters (issue #9)
+- Removed "aggressiveUrlParsing" setting, values for logoutURL/forwardURL now read url encoded values properly
 
 
 

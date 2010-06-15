@@ -87,16 +87,6 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("validate")) {
-                //randomize response delay - useful for for developer testing only
-                /*final int randomInt = new java.util.Random().nextInt(1000 * 2);
-                if (randomInt < 0) {
-                    LOGGER.fatal("random delay: pause");
-                    resp.getOutputStream().close();
-                    return;
-                } else {
-                    LOGGER.fatal("random delay: " + randomInt);
-                    Helper.pause(randomInt);
-                } */
                 handleValidatePasswords(req,resp);
                 return;
             } else if (processRequestParam.equalsIgnoreCase("getrandom")) {     // ajax random generator

@@ -30,6 +30,8 @@ dojo.require("dijit.form.Textarea");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.TitlePane");
+dojo.require("dijit.Dialog");
+
 
 var clientSettingCache = { };
 
@@ -154,7 +156,7 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
             textAreaElement.setAttribute("id",inputID);
             textAreaElement.setAttribute("value","[Loading....]");
             textAreaElement.setAttribute("onchange","writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
-            textAreaElement.setAttribute("style","width: 550px;");
+            textAreaElement.setAttribute("style","width: 500px;");
             textAreaElement.setAttribute("dojoType","dijit.form.Textarea");
             textAreaElement.setAttribute("value",value);
             td2.appendChild(textAreaElement);
@@ -466,4 +468,12 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
     writeSetting(settingKey, currentValues);
 }
 
-
+function showWaitDialog(message) {
+    var theDialog = new dijit.Dialog({
+        title: "Please Wait",
+        style: "width: 300px",
+        content: message,
+        closable: false
+    });
+    theDialog.show()        ;
+}

@@ -30,16 +30,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body class="tundra">
+<link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
+<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
+<link href="<%=request.getContextPath()%>/resources/dojo/dojox/grid/enhanced/resources/tundraEnhancedGrid.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Manager"/></jsp:include>
     <div id="centerbody">
-        <p>PWM uses an xml configuration file to store the settings it needs to run. This file is saved as <span style="font-style: italic;">
-        PwmConfiguration.xml</span> in the servlet's <span style="font-style: italic;">WEB-INF</span> folder. </p>
-        <p> You can not edit PWM settings directly, however you can use this page to edit and manage the configuration
-        file.  You can edit a configuration, save it, upload an existing file and reset a configuration back to the defaults.  When you are finished
-        you can save the downloaded xml file and PWM will use that configuration the next time it starts. </p>
-        <p> Until you download a configuration file, the changes you make exist only in your browser.  If your
-        browser times out or is closed, those changes will be lost.</p>
+        <p>Welcome to the PWM ConfigManager.  PWM is in configuration mode, which means you can make changes to the running configuration
+        directly through this page.  Changes made in the configuration editor will be saved immediately, and PWM will automatically restart to have changes
+        take effect.</p>
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
@@ -48,34 +50,28 @@
             <input type="hidden" name="processAction" value="switchToEditMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Start the PWM configuration editor.  When you have completed any configuration changes, you can return to this page.</p>
-        <h2><a href="#" onclick="document.forms['testLdapConnect'].submit();">Test LDAP Connection</a></h2>
+        <p>Start the PWM configuration editor.  When you select "Finished Editing" in the configuration page, your changes will be saved and
+            you will return to this screen.</p>
+        <h2><a href="#" onclick="showWaitDialog('Testing LDAP Connection'); document.forms['testLdapConnect'].submit();">Test LDAP Connection</a></h2>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="testLdapConnect" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="testLdapConnect"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Test to be sure an LDAP connection can be made using the in memory configuration</p>
-        <h2><a href="#" onclick="if (confirm('Are you sure you want to clear the configuration?')) document.forms['resetConfig'].submit();">Clear Configuration</a></h2>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="resetConfig" enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="resetConfig"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
-        <p>Reset the in memory configuration to the defaults.  This will reset the in memory configuration you are currently editing.</p>
+        <p>Test to be sure an LDAP connection can be made using the configuration</p>
         <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="generateXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <p>Download the in memory configuration to an XML file.  Save the file to PWM's <span
-                style="font-style: italic;">WEB-INF </span> directory and restart PWM for
-            the configuration file to take effect.</p>
-        <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
-        <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
-            <input type="hidden" name="processAction" value="uploadXml"/>
+                style="font-style: italic;">WEB-INF </span> directory to change the configuration.</p> 
+        <h2><a href="#" onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); document.forms['lockConfiguration'].submit();}">Finalize Configuration</a></h2>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="lockConfiguration"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" class="btn" name="uploadFile" size="50"/>
         </form>
-        <p>Upload an existing configuration.</p>
+        <p>Finalize the configuration.  Once the configuration is finalized, you can no longer directly edit the running configuration using this interface.  If you wish to make changes
+            after finalization, you will need to edit or delete the <i>PwmConfiguration.xml</i> to re-enable configuration mode.</p>
     </div>
 </div>
 <%@ include file="footer.jsp" %>

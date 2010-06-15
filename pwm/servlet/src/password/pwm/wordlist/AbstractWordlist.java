@@ -100,7 +100,9 @@ abstract class AbstractWordlist implements Wordlist {
         try {
             checkPopulation();
         } catch (Exception e) {
-            if (!(e instanceof PwmException)) {
+            if ((e instanceof PwmException) || (e instanceof NullPointerException) || (e instanceof PwmDBException)) {
+                LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage());
+            } else {
                 LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage(), e);
             }
             populator = null;
@@ -301,6 +303,13 @@ abstract class AbstractWordlist implements Wordlist {
     {
         if (populator != null) {
             populator.pause();
+            final long beginWaitTime = System.currentTimeMillis();
+            if (populator != null) {
+                LOGGER.info("waiting 10 seconds for populator to exit");
+            }
+            while (populator != null && (System.currentTimeMillis() - beginWaitTime > 10 * 1000)) {
+                Helper.pause(100);
+            }
             populator = null;
         }
 

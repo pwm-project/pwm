@@ -46,12 +46,24 @@ public class Configuration implements Serializable {
     private final static PwmLogger LOGGER = PwmLogger.getLogger(Configuration.class);
 
     private final StoredConfiguration storedConfiguration;
+    private final MODE configMode;
     private final long loadTime = System.currentTimeMillis();
 
     private PwmPasswordPolicy cachedPasswordPolicy = null;
 
-    public Configuration(final StoredConfiguration storedConfiguration) {
+    public enum MODE {
+        NEW,
+        CONFIGURATION,
+        RUNNING
+    }
+
+    public Configuration(final StoredConfiguration storedConfiguration, final MODE configMode) {
         this.storedConfiguration = storedConfiguration;
+        this.configMode = configMode;
+    }
+
+    public MODE getConfigMode() {
+        return configMode;
     }
 
     public String readSettingAsString(final PwmSetting setting)
@@ -306,4 +318,7 @@ public class Configuration implements Serializable {
         return storedConfiguration.toString();
     }
 
+    public String readProperty(final String key) {
+        return storedConfiguration.readProperty(key);
+    }
 }

@@ -22,16 +22,18 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.error.PwmError;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Map;
@@ -189,7 +191,6 @@ class Populator {
     }
 
     private String makeStatString()
-            throws Exception
     {
         final int lps = perReportStats.getElapsedSeconds() <= 0 ? 0 : perReportStats.getLines() / perReportStats.getElapsedSeconds();
         final int linesRemaining = totalLines - overallStats.getLines();
@@ -216,8 +217,7 @@ class Populator {
     }
 
     void populate()
-            throws Exception
-    {
+            throws PwmException, IOException, PwmDBException {
         try {
             long lastReportTime = System.currentTimeMillis() - (long)(DEBUG_OUTPUT_FREQUENCY * 0.33);
 
@@ -226,7 +226,7 @@ class Populator {
                     zipFileReader.nextLine();
 
                     if (abortFlag) {
-                        throw new Exception("pausing " + DEBUG_LABEL + " population");
+                        throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"pausing " + DEBUG_LABEL + " population","pausing " + DEBUG_LABEL + " population"));
                     }
                 }
             }
@@ -262,7 +262,7 @@ class Populator {
     }
 
     private void addLine(String line)
-            throws Exception
+            throws IOException
     {
         // check for word suitability
         if (line == null) {
@@ -290,7 +290,7 @@ class Populator {
     }
 
     private void flushBuffer()
-            throws Exception
+            throws PwmDBException
     {
         final long startTime = System.currentTimeMillis();
 
@@ -345,7 +345,7 @@ class Populator {
     }
 
     private void populationComplete()
-            throws Exception
+            throws PwmDBException,  PwmException
     {
         flushBuffer();
         LOGGER.info(makeStatString());
@@ -355,7 +355,7 @@ class Populator {
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
         } else {
-            throw new Exception(DEBUG_LABEL + " population completed, but no words stored");
+            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_UNKNOWN, DEBUG_LABEL + " population completed, but no words stored"));
         }
 
         final StringBuilder sb = new StringBuilder();

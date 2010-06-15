@@ -101,11 +101,6 @@ public class
         LOGGER.trace("opening environment with config: " + environmentConfig.toString());
         final Environment environment = new Environment(databaseDirectory, environmentConfig);
         LOGGER.trace("db environment open");
-
-        environment.checkpoint(null);
-        environment.compress();
-        environment.cleanLog();
-
         return environment;
     }
 

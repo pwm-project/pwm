@@ -121,7 +121,6 @@ public enum PwmError {
     CONFIG_UPLOAD_SUCCESS(              "Error_ConfigUploadSuccess",        5200, null),
     CONFIG_UPLOAD_FAILURE(              "Error_ConfigUploadFailure",        5201, null),
     CONFIG_FORMAT_ERROR(                "Error_ConfigFormatError",          5203, null),
-    CONFIG_RESET_SUCCESS(               "Error_ConfigResetSuccess",         5203, null),
     CONFIG_LDAP_FAILIRE(                "Error_ConfigLdapFailure",          5204, null),
     CONFIG_LDAP_SUCCESS(                "Error_ConfigLdapSuccess",          5205, null),
     ;

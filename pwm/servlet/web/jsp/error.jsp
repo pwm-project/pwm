@@ -37,9 +37,6 @@
             <pwm:ErrorMessage/>
         </span>
         <p><pwm:Display key="Display_ErrorBody"/></p>
-        <% if (password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getSessionError().getError() == PwmError.ERROR_INVALID_CONFIG) { %>
-        <p>If you need to establish a new configuration file for PWM, you can do so using the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a> page.</p>
-        <% } %>
     </div>
     <br class="clear"/>
 </div>

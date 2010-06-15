@@ -77,6 +77,7 @@ public class ContextManager implements Serializable
 
     private transient ServletContext servletContext;
     private transient Configuration configuration;
+    private transient ConfigReader configReader;
     private transient EmailQueueManager emailQueue;
 
     private transient StatisticsManager statisticsManager;
@@ -91,6 +92,8 @@ public class ContextManager implements Serializable
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private Date lastLdapFailure = null;
+
+
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -238,7 +241,8 @@ public class ContextManager implements Serializable
         // initialize configuration
         try {
             final File configFile = figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
-            configuration = ConfigReader.loadConfiguration(configFile);
+            configReader = new ConfigReader(configFile);
+            configuration = configReader.getConfiguration();
         } catch (Exception e) {
             //LOGGER.fatal("unable to load configuration file", e);
             LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
@@ -264,7 +268,6 @@ public class ContextManager implements Serializable
         // startup the stats engine;
         PwmInitializer.initializeStatisticsManager(this);
 
-
         PwmInitializer.initializeWordlist(this);
         PwmInitializer.initializeSeedlist(this);
         PwmInitializer.initializeSharedHistory(this);
@@ -279,6 +282,7 @@ public class ContextManager implements Serializable
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
         taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
         taskMaster.scheduleAtFixedRate(new DebugLogOutputter(), 60 * 60 * 1000, 60 * 60 * 1000); //once every hour
+        taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " (" + PwmConstants.BUILD_NUMBER + ") open for bidness! (" + totalTime.asCompactString() + ")");
@@ -289,6 +293,17 @@ public class ContextManager implements Serializable
             LOGGER.debug("detected ldap directory vendor: " + provider.getDirectoryVendor());
         } catch (Exception e) { /**/ }} }).start();
 
+    }
+
+    public void reinitialize() {
+        LOGGER.warn("restarting configuration due to detected configuration file modication!");
+        final ServletContext servletContext = this.getServletContext();
+        shutdown();
+        try {
+            initialize(servletContext);
+        } catch (Exception e) {
+            LOGGER.fatal("unable to reinitialize pwm: " + e.getMessage(), e);
+        }
     }
 
     private void initLogging()
@@ -689,6 +704,22 @@ public class ContextManager implements Serializable
             contextManager.statisticsManager = statisticsManager;
         }
     }
+
+    public ConfigReader getConfigReader() {
+        return this.configReader;
+    }
+
+    private class ConfigFileWatcher extends TimerTask {
+        @Override
+        public void run() {
+            if (configReader != null) {
+                if (configReader.configHasChanged()) {
+                    reinitialize();
+                }
+            }
+        }
+    }
+
 }
 
 

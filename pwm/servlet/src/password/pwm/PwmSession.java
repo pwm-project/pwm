@@ -317,4 +317,10 @@ public class PwmSession implements Serializable {
     public int getMaxInactiveInterval() {
         return httpSession == null ? - 1 : httpSession.getMaxInactiveInterval();
     }
+
+    public void invalidate() {
+        if (httpSession != null) {
+            httpSession.invalidate();
+        }
+    }
 }

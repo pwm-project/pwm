@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import password.pwm.ContextManager;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
@@ -37,16 +38,104 @@ public class ConfigReader {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigReader.class.getName());
     private static final int MAX_FILE_CHARS = 100 * 1024;
 
-    public static Configuration loadConfiguration(final File configFile) throws Exception {
+    private final File configFile;
+    private final String configFileChecksum;
+    private final StoredConfiguration storedConfiguration;
+
+    public ConfigReader(final File configFile) {
+        this.configFile = configFile;
+        this.configFileChecksum = readFileChecksum(configFile);
+        this.storedConfiguration = readStoredConfig();
+        final Configuration.MODE mode = determineConfigMode(storedConfiguration);
+        LOGGER.debug("detected configuration mode: " + mode);
+    }
+
+    private static Configuration.MODE determineConfigMode(final StoredConfiguration storedConfig) {
+        if (storedConfig == null) {
+           return Configuration.MODE.NEW;
+        }
+
+        final String configIsEditable = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
+            return Configuration.MODE.CONFIGURATION;
+        }
+
+        return Configuration.MODE.RUNNING;
+    }
+
+    public StoredConfiguration getStoredConfiguration() {
+        return storedConfiguration;
+    }
+
+    public Configuration getConfiguration() throws Exception {
+        final Configuration.MODE mode = determineConfigMode(this.storedConfiguration);
+
+        if (mode == Configuration.MODE.NEW) {
+            return new Configuration(StoredConfiguration.getDefaultConfiguration(),mode);
+        } else {
+            return new Configuration(this.storedConfiguration,mode);
+        }
+    }
+
+    private StoredConfiguration readStoredConfig()  {
         LOGGER.debug("loading configuration file: " + configFile);
-        final String theFileData = readFileAsString(configFile);
-        final StoredConfiguration storedConfiguration = StoredConfiguration.fromXml(theFileData, true);
-        storedConfiguration.lock();
-        return new Configuration(storedConfiguration);
+
+        final String theFileData;
+        try {
+            theFileData = readFileAsString(configFile);
+        } catch (Exception e) {
+            LOGGER.warn("unable to read configuration file: " + e.getMessage());
+            return null;
+        }
+
+        final StoredConfiguration storedConfiguration;
+        try {
+            storedConfiguration = StoredConfiguration.fromXml(theFileData);
+        } catch (Exception e) {
+            LOGGER.warn("unable to parse configuration file: " + e.getMessage());
+            return null;
+        }
+
+        for (final String errorString : storedConfiguration.validateValues()) {
+            LOGGER.error("error in config file, please investigate: " + errorString);
+        }
+
+        try {
+            final String storedChecksum = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+            final String actualChecksum = storedConfiguration.settingChecksum();
+            if (!actualChecksum.equals(storedChecksum)) {
+                LOGGER.warn("configuration settings have been modified after the file was generated");
+            }
+        } catch (Exception e) {
+            LOGGER.warn("unable to evaluate checksum file: " + e.getMessage());
+        }
+
+        return storedConfiguration;
+    }
+
+    public void saveConfiguration(final StoredConfiguration storedConfiguration, final ContextManager contextManager)
+            throws IOException
+    {
+        if (contextManager.getConfig().getConfigMode() == Configuration.MODE.RUNNING) {
+            throw new IllegalStateException("running config mode does now allow saving of configuration");
+        }
+
+        final String xmlBlob = storedConfiguration.toXml();
+        //configFile.delete();
+        final FileWriter fileWriter = new FileWriter(configFile, false);
+        fileWriter.write(xmlBlob);
+        fileWriter.close();
+        LOGGER.info("saved configuration " + storedConfiguration.toString());
+    }
+
+    public boolean configHasChanged() {
+        final String currentChecksum = readFileChecksum(configFile);
+        return !currentChecksum.equals(configFileChecksum);
     }
 
     private static String readFileAsString(final File filePath)
-    throws java.io.IOException{
+            throws java.io.IOException
+    {
         final StringBuffer fileData = new StringBuffer(1000);
         final BufferedReader reader = new BufferedReader(
                 new FileReader(filePath));
@@ -63,47 +152,14 @@ public class ConfigReader {
         return fileData.toString();
     }
 
-
-
-    /**
-     * Simple class loader to load ResourceBundle properties for a servlet's
-     * WEB-INF directory.  Only the {@link #getResourceAsStream(String)} method
-     * is modified to allow resources to be loaded from the WEB-INF directory, (or
-     * anywhere in the parent ClassLoader's classpath.
-     * <p/>
-     * Calls to {@link #loadClass(String)} or {@link #findClass(String)} are not
-     * overridden, and will be passed to the parent ClassLoader.  Thus, this classloader
-     * doesn't actually change the behavior for normal class loading operations.
-     * <p/>
-     * Intended for use with {@link java.util.ResourceBundle#getBundle(String,java.util.Locale,ClassLoader)}
-     *
-     * @author Jason D. Rivard
-     */
-    public static class ConfigClassLoader extends ClassLoader {
-        public final static String WEB_INF_DIR = "WEB-INF";
-
-        private final String webInfPath;
-
-        public ConfigClassLoader(final File forFile)
-        {
-            super(ConfigClassLoader.class.getClassLoader());
-            webInfPath = forFile.getParent();
+    private static String readFileChecksum(final File file) {
+        if (!file.exists()) {
+            return "";
         }
 
-        public InputStream getResourceAsStream(final String name)
-        {
-            final String pathName = webInfPath + File.separator + name;
-            final File theFile = new File(pathName);
-            if (!theFile.exists()) {
-                return super.getResourceAsStream(name);
-            }
-            try {
-                return new FileInputStream(theFile);
-            } catch (FileNotFoundException e) {
-                return null;
-            }
-        }
+        return String.valueOf(file.lastModified());
     }
+
 }
 
 

@@ -89,7 +89,7 @@
             password requirements
         </description>
         <attribute>
-            <name>seperator</name>
+            <name>separator</name>
             <required>false</required>
             <rtexprvalue>false</rtexprvalue>
         </attribute>

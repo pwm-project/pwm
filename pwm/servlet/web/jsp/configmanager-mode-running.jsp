@@ -1,0 +1,67 @@
+<%--
+  ~ Password Management Servlets (PWM)
+  ~ http://code.google.com/p/pwm/
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2010 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  --%>
+
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="java.util.*" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page language="java" session="true" isThreadSafe="true"
+         contentType="text/html; charset=UTF-8" %>
+<%@ taglib uri="pwm" prefix="pwm" %>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<%@ include file="../jsp/header.jsp" %>
+<body class="tundra">
+<div id="wrapper">
+    <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Manager"/></jsp:include>
+    <div id="centerbody">
+        <p>The configuration for this server is now finalized and locked.  If you wish to make configuration changes to this PWM installation, you can take any one
+            of the following steps:</p>
+        <ol>
+            <li>Delete the <i>PwmConfiguration.xml</i> file in the pwm servlet's <i>WEB-INF</i> directory.</li>
+            <li>Edit the <i>PwmConfiguration.xml</i> file property setting the property "configIsEditable" to "true".</li>
+            <li>Edit the <i>PwmConfiguration.xml</i> settings directly.  It is not required to use the PwmConfiguration interface to modify the configuration file.</li>
+        </ol>
+        <hr/>
+        <p>For convenience, you can use the configuration editor to edit an in-memory configuration that you can then download.  The in-memory coniguration is initialized
+        to default values, and any changes made are not saved to the running configuration.</p>
+
+        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <% } %>
+        <h2><a href="#" onclick="document.forms['switchToEditMode'].submit();">Configuration Editor</a></h2>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="switchToEditMode" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="switchToEditMode"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <p>Edit an in-memory PWM configuration file.  The current pwm running configuration is not available, and changes are not saved to the pwm configuration</p>
+        <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="generateXml"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <p>Download the in memory configuration to an XML file.  Save the file to PWM's <span
+                style="font-style: italic;">WEB-INF </span> directory to change the configuration.</p>         
+    </div>
+</div>
+<%@ include file="footer.jsp" %>
+</body>
+</html>
