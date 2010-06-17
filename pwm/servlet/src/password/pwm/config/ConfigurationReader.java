@@ -32,49 +32,58 @@ import java.io.*;
  *
  * @author Jason D. Rivard
  */
-public class ConfigReader {
+public class ConfigurationReader {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigReader.class.getName());
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigurationReader.class.getName());
     private static final int MAX_FILE_CHARS = 100 * 1024;
 
     private final File configFile;
     private final String configFileChecksum;
     private final StoredConfiguration storedConfiguration;
+    private final Configuration configuration;
 
-    public ConfigReader(final File configFile) {
+    private final MODE configMode;
+
+    public enum MODE {
+        NEW,
+        CONFIGURATION,
+        RUNNING
+    }
+
+    public ConfigurationReader(final File configFile) {
         this.configFile = configFile;
         this.configFileChecksum = readFileChecksum(configFile);
         this.storedConfiguration = readStoredConfig();
-        final Configuration.MODE mode = determineConfigMode(storedConfiguration);
-        LOGGER.debug("detected configuration mode: " + mode);
+        this.configMode = determineConfigMode(storedConfiguration);
+        LOGGER.debug("detected configuration mode: " + configMode);
+
+        configuration = configMode == MODE.NEW ? null : new Configuration(this.storedConfiguration);
     }
 
-    private static Configuration.MODE determineConfigMode(final StoredConfiguration storedConfig) {
+    public MODE getConfigMode() {
+        return configMode;
+    }
+
+    private static MODE determineConfigMode(final StoredConfiguration storedConfig) {
         if (storedConfig == null) {
-           return Configuration.MODE.NEW;
+           return MODE.NEW;
         }
 
         final String configIsEditable = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
         if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
-            return Configuration.MODE.CONFIGURATION;
+            return MODE.CONFIGURATION;
         }
 
-        return Configuration.MODE.RUNNING;
+        return MODE.RUNNING;
     }
 
     public StoredConfiguration getStoredConfiguration() {
         return storedConfiguration;
     }
 
-    public Configuration getConfiguration() throws Exception {
-        final Configuration.MODE mode = determineConfigMode(this.storedConfiguration);
-
-        if (mode == Configuration.MODE.NEW) {
-            return new Configuration(StoredConfiguration.getDefaultConfiguration(),mode);
-        } else {
-            return new Configuration(this.storedConfiguration,mode);
-        }
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     private StoredConfiguration readStoredConfig()  {
@@ -116,19 +125,18 @@ public class ConfigReader {
     public void saveConfiguration(final StoredConfiguration storedConfiguration, final ContextManager contextManager)
             throws IOException
     {
-        if (contextManager.getConfig().getConfigMode() == Configuration.MODE.RUNNING) {
+        if (getConfigMode() == MODE.RUNNING) {
             throw new IllegalStateException("running config mode does now allow saving of configuration");
         }
 
         final String xmlBlob = storedConfiguration.toXml();
-        //configFile.delete();
         final FileWriter fileWriter = new FileWriter(configFile, false);
         fileWriter.write(xmlBlob);
         fileWriter.close();
         LOGGER.info("saved configuration " + storedConfiguration.toString());
     }
 
-    public boolean configHasChanged() {
+    public boolean inputFileHasBeenModified() {
         final String currentChecksum = readFileChecksum(configFile);
         return !currentChecksum.equals(configFileChecksum);
     }

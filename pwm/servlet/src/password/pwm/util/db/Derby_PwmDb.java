@@ -219,7 +219,7 @@ public class Derby_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final String initString)
+    public void init(final File dbDirectory, final Map<String,String> initParams)
             throws PwmDBException
     {
         this.dbDirectory = dbDirectory;

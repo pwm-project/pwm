@@ -91,7 +91,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final String initStrng)
+    public void init(final File dbDirectory, final Map<String,String> initParameters)
             throws PwmDBException {
         try {
             this.dbDirectory = dbDirectory;

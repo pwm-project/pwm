@@ -77,8 +77,8 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public void init(final File dbDirectory, final String initString) throws PwmDBException {
-        innerDB.init(dbDirectory, initString);
+    public void init(final File dbDirectory, final Map<String,String> initParameters) throws PwmDBException {
+        innerDB.init(dbDirectory, initParameters);
     }
 
     public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {

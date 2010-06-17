@@ -58,7 +58,7 @@ div.progress-container > div { background-color: #ffffff; height: 10px; }
 #header         { width: 100%; height: 70px; margin: 0; background-image:url('header-gradient.gif') }
 #header-page    { width:600px; padding-top:9px; margin-left: auto; margin-right: auto; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }
 #header-title   { width:600px; margin: auto; font-family:Trebuchet MS, sans-serif; font-size:14px; color:#FFFFFF; }
-#header-warning { width:100%; background-color:#FFCD59; text-align:center; padding-top:4px; padding-bottom:4px }
+#header-warning { width:100%; background-color:#FFDC8B; text-align:center; padding-top:4px; padding-bottom:4px }
 
 .clear { clear:both; }
 
@@ -69,5 +69,5 @@ div.progress-container > div { background-color: #ffffff; height: 10px; }
 #footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
 #footer .idle_status { color: #333333; }
 
-#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #d20734; font-weight:bold; font-variant:small-caps; margin-bottom: 5px;}
+#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; font-variant:small-caps; margin-bottom: 5px; background-color:#d20734}
 

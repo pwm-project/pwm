@@ -78,10 +78,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             theManager.getIntruderManager().checkUser(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
-        if (forgottenPasswordBean.getProxiedUser() != null) {
-            theManager.getIntruderManager().checkUser(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
-        }
-
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (processAction != null && processAction.length() > 0) {
@@ -161,11 +157,16 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         if (codeIsCorrect) {
             forgottenPasswordBean.setPassedToken(true);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
+            LOGGER.debug(pwmSession, "token validation has been passed");
+
             this.forwardToResponsesJSP(req, resp);
             return;
         }
 
+        LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
+        pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         this.forwardToEnterCodeJSP(req, resp);
     }
@@ -453,6 +454,8 @@ public class ForgottenPasswordServlet extends TopServlet {
         htmlBody = htmlBody.replaceAll("%TOKEN%", token);
 
         theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
     }
 
 

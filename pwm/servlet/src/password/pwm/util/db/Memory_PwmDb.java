@@ -101,7 +101,7 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     @PwmDB.WriteOperation
-    public void init(final File dbDirectory, final String initString)
+    public void init(final File dbDirectory, final Map<String,String> initParameters)
             throws PwmDBException
     {
         if (state == STATE.OPEN) {

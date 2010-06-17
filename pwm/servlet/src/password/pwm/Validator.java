@@ -743,11 +743,11 @@ public class Validator {
             }
         }
 
-        if (theManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
+        if (theManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && theManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
             final boolean found = theManager.getSharedHistoryManager().containsWord(pwmSession,password);
 
             if (found) {
-                LOGGER.trace(pwmSession, "password rejected, in global history");
+                LOGGER.trace(pwmSession, "password rejected, in global shared history");
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
             }
         }

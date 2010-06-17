@@ -54,8 +54,6 @@ public enum PwmSetting {
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false),
-    PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", Syntax.NUMERIC, Category.GENERAL, true),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
 
@@ -186,6 +184,10 @@ public enum PwmSetting {
             "password.policy.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.policy.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+    PASSWORD_SHAREDHISTORY_ENABLE(
+            "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+    PASSWORD_SHAREDHISTORY_MAX_AGE(
+            "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
 
     // edirectory settings
     EDIRECTORY_READ_PASSWORD_POLICY(
@@ -276,14 +278,14 @@ public enum PwmSetting {
     // activation settings
     ACTIVATE_USER_ENABLE(
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true),
-    ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true),
-    ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true),
-    ACTIVATE_USER_WRITE_ATTRIBUTES(
-            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false),
     ACTIVATE_USER_FORM(
             "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true),
+    ACTIVATE_USER_SEARCH_FILTER(
+            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true),
+    ACTIVATE_USER_QUERY_MATCH(
+            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true),
+    ACTIVATE_USER_WRITE_ATTRIBUTES(
+            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false),
 
     // update attributes
     UPDATE_ATTRIBUTES_ENABLE(
@@ -316,7 +318,7 @@ public enum PwmSetting {
 
     // advanced
     EXTERNAL_PASSWORD_METHODS(
-            "externalPasswordMethods", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "externalPasswordClasses", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     LDAP_CHAI_SETTINGS(
@@ -334,7 +336,7 @@ public enum PwmSetting {
     PWMDB_IMPLEMENTATION(
             "pwmDb.implementation", Syntax.STRING, Category.ADVANCED, true),
     PWMDB_INIT_STRING(
-            "pwmDb.initString", Syntax.STRING, Category.ADVANCED, false),
+            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false),
 

@@ -53,6 +53,8 @@ public enum Statistic {
     PWMDB_READS(Type.INCREMENTOR, "PwmDB_Reads"),
     PWMDB_WRITES(Type.INCREMENTOR, "PwmDB_Writes"),
     GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
+    RECOVERY_TOKENS_SENT(Type.INCREMENTOR, "RecoveryTokensSent"),
+    RECOVERY_TOKENS_PASSED(Type.INCREMENTOR, "RecoveryTokensPassed"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_WORDLIST_CHECK_TIME(Type.AVERAGE, "AvgWordlistCheckTime");

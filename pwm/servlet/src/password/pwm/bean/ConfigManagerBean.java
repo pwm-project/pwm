@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 
 import java.io.Serializable;
@@ -29,6 +30,15 @@ import java.io.Serializable;
 public class ConfigManagerBean implements Serializable {
     private StoredConfiguration configuration;
     private boolean editorMode;
+    private ConfigurationReader.MODE initialMode;
+
+    public ConfigurationReader.MODE getInitialMode() {
+        return initialMode;
+    }
+
+    public void setInitialMode(final ConfigurationReader.MODE initialMode) {
+        this.initialMode = initialMode;
+    }
 
     public StoredConfiguration getConfiguration() {
         return configuration;

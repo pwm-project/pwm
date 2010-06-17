@@ -41,7 +41,7 @@ public interface PwmDBProvider {
             throws PwmDBException;
 
     @PwmDB.WriteOperation
-    void init(File dbDirectory, String initString)
+    void init(File dbDirectory, Map<String,String> initParameters)
             throws PwmDBException;
 
     Iterator<PwmDB.TransactionItem> iterator(PwmDB.DB db)

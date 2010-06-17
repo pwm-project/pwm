@@ -23,14 +23,13 @@
 
 package password.pwm.util.db;
 
-import com.novell.ldapchai.util.StringHelper;
-import password.pwm.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
 import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.*;
 import com.sleepycat.util.RuntimeExceptionWrapper;
+import password.pwm.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
 
 import java.io.File;
 import java.util.*;
@@ -168,20 +167,13 @@ public class
         }
     }
 
-    public void init(final File dbDirectory, final String initString)
+    public void init(final File dbDirectory, final Map<String,String> initParameters)
             throws PwmDBException
     {
-        LOGGER.trace("begin init, init string is: '" + initString + "'");
-
-        final Map<String,String> initParams = new HashMap<String,String>();
-        try {
-            initParams.putAll(StringHelper.tokenizeString(initString,";;;","="));
-        } catch (Exception e) {
-            LOGGER.trace("error while parsing initString: " + e.getMessage());
-        }
+        LOGGER.trace("begin initialization");
 
         try {
-            environment = openEnvironment(dbDirectory, initParams);
+            environment = openEnvironment(dbDirectory, initParameters);
 
             for (final DB db : DB.values()) {
                 final Database database = openDatabase(db, environment);

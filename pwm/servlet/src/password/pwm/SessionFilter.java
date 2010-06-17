@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -164,9 +164,8 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-
         // check for valid config
-        if (theManager == null || theManager.getConfig() == null || theManager.getConfig().getConfigMode() == Configuration.MODE.NEW) {
+        if (theManager == null || theManager.getConfig() == null || theManager.getConfigReader().getConfigMode() == ConfigurationReader.MODE.NEW) {
             final String configServletPathPrefix = req.getContextPath() + "/config/";
             final String requestedURL = req.getRequestURI();
 
@@ -177,7 +176,6 @@ public class SessionFilter implements Filter {
                 Helper.forwardToErrorPage(req, resp, servletContext, false);
                 return;
             }
-
         }
 
         // mark the user's IP address in the session bean

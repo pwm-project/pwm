@@ -22,6 +22,8 @@
 
 package password.pwm.servlet;
 
+import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.json.simple.JSONObject;
@@ -29,6 +31,7 @@ import org.json.simple.JSONValue;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -48,7 +51,6 @@ public class ConfigManagerServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
     private static final int MAX_INPUT_LENGTH = 1024 * 10;
-    private static final int MIN_SESSION_INACTIVITY_TIMER = 30 * 60; // 30 minutes
 
     protected void processRequest(
             final HttpServletRequest req,
@@ -57,17 +59,51 @@ public class ConfigManagerServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
         //clear any errors in the session's state bean
         pwmSession.getSessionStateBean().setSessionError(null);
 
-        // adjust the idle session time out
-        if (req.getSession().getMaxInactiveInterval() < MIN_SESSION_INACTIVITY_TIMER) {
-            req.getSession().setMaxInactiveInterval(MIN_SESSION_INACTIVITY_TIMER);
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+
+        initialize(pwmSession, configMode, configManagerBean);
+
+
+        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
+        if (processActionParam.length() > 0) {
+            Validator.validatePwmFormID(req);
+            if ("readSetting".equalsIgnoreCase(processActionParam)) {
+                this.readSetting(req,resp);
+                return;
+            } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
+                this.writeSetting(req);
+                return;
+            } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
+                if (doGenerateXml(req,resp)) {
+                    return;
+                }
+            } else if ("testLdapConnect".equalsIgnoreCase(processActionParam) && configMode != ConfigurationReader.MODE.RUNNING) {
+                doTestLdapConnect(req);
+            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != ConfigurationReader.MODE.RUNNING) {
+                doLockConfiguration(req);
+            } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
+                doFinishEditing(req);
+            } else if ("switchToEditMode".equalsIgnoreCase(processActionParam)) {
+                configManagerBean.setEditorMode(true);
+                LOGGER.debug(pwmSession,"switching to edit mode");
+            }
         }
 
-        final Configuration.MODE configMode = pwmSession.getConfig().getConfigMode();
+        forwardToJSP(req, resp);
+    }
+
+    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean)
+    {
+        if (configManagerBean.getInitialMode() == null || configMode != configManagerBean.getInitialMode()) {
+            LOGGER.debug(pwmSession,"initializing configuration bean");
+            configManagerBean.setInitialMode(configMode);
+            configManagerBean.setConfiguration(null);
+        }
 
         // first time setup
         switch (configMode) {
@@ -90,39 +126,14 @@ public class ConfigManagerServlet extends TopServlet {
                 configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
                 break;
         }
-
-        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
-        if (processActionParam.length() > 0) {
-            Validator.validatePwmFormID(req);
-            if ("readSetting".equalsIgnoreCase(processActionParam)) {
-                this.readSetting(req,resp);
-                return;
-            } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
-                this.writeSetting(req);
-                return;
-            } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
-                if (doGenerateXml(req,resp)) {
-                    return;
-                }
-            } else if ("testLdapConnect".equalsIgnoreCase(processActionParam) && configMode != Configuration.MODE.RUNNING) {
-                doTestLdapConnect(req);
-            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != Configuration.MODE.RUNNING) {
-                doLockConfiguration(req);
-            } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
-                doFinishEditing(req);
-            } else if ("switchToEditMode".equalsIgnoreCase(processActionParam)) {
-                configManagerBean.setEditorMode(true);
-                LOGGER.debug(pwmSession,"switching to edit mode");
-            }
-        }
-
-        forwardToJSP(req, resp);
     }
 
     private void readSetting(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws IOException, PwmException {
+    )
+            throws IOException, PwmException
+    {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
@@ -255,9 +266,9 @@ public class ConfigManagerServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final Configuration.MODE configMode = pwmSession.getConfig().getConfigMode();
+        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
-        if (configMode != Configuration.MODE.RUNNING) {
+        if (configMode != ConfigurationReader.MODE.RUNNING) {
             try {
                 saveConfiguration(pwmSession);
             } catch (PwmException e) {
@@ -309,7 +320,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            if (pwmSession.getConfig().getConfigMode() != Configuration.MODE.RUNNING) {
+            if (pwmSession.getContextManager().getConfigReader().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
                 final ContextManager contextManager = pwmSession.getContextManager();
                 contextManager.getConfigReader().saveConfiguration(storedConfiguration, pwmSession.getContextManager());
                 contextManager.reinitialize();
@@ -321,7 +332,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setConfiguration(null);
-        pwmSession.invalidate();
+        pwmSession.getHttpSession().invalidate();
     }
 
     private boolean doGenerateXml(
@@ -354,9 +365,9 @@ public class ConfigManagerServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final Configuration.MODE configMode = pwmSession.getConfig().getConfigMode();
+        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
-        if (configMode == Configuration.MODE.RUNNING) {
+        if (configMode == ConfigurationReader.MODE.RUNNING) {
             final String errorString = "Test functionality is only available on unconfigured server";
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
             return;
@@ -374,7 +385,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
 
-        final Configuration config = new Configuration(storedConfiguration,Configuration.MODE.CONFIGURATION);
+        final Configuration config = new Configuration(storedConfiguration);
 
         ChaiProvider chaiProvider = null;
         try {
@@ -384,6 +395,22 @@ public class ConfigManagerServlet extends TopServlet {
                     config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
                     PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
             chaiProvider.getDirectoryVendor();
+
+            final String contextlessRootSettingName = PwmSetting.LDAP_CONTEXTLESS_ROOT.getCategory().getLabel(Locale.getDefault()) + "-" + PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel(Locale.getDefault());
+
+            try {
+                final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT),chaiProvider);
+                if (!contextlessRootEntry.isValid()) {
+                    final String errorString = "setting '" + contextlessRootSettingName  + "' value does not appear to be correct";
+                    PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+                    return;
+                }
+            } catch (Exception e) {
+                final String errorString = "error verifying setting '" + contextlessRootSettingName  + "' " + e.getMessage();
+                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+                return;
+            }
+
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS));
         } catch (Exception e) {
             final String errorString = "error connecting to ldap server: " + e.getMessage();
@@ -412,7 +439,8 @@ public class ConfigManagerServlet extends TopServlet {
             servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
         } else {
             final Configuration config = PwmSession.getPwmSession(req).getConfig();
-            if (config == null || config.getConfigMode() != Configuration.MODE.RUNNING) {
+            final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getContextManager().getConfigReader().getConfigMode();
+            if (config == null || configMode != ConfigurationReader.MODE.RUNNING) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_EDITABLE).forward(req, resp);
             } else {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);

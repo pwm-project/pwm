@@ -271,7 +271,7 @@ public class PasswordUtility {
         pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
 
         // add the old password to the global history list (if the old password is known)
-        if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw()) {
+        if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
             pwmSession.getContextManager().getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 

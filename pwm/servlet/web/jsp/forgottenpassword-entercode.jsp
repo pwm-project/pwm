@@ -29,7 +29,7 @@
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/></jsp:include>
     <div id="centerbody">
-        <p>To verify your identity, a security code has been sent to you.  Please enter the security code here.</p>
+        <p><pwm:Display key="Display_RecoverEnterCode"/></p>
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
                 onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%  //check to see if there is an error
@@ -45,11 +45,11 @@
             <div id="buttonbar">
                 <input tabindex="3" type="submit" class="btn"
                        name="search"
-                       value="     Check Code     "
+                       value="     <pwm:Display key="Button_CheckCode"/>     "
                        id="submitBtn"/>
                 <input tabindex="4" type="reset" class="btn"
                        name="reset"
-                       value="     Reset     "/>
+                       value="     <pwm:Display key="Button_Reset"/>     "/>
                 <input type="hidden" id="processAction" name="processAction" value="forgottenCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>

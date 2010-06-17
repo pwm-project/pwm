@@ -77,7 +77,7 @@ public class ContextManager implements Serializable
 
     private transient ServletContext servletContext;
     private transient Configuration configuration;
-    private transient ConfigReader configReader;
+    private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
 
     private transient StatisticsManager statisticsManager;
@@ -241,8 +241,11 @@ public class ContextManager implements Serializable
         // initialize configuration
         try {
             final File configFile = figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
-            configReader = new ConfigReader(configFile);
+            configReader = new ConfigurationReader(configFile);
             configuration = configReader.getConfiguration();
+            if (configuration == null) {
+                return;
+            }
         } catch (Exception e) {
             //LOGGER.fatal("unable to load configuration file", e);
             LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
@@ -497,7 +500,10 @@ public class ContextManager implements Serializable
             getStatisticsManager().flush();
         }
 
-        taskMaster.cancel();
+        if (taskMaster != null) {
+            taskMaster.cancel();
+            taskMaster = null;
+        }
 
         if (wordlistManager != null) {
             wordlistManager.close();
@@ -514,9 +520,10 @@ public class ContextManager implements Serializable
             sharedHistoryManager = null;
         }
 
-        Helper.pause(1000);
-
-        this.getPwmDBLogger().close();
+        if (pwmDBLogger != null) {
+            pwmDBLogger.close();
+            pwmDBLogger = null;
+        }
 
         if (pwmDB != null) {
             try {
@@ -565,7 +572,7 @@ public class ContextManager implements Serializable
     public class DebugLogOutputter extends TimerTask {
         public void run()
         {
-            LOGGER.debug(logDebugInfo(activeSessions.size(), getStatisticsManager()));
+            LOGGER.trace(logDebugInfo(activeSessions.size(), getStatisticsManager()));
         }
     }
 
@@ -609,8 +616,9 @@ public class ContextManager implements Serializable
             // initialize the pwmDB
             try {
                 final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-                final String initString = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_INIT_STRING);
-                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initString);
+                final List<String> initStrings = contextManager.getConfig().readStringArraySetting(PwmSetting.PWMDB_INIT_STRING);
+                final Map<String,String> initParamers = Configuration.convertStringListToNameValuePair(initStrings,"=");
+                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }
@@ -705,7 +713,7 @@ public class ContextManager implements Serializable
         }
     }
 
-    public ConfigReader getConfigReader() {
+    public ConfigurationReader getConfigReader() {
         return this.configReader;
     }
 
@@ -713,7 +721,7 @@ public class ContextManager implements Serializable
         @Override
         public void run() {
             if (configReader != null) {
-                if (configReader.configHasChanged()) {
+                if (configReader.inputFileHasBeenModified()) {
                     reinitialize();
                 }
             }

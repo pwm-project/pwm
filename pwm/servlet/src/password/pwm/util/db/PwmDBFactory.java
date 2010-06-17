@@ -48,7 +48,7 @@ public class PwmDBFactory {
     public static synchronized PwmDB getInstance(
             final File dbDirectory,
             final String className,
-            final String initString
+            final Map<String,String> initParameters
     )
             throws Exception
     {
@@ -63,7 +63,7 @@ public class PwmDBFactory {
 
             db = new PwmDBAdaptor(dbProvider);
 
-            initInstance(dbProvider, dbDirectory, initString, theClass);
+            initInstance(dbProvider, dbDirectory, initParameters, theClass);
             final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
             LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()) + " at " + dbDirectory.toString());
         }
@@ -92,14 +92,14 @@ public class PwmDBFactory {
         return pwmDB;
     }
 
-    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final String initString, final String theClass)
+    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final Map<String,String> initParameters, final String theClass)
             throws Exception
     {
         try {
             if (dbFileLocation.mkdir()) {
                 LOGGER.trace("created directory at " + dbFileLocation.getAbsolutePath());
             }
-            pwmDBProvider.init(dbFileLocation, initString);
+            pwmDBProvider.init(dbFileLocation, initParameters);
         } catch (Exception e) {
             LOGGER.warn("error while initializing pwmDB instance: " + e.getMessage());
             throw e;

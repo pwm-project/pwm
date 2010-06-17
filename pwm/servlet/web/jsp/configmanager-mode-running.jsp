@@ -36,12 +36,14 @@
         <p>The configuration for this server is now finalized and locked.  If you wish to make configuration changes to this PWM installation, you can take any one
             of the following steps:</p>
         <ol>
-            <li>Delete the <i>PwmConfiguration.xml</i> file in the pwm servlet's <i>WEB-INF</i> directory.</li>
-            <li>Edit the <i>PwmConfiguration.xml</i> file property setting the property "configIsEditable" to "true".</li>
+            <li>Edit the <i>PwmConfiguration.xml</i> file property setting the property "configIsEditable" to "true".  After making this edit, you will be able
+            to edit the configuration from this interface.</li>
+            <li>Delete the <i>PwmConfiguration.xml</i> file in the pwm servlet's <i>WEB-INF</i> directory.  After deleting the file, you will be able
+            to edit the configuration from this interface.  All settings will be reset to their default.</li>
             <li>Edit the <i>PwmConfiguration.xml</i> settings directly.  It is not required to use the PwmConfiguration interface to modify the configuration file.</li>
         </ol>
         <hr/>
-        <p>For convenience, you can use the configuration editor to edit an in-memory configuration that you can then download.  The in-memory coniguration is initialized
+        <p>For convenience, you can use the configuration editor to edit an in-memory configuration that you can then download.  The in-memory configuration is initialized
         to default values, and any changes made are not saved to the running configuration.</p>
 
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
@@ -58,8 +60,7 @@
             <input type="hidden" name="processAction" value="generateXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Download the in memory configuration to an XML file.  Save the file to PWM's <span
-                style="font-style: italic;">WEB-INF </span> directory to change the configuration.</p>         
+        <p>Download the in memory configuration to an XML file.  Save the file to PWM's <span style="font-style: italic;">WEB-INF </span> directory to change the configuration.</p>         
     </div>
 </div>
 <%@ include file="footer.jsp" %>
