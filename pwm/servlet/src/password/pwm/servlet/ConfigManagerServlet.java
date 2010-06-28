@@ -305,7 +305,7 @@ public class ConfigManagerServlet extends TopServlet {
         LOGGER.debug(pwmSession,"switching to action mode");
     }
 
-    private void saveConfiguration(final PwmSession pwmSession)
+    static void saveConfiguration(final PwmSession pwmSession)
             throws PwmException
     {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
@@ -440,8 +440,10 @@ public class ConfigManagerServlet extends TopServlet {
         } else {
             final Configuration config = PwmSession.getPwmSession(req).getConfig();
             final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getContextManager().getConfigReader().getConfigMode();
-            if (config == null || configMode != ConfigurationReader.MODE.RUNNING) {
-                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_EDITABLE).forward(req, resp);
+            if (config == null || configMode == ConfigurationReader.MODE.NEW) {
+                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
+            } else if (configMode == ConfigurationReader.MODE.CONFIGURATION) {
+                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
             } else {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);
             }

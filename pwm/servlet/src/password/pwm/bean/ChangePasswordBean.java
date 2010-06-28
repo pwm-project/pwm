@@ -39,6 +39,7 @@ public class ChangePasswordBean implements Serializable {
     public static final int MAX_AGE_MS_NEW_PASSWORD = 30000;
     private String newPassword;
     private long newPasswordSetTime;
+    private boolean agreementPassed;
     private ErrorInformation passwordChangeError;
     private final Map<String, ChangePasswordServlet.PasswordCheckInfo> passwordTestCache = new LinkedHashMap<String, ChangePasswordServlet.PasswordCheckInfo>() {
         @Override
@@ -72,7 +73,15 @@ public class ChangePasswordBean implements Serializable {
         return passwordTestCache;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    public boolean isAgreementPassed() {
+        return agreementPassed;
+    }
+
+    public void setAgreementPassed(boolean agreementPassed) {
+        this.agreementPassed = agreementPassed;
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
 
     public void clearPassword()
     {

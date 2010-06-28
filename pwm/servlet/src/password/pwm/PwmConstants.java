@@ -54,7 +54,6 @@ public abstract class PwmConstants {
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
 
-    public static final String DEFAULT_LOG4JCONFIG_FILENAME = "log4jconfig.xml";
     public static final String DEFAULT_WORDLIST_DB_DIR = "pwm-db";
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
@@ -64,6 +63,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_ERROR = "jsp/error.jsp";
     public static final String URL_JSP_WAIT = "jsp/wait.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE = "jsp/changepassword.jsp";
+    public static final String URL_JSP_PASSWORD_AGREEMENT = "jsp/changepassword-agreement.jsp";
     public static final String URL_JSP_SETUP_RESPONSES = "jsp/setupresponses.jsp";
     public static final String URL_JSP_CONFIRM_RESPONSES = "jsp/setupresponses-confirm.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "jsp/forgottenpassword-search.jsp";
@@ -77,7 +77,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_WARN = "jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "jsp/captcha.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "jsp/configmanager-editor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_EDITABLE = "jsp/configmanager-mode-editable.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "jsp/configmanager-mode-new.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "jsp/configmanager-mode-configuration.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "jsp/configmanager-mode-running.jsp";
 
 

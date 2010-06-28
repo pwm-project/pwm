@@ -23,7 +23,9 @@
 
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <!--
-   This configuration file controls where and to what level PWM will output log messages
+   NOTICE: PWM DOES NOT USE THIS CONFIGURATION FILE BY DEFAULT!
+   You must edit the PWM Configuration to specify this file for the log4j configuration if you
+   would like to use this file to control the LOG4J system.
 -->
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
     <appender name="PWMstdout" class="org.apache.log4j.ConsoleAppender">

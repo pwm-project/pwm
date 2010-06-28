@@ -60,7 +60,7 @@
     </target>
 
     <target name="makeWAR" depends="compileCode,copyResources">
-        <war zipfile="${destination.war}" compress="false" webxml="${src.root}/web/WEB-INF/web.xml">
+        <war zipfile="${destination.war}" webxml="${src.root}/web/WEB-INF/web.xml">
             <zipfileset dir="${destination}/bin" prefix="WEB-INF/classes"/>
             <zipfileset dir="${src.root}/web"/>
         </war>

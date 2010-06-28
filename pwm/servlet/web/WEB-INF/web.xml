@@ -164,6 +164,10 @@
         <servlet-name>ConfigManagerServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ConfigUploadServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ConfigUploadServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/private/Login</url-pattern>
@@ -227,6 +231,10 @@
     <servlet-mapping>
         <servlet-name>ConfigManagerServlet</servlet-name>
         <url-pattern>/config/ConfigManager</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigUploadServlet</servlet-name>
+        <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>5</session-timeout>

@@ -64,6 +64,11 @@ public class EventManager implements ServletContextListener, HttpSessionListener
             contextManager.addPwmSession(pwmSession);
         }
 
+        // add a few grace seconds to the idle interval
+        if (httpSession.getMaxInactiveInterval() % 60 == 0) {
+            httpSession.setMaxInactiveInterval(httpSession.getMaxInactiveInterval() + 3);
+        }
+
         LOGGER.trace(pwmSession, "http session created");
     }
 

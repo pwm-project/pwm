@@ -169,11 +169,11 @@ public class SessionFilter implements Filter {
             final String configServletPathPrefix = req.getContextPath() + "/config/";
             final String requestedURL = req.getRequestURI();
 
-            // check if current request is actually for the login servlet url, if it is, just do nothing.
+            // check if current request is actually for the config url, if it is, just do nothing.
             if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
-                LOGGER.warn(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
+                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
-                Helper.forwardToErrorPage(req, resp, servletContext, false);
+                resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
                 return;
             }
         }

@@ -20,12 +20,13 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.TreeSet" %>
+<%@ page import="password.pwm.config.ConfigurationReader" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -34,6 +35,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <% final Set<String> DEFAULT_LOCALES = new TreeSet<String>(); for (final Locale l : Locale.getAvailableLocales()) DEFAULT_LOCALES.add(l.toString());%>
+<% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <body class="tundra">
 <link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
 <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
@@ -174,7 +176,13 @@
             <% } %>
         </div>
         <div style="text-align: center;">
-            <h2><a href="#" onclick="showWaitDialog('Updating Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Finished Editing</a></h2>
+            <h2>
+                <% if (configManagerBean.getInitialMode() == ConfigurationReader.MODE.RUNNING) { %>
+                <a href="#" onclick="showWaitDialog('Updating Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Finished Editing</a>
+                <% } else { %>
+                <a href="#" onclick="showWaitDialog('Saving Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Save Configuration</a>
+                <% } %>
+            </h2>
             <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing" enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="finishEditing"/>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>

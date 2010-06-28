@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -85,6 +86,9 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+
+
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("validate")) {
                 handleValidatePasswords(req,resp);
@@ -96,8 +100,10 @@ public class ChangePasswordServlet extends TopServlet {
                 this.handleChangeRequest(req, resp);
             } else if (processRequestParam.equalsIgnoreCase("doChange")) {      // wait page call-back
                 this.handleDoChangeRequest(req, resp);
+            } else if (processRequestParam.equalsIgnoreCase("agree")) {         // accept password change agreement
+                LOGGER.debug(pwmSession,"user accepted password change agreement");
+                cpb.setAgreementPassed(true);
             } else {
-                final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
                 if (cpb.getPasswordChangeError() != null) {
                     ssBean.setSessionError(cpb.getPasswordChangeError());
                     cpb.setPasswordChangeError(null);
@@ -402,7 +408,16 @@ public class ChangePasswordServlet extends TopServlet {
     )
             throws IOException, ServletException
     {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final String agreementMsg = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE,userLocale);
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+
+        if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
+            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
+        } else {
+            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
+        }
     }
 
     private enum MATCH_STATUS {

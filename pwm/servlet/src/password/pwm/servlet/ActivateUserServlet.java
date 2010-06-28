@@ -226,7 +226,7 @@ public class ActivateUserServlet extends TopServlet {
             LOGGER.debug(pwmSession, "found userDN: " + userDN);
             return ChaiFactory.createChaiUser(userDN, chaiProvider);
         } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error searching for activation user: " + pwmSession);
+            LOGGER.warn(pwmSession, "error searching for activation user: " + e.getMessage());
             return null;
         }
     }

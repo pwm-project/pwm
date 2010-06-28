@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public enum PwmSetting {
     // general settings
     APPLICATION_TILE(
-            "pwm.applicationTitle", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
+            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true),
     URL_LOGOUT(
@@ -54,6 +54,10 @@ public enum PwmSetting {
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false),
+    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.GENERAL, false),
+    PASSWORD_CHANGE_SUCCESS_MESSAGE(
+            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.GENERAL, false),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
 
@@ -214,6 +218,10 @@ public enum PwmSetting {
             "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
 
     // logger settings
+    EVENTS_JAVA_STDOUT_LEVEL(
+            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, true),
+    EVENTS_JAVA_LOG4JCONFIG_FILE(
+            "events.java.log4jconfigFile", Syntax.STRING, Category.LOGGING, false),
     EVENTS_PWMDB_MAX_EVENTS(
             "events.pwmDB.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
     EVENTS_PWMDB_MAX_AGE(

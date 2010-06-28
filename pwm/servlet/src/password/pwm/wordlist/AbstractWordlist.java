@@ -278,25 +278,11 @@ abstract class AbstractWordlist implements Wordlist {
 
     public int size()
     {
-        if (storedSize != 0) {
-            return storedSize;
-        }
-        return getDbSize(WORD_DB);
-    }
-
-    private int getDbSize(final PwmDB.DB db)
-    {
-        if (!wlStatus.isAvailable()) {
+        if (populator != null) {
             return 0;
         }
 
-        try {
-            return pwmDB.size(db);
-        } catch (Exception e) {
-            LOGGER.error("database error: " + e.getMessage());
-        }
-
-        return 0;
+        return storedSize;
     }
 
     public synchronized void close()

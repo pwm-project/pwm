@@ -225,7 +225,7 @@ public class StoredConfiguration implements Serializable {
         final Element pwmConfigElement = new Element("PwmConfiguration");
         pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
         pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
-        pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8.  Specifically, do not use Windows Notepad to save or edit this file."));
+        pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8 encoding."));
 
         { // write properties section
             final Element propertiesElement = new Element("properties");

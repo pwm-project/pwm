@@ -131,6 +131,10 @@ public class PwmLogEvent implements Serializable, Comparable {
         return message;
     }
 
+    public String getHtmlSafeMessage() {
+        return message.replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
     public String getSource() {
         return source;
     }
@@ -178,6 +182,28 @@ public class PwmLogEvent implements Serializable, Comparable {
         }
 
         return JSONObject.toJSONString(tempMap);
+    }
+
+    public String toLogString(final boolean htmlSafe) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.date);
+        sb.append(", ");
+        sb.append(this.level.toString().length() == 4 ? this.level + " " : this.level);
+        sb.append(", ");
+        sb.append(this.topic);
+        sb.append(", ");
+        if (this.getActor() != null && this.getActor().length() > 0) {
+            sb.append("{");
+            sb.append(this.getActor());
+            sb.append("} ");
+        }
+        sb.append(htmlSafe ? this.getHtmlSafeMessage() : this.message);
+        if (this.getSource() != null && this.getSource().length() > 0) {
+            sb.append(" [");
+            sb.append(this.getSource());
+            sb.append("]");
+        }
+        return sb.toString();
     }
 
     @Override

@@ -46,8 +46,10 @@ public class
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);
-                                                              
+
     private final static boolean IS_TRANSACTIONAL = true;
+    private final static int CLEANUP_TICKS = 2000;
+    private final static int CLEANUP_MS = 5 * 60 * 1000;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -59,7 +61,9 @@ public class
     private final Map<DB, DbIterator> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator>());
 
     private volatile boolean open = false;
-    private volatile boolean cleanupThreadActive = true;
+
+    private CleanupThread cleanupThread;
+    private int modifyTick = 0;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -92,6 +96,11 @@ public class
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(IS_TRANSACTIONAL);
+
+        //disable threads (handled with CleanupThread
+        environmentConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER,"false");
+        environmentConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER,"false");
+        environmentConfig.setConfigParam(EnvironmentConfig.ENV_RUN_IN_COMPRESSOR,"false");
 
         for (final String key : initProps.keySet()) {
             environmentConfig.setConfigParam(key,initProps.get(key));
@@ -135,12 +144,16 @@ public class
             cachedDatabases.clear();
             cachedMaps.clear();
 
+            while (System.currentTimeMillis() - startTime < 30 * 1000 && cleanupThread != null) {
+                Helper.pause(100);
+            }
+
             environment.close();
             final TimeDuration td = new TimeDuration(System.currentTimeMillis() - startTime);
             LOGGER.info("closed (" + td.asCompactString() + ")");
         } catch (DatabaseException e) {
             throw new PwmDBException(e);
-        }        
+        }
     }
 
     public boolean contains(final DB db, final String key)
@@ -186,7 +199,11 @@ public class
         }
 
         open = true;
-        initiateCleanup();
+
+        cleanupThread = new CleanupThread();
+        cleanupThread.setDaemon(true);
+        cleanupThread.setName("pwm-Berkeley_PwmDB cleaner");
+        cleanupThread.start();
     }
 
     public synchronized Iterator<TransactionItem> iterator(final DB db)
@@ -217,6 +234,7 @@ public class
             LOGGER.error("error during multiple-put: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
+        modifyTick += keyValueMap.size();
     }
 
     public boolean put(final DB db, final String key, final String value)
@@ -226,11 +244,13 @@ public class
 
         try {
             final StoredMap<String, String> transactionDB = cachedMaps.get(db);
+            modifyTick++;
             return null != transactionDB.put(key, value);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during put: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
+
     }
 
     public boolean remove(final DB db, final String key)
@@ -238,6 +258,7 @@ public class
     {
         preCheck();
         try {
+            modifyTick++;
             return cachedMaps.get(db).keySet().remove(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during remove: " + e.toString() );
@@ -256,6 +277,7 @@ public class
             LOGGER.error("error during removeAll: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
+        modifyTick += keys.size();
     }
 
     public synchronized void returnIterator(final DB db)
@@ -304,7 +326,7 @@ public class
             LOGGER.error("error during truncate: " + e.toString() );
             throw new PwmDBException(e.getCause());
         }
-        initiateCleanup();
+        modifyTick++;
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -339,6 +361,7 @@ public class
 
         public void remove() {
             innerIter.remove();
+            modifyTick++;
         }
     }
 
@@ -357,27 +380,37 @@ public class
         }
     }
 
-    private synchronized void initiateCleanup() {
-        if (cleanupThreadActive) {
-            return;
+
+    private class CleanupThread extends Thread {
+
+        private long lastCleanup = System.currentTimeMillis();
+
+        public void run() {
+            while (open) {
+                if (modifyTick > CLEANUP_TICKS) {
+                    cleanup();
+                    modifyTick = 0;
+                    lastCleanup = System.currentTimeMillis();
+                } else if (System.currentTimeMillis() - lastCleanup > CLEANUP_MS) {
+                    cleanup();
+                    modifyTick = 0;
+                    lastCleanup = System.currentTimeMillis();
+                }
+
+                Helper.pause(1000);
+            }
+
+            cleanupThread = null;
         }
 
-        cleanupThreadActive = true;
-        final Thread cleanupThread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    environment.checkpoint(null);
-                    environment.compress();
-                    environment.cleanLog();
-                } catch (Exception e) {
-                    // do nothing
-                }
-                cleanupThreadActive = false;
+        private synchronized void cleanup() {
+            try {
+                environment.checkpoint(null);
+                environment.cleanLog();
+                environment.compress();
+            } catch (Exception e) {
+                LOGGER.error("unexpected error during Berkeley pwmDB ");
             }
-        };
-        cleanupThread.setDaemon(true);
-        cleanupThread.setName("pwm-BerkeleyPwmDB cleaner");
-        cleanupThread.start();
+        }
     }
 }

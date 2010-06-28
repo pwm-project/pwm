@@ -216,7 +216,7 @@ public class PwmDBLogger {
         */
 
         //Helper.pause(10 * 1000);
-        //bulkAddEvents(50 * 1000 * 1000);
+        //bulkAddEvents( 5 * 1000 * 1000);
     }
 
     /**
@@ -267,7 +267,7 @@ public class PwmDBLogger {
         for(int i = 0; i < count; i++) {
             final StringBuilder description = new StringBuilder();
             description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
-            description.append(random.alphaNumericString(1024 * 8));
+            description.append(random.alphaNumericString(random.nextInt(1024)));
 
             final PwmLogEvent event = new PwmLogEvent(
                     new Date(),
@@ -500,7 +500,7 @@ public class PwmDBLogger {
             if (timeExceeded) {
                 debugMsg.append(" (maximum query time reached)");
             }
-            LOGGER.debug(pwmSession, debugMsg.toString());
+            LOGGER.trace(pwmSession, debugMsg.toString());
         }
 
         return new SearchResults(returnList, examinedPositions, searchTime);

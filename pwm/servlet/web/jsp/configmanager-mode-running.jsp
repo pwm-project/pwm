@@ -20,8 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.*" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -43,7 +41,7 @@
             <li>Edit the <i>PwmConfiguration.xml</i> settings directly.  It is not required to use the PwmConfiguration interface to modify the configuration file.</li>
         </ol>
         <hr/>
-        <p>For convenience, you can use the configuration editor to edit an in-memory configuration that you can then download.  The in-memory configuration is initialized
+        <p>For convenience, the configuration editor can now be used to edit an in-memory configuration that can then be downloaded.  The in-memory configuration is initialized
         to default values, and any changes made are not saved to the running configuration.</p>
 
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>

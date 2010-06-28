@@ -35,7 +35,6 @@ function initCountDownTimer(secondsRemaining)
     lastPingTime = new Date().getTime();
     resetIdleCounter();
     setInterval("pollActivity()",SETTING_LOOP_FREQUENCY); //poll scrolling
-    document.onmousemove=resetIdleCounter;
     document.onclick=resetIdleCounter;
     document.onkeydown=resetIdleCounter;
 }
@@ -136,7 +135,7 @@ function makeIdleDisplayString(amount)
     }
 
     // write number of seconds
-    if (mins < 2) {
+    if (mins < 5) {
         if (output.length > 0) {
             output += ", ";
         }

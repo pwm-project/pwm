@@ -3,22 +3,13 @@
 #-- The PWM schema is used to manage additional
 #-- password related attributes for users.
 #--
-#-- Last updated - 1/25/2008
 #--
-#------------------------------------------------------
-#-- Object ID Syntax
+#-- This LDIF handles both new and existing systems.
+#-- To update directories with a pre-existing pwm schema
+#-- import using a "continue after error" option.
 #--
-#-- ASN1 Object ID's Defined as Follows:
-#--    joint-iso-ccitt(2)
-#--    country(16)
-#--    us(840)
-#--    organization(1)
-#--    Novell(113719)
-#--    applications(1)
-#--    product (121 == iChain, 23 = brdsrvs)
-#--    type (4 == attribute, 6 == class)
-#--    sequence number(1..xxx)
-#------------------------------------------------------
+#--
+#-- Last updated - 6/13/2010
 #--
 
 #------------------------------------------------------
@@ -30,7 +21,7 @@ dn: cn=schema
 changetype: modify
 add: attributeTypes
 attributeTypes: (
-  pwmeventlog-oid
+  1.3.6.1.4.1.35015.1.2.1
   NAME 'pwmEventLog'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
  )
@@ -44,7 +35,7 @@ dn: cn=schema
 changetype: modify
 add: attributeTypes
 attributeTypes: (
-  pwmresponseset-oid
+  1.3.6.1.4.1.35015.1.2.2
   NAME 'pwmResponseSet'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
  )
@@ -58,7 +49,7 @@ dn: cn=schema
 changetype: modify
 add: attributeTypes
 attributeTypes: (
-  pwmlastpwdupdate-oid
+  1.3.6.1.4.1.35015.1.2.3
   NAME 'pwmLastPwdUpdate'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
  )
@@ -68,30 +59,82 @@ attributeTypes: (
 #-- Description:  Aux class
 #-- Req:          none
 #--
-#-- The add then delete/add takes care of cases where the schema is already extended
+#-- pwmUser aux class
 #--
 #------------------------------------------------------
 dn: cn=schema
 changetype: modify
 add: objectClasses
 objectClasses: (
-  pwmuser-oid
+  1.3.6.1.4.1.35015.1.2.4
   NAME 'pwmUser'
   AUXILIARY
   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet )
  )
 
+# The following section handles the add/delete operations neccessary to
+# update a pre-existing schema.
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  pwmeventlog-oid
+  NAME 'pwmEventLog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.1
+  NAME 'pwmEventLog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  pwmresponseset-oid
+  NAME 'pwmResponseSet'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.2
+  NAME 'pwmResponseSet'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  pwmlastpwdupdate-oid
+  NAME 'pwmLastPwdUpdate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.3
+  NAME 'pwmLastPwdUpdate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+ )
+
+
 dn: cn=schema
 changetype: modify
 delete: objectClasses
 objectClasses: (
-  pwmuser-oid
+  1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
  )
 -
 add: objectClasses
 objectClasses: (
-  pwmuser-oid
+  1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
   AUXILIARY
   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet )
