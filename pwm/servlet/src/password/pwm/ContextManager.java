@@ -26,10 +26,7 @@ import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
-import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.EmailItemBean;
@@ -160,11 +157,10 @@ public class ContextManager implements Serializable
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-            final ChaiConfiguration chaiConfig = Helper.createChaiConfiguration(this.getConfig(), proxyDN, proxyPW, PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
+            final int idleSeconds = this.getConfig().readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT);
 
             try {
-                proxyChaiProvider = ChaiProviderFactory.createProvider(chaiConfig);
+                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleSeconds * 1000);
             } catch (ChaiUnavailableException e) {
                 getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
                 setLastLdapFailure();

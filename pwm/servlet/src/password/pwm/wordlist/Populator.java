@@ -147,12 +147,8 @@ class Populator {
         final ZipReader zipFileReader = new ZipReader(wordlistFile);
         int counter = 0;
 
-        sleeper.reset();
-
         while (zipFileReader.nextLine() != null) {
             counter++;
-            sleeper.sleep();
-
             if (abortFlag) return -1;
         }
 

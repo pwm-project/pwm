@@ -68,6 +68,8 @@ public enum PwmSetting {
             "ldap.proxy.username", Syntax.STRING, Category.LDAP, true),
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
+    LDAP_PROXY_IDLE_TIMEOUT(
+            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true),
     LDAP_PROMISCUOUS_SSL(
             "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
     LDAP_CONTEXTLESS_ROOT(
@@ -315,10 +317,10 @@ public enum PwmSetting {
 
 
     // captcha
-    RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", Syntax.STRING, Category.CAPTCHA, false),
     RECAPTCHA_KEY_PUBLIC(
             "captcha.recaptcha.publicKey", Syntax.STRING, Category.CAPTCHA, false),
+    RECAPTCHA_KEY_PRIVATE(
+            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.CAPTCHA, false),
     CAPTCHA_SKIP_PARAM(
             "captcha.skip.param", Syntax.STRING, Category.CAPTCHA, false),
     CAPTCHA_SKIP_COOKIE(
