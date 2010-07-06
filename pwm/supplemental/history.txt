@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.4.4 developer build
+v1.5.0 (July 6, 2010) build 959
 ---
 ! Corrected a problem where XSS field inputs were not being properly validated and scrubbed
 ! Added form "nonce" validations to prevent certain types of XSS attacks
