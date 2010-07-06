@@ -53,18 +53,18 @@
             </select>
             <% } %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input tabindex="1" type="text" name="username" id="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
+            <input type="text" name="username" id="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input tabindex="2" type="password" name="password" id="password" class="inputfield" onkeypress="checkForCapsLock(event)"/>
+            <input type="password" name="password" id="password" class="inputfield" onkeypress="checkForCapsLock(event)"/>
             <div id="buttonbar">
                 <span>
                     <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
                 </span>
-                <input tabindex="3" type="submit" class="btn"
+                <input type="submit" class="btn"
                        name="button"
                        value="    <pwm:Display key="Button_Login"/>    "
                        id="submitBtn"/>
-                <input tabindex="4" type="reset" class="btn"
+                <input type="reset" class="btn"
                        name="reset"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="processAction" value="login">

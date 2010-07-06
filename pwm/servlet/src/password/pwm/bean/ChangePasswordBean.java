@@ -40,6 +40,8 @@ public class ChangePasswordBean implements Serializable {
     private String newPassword;
     private long newPasswordSetTime;
     private boolean agreementPassed;
+    private boolean currentPasswordRequired;
+
     private ErrorInformation passwordChangeError;
     private final Map<String, ChangePasswordServlet.PasswordCheckInfo> passwordTestCache = new LinkedHashMap<String, ChangePasswordServlet.PasswordCheckInfo>() {
         @Override
@@ -77,8 +79,24 @@ public class ChangePasswordBean implements Serializable {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(boolean agreementPassed) {
+    public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
+    }
+
+    public long getNewPasswordSetTime() {
+        return newPasswordSetTime;
+    }
+
+    public void setNewPasswordSetTime(long newPasswordSetTime) {
+        this.newPasswordSetTime = newPasswordSetTime;
+    }
+
+    public boolean isCurrentPasswordRequired() {
+        return currentPasswordRequired;
+    }
+
+    public void setCurrentPasswordRequired(final boolean currentPasswordRequired) {
+        this.currentPasswordRequired = currentPasswordRequired;
     }
 
     // -------------------------- OTHER METHODS --------------------------

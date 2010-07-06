@@ -21,6 +21,9 @@ v1.4.4 developer build
 + Added smtp advanced properties configuration setting
 + Added ldap advanced properties configuration setting
 + Added send email token functionality during forgotten password reset
++ Added config option for "agreement" text to be shown prior to password change.
++ Added config option for ldap proxy connection idle timeout
++ Added option to require current password on change password screen
 
 - Replaced vertical strength meter with horizontal strength meter with better CSS degradation
 - Fixed issue with caps lock warning on IE browsers (issue #3)
@@ -31,6 +34,7 @@ v1.4.4 developer build
 - Removed "aggressiveUrlParsing" setting, values for logoutURL/forwardURL now read url encoded values properly
 - Refactored idle counter javascript to be more efficient
 - Changed default location of pwmDB from META-INF to WEB-INF
+- Removed tabindex html attributes to allow proper tab behavior
 
 
 

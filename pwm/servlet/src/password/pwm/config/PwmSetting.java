@@ -50,6 +50,8 @@ public enum PwmSetting {
             "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_SYNC_MAX_WAIT_TIME(
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
+    PASSWORD_REQUIRE_CURRENT(
+            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
@@ -68,8 +70,6 @@ public enum PwmSetting {
             "ldap.proxy.username", Syntax.STRING, Category.LDAP, true),
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
-    LDAP_PROXY_IDLE_TIMEOUT(
-            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true),
     LDAP_PROMISCUOUS_SSL(
             "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
     LDAP_CONTEXTLESS_ROOT(
@@ -84,10 +84,12 @@ public enum PwmSetting {
             "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false),
     QUERY_MATCH_CHANGE_PASSWORD(
             "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true),
-    LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true),
+    LDAP_NAMING_ATTRIBUTE(
+            "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true),
+    LDAP_PROXY_IDLE_TIMEOUT(
+            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true),
 
     // email settings
     EMAIL_SERVER_ADDRESS(

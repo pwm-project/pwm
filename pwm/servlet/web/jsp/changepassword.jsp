@@ -27,7 +27,7 @@
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler(); startupChangePasswordPage(); getObject('password1').focus();">
+<body onload="pwmPageLoadHandler(); startupChangePasswordPage();">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: false"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">
@@ -67,10 +67,21 @@
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button');" name="changePassword">
 
             <table style="border:0">
+                <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
+                <tr>
+                    <td style="border:0;" width="5%">
+                        <h2><label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label></h2>
+                        <input type="password" name="currentPassword" id="currentPassword" class="inputfield"/>
+                    </td>
+                    <td style="border:0;" width="95%">
+                        &nbsp;
+                    </td>
+                </tr>
+                <% } %>
                 <tr>
                     <td style="border:0;" width="5%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
-                        <input tabindex="1" type="password" name="password1" id="password1" class="inputfield"/>
+                        <input type="password" name="password1" id="password1" class="inputfield"/>
                     </td>
                     <td style="border:0;" width="95%">
                         <%-- strength-meter [not shown initially, enabled by javascript; see also changepassword.js:markStrength() --%>
@@ -85,7 +96,7 @@
                 <tr>
                     <td style="border:0;">
                         <h2><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h2>
-                        <input tabindex="2" type="password" name="password2" id="password2" class="inputfield"/>
+                        <input type="password" name="password2" id="password2" class="inputfield"/>
                     </td>
                     <td style="border:0;">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
@@ -102,10 +113,10 @@
                     <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
                 </span>
                 <input type="hidden" name="processAction" value="change"/>
-                <input tabindex="3" type="submit" name="change" class="btn"
+                <input type="submit" name="change" class="btn"
                        id="password_button"
                        value="    <pwm:Display key="Button_ChangePassword"/>    "/>
-                <input tabindex="4" type="reset" name="reset" class="btn"
+                <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "
                        onclick="clearForm(); document.forms.changePassword.password1.focus();"/>
                 <input type="hidden" name="hideButton" class="btn"

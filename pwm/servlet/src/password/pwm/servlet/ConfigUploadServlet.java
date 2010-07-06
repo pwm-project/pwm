@@ -54,21 +54,24 @@ public class ConfigUploadServlet extends TopServlet {
 
         if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
             LOGGER.warn(pwmSession, "cannot upload config while in RUNNING config mode");
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "cannot upload config while in RUNNING config mode", "cannot upload config while in RUNNING config mode"));
+            ConfigManagerServlet.forwardToJSP(req,resp);
             return;
         }
-        
+
         boolean success = false;
         if (ServletFileUpload.isMultipartContent(req)) {
             final String uploadedFile = getUploadedFile(req);
             if (uploadedFile != null && uploadedFile.length() > 0) {
                 try {
-                final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
-                if (storedConfig != null) {
-                    final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
-                    configManagerBean.setConfiguration(storedConfig);
-                    LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
-                    success = true;
-                }
+                    final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
+                    if (storedConfig != null) {
+                        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+                        storedConfig.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
+                        configManagerBean.setConfiguration(storedConfig);
+                        LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
+                        success = true;
+                    }
                 } catch (Exception e) {
                     pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", e.getMessage()));
                     LOGGER.error(pwmSession, "error reading config input file: " + e.getMessage());
@@ -86,8 +89,7 @@ public class ConfigUploadServlet extends TopServlet {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_SUCCESS,"successfully imported config file"));
             ConfigManagerServlet.saveConfiguration(pwmSession);
         }
-
-        
+        ConfigManagerServlet.forwardToJSP(req,resp);
     }
 
     private String getUploadedFile(

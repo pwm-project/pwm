@@ -59,14 +59,14 @@
         <div id="buttonbar">
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded">
-                <input tabindex="2" type="submit" name="change_btn" class="btn"
+                <input type="submit" name="change_btn" class="btn"
                        value="    « <pwm:Display key="Button_ChangeResponses"/> «    "/>
                 <input type="hidden" name="processAction" value="changeResponses"/>
             </form>
             <br/>
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded">
-                <input tabindex="1" type="submit" name="confirm_btn" class="btn"
+                <input type="submit" name="confirm_btn" class="btn"
                        value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

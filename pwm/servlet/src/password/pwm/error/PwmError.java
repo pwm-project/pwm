@@ -109,6 +109,7 @@ public enum PwmError {
     ERROR_MISSING_NAMING_ATTR(          "Error_MissingNamingAttr",          5035, null),
     ERROR_TOKEN_MISSING_CONTACT(        "Error_TokenMissingContact",        5036, null),
     ERROR_TOKEN_INCORRECT(              "Error_TokenIncorrect",             5037, null),
+    ERROR_BAD_CURRENT_PASSWORD(         "Error_BadCurrentPassword",         5038, null),
 
     ERROR_FIELD_REQUIRED(               "Error_FieldRequired",              5100, null),
     ERROR_FIELD_NOT_A_NUMBER(           "Error_FieldNotANumber",            5101, null),

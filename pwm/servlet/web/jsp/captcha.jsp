@@ -49,10 +49,7 @@
             <% final String userLocale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale().getLanguage(); %>
             <% final String reCaptchaURL = request.isSecure() ? "https://api-secure.recaptcha.net" : "http://api.recaptcha.net"; %>
             <script type="text/javascript">
-                var RecaptchaOptions = {
-                    theme : 'clean',
-                    tabindex : 2
-                };
+                var RecaptchaOptions = { theme : 'clean' };
             </script>
             <script type="text/javascript"
                src="<%=reCaptchaURL%>/challenge?k=<%=reCaptchaPublicKey%>&lang=<%=userLocale%>">
@@ -64,10 +61,10 @@
             <%-- end reCaptcha section --%>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="doVerify"/>
-                <input tabindex="3" type="submit" name="verify" class="btn"
+                <input type="submit" name="verify" class="btn"
                        id="verify_button"
                        value="    <pwm:Display key="Button_Verify"/>    "/>
-                <input tabindex="4" type="reset" name="reset" class="btn"
+                <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "
                        />
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -62,12 +62,12 @@ div.progress-container > div { background-color: #ffffff; height: 10px; }
 
 .clear { clear:both; }
 
-.msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px;}
-.msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px;}
-.msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px;}
+.msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px}
+.msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px}
+.msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px}
 
 #footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
 #footer .idle_status { color: #333333; }
 
-#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; font-variant:small-caps; margin-bottom: 5px; background-color:#d20734}
+#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; font-variant:small-caps; margin-bottom: 5px; background-color:#d20734; border-radius:3px}
 

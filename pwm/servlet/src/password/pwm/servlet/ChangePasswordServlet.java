@@ -71,6 +71,7 @@ public class ChangePasswordServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
 
@@ -80,13 +81,18 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_REQUIRE_CURRENT)) {
+            if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw()) {
+                cpb.setCurrentPasswordRequired(true);
+            }
+        }
+
         if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
-        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
 
         if (processRequestParam != null) {
@@ -303,11 +309,38 @@ public class ChangePasswordServlet extends TopServlet {
         //Fetch the required managers/beans
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final ContextManager theManager = ContextManager.getContextManager(this.getServletContext());
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         Validator.validatePwmFormID(req);
+        final String currentPassword = Validator.readStringFromRequest(req, "currentPassword", DEFAULT_INPUT_LENGTH);
         final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
         final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
+
+        // check the current password
+        if (cpb.isCurrentPasswordRequired() && pwmSession.getUserInfoBean().getUserCurrentPassword() != null) {
+            if (currentPassword == null || currentPassword.length() < 1) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
+                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is missing");
+                this.forwardToJSP(req, resp);
+                return;
+            }
+
+            final boolean caseSensitive = Boolean.parseBoolean(pwmSession.getUserInfoBean().getPasswordPolicy().getValue(PwmPasswordRule.CaseSensitive));
+            final boolean passed;
+            if (caseSensitive) {
+                passed = pwmSession.getUserInfoBean().getUserCurrentPassword().equals(currentPassword);
+            } else {
+                passed = pwmSession.getUserInfoBean().getUserCurrentPassword().equalsIgnoreCase(currentPassword);
+            }
+
+            if (!passed) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
+                pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
+                this.forwardToJSP(req, resp);
+                return;
+            }
+        }
 
         // check the password meets the requirements
         {
@@ -330,7 +363,6 @@ public class ChangePasswordServlet extends TopServlet {
 
         // password accepted, setup change password
         {
-            final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
             cpb.setNewPassword(password1);
             LOGGER.trace(pwmSession,"wrote password to changePasswordBean");
 

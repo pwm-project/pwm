@@ -40,14 +40,14 @@
             </span>
             <% } %>
             <h2><label for="code">Code</label></h2>
-            <input tabindex="1" type="text" id="code" name="code" class="inputfield" />
+            <input type="text" id="code" name="code" class="inputfield" />
 
             <div id="buttonbar">
-                <input tabindex="3" type="submit" class="btn"
+                <input type="submit" class="btn"
                        name="search"
                        value="     <pwm:Display key="Button_CheckCode"/>     "
                        id="submitBtn"/>
-                <input tabindex="4" type="reset" class="btn"
+                <input type="reset" class="btn"
                        name="reset"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
                 <input type="hidden" id="processAction" name="processAction" value="forgottenCode"/>

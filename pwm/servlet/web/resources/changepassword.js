@@ -38,7 +38,7 @@ var validationInProgress = false;
 function validatePasswords()
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
-        clearForm();
+        updateDisplay(null);
         return;
     }
 
@@ -87,16 +87,27 @@ function validatePasswords()
 }
 
 function makeValidationKey() {
-    return {
+    var validationKey = {
         password1:getObject("password1").value,
         password2:getObject("password2").value,
         cacheKey: getObject("password1").value + getObject("password2").value
     };
 
+    if (getObject("currentPassword") != null) {
+        validationKey.currentPassword = getObject("currentPassword").value;
+        validationKey.cacheKey = getObject("password1").value + getObject("password2").value + getObject("currentPassword").value;
+    }
+
+    return validationKey;
 }
 
-function updateDisplay(resultInfo)
-{
+function updateDisplay(resultInfo) {
+    if (resultInfo == null) {
+        clearError('\u00A0');
+        markStrength(0);
+        return;
+    }
+
     var message = resultInfo["message"];
 
     if (resultInfo["version"] != "2") {
@@ -292,10 +303,11 @@ function handleRandomResponse(resultInfo)
 function clearForm() {
     getObject("password1").value = "";
     getObject("password2").value = "";
+    if (getObject("currentPassword") != null) getObject("currentPassword").value = "";
     clearError('\u00A0'); //&nbsp;
     markConfirmationCheck("EMPTY");
     markStrength(0);
-    setTimeout( function() { getObject("password1").focus(); }, 10); // hack for IE
+    setInputFocus();
 }
 
 function startupChangePasswordPage()
@@ -329,8 +341,6 @@ function startupChangePasswordPage()
         autoGenPasswordElement.style.visibility = 'visible';
     }
 
-//    validatePasswords();
-
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     window.onbeforeunload = function() {
         if (dirtyPageLeaveFlag) {
@@ -340,4 +350,16 @@ function startupChangePasswordPage()
     };
 
     dirtyPageLeaveFlag = true;
+
+    setInputFocus();
+}
+
+function setInputFocus() {
+    var currentPassword = getObject('currentPassword');
+    if (currentPassword != null) {
+        setTimeout(function() { currentPassword.focus(); },10);
+    } else {
+        var password1 = getObject('password1');
+        setTimeout(function() { password1.focus(); },10);
+    }
 }

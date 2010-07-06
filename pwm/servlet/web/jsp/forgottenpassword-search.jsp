@@ -45,24 +45,24 @@
             <%  //check to see if any locations are configured.
                 if (!Configuration.convertStringListToNameValuePair(PwmSession.getPwmSession(session).getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS),"=").isEmpty()) {
             %>
-            <h2><pwm:Display key="Field_Location"/></h2>
+            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
             <select name="context">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
 
-            <h2><pwm:Display key="Field_Username"/></h2>
-            <input tabindex="1" type="text" id="username" name="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
+            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
+            <input type="text" id="username" name="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
 
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"
                        value="search"/>
-                <input tabindex="3" type="submit" class="btn"
+                <input type="submit" class="btn"
                        name="search"
                        value="     <pwm:Display key="Button_Search"/>     "
                        id="submitBtn"/>
-                <input tabindex="4" type="reset" class="btn"
+                <input type="reset" class="btn"
                        name="reset"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

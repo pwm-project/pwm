@@ -133,6 +133,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES));
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
             this.forwardToSearchJSP(req, resp);
+            return;
         }
 
         // process for token-enabled recovery

@@ -33,7 +33,6 @@
 <% final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession()); %>
 <% final ForgottenPasswordBean recoverBean = PwmSession.getForgottenPasswordBean(request); %>
 <% final Map<String, FormConfiguration> requiredAttrParams = Configuration.convertMapToFormConfiguration(PwmSession.getPwmSession(request).getConfig().readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale())); %>
-<% int tabIndex = 0; %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <%--
@@ -61,7 +60,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             %>
             <h2><label for="attribute-<%= paramConfig.getAttributeName()%>"><%= paramConfig.getLabel() %></label></h2>
             <input type="password" name="<%= paramConfig.getAttributeName()%>" class="inputfield" maxlength="255"
-                   tabindex="<%=++tabIndex%>" id="attribute-<%= paramConfig.getAttributeName()%>"
+                   id="attribute-<%= paramConfig.getAttributeName()%>"
                    value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getAttributeName(),"") %>"/>
             <% } %>
 
@@ -72,18 +71,18 @@ this is handled this way so on browsers where hiding fields is not possible, the
             %>
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %></label></h2>
             <input type="password" name="PwmResponse_R_<%= counter %>" class="inputfield" maxlength="255"
-                   tabindex="<%=++tabIndex%>" id="PwmResponse_R_<%=counter%>"
+                   id="PwmResponse_R_<%=counter%>"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + counter,"") %>"/>
             <% } %>
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="checkResponses"/>
-                <input type="submit" name="checkResponses" tabindex="<%=++tabIndex%>" class="btn"
+                <input type="submit" name="checkResponses" class="btn"
                        value="     <pwm:Display key="Button_RecoverPassword"/>     "
                        id="submitBtn"/>
-                <input type="reset" name="reset" tabindex="<%=++tabIndex%>" class="btn"
+                <input type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
-                <input type="hidden" name="hideButton" tabindex="<%=++tabIndex%>" class="btn"
+                <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

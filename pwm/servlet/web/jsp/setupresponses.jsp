@@ -33,7 +33,6 @@
     final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession());
     final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
-    int tabIndexer = 0;
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
@@ -72,13 +71,13 @@
             <label for="PwmResponse_R_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
-                   tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+                   onkeyup="validateResponses();"/>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"") %>"
-                       tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+                       onkeyup="validateResponses();"/>
             </p>
             <% } %>
             <% } %>
@@ -88,7 +87,7 @@
                     for (int i = 0; i < challengeSet.getMinRandomRequired(); i++) {
             %>
             <h2>
-                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" tabindex="<%=++tabIndexer%>" id="PwmResponse_Q_Random_<%=i%>">
+                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" id="PwmResponse_Q_Random_<%=i%>">
                     <option value=""><pwm:Display key="Field_Option_Select"/></option>
                     <option value="">───────────────</option>
                     <%
@@ -106,7 +105,7 @@
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_Random_<%=i%>" class="inputfield" maxlength="255" type="text" id="PwmResponse_R_Random_<%=i%>"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_Random_" + i,"") %>"
-                       tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+                       onkeyup="validateResponses();"/>
             </p>
             <% } %>
             <% } else { %>
@@ -125,13 +124,13 @@
             <pwm:Display key="Field_User_Supplied_Question"/>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
-                   tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+                   onkeyup="validateResponses();"/>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"") %>"
-                       tabindex="<%=++tabIndexer%>" onkeyup="validateResponses();"/>
+                       onkeyup="validateResponses();"/>
             </p>
             <% } %>
             <% } %>
@@ -143,9 +142,9 @@
                     <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
                 </span>
                 <input type="hidden" name="processAction" value="setResponses"/>
-                <input tabindex="<%=++tabIndexer%>" type="submit" name="setResponses" class="btn" id="setresponses_button"
+                <input type="submit" name="setResponses" class="btn" id="setresponses_button"
                        value="    <pwm:Display key="Button_SetResponses"/>    "/>
-                <input tabindex="<%=++tabIndexer%>" type="reset" name="reset" class="btn"
+                <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "

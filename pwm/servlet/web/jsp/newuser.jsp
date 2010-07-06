@@ -46,10 +46,10 @@
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
-                <input tabindex="3" type="submit" name="Create" class="btn"
+                <input type="submit" name="Create" class="btn"
                        value="     <pwm:Display key="Button_Create"/>     "
                        id="submitBtn"/>
-                <input tabindex="4" type="reset" name="reset" class="btn"
+                <input type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>

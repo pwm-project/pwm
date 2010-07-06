@@ -71,7 +71,7 @@ public class ContextManager implements Serializable
 
     private String instanceID = DEFAULT_INSTANCE_ID;
 
-    private final transient Set<PwmSession> activeSessions = Collections.synchronizedSet(new WeakHashMap<PwmSession,PwmSession>().keySet());
+    private final transient Map<PwmSession,Object> activeSessions = new WeakHashMap<PwmSession,Object>();
 
     private final IntruderManager intruderManager = new IntruderManager(this);
 
@@ -151,8 +151,7 @@ public class ContextManager implements Serializable
     private void openProxyChaiProvider() throws ChaiUnavailableException {
         if (proxyChaiProvider == null) {
             final StringBuilder debugLogText = new StringBuilder();
-            debugLogText.append("opening new ldap proxy connection");
-            LOGGER.trace(debugLogText.toString());
+            debugLogText.append("opening new ldap proxy connection"); LOGGER.trace(debugLogText.toString());
 
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -217,7 +216,7 @@ public class ContextManager implements Serializable
 
     public Set<PwmSession> getPwmSessions()
     {
-        return Collections.unmodifiableSet(activeSessions);
+        return Collections.unmodifiableSet(activeSessions.keySet());
     }
 
     void initialize(final ServletContext servletContext)
@@ -547,8 +546,10 @@ public class ContextManager implements Serializable
 
     public void addPwmSession(final PwmSession pwmSession) {
         try {
-            activeSessions.add(pwmSession);
-        } catch (Exception e) { /* */ }
+            activeSessions.put(pwmSession,new Object());
+        } catch (Exception e) {
+            LOGGER.trace("error adding new session to list of known sessions: " + e.getMessage());
+        }
     }
 
     public Date getStartupTime() {
@@ -571,22 +572,22 @@ public class DebugLogOutputter extends TimerTask {
 public class SessionWatcherTask extends TimerTask {
     public void run()
     {
-        final Set<PwmSession> copiedMap = new HashSet<PwmSession>();
+        final Map<PwmSession,Object> copiedMap = new HashMap<PwmSession,Object>();
 
         synchronized (activeSessions) {
-            copiedMap.addAll(activeSessions);
+            copiedMap.putAll(activeSessions);
         }
 
         final Set<PwmSession> deadSessions = new HashSet<PwmSession>();
 
-        for (final PwmSession pwmSession : copiedMap) {
+        for (final PwmSession pwmSession : copiedMap.keySet()) {
             if (!pwmSession.isValid()) {
                 deadSessions.add(pwmSession);
             }
         }
 
         synchronized (activeSessions) {
-            activeSessions.removeAll(deadSessions);
+            activeSessions.keySet().removeAll(deadSessions);
         }
     }
 }
