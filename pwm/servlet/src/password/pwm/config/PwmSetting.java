@@ -233,7 +233,7 @@ public enum PwmSetting {
     EVENTS_PWMDB_LOG_LEVEL(
             "events.pwmDB.logLevel", Syntax.STRING, Category.LOGGING, true),
     EVENTS_LDAP_ATTRIBUTE(
-            "events.ldap.attribute", Syntax.STRING, Category.LOGGING, true),
+            "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false),
     EVENTS_LDAP_MAX_EVENTS(
             "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
 
