@@ -305,8 +305,8 @@ public class ActivateUserServlet extends TopServlet {
 
         final String toAddress = userInfoBean.getUserEmailAddress();
 
-        if (toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send activation email for '" + userInfoBean.getUserDN() + "' no email configured");
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "skipping send activation email for '" + userInfoBean.getUserDN() + "' no email configured");
             return;
         }
 
