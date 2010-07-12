@@ -286,7 +286,7 @@ public class CommandServlet extends TopServlet {
             }
 
             //check if we force response configuration, and user requires it.
-            if (uiBean.isRequiresResponseConfig() && (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLANGE_FORCE_SETUP))) {
+            if (uiBean.isRequiresResponseConfig() && (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirectiong to setupresponses page");
                 final String setupResponsesURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
 

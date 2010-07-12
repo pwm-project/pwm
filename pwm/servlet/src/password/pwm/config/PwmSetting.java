@@ -238,7 +238,7 @@ public enum PwmSetting {
             "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
 
     // recovery settings
-    CHALLANGE_FORCE_SETUP(
+    CHALLENGE_FORCE_SETUP(
             "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true),
