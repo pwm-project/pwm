@@ -6,6 +6,12 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+
+v1.5.1 -- devbulds
+---
+- Fixed bug where forgotten password recovery would fail when no required attributes were configured
+- Fixed bug where forgotten password recovery would fail when DirectoryServer389 server was used
+
 v1.5.0 (July 6, 2010) build 959
 ---
 ! Corrected a problem where XSS field inputs were not being properly validated and scrubbed

@@ -1,3 +1,4 @@
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -41,6 +42,7 @@
         <p>Welcome to the PWM ConfigManager.  PWM is in configuration mode, which means you can make changes to the running configuration
         directly through this page.  Changes made in the configuration editor will be saved immediately, and PWM will automatically restart to have changes
         take effect.</p>
+        <p>The current PWM configuration was loaded at <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>.</p>
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
@@ -68,7 +70,7 @@
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <input type="file" class="btn" name="uploadFile" size="50"/>
-            <input type="submit" class="btn" name="uploadSubmit" value="Upload" onclick="document.forms['uploadXml'].submit();"/>
+            <input type="submit" class="btn" name="uploadSubmit" value="   Upload   " onclick="document.forms['uploadXml'].submit();"/>
         </form>
         <p>Upload an existing configuration.  The uploaded file will be saved as the PWM configuration.</p>
         <h2><a href="#" onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); document.forms['lockConfiguration'].submit();}">Finalize Configuration</a></h2>

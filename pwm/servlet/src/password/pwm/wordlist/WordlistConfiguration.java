@@ -22,25 +22,29 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
+import java.io.File;
 
+public class WordlistConfiguration {
+    final private File wordlistFile;
+    final private int loadFactor;
+    final private boolean caseSensitive;
 
-public interface Wordlist {
+    public WordlistConfiguration(final File wordlistFile, final int loadFactor, final boolean caseSensitive) {
+        this.wordlistFile = wordlistFile;
+        this.loadFactor = loadFactor;
+        this.caseSensitive = caseSensitive;
+    }
 
-    static final String KEY_STATUS = "STATUS";
-    static final String KEY_LASTLINE = "LASTLINE";
-    static final String KEY_VERSION = "VERSION";
-    static final String KEY_CHECKSUM = "CHECKSUM";
-    static final String KEY_ELAPSEDSECONDS = "RUNTIME";
-    static final String KEY_SIZE = "SIZE";
+    public File getWordlistFile() {
+        return wordlistFile;
+    }
 
-    // string used as db version checksum, if different then value in db, db will be cleared.
-    static final String VALUE_VERSION = "pwm-wordlist-db-10-a4" + "_" + PwmConstants.BUILD_NUMBER + "_" + PwmConstants.PWM_VERSION;
+    public int getLoadFactor() {
+        return loadFactor;
+    }
 
-    public boolean containsWord(final PwmSession pwmSession, final String word);
+    public boolean isCaseSensitive() {
+        return caseSensitive;
+    }
 
-    WordlistStatus getStatus();
-
-    int size();
 }

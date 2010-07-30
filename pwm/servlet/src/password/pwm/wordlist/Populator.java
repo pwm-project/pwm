@@ -103,7 +103,7 @@ class Populator {
         this.wordlistDB = rootWordlist.WORD_DB;
         this.wordlistMetaDB = rootWordlist.META_DB;
         this.sleeper = sleeper;
-        this.caseSensitive = rootWordlist.caseSensitive;
+        this.caseSensitive = rootWordlist.wordlistConfiguration.isCaseSensitive();
         this.DEBUG_LABEL = rootWordlist.DEBUG_LABEL;
         this.rootWordlist = rootWordlist;
 
@@ -271,16 +271,16 @@ class Populator {
             return;
         }
 
-        if (line.length() > MAX_LINE_LENGTH) {
-            line = line.substring(0, MAX_LINE_LENGTH);
-        }
-
         if (!caseSensitive) line = line.toLowerCase();
 
-        final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
+        if (line.length() > MAX_LINE_LENGTH) {
+            line = line.substring(0,MAX_LINE_LENGTH);
+        }
 
-        // add word to buffered word list
-        bufferedWords.putAll(wordTxn);
+        if (!rootWordlist.containsWord(null,line)) {
+            final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
+            bufferedWords.putAll(wordTxn);
+        }
 
         loopLines++;
     }
@@ -391,4 +391,5 @@ class Populator {
             startTime = startTime - (seconds * 1000);
         }
     }
+
 }

@@ -33,16 +33,14 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 abstract class AbstractWordlist implements Wordlist {
     protected PwmDB.DB META_DB = null;
     protected PwmDB.DB WORD_DB = null;
 
-    protected boolean caseSensitive = false;
-    protected int loadFactor = 0;
-
-    protected File wordlistFile = null;
+    protected WordlistConfiguration wordlistConfiguration;
 
     protected volatile WordlistStatus wlStatus = WordlistStatus.CLOSED;
     protected PwmDB pwmDB;
@@ -57,16 +55,12 @@ abstract class AbstractWordlist implements Wordlist {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     protected AbstractWordlist(
-            final File wordlistFile,
-            final PwmDB pwmDB,
-            final int loadFactor,
-            final boolean caseSensitive
+            final WordlistConfiguration wordlistConfiguration,
+            final PwmDB pwmDB
     )
     {
-        this.caseSensitive = caseSensitive;
-        this.wordlistFile = wordlistFile;
+        this.wordlistConfiguration = wordlistConfiguration;
         this.pwmDB = pwmDB;
-        this.loadFactor = loadFactor;
     }
 
     protected void init()
@@ -80,7 +74,7 @@ abstract class AbstractWordlist implements Wordlist {
             return;
         }
 
-        if (wordlistFile == null) {
+        if (wordlistConfiguration.getWordlistFile() == null) {
             LOGGER.warn("wordlist file is not specified, " + DEBUG_LABEL + " will remain closed");
             try {
                 resetDB("-1");
@@ -91,8 +85,8 @@ abstract class AbstractWordlist implements Wordlist {
             return;
         }
 
-        if (!wordlistFile.exists()) {
-            LOGGER.warn("wordlist file \"" + wordlistFile.getAbsolutePath() + "\" does not exist, " + DEBUG_LABEL + "will remain closed");
+        if (!wordlistConfiguration.getWordlistFile().exists()) {
+            LOGGER.warn("wordlist file \"" + wordlistConfiguration.getWordlistFile().getAbsolutePath() + "\" does not exist, " + DEBUG_LABEL + "will remain closed");
             close();
             return;
         }
@@ -136,24 +130,31 @@ abstract class AbstractWordlist implements Wordlist {
 
         String word = input.trim();
 
-        if (!caseSensitive) {
+        if (!wordlistConfiguration.isCaseSensitive()) {
             word = word.toLowerCase();
         }
 
         return word.length() > 0 ? word : null;
     }
 
-    protected void checkPopulation()
-            throws Exception
+    protected String makeChecksumString(final File wordlistFile)
+            throws IOException
     {
-        LOGGER.trace("calculating checksum of " + wordlistFile.getAbsolutePath());
         final StringBuilder checksumString = new StringBuilder();
         checksumString.append("checksum=").append(Helper.md5sum(wordlistFile));
         checksumString.append(",length=").append(wordlistFile.length());
-        checksumString.append(",caseSensitive=").append(caseSensitive);
-        LOGGER.trace("checksum of " + wordlistFile.getAbsolutePath() + " complete, result: " + checksumString);
+        checksumString.append(",caseSensitive=").append(wordlistConfiguration.isCaseSensitive());
+        return checksumString.toString();
+    }
 
-        final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString.toString());
+    protected void checkPopulation()
+            throws Exception
+    {
+        LOGGER.trace("calculating checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath());
+        final String checksumString = makeChecksumString(wordlistConfiguration.getWordlistFile());
+        LOGGER.trace("checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
+
+        final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString);
         final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS)));
 
         if (!clearRequired && isComplete) {
@@ -163,7 +164,7 @@ abstract class AbstractWordlist implements Wordlist {
         LOGGER.debug(DEBUG_LABEL + " previous population incomplete, resuming");
 
         if (clearRequired) {
-            resetDB(checksumString.toString());
+            resetDB(checksumString);
         }
 
         if (wlStatus != WordlistStatus.OPENING) {
@@ -174,8 +175,8 @@ abstract class AbstractWordlist implements Wordlist {
 
         wlStatus = WordlistStatus.POPULATING;
         populator = new Populator(
-                new ZipReader(wordlistFile),
-                new Sleeper(loadFactor),
+                new ZipReader(wordlistConfiguration.getWordlistFile()),
+                new Sleeper(wordlistConfiguration.getLoadFactor()),
                 this
         );
         populator.populate();
@@ -311,7 +312,7 @@ abstract class AbstractWordlist implements Wordlist {
 
     public File getWordlistFile()
     {
-        return wordlistFile;
+        return wordlistConfiguration.getWordlistFile();
     }
 
 // -------------------------- OTHER METHODS --------------------------

@@ -78,16 +78,29 @@ function writeSetting(keyName, valueData) {
     });
 }
 
+function setBooleanSetting(keyName, pare) {
+    var valueElement = getObject('value_' + keyName);
+    var buttonElement = getObject('button_' + keyName);
+    var innerValue = valueElement.value;
+    if (innerValue == 'true') {
+        valueElement.value = 'false';
+        buttonElement.innerHTML = '\u00A0\u00A0\u00A0False\u00A0\u00A0\u00A0';
+    } else {
+        valueElement.value = 'true';
+        buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
+    }
+}
+
 function toggleBooleanSetting(keyName) {
     var valueElement = getObject('value_' + keyName);
     var buttonElement = getObject('button_' + keyName);
     var innerValue = valueElement.value;
     if (innerValue == 'true') {
         valueElement.value = 'false';
-        buttonElement.innerHTML = ' False ';
+        buttonElement.innerHTML = '\u00A0\u00A0False\u00A0\u00A0';
     } else {
         valueElement.value = 'true';
-        buttonElement.innerHTML = ' True ';
+        buttonElement.innerHTML = '\u00A0\u00A0True\u00A0\u00A0';
     }
 }
 
@@ -117,7 +130,7 @@ function clearDivElements(parentDiv, showLoading) {
 function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
     clearDivElements(parentDiv,true);
     readSetting(keyName, function(resultValue) {
-        clearDivElements(parentDiv,false);
+        clearDivElements(parentDiv,false)    ;
         for (var i in resultValue) {
             addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
         }

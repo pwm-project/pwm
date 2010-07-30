@@ -123,8 +123,8 @@ public class ChangePasswordServlet extends TopServlet {
     }
 
     /**
-     * Write the pwm password pre-validation response.  A format such as the following is used:
-     * <p/>
+     * Write the pwm password pre-validation response.  A JSON formatted string is returned to the
+     * client containing information about a password's validation against the user's policy.
      * <pre>pwm:[status]:[pre-localized error/success message]</pre>
      *
      * @param req  request

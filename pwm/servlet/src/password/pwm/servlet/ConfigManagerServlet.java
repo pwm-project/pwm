@@ -332,7 +332,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setConfiguration(null);
-        pwmSession.getHttpSession().invalidate();
+        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_SAVE_SUCCESS));
     }
 
     private boolean doGenerateXml(
@@ -369,7 +369,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         if (configMode == ConfigurationReader.MODE.RUNNING) {
             final String errorString = "Test functionality is only available on unconfigured server";
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
             return;
         }
 
@@ -402,19 +402,19 @@ public class ConfigManagerServlet extends TopServlet {
                 final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT),chaiProvider);
                 if (!contextlessRootEntry.isValid()) {
                     final String errorString = "setting '" + contextlessRootSettingName  + "' value does not appear to be correct";
-                    PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+                    PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
                     return;
                 }
             } catch (Exception e) {
                 final String errorString = "error verifying setting '" + contextlessRootSettingName  + "' " + e.getMessage();
-                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
                 return;
             }
 
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS));
         } catch (Exception e) {
             final String errorString = "error connecting to ldap server: " + e.getMessage();
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILIRE,errorString,errorString));
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
         } finally {
             if (chaiProvider != null) {
                 try {

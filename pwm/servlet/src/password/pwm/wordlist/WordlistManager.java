@@ -25,7 +25,6 @@ package password.pwm.wordlist;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.PwmDB;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -36,41 +35,35 @@ import java.util.Map;
 public class WordlistManager extends AbstractWordlist implements Wordlist {
 // ------------------------------ FIELDS ------------------------------
 
+    boolean backwards;
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
      * Fetch the WordlistManager for a given database directory.  Any existing values in the database
      * will be truncated and replaced with the wordlist file.
      *
-     * @param wordlistFile   ZIP file containing one or more text files with one word per line
      * @param pwmDB          Functioning instance
-     * @param loadFactor     Percentage of time the populator should remain sleeping
-     * @param caseSensitive  If true, wordlist will be populated and tested using case sensitivity
+     * @param wordlistConfiguration wordlist configuration
      * @return WordlistManager for the instance.
      */
     public synchronized static WordlistManager createWordlistManager(
-            final File wordlistFile,
-            final PwmDB pwmDB,
-            final int loadFactor,
-            final boolean caseSensitive
+            final WordlistConfiguration wordlistConfiguration,
+            final PwmDB pwmDB
     )
     {
         return new WordlistManager(
-                wordlistFile,
                 pwmDB,
-                loadFactor,
-                caseSensitive
+                wordlistConfiguration
         );
     }
 
     protected WordlistManager(
-            final File wordlistFile,
             final PwmDB pwmDB,
-            final int loadFactor,
-            final boolean caseSensitive
+            final WordlistConfiguration wordlistConfiguration
 
     ) {
-        super(wordlistFile, pwmDB, loadFactor, caseSensitive);
+        super(wordlistConfiguration, pwmDB);
 
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
         this.DEBUG_LABEL = "pwm-wordlist";
@@ -85,7 +78,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
                     init();
                 } catch (Exception e) {
                     try {
-                    LOGGER.warn("error during startup: " + e.getMessage());
+                        LOGGER.warn("error during startup: " + e.getMessage());
                     } catch (Exception moreE) { /* probably due to shut down */ }
                 }
             }

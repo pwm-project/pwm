@@ -115,10 +115,10 @@
                                 var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
                                 if (dataValue == 'true') {
                                     valueElement.value = 'true';
-                                    buttonElement.innerHTML = ' True ';
+                                    buttonElement.innerHTML = '   True   ';
                                 } else {
                                     valueElement.value = 'false';
-                                    buttonElement.innerHTML = ' False ';
+                                    buttonElement.innerHTML = '   False   ';
                                 }
                                 buttonElement.disabled = false;
                                 dijit.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);

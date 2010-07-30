@@ -283,9 +283,11 @@ public class Configuration implements Serializable {
 
         final Map<String, FormConfiguration> returnMap = new LinkedHashMap<String, FormConfiguration>();
         for (final String loopString : input) {
-            final FormConfiguration formConfig = FormConfiguration.parseConfigString(loopString);
-            final String attrName = formConfig.getAttributeName();
-            returnMap.put(attrName, formConfig);
+            if (loopString != null && loopString.length() > 0) {
+                final FormConfiguration formConfig = FormConfiguration.parseConfigString(loopString);
+                final String attrName = formConfig.getAttributeName();
+                returnMap.put(attrName, formConfig);
+            }
         }
         return returnMap;
     }
