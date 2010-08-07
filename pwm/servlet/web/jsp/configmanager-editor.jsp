@@ -39,7 +39,6 @@
 <body class="tundra">
 <link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
 <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
-<link href="<%=request.getContextPath()%>/resources/dojo/dojox/grid/enhanced/resources/tundraEnhancedGrid.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
@@ -115,10 +114,10 @@
                                 var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
                                 if (dataValue == 'true') {
                                     valueElement.value = 'true';
-                                    buttonElement.innerHTML = '   True   ';
+                                    buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
                                 } else {
                                     valueElement.value = 'false';
-                                    buttonElement.innerHTML = '   False   ';
+                                    buttonElement.innerHTML = '\u00A0\u00A0\u00A0False\u00A0\u00A0\u00A0';
                                 }
                                 buttonElement.disabled = false;
                                 dijit.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);

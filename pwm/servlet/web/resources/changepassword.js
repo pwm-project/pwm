@@ -64,14 +64,14 @@ function validatePasswords()
     },200);
     validationInProgress = true;
     dojo.xhrPost({
-        url: getObject("Js_ChangePasswordURL").value + "?processAction=validate&pwmFormID=" + getObject('pwmFormID').value,
-        postData:  dojo.toJson(passwordData),
+        url: PWM_STRINGS['url-changepassword'] + "?processAction=validate&pwmFormID=" + getObject('pwmFormID').value,
+        postData: dojo.toJson(passwordData),
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         handleAs: "json",
         error: function(errorObj) {
             validationInProgress = false;
-            clearError(getObject("Js_Display_CommunicationError").value);
+            clearError(PWM_STRINGS['Display_CommunicationError']);
             markStrength(0);
             console.log('error: ' + errorObj);
         },
@@ -159,11 +159,11 @@ function markStrength(strength) { //strength meter
     var barColor = "";
 
     if (strength > 70) {
-        strengthLabel = getObject("Js_Strength_High").value;
+        strengthLabel = PWM_STRINGS['Strength_High'];
     } else if (strength > 45) {
-        strengthLabel = getObject("Js_Strength_Medium").value;
+        strengthLabel = PWM_STRINGS['Strength_Medium'];
     } else {
-        strengthLabel = getObject("Js_Strength_Low").value;
+        strengthLabel = PWM_STRINGS['Strength_Low'];
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
@@ -196,7 +196,7 @@ function clearError(message)
 function showWorking()
 {
     getObject("password_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_CheckingPassword").value;
+    getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_CheckingPassword'];
     dojo.animateProperty({
         node:"error_msg",
         duration: 500,
@@ -245,17 +245,17 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     text = trimString(text);
     getObject("password1").value = text;
     validatePasswords();
-    alert(getObject("Js_Display_PasswordChangedTo").value + "\n\n" + text);
+    alert(PWM_STRINGS['Display_PasswordChangedTo'] + "\n\n" + text);
 }
 
 function toggleMaskPasswords()
 {
     if (passwordsMasked) {
-        getObject("hide_button").value = " " + getObject("Js_Button_Hide").value + " ";
+        getObject("hide_button").value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Button_Hide'] + "\u00A0\u00A0\u00A0";
         changeInputTypeField(getObject("password1"),"text");
         changeInputTypeField(getObject("password2"),"text");
     } else {
-        getObject("hide_button").value = getObject("Js_Button_Show").value;
+        getObject("hide_button").value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Button_Show'] + "\u00A0\u00A0\u00A0";
         changeInputTypeField(getObject("password1"),"password");
         changeInputTypeField(getObject("password2"),"password");
     }
@@ -265,7 +265,7 @@ function toggleMaskPasswords()
 
 function handleChangePasswordSubmit()
 {
-    getObject("error_msg").firstChild.nodeValue = getObject("Js_Display_PleaseWait").value;
+    getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_PleaseWait'];
     getObject("error_msg").className = "notice";
     dirtyPageLeaveFlag = false;
 }
@@ -273,7 +273,7 @@ function handleChangePasswordSubmit()
 function fetchNewRandom()
 {
     dojo.xhrPost({
-        url: getObject("Js_ChangePasswordURL").value + "?processAction=getrandom&pwmFormID=" + getObject('pwmFormID').value,
+        url: PWM_STRINGS['url-changepassword'] + "?processAction=getrandom&pwmFormID=" + getObject('pwmFormID').value,
         postData: "",
         contentType: "application/json;charset=utf-8",
         dataType: "json",
@@ -344,7 +344,7 @@ function startupChangePasswordPage()
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     window.onbeforeunload = function() {
         if (dirtyPageLeaveFlag) {
-            var message = getObject("Js_LeaveDirtyPasswordPage").value;
+            var message = PWM_STRINGS['Display_LeaveDirtyPasswordPage'];
             return message;
         }
     };

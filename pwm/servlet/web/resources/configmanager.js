@@ -30,7 +30,6 @@ dojo.require("dijit.form.Textarea");
 dojo.require("dijit.form.ComboBox");
 dojo.require("dijit.Dialog");
 dojo.require("dijit.TitlePane");
-dojo.require("dijit.Dialog");
 
 
 var clientSettingCache = { };
@@ -78,7 +77,7 @@ function writeSetting(keyName, valueData) {
     });
 }
 
-function setBooleanSetting(keyName, pare) {
+function toggleBooleanSetting(keyName) {
     var valueElement = getObject('value_' + keyName);
     var buttonElement = getObject('button_' + keyName);
     var innerValue = valueElement.value;
@@ -88,19 +87,6 @@ function setBooleanSetting(keyName, pare) {
     } else {
         valueElement.value = 'true';
         buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
-    }
-}
-
-function toggleBooleanSetting(keyName) {
-    var valueElement = getObject('value_' + keyName);
-    var buttonElement = getObject('button_' + keyName);
-    var innerValue = valueElement.value;
-    if (innerValue == 'true') {
-        valueElement.value = 'false';
-        buttonElement.innerHTML = '\u00A0\u00A0False\u00A0\u00A0';
-    } else {
-        valueElement.value = 'true';
-        buttonElement.innerHTML = '\u00A0\u00A0True\u00A0\u00A0';
     }
 }
 

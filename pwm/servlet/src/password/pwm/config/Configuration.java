@@ -296,6 +296,10 @@ public class Configuration implements Serializable {
         return storedConfiguration.toString();
     }
 
+    public String toDebugString() {
+        return storedConfiguration.toString(true);
+    }
+
     public String readProperty(final String key) {
         return storedConfiguration.readProperty(key);
     }

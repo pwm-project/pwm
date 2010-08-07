@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import password.pwm.ContextManager;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.db.PwmDB;
@@ -38,6 +39,7 @@ public class PwmLogger {
     private final String name;
     private final org.apache.log4j.Logger log4jLogger;
     private static PwmLogLevel minimumDbLogLevel;
+    private static ContextManager contextManager;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -55,10 +57,12 @@ public class PwmLogger {
             final PwmDB pwmDB,
             final int maxEvents,
             final int maxAge,
-            final PwmLogLevel minimumDbLogLevel
+            final PwmLogLevel minimumDbLogLevel,
+            final ContextManager contextManager
     ) {
         PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge);
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
+        PwmLogger.contextManager = contextManager;
         return PwmLogger.pwmDBLogger;
     }
 
@@ -185,19 +189,28 @@ public class PwmLogger {
                 break;
         }
 
-        if (pwmDBLogger != null) {
-            if (minimumDbLogLevel == null || level.compareTo(minimumDbLogLevel) >= 0) {
-                final PwmLogEvent logEvent = new PwmLogEvent(
-                        new Date(),
-                        this.getName(),
-                        message.toString(),
-                        makeSrcString(pwmSession),
-                        makeActorString(pwmSession),
-                        e,
-                        level
-                );
-                pwmDBLogger.writeEvent(logEvent);
+        try {
+            final PwmLogEvent logEvent = new PwmLogEvent(
+                    new Date(),
+                    this.getName(),
+                    message.toString(),
+                    makeSrcString(pwmSession),
+                    makeActorString(pwmSession),
+                    e,
+                    level
+            );
+
+            if (pwmDBLogger != null) {
+                if (minimumDbLogLevel == null || level.compareTo(minimumDbLogLevel) >= 0) {
+                    pwmDBLogger.writeEvent(logEvent);
+                }
             }
+
+            if (level == PwmLogLevel.FATAL) {
+                AlertHandler.alertFatalEvent(contextManager, logEvent);
+            }
+        } catch (Exception e2) {
+            //nothing can be done about it now;
         }
     }
 

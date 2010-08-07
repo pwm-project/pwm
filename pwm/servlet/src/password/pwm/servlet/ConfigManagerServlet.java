@@ -322,7 +322,7 @@ public class ConfigManagerServlet extends TopServlet {
         try {
             if (pwmSession.getContextManager().getConfigReader().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
                 final ContextManager contextManager = pwmSession.getContextManager();
-                contextManager.getConfigReader().saveConfiguration(storedConfiguration, pwmSession.getContextManager());
+                contextManager.getConfigReader().saveConfiguration(storedConfiguration);
                 contextManager.reinitialize();
             }
         } catch (Exception e) {

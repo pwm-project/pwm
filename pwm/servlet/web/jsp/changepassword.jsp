@@ -100,7 +100,7 @@
                     </td>
                     <td style="border:0;">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
-                        <div style="padding-top:40px;">
+                        <div style="padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='greenCheck.png'/>">
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>">
                         </div>
@@ -128,19 +128,19 @@
     </div>
     <br class="clear" />
 </div>
-<%-- hidden fields used by changepassword.js javascript display fields for i18n --%>
-<form action="" name="hiddenForm">
-    <input type="hidden" name="Js_Display_CheckingPassword" id="Js_Display_CheckingPassword" value="<pwm:Display key="Display_CheckingPassword"/>"/>
-    <input type="hidden" name="Js_Display_PasswordChangedTo" id="Js_Display_PasswordChangedTo" value="<pwm:Display key="Display_PasswordChangedTo"/>"/>
-    <input type="hidden" name="Js_Display_CommunicationError" id="Js_Display_CommunicationError" value="<pwm:Display key="Display_CommunicationError"/>"/>
-    <input type="hidden" name="Js_Button_Hide" id="Js_Button_Hide" value="<pwm:Display key="Button_Hide"/>"/>
-    <input type="hidden" name="Js_Button_Show" id="Js_Button_Show" value="<pwm:Display key="Button_Show"/>"/>
-    <input type="hidden" name="Js_ChangePasswordURL" id="Js_ChangePasswordURL" value="<pwm:url url='ChangePassword'/>"/>
-    <input type="hidden" name="Js_LeaveDirtyPasswordPage" id="Js_LeaveDirtyPasswordPage" value="<pwm:Display key="Display_LeaveDirtyPasswordPage"/>"/>
-    <input type="hidden" name="Js_Strength_Low" id="Js_Strength_Low" value="<pwm:Display key="Display_PasswordStrengthLow"/>"/>
-    <input type="hidden" name="Js_Strength_Medium" id="Js_Strength_Medium" value="<pwm:Display key="Display_PasswordStrengthMedium"/>"/>
-    <input type="hidden" name="Js_Strength_High" id="Js_Strength_High" value="<pwm:Display key="Display_PasswordStrengthHigh"/>"/>
-</form>
+<%-- fields used by changepassword.js javascript display fields for i18n --%>
+<script type="text/javascript">
+    PWM_STRINGS['Display_CheckingPassword']='<pwm:Display key="Display_CheckingPassword"/>';
+    PWM_STRINGS['Display_PasswordChangedTo']='<pwm:Display key="Display_PasswordChangedTo"/>';
+    PWM_STRINGS['Display_CommunicationError']='<pwm:Display key="Display_CommunicationError"/>';
+    PWM_STRINGS['Display_LeaveDirtyPasswordPage']='<pwm:Display key="Display_LeaveDirtyPasswordPage"/>';
+    PWM_STRINGS['Strength_Low']='<pwm:Display key="Display_PasswordStrengthLow"/>';
+    PWM_STRINGS['Strength_Medium']='<pwm:Display key="Display_PasswordStrengthMedium"/>';
+    PWM_STRINGS['Strength_High']='<pwm:Display key="Display_PasswordStrengthHigh"/>';
+    PWM_STRINGS['Button_Hide']='<pwm:Display key="Button_Hide"/>';
+    PWM_STRINGS['Button_Show']='<pwm:Display key="Button_Show"/>';
+    PWM_STRINGS['url-changepassword']='<pwm:url url='ChangePassword'/>';
+</script>
 <%-- end hidden fields --%>
 <%@ include file="footer.jsp" %>
 </body>

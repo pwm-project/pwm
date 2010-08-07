@@ -57,7 +57,7 @@
         <p>Personalized shortcuts</p>
 
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey">User Information</a></h2>
-        <p>User Information for debugging</p>
+        <p>Information about your password and password policies.</p>
         <hr/>
 
         <h2><a href="admin" class="tablekey">Admin</a></h2>

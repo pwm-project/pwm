@@ -24,6 +24,8 @@ var AJAX_TYPE_DELAY_MS = 100;
 
 var dirtyPageLeaveFlag = false;
 
+var PWM_STRINGS = {};
+
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
@@ -49,7 +51,7 @@ function checkForCapsLock(e) {
 }
 
 function handleFormSubmit(buttonID) {
-    getObject(buttonID).value = getObject('Js_Display_PleaseWait').value;
+    getObject(buttonID).value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Display_PleaseWait'] + "\u00A0\u00A0\u00A0";
     getObject(buttonID).disabled = true;
 
     var formElements = getObject(buttonID).form.elements;

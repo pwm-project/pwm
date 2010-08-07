@@ -46,7 +46,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-                onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -91,10 +91,10 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <br class="clear"/>
 </div>
-<form action="" name="responses_i18n">
-    <input type="hidden" name="Js_Button_Hide_Responses" id="Js_Button_Hide_Responses" value="<pwm:Display key="Button_Hide_Responses"/>"/>
-    <input type="hidden" name="Js_Button_Show_Responses" id="Js_Button_Show_Responses" value="<pwm:Display key="Button_Show_Responses"/>"/>
-</form>
+<script type="text/javascript">
+    PWM_STRINGS['Button_Hide_Responses']='<pwm:Display key="Button_Hide_Responses"/>';
+    PWM_STRINGS['Button_Show_Responses']='<pwm:Display key="Button_Show_Responses"/>';
+</script>
 <%@ include file="footer.jsp" %>
 </body>
 </html>

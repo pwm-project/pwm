@@ -233,13 +233,14 @@ class Populator {
                 sleeper.sleep();
 
                 if (abortFlag) {
-                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"pausing " + DEBUG_LABEL + " population"));
+                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING,"pausing " + DEBUG_LABEL + " population"));
                 }
 
                 overallStats.incrementLines();
                 perReportStats.incrementLines();
 
                 addLine(line);
+                loopLines++;
 
                 if (!abortFlag && (System.currentTimeMillis() - lastReportTime) > DEBUG_OUTPUT_FREQUENCY) {
                     LOGGER.info(makeStatString());
@@ -281,8 +282,6 @@ class Populator {
             final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
             bufferedWords.putAll(wordTxn);
         }
-
-        loopLines++;
     }
 
     private void flushBuffer()
@@ -391,5 +390,4 @@ class Populator {
             startTime = startTime - (seconds * 1000);
         }
     }
-
 }

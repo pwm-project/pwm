@@ -155,13 +155,13 @@
     </div>
     <br class="clear"/>
 </div>
-<form action="" name="responses_i18n">
-    <input type="hidden" name="Js_Button_Hide_Responses" id="Js_Button_Hide_Responses" value="<pwm:Display key="Button_Hide_Responses"/>"/>
-    <input type="hidden" name="Js_Button_Show_Responses" id="Js_Button_Show_Responses" value="<pwm:Display key="Button_Show_Responses"/>"/>
-    <input type="hidden" name="Js_Display_CheckingResponses" id="Js_Display_CheckingResponses" value="<pwm:Display key="Display_CheckingResponses"/>"/>
-    <input type="hidden" name="Js_Display_CommunicationError" id="Js_Display_CommunicationError" value="<pwm:Display key="Display_CommunicationError"/>"/>
-    <input type="hidden" name="Js_SetupResponsesURL" id="Js_SetupResponsesURL" value="<pwm:url url='SetupResponses'/>"/>
-</form>
+<script type="text/javascript">
+    PWM_STRINGS['Button_Hide_Responses']='<pwm:Display key="Button_Hide_Responses"/>';
+    PWM_STRINGS['Button_Show_Responses']='<pwm:Display key="Button_Show_Responses"/>';
+    PWM_STRINGS['Display_CheckingResponses']='<pwm:Display key="Display_CheckingResponses"/>';
+    PWM_STRINGS['Display_CommunicationError']='<pwm:Display key="Display_CommunicationError"/>';
+    PWM_STRINGS['url-setupresponses']='<pwm:url url='SetupResponses'/>';
+</script>
 <%@ include file="footer.jsp" %>
 </body>
 </html>

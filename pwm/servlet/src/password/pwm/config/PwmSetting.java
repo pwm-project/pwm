@@ -236,6 +236,18 @@ public enum PwmSetting {
             "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false),
     EVENTS_LDAP_MAX_EVENTS(
             "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
+    EVENTS_ALERT_STARTUP(
+            "events.alert.startup.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+    EVENTS_ALERT_SHUTDOWN(
+            "events.alert.shutdown.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+    EVENTS_ALERT_INTRUDER_LOCKOUT(
+            "events.alert.intruder.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+    EVENTS_ALERT_FATAL_EVENT(
+            "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+    EVENTS_ALERT_CONFIG_MODIFY(
+            "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+    EVENTS_ALERT_DAILY_STATS(
+            "events.alert.dailyStats.enable", Syntax.BOOLEAN, Category.LOGGING, true),
 
     // recovery settings
     CHALLENGE_FORCE_SETUP(
@@ -339,6 +351,8 @@ public enum PwmSetting {
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true),
     ALLOW_URL_SESSIONS(
             "allowUrlSessions", Syntax.BOOLEAN, Category.ADVANCED, true),
+    ENABLE_SESSION_VERIFICATION(
+            "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true),
     FORCE_BASIC_AUTH(
             "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true),
     WORDLIST_CASE_SENSITIVE(

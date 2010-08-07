@@ -469,6 +469,10 @@ public class StoredConfiguration implements Serializable {
     }
 
     public String toString() {
+        return toString(false);
+    }
+
+    public String toString(final boolean linebreaks) {
         final StringBuilder sb = new StringBuilder();
         for (final PwmSetting setting : PwmSetting.values()) {
             sb.append(setting.getKey());
@@ -478,7 +482,11 @@ public class StoredConfiguration implements Serializable {
             } else {
                 sb.append(settingMap.get(setting));
             }
-            sb.append(", ");
+            if (linebreaks) {
+                sb.append("\n");
+            } else {
+                sb.append(", ");
+            }
         }
         return sb.toString();
     }

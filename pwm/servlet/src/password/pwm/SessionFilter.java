@@ -202,8 +202,12 @@ public class SessionFilter implements Filter {
         //check for session verification failure
         if (!ssBean.isSessionVerified()) {
             // ignore resource requests
-            verifySession(req,resp,servletContext);
-            return;
+            if (theManager.getConfig() != null && !theManager.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
+                ssBean.setSessionVerified(true);
+            } else {
+                verifySession(req,resp,servletContext);
+                return;
+            }
         }
 
         //check intruder detection, if it is tripped, send user to error page
@@ -330,7 +334,7 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATIN_KEY,255);
+        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATION_KEY,255);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
@@ -345,11 +349,12 @@ public class SessionFilter implements Filter {
 
         // else, request has a key, so investigate.
         if (keyFromRequest.equals(ssBean.getSessionVerificationKey())) {
+            final String returnURL = figureValidationURL(req, null);
+
             // session looks, good, mark it as such and return;
-            LOGGER.trace(pwmSession,"session validated, redirecting to original request url");
+            LOGGER.trace(pwmSession,"session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
 
-            final String returnURL = figureValidationURL(req, null);
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL,req,resp));
             return;
         }
@@ -363,7 +368,30 @@ public class SessionFilter implements Filter {
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey)
     {
         final StringBuilder sb = new StringBuilder();
+        sb.append(req.getRequestURL());
+        if (req.getQueryString() != null && req.getQueryString().length() > 0) {
+            sb.append("?");
+            sb.append(req.getQueryString());
+        }
 
+        // remove any pre-existing session keys.
+        while (sb.toString().contains(PwmConstants.PARAM_VERIFICATION_KEY)) {
+            final int startIndex = sb.indexOf(PwmConstants.PARAM_VERIFICATION_KEY);
+            final int endIndex = sb.indexOf("&",startIndex);
+            if (endIndex != -1) {
+                sb.delete(startIndex,endIndex);
+            } else {
+                sb.delete(startIndex,sb.length());
+            }
+        }
+
+        // clear any dangling ? or & separators.
+        while (sb.length() > 2 && sb.charAt(sb.length() - 1) == '&' || sb.charAt(sb.length() - 1) == '?' ) {
+            sb.delete(sb.length() - 1, sb.length());
+        }
+
+        /*
+        final StringBuilder sb = new StringBuilder();
         sb.append(req.getRequestURI());
 
         if (!req.getParameterMap().isEmpty()) {
@@ -372,7 +400,7 @@ public class SessionFilter implements Filter {
                 final String paramName = (String) paramNameEnum.nextElement();
                 final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
 
-                if (validationKey != null || !PwmConstants.PARAM_VERIFICATIN_KEY.equals(paramName)) {
+                if (validationKey != null || !PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
                     for (final String paramValue : paramValues) {
                         sb.append(paramName);
                         sb.append("=");
@@ -385,6 +413,7 @@ public class SessionFilter implements Filter {
             }
             sb.deleteCharAt(sb.length() -1);
         }
+        */
 
         if (validationKey != null) {
             if (!sb.toString().contains("?")) {
@@ -392,7 +421,7 @@ public class SessionFilter implements Filter {
             } else {
                 sb.append("&");
             }
-            sb.append(PwmConstants.PARAM_VERIFICATIN_KEY).append("=").append(validationKey);
+            sb.append(PwmConstants.PARAM_VERIFICATION_KEY).append("=").append(validationKey);
         }
 
         return sb.toString();

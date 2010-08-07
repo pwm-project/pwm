@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import password.pwm.ContextManager;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
@@ -126,7 +125,7 @@ public class ConfigurationReader {
         return storedConfiguration;
     }
 
-    public void saveConfiguration(final StoredConfiguration storedConfiguration, final ContextManager contextManager)
+    public void saveConfiguration(final StoredConfiguration storedConfiguration)
             throws IOException
     {
         if (getConfigMode() == MODE.RUNNING) {

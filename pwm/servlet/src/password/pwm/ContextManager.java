@@ -33,9 +33,10 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.process.emailer.EmailQueueManager;
+import password.pwm.util.EmailQueueManager;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBFactory;
@@ -67,8 +68,10 @@ public class ContextManager implements Serializable
     // ----------------------------- CONSTANTS ----------------------------
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ContextManager.class);
     private static final String DB_KEY_INSTANCE_ID = "context_instanceID";
+    private static final String DB_KEY_CONFIG_SETTING_HASH = "configurationSettingHash";
+    private static final String DB_KEY_INSTALL_DATE = "DB_KEY_INSTALL_DATE";
+
     private static final String DEFAULT_INSTANCE_ID = "-1";
-    private static final String KEY_INSTALL_DATE = "KEY_INSTALL_DATE";
 
     private String instanceID = DEFAULT_INSTANCE_ID;
 
@@ -298,6 +301,22 @@ public class ContextManager implements Serializable
             LOGGER.debug("detected ldap directory vendor: " + provider.getDirectoryVendor());
         } catch (Exception e) { /**/ }} }).start();
 
+        // detect if config has been modified since previous startup
+        try {
+            if (pwmDB != null) {
+                final String previousHash = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH);
+                final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+                if (previousHash == null || !previousHash.equals(currentHash)) {
+                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
+                    LOGGER.warn("pwm configuration has been modified since last startup");
+                    AlertHandler.alertConfigModify(this,configuration);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
+        }
+
+        AlertHandler.alertStartup(this);
     }
 
     public void reinitialize() {
@@ -339,9 +358,9 @@ public class ContextManager implements Serializable
     private static Date fetchInstallDate(final PwmDB pwmDB, final Date startupTime) {
         if (pwmDB != null) {
             try {
-                final String storedDateStr = pwmDB.get(PwmDB.DB.PWM_META, KEY_INSTALL_DATE);
+                final String storedDateStr = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    pwmDB.put(PwmDB.DB.PWM_META, KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
                 } else {
                     return new Date(Long.parseLong(storedDateStr));
                 }
@@ -489,12 +508,17 @@ public class ContextManager implements Serializable
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem)
     {
-        emailQueue.addMailToQueue(emailItem);
+        try {
+            emailQueue.addMailToQueue(emailItem);
+        } catch (PwmException e) {
+            LOGGER.warn("unable to add email to queue: " + e.getMessage());
+        }
     }
 
     public void shutdown()
     {
         LOGGER.warn("shutting down");
+        AlertHandler.alertShutdown(this);
 
         if (getStatisticsManager() != null) {
             getStatisticsManager().flush();
@@ -518,6 +542,11 @@ public class ContextManager implements Serializable
         if (sharedHistoryManager != null) {
             sharedHistoryManager.close();
             sharedHistoryManager = null;
+        }
+
+        if (emailQueue != null) {
+            emailQueue.close();
+            emailQueue = null;
         }
 
         if (pwmDBLogger != null) {
@@ -678,7 +707,7 @@ public class ContextManager implements Serializable
                 final int maxEvents = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 final int maxAge = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_AGE);
                 final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
-                contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel);
+                contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel, contextManager);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
             }
@@ -736,7 +765,7 @@ public class ContextManager implements Serializable
         }
 
         public static void initializeStatisticsManager(final ContextManager contextManager) {
-            final StatisticsManager statisticsManager = new StatisticsManager(contextManager.pwmDB);
+            final StatisticsManager statisticsManager = new StatisticsManager(contextManager.pwmDB, contextManager);
             statisticsManager.incrementValue(Statistic.PWM_STARTUPS);
 
             final PwmDB.PwmDBEventListener statsEventListener = new PwmDB.PwmDBEventListener() {

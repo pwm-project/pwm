@@ -22,6 +22,8 @@
 
 package password.pwm.util.stats;
 
+import password.pwm.ContextManager;
+import password.pwm.util.AlertHandler;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
@@ -58,6 +60,8 @@ public class StatisticsManager {
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
 
+    private ContextManager contextManager;
+
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
         @Override
         protected boolean removeEldestEntry(final Map.Entry<String, StatisticsBundle> eldest) {
@@ -65,8 +69,9 @@ public class StatisticsManager {
         }
     };
 
-    public StatisticsManager(final PwmDB pwmDB) {
+    public StatisticsManager(final PwmDB pwmDB, final ContextManager contextManager) {
         this.pwmDB = pwmDB;
+        this.contextManager = contextManager;
 
         try {
             initialize(pwmDB);
@@ -243,11 +248,23 @@ public class StatisticsManager {
 
         final Key newCurrentKey = new Key(new Date());
         if (!currentDailyKey.equals(newCurrentKey)) {
-            currentDailyKey = newCurrentKey;
-            statsDaily = new StatisticsBundle();
-            LOGGER.debug("reset daily statistics");
+            resetDailyStats();
         }
         LOGGER.trace("saved statistics to pwmDB");
+    }
+
+    private void resetDailyStats() {
+        final Map<String,String> emailValues = new LinkedHashMap<String,String>();
+        for (final Statistic statistic : Statistic.values()) {
+            final String key = statistic.getLabel(Locale.getDefault());
+            final String value = statsDaily.getStatistic(statistic);
+            emailValues.put(key,value);
+        }
+
+        AlertHandler.alertDailyStats(contextManager, emailValues);
+
+        statsDaily = new StatisticsBundle();
+        LOGGER.debug("reset daily statistics");        
     }
 
     public void flush() {
