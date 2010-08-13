@@ -43,11 +43,8 @@ function showError(errorMsg)
 }
 
 function readSetting(keyName, valueWriter) {
-    var jsonData = { key:keyName };
-    var jsonString = dojo.toJson(jsonData);
-    dojo.xhrPost({
-        url:"ConfigManager?processAction=readSetting&pwmFormID=" + getObject('pwmFormID').value,
-        postData: jsonString,
+    dojo.xhrGet({
+        url:"ConfigManager?processAction=readSetting&pwmFormID=" + getObject('pwmFormID').value + "&key=" + keyName,
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         handleAs: "json",

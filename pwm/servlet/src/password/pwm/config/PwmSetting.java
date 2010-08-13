@@ -97,7 +97,7 @@ public enum PwmSetting {
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true),
     EMAIL_ADMIN_ALERT_TO(
-            "email.adminAlert.toAddress", Syntax.STRING, Category.EMAIL, false),
+            "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false),
     EMAIL_ADMIN_ALERT_FROM(
             "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false),
     EMAIL_CHANGEPASSWORD_FROM(
@@ -223,7 +223,7 @@ public enum PwmSetting {
 
     // logger settings
     EVENTS_JAVA_STDOUT_LEVEL(
-            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, true),
+            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
             "events.java.log4jconfigFile", Syntax.STRING, Category.LOGGING, false),
     EVENTS_PWMDB_MAX_EVENTS(

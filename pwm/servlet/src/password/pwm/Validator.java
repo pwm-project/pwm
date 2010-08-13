@@ -42,6 +42,7 @@ import password.pwm.wordlist.WordlistStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Static utility class for validating parameters, passwords and user input.
@@ -705,6 +706,7 @@ public class Validator {
             }
         }
 
+        // check disallowed attributes.
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
             final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
             final Properties userValues = pwmSession.getUserInfoBean().getAllUserAttributes();
@@ -727,6 +729,23 @@ public class Validator {
             }
         }
 
+        // check regex matches.
+        for (final Pattern pattern : ruleHelper.getRegExMatch()) {
+            if (!pattern.matcher(password).matches()) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
+                LOGGER.trace(pwmSession, "password rejected, does not match configured regex pattern: " + pattern.toString());
+            }
+        }
+
+        // check no-regex matches.
+        for (final Pattern pattern : ruleHelper.getRegExNoMatch()) {
+            if (pattern.matcher(password).matches()) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
+                LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
+            }
+        }
+
+
         final ContextManager theManager = pwmSession.getContextManager();
 
         // check if the password is in the dictionary.
@@ -743,6 +762,7 @@ public class Validator {
             }
         }
 
+        // check for shared (global) password history
         if (theManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && theManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
             final boolean found = theManager.getSharedHistoryManager().containsWord(pwmSession,password);
 

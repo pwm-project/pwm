@@ -75,7 +75,7 @@ function pollActivity(){
     }
 
     if (idleSeconds < 0) {
-        dirtyPageLeaveFlag = false;
+        PWM_GLOBAL['dirtyPageLeaveFlag'] = false;        
         window.location = PWM_STRINGS['url-logout'];
     }
 
@@ -101,6 +101,10 @@ function calcIdleSeconds()
 
 function makeIdleDisplayString(amount)
 {
+    if (amount < 1) {
+        return "";
+    }
+        
     var output = "";
     var days = 0, hours = 0, mins = 0, secs = 0;
 
@@ -181,7 +185,7 @@ function showIdleWarning() {
 
         var theDialog = new dijit.Dialog({
             title: PWM_STRINGS['Display_IdleWarningTitle'],
-            style: "width: 300px; border: 2px solid #D4D4D4;",
+            style: "width: 260px; border: 2px solid #D4D4D4;",
             content: dialogBody,
             closable: false,
             draggable: false,

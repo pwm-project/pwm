@@ -296,7 +296,7 @@ public class PwmDBLogger {
             }
         }
 
-        if (!writerThreadActive) { // try to flush the queue
+        if (!writerThreadActive) { // try to close the queue
             final long startTime = System.currentTimeMillis();
             while (!eventQueue.isEmpty() && (System.currentTimeMillis() - startTime) < 30 * 1000) {
                 flushQueue(MAX_WRITES_PER_CYCLE);

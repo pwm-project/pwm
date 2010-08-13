@@ -33,6 +33,8 @@ var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 var validationCache = { };
 var validationInProgress = false;
 
+var remainingFetches = 0;
+
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validatePasswords()
@@ -237,15 +239,50 @@ function showSuccess(successMsg)
     }).play();
 }
 
-function copyToPasswordFields(text)  // used to copy auto-generated passwords to password field
+function copyToPasswordFields(elementID)  // used to copy auto-generated passwords to password field
 {
+    var text = getObject(elementID).firstChild.nodeValue;
+
     if (text.length > 255) {
         text = text.substring(0,255);
     }
     text = trimString(text);
+
+
+    closeRandomPasswordsDialog();
+
+    if (passwordsMasked) {
+        toggleMaskPasswords();
+    }
+
     getObject("password1").value = text;
     validatePasswords();
-    alert(PWM_STRINGS['Display_PasswordChangedTo'] + "\n\n" + text);
+    getObject("password2").focus();
+}
+
+function showRandomPasswordsDialog(dialogBody) {
+    dojo.require("dijit.Dialog");
+    closeRandomPasswordsDialog();
+
+    var theDialog = new dijit.Dialog({
+        title: PWM_STRINGS['Title_RandomPasswords'],
+        style: "width: 300px; border: 2px solid #D4D4D4;",
+        content: dialogBody,
+        closable: false,
+        draggable: true,
+        id: "randomPasswordDialog"
+
+    });
+    theDialog.setAttribute('class','tundra');
+    theDialog.show();
+}
+
+function closeRandomPasswordsDialog() {
+    var dialog = dijit.byId('randomPasswordDialog');
+    if (dialog != null) {
+        dialog.hide();
+        dialog.destroyRecursive();
+    }
 }
 
 function toggleMaskPasswords()
@@ -267,27 +304,74 @@ function handleChangePasswordSubmit()
 {
     getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_PleaseWait'];
     getObject("error_msg").className = "notice";
-    dirtyPageLeaveFlag = false;
+    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 }
 
-function fetchNewRandom()
+function doRandomGeneration() {
+    var dialogBody = PWM_STRINGS['Display_PasswordGeneration'] + "<br/><br/>";
+    dialogBody += '<table style="border: 0">';
+    for (var i = 0; i < 20; i++) {
+        dialogBody += '<tr style="border: 0"><td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td>';
+        i++;
+        dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td></tr>';
+    }
+    dialogBody += "</table><br/><br/>";
+
+    dialogBody += '<table style="border: 0">';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="fetchRandoms()">' + PWM_STRINGS['Button_More'] + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button onclick="closeRandomPasswordsDialog()">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
+    dialogBody += "</table>";
+    showRandomPasswordsDialog(dialogBody);
+    fetchRandoms();
+}
+
+function fetchRandoms() {
+    getObject('moreRandomsButton').disabled = true;
+    remainingFetches = 20;
+    var fetchList = new Array();
+    for (var counter = 0; counter < 20; counter++) {
+        fetchList[counter] = 'randomGen' + counter;
+    }
+    fetchList.sort(function() {return 0.5 - Math.random()});
+
+    for (var item in fetchList) {
+        var name = fetchList[item];
+        var element = getObject(name);
+        if (element != null) {
+            element.firstChild.nodeValue = '\u00A0';
+        }
+        fetchRandom(name);
+    }
+}
+
+function fetchRandom(elementID)
 {
-    dojo.xhrPost({
+    dojo.xhrGet({
         url: PWM_STRINGS['url-changepassword'] + "?processAction=getrandom&pwmFormID=" + getObject('pwmFormID').value,
-        postData: "",
         contentType: "application/json;charset=utf-8",
         dataType: "json",
+        timeout: 15000,
+        sync: false,
         handleAs: "json",
         error: function(errorObj) {
-            showError('[unable to fetch new random password');
+            watchForLastFetch();
         },
         load: function(data){
-            handleRandomResponse(data);
+            handleRandomResponse(data, elementID);
+            watchForLastFetch();
         }
     });
 }
 
-function handleRandomResponse(resultInfo)
+function watchForLastFetch() {
+    remainingFetches--;
+    if (remainingFetches == 0) {
+        getObject('moreRandomsButton').disabled = false;
+        getObject('moreRandomsButton').focus();
+    }
+}
+
+function handleRandomResponse(resultInfo, elementID)
 {
     if (resultInfo["version"] != "1") {
         showError("[ unexpected randomgen version string from server ]");
@@ -296,8 +380,10 @@ function handleRandomResponse(resultInfo)
 
     var password = resultInfo["password"];
 
-    copyToPasswordFields(password);
-    getObject("password2").focus();
+    var element = getObject(elementID);
+    if (element != null) {
+        element.firstChild.nodeValue = password;
+    }
 }
 
 function clearForm() {
@@ -343,13 +429,13 @@ function startupChangePasswordPage()
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     window.onbeforeunload = function() {
-        if (dirtyPageLeaveFlag) {
+        if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
             var message = PWM_STRINGS['Display_LeaveDirtyPasswordPage'];
             return message;
         }
     };
 
-    dirtyPageLeaveFlag = true;
+    PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
     setInputFocus();
 }

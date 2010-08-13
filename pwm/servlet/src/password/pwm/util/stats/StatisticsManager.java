@@ -22,8 +22,8 @@
 
 package password.pwm.util.stats;
 
+import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
-import password.pwm.util.AlertHandler;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
@@ -36,7 +36,7 @@ public class StatisticsManager {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
 
-    private static final int DB_WRITE_FREQUENCY_MS = 30 * 60 * 1000;  // 30 minutes
+    private static final int DB_WRITE_FREQUENCY_MS = 1 * 60 * 1000;  // 1 minutes
 
     private static final String DB_KEY_VERSION = "STATS_VERSION";
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
@@ -50,17 +50,19 @@ public class StatisticsManager {
 
     private final PwmDB pwmDB;
 
-    private long lastDbWrite;
-    private Key currentDailyKey = new Key(new Date());
-    private Key initialDailyKey = new Key(new Date());
+    private DailyKey currentDailyKey = new DailyKey(new Date());
+    private DailyKey initialDailyKey = new DailyKey(new Date());
 
-    private volatile Thread flusherThread;
+    private long lastWriteTime;
+    private long lastUpdateTime;
+
+    private Timer daemonTimer;
 
     private StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
 
-    private ContextManager contextManager;
+    final private ContextManager contextManager;
 
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
         @Override
@@ -84,19 +86,21 @@ public class StatisticsManager {
         statsCurrent.incrementValue(statistic);
         statsDaily.incrementValue(statistic);
         statsCummulative.incrementValue(statistic);
-        checkIfDbWriteRequired();
+        lastUpdateTime = System.currentTimeMillis();
+        //LOGGER.trace("stat increment");
     }
 
     public synchronized void updateAverageValue(final Statistic statistic, final long value) {
         statsCurrent.updateAverageValue(statistic,value);
         statsDaily.updateAverageValue(statistic,value);
         statsCummulative.updateAverageValue(statistic,value);
-        checkIfDbWriteRequired();
+        lastUpdateTime = System.currentTimeMillis();
+        //LOGGER.trace("stat update");
     }
 
     public Map<String,String> getStatHistory(final Statistic statistic, final int days) {
         final Map<String,String> returnMap = new LinkedHashMap<String,String>();
-        Key loopKey = currentDailyKey;
+        DailyKey loopKey = currentDailyKey;
         int counter = days;
         while (counter > 0) {
             final StatisticsBundle bundle = getStatBundleForKey(loopKey.toString());
@@ -149,14 +153,14 @@ public class StatisticsManager {
         return null;
     }
 
-    public Map<Key,String> getAvailableKeys(final Locale locale) {
+    public Map<DailyKey,String> getAvailableKeys(final Locale locale) {
         if (currentDailyKey.equals(initialDailyKey)) {
             return Collections.emptyMap();
         }
 
         final DateFormat dateFormatter = SimpleDateFormat.getDateInstance(SimpleDateFormat.DEFAULT, locale);
-        final Map<Key,String> returnMap = new LinkedHashMap<Key,String>();
-        Key loopKey = currentDailyKey;
+        final Map<DailyKey,String> returnMap = new LinkedHashMap<DailyKey,String>();
+        DailyKey loopKey = currentDailyKey;
         int safetyCounter = 0;
         while (!loopKey.equals(initialDailyKey) && safetyCounter < 5000) {
             final Calendar c = loopKey.calendar();
@@ -203,7 +207,7 @@ public class StatisticsManager {
             final String storedInitialString = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY);
 
             if (storedInitialString != null && storedInitialString.length() > 0) {
-                initialDailyKey = new Key(storedInitialString);
+                initialDailyKey = new DailyKey(storedInitialString);
             } else {
                 pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
             }
@@ -211,7 +215,7 @@ public class StatisticsManager {
         }
 
         {
-            currentDailyKey = new Key(new Date());
+            currentDailyKey = new DailyKey(new Date());
             final String storedDailyStr = pwmDB.get(PwmDB.DB.PWM_STATS, currentDailyKey.toString());
             if (storedDailyStr != null && storedDailyStr.length() > 0) {
                 statsDaily = StatisticsBundle.input(storedDailyStr);
@@ -219,38 +223,38 @@ public class StatisticsManager {
         }
 
         pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
-    }
 
-    /*
-    private void writeTestData() throws PwmDBException {
-        final StatisticsBundle sb = new StatisticsBundle();
-        final Key initTestKey = new Key(DB_KEY_PREFIX_DAILY + "2009_3");
-        Key loopKey = new Key(new Date());
-        pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initTestKey.toString());
-        while (!loopKey.equals(initTestKey)) {
-            sb.incrementValue(Statistic.ACTIVATED_USERS);
-            pwmDB.put(PwmDB.DB.PWM_STATS, loopKey.toString(), sb.output());
-            loopKey = loopKey.previous();
+        {
+            daemonTimer = new Timer("pwm-StatisticsManager timer",true);
+            daemonTimer.scheduleAtFixedRate(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
+            daemonTimer.schedule(new NightlyTask(), nextDate());
         }
     }
-    */
+
+    private static Date nextDate() {
+        final Calendar nextZuluMidnight = GregorianCalendar.getInstance(TimeZone.getTimeZone("Zulu"));
+        nextZuluMidnight.set(Calendar.HOUR_OF_DAY,0);
+        nextZuluMidnight.set(Calendar.MINUTE,0);
+        nextZuluMidnight.set(Calendar.SECOND,0);
+        nextZuluMidnight.add(Calendar.HOUR,24);
+        LOGGER.trace("scheduled next nightly rotate at " + StatisticsBundle.STORED_DATETIME_FORMATTER.format(nextZuluMidnight.getTime()));
+        return nextZuluMidnight.getTime();
+    }
 
     private void writeDbValues() {
-        lastDbWrite = System.currentTimeMillis();
         if (pwmDB != null) {
-            try {
-                pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
-                pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
-            } catch (PwmDBException e) {
-                LOGGER.error("error outputting pwm statistics: " + e.getMessage());
+            if (lastUpdateTime > lastWriteTime) {
+                try {
+                    pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
+                    pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
+                } catch (PwmDBException e) {
+                    LOGGER.error("error outputting pwm statistics: " + e.getMessage());
+                }
+                LOGGER.trace("saved statistics to pwmDB");
+                lastWriteTime = System.currentTimeMillis();
             }
         }
 
-        final Key newCurrentKey = new Key(new Date());
-        if (!currentDailyKey.equals(newCurrentKey)) {
-            resetDailyStats();
-        }
-        LOGGER.trace("saved statistics to pwmDB");
     }
 
     private void resetDailyStats() {
@@ -263,49 +267,50 @@ public class StatisticsManager {
 
         AlertHandler.alertDailyStats(contextManager, emailValues);
 
+        currentDailyKey = new DailyKey(new Date());
         statsDaily = new StatisticsBundle();
-        LOGGER.debug("reset daily statistics");        
+        LOGGER.debug("reset daily statistics");
     }
 
-    public void flush() {
+    public void close() {
         writeDbValues();
+        daemonTimer.cancel();
     }
 
-    private void checkIfDbWriteRequired() {
-        if (flusherThread == null) {
-            if ((System.currentTimeMillis() - lastDbWrite) > DB_WRITE_FREQUENCY_MS) {
-                flusherThread = new Thread(new FlusherThread());
-                flusherThread.start();
-            }
-        }
-    }
 
-    private class FlusherThread implements Runnable {
+    private class NightlyTask extends TimerTask {
         public void run() {
             writeDbValues();
-            flusherThread = null;
+            resetDailyStats();
+            daemonTimer.schedule(new NightlyTask(), nextDate());
         }
     }
 
-    public static class Key {
+    private class FlushTask extends TimerTask {
+        public void run() {
+            writeDbValues();
+        }
+    }
+
+    public static class DailyKey {
         int year;
         int day;
 
-        public Key(final Date date) {
+        public DailyKey(final Date date) {
             final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Zulu"));
             calendar.setTime(date);
             year = calendar.get(Calendar.YEAR);
             day = calendar.get(Calendar.DAY_OF_YEAR);
         }
 
-        public Key(final String value) {
+        public DailyKey(final String value) {
             final String strippedValue = value.substring(DB_KEY_PREFIX_DAILY.length(),value.length());
             final String[] splitValue = strippedValue.split("_");
             year = Integer.valueOf(splitValue[0]);
             day = Integer.valueOf(splitValue[1]);
         }
 
-        private Key() {
+        private DailyKey() {
         }
 
         @Override
@@ -313,10 +318,10 @@ public class StatisticsManager {
             return DB_KEY_PREFIX_DAILY + String.valueOf(year) + "_" + String.valueOf(day);
         }
 
-        public Key previous() {
+        public DailyKey previous() {
             final Calendar calendar = calendar();
             calendar.add(Calendar.HOUR,-24);
-            final Key newKey = new Key();
+            final DailyKey newKey = new DailyKey();
             newKey.year = calendar.get(Calendar.YEAR);
             newKey.day = calendar.get(Calendar.DAY_OF_YEAR);
             return newKey;
@@ -334,7 +339,7 @@ public class StatisticsManager {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Key key = (Key) o;
+            final DailyKey key = (DailyKey) o;
 
             if (day != key.day) return false;
             if (year != key.year) return false;

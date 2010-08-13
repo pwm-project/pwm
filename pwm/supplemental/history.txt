@@ -12,6 +12,7 @@ v1.5.1 -- devbuilds
 + Added idle timeout warning dialog
 + Added settings to control Admin Alerts for startup, shutdown, config changes, intruder detection, fatal events and daily stats.
 + Added setting to enable/disable session validation
++ Updated random password generator to show multiple randomly generated passwords at once on change password screen
 
 - Fixed bug where forgotten password recovery would fail when no required attributes were configured
 - Fixed bug where forgotten password recovery would fail when DirectoryServer389 server was used

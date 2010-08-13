@@ -128,11 +128,11 @@ package password.pwm.util;
  *   Added the ability to "suspend" encoding in the Output Stream so
  *   you can turn on and off the encoding if you need to embed base64
  *   data in an otherwise "normal" stream (like an XML file).</li>
- *  <li>v1.5 - Output stream pases on flush() command but doesn't do anything itself.
+ *  <li>v1.5 - Output stream pases on close() command but doesn't do anything itself.
  *      This helps when using GZIP streams.
  *      Added the ability to GZip-compress objects before encoding them.</li>
  *  <li>v1.4 - Added helper methods to read/write files.</li>
- *  <li>v1.3.6 - Fixed OutputStream.flush() so that 'position' is reset.</li>
+ *  <li>v1.3.6 - Fixed OutputStream.close() so that 'position' is reset.</li>
  *  <li>v1.3.5 - Added flag to turn on and off line breaks. Fixed bug in input stream
  *      where last buffer being read, if not completely full, was not returned.</li>
  *  <li>v1.3.4 - Fixed when "improperly padded stream" error was thrown at the wrong time.</li>
@@ -508,7 +508,7 @@ public class Base64Util
 
         // Create buffer with zero-padding if there are only one or two
         // significant bytes passed in the array.
-        // We have to shift left 24 in order to flush out the 1's that appear
+        // We have to shift left 24 in order to close out the 1's that appear
         // when Java treats a value as negative that is cast from a byte to an int.
         int inBuff =   ( numSigBytes > 0 ? ((source[ srcOffset     ] << 24) >>>  8) : 0 )
                      | ( numSigBytes > 1 ? ((source[ srcOffset + 1 ] << 24) >>> 16) : 0 )
@@ -1958,7 +1958,7 @@ public class Base64Util
                 }   // end else: decoding
             }   // end if: buffer partially full
 
-        }   // end flush
+        }   // end close
 
         /**
          * Flushes the stream (and the enclosing streams).

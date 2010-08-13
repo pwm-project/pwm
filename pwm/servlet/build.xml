@@ -57,7 +57,7 @@
         <copy todir="${destination}/bin">
             <fileset dir="${src.root}/src" includes="**/*.properties"/>
         </copy>
-    </target>
+    </target>                                                                                                          
 
     <target name="makeWAR" depends="compileCode,copyResources">
         <war zipfile="${destination.war}" webxml="${src.root}/web/WEB-INF/web.xml">

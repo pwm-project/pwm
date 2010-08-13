@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;

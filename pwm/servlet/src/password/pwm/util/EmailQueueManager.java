@@ -278,7 +278,7 @@ public class EmailQueueManager {
             }
 
             if (!mailSendQueue.isEmpty()) {
-                LOGGER.warn("unable to flush email queue, abandoning queue with " + mailSendQueue.size() + " messages");
+                LOGGER.warn("unable to close email queue, abandoning queue with " + mailSendQueue.size() + " messages");
             }
         }
 

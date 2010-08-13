@@ -281,7 +281,7 @@ public class ContextManager implements Serializable
         PwmInitializer.initializeSharedHistory(this);
 
         LOGGER.info(logEnvironment());
-        LOGGER.info(logDebugInfo(activeSessions.size(), getStatisticsManager()));
+        LOGGER.info(logDebugInfo(activeSessions.size()));
 
         emailQueue = new EmailQueueManager(this);
         LOGGER.trace("email queue manager started");
@@ -422,7 +422,7 @@ public class ContextManager implements Serializable
         return sb.toString();
     }
 
-    private static String logDebugInfo(final int activeSessionCount, final StatisticsManager statsMgr)
+    private static String logDebugInfo(final int activeSessionCount)
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("debug info:");
@@ -431,7 +431,6 @@ public class ContextManager implements Serializable
         sb.append(", memallocd=").append(Runtime.getRuntime().totalMemory());
         sb.append(", memmax=").append(Runtime.getRuntime().maxMemory());
         sb.append(", threads=").append(Thread.activeCount());
-        sb.append(", status={").append(statsMgr.toString()).append("}");
         return sb.toString();
     }
 
@@ -521,7 +520,7 @@ public class ContextManager implements Serializable
         AlertHandler.alertShutdown(this);
 
         if (getStatisticsManager() != null) {
-            getStatisticsManager().flush();
+            getStatisticsManager().close();
         }
 
         if (taskMaster != null) {
@@ -603,7 +602,7 @@ public class ContextManager implements Serializable
     public class DebugLogOutputter extends TimerTask {
         public void run()
         {
-            LOGGER.trace(logDebugInfo(activeSessions.size(), getStatisticsManager()));
+            LOGGER.trace(logDebugInfo(activeSessions.size()));
         }
     }
 
@@ -661,14 +660,18 @@ public class ContextManager implements Serializable
 
             // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
             if (!configured) {
-                final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
-                final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-                final Level level = logLevel == null ? Level.TRACE : Level.toLevel(logLevel);
-                pwmPackageLogger.addAppender(consoleAppender);
-                pwmPackageLogger.setLevel(level);
-                chaiPackageLogger.addAppender(consoleAppender);
-                chaiPackageLogger.setLevel(level);
-                LOGGER.debug("successfully initialized default log4j config at log level " + level.toString());
+                if (logLevel != null && logLevel.length() > 0) {
+                    final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
+                    final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
+                    final Level level = Level.toLevel(logLevel);
+                    pwmPackageLogger.addAppender(consoleAppender);
+                    pwmPackageLogger.setLevel(level);
+                    chaiPackageLogger.addAppender(consoleAppender);
+                    chaiPackageLogger.setLevel(level);
+                    LOGGER.debug("successfully initialized default log4j config at log level " + level.toString());
+                } else {
+                    LOGGER.debug("skipping stdout log4j initializtion due to blank setting for log level");
+                }
             }
 
             // if there was an exception trying to load the log4j file, then log it (hopefully the defaults worked)

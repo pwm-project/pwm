@@ -35,7 +35,7 @@ public class StatisticsBundle {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsBundle.class);
 
     private static final int MAX_AVG_HISTORY_SIZE = 10;
-    private final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
     static {
         STORED_DATETIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("Zulu"));
     }

@@ -22,9 +22,8 @@
 
 var AJAX_TYPE_DELAY_MS = 100;
 
-var dirtyPageLeaveFlag = false;
-
 var PWM_STRINGS = {};
+var PWM_GLOBAL = {};
 
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {

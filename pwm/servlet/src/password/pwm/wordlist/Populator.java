@@ -278,10 +278,10 @@ class Populator {
             line = line.substring(0,MAX_LINE_LENGTH);
         }
 
-        if (!rootWordlist.containsWord(null,line)) {
+        //if (!rootWordlist.containsWord(null,line)) {
             final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
             bufferedWords.putAll(wordTxn);
-        }
+        //}
     }
 
     private void flushBuffer()
@@ -299,7 +299,7 @@ class Populator {
             return;
         }
 
-        //mark how long the buffer flush took
+        //mark how long the buffer close took
         final long commitTime = System.currentTimeMillis() - startTime;
         transactionSize = calcTransactionSize(commitTime, bufferedWords.size());
 

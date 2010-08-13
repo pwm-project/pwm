@@ -95,8 +95,8 @@
                         <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since installation - <%= dateFormat.format(contextManager.getInstallTime()) %></option>
                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since startup - <%= dateFormat.format(contextManager.getStartupTime()) %></option>
-                            <% final Map<StatisticsManager.Key,String> availableKeys = statsManager.getAvailableKeys(request.getLocale()); %>
-                            <% for (final StatisticsManager.Key key : availableKeys.keySet()) { %>
+                            <% final Map<StatisticsManager.DailyKey,String> availableKeys = statsManager.getAvailableKeys(request.getLocale()); %>
+                            <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
                             <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %> GMT</option>
                             <% } %>
                         </select>
