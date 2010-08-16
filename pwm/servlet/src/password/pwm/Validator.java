@@ -126,7 +126,7 @@ public class Validator {
     )
             throws PwmException, ChaiUnavailableException
     {
-        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy);
+        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getContextManager());
 
         if (!errorResults.isEmpty()) {
             throw ValidationException.createValidationException(errorResults.iterator().next());
@@ -512,7 +512,8 @@ public class Validator {
             final String password,
             final PwmSession pwmSession,
             final boolean testOldPassword,
-            final PwmPasswordPolicy policy
+            final PwmPasswordPolicy policy,
+            final ContextManager contextManager
     )
 
     {
@@ -709,22 +710,24 @@ public class Validator {
         // check disallowed attributes.
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
             final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
-            final Properties userValues = pwmSession.getUserInfoBean().getAllUserAttributes();
-            final String lcasePwd = password.toLowerCase();
-            for (final Object paramConfig : paramConfigs) {
-                final String attr = (String) paramConfig;
-                final String userValue = userValues.getProperty(attr, "").toLowerCase();
+            if (pwmSession != null) {
+                final Properties userValues = pwmSession.getUserInfoBean().getAllUserAttributes();
+                final String lcasePwd = password.toLowerCase();
+                for (final Object paramConfig : paramConfigs) {
+                    final String attr = (String) paramConfig;
+                    final String userValue = userValues.getProperty(attr, "").toLowerCase();
 
-                // if the password is greater then 1 char and the value is contained within it then disallow
-                if (userValue.length() > 1 && lcasePwd.indexOf(userValue) != -1) {
-                    LOGGER.trace("password rejected, same as user attr " + attr);
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
-                }
+                    // if the password is greater then 1 char and the value is contained within it then disallow
+                    if (userValue.length() > 1 && lcasePwd.indexOf(userValue) != -1) {
+                        LOGGER.trace("password rejected, same as user attr " + attr);
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
+                    }
 
-                // if the password is 1 char and the value is the same then disallow
-                if (lcasePwd.equalsIgnoreCase(userValue)) {
-                    LOGGER.trace("password rejected, same as user attr " + attr);
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
+                    // if the password is 1 char and the value is the same then disallow
+                    if (lcasePwd.equalsIgnoreCase(userValue)) {
+                        LOGGER.trace("password rejected, same as user attr " + attr);
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
+                    }
                 }
             }
         }
@@ -746,12 +749,10 @@ public class Validator {
         }
 
 
-        final ContextManager theManager = pwmSession.getContextManager();
-
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
-            if (theManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
-                final boolean found = theManager.getWordlistManager().containsWord(pwmSession, password);
+            if (contextManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
+                final boolean found = contextManager.getWordlistManager().containsWord(pwmSession, password);
 
                 if (found) {
                     LOGGER.trace(pwmSession, "password rejected, in wordlist file");
@@ -763,8 +764,8 @@ public class Validator {
         }
 
         // check for shared (global) password history
-        if (theManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && theManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
-            final boolean found = theManager.getSharedHistoryManager().containsWord(pwmSession,password);
+        if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && contextManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
+            final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession,password);
 
             if (found) {
                 LOGGER.trace(pwmSession, "password rejected, in global shared history");

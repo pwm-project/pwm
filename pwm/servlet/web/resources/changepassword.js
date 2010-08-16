@@ -66,7 +66,7 @@ function validatePasswords()
     },200);
     validationInProgress = true;
     dojo.xhrPost({
-        url: PWM_STRINGS['url-changepassword'] + "?processAction=validate&pwmFormID=" + getObject('pwmFormID').value,
+        url: PWM_STRINGS['url-changepassword'] + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         postData: dojo.toJson(passwordData),
         contentType: "application/json;charset=utf-8",
         dataType: "json",
@@ -347,7 +347,7 @@ function fetchRandoms() {
 function fetchRandom(elementID)
 {
     dojo.xhrGet({
-        url: PWM_STRINGS['url-changepassword'] + "?processAction=getrandom&pwmFormID=" + getObject('pwmFormID').value,
+        url: PWM_STRINGS['url-changepassword'] + "?processAction=getrandom&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         timeout: 15000,

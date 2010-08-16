@@ -36,7 +36,7 @@ public class StatisticsManager {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
 
-    private static final int DB_WRITE_FREQUENCY_MS = 1 * 60 * 1000;  // 1 minutes
+    private static final int DB_WRITE_FREQUENCY_MS = 60 * 1000;  // 1 minutes
 
     private static final String DB_KEY_VERSION = "STATS_VERSION";
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
@@ -53,12 +53,9 @@ public class StatisticsManager {
     private DailyKey currentDailyKey = new DailyKey(new Date());
     private DailyKey initialDailyKey = new DailyKey(new Date());
 
-    private long lastWriteTime;
-    private long lastUpdateTime;
-
     private Timer daemonTimer;
 
-    private StatisticsBundle statsCurrent = new StatisticsBundle();
+    private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
 
@@ -86,16 +83,12 @@ public class StatisticsManager {
         statsCurrent.incrementValue(statistic);
         statsDaily.incrementValue(statistic);
         statsCummulative.incrementValue(statistic);
-        lastUpdateTime = System.currentTimeMillis();
-        //LOGGER.trace("stat increment");
     }
 
     public synchronized void updateAverageValue(final Statistic statistic, final long value) {
         statsCurrent.updateAverageValue(statistic,value);
         statsDaily.updateAverageValue(statistic,value);
         statsCummulative.updateAverageValue(statistic,value);
-        lastUpdateTime = System.currentTimeMillis();
-        //LOGGER.trace("stat update");
     }
 
     public Map<String,String> getStatHistory(final Statistic statistic, final int days) {
@@ -226,7 +219,7 @@ public class StatisticsManager {
 
         {
             daemonTimer = new Timer("pwm-StatisticsManager timer",true);
-            daemonTimer.scheduleAtFixedRate(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
+            daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
             daemonTimer.schedule(new NightlyTask(), nextDate());
         }
     }
@@ -243,15 +236,11 @@ public class StatisticsManager {
 
     private void writeDbValues() {
         if (pwmDB != null) {
-            if (lastUpdateTime > lastWriteTime) {
-                try {
-                    pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
-                    pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
-                } catch (PwmDBException e) {
-                    LOGGER.error("error outputting pwm statistics: " + e.getMessage());
-                }
-                LOGGER.trace("saved statistics to pwmDB");
-                lastWriteTime = System.currentTimeMillis();
+            try {
+                pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
+                pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
+            } catch (PwmDBException e) {
+                LOGGER.error("error outputting pwm statistics: " + e.getMessage());
             }
         }
 
@@ -335,7 +324,7 @@ public class StatisticsManager {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 

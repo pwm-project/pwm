@@ -95,6 +95,7 @@ public class EmailQueueManager {
         final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
         if (serverAddress == null || serverAddress.length() < 1) {
             LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
+            return;
         }
 
         if (emailItem.getFrom() == null || emailItem.getFrom().length() < 1) {

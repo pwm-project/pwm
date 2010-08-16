@@ -181,10 +181,16 @@
                 <% } else { %>
                 <a href="#" onclick="showWaitDialog('Saving Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Save Configuration</a>
                 <% } %>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="#" onclick="showWaitDialog('Canceling...'); setTimeout(function() {document.forms['cancelEditing'].submit();},1000)">Cancel</a>
             </h2>
             <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing" enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="finishEditing"/>
-                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing" enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="processAction" value="cancelEditing"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
         <br class="clear"/>

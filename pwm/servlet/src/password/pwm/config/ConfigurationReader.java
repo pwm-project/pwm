@@ -69,7 +69,7 @@ public class ConfigurationReader {
 
     private static MODE determineConfigMode(final StoredConfiguration storedConfig) {
         if (storedConfig == null) {
-           return MODE.NEW;
+            return MODE.NEW;
         }
 
         final String configIsEditable = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
@@ -122,6 +122,7 @@ public class ConfigurationReader {
         }
 
         configurationReadTime = new Date();
+        storedConfiguration.lock();
         return storedConfiguration;
     }
 

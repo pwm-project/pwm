@@ -96,7 +96,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         }
 
         final long totalTime = System.currentTimeMillis() - startTime;
-        LOGGER.trace("getRandomSeed fetch time: " + totalTime + "ms");
+        //LOGGER.trace("getRandomSeed fetch time: " + totalTime + "ms");
         return returnValue;
     }
 

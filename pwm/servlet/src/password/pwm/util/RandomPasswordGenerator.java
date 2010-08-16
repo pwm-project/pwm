@@ -23,14 +23,10 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
-import password.pwm.PasswordUtility;
-import password.pwm.PwmPasswordPolicy;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.wordlist.SeedlistManager;
-import password.pwm.wordlist.WordlistManager;
 import password.pwm.wordlist.WordlistStatus;
 
 import java.util.*;
@@ -73,32 +69,53 @@ public class RandomPasswordGenerator {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String createRandomPassword(final PwmSession pwmSession)
+    public static String createRandomPassword(
+            final PwmSession pwmSession)
     {
+        final ContextManager contextManager = pwmSession.getContextManager();
+        final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
+        final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+        return createRandomPassword(pwmSession, userPasswordPolicy, seedlistManager, contextManager);
+    }
+
+    public static String createRandomPassword(
+            final PwmSession pwmSession,
+            final PwmPasswordPolicy passwordPolicy,
+            final SeedlistManager seedlistManagr,
+            final ContextManager contextManager
+    )
+    {
+
         Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-        final SeedlistManager slMgr = pwmSession.getContextManager().getSeedlistManager();
-        if (slMgr != null && slMgr.getStatus() != WordlistStatus.CLOSED && slMgr.size() > 0) {
+        if (seedlistManagr != null && seedlistManagr.getStatus() != WordlistStatus.CLOSED && seedlistManagr.size() > 0) {
             seeds = new HashSet<String>();
             int safteyCounter = 0;
             while (seeds.size() < 10 && safteyCounter < 100) {
                 safteyCounter++;
-                final String randomWord = slMgr.randomSeed();
+                final String randomWord = seedlistManagr.randomSeed();
                 if (randomWord != null) {
-                    seeds.add(slMgr.randomSeed());
+                    seeds.add(seedlistManagr.randomSeed());
                 } else {
                     break;
                 }
             }
         }
 
-        return createRandomPassword(seeds, DEFAULT_LENGTH, DEFAULT_DESIRED_STRENGTH, pwmSession);
+        return createRandomPassword(
+                pwmSession,
+                passwordPolicy,
+                DEFAULT_LENGTH,
+                DEFAULT_DESIRED_STRENGTH,
+                seeds,
+                contextManager
+        );
     }
 
 
     /**
      * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
-     * reason the RANDOM algortithm can not generate a valid password, null will be returned.
+     * reason the RANDOM algorithm can not generate a valid password, null will be returned.
      * <p/>
      * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
      * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
@@ -116,17 +133,17 @@ public class RandomPasswordGenerator {
      *          default seed phrase
      */
     private static String createRandomPassword(
-            final Collection<String> seedPhrases,
+            final PwmSession pwmSession,
+            final PwmPasswordPolicy userPasswordPolicy,
             final int desiredLength,
             int desiredStrength,
-            final PwmSession pwmSession
+            final Collection<String> seedPhrases,
+            final ContextManager contextManager
     )
     {
         final long startTimeMS = System.currentTimeMillis();
 
         final SeedMachine seedMachine = new SeedMachine(normalizeSeeds(seedPhrases));
-        final WordlistManager wordlistManager = pwmSession.getContextManager().getWordlistManager();
-        final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
 
         desiredStrength = desiredStrength > MAXIMUM_STRENGTH ? MAXIMUM_STRENGTH : desiredStrength;
         desiredStrength = desiredStrength < MINIMUM_STRENGTH ? MINIMUM_STRENGTH : desiredStrength;
@@ -141,7 +158,7 @@ public class RandomPasswordGenerator {
         while (!validPassword && tryCount < MAXIMUM_TRY_COUNT) {
             tryCount++;
             validPassword = true;
-            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,userPasswordPolicy);
+            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,userPasswordPolicy, contextManager);
             if (errors != null && !errors.isEmpty()) {
                 validPassword = false;
                 modifyPasswordBasedOnErrors(password, errors, seedMachine);
@@ -159,7 +176,7 @@ public class RandomPasswordGenerator {
             if (validPassword) {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
-                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,pwmSession.getUserInfoBean().getPasswordPolicy());
+                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,pwmSession.getUserInfoBean().getPasswordPolicy(), contextManager);
                 final int judgeLevel = PasswordUtility.judgePassword(password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");

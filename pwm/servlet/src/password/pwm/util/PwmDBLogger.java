@@ -75,6 +75,7 @@ public class PwmDBLogger {
 
     private final int setting_maxEvents;
     private final long setting_maxAgeMs;
+    private final int setting_bulkAddEvents;
 
     private final Queue<PwmLogEvent> eventQueue = new ConcurrentLinkedQueue<PwmLogEvent>();
 
@@ -86,10 +87,11 @@ public class PwmDBLogger {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge) {
+    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge, final int bulkAddEvents) {
 
         this.setting_maxAgeMs = ((long)maxAge) * 1000L;
         this.pwmDB = pwmDB;
+        this.setting_bulkAddEvents = bulkAddEvents;
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents sent to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
@@ -215,8 +217,11 @@ public class PwmDBLogger {
         }
         */
 
-        //Helper.pause(10 * 1000);
-        //bulkAddEvents( 5 * 1000 * 1000);
+        if (setting_bulkAddEvents > 0) {
+            Helper.pause(10 * 1000);
+            LOGGER.warn("beginning bulk add events testing process for " + setting_bulkAddEvents + " events!");
+            bulkAddEvents( setting_bulkAddEvents );
+        }
     }
 
     /**

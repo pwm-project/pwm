@@ -322,7 +322,7 @@ public class ContextManager implements Serializable
     public void reinitialize() {
         final Thread t = new Thread() {
             public void run() {
-                Helper.pause(1000);
+                Helper.pause(2000);
                 try {
                     LOGGER.warn("attempting to reinitialize context by touching web.xml");
                     final String filename = "web.xml";
@@ -330,7 +330,9 @@ public class ContextManager implements Serializable
                     final File theFile = ContextManager.figureFilepath(filename,filepath, servletContext);
                     theFile.setLastModified(System.currentTimeMillis());
                 } catch (Exception e) {
-                    LOGGER.error("unexpected error while trying to reinitialize context by touching web.xml");
+                    try {
+                        LOGGER.error("unexpected error while trying to reinitialize context by touching web.xml");
+                    } catch (Exception e2) { /* ok */ }
                 }
             }
         };
@@ -802,12 +804,12 @@ public class ContextManager implements Serializable
         public void run() {
             if (configReader != null) {
                 if (configReader.inputFileHasBeenModified()) {
+                    LOGGER.info("configuration file modification has been detected");
                     reinitialize();
                 }
             }
         }
     }
-
 }
 
 

@@ -68,7 +68,6 @@ public class ConfigManagerServlet extends TopServlet {
 
         initialize(pwmSession, configMode, configManagerBean);
 
-
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
             Validator.validatePwmFormID(req);
@@ -88,6 +87,8 @@ public class ConfigManagerServlet extends TopServlet {
                 doLockConfiguration(req);
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
                 doFinishEditing(req);
+            } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
+                doCancelEditing(req);
             } else if ("switchToEditMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
                 LOGGER.debug(pwmSession,"switching to edit mode");
@@ -106,25 +107,33 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         // first time setup
-        switch (configMode) {
-            case NEW:
-                if (configManagerBean.getConfiguration() == null) {
-                    configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
-                }
-                configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
-                break;
+        if (configManagerBean.getConfiguration() == null) {
+            switch (configMode) {
+                case NEW:
+                    if (configManagerBean.getConfiguration() == null) {
+                        configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
+                    }
+                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
+                    break;
 
-            case CONFIGURATION:
-                configManagerBean.setConfiguration(pwmSession.getContextManager().getConfigReader().getStoredConfiguration());
-                configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
-                break;
+                case CONFIGURATION:
+                    try {
+                        final StoredConfiguration runningConfig = pwmSession.getContextManager().getConfigReader().getStoredConfiguration();
+                        final StoredConfiguration clonedConfiguration = (StoredConfiguration)runningConfig.clone();
+                        clonedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
+                        configManagerBean.setConfiguration(clonedConfiguration);
+                    } catch (CloneNotSupportedException e) {
+                        throw new RuntimeException("unexpected error cloning StoredConfiguration", e);
+                    }
+                    break;
 
-            case RUNNING:
-                if (configManagerBean.getConfiguration() == null) {
-                    configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
-                }
-                configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
-                break;
+                case RUNNING:
+                    if (configManagerBean.getConfiguration() == null) {
+                        configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
+                    }
+                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
+                    break;
+            }
         }
     }
 
@@ -277,6 +286,24 @@ public class ConfigManagerServlet extends TopServlet {
 
         configManagerBean.setEditorMode(false);
         LOGGER.debug(pwmSession,"switching to action mode");
+    }
+
+    private void doCancelEditing(
+            final HttpServletRequest req
+    )
+            throws IOException, ServletException, PwmException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+
+        configManagerBean.setConfiguration(null);
+        configManagerBean.setEditorMode(false);
+        configManagerBean.setInitialMode(null);
+
+        initialize(pwmSession, configMode, configManagerBean);
+
+        LOGGER.debug(pwmSession,"cancelled edit actions");
     }
 
     private void doLockConfiguration(

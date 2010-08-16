@@ -44,7 +44,7 @@ function showError(errorMsg)
 
 function readSetting(keyName, valueWriter) {
     dojo.xhrGet({
-        url:"ConfigManager?processAction=readSetting&pwmFormID=" + getObject('pwmFormID').value + "&key=" + keyName,
+        url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         handleAs: "json",
@@ -62,7 +62,7 @@ function writeSetting(keyName, valueData) {
     var jsonData = { key:keyName, value:valueData };
     var jsonString = dojo.toJson(jsonData);
     dojo.xhrPost({
-        url: "ConfigManager?processAction=writeSetting&pwmFormID=" + getObject('pwmFormID').value,
+        url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         postData: jsonString,
         contentType: "application/json;charset=utf-8",
         dataType: "json",

@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.db.PwmDB;
@@ -61,7 +62,15 @@ public class PwmLogger {
             final PwmLogLevel minimumDbLogLevel,
             final ContextManager contextManager
     ) {
-        PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge);
+        final String bulkAddEventsSetting = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.BULK_DB_LOGEVENTS_TEST);
+        int bulkAddEvents;
+        try {
+            bulkAddEvents = Integer.parseInt(bulkAddEventsSetting);
+        } catch (Exception e) {
+            bulkAddEvents = 0;
+        }
+        
+        PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge, bulkAddEvents);
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
         PwmLogger.contextManager = contextManager;
         return PwmLogger.pwmDBLogger;

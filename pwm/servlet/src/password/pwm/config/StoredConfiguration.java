@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 /**
  * @author Jason D. Rivard
  */
-public class StoredConfiguration implements Serializable {
+public class StoredConfiguration implements Serializable, Cloneable {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
     private static final DateFormat STORED_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
@@ -67,12 +67,29 @@ public class StoredConfiguration implements Serializable {
     private Map<PwmSetting,String> settingMap = new HashMap<PwmSetting,String>();
     private Map<String,String> propertyMap = new HashMap<String,String>();
 
+    private boolean locked = false;
+
     static {
         STORED_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
     }
 
     public void lock() {
         settingMap = Collections.unmodifiableMap(settingMap);
+        propertyMap = Collections.unmodifiableMap(propertyMap);
+        locked = true;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        final StoredConfiguration clonedConfig = (StoredConfiguration)super.clone();
+        clonedConfig.createTime = this.createTime;
+        clonedConfig.modifyTime = this.modifyTime;
+        clonedConfig.settingMap = new HashMap<PwmSetting,String>();
+        clonedConfig.settingMap.putAll(this.settingMap);
+        clonedConfig.propertyMap = new HashMap<String,String>();
+        clonedConfig.propertyMap.putAll(this.propertyMap);
+        clonedConfig.locked = false;
+        return clonedConfig;
     }
 
     public Date getModifyTime() {
@@ -134,7 +151,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeSetting(final PwmSetting setting, final String value) {
-        updateModifyTime();
+        preModifyActions();
         switch (setting.getSyntax()) {
             case STRING:
             case BOOLEAN:
@@ -158,7 +175,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeLocalizedSetting(final PwmSetting setting, final Map<String,String> values) {
-        updateModifyTime();
+        preModifyActions();
         if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING or LOCALIZED_TEXT_AREA setting: " + setting.toString());
         }
@@ -176,7 +193,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeStringArraySetting(final PwmSetting setting, final List<String> values) {
-        updateModifyTime();
+        preModifyActions();
         if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write STRING_ARRAY value to setting: " + setting.toString());
         }
@@ -194,7 +211,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String,List<String>> values) {
-        updateModifyTime();
+        preModifyActions();
         if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write LOCALIZED_STRING_ARRAY value to setting: " + setting.toString());
         }
@@ -207,7 +224,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void writeProperty(final String propertyName, final String propertyValue) {
-        updateModifyTime();
+        preModifyActions();
         if (propertyValue == null) {
             propertyMap.remove(propertyName);
         } else {
@@ -628,7 +645,10 @@ public class StoredConfiguration implements Serializable {
         return errorStrings;
     }
 
-    private void updateModifyTime() {
+    private void preModifyActions() {
+        if (locked) {
+            throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modifed");
+        }
         modifyTime = new Date();
     }
 

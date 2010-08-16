@@ -60,4 +60,5 @@
     </script>
     <% } %>
     <% } %>
+    <script type="text/javascript">PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';</script>
 </head>
