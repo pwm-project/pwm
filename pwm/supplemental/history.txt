@@ -6,7 +6,6 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-
 v1.5.1 (August 16, 2010) build 975
 ---
 + Added idle timeout warning dialog
@@ -18,6 +17,7 @@ v1.5.1 (August 16, 2010) build 975
 
 - Fixed bug where forgotten password recovery would fail when no required attributes were configured
 - Fixed bug where forgotten password recovery would fail when DirectoryServer389 server was used
+- Fixed a bug where the configuration setting for multiple ldap login contexts could not be read properly
 
 
 v1.5.0 (July 6, 2010) build 959

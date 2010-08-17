@@ -43,7 +43,7 @@
             <% } %>
 
             <%  //check to see if any locations are configured.
-                if (!Configuration.convertStringListToNameValuePair(PwmSession.getPwmSession(session).getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS),"=").isEmpty()) {
+                if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
             %>
             <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
             <select name="context">

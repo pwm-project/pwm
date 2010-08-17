@@ -25,12 +25,9 @@ package password.pwm.tag;
 import password.pwm.ContextManager;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,8 +44,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
     {
         final ContextManager contextManager = ContextManager.getContextManager(request.getSession().getServletContext());
 
-        final List<String> values = contextManager.getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        final Map<String,String> locationsMap = Configuration.convertStringListToNameValuePair(values,"=");
+        final Map<String,String> locationsMap = contextManager.getConfig().getLoginContexts();
 
         if (locationsMap == null || locationsMap.isEmpty()) {
             return "";

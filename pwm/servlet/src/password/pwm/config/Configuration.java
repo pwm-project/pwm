@@ -219,6 +219,11 @@ public class Configuration implements Serializable {
         return null;
     }
 
+    public Map<String,String> getLoginContexts() {
+        final List<String> values = readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS);
+        return Configuration.convertStringListToNameValuePair(values,":::");
+    }
+
     private Challenge parseConfigStringToChallenge(String inputString, final boolean required) {
 
         if (inputString == null || inputString.length() < 1) {

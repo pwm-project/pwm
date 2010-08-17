@@ -305,13 +305,12 @@ public class UserStatusHelper {
 
         // see if the baseDN should be the context parameter
         if (context != null && context.length() > 0) {
-            final List<String> values = pwmSession.getConfig().readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS);
-            final Map<String,String> contextsSettings = Configuration.convertStringListToNameValuePair(values,"=");
+            final Map<String,String> contextsSettings = pwmSession.getConfig().getLoginContexts();
             if (contextsSettings.containsKey(context)) {
-                if (context.endsWith(baseDN)) {
+                if (contextsSettings.keySet().contains(baseDN)) {
                     baseDN = context;
                 } else {
-                    LOGGER.debug(pwmSession, "attempt to use '" + context + "' context for search, but does not end with configured contextless root: " + baseDN);
+                    LOGGER.warn(pwmSession, "attempt to use '" + context + "' context for search, but is not a configured contextless root: " + baseDN);
                 }
             }
         }
