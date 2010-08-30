@@ -35,8 +35,8 @@
 <div id="header-warning">PWM is in configuration mode.  Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a> to modify or finalize the configuration.</div>
 <% } %>
 <div id="header">
-    <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
-    <div style="align:right; float:right; border-width:0; padding-top:10px; padding-right:10px">
+    <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
+    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px">
         <a style="border-width:0" href="<%=request.getContextPath()%>/public/Logout">
             <img src="<%=request.getContextPath()%>/resources/logout.png" alt="<pwm:Display key="Button_Logout"/>" longdesc="<pwm:Display key="Button_Logout"/>" title="<pwm:Display key="Button_Logout"/>" border="0"/>
         </a>

@@ -8,11 +8,14 @@
 
 v1.5.2 development
 ---
-+ Added "minimum password strength" setting 
++ Added "minimum password strength" setting
++ Added if statements to main index to remove un-enabled functions
++ Added logout icon to header
 
 - Fixed issue with LoginContexts setting not being parsed properly
 - Fixed issue where ldap urls could not contain a hyphen
 - Fixed issue where older/corrupt user history attribute would cause a NullPointerException
+- Removed "dojo.css" include to prevent IE display issues (small fonts in IE)
 
 v1.5.1 (August 16, 2010) build 975
 ---
