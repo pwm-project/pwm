@@ -33,6 +33,8 @@ dojo.require("dijit.TitlePane");
 
 
 var clientSettingCache = { };
+var availableLocales = new Array();
+
 
 function showError(errorMsg)
 {
@@ -108,6 +110,58 @@ function clearDivElements(parentDiv, showLoading) {
     }
 }
 
+function clearDigitWidget(widgetName) {
+    var oldDijitNode = dijit.byId(widgetName);
+    if (oldDijitNode != null) {
+        try {
+            oldDijitNode.destroy();
+        } catch (error) {
+        }
+    }
+}
+
+function addAddLocaleButtonRow(parentDiv, keyName, addFunction)
+{
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
+
+    var td1 = document.createElement("td");
+    td1.setAttribute("style", "border-width: 0");
+    td1.setAttribute("colspan","5");
+
+    var selectElement = document.createElement("select");
+    selectElement.setAttribute('id',keyName + '-addLocaleValue');
+    for (var localeIter = 0; localeIter < availableLocales.length; localeIter++) {
+        var optionElement = document.createElement("option");
+        optionElement.innerHTML = availableLocales[localeIter];
+        selectElement.appendChild(optionElement);
+    }
+    td1.appendChild(selectElement);
+
+    var addButton = document.createElement("button");
+    addButton.setAttribute('id',keyName + '-addLocaleButton');
+    addButton.setAttribute("type","button");
+    addButton.innerHTML = 'Add Locale';
+    td1.appendChild(addButton);
+
+    newTableRow.appendChild(td1);
+    var parentDivElement = getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+
+    clearDigitWidget(keyName + '-addLocaleValue');
+    var filteringSelect = new dijit.form.ComboBox({
+        id: keyName + '-addLocaleValue'
+    },keyName + '-addLocaleValue');
+
+    clearDigitWidget(keyName + '-addLocaleButton');
+    var dojoAddButton = new dijit.form.Button({
+        id: keyName + '-addLocaleButton',
+        onClick: addFunction
+    },keyName + '-addLocaleButton');
+
+    return newTableRow;
+}
+
 // -------------------------- locale table handler ------------------------------------
 
 function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
@@ -117,6 +171,8 @@ function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
         for (var i in resultValue) {
             addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
         }
+        addAddLocaleButtonRow(parentDiv, keyName, function() {addLocaleSetting(keyName,parentDiv,regExPattern,syntax);});
+
         clientSettingCache[keyName] = resultValue;
         dojo.parser.parse(parentDiv);
     });
@@ -126,8 +182,7 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
     var inputID = 'value-' + settingKey + '-' + localeString;
 
     // clear the old dijit node (if it exists)
-    var oldDijitNode = dijit.byId(inputID);
-    if (oldDijitNode != null) { try { oldDijitNode.destroy(); } catch (error) { } }
+    clearDigitWidget(inputID);
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -205,7 +260,7 @@ function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
 }
 
 function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
-    var inputValue = getObject(keyName + '-addLocaleValue').value;
+    var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
     try {
         var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
         if (existingElementForLocale == null) {
@@ -425,6 +480,13 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
                 spacerTableRow.appendChild(spacerTableData);
             }
         }
+
+        var addLocaleFunction = function() {
+            writeMultiLocaleSetting(keyName,dijit.byId(keyName + "-addLocaleValue").value, 0, '');
+            initMultiLocaleTable(parentDiv, keyName, regExPattern);
+        };
+
+        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
         clientSettingCache[keyName] = resultValue;
         dojo.parser.parse(parentDiv);
     });

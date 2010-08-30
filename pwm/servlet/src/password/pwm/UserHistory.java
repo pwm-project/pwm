@@ -129,13 +129,16 @@ public class UserHistory implements Serializable {
 
         for (final Object record1 : records) {
             final Record record = (Record) record1;
-            final Element hrElement = new Element(XML_NODE_RECORD);
-            hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(record.getTimestamp()));
-            hrElement.setAttribute(XML_ATTR_TRANSACTION, record.eventCode.getMessage().getResourceKey());
-            if (record.getMessage() != null) {
-                hrElement.setContent(new CDATA(record.getMessage()));
+            if (record.eventCode != Record.Event.UNKNOWN) {
+                final Element hrElement = new Element(XML_NODE_RECORD);
+                hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(record.getTimestamp()));
+                hrElement.setAttribute(XML_ATTR_TRANSACTION, record.eventCode.getMessage().getResourceKey());
+                if (record.getMessage() != null) {
+                    hrElement.setContent(new CDATA(record.getMessage()));
+                }
+                rootElement.addContent(hrElement);
+                
             }
-            rootElement.addContent(hrElement);
         }
 
         final Document doc = new Document(rootElement);
@@ -239,8 +242,8 @@ public class UserHistory implements Serializable {
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
             UPDATE_ATTRIBUTES(Message.EVENT_LOG_UPDATE_ATTRIBUTES),
             INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
-
-            UNKNOWN(null);
+            UNKNOWN(null)
+            ;
 
             final private Message message;
 
@@ -253,9 +256,13 @@ public class UserHistory implements Serializable {
             }
 
             public static Event forKey(final String key) {
-                for (final Event e : Event.values()) {
-                    if (e.getMessage().getResourceKey().equals(key)) {
-                        return e;
+                for (final Event loopEvent : Event.values()) {
+                    final Message message = loopEvent.getMessage();
+                    if (message != null) {
+                        final String resourceKey = message.getResourceKey();
+                        if (resourceKey.equals(key)) {
+                            return loopEvent;
+                        }
                     }
                 }
 

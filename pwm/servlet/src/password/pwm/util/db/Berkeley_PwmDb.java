@@ -41,8 +41,7 @@ import static password.pwm.util.db.PwmDB.TransactionItem;
 /**
  * @author Jason D. Rivard
  */
-public class
-        Berkeley_PwmDb implements PwmDBProvider {
+public class Berkeley_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);
@@ -59,7 +58,7 @@ public class
     // cache of dbIterators
     private final Map<DB, DbIterator> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator>());
 
-    private volatile boolean open = false;
+    private boolean open = false;
 
     private volatile int outstandingCleanerThreads;
     private volatile int outstandingCleanerThreadCounter;

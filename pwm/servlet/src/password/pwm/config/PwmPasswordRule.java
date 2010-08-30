@@ -73,6 +73,7 @@ public enum PwmPasswordRule {
     MinimumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MIN, "0",false),
     MaximumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MAX, "0",false),
     EnableWordlist          (null                                      ,PwmSetting.PASSWORD_POLICY_ENABLE_WORDLIST              ,ChaiPasswordRule.RuleType.BOOLEAN, "true", true),
+    MinimumStrength(null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_STRENGTH             ,ChaiPasswordRule.RuleType.MIN, "0", false)
 
     ;
 

@@ -20,13 +20,11 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.json.simple.JSONArray" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.TreeSet" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="java.util.*" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -37,11 +35,11 @@
 <% final Set<String> DEFAULT_LOCALES = new TreeSet<String>(); for (final Locale l : Locale.getAvailableLocales()) DEFAULT_LOCALES.add(l.toString());%>
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <body class="tundra">
-<link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
 <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
+<script type="text/javascript"><% { int i=0; for (final String loopLocale : DEFAULT_LOCALES) { %>availableLocales[<%=i++%>]='<%=loopLocale%>'; <% } } %></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Editor"/></jsp:include>
     <div id="centerbody" style="width: 700px">
@@ -52,9 +50,17 @@
         <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
         <% } %>
         <br class="clear"/>
-
-        <div id="mainTabContainer" dojoType="dijit.layout.TabContainer" class="tundra" doLayout="false"
-             style="width:700px">
+        <div id="mainTabContainer" >
+            <script type="text/javascript">
+                dojo.require("dijit.layout.TabContainer");
+                dojo.addOnLoad(function() {
+                    var tc = new dijit.layout.TabContainer({
+                        doLayout: false,
+                        style: "width: 700px"
+                    },"mainTabContainer");
+                    tc.startup();
+                });
+            </script>
             <%
                 for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
                     final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
@@ -71,14 +77,6 @@
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
                         <tr style="border-width:0"><td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
-                    <select dojoType="dijit.form.ComboBox" id="<%=loopSetting.getKey()%>-addLocaleValue" style="width: 100px">
-                        <% for (final String loopLocale : DEFAULT_LOCALES) { %><option><%=loopLocale%></option><% } %>
-                    </select>
-                    <label for="<%=loopSetting.getKey()%>-addLocaleValue">
-                        <button type="button" onclick="addLocaleSetting('<%=loopSetting.getKey()%>','table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');" dojoType="dijit.form.Button">
-                            Add Locale
-                        </button>
-                    </label>
                     <script type="text/javascript">
                         dojo.addOnLoad(function() {initLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>','<%=loopSetting.getSyntax()%>');});
                     </script>
@@ -92,12 +90,6 @@
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
                         <tr><td><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
-                    <select dojoType="dijit.form.ComboBox" id="<%=loopSetting.getKey()%>-addLocaleValue" style="width: 100px">
-                        <% for (final String loopLocale : DEFAULT_LOCALES) { %><option><%=loopLocale%></option><% } %>
-                    </select>
-                    <button type="button" onclick="writeMultiLocaleSetting('<%=loopSetting.getKey()%>',getObject('<%=loopSetting.getKey()%>-addLocaleValue').value,'0','');initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');"          dojoType="dijit.form.Button">
-                        Add Locale
-                    </button>
                     <script type="text/javascript">
                         dojo.addOnLoad(function() {initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');});
                     </script>
@@ -125,7 +117,6 @@
                         });
                     </script>
                     <% } else { %>
-
                     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
                     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" disabled="disabled"
                            value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"

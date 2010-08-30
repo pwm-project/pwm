@@ -71,6 +71,7 @@ public enum PwmError {
     PASSWORD_HISTORY_FULL(              "Password_HistoryFull",             4032, null),
     PASSWORD_TOO_SOON(                  "Password_TooSoon",                 4033, null),
     PASSWORD_USING_DISALLOWED_VALUE(    "Password_UsingDisallowedValue",    4034, null),
+    PASSWORD_TOO_WEAK(                  "Password_TooWeak",                 4035, null),
 
     ERROR_WRONGPASSWORD(                "Error_WrongPassword",              5001, null),
     ERROR_WRONGANSWER(                  "Error_WrongAnswer",                5002, null),

@@ -41,6 +41,10 @@
         <param-name>wordlistLoadFactor</param-name>
         <param-value>50</param-value>
     </context-param>
+    <context-param>
+        <param-name>bulkDbLogEventsTest</param-name>
+        <param-value>0</param-value>        
+    </context-param>
     <filter>
         <filter-name>SessionFilter</filter-name>
         <filter-class>password.pwm.SessionFilter</filter-class>
@@ -237,7 +241,7 @@
         <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>5</session-timeout>
+        <session-timeout>50</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>

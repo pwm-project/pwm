@@ -32,16 +32,12 @@
     </span>
     <br/>
     PWM <%= PwmConstants.SERVLET_VERSION %> |
-    <% // can't use <jsp:UseBean> because it will cause duplicate useBean error.
-        final password.pwm.bean.UserInfoBean uiBean = PwmSession.getUserInfoBean(request.getSession());
-        final String userID = uiBean.getUserID();
-        if (userID != null && userID.length() > 0) {
-    %>
-    <%= userID %> |
+    <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
+    <%= PwmSession.getUserInfoBean(session).getUserID()%> 
+    |
     <% } %>
-
     <%
-        final password.pwm.bean.SessionStateBean sessionStateBean = PwmSession.getSessionStateBean(request.getSession());
+        final password.pwm.bean.SessionStateBean sessionStateBean = PwmSession.getSessionStateBean(session);
         final java.text.DateFormat df = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.DEFAULT, SimpleDateFormat.DEFAULT, request.getLocale());
         out.write(df.format(new java.util.Date()));
     %>

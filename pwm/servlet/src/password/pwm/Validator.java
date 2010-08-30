@@ -732,6 +732,17 @@ public class Validator {
             }
         }
 
+        {   // check password strength
+            final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
+            if (requiredPasswordStrength > 0) {
+                final int passwordStrength = PasswordUtility.judgePassword(password);
+                if (passwordStrength < requiredPasswordStrength) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
+                    LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
+                }
+            }
+        }
+
         // check regex matches.
         for (final Pattern pattern : ruleHelper.getRegExMatch()) {
             if (!pattern.matcher(password).matches()) {
@@ -747,7 +758,6 @@ public class Validator {
                 LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
             }
         }
-
 
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {

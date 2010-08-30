@@ -33,7 +33,8 @@ var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 var validationCache = { };
 var validationInProgress = false;
 
-var remainingFetches = 0;
+var fetchList = new Array();
+var outstandingFetches = 0;
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
@@ -151,6 +152,10 @@ function markConfirmationCheck(matchStatus) {
 }
 
 function markStrength(strength) { //strength meter
+    if (getObject("strengthBox") == null) {
+        return;
+    }
+
     if (getObject("password1").value.length > 0) {
         getObject("strengthBox").style.visibility = 'visible';
     } else {
@@ -303,7 +308,6 @@ function toggleMaskPasswords()
 function handleChangePasswordSubmit()
 {
     getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_PleaseWait'];
-    getObject("error_msg").className = "notice";
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 }
 
@@ -318,34 +322,52 @@ function doRandomGeneration() {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="fetchRandoms()">' + PWM_STRINGS['Button_More'] + '</button></td>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms()">' + PWM_STRINGS['Button_More'] + '</button></td>';
     dialogBody += '<td style="border: 0; text-align:right;"><button onclick="closeRandomPasswordsDialog()">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
     dialogBody += "</table>";
     showRandomPasswordsDialog(dialogBody);
-    fetchRandoms();
+    beginFetchRandoms();
 }
 
-function fetchRandoms() {
+function beginFetchRandoms() {
     getObject('moreRandomsButton').disabled = true;
-    remainingFetches = 20;
-    var fetchList = new Array();
+    outstandingFetches = 0;
+    fetchList = new Array();
     for (var counter = 0; counter < 20; counter++) {
         fetchList[counter] = 'randomGen' + counter;
-    }
-    fetchList.sort(function() {return 0.5 - Math.random()});
-
-    for (var item in fetchList) {
-        var name = fetchList[item];
+        var name ='randomGen' + counter;
         var element = getObject(name);
         if (element != null) {
             element.firstChild.nodeValue = '\u00A0';
         }
-        fetchRandom(name);
+    }
+    fetchList.sort(function() {return 0.5 - Math.random()});
+    fetchList.sort(function() {return 0.5 - Math.random()});
+
+    fetchRandoms();
+}
+
+function fetchRandoms() {
+    if (fetchList.length < 1) {
+        var moreButton = getObject('moreRandomsButton');
+        if (moreButton != null) {
+            moreButton.disabled = false;
+            moreButton.focus();
+        }
+        return;
+    }
+
+    if (outstandingFetches > 5) {
+        setTimeout(function(){fetchRandoms();},100);
+    } else {
+        var name = fetchList.splice(0,1);
+        outstandingFetches++;
+        fetchRandom(function(results) {handleRandomResponse(results, name);outstandingFetches--;},function(errorObj) {outstandingFetches--;});
+        setTimeout(function(){fetchRandoms();},100);
     }
 }
 
-function fetchRandom(elementID)
-{
+function fetchRandom(successFunction, errorFunction) {
     dojo.xhrGet({
         url: PWM_STRINGS['url-changepassword'] + "?processAction=getrandom&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         contentType: "application/json;charset=utf-8",
@@ -353,22 +375,9 @@ function fetchRandom(elementID)
         timeout: 15000,
         sync: false,
         handleAs: "json",
-        error: function(errorObj) {
-            watchForLastFetch();
-        },
-        load: function(data){
-            handleRandomResponse(data, elementID);
-            watchForLastFetch();
-        }
+        load: successFunction,
+        error: errorFunction
     });
-}
-
-function watchForLastFetch() {
-    remainingFetches--;
-    if (remainingFetches == 0) {
-        getObject('moreRandomsButton').disabled = false;
-        getObject('moreRandomsButton').focus();
-    }
 }
 
 function handleRandomResponse(resultInfo, elementID)
@@ -436,6 +445,21 @@ function startupChangePasswordPage()
     };
 
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
+
+    // setup tooltips
+    dojo.require("dijit.Tooltip");
+    dojo.addOnLoad(function() {
+        // create a new Tooltip and connect it to bar1 and bar4
+        var strengthTooltip = new dijit.Tooltip({
+            connectId: ["strengthBox"],
+            label: PWM_STRINGS['Tooltip_PasswordStrength'],
+            position: ["below","right"],
+            style: "width: 30em"
+        });
+        strengthTooltip.setAttribute('style','width: 30em');
+    });
+
+    dojo.require("dijit.Dialog");
 
     setInputFocus();
 }

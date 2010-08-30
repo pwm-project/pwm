@@ -27,12 +27,15 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.ContextManager;
 import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.*;
 
@@ -266,7 +269,7 @@ public class Configuration implements Serializable {
             return Collections.emptyMap();
         }
 
-        final Map<String,String> returnMap = new HashMap<String,String>();
+        final Map<String,String> returnMap = new LinkedHashMap<String,String>();
         for (final String loopStr : input) {
             if (loopStr != null && separator != null && loopStr.contains(separator)) {
                 final int seperatorLocation = loopStr.indexOf(separator);
@@ -307,5 +310,13 @@ public class Configuration implements Serializable {
 
     public String readProperty(final String key) {
         return storedConfiguration.readProperty(key);
+    }
+
+    public static Configuration getConfig(final HttpSession session) {
+        return ContextManager.getContextManager(session).getConfig();
+    }
+
+    public static Configuration getConfig(final HttpServletRequest request) {
+        return ContextManager.getContextManager(request).getConfig();
     }
 }

@@ -30,11 +30,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body class="tundra">
-<link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
-<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
-<link href="<%=request.getContextPath()%>/resources/dojo/dojox/grid/enhanced/resources/tundraEnhancedGrid.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Manager"/></jsp:include>

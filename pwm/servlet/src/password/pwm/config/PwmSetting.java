@@ -52,6 +52,10 @@ public enum PwmSetting {
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true),
+    PASSWORD_SHOW_AUTOGEN(
+            "password.showAutoGen", Syntax.BOOLEAN, Category.GENERAL, true),
+    PASSWORD_SHOW_STRENGTH_METER(
+            "password.showStrengthMeter", Syntax.BOOLEAN, Category.GENERAL, true),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
@@ -196,6 +200,8 @@ public enum PwmSetting {
             "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
             "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+    PASSWORD_POLICY_MINIMUM_STRENGTH(
+            "password.policy.minimumStrength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
 
     // edirectory settings
     EDIRECTORY_READ_PASSWORD_POLICY(

@@ -40,7 +40,6 @@
           rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
-    <link href="<%=request.getContextPath()%>/resources/dojo/dojo/resources/dojo.css" rel="stylesheet" type="text/css"/>
     <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>

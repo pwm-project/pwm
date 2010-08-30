@@ -58,7 +58,7 @@
             <form action="<pwm:url url='ChangePassword'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                <input type="checkbox" id="agreeCheckBox" onchange="updateContinueButton()"/><label for="agreeCheckBox"><pwm:Display key="Button_Agree"/></label>
+                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display key="Button_Agree"/></label>
                 <input type="hidden"
                        name="processAction"
                        value="agree"/>

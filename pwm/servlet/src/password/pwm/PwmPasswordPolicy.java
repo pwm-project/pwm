@@ -341,4 +341,7 @@ public class PwmPasswordPolicy implements Serializable {
         }
     }
 
+    public Map<String, String> getPolicyMap() {
+        return Collections.unmodifiableMap(policyMap);
+    }
 }
