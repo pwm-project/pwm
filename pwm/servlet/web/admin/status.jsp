@@ -123,6 +123,14 @@
     </tr>
     <tr>
         <td class="key">
+            Configuration Epoch
+        </td>
+        <td>
+            <%= contextManager.getConfigReader().getConfigurationEpoch() %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
             Last LDAP Unavailable Time
         </td>
         <td>

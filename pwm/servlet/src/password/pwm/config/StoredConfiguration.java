@@ -61,6 +61,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public static final String PROPERTY_KEY_SETTING_CHECKSUM = "settingsChecksum";
     public static final String PROPERTY_KEY_CONFIG_IS_EDITABLE = "configIsEditable";
+    public static final String PROPERTY_KEY_CONFIG_EPOCH = "configEpoch";
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();

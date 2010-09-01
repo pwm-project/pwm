@@ -10,12 +10,19 @@ v1.5.2 development
 ---
 + Added "minimum password strength" setting
 + Added if statements to main index to remove un-enabled functions
-+ Added logout icon to header
++ Added logout button to header when logged in
++ Added "Password Change Message" configuration option
++ Added java interfaces (and config settings) for ExternalChangeMethod, ExternalJudgeMethod and ExternalRuleMethod
++ Strength meter on password page now has tooltip explaining the strength meter to user
++ Added config options to show/hide strength meter, random generator
++ Implemented method to retrieve password expiration time from DirectoryServer389.
 
+- Refactored ExternalPasswordMethod to ExternalChangeMethod java interface
 - Fixed issue with LoginContexts setting not being parsed properly
 - Fixed issue where ldap urls could not contain a hyphen
 - Fixed issue where older/corrupt user history attribute would cause a NullPointerException
 - Removed "dojo.css" include to prevent IE display issues (small fonts in IE)
+- Fixed issue where random generator would sometimes generate really long passwords (especially for complex policies)
 
 v1.5.1 (August 16, 2010) build 975
 ---

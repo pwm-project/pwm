@@ -55,7 +55,7 @@ public enum PwmPasswordRule {
     AllowLastCharSpecial    (ChaiPasswordRule.AllowLastCharSpecial     ,PwmSetting.PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL      ,ChaiPasswordRule.AllowLastCharSpecial    .getRuleType(), ChaiPasswordRule.AllowLastCharSpecial    .getDefaultValue(),false),
     MaximumRepeat           (ChaiPasswordRule.MaximumRepeat            ,PwmSetting.PASSWORD_POLICY_MAXIMUM_REPEAT               ,ChaiPasswordRule.MaximumRepeat           .getRuleType(), ChaiPasswordRule.MaximumRepeat           .getDefaultValue(),false),
     MaximumSequentialRepeat (ChaiPasswordRule.MaximumSequentialRepeat  ,PwmSetting.PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT    ,ChaiPasswordRule.MaximumSequentialRepeat .getRuleType(), ChaiPasswordRule.MaximumSequentialRepeat .getDefaultValue(),false),
-    ChangeMessage           (ChaiPasswordRule.ChangeMessage            ,null                                                    ,ChaiPasswordRule.ChangeMessage           .getRuleType(), ChaiPasswordRule.ChangeMessage           .getDefaultValue(),false),
+    ChangeMessage           (ChaiPasswordRule.ChangeMessage            ,PwmSetting.PASSWORD_POLICY_CHANGE_MESSAGE               ,ChaiPasswordRule.ChangeMessage           .getRuleType(), ChaiPasswordRule.ChangeMessage           .getDefaultValue(),false),
     ExpirationInterval      (ChaiPasswordRule.ExpirationInterval       ,null                                                    ,ChaiPasswordRule.ExpirationInterval      .getRuleType(), ChaiPasswordRule.ExpirationInterval      .getDefaultValue(),false),
     MinimumLifetime         (ChaiPasswordRule.MinimumLifetime          ,null                                                    ,ChaiPasswordRule.MinimumLifetime         .getRuleType(), ChaiPasswordRule.MinimumLifetime         .getDefaultValue(),false),
     CaseSensitive           (ChaiPasswordRule.CaseSensitive            ,null                                                    ,ChaiPasswordRule.CaseSensitive           .getRuleType(), ChaiPasswordRule.CaseSensitive           .getDefaultValue(),true),
@@ -72,8 +72,10 @@ public enum PwmPasswordRule {
     RegExNoMatch            (null                                      ,PwmSetting.PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH   ,ChaiPasswordRule.RuleType.OTHER, "",false),
     MinimumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MIN, "0",false),
     MaximumAlpha            (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_ALPHA                ,ChaiPasswordRule.RuleType.MAX, "0",false),
+    MinimumNonAlpha         (null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_NON_ALPHA            ,ChaiPasswordRule.RuleType.MIN, "0",false),
+    MaximumNonAlpha         (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_NON_ALPHA            ,ChaiPasswordRule.RuleType.MAX, "0",false),
     EnableWordlist          (null                                      ,PwmSetting.PASSWORD_POLICY_ENABLE_WORDLIST              ,ChaiPasswordRule.RuleType.BOOLEAN, "true", true),
-    MinimumStrength(null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_STRENGTH             ,ChaiPasswordRule.RuleType.MIN, "0", false)
+    MinimumStrength         (null                                      ,PwmSetting.PASSWORD_POLICY_MINIMUM_STRENGTH             ,ChaiPasswordRule.RuleType.MIN, "0", false)
 
     ;
 

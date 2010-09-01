@@ -167,7 +167,7 @@ public class PasswordUtility {
         }
 
         // double check to make sure password meets PWM rule requirements.  This should
-        // have been done before setUserPassord() is invoked, so it should be redundent
+        // have been done before setUserPassword() is invoked, so it should be redundant
         // but we do it just in case.
         try {
             Validator.testPasswordAgainstPolicy(newPassword, pwmSession, false);
@@ -177,13 +177,13 @@ public class PasswordUtility {
             return false;
         }
 
-        // retreive the user's old password from the userInfoBean in the session
+        // retrieve the user's old password from the userInfoBean in the session
         final String oldPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
 
         // Check to make sure we actually have an old password
         if (oldPassword == null || oldPassword.length() < 1) {
             ssBean.setSessionError(PwmError.ERROR_WRONGPASSWORD.toInfo());
-            LOGGER.warn(pwmSession, pwmSession.getUserInfoBean().getUserDN() + "can't set password for user, old passwod is null");
+            LOGGER.warn(pwmSession, pwmSession.getUserInfoBean().getUserDN() + "can't set password for user, old password is null");
             return false;
         }
 
@@ -276,7 +276,7 @@ public class PasswordUtility {
         }
 
         // call out to external methods.
-        Helper.invokeExternalPasswordMethods(pwmSession, oldPassword, newPassword);
+        Helper.invokeExternalChangeMethods(pwmSession, oldPassword, newPassword);
 
         return true;
     }
@@ -336,59 +336,32 @@ public class PasswordUtility {
         return isReplicated ? ReplicationStatus.COMPLETE : ReplicationStatus.IN_PROGRESS;
     }
 
-    /**
-     * Judge a password's strength
-     *
-     * @param password password to check
-     * @return 0-100, 0 being a very week password, 100 being a strong password.
-     */
-    public static int judgePassword(final String password)
+    public static int checkPasswordStrength(final PwmSession pwmSession, final String password)
     {
-        if (password == null || password.length() < 1) {
+        final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(pwmSession, password);
+
+        // strip invalid values
+        for (final Iterator<Integer> iter = judgeResults.iterator(); iter.hasNext();) {
+            final Integer loopInt = iter.next();
+            if (loopInt > 100 || loopInt < 0) {
+                iter.remove();
+            }
+        }
+
+        if (judgeResults.isEmpty()) {
             return 0;
         }
 
-        int score = 0;
-        final Validator.PasswordCharCounter charCounter = new Validator.PasswordCharCounter(password);
-
-        // -- Additions --
-        // amount of unique chars
-        if (charCounter.getUniqueChars() > 7) {
-            score = score + 10;
-        }
-        score = score + ((charCounter.getUniqueChars()) * 3);
-
-        // Numbers
-        if (charCounter.getNumericChars() > 0) {
-            score = score + 8;
-            score = score + (charCounter.getNumericChars()) * 4;
+        int returnResult = 100;
+        for (final int loopInt : judgeResults) {
+            if (loopInt < returnResult) {
+                returnResult = loopInt;
+            }
         }
 
-        // specials
-        if (charCounter.getSpecialChars() > 0) {
-            score = score + 14;
-            score = score + (charCounter.getSpecialChars()) * 5;
-        }
-
-        // mixed case
-        if ((charCounter.getAlphaChars() != charCounter.getUpperChars()) && (charCounter.getAlphaChars() != charCounter.getLowerChars())) {
-            score = score + 10;
-        }
-
-        // -- Deductions --
-
-        // sequential numbers
-        if (charCounter.getSequentialNumericChars() > 2) {
-            score = score - (charCounter.getSequentialNumericChars() - 1) * 4;
-        }
-
-        // sequential chars
-        if (charCounter.getSequentialRepeatedChars() > 1) {
-            score = score - (charCounter.getSequentialRepeatedChars()) * 5;
-        }
-
-        return score > 100 ? 100 : score < 0 ? 0 : score;
+        return returnResult;
     }
+
 
     enum ReplicationStatus {
         IN_PROGRESS,

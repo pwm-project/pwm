@@ -27,6 +27,11 @@ import password.pwm.PwmSession;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * An ErrorInformation is a package of error data generated within PWM.  Error information includes an error code
+ * (in the form of an {@link PwmError}), additional detailed error information for logging, and string substitutions
+ * to use when presenting error messages to users. 
+ */
 public class ErrorInformation implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 

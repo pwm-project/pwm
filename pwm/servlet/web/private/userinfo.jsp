@@ -231,7 +231,20 @@
             </tr>
             <% } %>
         </table>
+        <br class="clear"/>
+        <div id="buttonbar">
+            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+                  enctype="application/x-www-form-urlencoded">
+                <input type="hidden"
+                       name="processAction"
+                       value="continue"/>
+                <input type="submit" name="button" class="btn"
+                       value="    <pwm:Display key="Button_Continue"/>    "
+                       id="button_logout"/>
+            </form>
+        </div>
+        <br class="clear"/>
     </div>
     <jsp:include page="../jsp/footer.jsp"/>
 </body>
-</html>
+</html>                   

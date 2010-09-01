@@ -61,10 +61,15 @@
         <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey">Shortcuts</a></h2>
         <p>Personalized shortcuts</p>
         <% } %>
-
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey">User Information</a></h2>
         <p>Information about your password and password policies.</p>
         <hr/>
+        <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
+        <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey">Logout</a></h2>
+        <p>Logout of the PWM password self service application.</p>
+        <hr/>
+        <% } %>
+
 
         <h2><a href="admin" class="tablekey">Admin</a></h2>
         <p>PWM administrative functions</p>

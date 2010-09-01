@@ -110,16 +110,6 @@ function clearDivElements(parentDiv, showLoading) {
     }
 }
 
-function clearDigitWidget(widgetName) {
-    var oldDijitNode = dijit.byId(widgetName);
-    if (oldDijitNode != null) {
-        try {
-            oldDijitNode.destroy();
-        } catch (error) {
-        }
-    }
-}
-
 function addAddLocaleButtonRow(parentDiv, keyName, addFunction)
 {
     var newTableRow = document.createElement("tr");

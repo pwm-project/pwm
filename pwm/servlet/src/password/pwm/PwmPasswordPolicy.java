@@ -149,7 +149,7 @@ public class PwmPasswordPolicy implements Serializable {
 
                     case ChangeMessage:
                         final String thisChangeMessage = getValue(PwmPasswordRule.ChangeMessage);
-                        if (thisChangeMessage == null || thisChangeMessage.length() < 0) {
+                        if (thisChangeMessage == null || thisChangeMessage.length() < 1) {
                             newPasswordPolicies.put(ruleKey,otherPolicy.getValue(PwmPasswordRule.ChangeMessage));
                         } else {
                             newPasswordPolicies.put(ruleKey,getValue(PwmPasswordRule.ChangeMessage));
@@ -229,7 +229,8 @@ public class PwmPasswordPolicy implements Serializable {
             throws ChaiUnavailableException
     {
         final long methodStartTime = System.currentTimeMillis();
-        PwmPasswordPolicy returnPolicy = pwmSession.getConfig().getGlobalPasswordPolicy();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        PwmPasswordPolicy returnPolicy = pwmSession.getConfig().getGlobalPasswordPolicy(locale);
 
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_PASSWORD_POLICY)) {
             PwmPasswordPolicy userPolicy = null;

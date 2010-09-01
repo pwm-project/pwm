@@ -172,6 +172,10 @@ public enum PwmSetting {
             "password.policy.maximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_ALPHA(
             "password.policy.minimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+    PASSWORD_POLICY_MAXIMUM_NON_ALPHA(
+            "password.policy.maximumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+    PASSWORD_POLICY_MINIMUM_NON_ALPHA(
+            "password.policy.minimumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MAXIMUM_UPPERCASE(
             "password.policy.maximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_UPPERCASE(
@@ -202,6 +206,8 @@ public enum PwmSetting {
             "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
     PASSWORD_POLICY_MINIMUM_STRENGTH(
             "password.policy.minimumStrength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+    PASSWORD_POLICY_CHANGE_MESSAGE(
+            "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false),
 
     // edirectory settings
     EDIRECTORY_READ_PASSWORD_POLICY(
@@ -347,12 +353,6 @@ public enum PwmSetting {
             "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false),
 
     // advanced
-    EXTERNAL_PASSWORD_METHODS(
-            "externalPasswordClasses", Syntax.STRING_ARRAY, Category.ADVANCED, false),
-    DISALLOWED_HTTP_INPUTS(
-            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false),
-    LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true),
     ALLOW_URL_SESSIONS(
@@ -361,6 +361,16 @@ public enum PwmSetting {
             "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true),
     FORCE_BASIC_AUTH(
             "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true),
+    EXTERNAL_CHANGE_METHODS(
+            "externalChangeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    EXTERNAL_JUDGE_METHODS(
+            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    EXTERNAL_RULE_METHODS(
+            "externalRuleMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    DISALLOWED_HTTP_INPUTS(
+            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+    LDAP_CHAI_SETTINGS(
+            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     WORDLIST_CASE_SENSITIVE(
             "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true),
     PWMDB_LOCATION(

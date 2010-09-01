@@ -200,7 +200,7 @@ public class ChangePasswordServlet extends TopServlet {
             }
         }
 
-        final int strength = Validator.checkPasswordStrength(pwmSession, password1);
+        final int strength = PasswordUtility.checkPasswordStrength(pwmSession, password1);
         return new PasswordCheckInfo(userMessage, pass, strength);
     }
 
@@ -424,7 +424,7 @@ public class ChangePasswordServlet extends TopServlet {
                 cpb.getPasswordTestCache().put(newPassword,new PasswordCheckInfo(
                         errorMsg.toUserStr(pwmSession),
                         false,
-                        Validator.checkPasswordStrength(pwmSession, newPassword)
+                        PasswordUtility.checkPasswordStrength(pwmSession, newPassword)
                 ));
             }
             cpb.setPasswordChangeError(errorMsg);

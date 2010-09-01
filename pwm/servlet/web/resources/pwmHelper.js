@@ -166,3 +166,13 @@ function changeInputTypeField(object,type){
     object.parentNode.replaceChild(newObject,object);
     return newObject;
 }
+
+function clearDigitWidget(widgetName) {
+    var oldDijitNode = dijit.byId(widgetName);
+    if (oldDijitNode != null) {
+        try {
+            oldDijitNode.destroy();
+        } catch (error) {
+        }
+    }
+}

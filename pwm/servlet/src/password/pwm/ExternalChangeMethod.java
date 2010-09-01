@@ -26,24 +26,22 @@ package password.pwm;
  * Classes implementing this interface will be called during password change events.
  * <p/>
  * The {@link #passwordChange} method will be called just after a successful password change.
- * To be invoked, implementations of this class must be specified by {@link password.pwm.config.PwmSetting#EXTERNAL_PASSWORD_METHODS}.
+ * To be invoked, implementations of this class must be specified by {@link password.pwm.config.PwmSetting#EXTERNAL_CHANGE_METHODS}.
  *
  * @author Jason D. Rivard
  */
-public interface ExternalPasswordMethod {
+public interface ExternalChangeMethod {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * This method is invoked immediately after a successful password change in PWM.  If the password
-     * does not meet rule requirements, or is not successfully set in the primary LDAP directory, this
-     * method will never be invoked.
+     * This method is invoked after a successful password change in PWM.  
      *
-     * @param userDN      The Distinguished Name (DN) of the user.
+     * @param pwmSession  The session handler of the user.
      * @param oldPassword The old password of the user.  Under certain circumstances, it is possible this
      *                    value may be null or an empty string.
      * @param newPassword The new password of the user.
      * @return true if the operation was successful
      */
-    public boolean passwordChange(String userDN, String oldPassword, String newPassword);
+    public boolean passwordChange(PwmSession pwmSession, String oldPassword, String newPassword);
 }
 

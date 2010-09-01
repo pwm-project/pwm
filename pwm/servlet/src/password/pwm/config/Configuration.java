@@ -140,7 +140,7 @@ public class Configuration implements Serializable {
         returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM,Locale.getDefault())).keySet());
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
-        returnSet.addAll(this.getGlobalPasswordPolicy().getRuleHelper().getDisallowedAttributes());
+        returnSet.addAll(this.getGlobalPasswordPolicy(Locale.getDefault()).getRuleHelper().getDisallowedAttributes());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
 
@@ -160,7 +160,7 @@ public class Configuration implements Serializable {
     }
 
 
-    public PwmPasswordPolicy getGlobalPasswordPolicy() {
+    public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale) {
         if (cachedPasswordPolicy != null) {
             return cachedPasswordPolicy;
         }
@@ -178,6 +178,9 @@ public class Configuration implements Serializable {
                     case RegExMatch:
                     case RegExNoMatch:
                         value = StringHelper.stringCollectionToString(readStringArraySetting(pwmSetting),";;;");
+                        break;
+                    case ChangeMessage:
+                        value = readLocalizedStringSetting(pwmSetting, locale);
                         break;
                     default:
                         value = readSettingAsString(pwmSetting);

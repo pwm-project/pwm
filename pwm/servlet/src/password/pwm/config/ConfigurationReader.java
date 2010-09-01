@@ -133,6 +133,19 @@ public class ConfigurationReader {
             throw new IllegalStateException("running config mode does now allow saving of configuration");
         }
 
+        { // increment the config epoch
+            String epochStrValue = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
+            try {
+                int epochIntValue = epochStrValue == null || epochStrValue.length() < 0 ? 0 : Integer.valueOf(epochStrValue);
+                epochIntValue++;
+                epochStrValue = Integer.toString(epochIntValue);
+            } catch (Exception e) {
+                LOGGER.error("error trying to parse previous config epoch property: " + e.getMessage());
+                epochStrValue = "0";
+            }
+            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
+        }
+
         final String xmlBlob = storedConfiguration.toXml();
         final FileWriter fileWriter = new FileWriter(configFile, false);
         fileWriter.write(xmlBlob);
@@ -174,6 +187,14 @@ public class ConfigurationReader {
 
     public Date getConfigurationReadTime() {
         return configurationReadTime;
+    }
+
+    public int getConfigurationEpoch() {
+        try {
+            return Integer.parseInt(storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }
 

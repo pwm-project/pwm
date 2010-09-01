@@ -35,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistStatus;
@@ -60,19 +61,6 @@ public class Validator {
 
 
 // -------------------------- STATIC METHODS --------------------------
-
-    public static int checkPasswordStrength(final PwmSession pwmSession, final String password)
-    {
-        final ContextManager theManager = pwmSession.getContextManager();
-
-        final int judgedValue = PasswordUtility.judgePassword(password);
-
-        if (theManager.getWordlistManager().containsWord(pwmSession, password)) {
-            return (int)(judgedValue * 0.50f);
-        }
-
-        return judgedValue;
-    }
 
     public static boolean readBooleanFromRequest(
             final HttpServletRequest req,
@@ -330,182 +318,15 @@ public class Validator {
     }
 
 
-    protected static class PasswordCharCounter {
-        private final CharSequence password;
-        private final int passwordLength;
-
-        public PasswordCharCounter(final CharSequence password)
-        {
-            this.password = password;
-            this.passwordLength = password.length();
-        }
-
-        public int getNumericChars()
-        {
-            int numberOfNumericChars = 0;
-            for (int i = 0; i < passwordLength; i++)
-                if (Character.isDigit(password.charAt(i)))
-                    numberOfNumericChars++;
-
-            return numberOfNumericChars;
-        }
-
-        public int getUpperChars()
-        {
-            int numberOfUpperChars = 0;
-            for (int i = 0; i < passwordLength; i++)
-                if (Character.isUpperCase(password.charAt(i)))
-                    numberOfUpperChars++;
-
-            return numberOfUpperChars;
-        }
-
-        public int getAlphaChars()
-        {
-            int numberOfAlphaChars = 0;
-            for (int i = 0; i < passwordLength; i++)
-                if (Character.isLetter(password.charAt(i)))
-                    numberOfAlphaChars++;
-
-            return numberOfAlphaChars;
-        }
-
-        public int getLowerChars()
-        {
-            int numberOfLowerChars = 0;
-            for (int i = 0; i < passwordLength; i++)
-                if (Character.isLowerCase(password.charAt(i)))
-                    numberOfLowerChars++;
-
-            return numberOfLowerChars;
-        }
-
-        public int getSpecialChars()
-        {
-            int numberOfSpecial = 0;
-            for (int i = 0; i < passwordLength; i++)
-                if (!Character.isLetterOrDigit(password.charAt(i)))
-                    numberOfSpecial++;
-
-            return numberOfSpecial;
-        }
-
-        public int getRepeatedChars()
-        {
-            int numberOfRepeats = 0;
-            final CharSequence passwordL = password.toString().toLowerCase();
-
-            for (int i = 0; i < passwordLength - 1; i++) {
-                int loopRepeats = 0;
-                final char loopChar = passwordL.charAt(i);
-                for (int j = i; j < passwordLength; j++)
-                    if (loopChar == passwordL.charAt(j))
-                        loopRepeats++;
-
-                if (loopRepeats > numberOfRepeats)
-                    numberOfRepeats = loopRepeats;
-            }
-            return numberOfRepeats;
-        }
-
-        public int getSequentialRepeatedChars()
-        {
-            int numberOfRepeats = 0;
-            final CharSequence passwordL = password.toString().toLowerCase();
-
-            for (int i = 0; i < passwordLength - 1; i++) {
-                int loopRepeats = 0;
-                final char loopChar = passwordL.charAt(i);
-                for (int j = i; j < passwordLength; j++)
-                    if (loopChar == passwordL.charAt(j))
-                        loopRepeats++;
-                    else
-                        break;
-
-                if (loopRepeats > numberOfRepeats)
-                    numberOfRepeats = loopRepeats;
-            }
-            return numberOfRepeats;
-        }
-
-        public int getSequentialNumericChars()
-        {
-            int numberOfRepeats = 0;
-
-            for (int i = 0; i < passwordLength - 1; i++) {
-                int loopRepeats = 0;
-                for (int j = i; j < passwordLength; j++)
-                    if (Character.isDigit(password.charAt(j)))
-                        loopRepeats++;
-                    else
-                        break;
-                if (loopRepeats > numberOfRepeats)
-                    numberOfRepeats = loopRepeats;
-            }
-            return numberOfRepeats;
-        }
-
-        public int getSequentialAlphaChars()
-        {
-            int numberOfRepeats = 0;
-
-            for (int i = 0; i < passwordLength - 1; i++) {
-                int loopRepeats = 0;
-                for (int j = i; j < passwordLength; j++)
-                    if (Character.isLetter(password.charAt(j)))
-                        loopRepeats++;
-                    else
-                        break;
-                if (loopRepeats > numberOfRepeats)
-                    numberOfRepeats = loopRepeats;
-            }
-            return numberOfRepeats;
-        }
-
-        public int getUniqueChars()
-        {
-            final StringBuilder sb = new StringBuilder();
-            final String passwordL = password.toString().toLowerCase();
-            for (int i = 0; i < passwordLength; i++) {
-                final char loopChar = passwordL.charAt(i);
-                if (sb.indexOf(String.valueOf(loopChar)) == -1)
-                    sb.append(loopChar);
-            }
-            return sb.length();
-        }
-
-        public boolean isFirstNumeric()
-        {
-            return password.length() > 0 && Character.isDigit(password.charAt(0));
-        }
-
-        public boolean isLastNumeric()
-        {
-            return password.length() > 0 && Character.isDigit(password.charAt(password.length() - 1));
-        }
-
-        public boolean isFirstSpecial()
-        {
-            return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(0));
-        }
-
-        public boolean isLastSpecial()
-        {
-            return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(password.length() - 1));
-        }
-    }
-
-
-
-
     /**
      * Validates a password against the configured rules of PWM.  No directory operations
      * are performed here.
      *
      * @param password desired new password
      * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
-     * @param pwmSession current pwmSesssion of user being tested.
+     * @param pwmSession current pwmSession of user being tested.
      * @param policy to be used during the test
+     * @param contextManager PWM ContextManager (needed for access to seedlist/wordlists when pwmSession is null)
      * @return true if the password is okay, never returns false.
      **/
     public static List<ErrorInformation> pwmPasswordPolicyValidator(
@@ -514,9 +335,21 @@ public class Validator {
             final boolean testOldPassword,
             final PwmPasswordPolicy policy,
             final ContextManager contextManager
-    )
+    ) {
+        final List<ErrorInformation> internalResults = intenralPwmPolicyValidator(password,pwmSession,testOldPassword,policy,contextManager);
+        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmSession, policy, password);
+        internalResults.addAll(externalResults);
+        return internalResults;
+    }
 
-    {
+
+    private static List<ErrorInformation> intenralPwmPolicyValidator(
+            final String password,
+            final PwmSession pwmSession,
+            final boolean testOldPassword,
+            final PwmPasswordPolicy policy,
+            final ContextManager contextManager
+    ) {
         // null check
         if (password == null) {
             return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN,"empty (null) new password"));
@@ -630,6 +463,20 @@ public class Validator {
             }
         }
 
+        //check number of non-alpha characters
+        {
+            final int numberOfNonAlphaChars = charCounter.getNonAlphaChars();
+
+            if (numberOfNonAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNonAlpha)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NON_ALPHA));
+            }
+
+            final int maxNonAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumNonAlpha);
+            if (maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NON_ALPHA));
+            }
+        }
+
         //check number of lower characters
         {
             final int numberOfLowerChars = charCounter.getLowerChars();
@@ -735,7 +582,7 @@ public class Validator {
         {   // check password strength
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
-                final int passwordStrength = PasswordUtility.judgePassword(password);
+                final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmSession, password);
                 if (passwordStrength < requiredPasswordStrength) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
                     LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);

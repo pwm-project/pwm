@@ -53,6 +53,7 @@
     %>
     <%-- fields for javascript display fields --%>
     <script type="text/javascript">
+        PWM_STRINGS['Button_Logout']='<pwm:Display key="Button_Logout"/>';
         PWM_STRINGS['Display_IdleTimeout']='<pwm:Display key="Display_IdleTimeout"/>';
         PWM_STRINGS['Display_Day']='<pwm:Display key="Display_Day"/>';
         PWM_STRINGS['Display_Days']='<pwm:Display key="Display_Days"/>';

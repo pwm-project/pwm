@@ -169,7 +169,7 @@ public class RandomPasswordGenerator {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
                 final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,pwmSession.getUserInfoBean().getPasswordPolicy(), contextManager);
-                final int judgeLevel = PasswordUtility.judgePassword(password.toString());
+                final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmSession, password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);

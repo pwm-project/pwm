@@ -397,12 +397,12 @@ public class Helper {
         return System.currentTimeMillis() - startTime;
     }
 
-    public static void invokeExternalPasswordMethods(
+    public static void invokeExternalChangeMethods(
             final PwmSession pwmSession,
             final String oldPassword,
             final String newPassword)
     {
-        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_PASSWORD_METHODS);
+        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_CHANGE_METHODS);
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
@@ -410,10 +410,10 @@ public class Helper {
                 try {
                     // load up the class and get an instance.
                     final Class<?> theClass = Class.forName(classNameString);
-                    final ExternalPasswordMethod externalClass = (ExternalPasswordMethod) theClass.newInstance();
+                    final ExternalChangeMethod externalClass = (ExternalChangeMethod) theClass.newInstance();
 
                     // invoke the passwordChange method;
-                    final boolean success = externalClass.passwordChange(pwmSession.getUserInfoBean().getUserDN(), oldPassword, newPassword);
+                    final boolean success = externalClass.passwordChange(pwmSession, oldPassword, newPassword);
 
                     if (success) {
                         LOGGER.info(pwmSession, "externalPasswordMethod '" + classNameString + "' was successfull");
@@ -421,7 +421,7 @@ public class Helper {
                         LOGGER.warn(pwmSession, "externalPasswordMethod '" + classNameString + "' was not successfull");
                     }
                 } catch (ClassCastException e) {
-                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalPasswordMethod.class.getName());
+                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
                 } catch (ClassNotFoundException e) {
                     LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
                 } catch (IllegalAccessException e) {
@@ -431,6 +431,92 @@ public class Helper {
                 }
             }
         }
+    }
+
+
+    public static List<Integer> invokeExternalJudgeMethods(
+            final PwmSession pwmSession,
+            final String password)
+    {
+        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_JUDGE_METHODS);
+        final List<Integer> returnList = new ArrayList<Integer>();
+
+        // process any configured external change password methods configured.
+        for (final String classNameString : externalMethods) {
+            if (classNameString != null && classNameString.length() > 0 ) {
+                try {
+                    // load up the class and get an instance.
+                    final Class<?> theClass = Class.forName(classNameString);
+                    final ExternalJudgeMethod externalClass = (ExternalJudgeMethod) theClass.newInstance();
+
+                    // invoke the passwordChange method;
+                    final int result = externalClass.judgePassword(pwmSession, password);
+                    LOGGER.debug(pwmSession, "externalJudgeMethod '" + classNameString + "' returned a value of " + result);
+                    returnList.add(result);
+                } catch (ClassCastException e) {
+                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
+                } catch (ClassNotFoundException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
+                } catch (IllegalAccessException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                } catch (InstantiationException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                }
+            }
+        }
+
+        return returnList;
+    }
+
+    public static List<ErrorInformation> invokeExternalRuleMethods(
+            final PwmSession pwmSession,
+            final PwmPasswordPolicy pwmPasswordPolicy,
+            final String password)
+    {
+        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_RULE_METHODS);
+        final List<ErrorInformation> returnList = new ArrayList<ErrorInformation>();
+
+        // process any configured external change password methods configured.
+        for (final String classNameString : externalMethods) {
+            if (classNameString != null && classNameString.length() > 0 ) {
+                try {
+                    // load up the class and get an instance.
+                    final Class<?> theClass = Class.forName(classNameString);
+                    final ExternalRuleMethod externalClass = (ExternalRuleMethod) theClass.newInstance();
+                    final List<ErrorInformation> loopReturnList = new ArrayList<ErrorInformation>();
+
+                    // invoke the passwordChange method;
+                    final ExternalRuleMethod.RuleValidatorResult result = externalClass.validatePasswordRules(pwmSession, pwmPasswordPolicy, password);
+                    if (result != null && result.getPwmErrors() != null) {
+                        for (final ErrorInformation errorInformation : result.getPwmErrors()) {
+                            loopReturnList.add(errorInformation);
+                            LOGGER.debug(pwmSession, "externalRuleMethod '" + classNameString + "' returned a value of " + errorInformation.toDebugStr());
+                        }
+                    }
+                    if (result != null && result.getStringErrors() != null) {
+                        for (final String errorString : result.getStringErrors()) {
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION,errorString);
+                            loopReturnList.add(errorInformation);
+                            LOGGER.debug(pwmSession, "externalRuleMethod '" + classNameString + "' returned a value of " + errorInformation.toDebugStr());
+                        }
+                    }
+                    if (loopReturnList.isEmpty()) {
+                        LOGGER.debug(pwmSession, "externalRuleMethod '" + classNameString + "' returned no values");
+                    }
+                    returnList.addAll(loopReturnList);
+                } catch (ClassCastException e) {
+                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
+                } catch (ClassNotFoundException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
+                } catch (IllegalAccessException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                } catch (InstantiationException e) {
+                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                }
+            }
+        }
+
+        return returnList;
     }
 
     public static boolean testEmailAddress(final String address)

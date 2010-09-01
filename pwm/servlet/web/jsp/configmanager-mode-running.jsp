@@ -52,7 +52,15 @@
             <input type="hidden" name="processAction" value="switchToEditMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Edit an in-memory PWM configuration file.  The current pwm running configuration is not available, and changes are not saved to the pwm configuration</p>
+        <p>Edit the in-memory PWM configuration file.  The current pwm running configuration is not available, and changes are not saved to the pwm configuration</p>
+        <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
+        <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
+            <input type="hidden" name="processAction" value="uploadXml"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            <input type="file" class="btn" name="uploadFile" size="50"/>
+            <input type="submit" class="btn" name="uploadSubmit" value="Upload" onclick="document.forms['uploadXml'].submit();"/>
+        </form>
+        <p>Upload a previously saved configuration file.  The uploaded file will be available for editing during this browser session, but will not be saved to the running configurtion the PWM configuration.</p>
         <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="generateXml"/>
