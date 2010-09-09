@@ -52,6 +52,8 @@ public enum PwmSetting {
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true),
+    PASSWORD_SHOW_GUIDE(
+            "password.showGuide", Syntax.BOOLEAN, Category.GENERAL, true),
     PASSWORD_SHOW_AUTOGEN(
             "password.showAutoGen", Syntax.BOOLEAN, Category.GENERAL, true),
     PASSWORD_SHOW_STRENGTH_METER(
@@ -70,12 +72,16 @@ public enum PwmSetting {
     //ldap directory
     LDAP_SERVER_URLS(
             "ldap.serverUrls", Syntax.STRING_ARRAY, Category.LDAP, true),
+    LDAP_PROMISCUOUS_SSL(
+            "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
     LDAP_PROXY_USER_DN(
             "ldap.proxy.username", Syntax.STRING, Category.LDAP, true),
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
-    LDAP_PROMISCUOUS_SSL(
-            "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
+    LDAP_TEST_USER_DN(
+            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false),
+    LDAP_TEST_USER_PASSWORD(
+            "ldap.testuser.password", Syntax.PASSWORD, Category.LDAP, false),
     LDAP_CONTEXTLESS_ROOT(
             "ldap.rootContexts", Syntax.STRING, Category.LDAP, false),
     LDAP_LOGIN_CONTEXTS(
@@ -234,6 +240,8 @@ public enum PwmSetting {
             "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
 
     // logger settings
+    EVENTS_HEALTH_CHECK_INTERVAL(
+            "events.healthCheck.interval", Syntax.NUMERIC, Category.LOGGING, false),
     EVENTS_JAVA_STDOUT_LEVEL(
             "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
@@ -268,8 +276,8 @@ public enum PwmSetting {
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, true),
-    CHALLENGE_FORCE_ALL_RANDOMS(
-            "challenge.forceAllRandoms", Syntax.BOOLEAN, Category.RECOVERY, true),
+    CHALLENGE_MIN_RANDOM_SETUP(
+            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.RECOVERY, true),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true),
     CHALLENGE_STORAGE_HASHED(

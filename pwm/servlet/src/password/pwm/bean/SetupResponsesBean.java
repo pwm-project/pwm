@@ -32,6 +32,7 @@ public class SetupResponsesBean implements Serializable {
     private Map<String, Challenge> challengeList = Collections.emptyMap();
     private boolean simpleMode;
     private Map<Challenge, String> responseMap = Collections.emptyMap();
+    private int minRandomSetup;
 
     public void clear() {
         challengeList = Collections.emptyMap();
@@ -59,7 +60,15 @@ public class SetupResponsesBean implements Serializable {
         return responseMap;
     }
 
-    public void setResponseMap(Map<Challenge, String> responseMap) {
+    public void setResponseMap(final Map<Challenge, String> responseMap) {
         this.responseMap = responseMap;
+    }
+
+    public int getMinRandomSetup() {
+        return minRandomSetup;
+    }
+
+    public void setMinRandomSetup(int minRandomSetup) {
+        this.minRandomSetup = minRandomSetup;
     }
 }

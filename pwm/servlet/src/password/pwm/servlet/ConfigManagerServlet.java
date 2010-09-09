@@ -22,10 +22,7 @@
 
 package password.pwm.servlet;
 
-import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import password.pwm.*;
@@ -37,6 +34,7 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.health.LDAPStatusChecker;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -409,45 +407,8 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
 
-        final Configuration config = new Configuration(storedConfiguration);
-
-        ChaiProvider chaiProvider = null;
-        try {
-            chaiProvider = Helper.createChaiProvider(
-                    config,
-                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                    PwmConstants.DEFAULT_LDAP_IDLE_TIMEOUT_MS);
-            chaiProvider.getDirectoryVendor();
-
-            final String contextlessRootSettingName = PwmSetting.LDAP_CONTEXTLESS_ROOT.getCategory().getLabel(Locale.getDefault()) + "-" + PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel(Locale.getDefault());
-
-            try {
-                final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT),chaiProvider);
-                if (!contextlessRootEntry.isValid()) {
-                    final String errorString = "setting '" + contextlessRootSettingName  + "' value does not appear to be correct";
-                    PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
-                    return;
-                }
-            } catch (Exception e) {
-                final String errorString = "error verifying setting '" + contextlessRootSettingName  + "' " + e.getMessage();
-                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
-                return;
-            }
-
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS));
-        } catch (Exception e) {
-            final String errorString = "error connecting to ldap server: " + e.getMessage();
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
-        } finally {
-            if (chaiProvider != null) {
-                try {
-                    chaiProvider.close();
-                } catch (Exception e) {
-                    // don't care.
-                }
-            }
-        }
+        final ErrorInformation errorInfo = LDAPStatusChecker.doLdapStatusCheck(storedConfiguration);
+        PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(errorInfo);
     }
 
     static void forwardToJSP(

@@ -36,7 +36,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.util.EmailQueueManager;
+import password.pwm.health.ConfigurationChecker;
+import password.pwm.health.HealthMonitor;
+import password.pwm.health.JavaChecker;
+import password.pwm.health.LDAPStatusChecker;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBFactory;
@@ -84,6 +87,7 @@ public class ContextManager implements Serializable
     private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
 
+    private transient HealthMonitor healthMonitor;
     private transient StatisticsManager statisticsManager;
     private transient WordlistManager wordlistManager;
     private transient SharedHistoryManager sharedHistoryManager;
@@ -150,6 +154,10 @@ public class ContextManager implements Serializable
 
     public PwmDBLogger getPwmDBLogger() {
         return pwmDBLogger;
+    }
+
+    public HealthMonitor getHealthMonitor() {
+        return healthMonitor;
     }
 
     private void openProxyChaiProvider() throws ChaiUnavailableException {
@@ -255,7 +263,7 @@ public class ContextManager implements Serializable
             PwmInitializer.initializeLogger(log4jFile, logLevel, servletContext);
         }
 
-
+        PwmInitializer.initializeHealthMonitor(this);
         PwmInitializer.initializePwmDB(this);
         PwmInitializer.initializePwmDBLogger(this);
 
@@ -555,6 +563,11 @@ public class ContextManager implements Serializable
             pwmDBLogger = null;
         }
 
+        if (healthMonitor != null) {
+            healthMonitor.close();
+            healthMonitor = null;
+        }
+
         if (pwmDB != null) {
             try {
                 pwmDB.close();
@@ -715,6 +728,18 @@ public class ContextManager implements Serializable
                 contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel, contextManager);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
+            }
+        }
+
+        public static void initializeHealthMonitor(final ContextManager contextManager) {
+            // initialize the pwmDBLogger
+            try {
+                contextManager.healthMonitor = new HealthMonitor(contextManager);
+                contextManager.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
+                contextManager.healthMonitor.registerHealthCheck(new JavaChecker());
+                contextManager.healthMonitor.registerHealthCheck(new ConfigurationChecker());
+            } catch (Exception e) {
+                LOGGER.warn("unable to initialize password.pwm.health.HealthMonitor: " + e.getMessage());
             }
         }
 

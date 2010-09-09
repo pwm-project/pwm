@@ -36,9 +36,7 @@ public class ChangePasswordBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final int MAX_AGE_MS_NEW_PASSWORD = 30000;
     private String newPassword;
-    private long newPasswordSetTime;
     private boolean agreementPassed;
     private boolean currentPasswordRequired;
 
@@ -54,9 +52,6 @@ public class ChangePasswordBean implements Serializable {
 
     public String getNewPassword()
     {
-        if ((System.currentTimeMillis() - newPasswordSetTime) > MAX_AGE_MS_NEW_PASSWORD) {
-            newPassword = null;
-        }
         return newPassword;
     }
 
@@ -83,14 +78,6 @@ public class ChangePasswordBean implements Serializable {
         this.agreementPassed = agreementPassed;
     }
 
-    public long getNewPasswordSetTime() {
-        return newPasswordSetTime;
-    }
-
-    public void setNewPasswordSetTime(long newPasswordSetTime) {
-        this.newPasswordSetTime = newPasswordSetTime;
-    }
-
     public boolean isCurrentPasswordRequired() {
         return currentPasswordRequired;
     }
@@ -109,7 +96,6 @@ public class ChangePasswordBean implements Serializable {
     public void setNewPassword(final String newPassword)
     {
         this.newPassword = newPassword;
-        this.newPasswordSetTime = System.currentTimeMillis();
     }
 }
 

@@ -1,3 +1,4 @@
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -84,7 +85,7 @@
             <% } %>
             <% // display fields for RANDOM challenges using SIMPLE mode
                 if (responseBean.isSimpleMode()) {
-                    for (int i = 0; i < challengeSet.getMinRandomRequired(); i++) {
+                    for (int i = 0; i < responseBean.getMinRandomSetup(); i++) {
             %>
             <h2>
                 <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" id="PwmResponse_Q_Random_<%=i%>">

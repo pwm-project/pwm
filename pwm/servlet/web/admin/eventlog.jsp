@@ -187,7 +187,7 @@
 <% } else {%>
 <table>
     <tr>
-        <td class="title">
+        <td class="title" width="5">
             &nbsp;
         </td>
         <td class="title">
@@ -197,8 +197,7 @@
             Level
         </td>
         <td class="title">
-            Source Address
-        </td>
+            Src
         <td class="title">
             User
         </td>
@@ -211,7 +210,7 @@
     </tr>
     <% int counter = 0; for (final PwmLogEvent event : searchResults.getEvents()) { %>
     <tr>
-        <td class="key" style="font-family: Courier, sans-serif">
+        <td class="key" style="font-family: Courier, sans-serif" width="5">
             <%= ++counter %>
         </td>
         <td>

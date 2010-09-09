@@ -93,8 +93,6 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-
-
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("validate")) {
                 handleValidatePasswords(req,resp);
@@ -262,10 +260,12 @@ public class ChangePasswordServlet extends TopServlet {
      * @param req  request
      * @param resp response
      * @throws IOException      for an error
+     * @throws PwmException     for an error
      * @throws ServletException for an error
      */
     protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmException
+    {
         final long startTime = System.currentTimeMillis();
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);

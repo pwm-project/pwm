@@ -199,7 +199,8 @@ public class PasswordUtility {
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
             return false;
         } catch (ChaiPasswordPolicyException e) {
-            final ErrorInformation error = new ErrorInformation(PwmError.forResourceKey(e.getPasswordError().getErrorKey()));
+            final PwmError pwmError = PwmError.forChaiPasswordError(e.getPasswordError().getErrorKey());
+            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr());
             return false;

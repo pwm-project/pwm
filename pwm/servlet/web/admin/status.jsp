@@ -20,17 +20,13 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="password.pwm.util.stats.StatisticsBundle" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="java.util.List" %>
+<%@ page import="password.pwm.*" %>
+<%@ page import="password.pwm.health.HealthMonitor" %>
+<%@ page import="password.pwm.health.HealthRecord" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -41,7 +37,7 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<body onload="pwmPageLoadHandler();">
+<body class="tundra" onload="pwmPageLoadHandler();">
 <div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
@@ -91,7 +87,7 @@
             Configuration Time
         </td>
         <td>
-            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %>
+            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %> (epoch <%= contextManager.getConfigReader().getConfigurationEpoch() %>)
         </td>
     </tr>
     <tr>
@@ -123,14 +119,6 @@
     </tr>
     <tr>
         <td class="key">
-            Configuration Epoch
-        </td>
-        <td>
-            <%= contextManager.getConfigReader().getConfigurationEpoch() %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
             Last LDAP Unavailable Time
         </td>
         <td>
@@ -150,6 +138,75 @@
         </td>
     </tr>
 </table>
+<br class="clear"/>
+<table class="tablemain">
+    <tr>
+        <td class="title" colspan="10">
+            PWM Health
+        </td>
+    </tr>
+    <%
+        final HealthMonitor healthMonitor = contextManager.getHealthMonitor();
+        final List<HealthRecord> healthRecords = healthMonitor.getHealthRecords();
+    %>
+    <tr>
+        <td colspan="15" style="text-align:center">
+            <%= healthMonitor.getLastHealthCheckDate() == null ? "" : "Last health check performed at " + dateFormat.format(healthMonitor.getLastHealthCheckDate()) %>
+            <script type="text/javascript">
+                dojo.require("dijit.Dialog");
+                dojo.require("dijit.Button");
+                function refreshHealthCheck() {
+                    var refreshWaitDialog = new dijit.Dialog({
+                        title: 'Please Wait',
+                        style: "width: 260px; border: 2px solid #D4D4D4;",
+                        content: 'Health Check status is being refreshed.',
+                        closable: false,
+                        draggable: true
+                    });
+                    refreshWaitDialog.show();
+                    setTimeout(function(){doRefreshCheck()},1000);
+                }
+
+                function doRefreshCheck() {
+                    dojo.xhrGet({
+                        url: '<%=request.getContextPath()%>/private/CommandServlet' + "?processAction=refreshHealthCheck&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                        sync: true,
+                        error: function(errorObj) {
+                            alert('unable to refresh data ' + errorObj)
+                        },
+                        load: function(data){
+                            window.location = window.location;
+                        }
+                    });
+                }
+            </script>
+            &nbsp;&nbsp;<button onclick="refreshHealthCheck()">Refresh</button>
+        </td>
+    </tr>
+    <% for (final HealthRecord healthRecord : healthRecords) { %>
+    <%
+        final String color;
+        switch (healthRecord.getHealthStatus()) {
+            case GOOD: color = "#8ced3f"; break;
+            case CAUTION: color = "#FFCD59"; break;
+            case WARN: color = "#d20734";  break;
+            default: color = "white";
+        }
+    %>
+    <tr>
+        <td class="key">
+            <%= healthRecord.getTopic() %>
+        </td>
+        <td width="5%" style="background-color: <%=color%>">
+            <%= healthRecord.getHealthStatus() %>
+        </td>
+        <td>
+            <%= healthRecord.getDetail() %>
+        </td>
+    </tr>
+    <% } %>
+</table>
+
 <br class="clear"/>
 <table class="tablemain">
     <tr>

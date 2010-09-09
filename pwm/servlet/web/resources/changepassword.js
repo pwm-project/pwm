@@ -50,6 +50,10 @@ function validatePasswords()
         previousP1 = getObject("password1").value;
     }
 
+    if (validationInProgress) {
+        return;
+    }
+
     var passwordData = makeValidationKey();
     {
         var cachedResult = validationCache[passwordData.cacheKey];
@@ -59,12 +63,8 @@ function validatePasswords()
         }
     }
 
-    setTimeout(function(){
-        if (validationInProgress) {
-            showWorking();
-            //validatePasswords();
-        }
-    },200);
+    setTimeout(function(){ if (validationInProgress) { showWorking(); } },500);
+
     validationInProgress = true;
     dojo.xhrPost({
         url: PWM_STRINGS['url-changepassword'] + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
@@ -72,6 +72,7 @@ function validatePasswords()
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         handleAs: "json",
+        timeout: 15000,
         error: function(errorObj) {
             validationInProgress = false;
             clearError(PWM_STRINGS['Display_CommunicationError']);
@@ -80,10 +81,11 @@ function validatePasswords()
         },
         load: function(data){
             validationInProgress = false;
-            updateDisplay(data);
             validationCache[passwordData.cacheKey] = data;
             if (passwordData.cacheKey != makeValidationKey().cacheKey) {
                 setTimeout(function() {validatePasswords();}, 1);
+            } else {
+                updateDisplay(data);                
             }
         }
     });
@@ -207,7 +209,7 @@ function showWorking()
     dojo.animateProperty({
         node:"error_msg",
         duration: 500,
-        properties: { backgroundColor:'#FFCD59' }
+        properties: { backgroundColor:'#DDDDDD' }
     }).play();
 }
 
@@ -263,6 +265,29 @@ function copyToPasswordFields(elementID)  // used to copy auto-generated passwor
     getObject("password1").value = text;
     validatePasswords();
     getObject("password2").focus();
+}
+
+function showPasswordGuide() {
+    closePasswordGuide();
+    dojo.require("dijit.Dialog");
+
+    var theDialog = new dijit.Dialog({
+        title: PWM_STRINGS['Title_PasswordGuide'],
+        style: "width: 500px; border: 2px solid #D4D4D4;",
+        href: PWM_STRINGS['url-passwordguide'],
+        closable: true,
+        draggable: true,
+        id: "passwordGuideDialog"
+    });
+    theDialog.show();
+}
+
+function closePasswordGuide() {
+    var dialog = dijit.byId('passwordGuideDialog');
+    if (dialog != null) {
+        dialog.hide();
+        dialog.destroyRecursive();
+    }
 }
 
 function showRandomPasswordsDialog(dialogBody) {
@@ -429,6 +454,13 @@ function startupChangePasswordPage()
     if (autoGenPasswordElement != null) {
         autoGenPasswordElement.style.visibility = 'visible';
     }
+
+    // show the auto generate password panel
+    var passwordGuideElement = getObject("passwordGuide");
+    if (passwordGuideElement != null) {
+        passwordGuideElement.style.visibility = 'visible';
+    }
+ 
 
     // show the error panel
     var autoGenPasswordElement = getObject("error_msg");

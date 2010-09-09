@@ -399,7 +399,8 @@ public class SetupResponsesServlet extends TopServlet {
             final Map<Challenge,String> responseMap
     )
             throws SetupResponsesException {
-        final boolean forceAllRandoms = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS);
+
+        final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
 
         int randomCount = 0;
         for (final Challenge loopChallenge : responseMap.keySet()) {
@@ -408,11 +409,18 @@ public class SetupResponsesServlet extends TopServlet {
             }
         }
 
-        if (forceAllRandoms) { // if using recover style, then all readResponses must be supplied at this point.
+        if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
             if (randomCount < challengeSet.getRandomChallenges().size()) {
+                LOGGER.debug(pwmSession, "all randoms required, but not all randoms are completed");
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
                 throw new SetupResponsesException(errorInfo);
             }
+        }
+
+        if (randomCount < minRandomRequiredSetup) {
+            LOGGER.debug(pwmSession, minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed");
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
+            throw new SetupResponsesException(errorInfo);
         }
 
         final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
@@ -450,8 +458,8 @@ public class SetupResponsesServlet extends TopServlet {
 
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
-            final boolean forceAllRandoms = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS);
-            if (forceAllRandoms) { // if using recover style, then all readResponses must be supplied at this point.
+            final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
+            if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
                     throw new ChaiValidationException(ChaiValidationException.VALIDATION_ERROR.TOO_FEW_RANDOM_RESPONSES);
                 }
@@ -512,11 +520,22 @@ public class SetupResponsesServlet extends TopServlet {
     }
 
     private void populateBean(final PwmSession pwmSession, final ChallengeSet challengeSet) {
+        int minRandomSetup;
         boolean useSimple = true;
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<String, Challenge>();
+
+        {
+            minRandomSetup = pwmSession.getConfig().readSettingAsInt(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+            if (minRandomSetup != 0 && minRandomSetup < challengeSet.getMinRandomRequired()) {
+                minRandomSetup = challengeSet.getMinRandomRequired();
+            }
+            if (minRandomSetup > challengeSet.getRandomChallenges().size()) {
+                minRandomSetup = 0;
+            }
+        }
         {
             {
-                if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_ALL_RANDOMS)) {
+                if (minRandomSetup == 0) {
                     useSimple = false;
                 }
 
@@ -542,6 +561,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         pwmSession.getSetupResponseBean().setSimpleMode(useSimple);
         pwmSession.getSetupResponseBean().setChallengeList(indexedChallenges);
+        pwmSession.getSetupResponseBean().setMinRandomSetup(minRandomSetup);
     }
 
     private static class SetupResponsesException extends Exception {

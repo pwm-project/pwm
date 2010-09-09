@@ -76,6 +76,8 @@ public class CommandServlet extends TopServlet {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(req, resp);
+        } else if (action.equalsIgnoreCase("refreshHealthCheck")) {
+            processRefreshHealthCheck(req);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -90,6 +92,27 @@ public class CommandServlet extends TopServlet {
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             resp.setContentType("text/plain");
+        }
+    }
+
+    private static void processRefreshHealthCheck(
+            final HttpServletRequest req
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        boolean hasPermission = false;
+        try {
+            hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
+        } catch (Exception e) {
+            LOGGER.warn("error during authorization check: " + e.getMessage());
+        }
+
+        if (hasPermission) {
+            pwmSession.getContextManager().getHealthMonitor().checkImmediately();
+        } else {
+            LOGGER.warn(pwmSession,"unauthorized attempt to update health check status");
         }
     }
 

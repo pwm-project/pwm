@@ -136,7 +136,9 @@ public class Validator {
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
-            final ErrorInformation info = new ErrorInformation(PwmError.forResourceKey(e.getPasswordError().getErrorKey()));
+            final ChaiPasswordPolicyException.PASSWORD_ERROR passwordError = e.getPasswordError();
+            final PwmError pwmError = PwmError.forChaiPasswordError(passwordError.getErrorKey());
+            final ErrorInformation info = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
             LOGGER.trace(pwmSession, "ChaiPasswordPolicyException was thrown while validating password: " + e.toString());
             errorResults.add(info);
         }
@@ -336,14 +338,14 @@ public class Validator {
             final PwmPasswordPolicy policy,
             final ContextManager contextManager
     ) {
-        final List<ErrorInformation> internalResults = intenralPwmPolicyValidator(password,pwmSession,testOldPassword,policy,contextManager);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password,pwmSession,testOldPassword,policy,contextManager);
         final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmSession, policy, password);
         internalResults.addAll(externalResults);
         return internalResults;
     }
 
 
-    private static List<ErrorInformation> intenralPwmPolicyValidator(
+    private static List<ErrorInformation> internalPwmPolicyValidator(
             final String password,
             final PwmSession pwmSession,
             final boolean testOldPassword,

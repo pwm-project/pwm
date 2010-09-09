@@ -144,7 +144,7 @@ public enum PwmError {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PwmError forResourceKey(final String key) {
+    public static PwmError forChaiPasswordError(final String key) {
         for (final PwmError m : PwmError.values()) {
             if (m.getResourceKey().equals(key)) {
                 return m;

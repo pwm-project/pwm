@@ -104,7 +104,7 @@ public class PwmDBAdaptor implements PwmDB {
         public void remove() {
             innerIterator.remove();
             try { SIZE_CACHE_MANAGER.decrementSize(db); } catch (Exception e) { throw new RuntimeException(e); }
-            try { notifyEvent(EventType.WRITE, db, (String)key, null); } catch (Exception e) { throw new RuntimeException(e); }
+            try { notifyEvent(EventType.WRITE, db, key.toString(), null); } catch (Exception e) { throw new RuntimeException(e); }
         }
     }
 

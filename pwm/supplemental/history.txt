@@ -8,14 +8,18 @@
 
 v1.5.2 development
 ---
-+ Added "minimum password strength" setting
-+ Added if statements to main index to remove un-enabled functions
++ Changed main menu to hide un-enabled functions
 + Added logout button to header when logged in
 + Added "Password Change Message" configuration option
 + Added java interfaces (and config settings) for ExternalChangeMethod, ExternalJudgeMethod and ExternalRuleMethod
-+ Strength meter on password page now has tooltip explaining the strength meter to user
++ Strength meter on password page now has tooltip explaining the strength meter
 + Added config options to show/hide strength meter, random generator
-+ Implemented method to retrieve password expiration time from DirectoryServer389.
++ Implemented method to retrieve password expiration time from DirectoryServer389 (chai)
++ Added change password policy settings for min/max non-alphabetic characters
++ Added "HealthMonitor" functionality to periodically test system health
++ PWM now ignores Novell UP nspmComplexityRules that are customized (changed to other than default MS-AD 3of4 policy)
++ Replaced "challenge.forceAllRandoms" setting with "challenge.minRandomsSetup" to allow more flexibility.
++ Added "Show Password Guide" configuration and feature 
 
 - Refactored ExternalPasswordMethod to ExternalChangeMethod java interface
 - Fixed issue with LoginContexts setting not being parsed properly
@@ -23,6 +27,7 @@ v1.5.2 development
 - Fixed issue where older/corrupt user history attribute would cause a NullPointerException
 - Removed "dojo.css" include to prevent IE display issues (small fonts in IE)
 - Fixed issue where random generator would sometimes generate really long passwords (especially for complex policies)
+- Resolved issue where SharedHistory would not be purged correctly due to ClassCastException in PwmDBAdaptor
 
 v1.5.1 (August 16, 2010) build 975
 ---
