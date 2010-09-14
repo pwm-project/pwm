@@ -337,7 +337,7 @@ public enum PwmSetting {
     UPDATE_ATTRIBUTES_QUERY_MATCH(
             "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true),
     UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", Syntax.STRING, Category.UPDATE, false),
+            "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false),
     UPDATE_ATTRIBUTES_FORM(
             "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true),
 

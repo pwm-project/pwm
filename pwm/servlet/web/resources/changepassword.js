@@ -273,7 +273,7 @@ function showPasswordGuide() {
 
     var theDialog = new dijit.Dialog({
         title: PWM_STRINGS['Title_PasswordGuide'],
-        style: "width: 500px; border: 2px solid #D4D4D4;",
+        style: "border: 2px solid #D4D4D4;",
         href: PWM_STRINGS['url-passwordguide'],
         closable: true,
         draggable: true,

@@ -160,7 +160,8 @@ public class UpdateAttributesServlet extends TopServlet {
             // write configured values
             final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES);
             final Map<String,String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues,"=");
-            Helper.writeMapToEdir(pwmSession, actor, writeAttributesSettings);
+            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmSession.getContextManager().getProxyChaiProvider());
+            Helper.writeMapToEdir(pwmSession, proxiedUser, writeAttributesSettings);
 
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);

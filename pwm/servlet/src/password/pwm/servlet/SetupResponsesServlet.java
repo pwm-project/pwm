@@ -373,7 +373,7 @@ public class SetupResponsesServlet extends TopServlet {
             }
 
             if (responsesBean.isSimpleMode()) { // if in simple mode, read the select-based random challenges
-                for (int i = 0; i < challengeSet.getMinRandomRequired(); i++ ) {
+                for (int i = 0; i <  responsesBean.getIndexedChallenges().size(); i++ ) {
                     final String questionKey = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i));
                     if (questionKey != null && responsesBean.getIndexedChallenges().containsKey(questionKey)) {
                         final Challenge challenge = responsesBean.getIndexedChallenges().get(questionKey);
