@@ -31,9 +31,21 @@ import java.util.regex.Pattern;
  * @author Jason D. Rivard
  */
 public enum PwmSetting {
-    // general settings
+    // user interface
     APPLICATION_TILE(
-            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.GENERAL, true),
+            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.USER_INTERFACE, true),
+    PASSWORD_SHOW_AUTOGEN(
+            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+    PASSWORD_SHOW_STRENGTH_METER(
+            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+    DISPLAY_PASSWORD_GUIDE_TEXT(
+            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+    PASSWORD_CHANGE_SUCCESS_MESSAGE(
+            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+
+    // general settings
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true),
     URL_LOGOUT(
@@ -52,20 +64,10 @@ public enum PwmSetting {
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true),
-    PASSWORD_SHOW_GUIDE(
-            "password.showGuide", Syntax.BOOLEAN, Category.GENERAL, true),
-    PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", Syntax.BOOLEAN, Category.GENERAL, true),
-    PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", Syntax.BOOLEAN, Category.GENERAL, true),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
     SEEDLIST_FILENAME(
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false),
-    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.GENERAL, false),
-    PASSWORD_CHANGE_SUCCESS_MESSAGE(
-            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.GENERAL, false),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
 
@@ -510,6 +512,7 @@ public enum PwmSetting {
     }
 
     public enum Category {
+        USER_INTERFACE,
         GENERAL,
         LDAP,
         EMAIL,

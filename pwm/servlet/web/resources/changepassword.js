@@ -85,7 +85,7 @@ function validatePasswords()
             if (passwordData.cacheKey != makeValidationKey().cacheKey) {
                 setTimeout(function() {validatePasswords();}, 1);
             } else {
-                updateDisplay(data);                
+                updateDisplay(data);
             }
         }
     });
@@ -274,7 +274,7 @@ function showPasswordGuide() {
     var theDialog = new dijit.Dialog({
         title: PWM_STRINGS['Title_PasswordGuide'],
         style: "border: 2px solid #D4D4D4;",
-        href: PWM_STRINGS['url-passwordguide'],
+        content: PWM_STRINGS['passwordGuideText'],
         closable: true,
         draggable: true,
         id: "passwordGuideDialog"
@@ -458,9 +458,12 @@ function startupChangePasswordPage()
     // show the auto generate password panel
     var passwordGuideElement = getObject("passwordGuide");
     if (passwordGuideElement != null) {
-        passwordGuideElement.style.visibility = 'visible';
+        var passwordGuideText = PWM_STRINGS['passwordGuideText'];
+        if ( passwordGuideText != null && passwordGuideText.length > 0) {
+            passwordGuideElement.style.visibility = 'visible';
+        }
     }
- 
+
 
     // show the error panel
     var autoGenPasswordElement = getObject("error_msg");

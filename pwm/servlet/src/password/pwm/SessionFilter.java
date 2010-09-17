@@ -58,7 +58,7 @@ public class SessionFilter implements Filter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SessionFilter.class);
 
-    private ServletContext servletContext;
+   //private ServletContext servletContext;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -138,6 +138,7 @@ public class SessionFilter implements Filter {
         return userIP == null ? "" : userIP;
     }
 
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -146,7 +147,7 @@ public class SessionFilter implements Filter {
     public void init(final FilterConfig filterConfig)
             throws ServletException
     {
-        servletContext = filterConfig.getServletContext();
+        //servletContext = filterConfig.getServletContext();
     }
 
     public void doFilter(
@@ -160,8 +161,9 @@ public class SessionFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
-        final ContextManager theManager = ContextManager.getContextManager(req.getSession());
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
+        final ServletContext servletContext = pwmSession.getContextManager().getServletContext();
+        final ContextManager theManager = ContextManager.getContextManager(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // check for valid config
@@ -276,7 +278,7 @@ public class SessionFilter implements Filter {
 
     public void destroy()
     {
-        servletContext = null;
+        //servletContext = null;
     }
 
     public static String rewriteURL(final String url, final ServletRequest request, final ServletResponse response) {
