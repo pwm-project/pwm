@@ -35,15 +35,16 @@
             If you wish to make configuration changes to this PWM installation, you can take any one
             of the following steps:</p>
         <ol>
-            <li>Edit the <i>PwmConfiguration.xml</i> file property setting the property "configIsEditable" to "true".  After making this edit, you will be able
+            <li>Edit the <span style="font-style: italic;">PwmConfiguration.xml</span> file property setting the property "configIsEditable" to "true".  After making this edit, you will be able
             to edit the configuration from this interface.</li>
-            <li>Delete the <i>PwmConfiguration.xml</i> file in the pwm servlet's <i>WEB-INF</i> directory.  After deleting the file, you will be able
+            <li>Delete the <span style="font-style: italic;">PwmConfiguration.xml</span> file in the pwm servlet's <span
+                    style="font-style: italic;">WEB-INF</span> directory.  After deleting the file, you will be able
             to edit the configuration from this interface.  All settings will be reset to their default.</li>
-            <li>Edit the <i>PwmConfiguration.xml</i> settings directly.  It is not required to use the PwmConfiguration interface to modify the configuration file.</li>
+            <li>Edit the <span style="font-style: italic;">PwmConfiguration.xml</span> settings directly.  It is not required to use the PwmConfiguration interface to modify the configuration file.</li>
         </ol>
         <hr/>
         <p>For convenience, the configuration editor can now be used to edit an in-memory configuration that can then be downloaded.  The in-memory configuration is initialized
-        to default values, and any changes made are not saved to the running configuration.</p>
+        to default values, and any changes made are <span style="font-weight: bold; font-style:italic;">not</span> saved to the running configuration.</p>
 
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
@@ -53,7 +54,7 @@
             <input type="hidden" name="processAction" value="switchToEditMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Edit the in-memory PWM configuration file.  The current pwm running configuration is not available, and changes are not saved to the pwm configuration</p>
+        <p>Edit the in-memory PWM configuration file.</p>
         <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
@@ -61,7 +62,7 @@
             <input type="file" class="btn" name="uploadFile" size="50"/>
             <input type="submit" class="btn" name="uploadSubmit" value="Upload" onclick="document.forms['uploadXml'].submit();"/>
         </form>
-        <p>Upload a previously saved configuration file.  The uploaded file will be available for editing during this browser session, but will not be saved to the running configurtion the PWM configuration.</p>
+        <p>Upload a previously saved configuration file.  The uploaded file will be available for editing during this browser session only.</p>
         <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="generateXml"/>
