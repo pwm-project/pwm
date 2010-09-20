@@ -779,4 +779,40 @@ public class Helper {
         }
         return inputData.toString();
     }
+
+    public static String debugHttpRequest(final HttpServletRequest req)
+    {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append(req.getMethod());
+        sb.append(" request for: ");
+        sb.append(req.getRequestURI());
+
+        if (req.getParameterMap().isEmpty()) {
+            sb.append(" (no params)");
+        } else {
+            sb.append("\n");
+
+            for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
+                final String paramName = (String) paramNameEnum.nextElement();
+                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
+
+                for (final String paramValue : paramValues) {
+                    sb.append("  ").append(paramName).append("=");
+                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
+                        sb.append("***removed***");
+                    } else {
+                        sb.append('\'');
+                        sb.append(paramValue);
+                        sb.append('\'');
+                    }
+
+                    sb.append('\n');
+                }
+            }
+
+            sb.deleteCharAt(sb.length() -1);
+        }
+        return sb.toString();
+    }
 }

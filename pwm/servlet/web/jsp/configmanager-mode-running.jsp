@@ -31,7 +31,8 @@
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Manager"/></jsp:include>
     <div id="centerbody">
-        <p>The configuration for this server is now finalized and locked.  If you wish to make configuration changes to this PWM installation, you can take any one
+        <p>The configuration for this server is now finalized and locked.  You can see the running configuration <a href="<%=request.getContextPath()%><pwm:url url="/admin/config.jsp"/>">here</a>.
+            If you wish to make configuration changes to this PWM installation, you can take any one
             of the following steps:</p>
         <ol>
             <li>Edit the <i>PwmConfiguration.xml</i> file property setting the property "configIsEditable" to "true".  After making this edit, you will be able

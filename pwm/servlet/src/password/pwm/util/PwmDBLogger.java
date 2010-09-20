@@ -22,9 +22,9 @@
 
 package password.pwm.util;
 
-import com.novell.ldapchai.util.StringHelper;
 import password.pwm.Helper;
 import password.pwm.PwmSession;
+import password.pwm.util.db.PwmDBStoredQueue;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
 
@@ -44,18 +44,7 @@ import java.util.regex.PatternSyntaxException;
 public class PwmDBLogger {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static String KEY_HEAD_POSITION = "HEAD_POSITION";
-    private final static String KEY_TAIL_POSITION = "TAIL_POSITION";
-    private final static String KEY_VERSION = "VERSION";
-    private final static String VALUE_VERSION = "4";
-
-    private final static PwmDB.DB META_DB = PwmDB.DB.EVENTLOG_META;
-    private final static PwmDB.DB EVENT_DB = PwmDB.DB.EVENTLOG_EVENTS;
-
     private final static PwmLogger LOGGER = PwmLogger.getLogger(PwmDBLogger.class);
-
-    private final static int MAXIMUM_POSITION = Integer.MAX_VALUE - 1;
-    private final static int MINIMUM_POSITION = Integer.MIN_VALUE + 1;
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
 
@@ -67,8 +56,6 @@ public class PwmDBLogger {
     private final static int MAX_QUEUE_SIZE = 10 * 1000;
 
     private final PwmDB pwmDB;
-    private volatile int headPosition;
-    private volatile int tailPosition;
 
     private volatile long tailTimestampMs = -1L;
     private long lastQueueFlushTimestamp = System.currentTimeMillis();
@@ -79,27 +66,25 @@ public class PwmDBLogger {
 
     private final Queue<PwmLogEvent> eventQueue = new ConcurrentLinkedQueue<PwmLogEvent>();
 
+    private final PwmDBStoredQueue pwmDBListQueue;
+
     private volatile boolean open = true;
     private volatile boolean writerThreadActive = false;
-
     private boolean hasShownReadError = false;
-
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge, final int bulkAddEvents) {
-
+    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge, final int bulkAddEvents)
+            throws PwmDBException
+    {
+        final long startTime = System.currentTimeMillis();
         this.setting_maxAgeMs = ((long)maxAge) * 1000L;
         this.pwmDB = pwmDB;
         this.setting_bulkAddEvents = bulkAddEvents;
+        this.pwmDBListQueue = new PwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents sent to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
-            try {
-                initializeNewSystem();
-            } catch (Exception e) {
-                LOGGER.warn("error while initializing/clearing PwmDBLogger history: " + e.getMessage());
-            }
             throw new IllegalArgumentException("maxEvents=0, will remain closed");
         }
 
@@ -114,70 +99,35 @@ public class PwmDBLogger {
             throw new IllegalArgumentException("pwmDB cannot be null");
         }
 
-        try {
-            init();
-        } catch (Exception e) {
-            LOGGER.error("error initializing PwmDBLogger: " + e.getMessage(),e);
+        { // start the writer thread
+            final Thread writerThread = new Thread(new WriterThread(),"pwm-PwmDBLogger writer");
+            writerThread.setDaemon(true);
+            writerThread.start();
         }
-    }
 
-    private void init()
-            throws PwmDBException
-    {
-        final long startTime = System.currentTimeMillis();
-
-        checkVersion();
-
-        headPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_HEAD_POSITION), 0);
-        tailPosition = StringHelper.convertStrToInt(pwmDB.get(META_DB,KEY_TAIL_POSITION), 0);
-
-        tailTimestampMs = readTailTimestamp();
-
-        LOGGER.debug("initializing; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", maxEvents=" + setting_maxEvents + ", maxAgeMs=" + setting_maxAgeMs);
-
-        {
-            final Thread purgerThread = new Thread(new Runnable() {
+        if (setting_bulkAddEvents > 0) {
+            Helper.pause(10 * 1000);
+            LOGGER.warn("beginning bulk add events testing process for " + setting_bulkAddEvents + " events!");
+            final Thread bulkAddThread = new Thread(new Thread(),"pwm-PwmDBLogger bulkadd") {
                 public void run() {
-                    secondaryInit(startTime);
+                    bulkAddEvents( setting_bulkAddEvents );
                 }
-            },"pwm-PwmDBLogger initializer");
-            purgerThread.setDaemon(true);
-            purgerThread.start();
+            };
+            bulkAddThread.setDaemon(true);
+            bulkAddThread.start();
         }
+
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
+        LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
     }
 
-    private void checkVersion() throws PwmDBException {
-        final String storedVersion = pwmDB.get(META_DB,KEY_VERSION);
-        if (storedVersion == null || !VALUE_VERSION.equals(storedVersion)) {
-            LOGGER.warn("events in db use an outdated format, the stored events will be purged");
-            initializeNewSystem();
-            LOGGER.info("PwmDB event history has been purged");
-        }
-    }
-
-    private void initializeNewSystem()
-            throws PwmDBException
-    {
-        pwmDB.truncate(EVENT_DB);
-        pwmDB.truncate(META_DB);
-
-        headPosition = 0;
-        tailPosition = 0;
-        pwmDB.put(META_DB,KEY_HEAD_POSITION,String.valueOf(headPosition));
-        pwmDB.put(META_DB,KEY_TAIL_POSITION,String.valueOf(tailPosition));
-
-        writeEvent(new PwmLogEvent(new Date(),this.getClass().getSimpleName(),"PwmDBLogger initialized",null,null,null,PwmLogLevel.INFO));
-
-        pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION);
-    }
 
     private long readTailTimestamp() {
-        final PwmLogEvent loopEvent = readEvent(tailPosition);
-
+        final PwmLogEvent loopEvent;
         try {
-            if (loopEvent != null) {
-                return loopEvent.getDate().getTime();
-            }
+            loopEvent = readEvent(pwmDBListQueue.tail());
+            return loopEvent.getDate().getTime();
         } catch (Exception e) {
             LOGGER.error("unexpected error attempting to determine tail event timestamp: " + e.getMessage());
         }
@@ -185,67 +135,12 @@ public class PwmDBLogger {
         return -1;
     }
 
-    private void secondaryInit(final long startTime)
-    {
-        final int itemCount = this.figureItemCount();
-        if (itemCount > setting_maxEvents + DB_WARN_THRESHOLD) {
-            LOGGER.warn("PwmDBLogger item count (" + itemCount + ") is larger than the maximum configured size (" + setting_maxEvents + "), process may have high utilization while items are purged");
-        }
-
-        final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
-        LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
-
-        { // start the writer thread
-            final Thread writerThread = new Thread(new WriterThread(),"pwm-PwmDBLogger writer");
-            writerThread.setDaemon(true);
-            writerThread.start();
-        }
-
-        /*
-        try { // verify the db size.
-            LOGGER.debug("beginning validation of size counts");
-            final int figuredItemCount = figureItemCount();
-            final int realItemCount = pwmDB.size(EVENT_DB);
-            final int observedDifference = Math.abs(figuredItemCount - realItemCount);
-            if ( observedDifference > DB_WARN_THRESHOLD) {
-                LOGGER.warn("event count discrepancy: pwmDb.count()=" + realItemCount + " figuredItemCount()=" + figureItemCount());
-            } else {
-                LOGGER.debug("size count verification complete");
-            }
-        } catch (Exception e) {
-            LOGGER.error("error verifying item count: " + e.getMessage());
-        }
-        */
-
-        if (setting_bulkAddEvents > 0) {
-            Helper.pause(10 * 1000);
-            LOGGER.warn("beginning bulk add events testing process for " + setting_bulkAddEvents + " events!");
-            bulkAddEvents( setting_bulkAddEvents );
-        }
-    }
-
-    /**
-     * Determines the item count based on difference between the tail position and head position
-     * @return calculated item count;
-     */
-    private int figureItemCount()
-    {
-        final int itemCount;
-        if (tailPosition > headPosition) {
-            itemCount = (headPosition - MINIMUM_POSITION) + (MAXIMUM_POSITION - tailPosition);
-        } else {
-            itemCount = headPosition - tailPosition;
-        }
-        return itemCount;
-    }
 
     private String debugStats()
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append("events=").append(figureItemCount());
+        sb.append("events=").append(pwmDBListQueue.size());
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
-        sb.append(", headPosition=").append(keyForPosition(headPosition));
-        sb.append(", tailPosition=").append(keyForPosition(tailPosition));
         sb.append(", maxEvents=").append(setting_maxEvents);
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
         sb.append(", pwmDBSize=").append(Helper.formatDiskSize(pwmDB.diskSpaceUsed()));
@@ -333,20 +228,16 @@ public class PwmDBLogger {
     private synchronized void doWrite(final Collection<PwmLogEvent> events)
     {
         final long startTime = System.currentTimeMillis();
-        final Map<String,String> transactions = new HashMap<String,String>();
-        int nextPosition = figureNextPosition(headPosition);
+        final List<String> transactions = new ArrayList<String>();
         try {
             for (final PwmLogEvent event : events) {
                 final String encodedString = event.toEncodedString();
                 if (encodedString.length() < PwmDB.MAX_VALUE_LENGTH) {
-                    transactions.put(keyForPosition(nextPosition),encodedString);
-                    nextPosition = figureNextPosition(nextPosition);
+                    transactions.add(encodedString);
                 }
             }
 
-            pwmDB.putAll(EVENT_DB, transactions);
-            pwmDB.put(META_DB, KEY_HEAD_POSITION, String.valueOf(nextPosition));
-            headPosition = nextPosition;
+            pwmDBListQueue.add(transactions);
 
             if (transactions.size() >= (MAX_WRITES_PER_CYCLE - 100)) {
                 LOGGER.trace("added " + transactions.size() + " in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
@@ -361,7 +252,7 @@ public class PwmDBLogger {
     }
 
     public int getEventCount() {
-        return figureItemCount();
+        return pwmDBListQueue.size();
     }
 
     public int getPendingEventCount() {
@@ -370,7 +261,7 @@ public class PwmDBLogger {
 
     private int determineTailRemovalCount()
     {
-        final int currentItemCount = figureItemCount();
+        final int currentItemCount = pwmDBListQueue.size();
 
         // must keep at least one position populated
         if (currentItemCount <= 1) {
@@ -391,7 +282,7 @@ public class PwmDBLogger {
         if (setting_maxAgeMs > 0) {
             final long ageOfTail = System.currentTimeMillis() - tailTimestampMs;
             if ((tailTimestampMs > 0) && (ageOfTail > setting_maxAgeMs)) {
-
+                /*
                 // if the tail is old, peek forward a ways to see if a large chunk needs to be purged.
                 if (figureItemCount() > MAX_REMOVALS_PER_CYCLE) {
 
@@ -409,35 +300,13 @@ public class PwmDBLogger {
                         }
                     }
                 }
+                */
                 return 1;
             }
         }
         return 0;
     }
 
-    private void removeTail(final int count)
-    {
-        final long startTime = System.currentTimeMillis();
-        final List<String> removalKeys = new ArrayList<String>();
-        try {
-            int nextTailPosition = tailPosition;
-            while ((removalKeys.size() < count) && (removalKeys.size() <= MAX_REMOVALS_PER_CYCLE) && open) {
-                removalKeys.add(keyForPosition(nextTailPosition));
-                nextTailPosition = figureNextPosition(nextTailPosition);
-            }
-            if (open) {
-                pwmDB.removeAll(EVENT_DB, removalKeys);
-                pwmDB.put(META_DB, KEY_TAIL_POSITION, String.valueOf(nextTailPosition));
-                tailPosition = nextTailPosition;
-            }
-
-            if (removalKeys.size() >= (MAX_REMOVALS_PER_CYCLE - 100)) {
-                LOGGER.trace("removed " + removalKeys.size() + " in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
-            }
-        } catch (PwmDBException e) {
-            LOGGER.error("error trimming pwmDBLogger: " + e.getMessage(),e);
-        }
-    }
 
     public enum EventType { User, System, Both }
 
@@ -453,7 +322,7 @@ public class PwmDBLogger {
     {
         final long startTime = System.currentTimeMillis();
         final int maxReturnedEvents = count > this.setting_maxEvents ? this.setting_maxEvents : count;
-        final int eventsInDb = this.figureItemCount();
+        final int eventsInDb = pwmDBListQueue.size();
 
         Pattern pattern = null;
         try{
@@ -465,11 +334,12 @@ public class PwmDBLogger {
         }
 
         final List<PwmLogEvent> returnList = new ArrayList<PwmLogEvent>();
+        final Iterator<String> iterator = pwmDBListQueue.iterator();
         boolean timeExceeded = false;
-        int readPosition = this.headPosition;
+
         int examinedPositions = 0;
         while (open && returnList.size() < maxReturnedEvents && examinedPositions < eventsInDb) {
-            final PwmLogEvent loopEvent = readEvent(readPosition);
+            final PwmLogEvent loopEvent = readEvent(iterator.next());
             if (loopEvent != null) {
                 if (checkEventForParams(loopEvent, minimumLevel, username, text, pattern, eventType)) {
                     returnList.add(loopEvent);
@@ -482,7 +352,6 @@ public class PwmDBLogger {
             }
 
             examinedPositions++;
-            readPosition = figurePreviousPosition(readPosition);
         }
 
         Collections.sort(returnList);
@@ -519,12 +388,9 @@ public class PwmDBLogger {
         return TimeDuration.fromCurrent(lastQueueFlushTimestamp);
     }
 
-    private PwmLogEvent readEvent(final int position) {
+    private PwmLogEvent readEvent(final String value) {
         try {
-            final String strValue = pwmDB.get(EVENT_DB, keyForPosition(position));
-            if (strValue != null && strValue.length() > 0) {
-                return PwmLogEvent.fromEncodedString(strValue);
-            }
+            return PwmLogEvent.fromEncodedString(value);
         } catch (Throwable e) {
             if (!hasShownReadError) {
                 hasShownReadError = true;
@@ -601,22 +467,6 @@ public class PwmDBLogger {
     }
 
 
-    private static int figureNextPosition(final int position) {
-        int nextPosition = position + 1;
-        if (nextPosition > MAXIMUM_POSITION) {
-            nextPosition = MINIMUM_POSITION;
-        }
-        return nextPosition;
-    }
-
-    private static int figurePreviousPosition(final int position) {
-        int previousPosition = position - 1;
-        if (previousPosition < MINIMUM_POSITION) {
-            previousPosition = MAXIMUM_POSITION;
-        }
-        return previousPosition;
-    }
-
     public synchronized void writeEvent(final PwmLogEvent event) {
         if (open) {
             if (setting_maxEvents > 0) {
@@ -630,15 +480,6 @@ public class PwmDBLogger {
                 eventQueue.add(event);
             }
         }
-    }
-
-    private static String keyForPosition(final int position) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(Integer.toHexString(position));
-        while (sb.length() < 8) {
-            sb.insert(0,"0");
-        }
-        return sb.toString().toUpperCase();
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -655,7 +496,7 @@ public class PwmDBLogger {
             writerThreadActive = false;
         }
 
-        private void doLoop() {
+        private void doLoop() throws PwmDBException {
             while (open) {
                 boolean workDone = false;
 
@@ -666,7 +507,8 @@ public class PwmDBLogger {
 
                 final int purgeCount = determineTailRemovalCount();
                 if (purgeCount > 0) {
-                    removeTail(purgeCount > MAX_REMOVALS_PER_CYCLE ? MAX_REMOVALS_PER_CYCLE : purgeCount);
+                    final int removalCount = purgeCount > MAX_REMOVALS_PER_CYCLE ? MAX_REMOVALS_PER_CYCLE : purgeCount;
+                    pwmDBListQueue.removeTail(removalCount);
                     tailTimestampMs = readTailTimestamp();
                     workDone = true;
                 }

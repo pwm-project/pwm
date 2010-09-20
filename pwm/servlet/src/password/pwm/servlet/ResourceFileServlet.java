@@ -17,6 +17,7 @@
 
 package password.pwm.servlet;
 
+import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.util.PwmLogger;
@@ -78,6 +79,8 @@ public class ResourceFileServlet extends HttpServlet {
             (final HttpServletRequest request, final HttpServletResponse response, final boolean content)
             throws IOException
     {
+        LOGGER.trace(PwmSession.getPwmSession(request), Helper.debugHttpRequest(request));
+
         final File file = resolveRequestedFile(request);
 
         if (file == null || !file.exists()) {
@@ -87,7 +90,6 @@ public class ResourceFileServlet extends HttpServlet {
 
         final String fileName = file.getName();
         final String eTag = makeETag(request,file);
-
 
         // If-None-Match header should contain "*" or ETag. If so, then return 304.
         final String ifNoneMatch = request.getHeader("If-None-Match");

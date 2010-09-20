@@ -40,6 +40,11 @@
         <p style="text-align:center;">
             <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
         </p>
+        <p>
+            This screen shows the current running configuration.   The configuration was loaded at
+            <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>.  You
+            can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a> to modify the configuration.
+        </p>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
             <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>

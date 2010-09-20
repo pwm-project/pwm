@@ -40,9 +40,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
@@ -58,45 +56,7 @@ public class SessionFilter implements Filter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SessionFilter.class);
 
-   //private ServletContext servletContext;
-
 // -------------------------- STATIC METHODS --------------------------
-
-    public static void debugHttpRequest(final HttpServletRequest req, final PwmSession pwmSession)
-    {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append(req.getMethod());
-        sb.append(" request for: ");
-        sb.append(req.getRequestURI());
-
-        if (req.getParameterMap().isEmpty()) {
-            sb.append(" (no params)");
-        } else {
-            sb.append("\n");
-
-            for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
-                final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
-
-                for (final String paramValue : paramValues) {
-                    sb.append("  ").append(paramName).append("=");
-                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
-                        sb.append("***removed***");
-                    } else {
-                        sb.append('\'');
-                        sb.append(paramValue);
-                        sb.append('\'');
-                    }
-
-                    sb.append('\n');
-                }
-            }
-
-            sb.deleteCharAt(sb.length() -1);
-        }
-        LOGGER.trace(pwmSession, sb.toString());
-    }
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession)
     {
@@ -187,7 +147,8 @@ public class SessionFilter implements Filter {
         ssBean.setSrcHostname(readUserHostname(req, pwmSession));
 
         // output request information to debug log
-        debugHttpRequest(req, pwmSession);
+        LOGGER.trace(pwmSession, Helper.debugHttpRequest(req));
+
 
         //set the session's locale
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);

@@ -48,7 +48,7 @@ public class HealthMonitor implements Serializable {
         if (contextManager.getConfig() != null) {
             final int intervalSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_HEALTH_CHECK_INTERVAL);
             if (intervalSeconds > 0) {
-                LOGGER.debug("starting health check monitor task");
+                LOGGER.trace("starting health check monitor task");
                 timer.scheduleAtFixedRate(new HealthCheckTimerTask(),60 * 1000, intervalSeconds * 1000);
             }
         }
@@ -60,7 +60,7 @@ public class HealthMonitor implements Serializable {
     }
 
     public void checkImmediately() {
-        LOGGER.debug("immediate health check requested");
+        LOGGER.trace("immediate health check requested");
         doHealthChecks();
     }
 
@@ -83,7 +83,7 @@ public class HealthMonitor implements Serializable {
     }
 
     private void doHealthChecks() {
-        LOGGER.debug("beginning health check process");
+        LOGGER.trace("beginning health check process");
         final List<HealthRecord> newResults = new ArrayList<HealthRecord>();
         for (final HealthChecker loopChecker : healthCheckers) {
             try {
@@ -98,7 +98,7 @@ public class HealthMonitor implements Serializable {
         healthRecords.clear();
         healthRecords.addAll(newResults);
         lastHealthCheckDate = new Date();
-        LOGGER.debug("health check process completed");
+        LOGGER.trace("health check process completed");
     }
 
     private class HealthCheckTimerTask extends TimerTask {

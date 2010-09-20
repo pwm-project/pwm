@@ -119,7 +119,6 @@ public interface PwmDB {
         SEEDLIST_META,
         SEEDLIST_WORDS,
         PWM_STATS,
-        EVENTLOG_META,
         EVENTLOG_EVENTS,
     }
 

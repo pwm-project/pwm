@@ -41,7 +41,6 @@ public abstract class PwmConstants {
     public static final String PWM_DEFAULT_APPLICATION_NAME = "PWM Password Management";
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
-    public static final int DEFAULT_LDAP_IDLE_TIMEOUT_MS = 60 * 1000;
 
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
@@ -50,11 +49,8 @@ public abstract class PwmConstants {
 
 
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
-    public static final String CONTEXT_ATTR_STATUS_BEAN = "StatusBean";
-
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
 
-    public static final String DEFAULT_WORDLIST_DB_DIR = "pwm-db";
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
     public static final String URL_JSP_LOGIN = "jsp/login.jsp";

@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
 
 import java.util.Date;
 
@@ -69,8 +70,13 @@ public class PwmLogger {
         } catch (Exception e) {
             bulkAddEvents = 0;
         }
-        
-        PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge, bulkAddEvents);
+
+
+        try {
+            PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge, bulkAddEvents);
+        } catch (PwmDBException e) {
+            //nothing to do;
+        }
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
         PwmLogger.contextManager = contextManager;
         return PwmLogger.pwmDBLogger;
