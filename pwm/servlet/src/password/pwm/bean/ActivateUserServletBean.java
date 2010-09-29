@@ -33,7 +33,7 @@ import java.util.Map;
 public class ActivateUserServletBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private String createUserDN;
+    private String activateUserDN;
 
     private Map<String, FormConfiguration> activateUserParams;
 
@@ -47,12 +47,12 @@ public class ActivateUserServletBean implements Serializable {
         this.activateUserParams = activateUserParams;
     }
 
-    public String getCreateUserDN() {
-        return createUserDN;
+    public String getActivateUserDN() {
+        return activateUserDN;
     }
 
-    public void setCreateUserDN(final String createUserDN) {
-        this.createUserDN = createUserDN;
+    public void setActivateUserDN(final String activateUserDN) {
+        this.activateUserDN = activateUserDN;
     }
 }
 

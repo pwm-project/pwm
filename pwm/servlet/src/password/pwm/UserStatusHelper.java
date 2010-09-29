@@ -159,7 +159,7 @@ public class UserStatusHelper {
         }
 
         // read the user's response
-        final ResponseSet usersResponses = PasswordUtility.readUserResponseSet(pwmSession, theUser);
+        final ResponseSet usersResponses = CrUtility.readUserResponseSet(pwmSession, theUser);
 
         try {
             // check if responses exist
@@ -220,7 +220,7 @@ public class UserStatusHelper {
         uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser));
 
         //populate c/r challenge set. 
-        uiBean.setChallengeSet(PasswordUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(),pwmSession.getSessionStateBean().getLocale()));
+        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(),pwmSession.getSessionStateBean().getLocale()));
 
         //populate all user attributes.
         try {
@@ -352,7 +352,7 @@ public class UserStatusHelper {
 
     private static String determineContextForSearch(final PwmSession pwmSession, final String context) {
         final String configuredLdapContextlessRoot = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        if (context == null) {
+        if (context == null || context.length() < 1) {
             return configuredLdapContextlessRoot;
         }
 
@@ -362,12 +362,10 @@ public class UserStatusHelper {
         }
 
         // see if the baseDN is one of the configured login contexts.
-        if (context != null && context.length() > 0) {
-            final Map<String,String> contextsSettings = pwmSession.getConfig().getLoginContexts();
-            if (contextsSettings.containsKey(context)) {
-                if (contextsSettings.keySet().contains(context)) {
-                    return context;
-                }
+        final Map<String,String> contextsSettings = pwmSession.getConfig().getLoginContexts();
+        if (contextsSettings.containsKey(context)) {
+            if (contextsSettings.keySet().contains(context)) {
+                return context;
             }
         }
 

@@ -176,7 +176,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws ChaiUnavailableException
     {
         // retrieve the responses for the user from ldap
-        final ResponseSet responseSet = PasswordUtility.readUserResponseSet(pwmSession, theUser);
+        final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, theUser);
 
         if (responseSet != null) {
             LOGGER.trace("loaded responseSet from user: " + responseSet.toString());
@@ -189,7 +189,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
 
             // read the user's assigned response set.
-            final ChallengeSet challengeSet = PasswordUtility.readUserChallengeSet(pwmSession, theUser, null, responseSetLocale);
+            final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(pwmSession, theUser, null, responseSetLocale);
 
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {

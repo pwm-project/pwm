@@ -88,8 +88,8 @@ public class PwmSession implements Serializable {
             returnSession.httpSession = httpSession;
             ContextManager.getContextManager(httpSession).addPwmSession(returnSession);
             final String oldSessionID = returnSession.getSessionStateBean().getSessionID();
-            if (!oldSessionID.contains("-")) {
-                returnSession.getSessionStateBean().setSessionID(oldSessionID + "-");
+            if (!oldSessionID.contains("~")) {
+                returnSession.getSessionStateBean().setSessionID(oldSessionID + "~");
             }
         }
 

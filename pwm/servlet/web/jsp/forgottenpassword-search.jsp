@@ -32,8 +32,8 @@
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ForgottenPassword"/></p>
-        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-                onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
+        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm"
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false;" id="searchForm">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -63,8 +63,14 @@
                        value="     <pwm:Display key="Button_Search"/>     "
                        id="submitBtn"/>
                 <input type="reset" class="btn"
-                       name="reset"
+                       name="reset" onclick="clearForm('searchForm');return false;"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                </button>
+                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

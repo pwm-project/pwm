@@ -44,6 +44,11 @@ public enum PwmSetting {
             "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
     PASSWORD_CHANGE_SUCCESS_MESSAGE(
             "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+    DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
+            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+    DISPLAY_CANCEL_BUTTON(
+            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+
 
     // general settings
     URL_FORWARD(
@@ -217,17 +222,6 @@ public enum PwmSetting {
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false),
 
-    // edirectory settings
-    EDIRECTORY_READ_PASSWORD_POLICY(
-            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true),
-    EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true),
-    EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true),
-    EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true),
-    EDIRECTORY_ALWAYS_USE_PROXY(
-            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
@@ -240,6 +234,7 @@ public enum PwmSetting {
             "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
     INTRUDER_SESSION_MAX_ATTEMPTS(
             "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
+
 
     // logger settings
     EVENTS_HEALTH_CHECK_INTERVAL(
@@ -277,7 +272,7 @@ public enum PwmSetting {
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true),
     CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, true),
+            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false),
     CHALLENGE_MIN_RANDOM_SETUP(
             "challenge.minRandomsSetup", Syntax.NUMERIC, Category.RECOVERY, true),
     CHALLENGE_ALLOW_UNLOCK(
@@ -309,6 +304,14 @@ public enum PwmSetting {
     CHALLENGE_TOKEN_LENGTH(
             "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true),
 
+
+    // forgotten username
+    FORGOTTEN_USERNAME_ENABLE(
+            "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true),
+    FORGOTTEN_USERNAME_SEARCH_FILTER(
+            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true),
+
+
     // new user settings
     NEWUSER_ENABLE(
             "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true),
@@ -320,6 +323,7 @@ public enum PwmSetting {
             "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
+
 
     // activation settings
     ACTIVATE_USER_ENABLE(
@@ -350,6 +354,21 @@ public enum PwmSetting {
             "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false),
     SHORTCUT_HEADER_NAMES(
             "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false),
+
+
+    // edirectory settings
+    EDIRECTORY_READ_PASSWORD_POLICY(
+            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+    EDIRECTORY_ENABLE_NMAS(
+            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+    EDIRECTORY_STORE_NMAS_RESPONSES(
+            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+    EDIRECTORY_READ_CHALLENGE_SET(
+            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+    EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
+            "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false),
+    EDIRECTORY_ALWAYS_USE_PROXY(
+            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
 
 
     // captcha
@@ -517,14 +536,15 @@ public enum PwmSetting {
         LDAP,
         EMAIL,
         PASSWORD_POLICY,
-        EDIRECTORY,
         INTRUDER,
         LOGGING,
         RECOVERY,
+        FORGOTTEN_USERNAME,
         NEWUSER,
         ACTIVATION,
         UPDATE,
         SHORTCUT,
+        EDIRECTORY,
         CAPTCHA,
         ADVANCED
         ;

@@ -37,6 +37,7 @@
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="HTTP Request Information"/></jsp:include>
 <div id="wrapper">
     <div id="centerbody">
+        <%@ include file="admin-nav.jsp" %>        
         <table>
             <tr>
                 <td colspan="10" class="title">

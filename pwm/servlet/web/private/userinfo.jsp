@@ -20,16 +20,16 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.novell.ldapchai.cr.ResponseSet" %>
+<%@ page import="com.novell.ldapchai.exception.ChaiUnavailableException" %>
+<%@ page import="password.pwm.CrUtility" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="com.novell.ldapchai.exception.ChaiUnavailableException" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="com.novell.ldapchai.cr.ResponseSet" %>
-<%@ page import="password.pwm.PasswordUtility" %>
+<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -131,7 +131,7 @@
                     <%
                         ResponseSet userResponses = null;
                         try {
-                            userResponses = PasswordUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
+                            userResponses = CrUtility.readUserResponseSet(pwmSession,pwmSession.getSessionManager().getActor());
                         } catch (ChaiUnavailableException e) {
                             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                         } catch (PwmException e) {
@@ -194,6 +194,14 @@
                 </td>
                 <td>
                     <%= ssBean.getSessionVerificationKey() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Auth is via unknown password
+                </td>
+                <td>
+                    <%= PwmSession.getPwmSession(session).getUserInfoBean().isAuthFromUnknownPw() %>
                 </td>
             </tr>
             <tr>

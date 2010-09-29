@@ -29,45 +29,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <jsp:include page="../jsp/header.jsp"/>
 <body onload="pwmPageLoadHandler();">
+<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Administration"/></jsp:include>
-    <div id="content">
+    <div id="content">                                    o
         <div id="centerbody">
-            <h1>Administrator Functions</h1>
-
-            <h2><a href="<pwm:url url='status.jsp'/>">PWM Status</a></h2>
-            <p>PWM and Java status</p>
-
-            <h2><a href="<pwm:url url='statistics.jsp'/>">PWM Statistics</a></h2>
-            <p>Current and historical PWM Statistics</p>
-
-            <h2><a href="<pwm:url url='eventlog.jsp?level=INFO&count=100'/>">Event Logs</a></h2>
-            <p>Recent PWM events</p>
-
-            <h2><a href="<pwm:url url='intruderstatus.jsp'/>">Intruder Table</a></h2>
-            <p>List of all intruder monitored users and addresses</p>
-
-            <h2><a href="<pwm:url url='activesessions.jsp'/>">Active Sessions</a></h2>
-            <p>List of all active PWM sessions</p>
-
-            <h2><a href="<pwm:url url='config.jsp'/>">Configuration</a></h2>
-            <p>Selected PWM configuration settings</p>
-
-            <h2><a href="<pwm:url url='UserInformation'/>">User Information</a></h2>
-            <p>Useful for debugging user password issues</p>
-
-            <h2><a href="<pwm:url url='http-request-information.jsp'/>">HTTP Request Information</a></h2>
-            <p>Useful for debugging HTTP request issues</p>
-
-            <h2><a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a></h2>
-            <p>PWM configuration manager and editor</p>
-
-            <hr/>
-
-            <h1>Other</h1>
-
-            <h2><a href="<pwm:url url='http://code.google.com/p/pwm'/>">PWM Home Page</a></h2>
-            <p>The PWM project homepage</p>
+            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>">PWM Status</a>
         </div>
     </div>
     <br class="clear" />

@@ -36,9 +36,14 @@
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <body class="tundra">
 <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
+<script type="text/javascript">
+    showWaitDialog("Loading page....");
+    dojo.require("dojo.parser");
+    dojo.addOnLoad(function(){
+        dojo.parser.parse();
+    });
+</script>
 <script type="text/javascript"><% { int i=0; for (final String loopLocale : DEFAULT_LOCALES) { %>availableLocales[<%=i++%>]='<%=loopLocale%>'; <% } } %></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Editor"/></jsp:include>
@@ -48,6 +53,7 @@
         <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
         <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
+
         <% } %>
         <br class="clear"/>
         <div id="mainTabContainer" >
@@ -188,5 +194,11 @@
     </div>
 </div>
 <%@ include file="footer.jsp" %>
+<script type="text/javascript">
+    dojo.addOnLoad(function(){
+        clearDigitWidget('waitDialog');
+    });
+</script>
+
 </body>
 </html>

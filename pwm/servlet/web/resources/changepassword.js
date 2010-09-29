@@ -108,8 +108,9 @@ function makeValidationKey() {
 
 function updateDisplay(resultInfo) {
     if (resultInfo == null) {
-        clearError('\u00A0');
+        showSuccess(PWM_STRINGS['Display_PasswordPrompt']);
         markStrength(0);
+        markConfirmationCheck(null);
         return;
     }
 
@@ -382,12 +383,17 @@ function fetchRandoms() {
         return;
     }
 
-    if (outstandingFetches > 5) {
+    if (outstandingFetches > 3) {
         setTimeout(function(){fetchRandoms();},100);
     } else {
         var name = fetchList.splice(0,1);
         outstandingFetches++;
-        fetchRandom(function(results) {handleRandomResponse(results, name);outstandingFetches--;},function(errorObj) {outstandingFetches--;});
+        fetchRandom(function(results) {
+            handleRandomResponse(results, name);
+            outstandingFetches--;
+        },
+                function(errorObj) {outstandingFetches--;}
+                );
         setTimeout(function(){fetchRandoms();},100);
     }
 }
@@ -420,32 +426,17 @@ function handleRandomResponse(resultInfo, elementID)
     }
 }
 
-function clearForm() {
-    getObject("password1").value = "";
-    getObject("password2").value = "";
-    if (getObject("currentPassword") != null) getObject("currentPassword").value = "";
-    clearError('\u00A0'); //&nbsp;
-    markConfirmationCheck("EMPTY");
-    markStrength(0);
-    setInputFocus();
-}
-
 function startupChangePasswordPage()
 {
     /* enable the hide button only if the toggle works */
-    try {
-        toggleMaskPasswords();
-        toggleMaskPasswords();
-        changeInputTypeField(getObject("hide_button"),"button");
-    } catch (e) {
-    }
+    if (PWM_GLOBAL['setting-showHidePasswordFields']) {
+        try {
+            toggleMaskPasswords();
+            toggleMaskPasswords();
+            changeInputTypeField(getObject("hide_button"),"button");
+        } catch (e) {
+            //alert("can't show hide button: " + e)
 
-    /* check if browser is ie6 or less. */
-    var isIe6orLess = false;
-    if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)){ //test for MSIE x.x;
-        var ieversion=new Number(RegExp.$1) // capture x.x portion and store as a number
-        if (ieversion<=6) {
-            isIe6orLess = false;
         }
     }
 
@@ -484,12 +475,9 @@ function startupChangePasswordPage()
     // setup tooltips
     dojo.require("dijit.Tooltip");
     dojo.addOnLoad(function() {
-        // create a new Tooltip and connect it to bar1 and bar4
         var strengthTooltip = new dijit.Tooltip({
             connectId: ["strengthBox"],
-            label: PWM_STRINGS['Tooltip_PasswordStrength'],
-            position: ["below","right"],
-            style: "width: 30em"
+            label: PWM_STRINGS['Tooltip_PasswordStrength']
         });
         strengthTooltip.setAttribute('style','width: 30em');
     });

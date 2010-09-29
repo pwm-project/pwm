@@ -24,103 +24,35 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.CrFactory;
-import com.novell.ldapchai.cr.ResponseSet;
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Jason D. Rivard
  */
 public class PasswordUtility {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordUtility.class);
 
     private PasswordUtility() {
-    }
-
-    public static ChallengeSet readUserChallengeSet(
-            final PwmSession pwmSession,
-            final ChaiUser theUser,
-            final PwmPasswordPolicy policy,
-            final Locale locale
-    )
-    {
-        final long methodStartTime = System.currentTimeMillis();
-
-        ChallengeSet returnSet = null;
-
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_CHALLENGE_SET)) {
-            try {
-                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                    if (policy != null && policy.getChaiPasswordPolicy() != null) {
-                        returnSet = CrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
-                    }
-
-                    if (returnSet == null) {
-                        returnSet = CrFactory.readAssignedChallengeSet(theUser, locale);
-                    }
-
-                    if (returnSet == null) {
-                        LOGGER.debug(pwmSession, "no nmas c/r policy found for user " + theUser.getEntryDN());
-                    } else {
-                        LOGGER.debug(pwmSession, "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
-                    }
-                }
-            } catch (ChaiException e) {
-                LOGGER.error(pwmSession, "error reading nmas c/r policy for user " + theUser.getEntryDN() + ": " + e.getMessage());
-            }
-        }
-
-        // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
-        if (returnSet == null) {
-            returnSet = pwmSession.getContextManager().getConfig().getGlobalChallengeSet(pwmSession.getSessionStateBean().getLocale());
-            if (returnSet != null) {
-                LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
-            }
-        }
-
-        if (returnSet == null) {
-            LOGGER.warn(pwmSession, "no available c/r policy for user" + theUser.getEntryDN() + ": ");
-        }
-
-        LOGGER.trace(pwmSession, "readUserChallengeSet completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
-
-        return returnSet;
-    }
-
-    public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException
-    {
-        ResponseSet userResponseSet = null;
-
-        try {
-            userResponseSet = theUser.readResponseSet();
-        } catch (ChaiOperationException e) {
-            LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
-        }
-
-        return userResponseSet;
     }
 
     /**
@@ -151,9 +83,9 @@ public class PasswordUtility {
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the ldap directory is not unavailable
      * @throws password.pwm.error.PwmException             if user is not authenticated
      */
-    public static boolean setUserPassword(  //@todo this really needs to be chopped up into multiple methods
-                                            final PwmSession pwmSession,
-                                            final String newPassword
+    public static boolean setUserPassword(
+            final PwmSession pwmSession,
+            final String newPassword
     )
             throws ChaiUnavailableException, PwmException
     {
@@ -276,12 +208,38 @@ public class PasswordUtility {
             pwmSession.getContextManager().getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 
+        // invoke post password change actions
+        invokePostChangePasswordActions(pwmSession, newPassword);
+
         // call out to external methods.
         Helper.invokeExternalChangeMethods(pwmSession, oldPassword, newPassword);
 
         return true;
     }
 
+    private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword) throws PwmException {
+        final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserInfoBean().removePostChangePasswordActions();
+        if (postChangePasswordActions == null || postChangePasswordActions.isEmpty()) {
+            LOGGER.trace("no post change password actions ");
+            return;
+        }
+
+        for (final PostChangePasswordAction postChangePasswordAction : postChangePasswordActions) {
+            try {
+                postChangePasswordAction.doAction(pwmSession, newPassword);
+            } catch (PwmException e) {
+                LOGGER.error(pwmSession, "error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage());
+                throw e;
+            } catch (Exception e) {
+                LOGGER.error(pwmSession, "unexpected error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage(), e);
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
+                throw PwmException.createPwmException(errorInfo);
+            }
+        }
+        
+    }
+
+    /*
     static Map<String, ReplicationStatus> checkIfPasswordIsReplicated(final ChaiUser user, final PwmSession pwmSession)
             throws ChaiUnavailableException
     {
@@ -337,6 +295,13 @@ public class PasswordUtility {
         return isReplicated ? ReplicationStatus.COMPLETE : ReplicationStatus.IN_PROGRESS;
     }
 
+    enum ReplicationStatus {
+        IN_PROGRESS,
+        COMPLETE
+    }
+
+    */
+
     public static int checkPasswordStrength(final PwmSession pwmSession, final String password)
     {
         final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(pwmSession, password);
@@ -363,11 +328,6 @@ public class PasswordUtility {
         return returnResult;
     }
 
-
-    enum ReplicationStatus {
-        IN_PROGRESS,
-        COMPLETE
-    }
 
 
     public static void sendChangePasswordEmailNotice(final PwmSession pwmSession)

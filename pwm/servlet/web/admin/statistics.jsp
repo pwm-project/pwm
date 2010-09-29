@@ -48,9 +48,7 @@
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Statistics"/></jsp:include>
     <div id="centerbody">
-        <p style="text-align:center;">
-            <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
-        </p>
+        <%@ include file="admin-nav.jsp" %>
         <%!
             static String makeGoogleChartImageUrl(Statistic stat, StatisticsManager statsManager) {
                 final Map<String,String> chartData = statsManager.getStatHistory(stat,31);

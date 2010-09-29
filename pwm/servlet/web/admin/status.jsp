@@ -41,9 +41,7 @@
 <div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
 <div id="centerbody">
-<p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
-</p>
+<%@ include file="admin-nav.jsp" %>
 <table>
     <tr>
         <td colspan="10" class="title">
@@ -205,6 +203,11 @@
         </td>
     </tr>
     <% } %>
+    <tr>
+        <td colspan="15" style="text-align:center">
+            Public <a href="<%=request.getContextPath()%>/public/health.jsp">PWM health page</a>, useful for dashboards
+        </td>
+    </tr>
 </table>
 
 <br class="clear"/>

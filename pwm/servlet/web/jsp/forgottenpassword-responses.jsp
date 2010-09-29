@@ -39,14 +39,14 @@
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
 --%>
-<body onload="pwmPageLoadHandler(); startupResponsesPage(true); document.forms.responseForm.elements[0].focus();">
+<body onload="pwmPageLoadHandler(); startupResponsesPage(); document.forms.responseForm.elements[0].focus();">
 <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_RecoverPassword"/></jsp:include>
 <div id="wrapper">
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
+              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false">
             <%  //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -85,6 +85,12 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                </button>
+                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

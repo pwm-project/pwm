@@ -105,7 +105,7 @@ public class UserInformationServlet extends TopServlet {
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());
 
         try {
-            uisBean.setResponseSet(PasswordUtility.readUserResponseSet(pwmSession, theUser));
+            uisBean.setResponseSet(CrUtility.readUserResponseSet(pwmSession, theUser));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading responses for user '" + userDN + "', " + e.getMessage());
         }

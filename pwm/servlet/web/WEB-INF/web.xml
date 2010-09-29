@@ -157,6 +157,10 @@
         <servlet-class>password.pwm.servlet.UpdateAttributesServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ForgottenUsernameServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ForgottenUsernameServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ShortcutServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ShortcutServlet</servlet-class>
     </servlet>
@@ -232,6 +236,10 @@
     <servlet-mapping>
         <servlet-name>UpdateAttributesServlet</servlet-name>
         <url-pattern>/private/UpdateAttributes</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ForgottenUsernameServlet</servlet-name>
+        <url-pattern>/private/ForgottenUsername</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ShortcutServlet</servlet-name>

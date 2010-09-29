@@ -518,6 +518,7 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
 
 function showWaitDialog(message) {
     var theDialog = new dijit.Dialog({
+        id: 'waitDialog',
         title: "Please Wait",
         style: "width: 300px",
         content: message,

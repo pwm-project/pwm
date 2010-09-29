@@ -30,7 +30,7 @@ h1 { font-size:16px; }
 h2 { font-size:14px; }
 h3 { font-size:12px; }
 
-select { font-family:Trebuchet MS, sans-serif }
+select { font-family:Trebuchet MS, sans-serif; width: 500px }
 
 table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }
 table td { border: 1px solid #D4D4D4; padding-left: 5px;}

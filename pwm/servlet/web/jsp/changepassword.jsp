@@ -57,19 +57,13 @@
         </p>
         <% } %>
         <br/>
-
-        <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, mark the
-            // error block as hidden, and if javascript is enabled, changepassword.js.startupPage() will make it visible
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
-        %>
+        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
-        <span style="visibility:hidden; background-color:#FFFFFF" id="error_msg" class="msg-success">&nbsp;</span>
+        <span id="error_msg" class="msg-success"><pwm:Display key="Display_PasswordPrompt"/></span>
         <% } %>
-
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);"
-              onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button');" name="changePassword">
-
+              onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button');" onreset="handleFormClear();validatePasswords();setInputFocus();return false;" name="changePasswordForm" id="changePasswordForm" >
             <table style="border:0">
                 <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
                 <tr>
@@ -122,12 +116,19 @@
                        id="password_button"
                        value="    <pwm:Display key="Button_ChangePassword"/>    "/>
                 <input type="reset" name="reset" class="btn"
-                       value="    <pwm:Display key="Button_Reset"/>    "
-                       onclick="clearForm(); document.forms.changePassword.password1.focus();"/>
+                       value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Show"/>    "
-                       onclick="toggleMaskPasswords();" id="hide_button"/>
-                <input type="hidden" name="pwmFormID" id="pwmFormID"value="<pwm:FormID/>"/>
+                       onclick="toggleMaskPasswords()" id="hide_button"/>
+                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy() && !PwmSession.getPwmSession(session).getUserInfoBean().isAuthFromUnknownPw()) { %>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                </button>
+                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                <% } %>
+                <% } %>
+                                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
@@ -136,6 +137,7 @@
 <%-- fields used by changepassword.js javascript display fields for i18n --%>
 <script type="text/javascript">
     PWM_STRINGS['Tooltip_PasswordStrength']='<pwm:Display key="Tooltip_PasswordStrength"/>';
+    PWM_STRINGS['Display_PasswordPrompt']='<pwm:Display key="Display_PasswordPrompt"/>';
     PWM_STRINGS['Display_CheckingPassword']='<pwm:Display key="Display_CheckingPassword"/>';
     PWM_STRINGS['Display_PasswordGeneration']='<pwm:Display key="Display_PasswordGeneration"/>';
     PWM_STRINGS['Display_CommunicationError']='<pwm:Display key="Display_CommunicationError"/>';

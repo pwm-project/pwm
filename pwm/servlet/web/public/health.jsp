@@ -36,17 +36,9 @@
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <body class="tundra">
-<script type="text/javascript">
-    setTimeout(function(){window.location = window.location},60*1000);
-</script>
-
+<meta http-equiv="refresh" content="60"/>
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Health Status"/></jsp:include>
     <div id="centerbody">
-        <br class="clear"/>
-        <p style="text-align:center;">
-            <a href="<%=request.getContextPath()%>">PWM Main Menu</a> | <a href="<%=request.getContextPath()%>/admin">Admin Menu</a>
-        </p>
         <table class="tablemain">
             <tr>
                 <td class="title" colspan="10">
@@ -85,6 +77,9 @@
             </tr>
             <% } %>
         </table>
+        <p style="text-align:center;">
+            <a href="<%=request.getContextPath()%>">PWM Main Menu</a> | <a href="<%=request.getContextPath()%>/admin/status.jsp">Admin Menu</a>
+        </p>
     </div>
 </div>
 </body>

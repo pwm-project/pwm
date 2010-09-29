@@ -40,6 +40,11 @@
         <h2><a href="<pwm:url url='public/ForgottenPassword'/>">Forgotten Password</a></h2>
         <p>Recover your forgotten password.  If you have previously configured your forgotten password responses you will be able to recover a forgotten password.</p>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
+        <h2><a href="<pwm:url url='public/ForgottenUsername'/>">Forgotten Username</a></h2>
+        <p>Recover your forgotten username.</p>
+        <% } %>
+
         <h2><a href="<pwm:url url='private/SetupResponses'/>">Setup Responses</a></h2>
         <p>Setup your forgotten password responses.  These secret questions will allow you to recover your password if you forget it.</p>
 
@@ -64,15 +69,13 @@
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey">User Information</a></h2>
         <p>Information about your password and password policies.</p>
         <hr/>
+        <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey">Admin</a></h2>
+        <p>PWM administrative functions</p>
         <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
+        <hr/>
         <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey">Logout</a></h2>
         <p>Logout of the PWM password self service application.</p>
-        <hr/>
         <% } %>
-
-
-        <h2><a href="admin" class="tablekey">Admin</a></h2>
-        <p>PWM administrative functions</p>
     </div>
 </div>
 <%@ include file="jsp/footer.jsp" %>

@@ -135,7 +135,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         Validator.validatePwmFormID(req);
 
-        boolean success = true;        
+        boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES);
 
         try {
@@ -240,22 +240,26 @@ public class SetupResponsesServlet extends TopServlet {
     {
         int attempts = 0, successes = 0;
 
-        try {
-            attempts++;
-            final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
-            final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
-            responses.write(writeMode);
-            LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
-            successes++;
-        } catch (ChaiOperationException e) {
-            if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
-                LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
-                LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
-            } else {
-                LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+        final String ldapStorageAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
+            try {
+                attempts++;
+                final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
+                final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
+                responses.write(writeMode);
+                LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
+                successes++;
+            } catch (ChaiOperationException e) {
+                if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
+                    LOGGER.warn(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+                    LOGGER.warn(pwmSession,"user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
+                } else {
+                    LOGGER.debug(pwmSession,"error writing user's supplied new responses to ldap: " + e.getMessage());
+                }
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
             }
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
         }
+
 
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
             try {
@@ -373,14 +377,21 @@ public class SetupResponsesServlet extends TopServlet {
             }
 
             if (responsesBean.isSimpleMode()) { // if in simple mode, read the select-based random challenges
+
                 for (int i = 0; i <  responsesBean.getIndexedChallenges().size(); i++ ) {
-                    final String questionKey = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i));
-                    if (questionKey != null && responsesBean.getIndexedChallenges().containsKey(questionKey)) {
-                        final Challenge challenge = responsesBean.getIndexedChallenges().get(questionKey);
-                        final String answer = inputMap.get(PwmConstants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i));
-                        if (answer != null && answer.length() > 0) {
-                            readResponses.put(challenge, answer);
+                    final String questionText = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i));
+
+                    Challenge challenge = null;
+                    for (final Challenge loopC : challengeSet.getRandomChallenges()) {
+                        if (loopC.isAdminDefined() && questionText != null && questionText.equals(loopC.getChallengeText())) {
+                            challenge = loopC;
+                            break;
                         }
+                    }
+
+                    final String answer = inputMap.get(PwmConstants.PARAM_RESPONSE_PREFIX + "Random_" + String.valueOf(i));
+                    if (answer != null && answer.length() > 0) {
+                        readResponses.put(challenge, answer);
                     }
                 }
             }

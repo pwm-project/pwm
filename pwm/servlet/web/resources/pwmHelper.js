@@ -60,15 +60,22 @@ function handleFormSubmit(buttonID) {
 }
 
 function handleFormClear() {
+    var focusSet = false;
+
     for (var j = 0; j < document.forms.length; j++) {
         for (var i = 0; i < document.forms[j].length; i++) {
             var current = document.forms[j].elements[i];
             if ((current.type == 'text') || (current.type == 'password')) {
-                current.value = "";
+                current.value = '';
+                if (!focusSet) {
+                    current.focus();
+                    focusSet = true;
+                }
+            } else if (current.type == 'select') {
+                current.selectedIndex = -1;
             }
         }
     }
-    return false;
 }
 
 function setFocus(elementName) {

@@ -69,6 +69,12 @@
                 <input type="submit" name="confirm_btn" class="btn"
                        value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                </button>
+                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>

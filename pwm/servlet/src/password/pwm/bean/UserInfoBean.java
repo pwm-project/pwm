@@ -26,12 +26,10 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.PasswordStatus;
+import password.pwm.util.PostChangePasswordAction;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
@@ -77,6 +75,8 @@ public class UserInfoBean implements Serializable {
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
+
+    private Map<String,PostChangePasswordAction> postChangePasswordActions = new HashMap<String,PostChangePasswordAction>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -233,5 +233,21 @@ public class UserInfoBean implements Serializable {
     {
         permissions.put(permission, status);
     }
+
+    public void addPostChangePasswordActions(final String key, final PostChangePasswordAction postChangePasswordAction ) {
+        if (postChangePasswordAction == null) {
+            postChangePasswordActions.remove(key);
+        } else {
+            postChangePasswordActions.put(key,postChangePasswordAction);
+        }
+    }
+
+    public List<PostChangePasswordAction> removePostChangePasswordActions() {
+        final List<PostChangePasswordAction> copiedList = new ArrayList<PostChangePasswordAction>();
+        copiedList.addAll(postChangePasswordActions.values());
+        postChangePasswordActions.clear();
+        return copiedList;
+    }
+
 }
 

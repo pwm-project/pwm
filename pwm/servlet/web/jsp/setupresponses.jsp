@@ -37,7 +37,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
+<body class="tundra" onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: false"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
@@ -88,27 +88,30 @@
                     for (int i = 0; i < responseBean.getMinRandomSetup(); i++) {
             %>
             <h2>
-                <select name="PwmResponse_Q_Random_<%=i%>" onchange="validateResponses();" id="PwmResponse_Q_Random_<%=i%>">
-                    <option value=""><pwm:Display key="Field_Option_Select"/></option>
-                    <option value="">───────────────</option>
+                <select name="PwmResponse_Q_Random_<%=i%>" id="PwmResponse_Q_Random_<%=i%>" style="font-weight:normal;"
+                        onchange="makeSelectOptionsDistinct();getObject('PwmResponse_R_Random_<%=i%>').value = '';validateResponses();getObject('PwmResponse_R_Random_<%=i%>').focus()">
                     <%
                         for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {
                             final Challenge challenge = responseBean.getIndexedChallenges().get(indexKey);
                             if (!challenge.isRequired()) {
-                                final boolean selected = indexKey.equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i,""));
+                                final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i,""));
                     %>
-                    <option <%=selected ? "selected=\"yes\"" : ""%> value="<%=indexKey%>"><%=challenge.getChallengeText()%></option>
+                    <option <%=selected ? "selected=\"yes\"" : ""%> value="<%=challenge.getChallengeText()%>"><%=challenge.getChallengeText()%></option>
                     <% } %>
                     <% } %>
                 </select>
+                <script type="text/javascript">
+                    simpleRandomSelectElements.push(getObject('PwmResponse_Q_Random_<%=i%>'));
+                </script>
             </h2>
             <p>
                 &nbsp;»&nbsp;
-                <input type="text" name="PwmResponse_R_Random_<%=i%>" class="inputfield" maxlength="255" type="text" id="PwmResponse_R_Random_<%=i%>"
+                <input type="password" name="PwmResponse_R_Random_<%=i%>" class="inputfield" maxlength="255" type="text" id="PwmResponse_R_Random_<%=i%>"
                        value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_Random_" + i,"") %>"
                        onkeyup="validateResponses();"/>
             </p>
             <% } %>
+            <script type="text/javascript"> dojo.addOnLoad(function() { makeSelectOptionsDistinct(); })</script>
             <% } else { %>
             <% // display fields for RANDOM challenges.
                 if (!challengeSet.getRandomChallenges().isEmpty()) {
@@ -150,6 +153,12 @@
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                </button>
+                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                <% } %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

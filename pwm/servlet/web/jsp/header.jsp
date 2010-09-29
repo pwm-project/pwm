@@ -32,7 +32,7 @@
         %>
     </title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta name="Description" content="PWM Password Self Service Servlets>"/>
+    <meta name="Description" content="PWM Password Self Service"/>
     <meta name="X-Pwm-Instance" content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
     <meta name="viewport" content="width=320, user-scalable=no"/>
     <link rel="icon" type="image/vnd.microsoft.icon" href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>" />
@@ -41,8 +41,8 @@
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css" rel="stylesheet" />
     <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js" djConfig="parseOnLoad: true"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
     <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
     <% final String googleTrackingCode =  password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
@@ -55,9 +55,12 @@
         try{
             var pageTracker = _gat._getTracker("<%=googleTrackingCode%>");
             pageTracker._trackPageview();
-        } catch(err) {}
+        } catch(err) {}                                                                                                             
     </script>
     <% } %>
     <% } %>
-    <script type="text/javascript">PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
+        PWM_GLOBAL['setting-showHidePasswordFields']=<%=password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS)%>;
+    </script>
 </head>

@@ -42,9 +42,7 @@
 <div id="wrapper">
 <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Event Log"/></jsp:include>
 <div id="centerbody" style="width:98%">
-<p style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="eventlog.jsp">Event Log</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="config.jsp">Configuration</a> | <a href="UserInformation">User Information</a>
-</p>
+<%@ include file="admin-nav.jsp" %>
 <p>
     This page shows PWM debug log
     history.  This history is stored in the pwmDB cache of the debug log. For a
@@ -52,7 +50,7 @@
     record of events, configure the log4jconfig.xml file.
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-    timezone.  The pwmDB contains <%=numberFormat.format(pwmDBLogger.getEventCount())%> events.  The oldest event is from 
+    timezone.  The pwmDB contains <%=numberFormat.format(pwmDBLogger.getEventCount())%> events.  The oldest event is from
     <%= SimpleDateFormat.getInstance().format(new Date(PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger().getTailTimestamp())) %>.
 </p>
 <p>

@@ -151,7 +151,9 @@ public class IntruderManager implements Serializable {
         final String addressString = ssBean.getSrcAddress();
         final Configuration config = pwmSession.getConfig();
 
-        if (ssBean.getIncorrectLogins() > config.readSettingAsInt(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS)) {
+
+        final int sessionMaxAttempts = config.readSettingAsInt(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS);
+        if (sessionMaxAttempts > 0 && ssBean.getIncorrectLogins() > sessionMaxAttempts) {
             LOGGER.warn(pwmSession, "session intruder limit exceeded for " + addressString);
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_SESSION);
             ssBean.setSessionError(error);

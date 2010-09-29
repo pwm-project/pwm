@@ -19,8 +19,16 @@ v1.5.2 development
 + Added "HealthMonitor" functionality to periodically test system health
 + PWM now ignores Novell UP nspmComplexityRules that are customized (changed to other than default MS-AD 3of4 policy)
 + Replaced "challenge.forceAllRandoms" setting with "challenge.minRandomsSetup" to allow more flexibility.
-+ Added "Show Password Guide" configuration and feature 
++ Added "Show Password Guide" configuration and feature
++ Added "Display Show/Hide Password Fields" configuration and feature
++ Added "Show Cancel Button" configuration and feature
++ Added "eDirectory-UserApp Forgotten Password SOAP API" configuration and feature
++ Updated setup responses to dynamically prevent duplicate questions in simple mode
 
+* Modified active user module to write ldap attributes after the first password change subsequent to a successful activate user event. (issue #17)
+* Refactored logging module to more efficiently store log events in the pwmDB
+
+- Updated reCaptcha urls and html to new google api 
 - Refactored ExternalPasswordMethod to ExternalChangeMethod java interface
 - Fixed issue with LoginContexts setting not being parsed properly
 - Fixed issue where ldap urls could not contain a hyphen
@@ -28,6 +36,7 @@ v1.5.2 development
 - Removed "dojo.css" include to prevent IE display issues (small fonts in IE)
 - Fixed issue where random generator would sometimes generate really long passwords (especially for complex policies)
 - Resolved issue where SharedHistory would not be purged correctly due to ClassCastException in PwmDBAdaptor
+- Fixed issue where clear button doesn't work on some pages in some browsers
 
 v1.5.1 (August 16, 2010) build 975
 ---
