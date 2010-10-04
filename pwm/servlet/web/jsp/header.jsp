@@ -61,6 +61,8 @@
     <% } %>
     <script type="text/javascript">
         PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
+        <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
         PWM_GLOBAL['setting-showHidePasswordFields']=<%=password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS)%>;
+        <% } %>
     </script>
 </head>
