@@ -38,23 +38,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body class="tundra" onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js" djConfig="parseOnLoad: false"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="Title_SetupResponses"/></jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses" onkeypress="checkForCapsLock(event);"
-              enctype="application/x-www-form-urlencoded" onreset="handleFormClear();">
-            <%  // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
-                // the error block if javascript is available (for ajax use).
-                if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error"><pwm:ErrorMessage/>&nbsp;</span>
+              enctype="application/x-www-form-urlencoded" onreset="handleFormClear();showSuccess('<pwm:Display key="Display_ResponsesPrompt"/>');return false">
+            <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+            <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
             <% } else { %>
-            <script type="text/javascript">
-                document.write('<span id="error_msg" class="msg-success">&nbsp;</span>');
-            </script>
+            <span id="error_msg" class="msg-success"><pwm:Display key="Display_ResponsesPrompt"/></span>
             <% } %>
             <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {

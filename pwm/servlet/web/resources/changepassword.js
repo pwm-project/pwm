@@ -77,6 +77,7 @@ function validatePasswords()
             validationInProgress = false;
             clearError(PWM_STRINGS['Display_CommunicationError']);
             markStrength(0);
+            markConfirmationCheck(null);
             console.log('error: ' + errorObj);
         },
         load: function(data){

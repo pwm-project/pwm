@@ -309,7 +309,7 @@ public enum PwmSetting {
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
-            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true),
+            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false),
 
 
     // new user settings
@@ -519,7 +519,7 @@ public enum PwmSetting {
         }
     }
 
-    public enum Syntax {
+    public static enum Syntax {
         STRING,
         STRING_ARRAY,
         LOCALIZED_STRING,
@@ -527,7 +527,7 @@ public enum PwmSetting {
         LOCALIZED_STRING_ARRAY,
         PASSWORD,
         NUMERIC,
-        BOOLEAN,
+        BOOLEAN
     }
 
     public enum Category {

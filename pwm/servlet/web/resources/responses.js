@@ -29,9 +29,13 @@ var validationInProgress = false;
 
 var simpleRandomSelectElements = [];
 
-// takes password values in the password fields, sends an http request to the servlet
+// takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateResponses() {
+    if (validationInProgress) {
+        return;
+    }
+
     var parameterData = makeValidationKey();
     {
         var cachedResult = validationCache[parameterData.cacheKey];
@@ -41,11 +45,7 @@ function validateResponses() {
         }
     }
 
-    setTimeout(function(){
-        if (validationInProgress) {
-            showWorking();
-        }
-    },200);
+    setTimeout(function(){ if (validationInProgress) { showWorking(); }},500);
 
     validationInProgress = true;
     dojo.xhrPost({
@@ -61,10 +61,11 @@ function validateResponses() {
         },
         load: function(data){
             validationInProgress = false;
-            updateDisplay(data);
             validationCache[parameterData.cacheKey] = data;
             if (parameterData.cacheKey != makeValidationKey().cacheKey) {
                 setTimeout(function() {validateResponses();}, 1);
+            } else {
+                updateDisplay(data);                
             }
         }
     });
@@ -119,7 +120,7 @@ function showWorking()
     dojo.animateProperty({
         node:"error_msg",
         duration: 500,
-        properties: { backgroundColor:'#FFCD59' }
+        properties: { backgroundColor:'#DDDDDD' }
     }).play();
 }
 

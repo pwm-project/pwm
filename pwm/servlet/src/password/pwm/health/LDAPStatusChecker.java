@@ -24,6 +24,7 @@ package password.pwm.health;
 
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
 import password.pwm.Helper;
@@ -33,6 +34,7 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -40,31 +42,49 @@ import java.util.Locale;
 public class LDAPStatusChecker implements HealthChecker {
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         final StoredConfiguration storedConfig = contextManager.getConfigReader().getStoredConfiguration();
-        final ErrorInformation result = doLdapStatusCheck(storedConfig);
-        if (result == null || result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
-            final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.GOOD,"LDAP Connectivity","All configured LDAP servers are reachable");
-            return Collections.singletonList(hr);
+
+        { // check ldap server
+            final ErrorInformation result = doLdapStatusCheck(storedConfig);
+            if (result == null || result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
+                final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.GOOD,"LDAP Connectivity","All configured LDAP servers are reachable");
+                return Collections.singletonList(hr);
+            }
+            returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity",result.toDebugStr()));
         }
 
-        final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity",result.toDebugStr());
-        return Collections.singletonList(hr);
+        { // check test user
+            final HealthRecord hr =  doLdapTestUserCheck(storedConfig);
+            if (hr != null) {
+                returnRecords.add(hr);
+            }
+        }
+        return returnRecords;
     }
+
+    public static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration)
+    {
+        final Configuration config = new Configuration(storedconfiguration);
+
+        final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+        final String testUserPW = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_PASSWORD);
+
+        if (testUserDN == null || testUserDN.length() < 1 || testUserPW == null || testUserPW.length() < 0) {
+            return new HealthRecord(HealthRecord.HealthStatus.CAUTION,"LDAP Connectivity","LDAP Test user is not configured");
+        }
+
+        return null;
+    }
+
 
     public static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration) {
         final Configuration config = new Configuration(storedconfiguration);
 
         ChaiProvider chaiProvider = null;
         try {
-            chaiProvider = Helper.createChaiProvider(
-                    config,
-                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                    config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                    config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
-            chaiProvider.getDirectoryVendor();
-
+            chaiProvider = getChaiProviderForTesting(config);
             final String contextlessRootSettingName = PwmSetting.LDAP_CONTEXTLESS_ROOT.getCategory().getLabel(Locale.getDefault()) + "-" + PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel(Locale.getDefault());
-
             try {
                 final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT),chaiProvider);
                 if (!contextlessRootEntry.isValid()) {
@@ -89,5 +109,20 @@ public class LDAPStatusChecker implements HealthChecker {
                 }
             }
         }
+    }
+
+
+    private static ChaiProvider getChaiProviderForTesting(final Configuration config)
+            throws ChaiUnavailableException
+    {
+        ChaiProvider chaiProvider = null;
+        chaiProvider = Helper.createChaiProvider(
+                config,
+                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
+                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
+                config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+        chaiProvider.getDirectoryVendor();
+
+        return chaiProvider;
     }
 }

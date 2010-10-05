@@ -68,7 +68,7 @@ public class Configuration implements Serializable {
 
     public List<String> readStringArraySetting(final PwmSetting setting)
     {
-        final List<String> results = storedConfiguration.readStringArraySetting(setting);
+        final List<String> results = new ArrayList<String>(storedConfiguration.readStringArraySetting(setting));
         for (final Iterator iter = results.iterator(); iter.hasNext(); ) {
             final Object loopString = iter.next();
             if (loopString == null || loopString.toString().length() < 1) {

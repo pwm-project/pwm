@@ -75,6 +75,9 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
                 this.writeSetting(req);
                 return;
+            } else if ("resetSetting".equalsIgnoreCase(processActionParam)) {
+                this.resetSetting(req);
+                return;
             } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
                 if (doGenerateXml(req,resp)) {
                     return;
@@ -87,7 +90,7 @@ public class ConfigManagerServlet extends TopServlet {
                 doFinishEditing(req);
             } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
                 doCancelEditing(req);
-            } else if ("switchToEditMode".equalsIgnoreCase(processActionParam)) {
+            } else if ("editMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
                 LOGGER.debug(pwmSession,"switching to edit mode");
             }
@@ -260,6 +263,24 @@ public class ConfigManagerServlet extends TopServlet {
                 default:
                     storedConfig.writeSetting(setting, value);
             }
+        }
+    }
+
+    private void resetSetting(
+            final HttpServletRequest req
+    ) throws IOException, PwmException {
+        Validator.validatePwmFormID(req);
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final StoredConfiguration storedConfig= configManagerBean.getConfiguration();
+
+        final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
+
+        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+
+        if (srcMap != null) {
+            final String key = String.valueOf(srcMap.get("key"));
+            final PwmSetting setting = PwmSetting.forKey(key);
+            storedConfig.resetSetting(setting);
         }
     }
 

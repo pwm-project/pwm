@@ -76,6 +76,22 @@ function writeSetting(keyName, valueData) {
     });
 }
 
+function resetSetting(keyName) {
+    var jsonData = { key:keyName };
+    var jsonString = dojo.toJson(jsonData);
+    dojo.xhrPost({
+        url: "ConfigManager?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        postData: jsonString,
+        contentType: "application/json;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        sync: true,
+        error: function(errorObj) {
+            showError("error resetting setting " + keyName + ", reason: " + errorObj)
+        }
+    });
+}
+
 function toggleBooleanSetting(keyName) {
     var valueElement = getObject('value_' + keyName);
     var buttonElement = getObject('button_' + keyName);
@@ -148,6 +164,7 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction)
         id: keyName + '-addLocaleButton',
         onClick: addFunction
     },keyName + '-addLocaleButton');
+
 
     return newTableRow;
 }

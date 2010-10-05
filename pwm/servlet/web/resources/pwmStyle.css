@@ -48,7 +48,7 @@ table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 2
 
 /* all forms use a buttonbar div containing the action buttons */
 #buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}
-#buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px }
+#buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px; padding: 0 .25em; width: auto; overflow: visible}
 
 /* used for password complexity meter */
 div.progress-container { border: 1px solid #ccc; width: 90px; margin: 2px 5px 2px 0; padding: 1px; float: left; background: white; }
@@ -62,9 +62,9 @@ div.progress-container > div { background-color: #ffffff; height: 10px; }
 
 .clear { clear:both; }
 
-.msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px}
-.msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px}
-.msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px}
+.msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px; -moz-border-radius:3px}
+.msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px; -moz-border-radius:3px}
+.msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px; -moz-border-radius:3px}
 
 #footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
 #footer .idle_status { color: #333333; }

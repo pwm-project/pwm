@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.*" %>
+<%@ page import="password.pwm.config.PwmSetting.Syntax" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -48,12 +49,10 @@
 <div id="wrapper">
     <jsp:include page="header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Editor"/></jsp:include>
     <div id="centerbody" style="width: 700px">
-        <br class="clear"/>
         <%  if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
         <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
-
         <% } %>
         <br class="clear"/>
         <div id="mainTabContainer" >
@@ -79,7 +78,8 @@
                         <%= loopSetting.getDescription(request.getLocale()) %>
                     </label>
                     <br class="clear"/>
-                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
+                    <div style="float:right;"><img src="../resources/reset.png" onclick="resetSetting('<%=loopSetting.getKey()%>');window.location=window.location;" alt="reset" title="reset"/></div>
+                    <% if (loopSetting.getSyntax() == Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
                     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
                         <tr style="border-width:0"><td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
@@ -99,7 +99,7 @@
                     <script type="text/javascript">
                         dojo.addOnLoad(function() {initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>','<%=loopSetting.getKey()%>','<%=loopSetting.getRegExPattern()%>');});
                     </script>
-                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
+                    <% } else if (loopSetting.getSyntax() == Syntax.BOOLEAN) { %>
                     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
                     <button id="button_<%=loopSetting.getKey()%>" dojoType="dijit.form.Button" type="button" disabled="disabled"
                             onclick="toggleBooleanSetting('<%=loopSetting.getKey()%>');writeSetting('<%=loopSetting.getKey()%>', getObject('value_' + '<%=loopSetting.getKey()%>').value);">
@@ -123,11 +123,11 @@
                         });
                     </script>
                     <% } else { %>
-                    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
+                    <% if (loopSetting.getSyntax() == Syntax.STRING) { %>
                     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" disabled="disabled"
                            value="[Loading...]" onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" required="<%=loopSetting.isRequired()%>"
                            style="width: 600px" dojoType="dijit.form.ValidationTextBox" regExp="<%=loopSetting.getRegExPattern().pattern()%>" invalidMessage="The value does not have the correct format."/>
-                    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
+                    <% } else if (loopSetting.getSyntax() == Syntax.PASSWORD) { %>
                     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
                            value="[Loading...]" required="<%=loopSetting.isRequired()%>"
                            type="password" autocomplete="off" size="60" dojoType="dijit.form.ValidationTextBox"
@@ -176,7 +176,7 @@
                 <% if (configManagerBean.getInitialMode() == ConfigurationReader.MODE.RUNNING) { %>
                 <a href="#" onclick="showWaitDialog('Updating Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Finished Editing</a>
                 <% } else { %>
-                <a href="#" onclick="showWaitDialog('Saving Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Save Configuration</a>
+                <a href="#" onclick="if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {showWaitDialog('Saving Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)}">Save Configuration</a>
                 <% } %>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <a href="#" onclick="showWaitDialog('Canceling...'); setTimeout(function() {document.forms['cancelEditing'].submit();},1000)">Cancel</a>

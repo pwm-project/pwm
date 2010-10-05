@@ -52,7 +52,6 @@ public class PwmDBLogger {
     private final static int MAX_REMOVALS_PER_CYCLE = 5053;
 
     private final static int CYCLE_INTERVAL_MS =  5023; // 5  seconds
-    private final static int DB_WARN_THRESHOLD = MAX_WRITES_PER_CYCLE + MAX_REMOVALS_PER_CYCLE;
     private final static int MAX_QUEUE_SIZE = 10 * 1000;
 
     private final PwmDB pwmDB;
@@ -159,15 +158,17 @@ public class PwmDBLogger {
         }
     }
 
+
     private static Collection<PwmLogEvent> makeBulkEvents(final int count) {
 
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
         final PwmRandom random = PwmRandom.getInstance();
+        final String randomDescr = random.alphaNumericString(1024 * 4);
 
         for(int i = 0; i < count; i++) {
             final StringBuilder description = new StringBuilder();
             description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
-            description.append(random.alphaNumericString(random.nextInt(1024)));
+            description.append(randomDescr);
 
             final PwmLogEvent event = new PwmLogEvent(
                     new Date(),

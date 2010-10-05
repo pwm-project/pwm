@@ -94,11 +94,13 @@ public abstract class TopServlet extends HttpServlet {
             }
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
-            LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
-            ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
-            //throw new ServletException(e);
+            if (pwmSession.getContextManager().getStatisticsManager() != null) {
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
+                ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                Helper.forwardToErrorPage(req, resp, this.getServletContext());
+                //throw new ServletException(e);
+            }
         }
     }
 

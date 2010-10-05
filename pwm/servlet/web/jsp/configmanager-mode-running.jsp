@@ -49,9 +49,9 @@
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
-        <h2><a href="#" onclick="document.forms['switchToEditMode'].submit();">Configuration Editor</a></h2>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="switchToEditMode" enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="switchToEditMode"/>
+        <h2><a href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a></h2>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="editMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <p>Edit the in-memory PWM configuration file.</p>
