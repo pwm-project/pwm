@@ -56,6 +56,13 @@ function readSetting(keyName, valueWriter) {
         load: function(data){
             var resultValue = data.value;
             valueWriter(resultValue);
+            var isDefault = data['isDefault'];
+            var resetImageButton = getObject('resetButton-' + keyName);
+            if (!isDefault) {
+                resetImageButton.style.visibility = 'visible';
+            } else {
+                resetImageButton.style.visibility = 'hidden';
+            }
         }
     });
 }
@@ -74,6 +81,9 @@ function writeSetting(keyName, valueData) {
             showError("error writing setting " + keyName + ", reason: " + errorObj)
         }
     });
+
+    var resetImageButton = getObject('resetButton-' + keyName);
+    resetImageButton.style.visibility = 'visible';
 }
 
 function resetSetting(keyName) {

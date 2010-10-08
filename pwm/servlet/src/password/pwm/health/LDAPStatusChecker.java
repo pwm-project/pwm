@@ -65,6 +65,8 @@ public class LDAPStatusChecker implements HealthChecker {
 
     public static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration)
     {
+        /* //@todo 1.5.3
+
         final Configuration config = new Configuration(storedconfiguration);
 
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
@@ -73,7 +75,7 @@ public class LDAPStatusChecker implements HealthChecker {
         if (testUserDN == null || testUserDN.length() < 1 || testUserPW == null || testUserPW.length() < 0) {
             return new HealthRecord(HealthRecord.HealthStatus.CAUTION,"LDAP Connectivity","LDAP Test user is not configured");
         }
-
+        */
         return null;
     }
 

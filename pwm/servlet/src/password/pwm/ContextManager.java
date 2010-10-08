@@ -96,6 +96,8 @@ public class ContextManager implements Serializable
     private transient PwmDB pwmDB;
     private transient PwmDBLogger pwmDBLogger;
     private transient volatile ChaiProvider proxyChaiProvider;
+    private transient boolean restartRequested;
+
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
@@ -828,9 +830,10 @@ public class ContextManager implements Serializable
         @Override
         public void run() {
             if (configReader != null) {
-                if (configReader.inputFileHasBeenModified()) {
+                if (!restartRequested && configReader.inputFileHasBeenModified()) {
                     LOGGER.info("configuration file modification has been detected");
                     reinitialize();
+                    restartRequested = true;
                 }
             }
         }

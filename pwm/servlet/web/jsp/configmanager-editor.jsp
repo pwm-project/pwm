@@ -74,13 +74,18 @@
                 <p style="border-top:0; padding-top:0; margin-top:0"><%= loopCategory.getDescription(request.getLocale())%></p>
                 <%  for (final PwmSetting loopSetting : loopSettings) { %>
                 <div dojoType="dijit.TitlePane" title="<%= loopSetting.getLabel(request.getLocale()) %>">
+                    <div style="float: right; padding-left:5px; padding-bottom:5px">
+                        <img src="../resources/reset.gif" alt="Reset" title="Reset to default" id="resetButton-<%=loopSetting.getKey()%>"
+                             style="visibility:hidden;"
+                             onclick="if (confirm('Are you sure you want to reset the setting <%=loopSetting.getLabel(request.getLocale())%> to the default value?')) { resetSetting('<%=loopSetting.getKey()%>');window.location=window.location;}" />
+                    </div>
+                    <a name="<%=loopSetting.getKey()%>" style="text-decoration:none"></a>
                     <label for="value_<%=loopSetting.getKey()%>">
                         <%= loopSetting.getDescription(request.getLocale()) %>
                     </label>
                     <br class="clear"/>
-                    <div style="float:right;"><img src="../resources/reset.png" onclick="resetSetting('<%=loopSetting.getKey()%>');window.location=window.location;" alt="reset" title="reset"/></div>
                     <% if (loopSetting.getSyntax() == Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
-                    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+                    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
                         <tr style="border-width:0"><td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td></tr>
                     </table>
                     <script type="text/javascript">

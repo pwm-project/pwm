@@ -194,6 +194,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         returnMap.put("key", key);
         returnMap.put("value", returnValue);
+        returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
         final String outputString = JSONObject.toJSONString(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
