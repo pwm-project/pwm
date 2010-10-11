@@ -238,10 +238,6 @@
         <url-pattern>/private/UpdateAttributes</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>ForgottenUsernameServlet</servlet-name>
-        <url-pattern>/private/ForgottenUsername</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>ShortcutServlet</servlet-name>
         <url-pattern>/private/Shortcuts</url-pattern>
     </servlet-mapping>

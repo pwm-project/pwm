@@ -307,12 +307,12 @@ public enum PwmSetting {
             "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true),
 
 
-    // forgotten username
+/*    // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
             "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false),
-
+*/
 
     // new user settings
     NEWUSER_ENABLE(
@@ -541,7 +541,7 @@ public enum PwmSetting {
         INTRUDER,
         LOGGING,
         RECOVERY,
-        FORGOTTEN_USERNAME,
+        //FORGOTTEN_USERNAME,
         NEWUSER,
         ACTIVATION,
         UPDATE,

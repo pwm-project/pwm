@@ -24,6 +24,7 @@ v1.5.2 development
 + Added "Show Cancel Button" configuration and feature
 + Added "eDirectory-UserApp Forgotten Password SOAP API" configuration and feature
 + Updated setup responses to dynamically prevent duplicate questions in simple mode
++ Added reset to default value for settings in configuration editor
 
 * Modified active user module to write ldap attributes after the first password change subsequent to a successful activate user event. (issue #17)
 * Refactored logging module to more efficiently store log events in the pwmDB
@@ -37,6 +38,7 @@ v1.5.2 development
 - Fixed issue where random generator would sometimes generate really long passwords (especially for complex policies)
 - Resolved issue where SharedHistory would not be purged correctly due to ClassCastException in PwmDBAdaptor
 - Fixed issue where clear button doesn't work on some pages in some browsers
+- Resolved issue where fom buttons were overly wide in ie6/7 
 
 v1.5.1 (August 16, 2010) build 975
 ---

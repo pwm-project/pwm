@@ -263,7 +263,13 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 settingElement.setAttribute("key", setting.getKey());
                 settingElement.setAttribute("syntax", setting.getSyntax().toString());
 
-                if (!isDefaultValue(setting)) {
+                {
+                    final Element labelElement = new Element("label");
+                    labelElement.addContent(setting.getLabel(Locale.getDefault()));
+                    settingElement.addContent(labelElement);
+                }
+
+                {
                     final List<Element> valueElements;
                     if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
                         final String key = STORED_DATE_FORMAT.format(createTime) + StoredConfiguration.class.getSimpleName();
@@ -276,24 +282,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     }
                 }
 
-                final Element infoElement = new Element("info");
-                {
-                    final Element labelElement = new Element("label");
-                    labelElement.addContent(setting.getLabel(Locale.getDefault()));
-                    infoElement.addContent(labelElement);
-                }
-                {
-                    final List<Element> valueElements;
-                    if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
-                        valueElements = Collections.emptyList();
-                    } else {
-                        valueElements = defaultValue(setting).toXmlValues("default");
-                    }
-                    for (final Element loopValueElement : valueElements) {
-                        infoElement.addContent(loopValueElement);
-                    }
-                }
-                settingElement.addContent(infoElement);
                 settingsElement.addContent(settingElement);
             }
         }
