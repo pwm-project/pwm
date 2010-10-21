@@ -551,5 +551,13 @@ function showWaitDialog(message) {
         content: message,
         closable: false
     });
-    theDialog.show()        ;
+    theDialog.show();
+}
+
+function showConfigBrowserWarning()
+{
+    if (dojo.isIE) {
+        var message = "Internet Explorer may have problems using the Configuration Editor.  Please try using a different browser if you experience difficulty.";
+        document.write('<p><span style="font-weight: bold;">Notice: </span>' + message + '</p>');
+    }
 }

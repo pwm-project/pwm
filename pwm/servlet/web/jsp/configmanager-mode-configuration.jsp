@@ -77,7 +77,7 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <p>Finalize the configuration.  Once the configuration is finalized, you can no longer directly edit the running configuration using this interface.  If you wish to make changes
-            after finalization, you will need to edit or delete the <i>PwmConfiguration.xml</i> to re-enable configuration mode.</p>
+            after finalization, you will need to edit the <span style="font-style: italic;">PwmConfiguration.xml</span> and set the property <span style="font-style: italic;">configIsEditable</span> to true.
         <h2><a href="<%=request.getContextPath()%>">PWM Main Menu</a></h2>
         <p>Return to the main menu to test the configuration.</p>
     </div>

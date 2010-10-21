@@ -333,79 +333,79 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
                 if (pwmSetting == null) {
                     LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
-                    break;
-                }
-
-                if (settingElement.getChild("value") == null) {
-                    newConfiguration.settingMap.put(pwmSetting, defaultValue(pwmSetting));
                 } else {
-                    switch (pwmSetting.getSyntax()) {
-                        case LOCALIZED_STRING:
-                        case LOCALIZED_TEXT_AREA:
-                        {
-                            final List valueElements = settingElement.getChildren("value");
-                            final Map<String,String> values = new TreeMap<String,String>();
-                            for (final Object loopValue : valueElements) {
-                                final Element loopValueElement = (Element)loopValue;
-                                final String localeString = loopValueElement.getAttributeValue("locale");
-                                final String value = loopValueElement.getText();
-                                values.put(localeString == null ? "" : localeString, value);
-                            }
-                            newConfiguration.writeLocalizedSetting(pwmSetting, values);
-                        }
-                        break;
 
-                        case STRING_ARRAY:
-                        {
-                            final List valueElements = settingElement.getChildren("value");
-                            final List<String> values = new ArrayList<String>();
-                            for (final Object loopValue : valueElements) {
-                                final Element loopValueElement = (Element)loopValue;
-                                final String value = loopValueElement.getText();
-                                values.add(value);
-                            }
-                            newConfiguration.writeStringArraySetting(pwmSetting, values);
-                        }
-                        break;
-
-                        case LOCALIZED_STRING_ARRAY:
-                        {
-                            final List valueElements = settingElement.getChildren("value");
-                            final Map<String,List<String>> values = new TreeMap<String,List<String>>();
-                            for (final Object loopValue : valueElements) {
-                                final Element loopValueElement = (Element)loopValue;
-                                final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
-                                final String value = loopValueElement.getText();
-                                List<String> valueList = values.get(localeString);
-                                if (valueList == null) {
-                                    valueList = new ArrayList<String>();
-                                    values.put(localeString, valueList);
+                    if (settingElement.getChild("value") == null) {
+                        newConfiguration.settingMap.put(pwmSetting, defaultValue(pwmSetting));
+                    } else {
+                        switch (pwmSetting.getSyntax()) {
+                            case LOCALIZED_STRING:
+                            case LOCALIZED_TEXT_AREA:
+                            {
+                                final List valueElements = settingElement.getChildren("value");
+                                final Map<String,String> values = new TreeMap<String,String>();
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element)loopValue;
+                                    final String localeString = loopValueElement.getAttributeValue("locale");
+                                    final String value = loopValueElement.getText();
+                                    values.put(localeString == null ? "" : localeString, value);
                                 }
-                                valueList.add(value);
+                                newConfiguration.writeLocalizedSetting(pwmSetting, values);
                             }
-                            newConfiguration.writeLocalizedStringArraySetting(pwmSetting, values);
-                        }
-                        break;
+                            break;
 
-                        case PASSWORD:
-                        {
-                            final Element valueElement = settingElement.getChild("value");
-                            final String encodedValue = valueElement.getText();
-                            try {
-                                final String key = STORED_DATE_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
-                                final String decodedValue = TextConversations.decryptValue(encodedValue, key);
-                                newConfiguration.writeSetting(pwmSetting, decodedValue);
-                            } catch (Exception e) {
-                                newConfiguration.writeSetting(pwmSetting, "");
-                                throw new RuntimeException("unable to decode value: " + e.getMessage());
+                            case STRING_ARRAY:
+                            {
+                                final List valueElements = settingElement.getChildren("value");
+                                final List<String> values = new ArrayList<String>();
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element)loopValue;
+                                    final String value = loopValueElement.getText();
+                                    values.add(value);
+                                }
+                                newConfiguration.writeStringArraySetting(pwmSetting, values);
                             }
-                        }
-                        break;
+                            break;
 
-                        default:
-                            final Element valueElement = settingElement.getChild("value");
-                            final String value = valueElement.getText();
-                            newConfiguration.writeSetting(pwmSetting, value);
+                            case LOCALIZED_STRING_ARRAY:
+                            {
+                                final List valueElements = settingElement.getChildren("value");
+                                final Map<String,List<String>> values = new TreeMap<String,List<String>>();
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element)loopValue;
+                                    final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
+                                    final String value = loopValueElement.getText();
+                                    List<String> valueList = values.get(localeString);
+                                    if (valueList == null) {
+                                        valueList = new ArrayList<String>();
+                                        values.put(localeString, valueList);
+                                    }
+                                    valueList.add(value);
+                                }
+                                newConfiguration.writeLocalizedStringArraySetting(pwmSetting, values);
+                            }
+                            break;
+
+                            case PASSWORD:
+                            {
+                                final Element valueElement = settingElement.getChild("value");
+                                final String encodedValue = valueElement.getText();
+                                try {
+                                    final String key = STORED_DATE_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
+                                    final String decodedValue = TextConversations.decryptValue(encodedValue, key);
+                                    newConfiguration.writeSetting(pwmSetting, decodedValue);
+                                } catch (Exception e) {
+                                    newConfiguration.writeSetting(pwmSetting, "");
+                                    throw new RuntimeException("unable to decode value: " + e.getMessage());
+                                }
+                            }
+                            break;
+
+                            default:
+                                final Element valueElement = settingElement.getChild("value");
+                                final String value = valueElement.getText();
+                                newConfiguration.writeSetting(pwmSetting, value);
+                        }
                     }
                 }
             }

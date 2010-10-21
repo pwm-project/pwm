@@ -54,6 +54,7 @@
         <% } else { %>
         <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
         <% } %>
+        <script type="text/javascript">showConfigBrowserWarning();</script>
         <br class="clear"/>
         <div id="mainTabContainer" >
             <script type="text/javascript">
@@ -204,6 +205,5 @@
         clearDigitWidget('waitDialog');
     });
 </script>
-
 </body>
 </html>
