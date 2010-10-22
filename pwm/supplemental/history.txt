@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.5.2 development
+v1.5.2 (October 22, 2010) build 996
 ---
 + Changed main menu to hide un-enabled functions
 + Added logout button to header when logged in
