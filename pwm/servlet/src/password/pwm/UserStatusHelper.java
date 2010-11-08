@@ -350,7 +350,7 @@ public class UserStatusHelper {
         return null;
     }
 
-    private static String determineContextForSearch(final PwmSession pwmSession, final String context) {
+    public static String determineContextForSearch(final PwmSession pwmSession, final String context) {
         final String configuredLdapContextlessRoot = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         if (context == null || context.length() < 1) {
             return configuredLdapContextlessRoot;

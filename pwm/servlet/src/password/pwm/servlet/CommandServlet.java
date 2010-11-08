@@ -128,7 +128,9 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
+        final boolean responseConfigNeeded = UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet());
+
+        if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
         } else {
             processContinue(req, resp);

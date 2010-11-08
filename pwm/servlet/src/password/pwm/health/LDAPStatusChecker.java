@@ -24,6 +24,8 @@ package password.pwm.health;
 
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
@@ -65,8 +67,6 @@ public class LDAPStatusChecker implements HealthChecker {
 
     public static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration)
     {
-        /* //@todo 1.5.3
-
         final Configuration config = new Configuration(storedconfiguration);
 
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
@@ -75,7 +75,22 @@ public class LDAPStatusChecker implements HealthChecker {
         if (testUserDN == null || testUserDN.length() < 1 || testUserPW == null || testUserPW.length() < 0) {
             return new HealthRecord(HealthRecord.HealthStatus.CAUTION,"LDAP Connectivity","LDAP Test user is not configured");
         }
-        */
+
+        try {
+            final ChaiProvider chaiProvider = Helper.createChaiProvider(
+                    config,
+                    testUserDN,
+                    testUserPW,
+                    config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+
+            final ChaiUser chaiUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
+            chaiUser.readCanonicalDN();
+        } catch (ChaiUnavailableException e) {
+            return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Unavailable error while testing ldap test user: " + e.getMessage());
+        } catch (ChaiOperationException e) {
+            return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Operational error while testing ldap test user: " + e.getMessage());
+        }
+
         return null;
     }
 

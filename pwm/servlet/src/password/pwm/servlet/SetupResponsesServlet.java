@@ -322,6 +322,10 @@ public class SetupResponsesServlet extends TopServlet {
         final String bodyString = Helper.readRequestBody(req, 10 * 1024);
         final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
 
+        if (srcMap == null) {
+            return null;
+        }
+        
         for (final Object key : srcMap.keySet()) {
             final String paramName = key.toString();
             final String paramValue = srcMap.get(key).toString();

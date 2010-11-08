@@ -32,7 +32,7 @@
 <meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Administration"/></jsp:include>
-    <div id="content">                                    o
+    <div id="content">                                    
         <div id="centerbody">
             Loading... <a href="<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>">PWM Status</a>
         </div>

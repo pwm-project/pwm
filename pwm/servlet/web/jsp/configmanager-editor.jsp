@@ -182,7 +182,7 @@
                 <% if (configManagerBean.getInitialMode() == ConfigurationReader.MODE.RUNNING) { %>
                 <a href="#" onclick="showWaitDialog('Updating Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)">Finished Editing</a>
                 <% } else { %>
-                <a href="#" onclick="if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {showWaitDialog('Saving Configuration'); setTimeout(function() {document.forms['completeEditing'].submit();},1000)}">Save Configuration</a>
+                <a href="#" onclick="if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) { saveConfiguration(); }">Save Configuration</a>
                 <% } %>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <a href="#" onclick="showWaitDialog('Canceling...'); setTimeout(function() {document.forms['cancelEditing'].submit();},1000)">Cancel</a>

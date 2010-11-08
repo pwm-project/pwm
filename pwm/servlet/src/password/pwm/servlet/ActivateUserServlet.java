@@ -65,6 +65,7 @@ public class ActivateUserServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ActivateUserServlet.class);
 
     private static final String USERNAME_PARAM_NAME = "username";
+    private static final String CONTEXT_PARAM_NAME = "context";
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -114,8 +115,11 @@ public class ActivateUserServlet extends TopServlet {
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(validationParams, pwmSession);
 
+            // read the context attr
+            final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
+
             // get an ldap user object based on the params
-            theUser = getUserObjectForParams(validationParams, pwmSession);
+            theUser = getUserObjectForParams(validationParams, pwmSession, contextParam);
 
             // make sure the user isn't locked.
             theManager.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
@@ -233,7 +237,7 @@ public class ActivateUserServlet extends TopServlet {
         return searchFilter;
     }
 
-    private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter)
+    private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter, final String searchBase)
             throws PwmException, ChaiUnavailableException
     {
         final SearchHelper searchHelper = new SearchHelper();
@@ -241,7 +245,6 @@ public class ActivateUserServlet extends TopServlet {
         searchHelper.setFilter(searchFilter);
         searchHelper.setAttributes("");
 
-        final String searchBase = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         final ChaiProvider chaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
 
         LOGGER.debug(pwmSession, "performing ldap search for user activation, base=" + searchBase + " filter=" + searchFilter);
@@ -268,13 +271,15 @@ public class ActivateUserServlet extends TopServlet {
 
     private static ChaiUser getUserObjectForParams(
             final Map<String, FormConfiguration> paramConfigs,
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final String contextParam
     )
             throws ChaiUnavailableException, PwmException
     {
         final String searchFilter = figureSearchFilterForParams(paramConfigs, pwmSession);
 
-        final ChaiUser theUser = performUserSearch(pwmSession, searchFilter);
+        final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam);
+        final ChaiUser theUser = performUserSearch(pwmSession, searchFilter, searchContext);
 
         if (theUser == null) {
             final String usernameAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);

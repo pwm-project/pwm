@@ -561,3 +561,51 @@ function showConfigBrowserWarning()
         document.write('<p><span style="font-weight: bold;">Notice: </span>' + message + '</p>');
     }
 }
+
+function saveConfiguration() {
+    showWaitDialog('<p>Saving Configuration....</p>  <div style="text-align: center"><img src="../resources/wait.gif"/></div><br/>');
+
+    dojo.xhrGet({
+        url:"ConfigManager?processAction=getConfigEpoch",
+        sync: false,
+        dataType: "json",
+        handleAs: "json",
+        load: function(data){
+            dojo.xhrGet({
+                url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                sync:true
+            });
+            var oldEpoch = data['configEpoch'];
+            var currentTime = new Date().getTime();
+            waitForRestart(currentTime, oldEpoch);
+        },
+        error: function(error) {
+            alert(error);
+            window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
+        }
+    });
+}
+
+function waitForRestart(startTime, oldEpoch) {
+    var currentTime = new Date().getTime();
+    dojo.xhrGet({
+        url:"ConfigManager?processAction=getConfigEpoch",
+        sync: true,
+        dataType: "json",
+        handleAs: "json",
+        load: function(data){
+            var epoch = data['configEpoch'];
+            if (epoch != oldEpoch) {
+                window.location = "ConfigManager?new_epoch_detected"; //refresh page
+            } else if (currentTime - startTime > 30 * 1000) { // timeout
+                alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
+                window.location = "ConfigManager?no_restart_detected"; //refresh page
+            } else {
+                setTimeout(function(){waitForRestart(startTime,oldEpoch)},2000);
+            }
+        },
+        error: function(error){
+            setTimeout(function(){waitForRestart(startTime,oldEpoch)},2000);
+        }
+    });
+}

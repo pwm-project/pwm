@@ -68,7 +68,13 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
+            if ("getConfigEpoch".equalsIgnoreCase(processActionParam)) {
+                doGetConfigEpoch(req,resp);
+                return;
+            }
+
             Validator.validatePwmFormID(req);
+            
             if ("readSetting".equalsIgnoreCase(processActionParam)) {
                 this.readSetting(req,resp);
                 return;
@@ -136,6 +142,26 @@ public class ConfigManagerServlet extends TopServlet {
                     break;
             }
         }
+    }
+
+    private void doGetConfigEpoch(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, PwmException
+    {
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
+        final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
+        final Map<String,Object> returnMap = new HashMap<String,Object>();
+        if (configEpoch != null && configEpoch.length() > 0) {
+            returnMap.put("configEpoch", configEpoch);
+        } else {
+            returnMap.put("configEpoch", "none");
+        }
+        final String outputString = JSONObject.toJSONString(returnMap);
+        resp.setContentType("application/json;charset=utf-8");
+        resp.getWriter().print(outputString);
     }
 
     private void readSetting(

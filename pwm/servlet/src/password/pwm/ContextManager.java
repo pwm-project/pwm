@@ -265,9 +265,10 @@ public class ContextManager implements Serializable
             PwmInitializer.initializeLogger(log4jFile, logLevel, servletContext);
         }
 
-        PwmInitializer.initializeHealthMonitor(this);
         PwmInitializer.initializePwmDB(this);
         PwmInitializer.initializePwmDBLogger(this);
+
+        PwmInitializer.initializeHealthMonitor(this);
 
         LOGGER.info("initializing pwm");
         // log the loaded configuration
