@@ -35,6 +35,7 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
+<% password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); %>
 <body class="tundra">
 <meta http-equiv="refresh" content="60"/>
 <div id="wrapper">
@@ -42,7 +43,7 @@
         <table class="tablemain">
             <tr>
                 <td class="title" colspan="10">
-                    PWM Health
+                    <pwm:Display key="APPLICATION-TITLE"/> Health
                 </td>
             </tr>
             <%
@@ -58,10 +59,17 @@
             <%
                 final String color;
                 switch (healthRecord.getHealthStatus()) {
-                    case GOOD: color = "#8ced3f"; break;
-                    case CAUTION: color = "#FFCD59"; break;
-                    case WARN: color = "#d20734";  break;
-                    default: color = "white";
+                    case GOOD:
+                        color = "#8ced3f";
+                        break;
+                    case CAUTION:
+                        color = "#FFCD59";
+                        break;
+                    case WARN:
+                        color = "#d20734";
+                        break;
+                    default:
+                        color = "white";
                 }
             %>
             <tr>
@@ -78,7 +86,8 @@
             <% } %>
         </table>
         <p style="text-align:center;">
-            <a href="<%=request.getContextPath()%>">PWM Main Menu</a> | <a href="<%=request.getContextPath()%>/admin/status.jsp">Admin Menu</a>
+            <a href="<%=request.getContextPath()%>">PWM Main Menu</a> | <a
+                href="<%=request.getContextPath()%>/admin/status.jsp">Admin Menu</a>
         </p>
     </div>
 </div>

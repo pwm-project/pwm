@@ -25,6 +25,7 @@ package password.pwm;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogEvent;
 
 import java.util.List;
@@ -68,28 +69,28 @@ public abstract class AlertHandler {
         }
     }
 
-    public static void alertIntruder(final ContextManager contextManager, final Map<String,String> valueMap) {
+    public static void alertIntruder(final ContextManager contextManager, final Map<String, String> valueMap) {
         if (!checkIfEnabled(contextManager, PwmSetting.EVENTS_ALERT_INTRUDER_LOCKOUT)) {
             return;
         }
 
         for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-        final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-        final String subject = "PWM Admin Alert - Intruder Detection";
-        final StringBuilder body = new StringBuilder();
-        body.append("event: Intruder Detection\n");
-        body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
-        body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
+            final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+            final String subject = "PWM Admin Alert - Intruder Detection";
+            final StringBuilder body = new StringBuilder();
+            body.append("event: Intruder Detection\n");
+            body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
+            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
 
-        for (final String key : valueMap.keySet()) {
-            body.append(key);
-            body.append(": ");
-            body.append(valueMap.get(key));
-            body.append("\n");
-        }
+            for (final String key : valueMap.keySet()) {
+                body.append(key);
+                body.append(": ");
+                body.append(valueMap.get(key));
+                body.append("\n");
+            }
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        contextManager.sendEmailUsingQueue(emailItem);
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+            contextManager.sendEmailUsingQueue(emailItem);
         }
     }
 
@@ -99,21 +100,21 @@ public abstract class AlertHandler {
         }
 
         for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-        final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-        final String subject = "PWM Alert - Fatal Event";
-        final StringBuilder body = new StringBuilder();
-        body.append("event: Fatal Event\n");
-        body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
-        body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-        body.append("level: ").append(pwmLogEvent.getLevel()).append("\n");
-        body.append("actor: ").append(pwmLogEvent.getActor()).append("\n");
-        body.append("date: ").append(pwmLogEvent.getDate()).append("\n");
-        body.append("source: ").append(pwmLogEvent.getSource()).append("\n");
-        body.append("topic: ").append(pwmLogEvent.getTopic()).append("\n");
-        body.append("message: ").append(pwmLogEvent.getMessage()).append("\n");
+            final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+            final String subject = "PWM Alert - Fatal Event";
+            final StringBuilder body = new StringBuilder();
+            body.append("event: Fatal Event\n");
+            body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
+            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
+            body.append("level: ").append(pwmLogEvent.getLevel()).append("\n");
+            body.append("actor: ").append(pwmLogEvent.getActor()).append("\n");
+            body.append("date: ").append(pwmLogEvent.getDate()).append("\n");
+            body.append("source: ").append(pwmLogEvent.getSource()).append("\n");
+            body.append("topic: ").append(pwmLogEvent.getTopic()).append("\n");
+            body.append("message: ").append(pwmLogEvent.getMessage()).append("\n");
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        contextManager.sendEmailUsingQueue(emailItem);
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+            contextManager.sendEmailUsingQueue(emailItem);
         }
     }
 
@@ -123,50 +124,67 @@ public abstract class AlertHandler {
         }
 
         for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-        final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-        final String subject = "PWM Alert - Configuration Modification";
-        final StringBuilder body = new StringBuilder();
-        body.append("event: Configuration Modification\n");
-        body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
-        body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-        body.append("configuration: \n\n");
-        body.append(config.toDebugString());
+            final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+            final String subject = "PWM Alert - Configuration Modification";
+            final StringBuilder body = new StringBuilder();
+            body.append("event: Configuration Modification\n");
+            body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
+            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
+            body.append("configuration: \n\n");
+            body.append(config.toDebugString());
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        contextManager.sendEmailUsingQueue(emailItem);
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+            contextManager.sendEmailUsingQueue(emailItem);
         }
     }
 
-    public static void alertDailyStats(final ContextManager contextManager, final Map<String,String> valueMap) {
+    public static void alertDailyStats(final ContextManager contextManager, final Map<String, String> valueMap) {
         if (!checkIfEnabled(contextManager, PwmSetting.EVENTS_ALERT_DAILY_STATS)) {
             return;
         }
 
         for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-        final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-        final String subject = "PWM Alert - Daily Statistics";
-        final StringBuilder body = new StringBuilder();
-        body.append("event: Daily Statistics\n");
-        body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
-        body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-        body.append("\n");
-
-        final Map<String,String> sortedStats = new TreeMap<String,String>();
-        sortedStats.putAll(valueMap);
-
-        for (final String key : sortedStats.keySet()) {
-            body.append(key);
-            body.append(": ");
-            body.append(valueMap.get(key));
+            final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+            final String subject = "PWM Alert - Daily Statistics";
+            final StringBuilder body = new StringBuilder();
+            body.append("event: Daily Statistics\n");
+            body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
+            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
             body.append("\n");
-        }
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        contextManager.sendEmailUsingQueue(emailItem);
+            final Map<String, String> sortedStats = new TreeMap<String, String>();
+            sortedStats.putAll(valueMap);
+
+            for (final String key : sortedStats.keySet()) {
+                body.append(key);
+                body.append(": ");
+                body.append(valueMap.get(key));
+                body.append("\n");
+            }
+
+            {
+                final List<HealthRecord> healthRecords = contextManager.getHealthMonitor().getHealthRecords();
+                final java.util.Date lastHeathCheckDate = contextManager.getHealthMonitor().getLastHealthCheckDate();
+
+                body.append("\n-\n");
+                body.append("health check results\n");
+                body.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
+
+                for (final HealthRecord record : healthRecords) {
+                    body.append("topic='").append(record.getTopic()).append("'");
+                    body.append(", status=").append(record.getHealthStatus());
+                    body.append(", detail='").append(record.getDetail()).append("'");
+                    body.append("\n");
+                }
+
+            }
+
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+            contextManager.sendEmailUsingQueue(emailItem);
         }
     }
 
-    private static boolean checkIfEnabled(final ContextManager contextManager, final PwmSetting pwmSetting)  {
+    private static boolean checkIfEnabled(final ContextManager contextManager, final PwmSetting pwmSetting) {
         if (contextManager == null) {
             return false;
         }

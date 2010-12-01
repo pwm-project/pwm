@@ -26,11 +26,8 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
+import password.pwm.config.*;
 import password.pwm.error.PwmError;
-import password.pwm.config.PasswordStatus;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
@@ -58,8 +55,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         LOGGER.trace(pwmSession, "received request for action " + action);
@@ -87,8 +83,7 @@ public class CommandServlet extends TopServlet {
     private static void processIdleUpdate(
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             resp.setContentType("text/plain");
@@ -98,21 +93,28 @@ public class CommandServlet extends TopServlet {
     private static void processRefreshHealthCheck(
             final HttpServletRequest req
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         boolean hasPermission = false;
-        try {
-            hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
-        } catch (Exception e) {
-            LOGGER.warn("error during authorization check: " + e.getMessage());
+
+        if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) {
+            LOGGER.trace("allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
+            hasPermission = true;
         }
+        if (!hasPermission) {
+            try {
+                hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
+            } catch (Exception e) {
+                LOGGER.warn("error during authorization check: " + e.getMessage());
+            }
+        }
+
 
         if (hasPermission) {
             pwmSession.getContextManager().getHealthMonitor().checkImmediately();
         } else {
-            LOGGER.warn(pwmSession,"unauthorized attempt to update health check status");
+            LOGGER.warn(pwmSession, "unauthorized attempt to update health check status");
         }
     }
 
@@ -120,15 +122,14 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         if (!preCheckUser(req, resp)) {
             return;
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final boolean responseConfigNeeded = UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet());
+        final boolean responseConfigNeeded = UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
 
         if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
@@ -141,8 +142,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -159,8 +159,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -172,7 +171,7 @@ public class CommandServlet extends TopServlet {
         } else if (checkPasswordWarn(pwmSession)) {
             final String passwordWarnURL = req.getContextPath() + "/private/" + PwmConstants.URL_JSP_PASSWORD_WARN;
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(passwordWarnURL, req, resp));
-        }   else  {
+        } else {
             processContinue(req, resp);
         }
     }
@@ -193,7 +192,7 @@ public class CommandServlet extends TopServlet {
         }
 
         if (expired) {
-            sb.insert(0,"checkExpire:  password state=");
+            sb.insert(0, "checkExpire:  password state=");
             sb.append("redirecting to change screen");
             LOGGER.info(pwmSession, sb.toString());
         }
@@ -201,10 +200,9 @@ public class CommandServlet extends TopServlet {
         return expired;
     }
 
-    private static boolean checkPasswordWarn(final PwmSession pwmSession)
-    {
+    private static boolean checkPasswordWarn(final PwmSession pwmSession) {
         final PasswordStatus passwordState = pwmSession.getUserInfoBean().getPasswordState();
-        if ( passwordState.isWarnPeriod()) {
+        if (passwordState.isWarnPeriod()) {
             LOGGER.info(pwmSession, "checkExpire: password expiration is within warn period, redirecting to warn screen");
             return true;
         }
@@ -215,8 +213,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -233,8 +230,7 @@ public class CommandServlet extends TopServlet {
     private static boolean checkAttributes(
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
@@ -243,8 +239,8 @@ public class CommandServlet extends TopServlet {
             return true;
         }
 
-        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM,pwmSession.getSessionStateBean().getLocale());
-        final Map<String,FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, pwmSession.getSessionStateBean().getLocale());
+        final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
 
         // populate the map with attribute values from the uiBean, which was populated through ldap.
         for (final String key : formSettings.keySet()) {
@@ -266,8 +262,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException
-    {
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -276,7 +271,7 @@ public class CommandServlet extends TopServlet {
 
         if (checkIfPasswordExpired(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(),pwmSession.getUserInfoBean().getChallengeSet())) {
+        } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
         } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE) && !checkAttributes(pwmSession)) {
             processCheckAttributes(req, resp);
@@ -289,8 +284,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException
-    {
+            throws IOException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
@@ -333,7 +327,7 @@ public class CommandServlet extends TopServlet {
         }
 
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL,req, resp));
+        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
     }
 }
 

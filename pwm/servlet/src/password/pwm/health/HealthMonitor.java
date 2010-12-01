@@ -31,32 +31,29 @@ import java.util.*;
 
 public class HealthMonitor implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthMonitor.class);
+    private static final int MIN_INTERVAL_SECONDS = 30;
+    private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
     private final ContextManager contextManager;
     private final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
-    private final Timer timer = new Timer("pwm-HealthMonitor timer",true);
     private final List<HealthChecker> healthCheckers = new ArrayList<HealthChecker>();
 
     private Date lastHealthCheckDate = null;
+    private int intervalSeconds = 0;
+    private boolean open = true;
 
     public HealthMonitor(final ContextManager contextManager) {
         this.contextManager = contextManager;
-        startupMonitor();
-    }
+        this.intervalSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
 
-    private void startupMonitor() {
-        if (contextManager.getConfig() != null) {
-            final int intervalSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_HEALTH_CHECK_INTERVAL);
-            if (intervalSeconds > 0) {
-                LOGGER.trace("starting health check monitor task");
-                timer.scheduleAtFixedRate(new HealthCheckTimerTask(),60 * 1000, intervalSeconds * 1000);
-            }
+        if (intervalSeconds < MIN_INTERVAL_SECONDS) {
+            intervalSeconds = MIN_INTERVAL_SECONDS;
+        } else if (intervalSeconds > MAX_INTERVAL_SECONDS) {
+            intervalSeconds = MAX_INTERVAL_SECONDS;
         }
 
         final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started.");
         healthRecords.add(hr);
-
-        registerHealthCheck(new HealthMonitorHealthCheck());
     }
 
     public void checkImmediately() {
@@ -73,16 +70,29 @@ public class HealthMonitor implements Serializable {
     }
 
     public List<HealthRecord> getHealthRecords() {
+        if (lastHealthCheckDate == null) {
+            doHealthChecks();
+        } else {
+            final long lastHealthCheckMs = lastHealthCheckDate.getTime();
+            final long lastValidHealthCheckMs = System.currentTimeMillis() - (intervalSeconds * 1000);
+            if (lastHealthCheckMs < lastValidHealthCheckMs) {
+                doHealthChecks();
+            }
+        }
         return Collections.unmodifiableList(healthRecords);
     }
 
     public void close() {
-        timer.cancel();
         healthRecords.clear();
         healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
+        open = false;
     }
 
     private void doHealthChecks() {
+        if (!open) {
+            return;
+        }
+
         LOGGER.trace("beginning health check process");
         final List<HealthRecord> newResults = new ArrayList<HealthRecord>();
         for (final HealthChecker loopChecker : healthCheckers) {
@@ -92,26 +102,12 @@ public class HealthMonitor implements Serializable {
                     newResults.addAll(loopResults);
                 }
             } catch (Exception e) {
-                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(),e);
+                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
             }
         }
         healthRecords.clear();
         healthRecords.addAll(newResults);
         lastHealthCheckDate = new Date();
         LOGGER.trace("health check process completed");
-    }
-
-    private class HealthCheckTimerTask extends TimerTask {
-        @Override
-        public void run() {
-            doHealthChecks();
-        }
-    }
-
-    public class HealthMonitorHealthCheck implements HealthChecker {
-        public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
-            final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.GOOD, HealthMonitor.class.getSimpleName(), "HealthMonitor is operating normally");
-            return Collections.singletonList(hr);
-        }
     }
 }

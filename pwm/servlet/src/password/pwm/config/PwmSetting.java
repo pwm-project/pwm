@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 /**
  * PwmConfiguration settings.
+ *
  * @author Jason D. Rivard
  */
 public enum PwmSetting {
@@ -237,8 +238,8 @@ public enum PwmSetting {
 
 
     // logger settings
-    EVENTS_HEALTH_CHECK_INTERVAL(
-            "events.healthCheck.interval", Syntax.NUMERIC, Category.LOGGING, false),
+    EVENTS_HEALTH_CHECK_MIN_INTERVAL(
+            "events.healthCheck.minInterval", Syntax.NUMERIC, Category.LOGGING, false),
     EVENTS_JAVA_STDOUT_LEVEL(
             "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
@@ -409,12 +410,10 @@ public enum PwmSetting {
     PWMDB_INIT_STRING(
             "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false),
-
-    ;
+            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false),;
 // ------------------------------ STATICS ------------------------------
 
-    private static final Map<Category,List<PwmSetting>> VALUES_BY_CATEGORY;
+    private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
 
     static {
         final Map<Category, List<PwmSetting>> returnMap = new LinkedHashMap<Category, List<PwmSetting>>();
@@ -426,7 +425,8 @@ public enum PwmSetting {
         for (final PwmSetting setting : values()) returnMap.get(setting.getCategory()).add(setting);
 
         //make nested lists unmodifiable
-        for (final Category category : Category.values()) returnMap.put(category, Collections.unmodifiableList(returnMap.get(category)));
+        for (final Category category : Category.values())
+            returnMap.put(category, Collections.unmodifiableList(returnMap.get(category)));
 
         //assign unmodifable list
         VALUES_BY_CATEGORY = Collections.unmodifiableMap(returnMap);
@@ -450,8 +450,7 @@ public enum PwmSetting {
             final Syntax syntax,
             final Category category,
             final boolean required
-    )
-    {
+    ) {
         this.key = key;
         this.syntax = syntax;
         this.category = category;
@@ -461,13 +460,11 @@ public enum PwmSetting {
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 
-    public String getKey()
-    {
+    public String getKey() {
         return key;
     }
 
-    public boolean isConfidential()
-    {
+    public boolean isConfidential() {
         return Syntax.PASSWORD == this.getSyntax();
     }
 
@@ -480,11 +477,9 @@ public enum PwmSetting {
     }
 
 
-
     // -------------------------- OTHER METHODS --------------------------
 
-    public String getDefaultValue()
-    {
+    public String getDefaultValue() {
         return readProps("DEFLT_" + this.getKey(), Locale.getDefault());
     }
 
@@ -503,7 +498,7 @@ public enum PwmSetting {
     public Pattern getRegExPattern() {
         final String value = readProps("REGEX_" + this.getKey(), Locale.getDefault());
 
-        if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value) ) {
+        if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value)) {
             return Pattern.compile(".*");
         }
 
@@ -546,16 +541,13 @@ public enum PwmSetting {
         SHORTCUT,
         EDIRECTORY,
         CAPTCHA,
-        ADVANCED
-        ;
+        ADVANCED;
 
-        public String getLabel(final Locale locale)
-        {
+        public String getLabel(final Locale locale) {
             return readProps("CATEGORY_LABEL_" + this.name(), locale);
         }
 
-        public String getDescription(final Locale locale)
-        {
+        public String getDescription(final Locale locale) {
             return readProps("CATEGORY_DESCR_" + this.name(), locale);
         }
     }

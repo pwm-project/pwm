@@ -34,7 +34,6 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.health.LDAPStatusChecker;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -54,8 +53,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         //clear any errors in the session's state bean
@@ -69,14 +67,14 @@ public class ConfigManagerServlet extends TopServlet {
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
             if ("getConfigEpoch".equalsIgnoreCase(processActionParam)) {
-                doGetConfigEpoch(req,resp);
+                doGetConfigEpoch(req, resp);
                 return;
             }
 
             Validator.validatePwmFormID(req);
-            
+
             if ("readSetting".equalsIgnoreCase(processActionParam)) {
-                this.readSetting(req,resp);
+                this.readSetting(req, resp);
                 return;
             } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
                 this.writeSetting(req);
@@ -85,11 +83,9 @@ public class ConfigManagerServlet extends TopServlet {
                 this.resetSetting(req);
                 return;
             } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
-                if (doGenerateXml(req,resp)) {
+                if (doGenerateXml(req, resp)) {
                     return;
                 }
-            } else if ("testLdapConnect".equalsIgnoreCase(processActionParam) && configMode != ConfigurationReader.MODE.RUNNING) {
-                doTestLdapConnect(req);
             } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != ConfigurationReader.MODE.RUNNING) {
                 doLockConfiguration(req);
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
@@ -98,17 +94,16 @@ public class ConfigManagerServlet extends TopServlet {
                 doCancelEditing(req);
             } else if ("editMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
-                LOGGER.debug(pwmSession,"switching to edit mode");
+                LOGGER.debug(pwmSession, "switching to edit mode");
             }
         }
 
         forwardToJSP(req, resp);
     }
 
-    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean)
-    {
+    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean) {
         if (configManagerBean.getInitialMode() == null || configMode != configManagerBean.getInitialMode()) {
-            LOGGER.debug(pwmSession,"initializing configuration bean");
+            LOGGER.debug(pwmSession, "initializing configuration bean");
             configManagerBean.setInitialMode(configMode);
             configManagerBean.setConfiguration(null);
         }
@@ -126,7 +121,7 @@ public class ConfigManagerServlet extends TopServlet {
                 case CONFIGURATION:
                     try {
                         final StoredConfiguration runningConfig = pwmSession.getContextManager().getConfigReader().getStoredConfiguration();
-                        final StoredConfiguration clonedConfiguration = (StoredConfiguration)runningConfig.clone();
+                        final StoredConfiguration clonedConfiguration = (StoredConfiguration) runningConfig.clone();
                         clonedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
                         configManagerBean.setConfiguration(clonedConfiguration);
                     } catch (CloneNotSupportedException e) {
@@ -148,12 +143,11 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmException
-    {
+            throws IOException, PwmException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String,Object> returnMap = new HashMap<String,Object>();
+        final Map<String, Object> returnMap = new HashMap<String, Object>();
         if (configEpoch != null && configEpoch.length() > 0) {
             returnMap.put("configEpoch", configEpoch);
         } else {
@@ -168,38 +162,35 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmException
-    {
+            throws IOException, PwmException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
         final String key = Validator.readStringFromRequest(req, "key", 255);
 
-        final Map<String,Object> returnMap = new HashMap<String,Object>();
+        final Map<String, Object> returnMap = new HashMap<String, Object>();
         Object returnValue = "";
 
         final PwmSetting theSetting = PwmSetting.forKey(key);
         if (theSetting != null) {
             switch (theSetting.getSyntax()) {
-                case STRING_ARRAY:
-                {
+                case STRING_ARRAY: {
                     final List<String> values = storedConfig.readStringArraySetting(theSetting);
-                    final Map<String,String> outputMap = new TreeMap<String,String>();
-                    for (int i = 0 ; i < values.size() ; i++) {
+                    final Map<String, String> outputMap = new TreeMap<String, String>();
+                    for (int i = 0; i < values.size(); i++) {
                         outputMap.put(String.valueOf(i), values.get(i));
                     }
                     returnValue = outputMap;
                 }
                 break;
 
-                case LOCALIZED_STRING_ARRAY:
-                {
-                    final Map<String,List<String>> values = storedConfig.readLocalizedStringArraySetting(theSetting);
-                    final Map<String,Map<String,String>> outputMap = new TreeMap<String,Map<String,String>>();
+                case LOCALIZED_STRING_ARRAY: {
+                    final Map<String, List<String>> values = storedConfig.readLocalizedStringArraySetting(theSetting);
+                    final Map<String, Map<String, String>> outputMap = new TreeMap<String, Map<String, String>>();
                     for (final String localeKey : values.keySet()) {
                         final List<String> loopValues = values.get(localeKey);
-                        final Map<String,String> loopMap = new TreeMap<String,String>();
-                        for (int i = 0 ; i < loopValues.size() ; i++) {
+                        final Map<String, String> loopMap = new TreeMap<String, String>();
+                        for (int i = 0; i < loopValues.size(); i++) {
                             loopMap.put(String.valueOf(i), loopValues.get(i));
                         }
                         outputMap.put(localeKey, loopMap);
@@ -210,7 +201,7 @@ public class ConfigManagerServlet extends TopServlet {
 
                 case LOCALIZED_STRING:
                 case LOCALIZED_TEXT_AREA:
-                    returnValue = new TreeMap<String,String>(storedConfig.readLocalizedStringSetting(theSetting));
+                    returnValue = new TreeMap<String, String>(storedConfig.readLocalizedStringSetting(theSetting));
                     break;
 
                 default:
@@ -231,7 +222,7 @@ public class ConfigManagerServlet extends TopServlet {
     ) throws IOException, PwmException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
-        final StoredConfiguration storedConfig= configManagerBean.getConfiguration();
+        final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
         final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
 
@@ -243,37 +234,34 @@ public class ConfigManagerServlet extends TopServlet {
             final PwmSetting setting = PwmSetting.forKey(key);
 
             switch (setting.getSyntax()) {
-                case STRING_ARRAY:
-                {
+                case STRING_ARRAY: {
                     final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String,String> outputMap = new TreeMap<String,String>();
-                    for (final Object keyObject: inputMap.keySet()) {
-                        outputMap.put(String.valueOf(keyObject),String.valueOf(inputMap.get(keyObject)));
+                    final Map<String, String> outputMap = new TreeMap<String, String>();
+                    for (final Object keyObject : inputMap.keySet()) {
+                        outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
                     }
-                    storedConfig.writeStringArraySetting(setting,new ArrayList<String>(outputMap.values()));
+                    storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
                 }
                 break;
 
                 case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA:
-                {
+                case LOCALIZED_TEXT_AREA: {
                     final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String,String> outputMap = new TreeMap<String,String>();
-                    for (final Object keyObject: inputMap.keySet()) {
-                        outputMap.put(String.valueOf(keyObject),String.valueOf(inputMap.get(keyObject)));
+                    final Map<String, String> outputMap = new TreeMap<String, String>();
+                    for (final Object keyObject : inputMap.keySet()) {
+                        outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
                     }
-                    storedConfig.writeLocalizedSetting(setting,outputMap);
+                    storedConfig.writeLocalizedSetting(setting, outputMap);
                 }
                 break;
 
-                case LOCALIZED_STRING_ARRAY:
-                {
+                case LOCALIZED_STRING_ARRAY: {
                     final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String,List<String>> outputMap = new TreeMap<String,List<String>>();
-                    for (final Object localeKeyObject: inputMap.keySet()) {
-                        final JSONObject localeMap = (JSONObject)inputMap.get(localeKeyObject);
+                    final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>();
+                    for (final Object localeKeyObject : inputMap.keySet()) {
+                        final JSONObject localeMap = (JSONObject) inputMap.get(localeKeyObject);
 
-                        final TreeMap<String,String> sortedMap = new TreeMap<String,String>();
+                        final TreeMap<String, String> sortedMap = new TreeMap<String, String>();
                         for (final Object iterationKey : localeMap.keySet()) {
                             sortedMap.put(iterationKey.toString(), localeMap.get(iterationKey).toString());
                         }
@@ -281,9 +269,9 @@ public class ConfigManagerServlet extends TopServlet {
                         final List<String> loopList = new ArrayList<String>();
                         for (final String loopValue : sortedMap.values()) loopList.add(loopValue);
 
-                        outputMap.put(localeKeyObject.toString(),loopList);
+                        outputMap.put(localeKeyObject.toString(), loopList);
                     }
-                    storedConfig.writeLocalizedStringArraySetting(setting,outputMap);
+                    storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
                 }
                 break;
 
@@ -298,7 +286,7 @@ public class ConfigManagerServlet extends TopServlet {
     ) throws IOException, PwmException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
-        final StoredConfiguration storedConfig= configManagerBean.getConfiguration();
+        final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
         final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
 
@@ -314,8 +302,7 @@ public class ConfigManagerServlet extends TopServlet {
     private void doFinishEditing(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException
-    {
+            throws IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
@@ -331,14 +318,13 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setEditorMode(false);
-        LOGGER.debug(pwmSession,"switching to action mode");
+        LOGGER.debug(pwmSession, "switching to action mode");
     }
 
     private void doCancelEditing(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException
-    {
+            throws IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
@@ -349,19 +335,18 @@ public class ConfigManagerServlet extends TopServlet {
 
         initialize(pwmSession, configMode, configManagerBean);
 
-        LOGGER.debug(pwmSession,"cancelled edit actions");
+        LOGGER.debug(pwmSession, "cancelled edit actions");
     }
 
     private void doLockConfiguration(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException
-    {
+            throws IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
-        storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"false");
+        storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
 
         try {
             saveConfiguration(pwmSession);
@@ -372,12 +357,11 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setEditorMode(false);
-        LOGGER.debug(pwmSession,"switching to action mode");
+        LOGGER.debug(pwmSession, "switching to action mode");
     }
 
     static void saveConfiguration(final PwmSession pwmSession)
-            throws PwmException
-    {
+            throws PwmException {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
 
@@ -385,7 +369,7 @@ public class ConfigManagerServlet extends TopServlet {
             final List<String> errorStrings = storedConfiguration.validateValues();
             if (errorStrings != null && !errorStrings.isEmpty()) {
                 final String errorString = errorStrings.get(0);
-                throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
+                throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
             }
         }
 
@@ -398,7 +382,7 @@ public class ConfigManagerServlet extends TopServlet {
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
+            throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
         }
 
         configManagerBean.setConfiguration(null);
@@ -409,15 +393,14 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException, PwmException
-    {
+            throws IOException, ServletException, PwmException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration configuration = configManagerBean.getConfiguration();
 
         final List<String> errorStrings = configuration.validateValues();
         if (errorStrings != null && !errorStrings.isEmpty()) {
             final String errorString = errorStrings.get(0);
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
             return false;
         }
 
@@ -428,43 +411,11 @@ public class ConfigManagerServlet extends TopServlet {
         return true;
     }
 
-    private void doTestLdapConnect(
-            final HttpServletRequest req
-    )
-            throws IOException, ServletException, PwmException
-    {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
-        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
-
-        if (configMode == ConfigurationReader.MODE.RUNNING) {
-            final String errorString = "Test functionality is only available on unconfigured server";
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString));
-            return;
-        }
-
-        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
-
-        {
-            final List<String> errorStrings = storedConfiguration.validateValues();
-            if (errorStrings != null && !errorStrings.isEmpty()) {
-                final String errorString = errorStrings.get(0);
-                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString,errorString));
-                return;
-            }
-        }
-
-        final ErrorInformation errorInfo = LDAPStatusChecker.doLdapStatusCheck(storedConfiguration);
-        PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(errorInfo);
-    }
-
     static void forwardToJSP(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
