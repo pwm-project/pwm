@@ -61,7 +61,7 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        final boolean value = innerDB.contains(db,key);
+        final boolean value = innerDB.contains(db, key);
         notifyEvent(EventType.READ, db, key, null);
         return value;
     }
@@ -71,13 +71,13 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        final String value = innerDB.get(db,key);
+        final String value = innerDB.get(db, key);
         notifyEvent(EventType.READ, db, key, value);
         return value;
     }
 
     @WriteOperation
-    public void init(final File dbDirectory, final Map<String,String> initParameters) throws PwmDBException {
+    public void init(final File dbDirectory, final Map<String, String> initParameters) throws PwmDBException {
         innerDB.init(dbDirectory, initParameters);
     }
 
@@ -97,19 +97,32 @@ public class PwmDBAdaptor implements PwmDB {
             this.db = db;
         }
 
-        public boolean hasNext() { return innerIterator.hasNext(); }
+        public boolean hasNext() {
+            return innerIterator.hasNext();
+        }
 
-        public T next() { key = innerIterator.next(); return key; }
+        public T next() {
+            key = innerIterator.next();
+            return key;
+        }
 
         public void remove() {
             innerIterator.remove();
-            try { SIZE_CACHE_MANAGER.decrementSize(db); } catch (Exception e) { throw new RuntimeException(e); }
-            try { notifyEvent(EventType.WRITE, db, key.toString(), null); } catch (Exception e) { throw new RuntimeException(e); }
+            try {
+                SIZE_CACHE_MANAGER.decrementSize(db);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                notifyEvent(EventType.WRITE, db, key.toString(), null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @WriteOperation
-    public void putAll(final DB db, final Map<String,String> keyValueMap) throws PwmDBException {
+    public void putAll(final DB db, final Map<String, String> keyValueMap) throws PwmDBException {
         ParameterValidator.validateDBValue(db);
         for (final String loopKey : keyValueMap.keySet()) {
             try {
@@ -140,7 +153,7 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateKeyValue(key);
         ParameterValidator.validateValueValue(value);
 
-        final boolean preExisting = innerDB.put(db,key,value);
+        final boolean preExisting = innerDB.put(db, key, value);
         if (!preExisting) {
             SIZE_CACHE_MANAGER.incrementSize(db);
         }
@@ -155,7 +168,7 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        final boolean result = innerDB.remove(db,key);
+        final boolean result = innerDB.remove(db, key);
         if (result) {
             SIZE_CACHE_MANAGER.decrementSize(db);
         }
@@ -181,7 +194,7 @@ public class PwmDBAdaptor implements PwmDB {
         innerDB.removeAll(db, keys);
 
         try {
-            innerDB.removeAll(db,keys);
+            innerDB.removeAll(db, keys);
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
@@ -245,6 +258,14 @@ public class PwmDBAdaptor implements PwmDB {
 
     }
 
+    public Status getStatus() {
+        if (innerDB == null) {
+            return Status.CLOSED;
+        }
+
+        return innerDB.getStatus();
+    }
+
     private static class SizeCacheManager {
         private static final Integer CACHE_DIRTY = -1;
         private static final Integer CACHE_WORKING = -2;
@@ -253,16 +274,16 @@ public class PwmDBAdaptor implements PwmDB {
 
         private SizeCacheManager() {
             for (final DB db : DB.values()) {
-                sizeCache.put(db,CACHE_DIRTY);
+                sizeCache.put(db, CACHE_DIRTY);
             }
         }
 
         private void incrementSize(final DB db) {
-            modifySize(db,+1);
+            modifySize(db, +1);
         }
 
         private void decrementSize(final DB db) {
-            modifySize(db,-1);
+            modifySize(db, -1);
         }
 
         private void modifySize(final DB db, final int amount) {

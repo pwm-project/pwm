@@ -70,14 +70,19 @@ public class JDBM_PwmDb implements PwmDBProvider {
         try {
             recman.commit();
             recman.close();
+            recman = null;
         } catch (IOException e) {
             throw new PwmDBException(e);
         }
     }
 
+    public PwmDB.Status getStatus() {
+        return recman == null ? PwmDB.Status.CLOSED : PwmDB.Status.OPEN;
+    }
+
     public boolean contains(final PwmDB.DB db, final String key)
             throws PwmDBException {
-        return get(db,key) != null;
+        return get(db, key) != null;
     }
 
     public String get(final PwmDB.DB db, final String key)
@@ -91,7 +96,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final Map<String,String> initParameters)
+    public void init(final File dbDirectory, final Map<String, String> initParameters)
             throws PwmDBException {
         try {
             this.dbDirectory = dbDirectory;
@@ -103,7 +108,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             for (final DB db : DB.values()) {
                 final long startTime = System.currentTimeMillis();
                 final int size = size(db);
-                LOGGER.debug("found " + size + " records in " + db.toString() + " in " + new TimeDuration(System.currentTimeMillis(),startTime).asCompactString());
+                LOGGER.debug("found " + size + " records in " + db.toString() + " in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
             }
         } catch (IOException e) {
             throw new PwmDBException(e);
@@ -117,16 +122,15 @@ public class JDBM_PwmDb implements PwmDBProvider {
             }
 
             final DbIterator iterator = new DbIterator(db);
-            dbIterators.put(db,iterator);
+            dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
             throw new PwmDBException(e);
         }
     }
 
-    public void putAll(final DB db, final Map<String,String> keyValueMap)
-            throws PwmDBException
-    {
+    public void putAll(final DB db, final Map<String, String> keyValueMap)
+            throws PwmDBException {
         try {
             final HTree tree = getHTree(db);
             for (final String loopKey : keyValueMap.keySet()) {
@@ -143,8 +147,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
     }
 
     public boolean put(final PwmDB.DB db, final String key, final String value)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         final boolean preExists;
         try {
             preExists = remove(db, key);
@@ -159,8 +162,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
     }
 
     public boolean remove(final PwmDB.DB db, final String key)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         try {
             final HTree tree = getHTree(db);
             if (contains(db, key)) {
@@ -204,7 +206,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
         try {
             while (size(db) > 0) {
                 final Object nextKey = getHTree(db).keys().next();
-                remove(db,nextKey.toString());
+                remove(db, nextKey.toString());
 
                 sleeper.sleep();
 
@@ -218,7 +220,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             throw new PwmDBException(e);
         }
 
-        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(),startTime).asCompactString());
+        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -283,8 +285,8 @@ public class JDBM_PwmDb implements PwmDBProvider {
                 return;
             }
 
-            final Object value = get(db,nextKey.toString());
-            nextItem = new TransactionItem(db, nextKey.toString(),value == null ? null : value.toString());
+            final Object value = get(db, nextKey.toString());
+            nextItem = new TransactionItem(db, nextKey.toString(), value == null ? null : value.toString());
         }
 
         public boolean hasNext() {
@@ -297,7 +299,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             dbIterators.remove(db);
         }
 
-        public TransactionItem next()  {
+        public TransactionItem next() {
             currentItem = nextItem;
             try {
                 fetchNext();
@@ -307,8 +309,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             return currentItem;
         }
 
-        public void remove()
-        {
+        public void remove() {
             if (currentItem != null) {
                 try {
                     JDBM_PwmDb.this.remove(db, currentItem.getKey());

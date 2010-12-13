@@ -33,7 +33,7 @@ import java.util.Date;
  * Negative time durations are not permitted.  Operations that would result in a negative value
  * are negated and will instead result in positive values.
  *
- * @author  Jason D. Rivard
+ * @author Jason D. Rivard
  */
 public class TimeDuration implements Comparable, Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -64,11 +64,11 @@ public class TimeDuration implements Comparable, Serializable {
     }
 
     public static TimeDuration fromCurrent(final long ms) {
-        return new TimeDuration(System.currentTimeMillis(),ms);
+        return new TimeDuration(System.currentTimeMillis(), ms);
     }
 
     public static String compactFromCurrent(final long ms) {
-        return new TimeDuration(System.currentTimeMillis(),ms).asCompactString();
+        return new TimeDuration(System.currentTimeMillis(), ms).asCompactString();
     }
 
     public static String asCompactString(final long ms) {
@@ -80,7 +80,7 @@ public class TimeDuration implements Comparable, Serializable {
      * Create a new TimeDuration using the absolute difference as the time
      * period between the two supplied timestamps
      *
-     * @param date timestamp in Date format
+     * @param date         timestamp in Date format
      * @param milliseconds timestamp in ms
      */
     public TimeDuration(final Date date, final long milliseconds) {
@@ -91,7 +91,7 @@ public class TimeDuration implements Comparable, Serializable {
      * Create a new TimeDuration using the absolute difference as the time
      * period between the two supplied timestamps
      *
-     * @param date timestamp in Date format
+     * @param date         timestamp in Date format
      * @param milliseconds timestamp in ms
      */
     public TimeDuration(final long milliseconds, final Date date) {
@@ -276,13 +276,13 @@ public class TimeDuration implements Comparable, Serializable {
         //output number of minutes
         if (timeDetail.days > 0 || timeDetail.hours > 0 || timeDetail.minutes > 0) {
             sb.append(timeDetail.minutes);
-            sb.append(" Minutes, ");
+            sb.append(timeDetail.minutes == 1 ? " Minute, " : " Minutes, ");
         }
 
         //seconds
         {
             sb.append(timeDetail.seconds);
-            sb.append(" Seconds");
+            sb.append(timeDetail.seconds == 1 ? " Second" : " Seconds");
         }
 
         return sb.toString();

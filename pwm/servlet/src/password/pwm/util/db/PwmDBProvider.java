@@ -41,14 +41,14 @@ public interface PwmDBProvider {
             throws PwmDBException;
 
     @PwmDB.WriteOperation
-    void init(File dbDirectory, Map<String,String> initParameters)
+    void init(File dbDirectory, Map<String, String> initParameters)
             throws PwmDBException;
 
     Iterator<PwmDB.TransactionItem> iterator(PwmDB.DB db)
             throws PwmDBException;
 
     @PwmDB.WriteOperation
-    void putAll(PwmDB.DB db, Map<String,String> keyValueMap)
+    void putAll(PwmDB.DB db, Map<String, String> keyValueMap)
             throws PwmDBException;
 
     @PwmDB.WriteOperation
@@ -75,6 +75,8 @@ public interface PwmDBProvider {
             throws PwmDBException;
 
     long diskSpaceUsed();
+
+    PwmDB.Status getStatus();
 
 
 }

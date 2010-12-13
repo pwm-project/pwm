@@ -51,7 +51,7 @@ public class PwmDBLogger {
     private final static int MAX_WRITES_PER_CYCLE = 3581;
     private final static int MAX_REMOVALS_PER_CYCLE = 5053;
 
-    private final static int CYCLE_INTERVAL_MS =  5023; // 5  seconds
+    private final static int CYCLE_INTERVAL_MS = 5023; // 5  seconds
     private final static int MAX_QUEUE_SIZE = 10 * 1000;
 
     private final PwmDB pwmDB;
@@ -74,11 +74,10 @@ public class PwmDBLogger {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge, final int bulkAddEvents)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         final long startTime = System.currentTimeMillis();
-        this.setting_maxAgeMs = ((long)maxAge) * 1000L;
         this.pwmDB = pwmDB;
+        this.setting_maxAgeMs = ((long) maxAge) * 1000L;
         this.setting_bulkAddEvents = bulkAddEvents;
         this.pwmDBListQueue = new PwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
 
@@ -99,7 +98,7 @@ public class PwmDBLogger {
         }
 
         { // start the writer thread
-            final Thread writerThread = new Thread(new WriterThread(),"pwm-PwmDBLogger writer");
+            final Thread writerThread = new Thread(new WriterThread(), "pwm-PwmDBLogger writer");
             writerThread.setDaemon(true);
             writerThread.start();
         }
@@ -107,9 +106,9 @@ public class PwmDBLogger {
         if (setting_bulkAddEvents > 0) {
             Helper.pause(10 * 1000);
             LOGGER.warn("beginning bulk add events testing process for " + setting_bulkAddEvents + " events!");
-            final Thread bulkAddThread = new Thread(new Thread(),"pwm-PwmDBLogger bulkadd") {
+            final Thread bulkAddThread = new Thread(new Thread(), "pwm-PwmDBLogger bulkadd") {
                 public void run() {
-                    bulkAddEvents( setting_bulkAddEvents );
+                    bulkAddEvents(setting_bulkAddEvents);
                 }
             };
             bulkAddThread.setDaemon(true);
@@ -135,8 +134,7 @@ public class PwmDBLogger {
     }
 
 
-    private String debugStats()
-    {
+    private String debugStats() {
         final StringBuilder sb = new StringBuilder();
         sb.append("events=").append(pwmDBListQueue.size());
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
@@ -146,8 +144,7 @@ public class PwmDBLogger {
         return sb.toString();
     }
 
-    private void bulkAddEvents(final int size)
-    {
+    private void bulkAddEvents(final int size) {
         int eventsRemaining = size;
         while (eventsRemaining > 0 && open) {
             while (eventQueue.size() >= MAX_WRITES_PER_CYCLE) Helper.pause(100);
@@ -165,7 +162,7 @@ public class PwmDBLogger {
         final PwmRandom random = PwmRandom.getInstance();
         final String randomDescr = random.alphaNumericString(1024 * 4);
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             final StringBuilder description = new StringBuilder();
             description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
             description.append(randomDescr);
@@ -213,7 +210,7 @@ public class PwmDBLogger {
 
     private void flushQueue(final int maxEvents) {
         final List<PwmLogEvent> tempList = new ArrayList<PwmLogEvent>();
-        while (!eventQueue.isEmpty() && tempList.size() < maxEvents ) {
+        while (!eventQueue.isEmpty() && tempList.size() < maxEvents) {
             final PwmLogEvent nextEvent = eventQueue.poll();
             if (nextEvent != null) {
                 tempList.add(nextEvent);
@@ -226,8 +223,7 @@ public class PwmDBLogger {
         }
     }
 
-    private synchronized void doWrite(final Collection<PwmLogEvent> events)
-    {
+    private synchronized void doWrite(final Collection<PwmLogEvent> events) {
         final long startTime = System.currentTimeMillis();
         final List<String> transactions = new ArrayList<String>();
         try {
@@ -244,7 +240,7 @@ public class PwmDBLogger {
                 LOGGER.trace("added " + transactions.size() + " in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
             }
         } catch (Exception e) {
-            LOGGER.error("error writing to pwmDBLogger: " + e.getMessage(),e);
+            LOGGER.error("error writing to pwmDBLogger: " + e.getMessage(), e);
         }
     }
 
@@ -260,8 +256,7 @@ public class PwmDBLogger {
         return eventQueue.size();
     }
 
-    private int determineTailRemovalCount()
-    {
+    private int determineTailRemovalCount() {
         final int currentItemCount = pwmDBListQueue.size();
 
         // must keep at least one position populated
@@ -309,7 +304,9 @@ public class PwmDBLogger {
     }
 
 
-    public enum EventType { User, System, Both }
+    public enum EventType {
+        User, System, Both
+    }
 
     public SearchResults readStoredEvents(
             final PwmSession pwmSession,
@@ -319,14 +316,13 @@ public class PwmDBLogger {
             final String text,
             final long maxQueryTime,
             final EventType eventType
-    )
-    {
+    ) {
         final long startTime = System.currentTimeMillis();
         final int maxReturnedEvents = count > this.setting_maxEvents ? this.setting_maxEvents : count;
         final int eventsInDb = pwmDBListQueue.size();
 
         Pattern pattern = null;
-        try{
+        try {
             if (username != null && username.length() > 0) {
                 pattern = Pattern.compile(username);
             }
@@ -408,8 +404,7 @@ public class PwmDBLogger {
             final String text,
             final Pattern pattern,
             final EventType eventType
-    )
-    {
+    ) {
         if (event == null) {
             return false;
         }
@@ -427,7 +422,7 @@ public class PwmDBLogger {
             if (!matcher.find()) {
                 eventMatchesParams = false;
             }
-        } else  if (eventMatchesParams && (username != null && username.length() > 1)) {
+        } else if (eventMatchesParams && (username != null && username.length() > 1)) {
             final String eventUsername = event.getActor();
             if (eventUsername == null || !eventUsername.equalsIgnoreCase(username)) {
                 eventMatchesParams = false;
@@ -492,7 +487,7 @@ public class PwmDBLogger {
             try {
                 doLoop();
             } catch (Exception e) {
-                LOGGER.fatal("unexpected fatal error during PwmDBLogger log event writing; logging to pwmDB will be suspended.",e);
+                LOGGER.fatal("unexpected fatal error during PwmDBLogger log event writing; logging to pwmDB will be suspended.", e);
             }
             writerThreadActive = false;
         }

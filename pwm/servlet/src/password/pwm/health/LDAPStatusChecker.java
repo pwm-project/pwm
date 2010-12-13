@@ -25,7 +25,6 @@ package password.pwm.health;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
@@ -37,7 +36,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -47,55 +45,69 @@ public class LDAPStatusChecker implements HealthChecker {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         final StoredConfiguration storedConfig = contextManager.getConfigReader().getStoredConfiguration();
 
+
         { // check ldap server
             final ErrorInformation result = doLdapStatusCheck(storedConfig);
-            if (result == null || result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
-                final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.GOOD,"LDAP Connectivity","All configured LDAP servers are reachable");
-                return Collections.singletonList(hr);
+            if (result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
+                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, "LDAP Connectivity", "All configured LDAP servers are reachable"));
+            } else {
+                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", result.toDebugStr()));
+                return returnRecords;
             }
-            returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity",result.toDebugStr()));
         }
 
         { // check test user
-            final HealthRecord hr =  doLdapTestUserCheck(storedConfig);
+            final HealthRecord hr = doLdapTestUserCheck(storedConfig);
             if (hr != null) {
                 returnRecords.add(hr);
             }
         }
+
+
         return returnRecords;
     }
 
-    public static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration)
-    {
+    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration) {
         final Configuration config = new Configuration(storedconfiguration);
 
-        final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
-        final String testUserPW = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_PASSWORD);
 
-        if (testUserDN == null || testUserDN.length() < 1 || testUserPW == null || testUserPW.length() < 0) {
-            return new HealthRecord(HealthRecord.HealthStatus.CAUTION,"LDAP Connectivity","LDAP Test user is not configured");
+        final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+        final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+        final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+
+        if (testUserDN == null || testUserDN.length() < 1) {
+            return new HealthRecord(HealthRecord.HealthStatus.CAUTION, "LDAP Connectivity", "LDAP test user is not configured");
         }
 
         try {
             final ChaiProvider chaiProvider = Helper.createChaiProvider(
                     config,
-                    testUserDN,
-                    testUserPW,
+                    proxyUserDN,
+                    proxyUserPW,
                     config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
 
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
-            chaiUser.readCanonicalDN();
+            if (!chaiUser.isValid()) {
+                return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "LDAP test user '" + testUserDN + "' does not exist");
+            }
+            //@todo this next method needs to be refactored so it works without session and request
+            //AuthenticationFilter.authUserWithUnknownPassword(chaiUser, null, null);
+
         } catch (ChaiUnavailableException e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Unavailable error while testing ldap test user: " + e.getMessage());
-        } catch (ChaiOperationException e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Operational error while testing ldap test user: " + e.getMessage());
+            return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "LDAP unavailable error while testing ldap test user: " + e.getMessage());
+            //} catch (ChaiOperationException e) {
+            //    return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Operational error while testing ldap test user: " + e.getMessage());
+            //} catch (PwmException e) {
+            //    return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","PWM error while testing ldap test user: " + e.getMessage());
+        } catch (Throwable e) {
+            return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "unexpected error while testing ldap test user: " + e.getMessage());
         }
 
         return null;
     }
 
 
-    public static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration) {
+    private static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration) {
         final Configuration config = new Configuration(storedconfiguration);
 
         ChaiProvider chaiProvider = null;
@@ -103,20 +115,20 @@ public class LDAPStatusChecker implements HealthChecker {
             chaiProvider = getChaiProviderForTesting(config);
             final String contextlessRootSettingName = PwmSetting.LDAP_CONTEXTLESS_ROOT.getCategory().getLabel(Locale.getDefault()) + "-" + PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel(Locale.getDefault());
             try {
-                final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT),chaiProvider);
+                final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), chaiProvider);
                 if (!contextlessRootEntry.isValid()) {
-                    final String errorString = "setting '" + contextlessRootSettingName  + "' value does not appear to be correct";
-                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString);
+                    final String errorString = "setting '" + contextlessRootSettingName + "' value does not appear to be correct";
+                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
                 }
             } catch (Exception e) {
-                final String errorString = "error verifying setting '" + contextlessRootSettingName  + "' " + e.getMessage();
-                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString);
+                final String errorString = "error verifying setting '" + contextlessRootSettingName + "' " + e.getMessage();
+                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
             }
 
             return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
         } catch (Exception e) {
             final String errorString = "error connecting to ldap server: " + e.getMessage();
-            return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE,errorString,errorString);
+            return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
         } finally {
             if (chaiProvider != null) {
                 try {
@@ -130,8 +142,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
 
     private static ChaiProvider getChaiProviderForTesting(final Configuration config)
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         ChaiProvider chaiProvider = null;
         chaiProvider = Helper.createChaiProvider(
                 config,

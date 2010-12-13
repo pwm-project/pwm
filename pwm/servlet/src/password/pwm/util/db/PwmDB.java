@@ -37,7 +37,6 @@ import java.util.Map;
  * must block until any outstanding write or read methods are completed.  That is, concurrency is allowed for reads, but
  * writes are gaurenteed to be single threaded.
  *
- *
  * @author Jason D. Rivard
  */
 public interface PwmDB {
@@ -45,6 +44,10 @@ public interface PwmDB {
 
     public static final int MAX_KEY_LENGTH = 128;
     public static final int MAX_VALUE_LENGTH = 1024 * 10;
+
+    public static enum Status {
+        NEW, OPEN, CLOSED
+    }
 
     @WriteOperation
     void close()
@@ -62,26 +65,28 @@ public interface PwmDB {
             throws PwmDBException;
 
     @WriteOperation
-    void putAll(DB db, Map<String,String> keyValueMap)
+    void putAll(DB db, Map<String, String> keyValueMap)
             throws PwmDBException;
+
+    Status getStatus();
 
     /**
      * Put a key/value into a database.  This operation inserts a new key/value pair
      * into the specified database.  If the key already exists in the database, then
      * the value is replaced.
      *
-     * @param db database to perform the operation on
-     * @param key key value
+     * @param db    database to perform the operation on
+     * @param key   key value
      * @param value string value
      * @return true if the key previously existed
-     * @throws PwmDBException if there is an error writing to the store
-     * @throws NullPointerException if the db, key or value is null
+     * @throws PwmDBException           if there is an error writing to the store
+     * @throws NullPointerException     if the db, key or value is null
      * @throws IllegalArgumentException if the key is zero length, the key is larger than {@link #MAX_KEY_LENGTH} or the value is larger than {@link #MAX_VALUE_LENGTH}
      */
     @WriteOperation
     boolean put(DB db, String key, String value)
             throws PwmDBException;
-   
+
     @WriteOperation
     boolean remove(DB db, String key)
             throws PwmDBException;
@@ -110,8 +115,10 @@ public interface PwmDB {
 // -------------------------- ENUMERATIONS --------------------------
 
     enum DB {
-        /** Used for various pwm operational data */
-        PWM_META, 
+        /**
+         * Used for various pwm operational data
+         */
+        PWM_META,
         SHAREDHISTORY_META,
         SHAREDHISTORY_WORDS,
         WORDLIST_META,
@@ -128,8 +135,11 @@ public interface PwmDB {
 
     interface PwmDBEvent {
         EventType getEventType();
+
         DB getDB();
+
         String getKey();
+
         String getValue();
     }
 
@@ -151,14 +161,12 @@ public interface PwmDB {
     }
 
 
-
     public static class TransactionItem implements Serializable, Comparable {
         private final DB db;
         private final String key;
         private final String value;
 
-        public TransactionItem(final DB db, final String key, final String value)
-        {
+        public TransactionItem(final DB db, final String key, final String value) {
             if (key == null || value == null || db == null) {
                 throw new IllegalArgumentException("db, key or value can not be null");
             }
@@ -168,23 +176,19 @@ public interface PwmDB {
             this.value = value;
         }
 
-        public DB getDb()
-        {
+        public DB getDb() {
             return db;
         }
 
-        public String getKey()
-        {
+        public String getKey() {
             return key;
         }
 
-        public String getValue()
-        {
+        public String getValue() {
             return value;
         }
 
-        public String toString()
-        {
+        public String toString() {
             return "db=" + db + ", key=" + key + ", value=" + value;
         }
 
@@ -213,10 +217,10 @@ public interface PwmDB {
             int result = db.compareTo(db);
 
             if (result == 0) {
-                result = getKey().compareTo(((TransactionItem)o).getKey());
+                result = getKey().compareTo(((TransactionItem) o).getKey());
 
                 if (result == 0) {
-                    result = getValue().compareTo(((TransactionItem)o).getValue());
+                    result = getValue().compareTo(((TransactionItem) o).getValue());
                 }
             }
 

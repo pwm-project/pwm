@@ -58,19 +58,19 @@ public class UserStatusHelper {
     /**
      * Read password status values from directory
      *
-     * @param pwmSession users pwm Session
-     * @param theUser the user to check
+     * @param pwmSession     users pwm Session
+     * @param theUser        the user to check
      * @param passwordPolicy the password policy to use for checking if current password violates current policy
      * @return bean describing the status of the user's password
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException of directory is unavailable
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *          of directory is unavailable
      */
     public static PasswordStatus readPasswordStatus(
             final PwmSession pwmSession,
             final ChaiUser theUser,
             final PwmPasswordPolicy passwordPolicy
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         final PasswordStatus returnState = new PasswordStatus();
         final Configuration config = pwmSession.getConfig();
         final String userDN = theUser.getEntryDN();
@@ -99,9 +99,9 @@ public class UserStatusHelper {
 
             if (ldapPasswordExpired) {
                 returnState.setExpired(true);
-                LOGGER.trace(pwmSession,"password for " + userDN + " appears to be expired");
+                LOGGER.trace(pwmSession, "password for " + userDN + " appears to be expired");
             } else {
-                LOGGER.trace(pwmSession,"password for " + userDN + " does not appear to be expired");
+                LOGGER.trace(pwmSession, "password for " + userDN + " does not appear to be expired");
             }
         } catch (ChaiOperationException e) {
             LOGGER.info(pwmSession, "error reading user attrs for " + userDN + " while reading isPasswordExpired(): " + e.getMessage());
@@ -132,18 +132,17 @@ public class UserStatusHelper {
             LOGGER.info(pwmSession, "error reading user attrs for " + userDN + " while reading passwordExpirationDate(): " + e.getMessage());
         }
 
-        LOGGER.debug(pwmSession,"completed user password status check for " + userDN + " " + returnState + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
+        LOGGER.debug(pwmSession, "completed user password status check for " + userDN + " " + returnState + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
         return returnState;
     }
 
     public static boolean checkIfResponseConfigNeeded(final PwmSession pwmSession, final ChaiUser theUser, final ChallengeSet challengeSet)
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"user must be authenticated to check if response configuration is needed"));
+            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED, "user must be authenticated to check if response configuration is needed"));
         }
 
-        LOGGER.trace(pwmSession,"beginning check to determine if responses need to be configured for user");
+        LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
 
         final String userDN = theUser.getEntryDN();
 
@@ -184,11 +183,10 @@ public class UserStatusHelper {
             final String userDN,
             final String userCurrentPassword
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        populateUserInfoBean(uiBean, pwmSession,userDN, userCurrentPassword, provider);
+        populateUserInfoBean(uiBean, pwmSession, userDN, userCurrentPassword, provider);
     }
 
 
@@ -199,8 +197,7 @@ public class UserStatusHelper {
             final String userCurrentPassword,
             final ChaiProvider provider
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final long methodStartTime = System.currentTimeMillis();
 
         if (userDN != null && userDN.length() < 1) {
@@ -211,16 +208,22 @@ public class UserStatusHelper {
             throw new NullPointerException("userCurrentPassword can not be null");
         }
 
-        uiBean.setUserDN(userDN);
         uiBean.setUserCurrentPassword(userCurrentPassword);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);
+
+        try {
+            uiBean.setUserDN(theUser.readCanonicalDN());
+        } catch (ChaiOperationException e) {
+            LOGGER.warn("error reading canonical DN" + e);
+            uiBean.setUserDN(userDN);
+        }
 
         //populate password policy
         uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser));
 
         //populate c/r challenge set. 
-        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(),pwmSession.getSessionStateBean().getLocale()));
+        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(), pwmSession.getSessionStateBean().getLocale()));
 
         //populate all user attributes.
         try {
@@ -251,7 +254,7 @@ public class UserStatusHelper {
         uiBean.setPasswordState(readPasswordStatus(pwmSession, theUser, uiBean.getPasswordPolicy()));
 
         final String userPasswordExpireTime = uiBean.getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME, "");
-        if (userPasswordExpireTime.length() > 0)  {
+        if (userPasswordExpireTime.length() > 0) {
             uiBean.setPasswordExpirationTime(EdirEntries.convertZuluToDate(userPasswordExpireTime));
         } else {
             uiBean.setPasswordExpirationTime(null);
@@ -261,12 +264,12 @@ public class UserStatusHelper {
         uiBean.setRequiresResponseConfig(checkIfResponseConfigNeeded(pwmSession, theUser, pwmSession.getUserInfoBean().getChallengeSet()));
 
         // fetch last password modification time;
-        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE),"");
+        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), "");
         if (pwdLastModifiedStr.length() > 0) {
             try {
                 uiBean.setPasswordLastModifiedTime(EdirEntries.convertZuluToDate(pwdLastModifiedStr));
             } catch (Exception e) {
-                LOGGER.error(pwmSession,"error parsing password last modified value: " + e.getMessage());
+                LOGGER.error(pwmSession, "error parsing password last modified value: " + e.getMessage());
             }
         }
 
@@ -284,19 +287,19 @@ public class UserStatusHelper {
      * If the username appears to already be a valid DN, then the context search is not performed
      * and instead the username value is returned.
      *
-     * @param username          username to search for
-     * @param pwmSession        for grabbing required beans
-     * @param context           specify context to use to search, or null to use pwm configured attribute
+     * @param username   username to search for
+     * @param pwmSession for grabbing required beans
+     * @param context    specify context to use to search, or null to use pwm configured attribute
      * @return the discovered objectDN of the user, or null if none found.
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException of directory is unavailable
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *          of directory is unavailable
      */
     public static String convertUsernameFieldtoDN(
             final String username,
             final PwmSession pwmSession,
             final String context
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         // if no username supplied, just return empty string
         if (username == null || username.length() < 1) {
             return "";
@@ -316,7 +319,7 @@ public class UserStatusHelper {
         final SearchHelper searchHelper = new SearchHelper();
         {
             final String filterSetting = pwmSession.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
-            final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME,username);
+            final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, username);
             searchHelper.setFilter(filter);
             searchHelper.setAttributes("");
             searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
@@ -362,7 +365,7 @@ public class UserStatusHelper {
         }
 
         // see if the baseDN is one of the configured login contexts.
-        final Map<String,String> contextsSettings = pwmSession.getConfig().getLoginContexts();
+        final Map<String, String> contextsSettings = pwmSession.getConfig().getLoginContexts();
         if (contextsSettings.containsKey(context)) {
             if (contextsSettings.keySet().contains(context)) {
                 return context;

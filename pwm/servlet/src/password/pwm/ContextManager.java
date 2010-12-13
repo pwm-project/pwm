@@ -36,10 +36,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.health.ConfigurationChecker;
-import password.pwm.health.HealthMonitor;
-import password.pwm.health.JavaChecker;
-import password.pwm.health.LDAPStatusChecker;
+import password.pwm.health.*;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBFactory;
@@ -64,8 +61,7 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ContextManager implements Serializable
-{
+public class ContextManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     // ----------------------------- CONSTANTS ----------------------------
@@ -78,7 +74,7 @@ public class ContextManager implements Serializable
 
     private String instanceID = DEFAULT_INSTANCE_ID;
 
-    private final transient Map<PwmSession,Object> activeSessions = new WeakHashMap<PwmSession,Object>();
+    private final transient Map<PwmSession, Object> activeSessions = new WeakHashMap<PwmSession, Object>();
 
     private final IntruderManager intruderManager = new IntruderManager(this);
 
@@ -104,7 +100,6 @@ public class ContextManager implements Serializable
     private Date lastLdapFailure = null;
 
 
-
 // -------------------------- STATIC METHODS --------------------------
 
     public static ContextManager getContextManager(final HttpServletRequest request) {
@@ -115,8 +110,7 @@ public class ContextManager implements Serializable
         return getContextManager(session.getServletContext());
     }
 
-    public static ContextManager getContextManager(final ServletContext theContext)
-    {
+    public static ContextManager getContextManager(final ServletContext theContext) {
         // context manager is initialized at servlet context startup.
         final Object theManager = theContext.getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER);
         return (ContextManager) theManager;
@@ -124,14 +118,12 @@ public class ContextManager implements Serializable
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    ContextManager()
-    {
+    ContextManager() {
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getInstanceID()
-    {
+    public String getInstanceID() {
         return instanceID;
     }
 
@@ -139,14 +131,12 @@ public class ContextManager implements Serializable
         return sharedHistoryManager;
     }
 
-    public IntruderManager getIntruderManager()
-    {
+    public IntruderManager getIntruderManager() {
         return intruderManager;
     }
 
     public ChaiProvider getProxyChaiProvider()
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         if (proxyChaiProvider == null) {
             openProxyChaiProvider();
         }
@@ -165,7 +155,8 @@ public class ContextManager implements Serializable
     private void openProxyChaiProvider() throws ChaiUnavailableException {
         if (proxyChaiProvider == null) {
             final StringBuilder debugLogText = new StringBuilder();
-            debugLogText.append("opening new ldap proxy connection"); LOGGER.trace(debugLogText.toString());
+            debugLogText.append("opening new ldap proxy connection");
+            LOGGER.trace(debugLogText.toString());
 
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -183,18 +174,15 @@ public class ContextManager implements Serializable
         }
     }
 
-    public ServletContext getServletContext()
-    {
+    public ServletContext getServletContext() {
         return servletContext;
     }
 
-    public WordlistManager getWordlistManager()
-    {
+    public WordlistManager getWordlistManager() {
         return wordlistManager;
     }
 
-    public SeedlistManager getSeedlistManager()
-    {
+    public SeedlistManager getSeedlistManager() {
         return seedlistManager;
     }
 
@@ -208,8 +196,7 @@ public class ContextManager implements Serializable
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public Configuration getConfig()
-    {
+    public Configuration getConfig() {
         if (configuration == null) {
             return null;
         }
@@ -217,8 +204,7 @@ public class ContextManager implements Serializable
     }
 
     public ChaiUser getProxyChaiUserActor(final PwmSession pwmSession)
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             throw PwmException.createPwmException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
         }
@@ -228,14 +214,12 @@ public class ContextManager implements Serializable
         return ChaiFactory.createChaiUser(userDN, this.getProxyChaiProvider());
     }
 
-    public Set<PwmSession> getPwmSessions()
-    {
+    public Set<PwmSession> getPwmSessions() {
         return Collections.unmodifiableSet(activeSessions.keySet());
     }
 
     void initialize(final ServletContext servletContext)
-            throws Exception
-    {
+            throws Exception {
         final long startTime = System.currentTimeMillis();
         this.servletContext = servletContext;
 
@@ -307,10 +291,14 @@ public class ContextManager implements Serializable
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " (" + PwmConstants.BUILD_NUMBER + ") open for bidness! (" + totalTime.asCompactString() + ")");
 
         // warmup the proxy ldap connection
-        new Thread(new Runnable() {public void run() { try {
-            final ChaiProvider provider = getProxyChaiProvider();
-            LOGGER.debug("detected ldap directory vendor: " + provider.getDirectoryVendor());
-        } catch (Exception e) { /**/ }} }).start();
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    final ChaiProvider provider = getProxyChaiProvider();
+                    LOGGER.debug("detected ldap directory vendor: " + provider.getDirectoryVendor());
+                } catch (Exception e) { /**/}
+            }
+        }).start();
 
         // detect if config has been modified since previous startup
         try {
@@ -320,7 +308,7 @@ public class ContextManager implements Serializable
                 if (previousHash == null || !previousHash.equals(currentHash)) {
                     pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
                     LOGGER.warn("pwm configuration has been modified since last startup");
-                    AlertHandler.alertConfigModify(this,configuration);
+                    AlertHandler.alertConfigModify(this, configuration);
                 }
             }
         } catch (Exception e) {
@@ -338,7 +326,7 @@ public class ContextManager implements Serializable
                     LOGGER.warn("attempting to reinitialize context by touching web.xml");
                     final String filename = "web.xml";
                     final String filepath = "WEB-INF";
-                    final File theFile = ContextManager.figureFilepath(filename,filepath, servletContext);
+                    final File theFile = ContextManager.figureFilepath(filename, filepath, servletContext);
                     theFile.setLastModified(System.currentTimeMillis());
                 } catch (Exception e) {
                     try {
@@ -352,8 +340,7 @@ public class ContextManager implements Serializable
         t.start();
     }
 
-    public String getParameter(final PwmConstants.CONTEXT_PARAM param)
-    {
+    public String getParameter(final PwmConstants.CONTEXT_PARAM param) {
         return servletContext.getInitParameter(param.getKey());
     }
 
@@ -393,10 +380,10 @@ public class ContextManager implements Serializable
 
         if (pwmDB != null) {
             try {
-                newInstanceID = pwmDB.get(PwmDB.DB.PWM_META,DB_KEY_INSTANCE_ID);
+                newInstanceID = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
                 LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from pwmDB");
             } catch (Exception e) {
-                LOGGER.warn("error retrieving instanceID from pwmDB: " + e.getMessage(),e);
+                LOGGER.warn("error retrieving instanceID from pwmDB: " + e.getMessage(), e);
             }
         }
 
@@ -406,10 +393,10 @@ public class ContextManager implements Serializable
 
             if (pwmDB != null) {
                 try {
-                    pwmDB.put(PwmDB.DB.PWM_META,DB_KEY_INSTANCE_ID,String.valueOf(newInstanceID));
+                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
                     LOGGER.debug("saved instanceID " + newInstanceID + "" + " to pwmDB");
                 } catch (Exception e) {
-                    LOGGER.warn("error saving instanceID to pwmDB: " + e.getMessage(),e);
+                    LOGGER.warn("error saving instanceID to pwmDB: " + e.getMessage(), e);
                 }
             }
         }
@@ -421,8 +408,7 @@ public class ContextManager implements Serializable
         return newInstanceID;
     }
 
-    private static String logEnvironment()
-    {
+    private static String logEnvironment() {
         final StringBuilder sb = new StringBuilder();
         sb.append("environment info: ");
         sb.append("java.vm.vendor=").append(System.getProperty("java.vm.vendor"));
@@ -435,8 +421,7 @@ public class ContextManager implements Serializable
         return sb.toString();
     }
 
-    private static String logDebugInfo(final int activeSessionCount)
-    {
+    private static String logDebugInfo(final int activeSessionCount) {
         final StringBuilder sb = new StringBuilder();
         sb.append("debug info:");
         sb.append(" sessions=").append(activeSessionCount);
@@ -461,26 +446,25 @@ public class ContextManager implements Serializable
         return sb.toString();
     }
 
-    public StatisticsManager getStatisticsManager()
-    {
+    public StatisticsManager getStatisticsManager() {
         return statisticsManager;
     }
 
     /**
      * Try to find the real path to a file.  Used for configuration, database, and temporary files.
-     *
+     * <p/>
      * Multiple strategies are used to determine the real path of files because different servlet containers
      * have different symantics.  In principal, servlets are not supposed
-     * @param filename A filename that will be appended to the end of the verified directory
-     * @param suggestedPath The desired path of the file, either relative to the servlet directory or an absolute path
-     *   on the file system
+     *
+     * @param filename       A filename that will be appended to the end of the verified directory
+     * @param suggestedPath  The desired path of the file, either relative to the servlet directory or an absolute path
+     *                       on the file system
      * @param servletContext The HttpServletContext to be used to retrieve a path.
      * @return a File referencing the desired suggestedPath and filename.
      * @throws Exception if unabble to discover a path.
      */
     public static File figureFilepath(final String filename, final String suggestedPath, final ServletContext servletContext)
-            throws Exception
-    {
+            throws Exception {
         if (filename == null || filename.trim().length() < 1) {
             throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
         }
@@ -505,10 +489,10 @@ public class ContextManager implements Serializable
 
         // for containers which do not retrieve the real path, try to use the classloader to find the path.
         final String cManagerName = ContextManager.class.getCanonicalName();
-        final String resourcePathname = "/" + cManagerName.replace(".","/") + ".class";
+        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
         final URL fileURL = ContextManager.class.getResource(resourcePathname);
         if (fileURL != null) {
-            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname,"");
+            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
             final File finalDirectory = new File(new URL(newString + suggestedPath).toURI());
             if (finalDirectory.exists()) {
                 return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
@@ -518,8 +502,7 @@ public class ContextManager implements Serializable
         throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
     }
 
-    public void sendEmailUsingQueue(final EmailItemBean emailItem)
-    {
+    public void sendEmailUsingQueue(final EmailItemBean emailItem) {
         try {
             emailQueue.addMailToQueue(emailItem);
         } catch (PwmException e) {
@@ -527,8 +510,7 @@ public class ContextManager implements Serializable
         }
     }
 
-    public void shutdown()
-    {
+    public void shutdown() {
         LOGGER.warn("shutting down");
         AlertHandler.alertShutdown(this);
 
@@ -601,7 +583,7 @@ public class ContextManager implements Serializable
 
     public void addPwmSession(final PwmSession pwmSession) {
         try {
-            activeSessions.put(pwmSession,new Object());
+            activeSessions.put(pwmSession, new Object());
         } catch (Exception e) {
             LOGGER.trace("error adding new session to list of known sessions: " + e.getMessage());
         }
@@ -615,19 +597,21 @@ public class ContextManager implements Serializable
         return installTime;
     }
 
+    public PwmDB getPwmDB() {
+        return pwmDB;
+    }
+
 // -------------------------- INNER CLASSES --------------------------
 
     public class DebugLogOutputter extends TimerTask {
-        public void run()
-        {
+        public void run() {
             LOGGER.trace(logDebugInfo(activeSessions.size()));
         }
     }
 
     public class SessionWatcherTask extends TimerTask {
-        public void run()
-        {
-            final Map<PwmSession,Object> copiedMap = new HashMap<PwmSession,Object>();
+        public void run() {
+            final Map<PwmSession, Object> copiedMap = new HashMap<PwmSession, Object>();
 
             synchronized (activeSessions) {
                 copiedMap.putAll(activeSessions);
@@ -648,8 +632,7 @@ public class ContextManager implements Serializable
     }
 
     private static class PwmInitializer {
-        private static void initializeLogger(final String log4jFilename, final String logLevel, final ServletContext servletContext)
-        {
+        private static void initializeLogger(final String log4jFilename, final String logLevel, final ServletContext servletContext) {
             // clear all existing package loggers
             final String pwmPackageName = ContextManager.class.getPackage().getName();
             final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
@@ -662,7 +645,7 @@ public class ContextManager implements Serializable
             boolean configured = false;
 
             // try to configure using the log4j config file (if it iexists)
-            if (log4jFilename != null && log4jFilename.length() > 0 ) {
+            if (log4jFilename != null && log4jFilename.length() > 0) {
                 try {
                     final File theFile = figureFilepath(log4jFilename, "WEB-INF/", servletContext);
                     if (!theFile.exists()) {
@@ -715,7 +698,7 @@ public class ContextManager implements Serializable
             try {
                 final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
                 final List<String> initStrings = contextManager.getConfig().readStringArraySetting(PwmSetting.PWMDB_INIT_STRING);
-                final Map<String,String> initParamers = Configuration.convertStringListToNameValuePair(initStrings,"=");
+                final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
                 contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
@@ -741,6 +724,7 @@ public class ContextManager implements Serializable
                 contextManager.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
                 contextManager.healthMonitor.registerHealthCheck(new JavaChecker());
                 contextManager.healthMonitor.registerHealthCheck(new ConfigurationChecker());
+                contextManager.healthMonitor.registerHealthCheck(new PwmDBHealthChecker());
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize password.pwm.health.HealthMonitor: " + e.getMessage());
             }

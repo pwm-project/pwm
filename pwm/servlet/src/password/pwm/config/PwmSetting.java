@@ -88,8 +88,6 @@ public enum PwmSetting {
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
     LDAP_TEST_USER_DN(
             "ldap.testuser.username", Syntax.STRING, Category.LDAP, false),
-    LDAP_TEST_USER_PASSWORD(
-            "ldap.testuser.password", Syntax.PASSWORD, Category.LDAP, false),
     LDAP_CONTEXTLESS_ROOT(
             "ldap.rootContexts", Syntax.STRING, Category.LDAP, false),
     LDAP_LOGIN_CONTEXTS(

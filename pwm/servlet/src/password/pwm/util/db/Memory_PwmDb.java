@@ -41,7 +41,7 @@ public class Memory_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
-    private STATE state = STATE.NEW;
+    private PwmDB.Status state = PwmDB.Status.NEW;
     private final Map<DB, Map<String, String>> maps = new HashMap<DB, Map<String, String>>();
 
 // -------------------------- STATIC METHODS --------------------------
@@ -60,8 +60,7 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Memory_PwmDb()
-    {
+    public Memory_PwmDb() {
         for (final DB db : PwmDB.DB.values()) {
             final Map<String, String> newMap = new HashMap<String, String>();
             maps.put(db, newMap);
@@ -75,15 +74,13 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     @PwmDB.WriteOperation
     public void close()
-            throws PwmDBException
-    {
-        state = STATE.CLOSED;
+            throws PwmDBException {
+        state = PwmDB.Status.CLOSED;
     }
 
     public boolean contains(final DB db, final String key)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         final Map<String, String> map = maps.get(db);
@@ -91,9 +88,8 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     public String get(final DB db, final String key)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         final Map<String, String> map = maps.get(db);
@@ -101,16 +97,15 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     @PwmDB.WriteOperation
-    public void init(final File dbDirectory, final Map<String,String> initParameters)
-            throws PwmDBException
-    {
-        if (state == STATE.OPEN) {
+    public void init(final File dbDirectory, final Map<String, String> initParameters)
+            throws PwmDBException {
+        if (state == PwmDB.Status.OPEN) {
             throw new IllegalStateException("cannot init db more than one time");
         }
-        if (state == STATE.CLOSED) {
+        if (state == PwmDB.Status.CLOSED) {
             throw new IllegalStateException("db is closed");
         }
-        state = STATE.OPEN;
+        state = PwmDB.Status.OPEN;
     }
 
     public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {
@@ -118,10 +113,9 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     @PwmDB.WriteOperation
-    public void putAll(final DB db, final Map<String,String> keyValueMap)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+    public void putAll(final DB db, final Map<String, String> keyValueMap)
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
 
@@ -135,9 +129,8 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     @PwmDB.WriteOperation
     public boolean put(final DB db, final String key, final String value)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
 
@@ -153,9 +146,8 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     @PwmDB.WriteOperation
     public boolean remove(final DB db, final String key)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         final Map<String, String> map = maps.get(db);
@@ -167,9 +159,8 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     public int size(final DB db)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         final Map<String, String> map = maps.get(db);
@@ -178,20 +169,20 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     @PwmDB.WriteOperation
     public void truncate(final DB db)
-            throws PwmDBException
-    {
-        if (state != STATE.OPEN) {
+            throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         final Map<String, String> map = maps.get(db);
         map.clear();
     }
 
-// -------------------------- ENUMERATIONS --------------------------
-
-    private enum STATE {
-        NEW, OPEN, CLOSED
+    public PwmDB.Status getStatus() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    // -------------------------- ENUMERATIONS --------------------------
+
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -216,7 +207,7 @@ public class Memory_PwmDb implements PwmDBProvider {
                     value = get(db, key);
                     return new TransactionItem(db, key, value);
                 } catch (PwmDBException e) {
-                    throw new IllegalStateException("unexpected get error",e);
+                    throw new IllegalStateException("unexpected get error", e);
                 }
             }
             return null;
