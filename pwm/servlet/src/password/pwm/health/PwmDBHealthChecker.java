@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PwmDBHealthChecker implements HealthChecker {
-    public List<HealthRecord> doHealthCheck(ContextManager contextManager) {
+    public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
         if (contextManager == null) {
             return null;
         }
@@ -43,17 +43,17 @@ public class PwmDBHealthChecker implements HealthChecker {
         final PwmDB pwmDB = contextManager.getPwmDB();
 
         if (pwmDB == null) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot."));
+            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot"));
             return healthRecords;
         }
 
         if (PwmDB.Status.NEW == pwmDB.getStatus()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled."));
+            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled"));
             return healthRecords;
         }
 
         if (PwmDB.Status.CLOSED == pwmDB.getStatus()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot."));
+            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot"));
             return healthRecords;
         }
 
@@ -74,7 +74,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         }
 
         if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, "PwmDB", "PwmDB and related services are operating correctly."));
+            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, "PwmDB", "PwmDB and related services are operating correctly"));
         }
 
         return healthRecords;

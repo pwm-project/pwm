@@ -31,18 +31,22 @@
 <% final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession()); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Title_PasswordWarning"/></jsp:include>
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_PasswordWarning"/>
+    </jsp:include>
     <div id="centerbody">
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
-            <pwm:Display key="Display_PasswordWarn" value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
+            <pwm:Display key="Display_PasswordWarn"
+                         value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
             <% } else { %>
             <pwm:Display key="Display_PasswordNoExpire"/>
             <% } %>
         </p>
+
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/private/<pwm:url url='ChangePassword'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
@@ -50,6 +54,7 @@
                        value="    <pwm:Display key="Button_ChangePassword"/>    "/>
             </form>
             <br class="clear"/>
+
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
@@ -62,6 +67,6 @@
     </div>
     <br class="clear"/>
 </div>
-<jsp:include page="../jsp/footer.jsp"/>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

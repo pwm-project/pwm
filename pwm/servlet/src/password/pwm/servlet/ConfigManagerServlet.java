@@ -69,6 +69,9 @@ public class ConfigManagerServlet extends TopServlet {
             if ("getConfigEpoch".equalsIgnoreCase(processActionParam)) {
                 doGetConfigEpoch(req, resp);
                 return;
+            } else if ("editorPanel".equalsIgnoreCase(processActionParam)) {
+                req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PANEL).forward(req, resp);
+                return;
             }
 
             Validator.validatePwmFormID(req);
@@ -172,7 +175,12 @@ public class ConfigManagerServlet extends TopServlet {
         Object returnValue = "";
 
         final PwmSetting theSetting = PwmSetting.forKey(key);
-        if (theSetting != null) {
+        if (theSetting == null) {
+            LOGGER.warn("readSetting request for unknown key: " + key);
+            returnMap.put("key", key);
+            returnMap.put("value", "UNKNOWN KEY");
+            returnMap.put("isDefault", "false");
+        } else {
             switch (theSetting.getSyntax()) {
                 case STRING_ARRAY: {
                     final List<String> values = storedConfig.readStringArraySetting(theSetting);
@@ -207,11 +215,12 @@ public class ConfigManagerServlet extends TopServlet {
                 default:
                     returnValue = storedConfig.readSetting(theSetting);
             }
+            returnMap.put("key", key);
+            returnMap.put("value", returnValue);
+            returnMap.put("category", theSetting.getCategory().toString());
+            returnMap.put("syntax", theSetting.getSyntax().toString());
+            returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
         }
-
-        returnMap.put("key", key);
-        returnMap.put("value", returnValue);
-        returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
         final String outputString = JSONObject.toJSONString(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);

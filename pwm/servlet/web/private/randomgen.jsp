@@ -27,13 +27,16 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="">
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
+<script type="text/javascript"
+        src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="Random Passwords"/></jsp:include>
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Random Passwords"/>
+    </jsp:include>
     <script type="text/javascript">
-        PWM_STRINGS['url-changepassword']='<pwm:url url='/pwm/private/ChangePassword'/>';
+        PWM_STRINGS['url-changepassword'] = '<pwm:url url='/pwm/private/ChangePassword'/>';
     </script>
     <audio src="/pwm/resources/fill.mp3" autoplay="autoplay"></audio>
     <table style="border:0">
@@ -41,7 +44,8 @@
         <tr style="border:0">
             <% for (int j = 0; j < 12; j++) { %>
             <td id="randomGen<%=i%>" style="text-align:center; border:0">&nbsp;</td>
-            <% i++; } %>
+            <% i++;
+            } %>
         </tr>
         <% } %>
 
@@ -51,9 +55,15 @@
         for (var counter = 0; counter < 580; counter++) {
             fetchList[counter] = 'randomGen' + counter;
         }
-        fetchList.sort(function() {return 0.5 - Math.random()});
-        fetchList.sort(function() {return 0.5 - Math.random()});
-        fetchList.sort(function() {return 0.5 - Math.random()});
+        fetchList.sort(function() {
+            return 0.5 - Math.random()
+        });
+        fetchList.sort(function() {
+            return 0.5 - Math.random()
+        });
+        fetchList.sort(function() {
+            return 0.5 - Math.random()
+        });
 
         doNextFetch();
         var outstandingFetches = 0;
@@ -62,28 +72,37 @@
             if (fetchList.length < 1) {
                 return;
             }
-            var name = fetchList.splice(0,1);
+            var name = fetchList.splice(0, 1);
             var element = getObject(name);
             if (element != null) {
                 element.firstChild.nodeValue = '\u00A0';
             }
 
             if (outstandingFetches > 5) {
-                setTimeout(function(){doNextFetch();},10);
+                setTimeout(function() {
+                    doNextFetch();
+                }, 10);
             } else {
                 var moreButton = getObject('moreRandomsButton');
                 if (moreButton != null) {
                     moreButton.disabled = false;
                     moreButton.focus();
                 }
-                fetchRandom(function(data) {handleRandomResponse(data, name);outstandingFetches--;}, function(errorObj) {outstandingFetches--;});
+                fetchRandom(function(data) {
+                    handleRandomResponse(data, name);
+                    outstandingFetches--;
+                }, function(errorObj) {
+                    outstandingFetches--;
+                });
                 outstandingFetches++;
-                setTimeout(function(){doNextFetch();},10);
+                setTimeout(function() {
+                    doNextFetch();
+                }, 10);
             }
         }
     </script>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>
 

@@ -53,29 +53,30 @@ public abstract class PwmConstants {
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
-    public static final String URL_JSP_LOGIN = "jsp/login.jsp";
-    public static final String URL_JSP_LOGOUT = "jsp/logout.jsp";
-    public static final String URL_JSP_SUCCESS = "jsp/success.jsp";
-    public static final String URL_JSP_ERROR = "jsp/error.jsp";
-    public static final String URL_JSP_WAIT = "jsp/wait.jsp";
-    public static final String URL_JSP_PASSWORD_CHANGE = "jsp/changepassword.jsp";
-    public static final String URL_JSP_PASSWORD_AGREEMENT = "jsp/changepassword-agreement.jsp";
-    public static final String URL_JSP_SETUP_RESPONSES = "jsp/setupresponses.jsp";
-    public static final String URL_JSP_CONFIRM_RESPONSES = "jsp/setupresponses-confirm.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "jsp/forgottenpassword-search.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "jsp/forgottenpassword-responses.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_CHOICE = "jsp/forgottenpassword-choice.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "jsp/forgottenpassword-entercode.jsp";
-    public static final String URL_JSP_ACTIVATE_USER = "jsp/activateuser.jsp";
-    public static final String URL_JSP_UPDATE_ATTRIBUTES = "jsp/updateattributes.jsp";
-    public static final String URL_JSP_NEW_USER = "jsp/newuser.jsp";
-    public static final String URL_JSP_SHORTCUT = "jsp/shortcut.jsp";
-    public static final String URL_JSP_PASSWORD_WARN = "jsp/passwordwarn.jsp";
-    public static final String URL_JSP_CAPTCHA = "jsp/captcha.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "jsp/configmanager-editor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "jsp/configmanager-mode-new.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "jsp/configmanager-mode-configuration.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "jsp/configmanager-mode-running.jsp";
+    public static final String URL_JSP_LOGIN = "WEB-INF/jsp/login.jsp";
+    public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
+    public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
+    public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
+    public static final String URL_JSP_WAIT = "WEB-INF/jsp/wait.jsp";
+    public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
+    public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
+    public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
+    public static final String URL_JSP_CONFIRM_RESPONSES = "WEB-INF/jsp/setupresponses-confirm.jsp";
+    public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "WEB-INF/jsp/forgottenpassword-search.jsp";
+    public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "WEB-INF/jsp/forgottenpassword-responses.jsp";
+    public static final String URL_JSP_RECOVER_PASSWORD_CHOICE = "WEB-INF/jsp/forgottenpassword-choice.jsp";
+    public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "WEB-INF/jsp/forgottenpassword-entercode.jsp";
+    public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
+    public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateattributes.jsp";
+    public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
+    public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";
+    public static final String URL_JSP_PASSWORD_WARN = "WEB-INF/jsp/passwordwarn.jsp";
+    public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_PANEL = "WEB-INF/jsp/configmanager-editor-panel.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "WEB-INF/jsp/configmanager-mode-new.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configmanager-mode-running.jsp";
 
 
     public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
@@ -96,7 +97,7 @@ public abstract class PwmConstants {
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 
-    public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%"; 
+    public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{
@@ -138,18 +139,15 @@ public abstract class PwmConstants {
     public static enum CONTEXT_PARAM {
         CONFIG_FILE("pwmConfigPath"),
         WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        BULK_DB_LOGEVENTS_TEST("bulkDbLogEventsTest"),
-        ;
+        BULK_DB_LOGEVENTS_TEST("bulkDbLogEventsTest"),;
 
         private final String key;
 
-        public String getKey()
-        {
+        public String getKey() {
             return key;
         }
 
-        CONTEXT_PARAM(final String key)
-        {
+        CONTEXT_PARAM(final String key) {
             this.key = key;
         }
     }

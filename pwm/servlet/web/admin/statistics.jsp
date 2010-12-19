@@ -38,22 +38,25 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
 <% final StatisticsManager statsManager = ContextManager.getContextManager(session).getStatisticsManager(); %>
-<% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request,"statsPeriodSelect",255); %>
-<% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request,"statsChartSelect",255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request,"statsChartSelect",255) : Statistic.PASSWORD_CHANGES.toString() ; %>
+<% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
+<% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Statistics"/></jsp:include>
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="PWM Statistics"/>
+    </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <%!
             static String makeGoogleChartImageUrl(Statistic stat, StatisticsManager statsManager) {
-                final Map<String,String> chartData = statsManager.getStatHistory(stat,31);
+                final Map<String, String> chartData = statsManager.getStatHistory(stat, 31);
                 int topValue = 0;
-                for (final String value: chartData.values()) topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
+                for (final String value : chartData.values())
+                    topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
                 final StringBuilder imgURL = new StringBuilder();
                 imgURL.append("http://chart.apis.google.com/chart");
                 imgURL.append("?cht=bvs");
@@ -64,11 +67,11 @@
                 imgURL.append("&chxr=1,0,").append(topValue);
                 imgURL.append("&chbh=14");
                 imgURL.append("&chd=t:");
-                for (final String value: chartData.values()) imgURL.append(value).append(",");
+                for (final String value : chartData.values()) imgURL.append(value).append(",");
                 imgURL.delete(imgURL.length() - 1, imgURL.length());
                 imgURL.append("&chl=");
                 int counter = 0;
-                for (final String value: chartData.keySet()) {
+                for (final String value : chartData.keySet()) {
                     if (counter % 3 == 0) {
                         imgURL.append(value).append("|");
                     } else {
@@ -80,8 +83,10 @@
                 return imgURL.toString();
             }
         %>
-        <form action="<pwm:url url='statistics.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded" name="statsUpdateForm"
-              id="statsUpdateForm" onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
+        <form action="<pwm:url url='statistics.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
+              name="statsUpdateForm"
+              id="statsUpdateForm"
+              onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
             <table class="tablemain">
                 <tr>
                     <td class="title" colspan="10">
@@ -91,11 +96,17 @@
                 <tr>
                     <td colspan="10" style="text-align: center">
                         <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
-                            <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since installation - <%= dateFormat.format(contextManager.getInstallTime()) %></option>
-                            <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>since startup - <%= dateFormat.format(contextManager.getStartupTime()) %></option>
-                            <% final Map<StatisticsManager.DailyKey,String> availableKeys = statsManager.getAvailableKeys(request.getLocale()); %>
+                            <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                since installation - <%= dateFormat.format(contextManager.getInstallTime()) %>
+                            </option>
+                            <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                since startup - <%= dateFormat.format(contextManager.getStartupTime()) %>
+                            </option>
+                            <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(request.getLocale()); %>
                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
-                            <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %> GMT</option>
+                            <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %>
+                                GMT
+                            </option>
                             <% } %>
                         </select>
                         <noscript>
@@ -103,7 +114,7 @@
                         </noscript>
                     </td>
                 </tr>
-                <% for (Iterator<Statistic> iter = Statistic.sortedValues(request.getLocale()).iterator(); iter.hasNext() ;) { %>
+                <% for (Iterator<Statistic> iter = Statistic.sortedValues(request.getLocale()).iterator(); iter.hasNext();) { %>
                 <tr>
                     <% Statistic leftStat = iter.next(); %>
                     <td class="key">
@@ -141,20 +152,23 @@
                                 onchange="getObject('googleChartImage').src=getObject('statsChartSelect').options[getObject('statsChartSelect').selectedIndex].title;">
                             <% for (final Statistic loopStat : Statistic.sortedValues(request.getLocale())) { %>
                             <option value="<%=loopStat %>" <%= loopStat.toString().equals(statsChartSelect) ? "selected=\"selected\"" : "" %>
-                                    title="<%=makeGoogleChartImageUrl(loopStat,statsManager)%>"><%=loopStat.getLabel(request.getLocale())%></option>
+                                    title="<%=makeGoogleChartImageUrl(loopStat,statsManager)%>"><%=loopStat.getLabel(request.getLocale())%>
+                            </option>
                             <% } %>
                         </select>
                         <br/>
                         <noscript>
                             <input type="submit" id="submit_button_chart" class="btn" value="Update"/>
                         </noscript>
-                        <img id="googleChartImage" src="<%=makeGoogleChartImageUrl(Statistic.valueOf(statsChartSelect),statsManager)%>" alt="[ Google Chart Image ]"/>
+                        <img id="googleChartImage"
+                             src="<%=makeGoogleChartImageUrl(Statistic.valueOf(statsChartSelect),statsManager)%>"
+                             alt="[ Google Chart Image ]"/>
                     </td>
                 </tr>
             </table>
         </form>
     </div>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>

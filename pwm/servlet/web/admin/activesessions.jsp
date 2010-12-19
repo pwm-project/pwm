@@ -35,10 +35,12 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Active Sessions"/></jsp:include>
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="PWM Active Sessions"/>
+    </jsp:include>
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
         <table>
@@ -115,6 +117,6 @@
         </table>
     </div>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>

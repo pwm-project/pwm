@@ -37,26 +37,29 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL,SimpleDateFormat.FULL,request.getLocale()); %>
+<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();">
 <div id="wrapper">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="User Information"/></jsp:include>
+<jsp:include page="/WEB-INF/jsp/header-body.jsp">
+    <jsp:param name="pwm.PageName" value="User Information"/>
+</jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <form action="<pwm:url url='UserInformation'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
       onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
-    <%  //check to see if there is an error
+    <% //check to see if there is an error
         if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
     %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>
             </span>
     <% } %>
-    <p>Use this page to check user information.  The data on this page is gathered using the privileges of the logged in user.  If you do not have the appropriate directory privileges, this information may not be accurate.</p>
+    <p>Use this page to check user information. The data on this page is gathered using the privileges of the logged in
+        user. If you do not have the appropriate directory privileges, this information may not be accurate.</p>
 
-    <%  //check to see if any locations are configured.
+    <% //check to see if any locations are configured.
         if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
     %>
     <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
@@ -66,7 +69,9 @@
     <% } %>
 
     <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-    <input tabindex="1" type="text" id="username" name="username" class="inputfield" value="<pwm:ParamValue name='username'/>"/>
+    <input tabindex="1" type="text" id="username" name="username" class="inputfield"
+           value="<pwm:ParamValue name='username'/>"/>
+
     <div id="buttonbar">
         <input type="hidden"
                name="processAction"
@@ -111,7 +116,7 @@
             Given Name
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("givenName","") %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty("givenName", "") %>
         </td>
     </tr>
     <tr>
@@ -119,7 +124,7 @@
             Surname
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("sn","") %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty("sn", "") %>
         </td>
     </tr>
     <tr>
@@ -127,7 +132,7 @@
             <%= pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE),"") %>
+            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE), "") %>
         </td>
     </tr>
     <tr>
@@ -270,7 +275,8 @@
             Minimum Random: <%=searchedUserInfo.getChallengeSet().getMinRandomRequired()%><br/>
             <br/>
             <% for (final Challenge loopChallange : searchedUserInfo.getChallengeSet().getChallenges()) { %>
-            <p><%= loopChallange.toString() %></p>
+            <p><%= loopChallange.toString() %>
+            </p>
             <% } %>
             <% } else { %>
             none
@@ -299,9 +305,11 @@
         </td>
         <td>
             <ul>
-                <% final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(),pwmSession.getContextManager(),request.getLocale()); %>
+                <%
+                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager(), request.getLocale()); %>
                 <% for (final String requirementLine : requirementLines) { %>
-                <li><%=requirementLine%></li>
+                <li><%=requirementLine%>
+                </li>
                 <% } %>
             </ul>
         </td>
@@ -319,6 +327,6 @@
 </table>
 <% } %>
 </div>
-<jsp:include page="../jsp/footer.jsp"/>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

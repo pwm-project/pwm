@@ -32,12 +32,14 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="HTTP Request Information"/></jsp:include>
+<jsp:include page="/WEB-INF/jsp/header-body.jsp">
+    <jsp:param name="pwm.PageName" value="HTTP Request Information"/>
+</jsp:include>
 <div id="wrapper">
     <div id="centerbody">
-        <%@ include file="admin-nav.jsp" %>        
+        <%@ include file="admin-nav.jsp" %>
         <table>
             <tr>
                 <td colspan="10" class="title">
@@ -121,10 +123,10 @@
                     Headers
                 </td>
             </tr>
-            <% for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements(); ) { %>
-            <% final String loopHeader = (String)headerEnum.nextElement(); %>
-            <% for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements(); ) { %>
-            <% final String loopValue = (String)valueEnum.nextElement(); %>
+            <% for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements();) { %>
+            <% final String loopHeader = (String) headerEnum.nextElement(); %>
+            <% for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements();) { %>
+            <% final String loopValue = (String) valueEnum.nextElement(); %>
             <tr>
                 <td class="key">
                     <%= loopHeader %>
@@ -145,8 +147,8 @@
                     Parameters
                 </td>
             </tr>
-            <% for (final Enumeration parameterEnum = request.getParameterNames(); parameterEnum.hasMoreElements(); ) { %>
-            <% final String loopParameter = (String)parameterEnum.nextElement(); %>
+            <% for (final Enumeration parameterEnum = request.getParameterNames(); parameterEnum.hasMoreElements();) { %>
+            <% final String loopParameter = (String) parameterEnum.nextElement(); %>
             <% for (final String loopValue : Validator.readStringsFromRequest(request, loopParameter, 1024)) { %>
             <tr>
                 <td class="key">
@@ -162,7 +164,7 @@
         <% } %>
     </div>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>
 

@@ -28,51 +28,68 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="jsp/header.jsp" %>
+<%@ include file="WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/></jsp:include>
+    <jsp:include page="WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/>
+    </jsp:include>
     <div id="centerbody">
-        <p>Password self-service main menu.  From here you can change your current password, reset a forgotten password, or perform other related password activities.</p>
+        <p>Password self-service main menu. From here you can change your current password, reset a forgotten password,
+            or perform other related password activities.</p>
+
         <h2><a href="<pwm:url url='private/ChangePassword'/>">Change Password</a></h2>
+
         <p>Change your current password.</p>
 
         <h2><a href="<pwm:url url='public/ForgottenPassword'/>">Forgotten Password</a></h2>
-        <p>Recover your forgotten password.  If you have previously configured your forgotten password responses you will be able to recover a forgotten password.</p>
+
+        <p>Recover your forgotten password. If you have previously configured your forgotten password responses you will
+            be able to recover a forgotten password.</p>
 
         <h2><a href="<pwm:url url='private/SetupResponses'/>">Setup Responses</a></h2>
-        <p>Setup your forgotten password responses.  These secret questions will allow you to recover your password if you forget it.</p>
+
+        <p>Setup your forgotten password responses. These secret questions will allow you to recover your password if
+            you forget it.</p>
 
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/ActivateUser'/>">Account Activation</a></h2>
+
         <p>Activate a pre-configured account and establish a new password.</p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey">New User Registration</a></h2>
+
         <p>Register a new user account</p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) { %>
         <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey">Update User Info</a></h2>
+
         <p>Update your user information</p>
         <% } %>
         <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey">History</a></h2>
+
         <p>Password event history</p>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
         <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey">Shortcuts</a></h2>
+
         <p>Personalized shortcuts</p>
         <% } %>
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey">User Information</a></h2>
+
         <p>Information about your password and password policies.</p>
         <hr/>
         <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey">Admin</a></h2>
+
         <p>PWM administrative functions</p>
         <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
         <hr/>
         <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey">Logout</a></h2>
+
         <p>Logout of the PWM password self service application.</p>
         <% } %>
     </div>
 </div>
-<%@ include file="jsp/footer.jsp" %>
+<%@ include file="WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>

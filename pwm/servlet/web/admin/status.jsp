@@ -36,10 +36,12 @@
 <% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body class="tundra" onload="pwmPageLoadHandler();">
 <div id="wrapper">
-<jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Status"/></jsp:include>
+<jsp:include page="/WEB-INF/jsp/header-body.jsp">
+    <jsp:param name="pwm.PageName" value="PWM Status"/>
+</jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <table>
@@ -85,7 +87,8 @@
             Configuration Time
         </td>
         <td>
-            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %> (epoch <%= contextManager.getConfigReader().getConfigurationEpoch() %>)
+            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %>
+            (epoch <%= contextManager.getConfigReader().getConfigurationEpoch() %>)
         </td>
     </tr>
     <tr>
@@ -130,7 +133,9 @@
         <td>
             <%
                 String vendor = "[detection error]";
-                try { vendor = contextManager.getProxyChaiProvider().getDirectoryVendor().toString(); } catch (Exception e) { /* nothing */ }
+                try {
+                    vendor = contextManager.getProxyChaiProvider().getDirectoryVendor().toString();
+                } catch (Exception e) { /* nothing */ }
             %>
             <%= vendor %>
         </td>
@@ -162,7 +167,9 @@
                         draggable: true
                     });
                     refreshWaitDialog.show();
-                    setTimeout(function(){doRefreshCheck()},1000);
+                    setTimeout(function() {
+                        doRefreshCheck()
+                    }, 1000);
                 }
 
                 function doRefreshCheck() {
@@ -172,23 +179,31 @@
                         error: function(errorObj) {
                             alert('unable to refresh data ' + errorObj)
                         },
-                        load: function(data){
+                        load: function(data) {
                             window.location = window.location;
                         }
                     });
                 }
             </script>
-            &nbsp;&nbsp;<button onclick="refreshHealthCheck()">Refresh</button>
+            &nbsp;&nbsp;
+            <button onclick="refreshHealthCheck()">Refresh</button>
         </td>
     </tr>
     <% for (final HealthRecord healthRecord : healthRecords) { %>
     <%
         final String color;
         switch (healthRecord.getHealthStatus()) {
-            case GOOD: color = "#8ced3f"; break;
-            case CAUTION: color = "#FFCD59"; break;
-            case WARN: color = "#d20734";  break;
-            default: color = "white";
+            case GOOD:
+                color = "#8ced3f";
+                break;
+            case CAUTION:
+                color = "#FFCD59";
+                break;
+            case WARN:
+                color = "#d20734";
+                break;
+            default:
+                color = "white";
         }
     %>
     <tr>
@@ -517,7 +532,7 @@
 </table>
 </div>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>
 

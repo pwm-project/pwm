@@ -27,19 +27,21 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<jsp:include page="../jsp/header.jsp"/>
+<jsp:include page="/WEB-INF/jsp/header.jsp"/>
 <body onload="pwmPageLoadHandler();">
 <meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>"/>
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Administration"/></jsp:include>
-    <div id="content">                                    
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="PWM Administration"/>
+    </jsp:include>
+    <div id="content">
         <div id="centerbody">
             Loading... <a href="<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>">PWM Status</a>
         </div>
     </div>
-    <br class="clear" />
+    <br class="clear"/>
 </div>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>
 

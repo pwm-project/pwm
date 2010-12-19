@@ -35,7 +35,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <%
     final PwmSession beanMgr = PwmSession.getPwmSession(session);
@@ -43,113 +43,112 @@
     final String searchRoot = beanMgr.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
 %>
 <table>
-<tr>
-<td width="33%">&nbsp;</td>
-<td width="33%">
-<table width="600">
     <tr>
-        <td>
-            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <td width="33%">&nbsp;</td>
+        <td width="33%">
+            <table width="600">
                 <tr>
-                    <td height="8"></td>
-                </tr>
-            </table>
-            <table class="tablemain">
-                <tr>
-                    <td class="tableheader" colspan="10">
-                        PWM User Report
-                    </td>
-                </tr>
-                <tr>
-                    <td class="tablekey">
-                        Total Users
-                    </td>
-                    <td class="tablebody" colspan="3">
-                        <%
-                            try {
-                                final String searchFilter = "(objectClass=inetOrgPerson)";
-                                final Map results = provider.search(searchRoot, searchFilter);
-                                out.print(results.size());
-                            } catch (ChaiUnavailableException e) {
-                                e.printStackTrace();
-                            } catch (ChaiOperationException e) {
-                                e.printStackTrace();
-                            }
-                        %>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="tablekey">
-                        Users who have changed password using PWM
-                    </td>
-                    <td class="tablebody" colspan="3">
-                        <%
-                            try {
-                                final String searchFilter = "(&(objectClass=inetOrgPerson)(pwmLastPwdUpdate=*))";
-                                final Map results = provider.search(searchRoot, searchFilter);
-                                out.print(results.size());
-                            } catch (ChaiUnavailableException e) {
-                                e.printStackTrace();
-                            } catch (ChaiOperationException e) {
-                                e.printStackTrace();
-                            }
-                        %>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="tablekey">
-                        Users with completed PWM responses
-                    </td>
-                    <td class="tablebody" colspan="3">
-                        <%
-                            try {
-                                final String searchFilter = "(&(objectClass=inetOrgPerson)(pwmResponseSet=*))";
-                                final Map results = provider.search(searchRoot, searchFilter);
-                                out.print(results.size());
-                            } catch (ChaiUnavailableException e) {
-                                e.printStackTrace();
-                            } catch (ChaiOperationException e) {
-                                e.printStackTrace();
-                            }
-                        %>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="tablekey">
-                        Users who have not setup their PWM responses
-                    </td>
-                    <td class="tablebody" colspan="3">
-                        <%
-                            try {
-                                final String searchFilter = "(&(objectClass=inetOrgPerson)(!(pwmResponseSet=*)))";
-                                //alphabetic sort
-                                final Map<String, Properties> results = new TreeMap<String, Properties>(
-                                        new Comparator<String>() {
-                                            public int compare(final String o1, final String o2)
-                                            {
-                                                return ((o1).toLowerCase().compareTo((o2).toLowerCase()));
+                    <td>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td height="8"></td>
+                            </tr>
+                        </table>
+                        <table class="tablemain">
+                            <tr>
+                                <td class="tableheader" colspan="10">
+                                    PWM User Report
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tablekey">
+                                    Total Users
+                                </td>
+                                <td class="tablebody" colspan="3">
+                                    <%
+                                        try {
+                                            final String searchFilter = "(objectClass=inetOrgPerson)";
+                                            final Map results = provider.search(searchRoot, searchFilter);
+                                            out.print(results.size());
+                                        } catch (ChaiUnavailableException e) {
+                                            e.printStackTrace();
+                                        } catch (ChaiOperationException e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tablekey">
+                                    Users who have changed password using PWM
+                                </td>
+                                <td class="tablebody" colspan="3">
+                                    <%
+                                        try {
+                                            final String searchFilter = "(&(objectClass=inetOrgPerson)(pwmLastPwdUpdate=*))";
+                                            final Map results = provider.search(searchRoot, searchFilter);
+                                            out.print(results.size());
+                                        } catch (ChaiUnavailableException e) {
+                                            e.printStackTrace();
+                                        } catch (ChaiOperationException e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tablekey">
+                                    Users with completed PWM responses
+                                </td>
+                                <td class="tablebody" colspan="3">
+                                    <%
+                                        try {
+                                            final String searchFilter = "(&(objectClass=inetOrgPerson)(pwmResponseSet=*))";
+                                            final Map results = provider.search(searchRoot, searchFilter);
+                                            out.print(results.size());
+                                        } catch (ChaiUnavailableException e) {
+                                            e.printStackTrace();
+                                        } catch (ChaiOperationException e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tablekey">
+                                    Users who have not setup their PWM responses
+                                </td>
+                                <td class="tablebody" colspan="3">
+                                    <%
+                                        try {
+                                            final String searchFilter = "(&(objectClass=inetOrgPerson)(!(pwmResponseSet=*)))";
+                                            //alphabetic sort
+                                            final Map<String, Properties> results = new TreeMap<String, Properties>(
+                                                    new Comparator<String>() {
+                                                        public int compare(final String o1, final String o2) {
+                                                            return ((o1).toLowerCase().compareTo((o2).toLowerCase()));
+                                                        }
+                                                    });
+                                            results.putAll(provider.search(searchRoot, searchFilter));
+                                            for (final String dn : results.keySet()) {
+                                                out.print(dn);
+                                                out.println("<br/>");
                                             }
-                                        });
-                                results.putAll(provider.search(searchRoot, searchFilter));
-                                for (final String dn : results.keySet()) {
-                                    out.print(dn);
-                                    out.println("<br/>");
-                                }
-                            } catch (ChaiUnavailableException e) {
-                                e.printStackTrace();
-                            } catch (ChaiOperationException e) {
-                                e.printStackTrace();
-                            }
-                        %>
+                                        } catch (ChaiUnavailableException e) {
+                                            e.printStackTrace();
+                                        } catch (ChaiOperationException e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </table>
         </td>
+        <td width="33%">&nbsp;</td>
     </tr>
-</table>
-</td>
-<td width="33%">&nbsp;</td>
-</tr>
 </table>
 </body>
 </html>

@@ -32,20 +32,24 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final password.pwm.config.Configuration pwmConfig = pwmSession.getConfig(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="../jsp/header-body.jsp"><jsp:param name="pwm.PageName" value="PWM Configuration Settings"/></jsp:include>
+    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="PWM Configuration Settings"/>
+    </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <p>
-            This screen shows the current running configuration.   The configuration was loaded at
-            <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>.  You
-            can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a> to modify the configuration.
+            This screen shows the current running configuration. The configuration was loaded at
+            <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>. You
+            can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
+            to modify the configuration.
         </p>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
-            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%></a></li>
+            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%>
+            </a></li>
             <% } %>
         </ol>
         <%
@@ -55,10 +59,11 @@
         <table>
             <tr>
                 <td class="title" colspan="10">
-                    <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %></a>
+                    <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %>
+                    </a>
                 </td>
             </tr>
-            <%  for (final PwmSetting loopSetting : loopSettings) { %>
+            <% for (final PwmSetting loopSetting : loopSettings) { %>
             <tr>
                 <td class="key" style="width:100px; text-align:center;">
                     <%= loopSetting.getLabel(request.getLocale()) %>
@@ -69,8 +74,7 @@
                             out.write("* not shown *");
                         } else {
                             switch (loopSetting.getSyntax()) {
-                                case STRING_ARRAY:
-                                {
+                                case STRING_ARRAY: {
                                     final List<String> values = pwmConfig.readStringArraySetting(loopSetting);
                                     for (final String value : values) {
                                         out.write(value + "<br/>");
@@ -79,22 +83,20 @@
                                 break;
 
                                 case LOCALIZED_STRING:
-                                case LOCALIZED_TEXT_AREA:
-                                {
+                                case LOCALIZED_TEXT_AREA: {
                                     for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
-                                        out.write("<b>" + locale + "</b>" + pwmConfig.readLocalizedStringSetting(loopSetting,locale) + "<br/>");
+                                        out.write("<b>" + locale + "</b>" + pwmConfig.readLocalizedStringSetting(loopSetting, locale) + "<br/>");
                                     }
 
                                 }
                                 break;
 
-                                case LOCALIZED_STRING_ARRAY:
-                                {
+                                case LOCALIZED_STRING_ARRAY: {
                                     for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
                                         out.write("<table><tr><td>");
                                         out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
                                         out.write("</td><td>");
-                                        for (final String value : pwmConfig.readFormSetting(loopSetting,locale)) {
+                                        for (final String value : pwmConfig.readFormSetting(loopSetting, locale)) {
                                             out.write(value + "<br/>");
                                         }
                                         out.write("</td></tr></table>");
@@ -117,18 +119,6 @@
     </div>
 </div>
 <br class="clear"/>
-<%@ include file="../jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
