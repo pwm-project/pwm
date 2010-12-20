@@ -65,8 +65,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
-    private Map<PwmSetting,StoredValue> settingMap = new HashMap<PwmSetting,StoredValue>();
-    private Map<String,String> propertyMap = new HashMap<String,String>();
+    private Map<PwmSetting, StoredValue> settingMap = new HashMap<PwmSetting, StoredValue>();
+    private Map<String, String> propertyMap = new HashMap<String, String>();
 
     private boolean locked = false;
 
@@ -82,12 +82,12 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        final StoredConfiguration clonedConfig = (StoredConfiguration)super.clone();
+        final StoredConfiguration clonedConfig = (StoredConfiguration) super.clone();
         clonedConfig.createTime = this.createTime;
         clonedConfig.modifyTime = this.modifyTime;
-        clonedConfig.settingMap = new HashMap<PwmSetting,StoredValue>();
+        clonedConfig.settingMap = new HashMap<PwmSetting, StoredValue>();
         clonedConfig.settingMap.putAll(this.settingMap);
-        clonedConfig.propertyMap = new HashMap<String,String>();
+        clonedConfig.propertyMap = new HashMap<String, String>();
         clonedConfig.propertyMap.putAll(this.propertyMap);
         clonedConfig.locked = false;
         return clonedConfig;
@@ -99,7 +99,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public static StoredConfiguration getDefaultConfiguration() {
         final StoredConfiguration config = new StoredConfiguration();
-        for (final PwmSetting loopSetting : PwmSetting.values() ) {
+        for (final PwmSetting loopSetting : PwmSetting.values()) {
             config.settingMap.put(loopSetting, defaultValue(loopSetting));
         }
         return config;
@@ -138,7 +138,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             case BOOLEAN:
             case NUMERIC:
             case PASSWORD:
-                return (String)settingMap.get(setting).toNativeObject();
+                return (String) settingMap.get(setting).toNativeObject();
 
             default:
                 throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
@@ -164,18 +164,18 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public void resetSetting(final PwmSetting setting) {
         preModifyActions();
-        settingMap.put(setting,defaultValue(setting));
+        settingMap.put(setting, defaultValue(setting));
     }
 
-    public Map<String,String> readLocalizedStringSetting(final PwmSetting setting) {
+    public Map<String, String> readLocalizedStringSetting(final PwmSetting setting) {
         if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read LOCALIZED_STRING or LOCALIZED_TEXT_AREA values for setting: " + setting.toString());
         }
 
-        return (Map<String,String>)settingMap.get(setting).toNativeObject();
+        return (Map<String, String>) settingMap.get(setting).toNativeObject();
     }
 
-    public void writeLocalizedSetting(final PwmSetting setting, final Map<String,String> values) {
+    public void writeLocalizedSetting(final PwmSetting setting, final Map<String, String> values) {
         preModifyActions();
         if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING or LOCALIZED_TEXT_AREA setting: " + setting.toString());
@@ -189,7 +189,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
         }
 
-        return (List<String>)settingMap.get(setting).toNativeObject();
+        return (List<String>) settingMap.get(setting).toNativeObject();
     }
 
     public void writeStringArraySetting(final PwmSetting setting, final List<String> values) {
@@ -201,15 +201,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
         settingMap.put(setting, new StoredValue.StoredValueList(values));
     }
 
-    public Map<String,List<String>> readLocalizedStringArraySetting(final PwmSetting setting) {
+    public Map<String, List<String>> readLocalizedStringArraySetting(final PwmSetting setting) {
         if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString());
         }
 
-        return (Map<String,List<String>>)settingMap.get(setting).toNativeObject();
+        return (Map<String, List<String>>) settingMap.get(setting).toNativeObject();
     }
 
-    public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String,List<String>> values) {
+    public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String, List<String>> values) {
         preModifyActions();
         if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write LOCALIZED_STRING_ARRAY value to setting: " + setting.toString());
@@ -236,8 +236,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public String toXml()
-            throws IOException
-    {
+            throws IOException {
         final Element pwmConfigElement = new Element("PwmConfiguration");
         pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
         pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
@@ -256,8 +255,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         final Element settingsElement = new Element("settings");
-        final Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory = PwmSetting.valuesByCategory();
-        for (final PwmSetting.Category category: valuesByCategory.keySet()) {
+        final Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory = PwmSetting.valuesByCategory(null);
+        for (final PwmSetting.Category category : valuesByCategory.keySet()) {
             for (final PwmSetting setting : valuesByCategory.get(category)) {
                 final Element settingElement = new Element("setting");
                 settingElement.setAttribute("key", setting.getKey());
@@ -273,7 +272,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     final List<Element> valueElements;
                     if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
                         final String key = STORED_DATE_FORMAT.format(createTime) + StoredConfiguration.class.getSimpleName();
-                        valueElements = ((StoredValue.StoredValuePassword)settingMap.get(setting)).toXmlValues("value",key);
+                        valueElements = ((StoredValue.StoredValuePassword) settingMap.get(setting)).toXmlValues("value", key);
                     } else {
                         valueElements = settingMap.get(setting).toXmlValues("value");
                     }
@@ -299,10 +298,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
 
-
     public static StoredConfiguration fromXml(final String xmlData)
-            throws Exception
-    {
+            throws Exception {
         final SAXBuilder builder = new SAXBuilder();
         final Reader in = new StringReader(xmlData);
         final Document inputDocument;
@@ -326,7 +323,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             final Element settingsElement = rootElement.getChild("settings");
             final List settingElements = settingsElement.getChildren("setting");
             for (final Object loopSetting : settingElements) {
-                final Element settingElement = (Element)loopSetting;
+                final Element settingElement = (Element) loopSetting;
                 final String keyName = settingElement.getAttributeValue("key");
                 final PwmSetting pwmSetting = PwmSetting.forKey(keyName);
                 seenSettings.add(pwmSetting);
@@ -340,12 +337,11 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     } else {
                         switch (pwmSetting.getSyntax()) {
                             case LOCALIZED_STRING:
-                            case LOCALIZED_TEXT_AREA:
-                            {
+                            case LOCALIZED_TEXT_AREA: {
                                 final List valueElements = settingElement.getChildren("value");
-                                final Map<String,String> values = new TreeMap<String,String>();
+                                final Map<String, String> values = new TreeMap<String, String>();
                                 for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element)loopValue;
+                                    final Element loopValueElement = (Element) loopValue;
                                     final String localeString = loopValueElement.getAttributeValue("locale");
                                     final String value = loopValueElement.getText();
                                     values.put(localeString == null ? "" : localeString, value);
@@ -354,12 +350,11 @@ public class StoredConfiguration implements Serializable, Cloneable {
                             }
                             break;
 
-                            case STRING_ARRAY:
-                            {
+                            case STRING_ARRAY: {
                                 final List valueElements = settingElement.getChildren("value");
                                 final List<String> values = new ArrayList<String>();
                                 for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element)loopValue;
+                                    final Element loopValueElement = (Element) loopValue;
                                     final String value = loopValueElement.getText();
                                     values.add(value);
                                 }
@@ -367,12 +362,11 @@ public class StoredConfiguration implements Serializable, Cloneable {
                             }
                             break;
 
-                            case LOCALIZED_STRING_ARRAY:
-                            {
+                            case LOCALIZED_STRING_ARRAY: {
                                 final List valueElements = settingElement.getChildren("value");
-                                final Map<String,List<String>> values = new TreeMap<String,List<String>>();
+                                final Map<String, List<String>> values = new TreeMap<String, List<String>>();
                                 for (final Object loopValue : valueElements) {
-                                    final Element loopValueElement = (Element)loopValue;
+                                    final Element loopValueElement = (Element) loopValue;
                                     final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
                                     final String value = loopValueElement.getText();
                                     List<String> valueList = values.get(localeString);
@@ -386,8 +380,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                             }
                             break;
 
-                            case PASSWORD:
-                            {
+                            case PASSWORD: {
                                 final Element valueElement = settingElement.getChild("value");
                                 final String encodedValue = valueElement.getText();
                                 try {
@@ -413,10 +406,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
             final Element propertiesElement = rootElement.getChild("properties");
             if (propertiesElement != null) {
                 for (final Object loopElementObj : propertiesElement.getChildren("property")) {
-                    final Element element = (Element)loopElementObj;
+                    final Element element = (Element) loopElementObj;
                     final String key = element.getAttributeValue("key");
                     final String value = element.getText();
-                    newConfiguration.propertyMap.put(key,value);
+                    newConfiguration.propertyMap.put(key, value);
                 }
             }
 
@@ -490,14 +483,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
             final Pattern loopPattern = loopSetting.getRegExPattern();
 
             switch (loopSetting.getSyntax()) {
-                case NUMERIC:
-                {
+                case NUMERIC: {
                     final String value = this.readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
                         errorString.append("missing required value");
                         errorStrings.add(errorString.toString());
                     } else {
-                        try { Integer.parseInt(value); } catch (Exception e) {
+                        try {
+                            Integer.parseInt(value);
+                        } catch (Exception e) {
                             errorString.append("can not parse integer value:").append(e.getMessage());
                             errorStrings.add(errorString.toString());
                         }
@@ -505,14 +499,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 break;
 
-                case BOOLEAN:
-                {
+                case BOOLEAN: {
                     final String value = this.readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
                         errorString.append("missing required value");
                         errorStrings.add(errorString.toString());
                     } else {
-                        try { Boolean.parseBoolean(value); } catch (Exception e) {
+                        try {
+                            Boolean.parseBoolean(value);
+                        } catch (Exception e) {
                             errorString.append("can not parse boolean value:").append(e.getMessage());
                             errorStrings.add(errorString.toString());
                         }
@@ -520,8 +515,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 break;
 
-                case STRING_ARRAY:
-                {
+                case STRING_ARRAY: {
                     final List<String> values = this.readStringArraySetting(loopSetting);
                     for (final String value : values) {
                         if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
@@ -539,9 +533,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 break;
 
                 case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA:
-                {
-                    final Map<String,String> values = this.readLocalizedStringSetting(loopSetting);
+                case LOCALIZED_TEXT_AREA: {
+                    final Map<String, String> values = this.readLocalizedStringSetting(loopSetting);
                     for (final String locale : values.keySet()) {
                         final String value = values.get(locale);
                         if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
@@ -560,9 +553,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 break;
 
-                case LOCALIZED_STRING_ARRAY:
-                {
-                    final Map<String,List<String>> values = this.readLocalizedStringArraySetting(loopSetting);
+                case LOCALIZED_STRING_ARRAY: {
+                    final Map<String, List<String>> values = this.readLocalizedStringArraySetting(loopSetting);
                     for (final String locale : values.keySet()) {
                         for (final String value : values.get(locale)) {
                             if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
@@ -580,8 +572,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 break;
 
-                default:
-                {
+                default: {
                     final String value = readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
                         errorString.append("missing required value");
@@ -609,8 +600,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     private static class TextConversations {
         private static String encryptValue(final String value, final String key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException
-        {
+                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
             if (value == null || value.length() < 1) {
                 return "";
             }
@@ -623,8 +613,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         private static String decryptValue(final String value, final String key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
-        {
+                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             if (value == null || value.length() < 1) {
                 return "";
             }
@@ -638,20 +627,21 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         private static SecretKey makeKey(final String text)
-                throws NoSuchAlgorithmException, UnsupportedEncodingException
-        {
+                throws NoSuchAlgorithmException, UnsupportedEncodingException {
             final MessageDigest md = MessageDigest.getInstance("SHA1");
             md.update(text.getBytes("iso-8859-1"), 0, text.length());
             final byte[] key = new byte[16];
-            System.arraycopy(md.digest(),0,key,0,16);
-            return  new SecretKeySpec(key,"AES");
+            System.arraycopy(md.digest(), 0, key, 0, 16);
+            return new SecretKeySpec(key, "AES");
         }
     }
 
 
     private interface StoredValue {
         String toJsonString();
+
         List<Element> toXmlValues(final String valueElementName);
+
         Object toNativeObject();
 
         static class StoredValueString implements StoredValue {
@@ -685,7 +675,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         static class StoredValueLocaleList implements StoredValue {
-            final Map<String,String> values;
+            final Map<String, String> values;
 
             public StoredValueLocaleList(final Map<String, String> values) {
                 this.values = values;
@@ -697,7 +687,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
 
                 final JSONObject srcMap = (JSONObject) JSONValue.parse(input);
-                final Map<String,String> returnMap = new TreeMap<String,String>();
+                final Map<String, String> returnMap = new TreeMap<String, String>();
                 for (final Object key : srcMap.keySet()) {
                     returnMap.put(key.toString(), srcMap.get(key).toString());
                 }
@@ -718,14 +708,14 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     final Element valueElement = new Element(valueElementName);
                     valueElement.addContent(new CDATA(value));
                     if (locale != null && locale.length() > 0) {
-                        valueElement.setAttribute("locale",locale);
+                        valueElement.setAttribute("locale", locale);
                     }
                     returnList.add(valueElement);
                 }
                 return returnList;
             }
 
-            public Map<String,String> toNativeObject() {
+            public Map<String, String> toNativeObject() {
                 return Collections.unmodifiableMap(values);
             }
 
@@ -781,9 +771,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         static class StoredValueLocaleMap implements StoredValue {
-            final Map<String,List<String>> values;
+            final Map<String, List<String>> values;
 
-            public StoredValueLocaleMap(final Map<String,List<String>> values) {
+            public StoredValueLocaleMap(final Map<String, List<String>> values) {
                 this.values = values;
             }
 
@@ -793,10 +783,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
 
                 final JSONObject srcMap = (JSONObject) JSONValue.parse(input);
-                final Map<String,List<String>> returnMap = new TreeMap<String,List<String>>();
+                final Map<String, List<String>> returnMap = new TreeMap<String, List<String>>();
                 for (final Object key : srcMap.keySet()) {
                     final List<String> returnList = new ArrayList<String>();
-                    final JSONArray srcList = (JSONArray)srcMap.get(key);
+                    final JSONArray srcList = (JSONArray) srcMap.get(key);
                     for (final Object item : srcList) {
                         returnList.add(item.toString());
                     }
@@ -819,7 +809,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                         final Element valueElement = new Element(valueElementName);
                         valueElement.addContent(new CDATA(value));
                         if (locale != null && locale.length() > 0) {
-                            valueElement.setAttribute("locale",locale);
+                            valueElement.setAttribute("locale", locale);
                         }
                         returnList.add(valueElement);
                     }
@@ -827,7 +817,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 return returnList;
             }
 
-            public Map<String,List<String>> toNativeObject() {
+            public Map<String, List<String>> toNativeObject() {
                 return Collections.unmodifiableMap(values);
             }
 

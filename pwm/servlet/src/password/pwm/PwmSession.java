@@ -66,20 +66,18 @@ public class PwmSession implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static ForgottenPasswordBean getForgottenPasswordBean(final HttpServletRequest req)
-    {
+    public static ForgottenPasswordBean getForgottenPasswordBean(final HttpServletRequest req) {
         return PwmSession.getPwmSession(req).getForgottenPasswordBean();
     }
 
-    public static PwmSession getPwmSession(final HttpSession httpSession)
-    {
+    public static PwmSession getPwmSession(final HttpSession httpSession) {
         if (httpSession == null) {
             final RuntimeException e = new NullPointerException("cannot fetch a pwmSession using a null httpSession");
-            LOGGER.warn("attempt to fetch a pwmSession with a null session",e);
+            LOGGER.warn("attempt to fetch a pwmSession with a null session", e);
             throw e;
         }
 
-        PwmSession returnSession = (PwmSession)httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
+        PwmSession returnSession = (PwmSession) httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
         if (returnSession == null) {
             final PwmSession newPwmSession = new PwmSession(httpSession);
             httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION, newPwmSession);
@@ -96,30 +94,25 @@ public class PwmSession implements Serializable {
         return returnSession;
     }
 
-    public static PwmSession getPwmSession(final HttpServletRequest httpRequest)
-    {
+    public static PwmSession getPwmSession(final HttpServletRequest httpRequest) {
         return PwmSession.getPwmSession(httpRequest.getSession());
     }
 
-    public static SessionStateBean getSessionStateBean(final HttpSession session)
-    {
+    public static SessionStateBean getSessionStateBean(final HttpSession session) {
         return PwmSession.getPwmSession(session).getSessionStateBean();
     }
 
-    public static UserInfoBean getUserInfoBean(final HttpSession session)
-    {
+    public static UserInfoBean getUserInfoBean(final HttpSession session) {
         return PwmSession.getPwmSession(session).getUserInfoBean();
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmSession()
-    {
+    public PwmSession() {
         //should not be used, only made for the servlet listener.
     }
 
-    private PwmSession(final HttpSession httpSession)
-    {
+    private PwmSession(final HttpSession httpSession) {
         this.creationTime = System.currentTimeMillis();
         this.httpSession = httpSession;
         this.getSessionStateBean().setSessionID("");
@@ -140,8 +133,7 @@ public class PwmSession implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public ActivateUserServletBean getActivateUserServletBean()
-    {
+    public ActivateUserServletBean getActivateUserServletBean() {
         if (activateUserServletBean == null) {
             activateUserServletBean = new ActivateUserServletBean();
             final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.ACTIVATE_USER_FORM, sessionStateBean.getLocale());
@@ -151,28 +143,23 @@ public class PwmSession implements Serializable {
         return activateUserServletBean;
     }
 
-    public ChangePasswordBean getChangePasswordBean()
-    {
+    public ChangePasswordBean getChangePasswordBean() {
         return changePasswordBean;
     }
 
-    public long getCreationTime()
-    {
+    public long getCreationTime() {
         return creationTime;
     }
 
-    public ForgottenPasswordBean getForgottenPasswordBean()
-    {
+    public ForgottenPasswordBean getForgottenPasswordBean() {
         return forgottenPasswordBean;
     }
 
-    public ConfigManagerBean getConfigManagerBean()
-    {
+    public ConfigManagerBean getConfigManagerBean() {
         return configManagerBean;
     }
 
-    public NewUserServletBean getNewUserServletBean()
-    {
+    public NewUserServletBean getNewUserServletBean() {
         if (newUserServletBean == null) {
             newUserServletBean = new NewUserServletBean();
             final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.NEWUSER_FORM, sessionStateBean.getLocale());
@@ -182,18 +169,15 @@ public class PwmSession implements Serializable {
         return newUserServletBean;
     }
 
-    public SessionManager getSessionManager()
-    {
+    public SessionManager getSessionManager() {
         return sessionManager;
     }
 
-    public SessionStateBean getSessionStateBean()
-    {
+    public SessionStateBean getSessionStateBean() {
         return sessionStateBean;
     }
 
-    public UpdateAttributesServletBean getUpdateAttributesServletBean()
-    {
+    public UpdateAttributesServletBean getUpdateAttributesServletBean() {
         if (updateAttributesServletBean == null) {
             updateAttributesServletBean = new UpdateAttributesServletBean();
             final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, sessionStateBean.getLocale());
@@ -203,8 +187,7 @@ public class PwmSession implements Serializable {
         return updateAttributesServletBean;
     }
 
-    public UserInfoBean getUserInfoBean()
-    {
+    public UserInfoBean getUserInfoBean() {
         if (userInfoBean == null) {
             userInfoBean = new UserInfoBean();
         }
@@ -214,8 +197,7 @@ public class PwmSession implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void clearChangePasswordBean()
-    {
+    public void clearChangePasswordBean() {
         changePasswordBean = new ChangePasswordBean();
     }
 
@@ -226,7 +208,6 @@ public class PwmSession implements Serializable {
         changePasswordBean = new ChangePasswordBean();
         setupResponseBean = new SetupResponsesBean();
         configManagerBean = new ConfigManagerBean();
-
 
         updateAttributesServletBean = null;
         newUserServletBean = null;
@@ -240,8 +221,7 @@ public class PwmSession implements Serializable {
         sessionManager = new SessionManager(this);
     }
 
-    public Configuration getConfig()
-    {
+    public Configuration getConfig() {
         return getContextManager().getConfig();
     }
 
@@ -279,8 +259,7 @@ public class PwmSession implements Serializable {
     /**
      * Unautenticate the pwmSession
      */
-    public void unauthenticateUser()
-    {
+    public void unauthenticateUser() {
         final SessionStateBean ssBean = getSessionStateBean();
 
         getUserInfoBean().clearPermissions();
@@ -315,7 +294,7 @@ public class PwmSession implements Serializable {
     }
 
     public int getMaxInactiveInterval() {
-        return httpSession == null ? - 1 : httpSession.getMaxInactiveInterval();
+        return httpSession == null ? -1 : httpSession.getMaxInactiveInterval();
     }
 
     public HttpSession getHttpSession() {

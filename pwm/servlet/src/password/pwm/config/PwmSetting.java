@@ -34,381 +34,381 @@ import java.util.regex.Pattern;
 public enum PwmSetting {
     // user interface
     APPLICATION_TILE(
-            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.USER_INTERFACE, true),
+            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
     PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
     DISPLAY_PASSWORD_GUIDE_TEXT(
-            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
     PASSWORD_CHANGE_SUCCESS_MESSAGE(
-            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false),
+            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
-            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
     DISPLAY_CANCEL_BUTTON(
-            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true),
+            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
 
 
     // general settings
     URL_FORWARD(
-            "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true),
+            "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
-            "pwm.logoutURL", Syntax.STRING, Category.GENERAL, false),
+            "pwm.logoutURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     LOGOUT_AFTER_PASSWORD_CHANGE(
-            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true),
+            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true),
+            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true),
+            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     EXPIRE_CHECK_DURING_AUTH(
-            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.GENERAL, true),
+            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_SYNC_MIN_WAIT_TIME(
-            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
+            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true),
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true),
+            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
     WORDLIST_FILENAME(
-            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false),
+            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     SEEDLIST_FILENAME(
-            "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false),
+            "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     GOOGLE_ANAYLTICS_TRACKER(
-            "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false),
+            "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
 
     //ldap directory
     LDAP_SERVER_URLS(
-            "ldap.serverUrls", Syntax.STRING_ARRAY, Category.LDAP, true),
+            "ldap.serverUrls", Syntax.STRING_ARRAY, Category.LDAP, true, Level.BASIC),
     LDAP_PROMISCUOUS_SSL(
-            "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true),
+            "ldap.promiscuousSSL", Syntax.BOOLEAN, Category.LDAP, true, Level.BASIC),
     LDAP_PROXY_USER_DN(
-            "ldap.proxy.username", Syntax.STRING, Category.LDAP, true),
+            "ldap.proxy.username", Syntax.STRING, Category.LDAP, true, Level.BASIC),
     LDAP_PROXY_USER_PASSWORD(
-            "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true),
+            "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true, Level.BASIC),
     LDAP_TEST_USER_DN(
-            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false),
+            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.ADVANCED),
     LDAP_CONTEXTLESS_ROOT(
-            "ldap.rootContexts", Syntax.STRING, Category.LDAP, false),
+            "ldap.rootContexts", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     LDAP_LOGIN_CONTEXTS(
-            "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false),
+            "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true),
+            "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     USERNAME_SEARCH_FILTER(
-            "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true),
+            "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     AUTO_ADD_OBJECT_CLASSES(
-            "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false),
+            "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_CHANGE_PASSWORD(
-            "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true),
+            "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true),
+            "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true),
+            "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_PROXY_IDLE_TIMEOUT(
-            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true),
+            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
-            "email.smtp.address", Syntax.STRING, Category.EMAIL, false),
+            "email.smtp.address", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_USER_MAIL_ATTRIBUTE(
-            "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true),
+            "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_ADMIN_ALERT_TO(
-            "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false),
+            "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ADMIN_ALERT_FROM(
-            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false),
+            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHANGEPASSWORD_FROM(
-            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHANGEPASSWORD_SUBJECT(
-            "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHANGEPASSWORD_BODY(
-            "email.changePassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.changePassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHANGEPASSWORD_BODY_HMTL(
-            "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_SUBJECT(
-            "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_FROM(
-            "email.newUser.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.newUser.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_BODY(
-            "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_BODY_HTML(
-            "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_SUBJECT(
-            "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_FROM(
-            "email.activation.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false),
+            "email.activation.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_BODY(
-            "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_BODY_HTML(
-            "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false),
+            "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHALLENGE_TOKEN_FROM(
-            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true),
+            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_CHALLENGE_TOKEN_SUBJECT(
-            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true),
+            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_CHALLENGE_TOKEN_BODY(
-            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true),
+            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_CHALLENGE_TOKEN_BODY_HTML(
-            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true),
+            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false),
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
-            "password.policy.minimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
-            "password.policy.maximumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_REPEAT(
-            "password.policy.maximumRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT(
-            "password.policy.maximumSequentialRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumSequentialRepeat", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_NUMERIC(
-            "password.policy.allowNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_NUMERIC(
-            "password.policy.allowFirstCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowFirstCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_NUMERIC(
-            "password.policy.allowLastCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowLastCharNumeric", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_NUMERIC(
-            "password.policy.maximumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_NUMERIC(
-            "password.policy.minimumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumNumeric", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_SPECIAL(
-            "password.policy.allowSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_FIRST_CHAR_SPECIAL(
-            "password.policy.allowFirstCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowFirstCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL(
-            "password.policy.allowLastCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.allowLastCharSpecial", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_SPECIAL(
-            "password.policy.maximumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_SPECIAL(
-            "password.policy.minimumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumSpecial", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_ALPHA(
-            "password.policy.maximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_ALPHA(
-            "password.policy.minimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_NON_ALPHA(
-            "password.policy.maximumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_NON_ALPHA(
-            "password.policy.minimumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumNonAlpha", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_UPPERCASE(
-            "password.policy.maximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_UPPERCASE(
-            "password.policy.minimumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumUpperCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_LOWERCASE(
-            "password.policy.maximumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_LOWERCASE(
-            "password.policy.minimumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumLowerCase", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MINIMUM_UNIQUE(
-            "password.policy.minimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
-            "password.policy.maximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.maximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ENABLE_WORDLIST(
-            "password.policy.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.policy.ADComplexity", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.policy.ADComplexity", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH(
-            "password.policy.regExMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.regExMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false, Level.ADVANCED),
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
-            "password.policy.regExNoMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.regExNoMatch", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false, Level.ADVANCED),
     PASSWORD_POLICY_DISALLOWED_VALUES(
-            "password.policy.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.disallowedValues", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false, Level.BASIC),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
-            "password.policy.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false),
+            "password.policy.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false, Level.ADVANCED),
     PASSWORD_SHAREDHISTORY_ENABLE(
-            "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true),
+            "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.ADVANCED),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.ADVANCED),
     PASSWORD_POLICY_MINIMUM_STRENGTH(
-            "password.policy.minimumStrength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true),
+            "password.policy.minimumStrength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_CHANGE_MESSAGE(
-            "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false),
+            "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.BASIC),
 
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true),
+            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
     INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
+            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true),
+            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
+            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
     INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true),
+            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
 
 
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
-            "events.healthCheck.minInterval", Syntax.NUMERIC, Category.LOGGING, false),
+            "events.healthCheck.minInterval", Syntax.NUMERIC, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_JAVA_STDOUT_LEVEL(
-            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false),
+            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
-            "events.java.log4jconfigFile", Syntax.STRING, Category.LOGGING, false),
+            "events.java.log4jconfigFile", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_PWMDB_MAX_EVENTS(
-            "events.pwmDB.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
+            "events.pwmDB.maxEvents", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_PWMDB_MAX_AGE(
-            "events.pwmDB.maxAge", Syntax.NUMERIC, Category.LOGGING, true),
+            "events.pwmDB.maxAge", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_PWMDB_LOG_LEVEL(
-            "events.pwmDB.logLevel", Syntax.STRING, Category.LOGGING, true),
+            "events.pwmDB.logLevel", Syntax.STRING, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_LDAP_ATTRIBUTE(
-            "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false),
+            "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_LDAP_MAX_EVENTS(
-            "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true),
+            "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_STARTUP(
-            "events.alert.startup.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.startup.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_SHUTDOWN(
-            "events.alert.shutdown.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.shutdown.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_INTRUDER_LOCKOUT(
-            "events.alert.intruder.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.intruder.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_FATAL_EVENT(
-            "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_CONFIG_MODIFY(
-            "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_DAILY_STATS(
-            "events.alert.dailyStats.enable", Syntax.BOOLEAN, Category.LOGGING, true),
+            "events.alert.dailyStats.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
 
     // recovery settings
     CHALLENGE_FORCE_SETUP(
-            "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     QUERY_MATCH_SETUP_RESPONSE(
-            "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true),
+            "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false),
+            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_MIN_RANDOM_SETUP(
-            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.RECOVERY, true),
+            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_ALLOW_UNLOCK(
-            "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_STORAGE_HASHED(
-            "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_CASE_INSENSITIVE(
-            "challenge.caseInsensitive", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.caseInsensitive", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
-            "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_SHOW_CONFIRMATION(
-            "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_CHALLENGES(
-            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_RANDOM_CHALLENGES(
-            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_MIN_RANDOM_REQUIRED(
-            "challenge.minRandomRequired", Syntax.NUMERIC, Category.RECOVERY, true),
+            "challenge.minRandomRequired", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_ATTRIBUTES(
-            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false),
+            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
     QUERY_MATCH_CHECK_RESPONSES(
-            "command.checkResponses.queryMatch", Syntax.STRING, Category.RECOVERY, true),
+            "command.checkResponses.queryMatch", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_ENABLE(
-            "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true),
+            "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_CHARACTERS(
-            "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true),
+            "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_LENGTH(
-            "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true),
+            "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
 
 
 /*    // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
-            "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true),
+            "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
-            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false),
+            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false, Level.ADVANCED),
 */
 
     // new user settings
     NEWUSER_ENABLE(
-            "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true),
+            "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true, Level.ADVANCED),
     NEWUSER_CONTEXT(
-            "newUser.createContext", Syntax.STRING, Category.NEWUSER, true),
+            "newUser.createContext", Syntax.STRING, Category.NEWUSER, true, Level.ADVANCED),
     NEWUSER_FORM(
-            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true),
+            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.ADVANCED),
     NEWUSER_UNIQUE_ATTRIBUES(
-            "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
+            "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
     NEWUSER_WRITE_ATTRIBUTES(
-            "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false),
+            "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
 
 
     // activation settings
     ACTIVATE_USER_ENABLE(
-            "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true),
+            "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.ADVANCED),
     ACTIVATE_USER_FORM(
-            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true),
+            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.ADVANCED),
     ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true),
+            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
     ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true),
+            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
     ACTIVATE_USER_WRITE_ATTRIBUTES(
-            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false),
+            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
 
     // update attributes
     UPDATE_ATTRIBUTES_ENABLE(
-            "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true),
+            "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.ADVANCED),
     UPDATE_ATTRIBUTES_QUERY_MATCH(
-            "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true),
+            "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.ADVANCED),
     UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false),
+            "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.ADVANCED),
     UPDATE_ATTRIBUTES_FORM(
-            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true),
+            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.ADVANCED),
 
     // shortcut settings
     SHORTCUT_ENABLE(
-            "shortcut.enable", Syntax.BOOLEAN, Category.SHORTCUT, false),
+            "shortcut.enable", Syntax.BOOLEAN, Category.SHORTCUT, false, Level.ADVANCED),
     SHORTCUT_ITEMS(
-            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false),
+            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false, Level.ADVANCED),
     SHORTCUT_HEADER_NAMES(
-            "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false),
+            "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false, Level.ADVANCED),
 
 
     // edirectory settings
     EDIRECTORY_READ_PASSWORD_POLICY(
-            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false),
+            "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false, Level.ADVANCED),
     EDIRECTORY_ALWAYS_USE_PROXY(
-            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true),
+            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
 
 
     // captcha
     RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", Syntax.STRING, Category.CAPTCHA, false),
+            "captcha.recaptcha.publicKey", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
     RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.CAPTCHA, false),
+            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.CAPTCHA, false, Level.ADVANCED),
     CAPTCHA_SKIP_PARAM(
-            "captcha.skip.param", Syntax.STRING, Category.CAPTCHA, false),
+            "captcha.skip.param", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
     CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false),
+            "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
 
     // advanced
     USE_X_FORWARDED_FOR_HEADER(
-            "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true),
+            "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     ALLOW_URL_SESSIONS(
-            "allowUrlSessions", Syntax.BOOLEAN, Category.ADVANCED, true),
+            "allowUrlSessions", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     ENABLE_SESSION_VERIFICATION(
-            "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true),
+            "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     FORCE_BASIC_AUTH(
-            "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true),
+            "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     EXTERNAL_CHANGE_METHODS(
-            "externalChangeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "externalChangeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     EXTERNAL_JUDGE_METHODS(
-            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     EXTERNAL_RULE_METHODS(
-            "externalRuleMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "externalRuleMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     DISALLOWED_HTTP_INPUTS(
-            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true),
+            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     PWMDB_LOCATION(
-            "pwmDb.location", Syntax.STRING, Category.ADVANCED, true),
+            "pwmDb.location", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
     PWMDB_IMPLEMENTATION(
-            "pwmDb.implementation", Syntax.STRING, Category.ADVANCED, true),
+            "pwmDb.implementation", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
     PWMDB_INIT_STRING(
-            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false),
+            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false),;
+            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),;
 // ------------------------------ STATICS ------------------------------
 
     private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
@@ -440,6 +440,7 @@ public enum PwmSetting {
     private final Syntax syntax;
     private final Category category;
     private final boolean required;
+    private final Level level;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -447,12 +448,14 @@ public enum PwmSetting {
             final String key,
             final Syntax syntax,
             final Category category,
-            final boolean required
+            final boolean required,
+            final Level level
     ) {
         this.key = key;
         this.syntax = syntax;
         this.category = category;
         this.required = required;
+        this.level = level;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -491,6 +494,10 @@ public enum PwmSetting {
 
     public boolean isRequired() {
         return required;
+    }
+
+    public Level getLevel() {
+        return level;
     }
 
     public Pattern getRegExPattern() {
@@ -532,7 +539,6 @@ public enum PwmSetting {
         INTRUDER,
         LOGGING,
         RECOVERY,
-        //FORGOTTEN_USERNAME,
         NEWUSER,
         ACTIVATION,
         UPDATE,
@@ -550,8 +556,31 @@ public enum PwmSetting {
         }
     }
 
-    public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory() {
-        return VALUES_BY_CATEGORY;
+    public enum Level {
+        BASIC,
+        ADVANCED
+    }
+
+    public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory(final Level byLevel) {
+        if (byLevel == null) {
+            return VALUES_BY_CATEGORY;
+        }
+
+        final Map<PwmSetting.Category, List<PwmSetting>> returnMap = new TreeMap<PwmSetting.Category, List<PwmSetting>>();
+
+        for (final Category category : VALUES_BY_CATEGORY.keySet()) {
+            final List<PwmSetting> loopList = new ArrayList<PwmSetting>();
+            for (final PwmSetting setting : VALUES_BY_CATEGORY.get(category)) {
+                if (setting.getLevel() == byLevel) {
+                    loopList.add(setting);
+                }
+            }
+            if (!loopList.isEmpty()) {
+                returnMap.put(category, loopList);
+            }
+        }
+
+        return returnMap;
     }
 
     public static PwmSetting forKey(final String key) {

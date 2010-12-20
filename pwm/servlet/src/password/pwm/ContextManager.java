@@ -316,6 +316,16 @@ public class ContextManager implements Serializable {
         }
 
         AlertHandler.alertStartup(this);
+
+        // kick off a health check in its own thread.
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    healthMonitor.checkImmediately();
+                    healthMonitor.getHealthRecords();
+                } catch (Exception e) { /**/}
+            }
+        }).start();
     }
 
     public void reinitialize() {

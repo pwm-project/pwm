@@ -28,7 +28,7 @@
 <% final PwmSetting.Category loopCategory = PwmSetting.Category.valueOf(request.getParameter("category")); %>
 <p style="border-top:0; padding-top:0; margin-top:0"><%= loopCategory.getDescription(request.getLocale())%>
 </p>
-<% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory().get(loopCategory)) { %>
+<% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(loopCategory)) { %>
 <div id="titlePane_<%=loopSetting.getKey()%>">
     <div style="float: right; padding-left:5px; padding-bottom:5px">
         <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default"

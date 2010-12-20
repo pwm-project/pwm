@@ -98,6 +98,8 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("editMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
                 LOGGER.debug(pwmSession, "switching to edit mode");
+            } else if ("setLevel".equalsIgnoreCase(processActionParam)) {
+                setLevel(req);
             }
         }
 
@@ -113,6 +115,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         // first time setup
         if (configManagerBean.getConfiguration() == null) {
+            configManagerBean.setLevel(PwmSetting.Level.BASIC);
             switch (configMode) {
                 case NEW:
                     if (configManagerBean.getConfiguration() == null) {
@@ -288,6 +291,26 @@ public class ConfigManagerServlet extends TopServlet {
                     storedConfig.writeSetting(setting, value);
             }
         }
+    }
+
+    private void setLevel(
+            final HttpServletRequest req
+    ) throws IOException, PwmException {
+        Validator.validatePwmFormID(req);
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final String requestedLevelstr = Validator.readStringFromRequest(req, "level", 255);
+
+        final PwmSetting.Level requestedLevel;
+
+        try {
+            requestedLevel = PwmSetting.Level.valueOf(requestedLevelstr);
+            LOGGER.trace("setting level to: " + requestedLevel);
+        } catch (Exception e) {
+            LOGGER.error("unknown level set request: " + requestedLevelstr);
+            return;
+        }
+
+        configManagerBean.setLevel(requestedLevel);
     }
 
     private void resetSetting(

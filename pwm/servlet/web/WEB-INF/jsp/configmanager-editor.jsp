@@ -36,6 +36,7 @@
 <% final Set<String> DEFAULT_LOCALES = new TreeSet<String>();
     for (final Locale l : Locale.getAvailableLocales()) DEFAULT_LOCALES.add(l.toString());%>
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
+<% final PwmSetting.Level level = PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <body class="tundra">
 <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
       type="text/css"/>
@@ -60,7 +61,7 @@
                 <td style="vertical-align:top; border:0">
                     <div id="leftNav" style="text-align:right;" class="nihilo">
                         <div id="navMenu" class="nihilo">
-                            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
+                            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
                             <div id="categoryMenu_<%=loopCategory.toString()%>">
                                 <%=loopCategory.getLabel(request.getLocale())%>
                             </div>
@@ -74,8 +75,38 @@
                             <% } %>
                         </div>
                         <script type="text/javascript">
+                            <%-- create nav menu --%>
                             var menuBar = new dijit.Menu({}, "navMenu");
+
+                            <%-- add simple/advanced mode switch --%>
                             menuBar.addChild(new dijit.MenuSeparator());
+                            <%-- add menu seperator --%>
+                            var modeSubMenu = new dijit.Menu();
+                            modeSubMenu.addChild(new dijit.MenuItem({
+                                id: "simpleModeButton",
+                                label: "Basic",
+                                onClick: function() {
+                                    getObject('levelBasic').submit();
+                                }
+                            }));
+                            modeSubMenu.addChild(new dijit.MenuItem({
+                                id: "advancedModeButton",
+                                label: "Advanced",
+                                onClick: function() {
+                                    getObject('levelAdvanced').submit();
+                                }
+                            }));
+                            dojo.require("dijit.PopupMenuItem");
+                            var modeButton = new dijit.PopupMenuItem({
+                                id: "modeButton",
+                                label: "Mode",
+                                popup: modeSubMenu
+                            });
+                            menuBar.addChild(modeButton);
+
+                            <%-- add save/update and cancel button --%>
+                            menuBar.addChild(new dijit.MenuSeparator());
+                            <%-- add menu seperator --%>
                             <% if (configManagerBean.getInitialMode() == ConfigurationReader.MODE.RUNNING) { %>
                             var updateButtonMenuItem = new dijit.MenuItem({
                                 id: "updateButton",
@@ -111,6 +142,7 @@
                                 }
                             });
                             menuBar.addChild(cancelButtonMenuItem);
+
                         </script>
                         <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
                               enctype="application/x-www-form-urlencoded">
@@ -122,6 +154,29 @@
                             <input type="hidden" name="processAction" value="cancelEditing"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
+                        <form action="<pwm:url url='ConfigManager'/>" method="post" id="levelAdvanced"
+                              enctype="application/x-www-form-urlencoded">
+                            <input type="hidden" name="processAction" value="setLevel"/>
+                            <input type="hidden" name="level" value="ADVANCED"/>
+                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                        </form>
+                        <form action="<pwm:url url='ConfigManager'/>" method="post" id="levelBasic"
+                              enctype="application/x-www-form-urlencoded">
+                            <input type="hidden" name="processAction" value="setLevel"/>
+                            <input type="hidden" name="level" value="BASIC"/>
+                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                        </form>
+                    </div>
+                    <div style="text-align:center">
+                        <br/>
+                        <br/>
+                        <% if (level == PwmSetting.Level.BASIC) { %>
+                        <a href="#" onclick="getObject('levelAdvanced').submit();">
+                                <% } else { %>
+                            <a href="#" onclick="getObject('levelBasic').submit();">
+                                <% } %>
+                                Mode: <%=level%>
+                            </a>
                     </div>
                 </td>
                 <td style="border:0" width="600">
@@ -139,7 +194,7 @@
         </script>
         <script type="text/javascript">
             dojo.addOnLoad(function() {
-                dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=<%=PwmSetting.Category.values()[0]%>');
+                dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=<%=PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet().iterator().next()%>');
             });
         </script>
     </div>
