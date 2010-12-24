@@ -101,7 +101,7 @@
                         }
                     </script>
                     &nbsp;&nbsp;
-                    <button onclick="refreshHealthCheck()">Refresh</button>
+                    <button onclick="refreshHealthCheck()">Refresh Now</button>
                 </td>
             </tr>
             <% for (final HealthRecord healthRecord : healthRecords) { %>

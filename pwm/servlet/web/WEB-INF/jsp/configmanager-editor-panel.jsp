@@ -26,21 +26,22 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <script type="text/javascript">showError('');</script>
 <% final PwmSetting.Category loopCategory = PwmSetting.Category.valueOf(request.getParameter("category")); %>
-<p style="border-top:0; padding-top:0; margin-top:0"><%= loopCategory.getDescription(request.getLocale())%>
-</p>
+<div id="category_header">
+    <span><%= loopCategory.getDescription(request.getLocale())%></span>
+</div>
+<script type="text/javascript">
+    new dijit.TitlePane({
+        title: "<%=loopCategory.getLabel(request.getLocale())%>"
+    }, "category_header");
+</script>
 <% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(loopCategory)) { %>
 <div id="titlePane_<%=loopSetting.getKey()%>">
-    <div style="float: right; padding-left:5px; padding-bottom:5px">
-        <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default"
+    <h2><%=loopSetting.getLabel(request.getLocale())%>
+        <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
              id="resetButton-<%=loopSetting.getKey()%>"
              style="visibility:hidden;"
              onclick="if (confirm('Are you sure you want to reset the setting <%=loopSetting.getLabel(request.getLocale())%> to the default value?')) { resetSetting('<%=loopSetting.getKey()%>');dijit.byId('mainContentPane').set('href','ConfigManager?processAction=editorPanel&category=<%=loopCategory.toString()%>');}"/>
-    </div>
-    <script type="text/javascript">
-        new dijit.TitlePane({
-            title: "<%=loopSetting.getLabel(request.getLocale())%>"
-        }, "titlePane_<%=loopSetting.getKey()%>");
-    </script>
+    </h2>
     <label for="value_<%=loopSetting.getKey()%>">
         <%= loopSetting.getDescription(request.getLocale()) %>
     </label>

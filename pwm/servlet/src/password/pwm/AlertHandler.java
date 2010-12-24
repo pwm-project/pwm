@@ -166,8 +166,8 @@ public abstract class AlertHandler {
                 final List<HealthRecord> healthRecords = contextManager.getHealthMonitor().getHealthRecords();
                 final java.util.Date lastHeathCheckDate = contextManager.getHealthMonitor().getLastHealthCheckDate();
 
-                body.append("\n-\n");
-                body.append("health check results\n");
+                body.append("\n\n\n");
+                body.append("-- PWM Health Check Results --\n");
                 body.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
 
                 for (final HealthRecord record : healthRecords) {

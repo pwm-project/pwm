@@ -562,7 +562,7 @@ public enum PwmSetting {
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory(final Level byLevel) {
-        if (byLevel == null) {
+        if (byLevel == null || byLevel == Level.ADVANCED) {
             return VALUES_BY_CATEGORY;
         }
 

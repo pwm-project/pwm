@@ -78,32 +78,6 @@
                             <%-- create nav menu --%>
                             var menuBar = new dijit.Menu({}, "navMenu");
 
-                            <%-- add simple/advanced mode switch --%>
-                            menuBar.addChild(new dijit.MenuSeparator());
-                            <%-- add menu seperator --%>
-                            var modeSubMenu = new dijit.Menu();
-                            modeSubMenu.addChild(new dijit.MenuItem({
-                                id: "simpleModeButton",
-                                label: "Basic",
-                                onClick: function() {
-                                    getObject('levelBasic').submit();
-                                }
-                            }));
-                            modeSubMenu.addChild(new dijit.MenuItem({
-                                id: "advancedModeButton",
-                                label: "Advanced",
-                                onClick: function() {
-                                    getObject('levelAdvanced').submit();
-                                }
-                            }));
-                            dojo.require("dijit.PopupMenuItem");
-                            var modeButton = new dijit.PopupMenuItem({
-                                id: "modeButton",
-                                label: "Mode",
-                                popup: modeSubMenu
-                            });
-                            menuBar.addChild(modeButton);
-
                             <%-- add save/update and cancel button --%>
                             menuBar.addChild(new dijit.MenuSeparator());
                             <%-- add menu seperator --%>
@@ -172,11 +146,13 @@
                         <br/>
                         <% if (level == PwmSetting.Level.BASIC) { %>
                         <a href="#" onclick="getObject('levelAdvanced').submit();">
-                                <% } else { %>
-                            <a href="#" onclick="getObject('levelBasic').submit();">
-                                <% } %>
-                                Mode: <%=level%>
-                            </a>
+                            Mode: Basic
+                        </a>
+                        <% } else { %>
+                        <a href="#" onclick="getObject('levelBasic').submit();">
+                            Mode: Advanced
+                        </a>
+                        <% } %>
                     </div>
                 </td>
                 <td style="border:0" width="600">
