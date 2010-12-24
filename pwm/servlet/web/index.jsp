@@ -35,58 +35,59 @@
         <jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/>
     </jsp:include>
     <div id="centerbody">
-        <p>Password self-service main menu. From here you can change your current password, reset a forgotten password,
-            or perform other related password activities.</p>
+        <p><pwm:Display key="Long_Title_Main_Menu"/></p>
 
-        <h2><a href="<pwm:url url='private/ChangePassword'/>">Change Password</a></h2>
+        <h2><a href="<pwm:url url='private/ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a></h2>
 
-        <p>Change your current password.</p>
+        <p><pwm:Display key="Long_Title_ChangePassword"/></p>
 
-        <h2><a href="<pwm:url url='public/ForgottenPassword'/>">Forgotten Password</a></h2>
+        <h2><a href="<pwm:url url='public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a></h2>
 
-        <p>Recover your forgotten password. If you have previously configured your forgotten password responses you will
-            be able to recover a forgotten password.</p>
+        <p><pwm:Display key="Long_Title_ForgottenPassword"/>
 
-        <h2><a href="<pwm:url url='private/SetupResponses'/>">Setup Responses</a></h2>
+        <h2><a href="<pwm:url url='private/SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a></h2>
 
-        <p>Setup your forgotten password responses. These secret questions will allow you to recover your password if
-            you forget it.</p>
+        <p><pwm:Display key="Long_Title_SetupResponses"/></p>
 
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/ActivateUser'/>">Account Activation</a></h2>
+        <h2><a href="<pwm:url url='public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a></h2>
 
-        <p>Activate a pre-configured account and establish a new password.</p>
-        <% } %>
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey">New User Registration</a></h2>
+        <p><pwm:Display key="Long_Title_ActivateUser"/><p>
+            <% } %>
+            <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
 
-        <p>Register a new user account</p>
+        <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey"><pwm:Display key="Title_NewUser"/></a></h2>
+
+        <p><pwm:Display key="Long_Title_NewUser"/></p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) { %>
-        <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey">Update User Info</a></h2>
+        <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey"><pwm:Display
+                key="Title_UpdateAttributes"/></a></h2>
 
-        <p>Update your user information</p>
+        <p><pwm:Display key="Long_Title_UpdateAttributes"/></p>
         <% } %>
-        <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey">History</a></h2>
+        <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey"><pwm:Display
+                key="Title_UserEventHistory"/></a></h2>
 
-        <p>Password event history</p>
+        <p><pwm:Display key="Long_Title_UserEventHistory"/></p>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
-        <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey">Shortcuts</a></h2>
+        <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey"><pwm:Display key="Title_Shortcuts"/></a></h2>
 
-        <p>Personalized shortcuts</p>
+        <p><pwm:Display key="Long_Title_Shortcuts"/></p>
         <% } %>
-        <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey">User Information</a></h2>
+        <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey"><pwm:Display
+                key="Title_UserInformation"/></a></h2>
 
-        <p>Information about your password and password policies.</p>
+        <p><pwm:Display key="Long_Title_UserInformation"/></p>
         <hr/>
-        <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey">Admin</a></h2>
+        <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>
 
-        <p>PWM administrative functions</p>
+        <p><pwm:Display key="Long_Title_Admin"/></p>
         <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
         <hr/>
-        <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey">Logout</a></h2>
+        <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a></h2>
 
-        <p>Logout of the PWM password self service application.</p>
+        <p><pwm:Display key="Long_Title_Logout"/></p>
         <% } %>
     </div>
 </div>
