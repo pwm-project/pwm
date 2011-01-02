@@ -21,26 +21,16 @@
 --%>
 
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<script type="text/javascript">showError('');</script>
 <% final PwmSetting.Category loopCategory = PwmSetting.Category.valueOf(request.getParameter("category")); %>
-<div id="category_header">
-    <span><%= loopCategory.getDescription(request.getLocale())%></span>
-</div>
-<script type="text/javascript">
-    new dijit.TitlePane({
-        title: "<%=loopCategory.getLabel(request.getLocale())%>"
-    }, "category_header");
-</script>
+<h1><%=loopCategory.getLabel(request.getLocale())%>
+</h1>
+<span><%= loopCategory.getDescription(request.getLocale())%></span>
 <% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(loopCategory)) { %>
-<div id="titlePane_<%=loopSetting.getKey()%>">
+<script type="text/javascript">showError('');</script>
+<div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
     <h2><%=loopSetting.getLabel(request.getLocale())%>
-        <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
-             id="resetButton-<%=loopSetting.getKey()%>"
-             style="visibility:hidden;"
-             onclick="if (confirm('Are you sure you want to reset the setting <%=loopSetting.getLabel(request.getLocale())%> to the default value?')) { resetSetting('<%=loopSetting.getKey()%>');dijit.byId('mainContentPane').set('href','ConfigManager?processAction=editorPanel&category=<%=loopCategory.toString()%>');}"/>
     </h2>
     <label for="value_<%=loopSetting.getKey()%>">
         <%= loopSetting.getDescription(request.getLocale()) %>
@@ -77,6 +67,10 @@
     <button id="button_<%=loopSetting.getKey()%>" type="button">
         [Loading...]
     </button>
+    <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
+         id="resetButton-<%=loopSetting.getKey()%>"
+         style="visibility:hidden; vertical-align:middle;"
+         onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
         new dijit.form.Button({
             disabled: true,
@@ -102,6 +96,10 @@
     <% } else { %>
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+    <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
+         id="resetButton-<%=loopSetting.getKey()%>"
+         style="visibility:hidden; vertical-align:bottom;"
+         onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
         new dijit.form.ValidationTextBox({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
@@ -117,12 +115,16 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+    <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
+         id="resetButton-<%=loopSetting.getKey()%>"
+         style="visibility:hidden; vertical-align:bottom;"
+         onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
-        new dijit.form.NumberTextBox({
+        new dijit.form.NumberSpinner({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
             invalidMessage: "The value does not have the correct format.",
-            style: "width: 450px",
+            style: "width: 100px",
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>', this.value);
             },
@@ -132,26 +134,35 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
     <div id="password_wrapper_<%=loopSetting.getKey()%>">
-        <table>
-            <tr>
-                <td>
-                    <label>Password</label>
-                </td>
-                <td>
-                    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" pwType="new"/>
-                </td>
-
-            </tr>
-            <tr>
-                <td>
-                    <label>Verify</label>
-                </td>
-                <td>
-                    <input id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>"
-                           pwType="verify"/>
-                </td>
-            </tr>
-        </table>
+        <div style="float: left">
+            <table style="width: 255px">
+                <tr>
+                    <td>
+                        <label>Password</label>
+                    </td>
+                    <td>
+                        <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
+                               pwType="new"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Verify</label>
+                    </td>
+                    <td>
+                        <input id="value_verify_<%=loopSetting.getKey()%>"
+                               name="setting_verify_<%=loopSetting.getKey()%>"
+                               pwType="verify"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="float: left; padding: 5px">
+            <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
+                 id="resetButton-<%=loopSetting.getKey()%>"
+                 style="visibility:hidden; vertical-align:bottom;"
+                 onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
+        </div>
     </div>
     <script type="text/javascript">
         new dojox.form.PasswordValidator({
@@ -164,6 +175,7 @@
             disabled: true
         }, "password_wrapper_<%=loopSetting.getKey()%>")
     </script>
+    <br class="clear"/>
     <% } %>
     <script type="text/javascript">
         readSetting('<%=loopSetting.getKey()%>', function(dataValue) {

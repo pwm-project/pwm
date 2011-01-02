@@ -61,7 +61,7 @@ public class CommandServlet extends TopServlet {
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("idleUpdate")) {
-            processIdleUpdate(resp);
+            processIdleUpdate(req, resp);
         } else if (action.equalsIgnoreCase("checkResponses") || action.equalsIgnoreCase("checkIfResponseConfigNeeded")) {
             processCheckResponses(req, resp);
         } else if (action.equalsIgnoreCase("checkExpire")) {
@@ -81,9 +81,11 @@ public class CommandServlet extends TopServlet {
     }
 
     private static void processIdleUpdate(
+            final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmException {
+        Validator.validatePwmFormID(req);
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             resp.setContentType("text/plain");

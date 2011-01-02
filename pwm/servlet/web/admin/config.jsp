@@ -47,14 +47,14 @@
             to modify the configuration.
         </p>
         <ol>
-            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) { %>
+            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) { %>
             <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%>
             </a></li>
             <% } %>
         </ol>
         <%
-            for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory().keySet()) {
-                final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory().get(loopCategory);
+            for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) {
+                final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory(null).get(loopCategory);
         %>
         <table>
             <tr>

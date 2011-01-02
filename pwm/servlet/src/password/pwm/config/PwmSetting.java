@@ -32,25 +32,6 @@ import java.util.regex.Pattern;
  * @author Jason D. Rivard
  */
 public enum PwmSetting {
-    // user interface
-    APPLICATION_TILE(
-            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.USER_INTERFACE, true, Level.BASIC),
-    PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
-    PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
-    DISPLAY_PASSWORD_GUIDE_TEXT(
-            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
-    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
-    PASSWORD_CHANGE_SUCCESS_MESSAGE(
-            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
-    DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
-            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
-    DISPLAY_CANCEL_BUTTON(
-            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
-
-
     // general settings
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
@@ -77,6 +58,25 @@ public enum PwmSetting {
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
 
+    // user interface
+    APPLICATION_TILE(
+            "display.applicationTitle", Syntax.LOCALIZED_STRING, Category.USER_INTERFACE, true, Level.BASIC),
+    PASSWORD_SHOW_AUTOGEN(
+            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+    PASSWORD_SHOW_STRENGTH_METER(
+            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+    DISPLAY_PASSWORD_GUIDE_TEXT(
+            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
+    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
+    PASSWORD_CHANGE_SUCCESS_MESSAGE(
+            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
+            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+    DISPLAY_CANCEL_BUTTON(
+            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+
+
     //ldap directory
     LDAP_SERVER_URLS(
             "ldap.serverUrls", Syntax.STRING_ARRAY, Category.LDAP, true, Level.BASIC),
@@ -87,13 +87,13 @@ public enum PwmSetting {
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true, Level.BASIC),
     LDAP_TEST_USER_DN(
-            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.ADVANCED),
+            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     LDAP_CONTEXTLESS_ROOT(
             "ldap.rootContexts", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     LDAP_LOGIN_CONTEXTS(
             "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
+            "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true, Level.BASIC),
     USERNAME_SEARCH_FILTER(
             "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     AUTO_ADD_OBJECT_CLASSES(
@@ -148,8 +148,6 @@ public enum PwmSetting {
             "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_CHALLENGE_TOKEN_BODY_HTML(
             "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
-    EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
@@ -262,36 +260,40 @@ public enum PwmSetting {
             "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_CONFIG_MODIFY(
             "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
-    EVENTS_ALERT_DAILY_STATS(
-            "events.alert.dailyStats.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+    EVENTS_ALERT_DAILY_SUMMARY(
+            "events.alert.dailySummary.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+
+
+    // challenge policy
+    CHALLENGE_RANDOM_CHALLENGES(
+            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.ADVANCED),
+    CHALLENGE_REQUIRED_CHALLENGES(
+            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.ADVANCED),
+    CHALLENGE_MIN_RANDOM_REQUIRED(
+            "challenge.minRandomRequired", Syntax.NUMERIC, Category.CHALLENGE, true, Level.ADVANCED),
+    CHALLENGE_MIN_RANDOM_SETUP(
+            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.CHALLENGE, true, Level.ADVANCED),
+    CHALLENGE_CASE_INSENSITIVE(
+            "challenge.caseInsensitive", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
+    CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
+            "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
+    CHALLENGE_APPLY_WORDLIST(
+            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
+    QUERY_MATCH_SETUP_RESPONSE(
+            "challenge.allowSetup.queryMatch", Syntax.STRING, Category.CHALLENGE, true, Level.ADVANCED),
+
 
     // recovery settings
     CHALLENGE_FORCE_SETUP(
             "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    QUERY_MATCH_SETUP_RESPONSE(
-            "challenge.allowSetup.queryMatch", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
-    CHALLENGE_MIN_RANDOM_SETUP(
-            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_STORAGE_HASHED(
             "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_CASE_INSENSITIVE(
-            "challenge.caseInsensitive", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
-            "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_SHOW_CONFIRMATION(
             "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_REQUIRED_CHALLENGES(
-            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
-    CHALLENGE_RANDOM_CHALLENGES(
-            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
-    CHALLENGE_MIN_RANDOM_REQUIRED(
-            "challenge.minRandomRequired", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_ATTRIBUTES(
             "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
     QUERY_MATCH_CHECK_RESPONSES(
@@ -408,7 +410,9 @@ public enum PwmSetting {
     PWMDB_INIT_STRING(
             "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),;
+            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+    EMAIL_ADVANCED_SETTINGS(
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),;
 // ------------------------------ STATICS ------------------------------
 
     private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
@@ -531,11 +535,12 @@ public enum PwmSetting {
     }
 
     public enum Category {
-        USER_INTERFACE,
         GENERAL,
+        USER_INTERFACE,
         LDAP,
         EMAIL,
         PASSWORD_POLICY,
+        CHALLENGE,
         INTRUDER,
         LOGGING,
         RECOVERY,

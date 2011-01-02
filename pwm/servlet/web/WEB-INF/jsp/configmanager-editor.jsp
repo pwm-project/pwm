@@ -38,10 +38,6 @@
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final PwmSetting.Level level = PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <body class="tundra">
-<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
-      type="text/css"/>
-<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet"
-      type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript"><% { int i=0; for (final String loopLocale : DEFAULT_LOCALES) { %>availableLocales[<%=i++%>] = '<%=loopLocale%>'; <% }
 } %></script>
@@ -59,18 +55,19 @@
         <table border="0" style="border:0">
             <tr style="border:0">
                 <td style="vertical-align:top; border:0">
-                    <div id="leftNav" style="text-align:right;" class="nihilo">
-                        <div id="navMenu" class="nihilo">
+                    <div id="leftNav" style="text-align:right;" class="tundra">
+                        <div id="navMenu">
                             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
                             <div id="categoryMenu_<%=loopCategory.toString()%>">
                                 <%=loopCategory.getLabel(request.getLocale())%>
                             </div>
                             <script type="text/javascript">
-                                new dijit.MenuItem({
+                                var item = new dijit.MenuItem({
                                     onClick: function() {
-                                        selectCategory('<%=loopCategory.toString()%>')
+                                        selectCategory('<%=loopCategory.toString()%>');
                                     }
-                                }, "categoryMenu_<%=loopCategory.toString()%>")
+                                }, "categoryMenu_<%=loopCategory.toString()%>");
+                                menuItems.push(item);
                             </script>
                             <% } %>
                         </div>
@@ -145,11 +142,11 @@
                         <br/>
                         <br/>
                         <% if (level == PwmSetting.Level.BASIC) { %>
-                        <a href="#" onclick="getObject('levelAdvanced').submit();">
+                        <a href="#" onclick="showWaitDialog('Loading...');getObject('levelAdvanced').submit();">
                             Mode: Basic
                         </a>
                         <% } else { %>
-                        <a href="#" onclick="getObject('levelBasic').submit();">
+                        <a href="#" onclick="showWaitDialog('Loading...');getObject('levelBasic').submit();">
                             Mode: Advanced
                         </a>
                         <% } %>
@@ -169,8 +166,8 @@
             });
         </script>
         <script type="text/javascript">
-            dojo.addOnLoad(function() {
-                dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=<%=PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet().iterator().next()%>');
+            dojo.addOnLoad(function() { <%-- select the first category --%>
+                selectCategory('<%=PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet().iterator().next()%>');
             });
         </script>
     </div>

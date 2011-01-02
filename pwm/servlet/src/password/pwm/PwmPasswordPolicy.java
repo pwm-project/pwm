@@ -26,9 +26,11 @@ import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
@@ -50,18 +52,18 @@ public class PwmPasswordPolicy implements Serializable {
 
     private static final PwmPasswordPolicy defaultPolicy;
 
-    private final Map<String,String> policyMap = new HashMap<String, String>();
+    private final Map<String, String> policyMap = new HashMap<String, String>();
 
     private transient final ChaiPasswordPolicy chaiPasswordPolicy;
 
 // -------------------------- STATIC METHODS --------------------------
 
     static {
-        final Map<String,String> defaultPolicyMap = new HashMap<String,String>();
+        final Map<String, String> defaultPolicyMap = new HashMap<String, String>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            defaultPolicyMap.put(rule.getKey(),rule.getDefaultValue());
+            defaultPolicyMap.put(rule.getKey(), rule.getDefaultValue());
         }
-        defaultPolicy = new PwmPasswordPolicy(defaultPolicyMap,null);
+        defaultPolicy = new PwmPasswordPolicy(defaultPolicyMap, null);
     }
 
     public static PwmPasswordPolicy defaultPolicy() {
@@ -71,7 +73,7 @@ public class PwmPasswordPolicy implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private PwmPasswordPolicy(final Map<String,String> policyMap, final ChaiPasswordPolicy chaiPasswordPolicy) {
+    private PwmPasswordPolicy(final Map<String, String> policyMap, final ChaiPasswordPolicy chaiPasswordPolicy) {
         if (policyMap != null) {
             this.policyMap.putAll(policyMap);
         }
@@ -93,7 +95,7 @@ public class PwmPasswordPolicy implements Serializable {
                 switch (rule) {
                     case DisallowedAttributes:
                     case DisallowedValues:
-                        outputList.add(rule + "=[" + StringHelper.stringCollectionToString(StringHelper.tokenizeString(policyMap.get(key),"\n"),", ") + "]");
+                        outputList.add(rule + "=[" + StringHelper.stringCollectionToString(StringHelper.tokenizeString(policyMap.get(key), "\n"), ", ") + "]");
                         break;
                     default:
                         outputList.add(rule + "=" + policyMap.get(key));
@@ -142,36 +144,36 @@ public class PwmPasswordPolicy implements Serializable {
                     case RegExNoMatch:
                         final String seperator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
                         final Set<String> cominedSet = new HashSet<String>();
-                        cominedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()),seperator));
-                        cominedSet.addAll(StringHelper.tokenizeString(otherPolicy.policyMap.get(rule.getKey()),seperator));
+                        cominedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()), seperator));
+                        cominedSet.addAll(StringHelper.tokenizeString(otherPolicy.policyMap.get(rule.getKey()), seperator));
                         newPasswordPolicies.put(ruleKey, StringHelper.stringCollectionToString(cominedSet, seperator));
                         break;
 
                     case ChangeMessage:
                         final String thisChangeMessage = getValue(PwmPasswordRule.ChangeMessage);
                         if (thisChangeMessage == null || thisChangeMessage.length() < 1) {
-                            newPasswordPolicies.put(ruleKey,otherPolicy.getValue(PwmPasswordRule.ChangeMessage));
+                            newPasswordPolicies.put(ruleKey, otherPolicy.getValue(PwmPasswordRule.ChangeMessage));
                         } else {
-                            newPasswordPolicies.put(ruleKey,getValue(PwmPasswordRule.ChangeMessage));
+                            newPasswordPolicies.put(ruleKey, getValue(PwmPasswordRule.ChangeMessage));
                         }
                         break;
 
                     case ExpirationInterval:
-                        newPasswordPolicies.put(ruleKey,mergeMin(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                        newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
                         break;
-                    
+
                     case MinimumLifetime:
-                        newPasswordPolicies.put(ruleKey,mergeMin(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                        newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
                         break;
 
                     default:
                         switch (rule.getRuleType()) {
                             case MIN:
-                                newPasswordPolicies.put(ruleKey,mergeMin(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                                newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
                                 break;
 
                             case MAX:
-                                newPasswordPolicies.put(ruleKey,mergeMax(policyMap.get(ruleKey),otherPolicy.policyMap.get(ruleKey)));
+                                newPasswordPolicies.put(ruleKey, mergeMax(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
                                 break;
 
                             case BOOLEAN:
@@ -193,19 +195,17 @@ public class PwmPasswordPolicy implements Serializable {
         return new PwmPasswordPolicy(newPasswordPolicies, backingPolicy);
     }
 
-    protected static String mergeMin(final String value1, final String value2)
-    {
-        final int iValue1 = StringHelper.convertStrToInt(value1,0);
-        final int iValue2 = StringHelper.convertStrToInt(value2,0);
+    protected static String mergeMin(final String value1, final String value2) {
+        final int iValue1 = StringHelper.convertStrToInt(value1, 0);
+        final int iValue2 = StringHelper.convertStrToInt(value2, 0);
 
         // take the largest value
         return iValue1 > iValue2 ? value1 : value2;
     }
 
-    protected static String mergeMax(final String value1, final String value2)
-    {
-        final int iValue1 = StringHelper.convertStrToInt(value1,0);
-        final int iValue2 = StringHelper.convertStrToInt(value2,0);
+    protected static String mergeMax(final String value1, final String value2) {
+        final int iValue1 = StringHelper.convertStrToInt(value1, 0);
+        final int iValue2 = StringHelper.convertStrToInt(value2, 0);
 
         final String returnValue;
 
@@ -225,38 +225,53 @@ public class PwmPasswordPolicy implements Serializable {
         return new PwmPasswordPolicy(policyMap, null);
     }
 
-    public static PwmPasswordPolicy createPwmPasswordPolicy(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException
-    {
-        final long methodStartTime = System.currentTimeMillis();
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        PwmPasswordPolicy returnPolicy = pwmSession.getConfig().getGlobalPasswordPolicy(locale);
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_PASSWORD_POLICY)) {
-            PwmPasswordPolicy userPolicy = null;
-            try {
-                final Map<String,String> ruleMap = new HashMap<String,String>();
-                final ChaiPasswordPolicy chaiPolicy = theUser.getPasswordPolicy();
-                if (chaiPolicy != null) {
-                    for (final String key : chaiPolicy.getKeys()) {
-                        ruleMap.put(key,chaiPolicy.getValue(key));
+    public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final PwmSession pwmSession,
+            final ChaiUser theUser
+    ) throws ChaiUnavailableException {
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmSession.getConfig();
+        return createPwmPasswordPolicy(config, locale, theUser, pwmSession);
+    }
+
+    public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final Configuration config,
+            final Locale locale,
+            final ChaiUser theUser,
+            final PwmSession pwmSession
+    )
+            throws ChaiUnavailableException {
+        final long methodStartTime = System.currentTimeMillis();
+        PwmPasswordPolicy returnPolicy = config.getGlobalPasswordPolicy(locale);
+
+        if (ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY == theUser.getChaiProvider().getDirectoryVendor()) {
+            if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_PASSWORD_POLICY)) {
+                PwmPasswordPolicy userPolicy = null;
+                try {
+                    final Map<String, String> ruleMap = new HashMap<String, String>();
+                    final ChaiPasswordPolicy chaiPolicy = theUser.getPasswordPolicy();
+                    if (chaiPolicy != null) {
+                        for (final String key : chaiPolicy.getKeys()) {
+                            ruleMap.put(key, chaiPolicy.getValue(key));
+                        }
+                        userPolicy = new PwmPasswordPolicy(ruleMap, chaiPolicy);
                     }
-                    userPolicy = new PwmPasswordPolicy(ruleMap,chaiPolicy);
+                } catch (Exception e) {
+                    LOGGER.trace(pwmSession, "unable to read ldap password policy: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                LOGGER.trace(pwmSession, "unable to read ldap password policy: " + e.getMessage());
-            }
-            if (userPolicy != null) {
-                if (userPolicy.getChaiPasswordPolicy() != null && userPolicy.getChaiPasswordPolicy().getPolicyEntry() != null) {
-                    LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " at " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
+                if (userPolicy != null) {
+                    if (userPolicy.getChaiPasswordPolicy() != null && userPolicy.getChaiPasswordPolicy().getPolicyEntry() != null) {
+                        LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " at " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
+                    } else {
+                        LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + userPolicy.toString());
+                    }
+                    final PwmPasswordPolicy mergedPolicy = returnPolicy.merge(userPolicy);
+                    returnPolicy = mergedPolicy;
+                    LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
                 } else {
-                    LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + userPolicy.toString());
+                    LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
                 }
-                final PwmPasswordPolicy mergedPolicy = returnPolicy.merge(userPolicy);
-                returnPolicy = mergedPolicy;
-                LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
-            } else {
-                LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
             }
         }
 
@@ -301,8 +316,8 @@ public class PwmPasswordPolicy implements Serializable {
             }
 
             final String value = passwordPolicy.policyMap.get(rule.getKey());
-            final int defaultValue = StringHelper.convertStrToInt(rule.getDefaultValue(),0);
-            return StringHelper.convertStrToInt(value,defaultValue);
+            final int defaultValue = StringHelper.convertStrToInt(rule.getDefaultValue(), 0);
+            return StringHelper.convertStrToInt(value, defaultValue);
         }
 
         public boolean readBooleanValue(final PwmPasswordRule rule) {

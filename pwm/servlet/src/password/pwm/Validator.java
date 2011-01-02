@@ -65,8 +65,7 @@ public class Validator {
     public static boolean readBooleanFromRequest(
             final HttpServletRequest req,
             final String value
-    )
-    {
+    ) {
         if (req == null) {
             return false;
         }
@@ -85,8 +84,7 @@ public class Validator {
             final PwmSession pwmSession,
             final boolean testOldPassword
     )
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         final PwmPasswordPolicy policy = pwmSession.getUserInfoBean().getPasswordPolicy();
         return testPasswordAgainstPolicy(password, pwmSession, testOldPassword, policy);
     }
@@ -95,15 +93,15 @@ public class Validator {
      * Validates a password against the configured rules of PWM.  No directory operations
      * are performed here.
      *
-     * @param password desired new password
+     * @param password        desired new password
      * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
-     * @param pwmSession current pwmSesssion of user being tested.
-     * @param policy to be used during the test
+     * @param pwmSession      current pwmSesssion of user being tested.
+     * @param policy          to be used during the test
      * @return true if the password is okay, never returns false.
      * @throws password.pwm.error.ValidationException
-     *          contains information about why the password was rejected.
-     * @throws PwmException if an unexpected error occurs
-     *          contains information about why the password was rejected.
+     *                                  contains information about why the password was rejected.
+     * @throws PwmException             if an unexpected error occurs
+     *                                  contains information about why the password was rejected.
      * @throws ChaiUnavailableException if LDAP server is unreachable
      */
     public static boolean testPasswordAgainstPolicy(
@@ -112,8 +110,7 @@ public class Validator {
             final boolean testOldPassword,
             final PwmPasswordPolicy policy
     )
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getContextManager());
 
         if (!errorResults.isEmpty()) {
@@ -155,8 +152,7 @@ public class Validator {
             final HttpServletRequest req,
             final Map<String, FormConfiguration> parameterConfigs
     )
-            throws ValidationException
-    {
+            throws ValidationException {
         if (req == null || parameterConfigs == null) {
             return;
         }
@@ -182,8 +178,7 @@ public class Validator {
     public static String readStringFromRequest(
             final HttpServletRequest req,
             final String value
-    )
-    {
+    ) {
         final Set<String> results = readStringsFromRequest(req, value, DEFAULT_PARAM_READ_LENGTH);
         if (results == null || results.isEmpty()) {
             return "";
@@ -215,8 +210,7 @@ public class Validator {
             final String value,
             final int maxLength,
             final String defaultValue
-    )
-    {
+    ) {
 
         final String result = readStringFromRequest(req, value, maxLength);
         if (result == null || result.length() < 1) {
@@ -230,8 +224,7 @@ public class Validator {
             final HttpServletRequest req,
             final String value,
             final int maxLength
-    )
-    {
+    ) {
         final Set<String> results = readStringsFromRequest(req, value, maxLength);
         if (results == null || results.isEmpty()) {
             return "";
@@ -244,8 +237,7 @@ public class Validator {
             final HttpServletRequest req,
             final String value,
             final int maxLength
-    )
-    {
+    ) {
         if (req == null) {
             return Collections.emptySet();
         }
@@ -264,7 +256,7 @@ public class Validator {
                 try {
                     final byte[] stringBytesISO = theString.getBytes("ISO-8859-1");
                     theString = new String(stringBytesISO, "UTF-8");
-                } catch(UnsupportedEncodingException e) {
+                } catch (UnsupportedEncodingException e) {
                     LOGGER.warn("suspicious input: error attempting to decode request: " + e.getMessage());
                 }
             }
@@ -282,7 +274,7 @@ public class Validator {
                 for (final String testString : disallowedInputs) {
                     final String newString = theString.replaceAll(testString, "");
                     if (!newString.equals(theString)) {
-                        LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString  + "'");
+                        LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString + "'");
 
                         theString = newString;
                     }
@@ -303,17 +295,18 @@ public class Validator {
      * and checks to make sure the ParamConfig value meets the requiremetns of the ParamConfig itself.
      *
      * @param parameterConfigs - a Map containing String keys of parameter names and ParamConfigs as values
-     * @param pwmSession          bean helper
+     * @param pwmSession       bean helper
      * @throws ValidationException - If there is a problem with any of the fields
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException if an unexpected error occurs
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *                             if ldap server becomes unavailable
+     * @throws password.pwm.error.PwmException
+     *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
             final Map<String, FormConfiguration> parameterConfigs,
             final PwmSession pwmSession
     )
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
             entry.getValue().valueIsValid(pwmSession);
         }
@@ -324,13 +317,13 @@ public class Validator {
      * Validates a password against the configured rules of PWM.  No directory operations
      * are performed here.
      *
-     * @param password desired new password
+     * @param password        desired new password
      * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
-     * @param pwmSession current pwmSession of user being tested.
-     * @param policy to be used during the test
-     * @param contextManager PWM ContextManager (needed for access to seedlist/wordlists when pwmSession is null)
+     * @param pwmSession      current pwmSession of user being tested.
+     * @param policy          to be used during the test
+     * @param contextManager  PWM ContextManager (needed for access to seedlist/wordlists when pwmSession is null)
      * @return true if the password is okay, never returns false.
-     **/
+     */
     public static List<ErrorInformation> pwmPasswordPolicyValidator(
             final String password,
             final PwmSession pwmSession,
@@ -338,8 +331,8 @@ public class Validator {
             final PwmPasswordPolicy policy,
             final ContextManager contextManager
     ) {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password,pwmSession,testOldPassword,policy,contextManager);
-        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmSession, policy, password);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
+        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
         internalResults.addAll(externalResults);
         return internalResults;
     }
@@ -354,7 +347,7 @@ public class Validator {
     ) {
         // null check
         if (password == null) {
-            return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN,"empty (null) new password"));
+            return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN, "empty (null) new password"));
         }
 
         final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
@@ -584,7 +577,7 @@ public class Validator {
         {   // check password strength
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
-                final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmSession, password);
+                final int passwordStrength = PasswordUtility.checkPasswordStrength(contextManager.getConfig(), pwmSession, password);
                 if (passwordStrength < requiredPasswordStrength) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
                     LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
@@ -624,7 +617,7 @@ public class Validator {
 
         // check for shared (global) password history
         if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && contextManager.getSharedHistoryManager().getStatus() == WordlistStatus.OPEN) {
-            final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession,password);
+            final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession, password);
 
             if (found) {
                 LOGGER.trace(pwmSession, "password rejected, in global shared history");
@@ -655,8 +648,8 @@ public class Validator {
         final String lowerBaseValue = baseValue.toLowerCase();
         final String lowerCheckPattern = checkPattern.toLowerCase();
 
-        for (int i = 0; i < lowerCheckPattern.length() - (maxMatchChars ) ; i++) {
-            final String loopPattern = lowerCheckPattern.substring(i,i+ maxMatchChars + 1);
+        for (int i = 0; i < lowerCheckPattern.length() - (maxMatchChars); i++) {
+            final String loopPattern = lowerCheckPattern.substring(i, i + maxMatchChars + 1);
             if (lowerBaseValue.contains(loopPattern)) {
                 return true;
             }
@@ -667,51 +660,74 @@ public class Validator {
 
     /**
      * Check a supplied password for it's validity according to AD compexity rules.
-     *   - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
-     *   - Be at least six characters in length
-     *   - Contain characters from three of the following four categories:
-     *       - English uppercase characters (A through Z)
-     *       - English lowercase characters (a through z)
-     *       - Base 10 digits (0 through 9)
-     *       - Non-alphabetic characters (for example, !, $, #, %)
+     * - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
+     * - Be at least six characters in length
+     * - Contain characters from three of the following four categories:
+     * - English uppercase characters (A through Z)
+     * - English lowercase characters (a through z)
+     * - Base 10 digits (0 through 9)
+     * - Non-alphabetic characters (for example, !, $, #, %)
      *
-     * @param pwmSession current pwmSession (used for logging)
-     * @param password password to test
+     * @param pwmSession  current pwmSession (used for logging)
+     * @param password    password to test
      * @param charCounter associated charCounter for the password.
      * @return list of errors if the password does not meet requirements, or an empty list if the password complies
-     *  with AD requirements
+     *         with AD requirements
      */
     private static List<ErrorInformation> checkPasswordForADComplexity(
             final PwmSession pwmSession,
             final String password,
             final PasswordCharCounter charCounter
-    )
-    {
+    ) {
         List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
         if (password.length() < 6) {
             LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password too short (6 char minimum)");
             errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_SHORT));
         }
 
-        final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
-        if (userAttrs != null) {
-            if (checkContains(password, userAttrs.getProperty("cn"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
-            if (checkContains(password, userAttrs.getProperty("displayName"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
-            if (checkContains(password, userAttrs.getProperty("fullName"),2)) { errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST)); }
+        if (pwmSession != null && pwmSession.getUserInfoBean() != null) {
+            final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
+            if (userAttrs != null) {
+                if (checkContains(password, userAttrs.getProperty("cn"), 2)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
+                if (checkContains(password, userAttrs.getProperty("displayName"), 2)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
+                if (checkContains(password, userAttrs.getProperty("fullName"), 2)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
+            }
         }
 
         int complexityPoints = 0;
-        if (charCounter.getUpperChars() > 0) { complexityPoints++; }
-        if (charCounter.getLowerChars() > 0) { complexityPoints++; }
-        if (charCounter.getNumericChars() > 0) { complexityPoints++; }
-        if (charCounter.getSpecialChars() > 0) { complexityPoints++; }
+        if (charCounter.getUpperChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getLowerChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getNumericChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getSpecialChars() > 0) {
+            complexityPoints++;
+        }
 
         if (complexityPoints < 3) {
             LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password not complex enough");
-            if (charCounter.getUpperChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER)); }
-            if (charCounter.getLowerChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER)); }
-            if (charCounter.getNumericChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM)); }
-            if (charCounter.getSpecialChars() < 1) { errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL)); }
+            if (charCounter.getUpperChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
+            }
+            if (charCounter.getLowerChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
+            }
+            if (charCounter.getNumericChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
+            }
+            if (charCounter.getSpecialChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+            }
         }
 
         return errorList;

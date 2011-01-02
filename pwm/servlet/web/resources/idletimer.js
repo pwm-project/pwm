@@ -30,18 +30,17 @@ var sendPing = false;
 var lastPingTime = 0;
 var warningDisplayed = false;
 
-function initCountDownTimer(secondsRemaining)
-{
+function initCountDownTimer(secondsRemaining) {
     idleTimeout = secondsRemaining;
     dateFuture = new Date(new Date().getTime() + (secondsRemaining * 1000));
     lastPingTime = new Date().getTime();
     resetIdleCounter();
-    setInterval("pollActivity()",SETTING_LOOP_FREQUENCY); //poll scrolling
-    document.onclick=resetIdleCounter;
-    document.onkeydown=resetIdleCounter;
+    setInterval("pollActivity()", SETTING_LOOP_FREQUENCY); //poll scrolling
+    document.onclick = resetIdleCounter;
+    document.onkeydown = resetIdleCounter;
 }
 
-function resetIdleCounter(){
+function resetIdleCounter() {
     var idleSeconds = calcIdleSeconds();
     closeIdleWarning();
     getObject("idle_status").firstChild.nodeValue = makeIdleDisplayString(idleSeconds);
@@ -61,7 +60,7 @@ function resetIdleCounter(){
     warningDisplayed = false;
 }
 
-function pollActivity(){
+function pollActivity() {
     var idleSeconds = calcIdleSeconds();
     var idleDisplayString = makeIdleDisplayString(idleSeconds);
     var idleStatusFooter = getObject("idle_status");
@@ -70,12 +69,12 @@ function pollActivity(){
     }
 
     var warningDialogText = getObject("IdleDialogWindowIdleText");
-    if (warningDialogText != null){
+    if (warningDialogText != null) {
         warningDialogText.firstChild.nodeValue = idleDisplayString;
     }
 
     if (idleSeconds < 0) {
-        PWM_GLOBAL['dirtyPageLeaveFlag'] = false;        
+        PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
         window.location = PWM_STRINGS['url-logout'];
     }
 
@@ -85,26 +84,24 @@ function pollActivity(){
 }
 
 function pingServer() {
-    var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime();
+    var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     var xmlhttp = createXmlHttpObject();
     xmlhttp.abort();
     xmlhttp.open("POST", pingURL, true);
     xmlhttp.send(null);
 }
 
-function calcIdleSeconds()
-{
+function calcIdleSeconds() {
     var amount = dateFuture.getTime() - (new Date()).getTime(); //calc milliseconds between dates
     amount = Math.floor(amount / 1000); //kill the "milliseconds" so just secs
     return amount;
 }
 
-function makeIdleDisplayString(amount)
-{
+function makeIdleDisplayString(amount) {
     if (amount < 1) {
         return "";
     }
-        
+
     var output = "";
     var days = 0, hours = 0, mins = 0, secs = 0;
 
@@ -192,7 +189,7 @@ function showIdleWarning() {
             id: "idleDialog"
 
         });
-        theDialog.setAttribute('class','tundra');
+        theDialog.setAttribute('class', 'tundra');
         theDialog.show();
     }
 }

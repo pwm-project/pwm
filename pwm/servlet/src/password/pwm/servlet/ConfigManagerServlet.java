@@ -80,7 +80,7 @@ public class ConfigManagerServlet extends TopServlet {
                 this.readSetting(req, resp);
                 return;
             } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
-                this.writeSetting(req);
+                this.writeSetting(req, resp);
                 return;
             } else if ("resetSetting".equalsIgnoreCase(processActionParam)) {
                 this.resetSetting(req);
@@ -174,8 +174,8 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String key = Validator.readStringFromRequest(req, "key", 255);
 
+        final Object returnValue;
         final Map<String, Object> returnMap = new HashMap<String, Object>();
-        Object returnValue = "";
 
         final PwmSetting theSetting = PwmSetting.forKey(key);
         if (theSetting == null) {
@@ -230,8 +230,10 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void writeSetting(
-            final HttpServletRequest req
-    ) throws IOException, PwmException {
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, PwmException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
@@ -240,57 +242,71 @@ public class ConfigManagerServlet extends TopServlet {
 
         final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
 
-        if (srcMap != null) {
-            final String key = String.valueOf(srcMap.get("key"));
-            final String value = String.valueOf(srcMap.get("value"));
-            final PwmSetting setting = PwmSetting.forKey(key);
-
-            switch (setting.getSyntax()) {
-                case STRING_ARRAY: {
-                    final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String, String> outputMap = new TreeMap<String, String>();
-                    for (final Object keyObject : inputMap.keySet()) {
-                        outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
-                    }
-                    storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
-                }
-                break;
-
-                case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA: {
-                    final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String, String> outputMap = new TreeMap<String, String>();
-                    for (final Object keyObject : inputMap.keySet()) {
-                        outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
-                    }
-                    storedConfig.writeLocalizedSetting(setting, outputMap);
-                }
-                break;
-
-                case LOCALIZED_STRING_ARRAY: {
-                    final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                    final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>();
-                    for (final Object localeKeyObject : inputMap.keySet()) {
-                        final JSONObject localeMap = (JSONObject) inputMap.get(localeKeyObject);
-
-                        final TreeMap<String, String> sortedMap = new TreeMap<String, String>();
-                        for (final Object iterationKey : localeMap.keySet()) {
-                            sortedMap.put(iterationKey.toString(), localeMap.get(iterationKey).toString());
-                        }
-
-                        final List<String> loopList = new ArrayList<String>();
-                        for (final String loopValue : sortedMap.values()) loopList.add(loopValue);
-
-                        outputMap.put(localeKeyObject.toString(), loopList);
-                    }
-                    storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
-                }
-                break;
-
-                default:
-                    storedConfig.writeSetting(setting, value);
-            }
+        if (srcMap == null) {
+            LOGGER.error("set operation missing json body");
+            return;
         }
+
+        final String key = String.valueOf(srcMap.get("key"));
+        final String value = String.valueOf(srcMap.get("value"));
+        final PwmSetting setting = PwmSetting.forKey(key);
+
+        switch (setting.getSyntax()) {
+            case STRING_ARRAY: {
+                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
+                final Map<String, String> outputMap = new TreeMap<String, String>();
+                for (final Object keyObject : inputMap.keySet()) {
+                    outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
+                }
+                storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
+            }
+            break;
+
+            case LOCALIZED_STRING:
+            case LOCALIZED_TEXT_AREA: {
+                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
+                final Map<String, String> outputMap = new TreeMap<String, String>();
+                for (final Object keyObject : inputMap.keySet()) {
+                    outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
+                }
+                storedConfig.writeLocalizedSetting(setting, outputMap);
+            }
+            break;
+
+            case LOCALIZED_STRING_ARRAY: {
+                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
+                final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>();
+                for (final Object localeKeyObject : inputMap.keySet()) {
+                    final JSONObject localeMap = (JSONObject) inputMap.get(localeKeyObject);
+
+                    final TreeMap<String, String> sortedMap = new TreeMap<String, String>();
+                    for (final Object iterationKey : localeMap.keySet()) {
+                        sortedMap.put(iterationKey.toString(), localeMap.get(iterationKey).toString());
+                    }
+
+                    final List<String> loopList = new ArrayList<String>();
+                    for (final String loopValue : sortedMap.values()) loopList.add(loopValue);
+
+                    outputMap.put(localeKeyObject.toString(), loopList);
+                }
+                storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
+            }
+            break;
+
+            default:
+                storedConfig.writeSetting(setting, value);
+        }
+
+        final Map<String, Object> returnMap = new HashMap<String, Object>();
+        storedConfig.isDefaultValue(setting);
+
+        returnMap.put("key", key);
+        returnMap.put("category", setting.getCategory().toString());
+        returnMap.put("syntax", setting.getSyntax().toString());
+        returnMap.put("isDefault", storedConfig.isDefaultValue(setting));
+        final String outputString = JSONObject.toJSONString(returnMap);
+        resp.setContentType("application/json;charset=utf-8");
+        resp.getWriter().print(outputString);
     }
 
     private void setLevel(

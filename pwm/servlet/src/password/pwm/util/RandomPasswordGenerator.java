@@ -34,6 +34,7 @@ import java.util.*;
 
 /**
  * Random password generator
+ *
  * @author Jason D. Rivard
  */
 public class RandomPasswordGenerator {
@@ -62,8 +63,7 @@ public class RandomPasswordGenerator {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String createRandomPassword(
-            final PwmSession pwmSession)
-    {
+            final PwmSession pwmSession) {
         final ContextManager contextManager = pwmSession.getContextManager();
         final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
         final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
@@ -75,9 +75,7 @@ public class RandomPasswordGenerator {
             final PwmPasswordPolicy passwordPolicy,
             final SeedlistManager seedlistManagr,
             final ContextManager contextManager
-    )
-    {
-
+    ) {
         Set<String> seeds = DEFAULT_SEED_PHRASES;
 
         if (seedlistManagr != null && seedlistManagr.getStatus() != WordlistStatus.CLOSED && seedlistManagr.size() > 0) {
@@ -113,7 +111,7 @@ public class RandomPasswordGenerator {
      * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
      * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
      *
-     * @param pwmSession    A valid pwmSession
+     * @param pwmSession A valid pwmSession
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
      * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
      *          If there is no way to create a password using the configured rules and
@@ -123,8 +121,7 @@ public class RandomPasswordGenerator {
             final PwmSession pwmSession,
             final RandomGeneratorConfig randomGeneratorConfig,
             final ContextManager contextManager
-    )
-    {
+    ) {
         final long startTimeMS = System.currentTimeMillis();
 
         final SeedMachine seedMachine = new SeedMachine(normalizeSeeds(randomGeneratorConfig.getSeedlistPhrases()));
@@ -135,16 +132,16 @@ public class RandomPasswordGenerator {
 
         final PwmPasswordPolicy randomGenPolicy;
         {
-            final Map<String,String> newPolicyMap = new HashMap<String,String>();
+            final Map<String, String> newPolicyMap = new HashMap<String, String>();
             newPolicyMap.putAll(randomGeneratorConfig.getPasswordPolicy().getPolicyMap());
             if (randomGeneratorConfig.getMinimumLength() > randomGeneratorConfig.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLength)) {
-                newPolicyMap.put(PwmPasswordRule.MinimumLength.getKey(),String.valueOf(randomGeneratorConfig.getMinimumLength()));
+                newPolicyMap.put(PwmPasswordRule.MinimumLength.getKey(), String.valueOf(randomGeneratorConfig.getMinimumLength()));
             }
             if (randomGeneratorConfig.getMaximumLength() < randomGeneratorConfig.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MaximumLength)) {
-                newPolicyMap.put(PwmPasswordRule.MaximumLength.getKey(),String.valueOf(randomGeneratorConfig.getMaximumLength()));
+                newPolicyMap.put(PwmPasswordRule.MaximumLength.getKey(), String.valueOf(randomGeneratorConfig.getMaximumLength()));
             }
             if (randomGeneratorConfig.getMinimumStrength() > randomGeneratorConfig.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumStrength)) {
-                newPolicyMap.put(PwmPasswordRule.MinimumStrength.getKey(),String.valueOf(randomGeneratorConfig.getMinimumStrength()));
+                newPolicyMap.put(PwmPasswordRule.MinimumStrength.getKey(), String.valueOf(randomGeneratorConfig.getMinimumStrength()));
             }
             randomGenPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(newPolicyMap);
         }
@@ -156,7 +153,7 @@ public class RandomPasswordGenerator {
         while (!validPassword && tryCount < randomGeneratorConfig.getMaximumTryCount()) {
             tryCount++;
             validPassword = true;
-            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,randomGenPolicy, contextManager);
+            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), pwmSession, false, randomGenPolicy, contextManager);
             if (errors != null && !errors.isEmpty()) {
                 validPassword = false;
                 modifyPasswordBasedOnErrors(password, errors, seedMachine);
@@ -168,8 +165,8 @@ public class RandomPasswordGenerator {
             if (validPassword) {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
-                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(),pwmSession,false,pwmSession.getUserInfoBean().getPasswordPolicy(), contextManager);
-                final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmSession, password.toString());
+                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), pwmSession, false, pwmSession.getUserInfoBean().getPasswordPolicy(), contextManager);
+                final int judgeLevel = PasswordUtility.checkPasswordStrength(contextManager.getConfig(), pwmSession, password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);
@@ -263,8 +260,7 @@ public class RandomPasswordGenerator {
     }
 
     protected static void deleteRandChar(final StringBuilder password, final String charsToRemove)
-            throws ImpossiblePasswordPolicyException
-    {
+            throws ImpossiblePasswordPolicyException {
         final List<Integer> removePossibilities = new ArrayList<Integer>();
         for (int i = 0; i < password.length(); i++) {
             final char loopChar = password.charAt(i);
@@ -282,10 +278,12 @@ public class RandomPasswordGenerator {
 
     private static void randomPasswordModifier(final StringBuilder password, final SeedMachine seedMachine) {
         switch (RANDOM.nextInt(6)) {
-            case 0: case 1:
+            case 0:
+            case 1:
                 addRandChar(password, seedMachine.getSpecialChars());
                 break;
-            case 2: case 3:
+            case 2:
+            case 3:
                 addRandChar(password, seedMachine.getNumChars());
                 break;
             case 4:
@@ -314,15 +312,13 @@ public class RandomPasswordGenerator {
     }
 
     private static void addRandChar(final StringBuilder password, final String allowedChars)
-            throws ImpossiblePasswordPolicyException
-    {
+            throws ImpossiblePasswordPolicyException {
         final int insertPosition = RANDOM.nextInt(password.length());
         addRandChar(password, allowedChars, insertPosition);
     }
 
     private static void addRandChar(final StringBuilder password, final String allowedChars, final int insertPosition)
-            throws ImpossiblePasswordPolicyException
-    {
+            throws ImpossiblePasswordPolicyException {
         if (allowedChars.length() < 1) {
             throw new ImpossiblePasswordPolicyException(ImpossiblePasswordPolicyException.ErrorEnum.REQUIRED_CHAR_NOT_ALLOWED);
         } else {
@@ -347,8 +343,7 @@ public class RandomPasswordGenerator {
         private final String upperChars;
         private final String lowerChars;
 
-        public SeedMachine(final Collection<String> seeds)
-        {
+        public SeedMachine(final Collection<String> seeds) {
             this.seeds = seeds;
 
             {
@@ -404,33 +399,27 @@ public class RandomPasswordGenerator {
             }
         }
 
-        public String getRandomSeed()
-        {
+        public String getRandomSeed() {
             return new ArrayList<String>(seeds).get(RANDOM.nextInt(seeds.size()));
         }
 
-        public String getAllChars()
-        {
+        public String getAllChars() {
             return allChars;
         }
 
-        public String getNumChars()
-        {
+        public String getNumChars() {
             return numChars;
         }
 
-        public String getSpecialChars()
-        {
+        public String getSpecialChars() {
             return specialChars;
         }
 
-        public String getUpperChars()
-        {
+        public String getUpperChars() {
             return upperChars;
         }
 
-        public String getLowerChars()
-        {
+        public String getLowerChars() {
             return lowerChars;
         }
     }
@@ -493,8 +482,8 @@ public class RandomPasswordGenerator {
         }
 
         /**
-         * @param seedlistPhrases   A set of phrases (Strings) used to generate the RANDOM passwords.  There must be enough
-         *                      values in the phrases to build a resonably RANDOM password that meets rule requirements
+         * @param seedlistPhrases A set of phrases (Strings) used to generate the RANDOM passwords.  There must be enough
+         *                        values in the phrases to build a resonably RANDOM password that meets rule requirements
          */
         public void setSeedlistPhrases(final Collection<String> seedlistPhrases) {
             this.seedlistPhrases = seedlistPhrases;
@@ -526,7 +515,7 @@ public class RandomPasswordGenerator {
 
         /**
          * @param minimumStrength The minimum length desired strength.  The algorith will attempt to make
-         *                      the returned value at least this strong, but it is not guarenteed.
+         *                        the returned value at least this strong, but it is not guarenteed.
          */
         public void setMinimumStrength(final int minimumStrength) {
             int desiredStrength = minimumStrength > MAXIMUM_STRENGTH ? MAXIMUM_STRENGTH : minimumStrength;

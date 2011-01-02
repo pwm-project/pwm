@@ -25,21 +25,30 @@ package password.pwm.health;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
 import password.pwm.Helper;
+import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.wordlist.SeedlistManager;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class LDAPStatusChecker implements HealthChecker {
+
+    final private static PwmLogger LOGGER = PwmLogger.getLogger(LDAPStatusChecker.class);
+    final private static String TOPIC = "LDAP Connectivity";
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
@@ -49,15 +58,15 @@ public class LDAPStatusChecker implements HealthChecker {
         { // check ldap server
             final ErrorInformation result = doLdapStatusCheck(storedConfig);
             if (result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
-                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, "LDAP Connectivity", "All configured LDAP servers are reachable"));
+                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
             } else {
-                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", result.toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, result.toDebugStr()));
                 return returnRecords;
             }
         }
 
         { // check test user
-            final HealthRecord hr = doLdapTestUserCheck(storedConfig);
+            final HealthRecord hr = doLdapTestUserCheck(storedConfig, contextManager);
             if (hr != null) {
                 returnRecords.add(hr);
             }
@@ -67,7 +76,7 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration) {
+    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration, final ContextManager contextManager) {
         final Configuration config = new Configuration(storedconfiguration);
 
 
@@ -76,9 +85,10 @@ public class LDAPStatusChecker implements HealthChecker {
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         if (testUserDN == null || testUserDN.length() < 1) {
-            return new HealthRecord(HealthRecord.HealthStatus.CAUTION, "LDAP Connectivity", "LDAP test user is not configured");
+            return new HealthRecord(HealthRecord.HealthStatus.CAUTION, TOPIC, "LDAP test user is not configured");
         }
 
+        final ChaiUser theUser;
         try {
             final ChaiProvider chaiProvider = Helper.createChaiProvider(
                     config,
@@ -86,24 +96,52 @@ public class LDAPStatusChecker implements HealthChecker {
                     proxyUserPW,
                     config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
 
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
-            if (!chaiUser.isValid()) {
-                return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "LDAP test user '" + testUserDN + "' does not exist");
+            theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
+            if (!theUser.isValid()) {
+                return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "LDAP test user '" + testUserDN + "' does not exist");
             }
-            //@todo this next method needs to be refactored so it works without session and request
-            //AuthenticationFilter.authUserWithUnknownPassword(chaiUser, null, null);
 
         } catch (ChaiUnavailableException e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "LDAP unavailable error while testing ldap test user: " + e.getMessage());
-            //} catch (ChaiOperationException e) {
-            //    return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","LDAP Operational error while testing ldap test user: " + e.getMessage());
-            //} catch (PwmException e) {
-            //    return new HealthRecord(HealthRecord.HealthStatus.WARN,"LDAP Connectivity","PWM error while testing ldap test user: " + e.getMessage());
+            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
         } catch (Throwable e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN, "LDAP Connectivity", "unexpected error while testing ldap test user: " + e.getMessage());
+            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
         }
 
-        return null;
+
+        String userPassword = null;
+        boolean readPassword = false;
+        {
+            try {
+                final String passwordFromLdap = theUser.readPassword();
+                if (passwordFromLdap != null && passwordFromLdap.length() > 0) {
+                    userPassword = passwordFromLdap;
+                    readPassword = true;
+                }
+            } catch (Exception e) {
+                LOGGER.trace("error retrieving user password from directory, this is probably okay; " + e.getMessage());
+            }
+
+            if (userPassword == null) {
+                try {
+                    final Locale locale = Locale.getDefault();
+                    final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(config, locale, theUser, null);
+                    final SeedlistManager seedlistManager = contextManager.getSeedlistManager();
+                    final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, contextManager);
+                    theUser.setPassword(newPassword);
+                    userPassword = newPassword;
+                } catch (ChaiException e) {
+                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                } catch (ChaiPasswordPolicyException e) {
+                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                }
+            }
+        }
+
+        if (userPassword == null) {
+            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
+        }
+
+        return new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "LDAP test user account is functioning normally");
     }
 
 

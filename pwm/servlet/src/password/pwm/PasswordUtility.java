@@ -80,15 +80,16 @@ public class PasswordUtility {
      * @param newPassword the new password that is being set.
      * @param pwmSession  beanmanager for config and user info lookup
      * @return true if the set was successful
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the ldap directory is not unavailable
-     * @throws password.pwm.error.PwmException             if user is not authenticated
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *          if the ldap directory is not unavailable
+     * @throws password.pwm.error.PwmException
+     *          if user is not authenticated
      */
     public static boolean setUserPassword(
             final PwmSession pwmSession,
             final String newPassword
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -123,10 +124,10 @@ public class PasswordUtility {
         final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
 
         try {
-            theUser.changePassword(oldPassword,newPassword); // this method handles AD, edir or nmas password changes.
+            theUser.changePassword(oldPassword, newPassword); // this method handles AD, edir or nmas password changes.
         } catch (ChaiOperationException e) {
             final PwmError returnMsg = PwmError.forChaiPasswordError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiPasswordError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(returnMsg,e.getMessage());
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
             return false;
@@ -184,15 +185,15 @@ public class PasswordUtility {
                     LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
                 }
                 final long totalTime = System.currentTimeMillis() - delayStartTime;
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME,totalTime);
+                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
             }
         }
 
         // be sure minimum wait time has passed
         final long minWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
-        if((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {
+        if ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {
             LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
-            while ((System.currentTimeMillis() - delayStartTime) < minWaitTime)  {
+            while ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {
                 Helper.pause(500);
             }
         }
@@ -236,7 +237,7 @@ public class PasswordUtility {
                 throw PwmException.createPwmException(errorInfo);
             }
         }
-        
+
     }
 
     /*
@@ -302,9 +303,12 @@ public class PasswordUtility {
 
     */
 
-    public static int checkPasswordStrength(final PwmSession pwmSession, final String password)
-    {
-        final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(pwmSession, password);
+    public static int checkPasswordStrength(
+            final Configuration config,
+            final PwmSession pwmSession,
+            final String password
+    ) {
+        final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(config, pwmSession, password);
 
         // strip invalid values
         for (final Iterator<Integer> iter = judgeResults.iterator(); iter.hasNext();) {
@@ -329,16 +333,14 @@ public class PasswordUtility {
     }
 
 
-
-    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession)
-    {
+    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession) {
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT,locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY,locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL,locale);
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT, locale);
+        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY, locale);
+        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL, locale);
 
         final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
         if (toAddress == null || toAddress.length() < 1) {

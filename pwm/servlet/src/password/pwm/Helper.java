@@ -76,8 +76,7 @@ public class Helper {
             final String userPassword,
             final int idleTimeoutMs
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
@@ -89,37 +88,36 @@ public class Helper {
             final String userPassword,
             final int idleTimeoutMs
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         final List<String> ldapURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
         chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, Boolean.toString(config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)));
-        chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS,Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
+        chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
 
         chaiConfig.setCrSetting(CrSetting.CHAI_ATTRIBUTE_NAME, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
-        chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE,Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
+        chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
 
         // if possible, set the ldap timeout.
         if (idleTimeoutMs > 0) {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE,"true");
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, Long.toString(idleTimeoutMs));
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY,Long.toString(60 * 1000));
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(60 * 1000));
         } else {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE,"false");
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
 
         // write out any configured values;
         final List<String> rawValues = config.readStringArraySetting(PwmSetting.LDAP_CHAI_SETTINGS);
-        final Map<String,String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues,"=");
+        final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues, "=");
         for (final String key : configuredSettings.keySet()) {
             final ChaiSetting theSetting = ChaiSetting.forKey(key);
             if (theSetting == null) {
                 LOGGER.error("ignoring unknown chai setting '" + key + "'");
             } else {
-                chaiConfig.setSetting(theSetting,configuredSettings.get(key));
+                chaiConfig.setSetting(theSetting, configuredSettings.get(key));
             }
         }
 
@@ -128,16 +126,17 @@ public class Helper {
 
     /**
      * Append auxClasses    configured in the PWM configuration to the ldap user object.
-     * @param userDN        userDN userDN of the user to add to
-     * @param pwmSession    Current pwmSession, used for logging
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the ldap server is unavailable
+     *
+     * @param userDN     userDN userDN of the user to add to
+     * @param pwmSession Current pwmSession, used for logging
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *          if the ldap server is unavailable
      */
     public static void addConfiguredUserObjectClass(
             final String userDN,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readStringArraySetting(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
@@ -147,8 +146,7 @@ public class Helper {
     }
 
     private static void addUserObjectClass(final ChaiUser theUser, final Set<String> newObjClasses, final PwmSession pwmSession)
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         String auxClass = null;
         try {
             final Set<String> existingObjClasses = theUser.readMultiStringAttribute(ChaiConstant.ATTR_LDAP_OBJECTCLASS);
@@ -174,6 +172,7 @@ public class Helper {
     /**
      * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.ServletContext, boolean)} )}
      * with forceLogout=true;
+     *
      * @param req        Users http request
      * @param resp       Users http response
      * @param theContext The Servlet context
@@ -185,9 +184,8 @@ public class Helper {
             final HttpServletResponse resp,
             final ServletContext theContext
     )
-            throws IOException, ServletException
-    {
-        forwardToErrorPage(req,resp,theContext,true);
+            throws IOException, ServletException {
+        forwardToErrorPage(req, resp, theContext, true);
     }
 
     /**
@@ -195,9 +193,9 @@ public class Helper {
      * session error state.  If the session error state is null, then this method will populate it
      * with a generic unknown error.
      *
-     * @param req        Users http request
-     * @param resp       Users http response
-     * @param theContext The Servlet context
+     * @param req         Users http request
+     * @param resp        Users http response
+     * @param theContext  The Servlet context
      * @param forceLogout if the user should be unauthenticed after showing the error
      * @throws IOException      if there is an error writing to the response
      * @throws ServletException if there is a problem accessing the http objects
@@ -208,8 +206,7 @@ public class Helper {
             final ServletContext theContext,
             final boolean forceLogout
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -229,8 +226,7 @@ public class Helper {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException
-    {
+            throws IOException {
         final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
     }
@@ -239,8 +235,7 @@ public class Helper {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException
-    {
+            throws IOException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -258,8 +253,7 @@ public class Helper {
             final HttpServletResponse resp,
             final ServletContext theContext
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
 
         if (ssBean.getSessionSuccess() == null) {
@@ -276,8 +270,7 @@ public class Helper {
             final ServletContext theContext,
             final String nextURL
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
         ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
 
@@ -286,14 +279,12 @@ public class Helper {
     }
 
     public static String md5sum(final File theFile)
-            throws IOException
-    {
+            throws IOException {
         return md5sum(new FileInputStream(theFile));
     }
 
     public static String md5sum(final InputStream is)
-            throws IOException
-    {
+            throws IOException {
         final InputStream bis = is instanceof BufferedInputStream ? is : new BufferedInputStream(is);
 
         final MessageDigest messageDigest;
@@ -314,7 +305,7 @@ public class Helper {
         }
         bis.close();
 
-        final byte[] bytes =  messageDigest.digest();
+        final byte[] bytes = messageDigest.digest();
 
         return byteArrayToHexString(bytes);
     }
@@ -322,11 +313,11 @@ public class Helper {
     /**
      * Convert a byte[] array to readable string format. This makes the "hex" readable
      *
-     * @return result String buffer in String format
      * @param in byte[] buffer to convert to string format
+     * @return result String buffer in String format
      */
     public static String byteArrayToHexString(final byte in[]) {
-        final String pseudo[] = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"};
+        final String pseudo[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
         if (in == null || in.length <= 0) {
             return "";
@@ -355,8 +346,7 @@ public class Helper {
      * @throws ChaiUnavailableException if the directory is unavailble
      */
     public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         boolean success = false;
 
         final String updateAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
@@ -382,8 +372,7 @@ public class Helper {
      * @param sleepTimeMS - a time duration in milliseconds
      * @return time actually spent sleeping
      */
-    public static long pause(final long sleepTimeMS)
-    {
+    public static long pause(final long sleepTimeMS) {
         final long startTime = System.currentTimeMillis();
         do {
             try {
@@ -400,13 +389,12 @@ public class Helper {
     public static void invokeExternalChangeMethods(
             final PwmSession pwmSession,
             final String oldPassword,
-            final String newPassword)
-    {
+            final String newPassword) {
         final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_CHANGE_METHODS);
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0 ) {
+            if (classNameString != null && classNameString.length() > 0) {
                 try {
                     // load up the class and get an instance.
                     final Class<?> theClass = Class.forName(classNameString);
@@ -435,15 +423,15 @@ public class Helper {
 
 
     public static List<Integer> invokeExternalJudgeMethods(
+            final Configuration config,
             final PwmSession pwmSession,
-            final String password)
-    {
-        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_JUDGE_METHODS);
+            final String password) {
+        final List<String> externalMethods = config.readStringArraySetting(PwmSetting.EXTERNAL_JUDGE_METHODS);
         final List<Integer> returnList = new ArrayList<Integer>();
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0 ) {
+            if (classNameString != null && classNameString.length() > 0) {
                 try {
                     // load up the class and get an instance.
                     final Class<?> theClass = Class.forName(classNameString);
@@ -469,16 +457,16 @@ public class Helper {
     }
 
     public static List<ErrorInformation> invokeExternalRuleMethods(
+            final Configuration config,
             final PwmSession pwmSession,
             final PwmPasswordPolicy pwmPasswordPolicy,
-            final String password)
-    {
-        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_RULE_METHODS);
+            final String password) {
+        final List<String> externalMethods = config.readStringArraySetting(PwmSetting.EXTERNAL_RULE_METHODS);
         final List<ErrorInformation> returnList = new ArrayList<ErrorInformation>();
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0 ) {
+            if (classNameString != null && classNameString.length() > 0) {
                 try {
                     // load up the class and get an instance.
                     final Class<?> theClass = Class.forName(classNameString);
@@ -495,7 +483,7 @@ public class Helper {
                     }
                     if (result != null && result.getStringErrors() != null) {
                         for (final String errorString : result.getStringErrors()) {
-                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION,errorString);
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION, errorString);
                             loopReturnList.add(errorInformation);
                             LOGGER.debug(pwmSession, "externalRuleMethod '" + classNameString + "' returned a value of " + errorInformation.toDebugStr());
                         }
@@ -519,8 +507,7 @@ public class Helper {
         return returnList;
     }
 
-    public static boolean testEmailAddress(final String address)
-    {
+    public static boolean testEmailAddress(final String address) {
         final Pattern pattern = Pattern.compile("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*$");
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
@@ -531,8 +518,7 @@ public class Helper {
             final String objectDN,
             final String queryString
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         if (objectDN == null || objectDN.length() < 1) {
             return true;
         }
@@ -574,8 +560,7 @@ public class Helper {
     public static String trimString(
             final String str,
             final String chars
-    )
-    {
+    ) {
         if (chars == null || chars.length() < 1) {
             return str;
         }
@@ -603,15 +588,14 @@ public class Helper {
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
-     * @param pwmSession for looking up session info
-     * @param theUser    User to write to
-     * @param stringOrParamMap  A map with String keys and String or {@link password.pwm.config.FormConfiguration} values. @throws ChaiUnavailableException
+     * @param pwmSession       for looking up session info
+     * @param theUser          User to write to
+     * @param stringOrParamMap A map with String keys and String or {@link password.pwm.config.FormConfiguration} values. @throws ChaiUnavailableException
      * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws ChaiOperationException if their is an unexpected ldap problem
+     * @throws ChaiOperationException   if their is an unexpected ldap problem
      */
     public static void writeMapToEdir(final PwmSession pwmSession, final ChaiUser theUser, final Map stringOrParamMap)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
+            throws ChaiUnavailableException, ChaiOperationException {
         for (final Object key : stringOrParamMap.keySet()) {
             final String attrName = (String) key;
             final Object mapValue = stringOrParamMap.get(attrName);
@@ -636,12 +620,10 @@ public class Helper {
         }
     }
 
-    public static String binaryArrayToHex(final byte[] buf)
-    {
+    public static String binaryArrayToHex(final byte[] buf) {
         final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
         final char[] chars = new char[2 * buf.length];
-        for (int i = 0; i < buf.length; ++i)
-        {
+        for (int i = 0; i < buf.length; ++i) {
             chars[2 * i] = HEX_CHARS[(buf[i] & 0xF0) >>> 4];
             chars[2 * i + 1] = HEX_CHARS[buf[i] & 0x0F];
         }
@@ -770,18 +752,16 @@ public class Helper {
         String line;
         try {
             final BufferedReader reader = request.getReader();
-            while(((line = reader.readLine()) != null) && inputData.length() < maxChars) {
+            while (((line = reader.readLine()) != null) && inputData.length() < maxChars) {
                 inputData.append(line);
             }
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.error("error reading request body stream: " + e.getMessage());
         }
         return inputData.toString();
     }
 
-    public static String debugHttpRequest(final HttpServletRequest req)
-    {
+    public static String debugHttpRequest(final HttpServletRequest req) {
         final StringBuilder sb = new StringBuilder();
 
         sb.append(req.getMethod());
@@ -811,7 +791,7 @@ public class Helper {
                 }
             }
 
-            sb.deleteCharAt(sb.length() -1);
+            sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
     }

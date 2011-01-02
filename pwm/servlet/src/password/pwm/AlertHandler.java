@@ -139,47 +139,139 @@ public abstract class AlertHandler {
     }
 
     public static void alertDailyStats(final ContextManager contextManager, final Map<String, String> valueMap) {
-        if (!checkIfEnabled(contextManager, PwmSetting.EVENTS_ALERT_DAILY_STATS)) {
+        if (!checkIfEnabled(contextManager, PwmSetting.EVENTS_ALERT_DAILY_SUMMARY)) {
             return;
         }
 
         for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Alert - Daily Statistics";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Daily Statistics\n");
-            body.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-            body.append("\n");
+            final String subject = "PWM - Daily Summary";
+            final StringBuilder textBody = new StringBuilder();
+            final StringBuilder htmlBody = new StringBuilder();
+
+            htmlBody.append("<html><head>");
+            htmlBody.append("<style type='text/css'");
+            htmlBody.append(
+                    "\n" +
+                            "html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px; height:100%; margin:0 }\n" +
+                            "\n" +
+                            "a { color:#2D2D2D; text-decoration:underline; font-weight:bold }\n" +
+                            "p { max-width: 600px; color:#2D2D2D; position:relative; margin-left: auto; margin-right: auto}\n" +
+                            "hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }\n" +
+                            "\n" +
+                            "h1 { font-size:16px; }\n" +
+                            "h2 { font-size:14px; }\n" +
+                            "h3 { font-size:12px; }\n" +
+                            "\n" +
+                            "select { font-family:Trebuchet MS, sans-serif; width: 500px }\n" +
+                            "\n" +
+                            "table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }\n" +
+                            "table td { border: 1px solid #D4D4D4; padding-left: 5px;}\n" +
+                            "table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }\n" +
+                            "table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 200px;}\n" +
+                            "\n" +
+                            ".inputfield { width:400px; margin: 5px; height:18px }\n" +
+                            "\n" +
+                            "/* main body wrapper, all elements (except footer) should be within wrapper */\n" +
+                            "#wrapper { width:100%; min-height: 100%; height: auto !important; height: 100%; margin: 0; }\n" +
+                            "\n" +
+                            "\n" +
+                            "/* main content section, all content should be inside a centerbody div */\n" +
+                            "#centerbody { width:600px; min-width:600px; padding:0; position:relative; ; margin-left:auto; margin-right:auto; margin-top: 10px; clear:both; padding-bottom:40px;}\n" +
+                            "\n" +
+                            "/* all forms use a buttonbar div containing the action buttons */\n" +
+                            "#buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}\n" +
+                            "#buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px; padding: 0 .25em; width: auto; overflow: visible}\n" +
+                            "\n" +
+                            "/* used for password complexity meter */\n" +
+                            "div.progress-container { border: 1px solid #ccc; width: 90px; margin: 2px 5px 2px 0; padding: 1px; float: left; background: white; }\n" +
+                            "div.progress-container > div { background-color: #ffffff; height: 10px; }\n" +
+                            "\n" +
+                            "/* header stuff */\n" +
+                            "#header         { width:100%; height: 70px; margin: 0; background-image:url('header-gradient.gif') }\n" +
+                            "#header-page    { width:600px; padding-top:9px; margin-left: auto; margin-right: auto; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }\n" +
+                            "#header-title   { width:600px; margin: auto; font-family:Trebuchet MS, sans-serif; font-size:14px; color:#FFFFFF; }\n" +
+                            "#header-warning { width:100%; background-color:#FFDC8B; text-align:center; padding-top:4px; padding-bottom:4px }\n" +
+                            "\n" +
+                            ".clear { clear:both; }\n" +
+                            "\n" +
+                            ".msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px; -moz-border-radius:3px}\n" +
+                            ".msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px; -moz-border-radius:3px}\n" +
+                            ".msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px; -moz-border-radius:3px}\n" +
+                            "\n" +
+                            "#footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}\n" +
+                            "#footer .idle_status { color: #333333; }\n" +
+                            "\n" +
+                            "#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; font-variant:small-caps; margin-bottom: 5px; background-color:#d20734; border-radius:3px}\n" +
+                            "");
+            htmlBody.append("</style></head><body>");
+
+            htmlBody.append("<h2>PWM Daily Statistics</h2>");
+            htmlBody.append("<p>InstanceID: ").append(contextManager.getInstanceID()).append("</p>");
+            htmlBody.append("<br/>");
+
+            textBody.append("--Daily Statistics--\n");
+            textBody.append("instanceID: ").append(contextManager.getInstanceID()).append("\n");
+            textBody.append("\n");
 
             final Map<String, String> sortedStats = new TreeMap<String, String>();
             sortedStats.putAll(valueMap);
 
+            htmlBody.append("<table border='1'>");
             for (final String key : sortedStats.keySet()) {
-                body.append(key);
-                body.append(": ");
-                body.append(valueMap.get(key));
-                body.append("\n");
+                final String value = valueMap.get(key);
+                textBody.append(key).append(": ").append(value).append("\n");
+                htmlBody.append("<tr><td class='key'>").append(key).append("</td><td>").append(value).append("</td></tr>");
             }
+            htmlBody.append("</table>");
+
+            textBody.append("\n\n\n");
+            htmlBody.append("<br/><br/>");
+
 
             {
                 final List<HealthRecord> healthRecords = contextManager.getHealthMonitor().getHealthRecords();
                 final java.util.Date lastHeathCheckDate = contextManager.getHealthMonitor().getLastHealthCheckDate();
 
-                body.append("\n\n\n");
-                body.append("-- PWM Health Check Results --\n");
-                body.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
+                textBody.append("-- PWM Health Check Results --\n");
+                htmlBody.append("<h2>PWM Health Check Results</h2>");
+                textBody.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
+                htmlBody.append("HealthCheck Timestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("<br/>");
 
+                htmlBody.append("<table border='1'>");
                 for (final HealthRecord record : healthRecords) {
-                    body.append("topic='").append(record.getTopic()).append("'");
-                    body.append(", status=").append(record.getHealthStatus());
-                    body.append(", detail='").append(record.getDetail()).append("'");
-                    body.append("\n");
+                    textBody.append("topic='").append(record.getTopic()).append("'");
+                    htmlBody.append("<tr><td class='key'>").append(record.getTopic()).append("</td>");
+
+                    textBody.append(", status=").append(record.getHealthStatus());
+                    {
+                        final String color;
+                        switch (record.getHealthStatus()) {
+                            case GOOD:
+                                color = "#8ced3f";
+                                break;
+                            case CAUTION:
+                                color = "#FFCD59";
+                                break;
+                            case WARN:
+                                color = "#d20734";
+                                break;
+                            default:
+                                color = "white";
+                        }
+                        htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getHealthStatus()).append("</td>");
+                    }
+
+                    textBody.append(", detail='").append(record.getDetail()).append("'").append("\n");
+                    htmlBody.append("<td>").append(record.getDetail()).append("<td></tr>");
                 }
+                htmlBody.append("</table>");
 
             }
 
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+            htmlBody.append("</body></html>");
+
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
             contextManager.sendEmailUsingQueue(emailItem);
         }
     }

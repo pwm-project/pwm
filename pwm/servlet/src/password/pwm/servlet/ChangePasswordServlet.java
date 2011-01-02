@@ -67,8 +67,7 @@ public class ChangePasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
@@ -95,7 +94,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("validate")) {
-                handleValidatePasswords(req,resp);
+                handleValidatePasswords(req, resp);
                 return;
             } else if (processRequestParam.equalsIgnoreCase("getrandom")) {     // ajax random generator
                 handleGetRandom(req, resp);
@@ -105,7 +104,7 @@ public class ChangePasswordServlet extends TopServlet {
             } else if (processRequestParam.equalsIgnoreCase("doChange")) {      // wait page call-back
                 this.handleDoChangeRequest(req, resp);
             } else if (processRequestParam.equalsIgnoreCase("agree")) {         // accept password change agreement
-                LOGGER.debug(pwmSession,"user accepted password change agreement");
+                LOGGER.debug(pwmSession, "user accepted password change agreement");
                 cpb.setAgreementPassed(true);
             } else {
                 if (cpb.getPasswordChangeError() != null) {
@@ -129,12 +128,13 @@ public class ChangePasswordServlet extends TopServlet {
      * @param resp response
      * @throws IOException      for an error
      * @throws ServletException for an error
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException if an unexpected error occurs
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *                          if ldap server becomes unavailable
+     * @throws password.pwm.error.PwmException
+     *                          if an unexpected error occurs
      */
     protected static void handleValidatePasswords(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmException, ChaiUnavailableException
-    {
+            throws IOException, ServletException, PwmException, ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -180,8 +180,7 @@ public class ChangePasswordServlet extends TopServlet {
             final PwmSession pwmSession,
             final String password1
     )
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         boolean pass = false;
         String userMessage;
 
@@ -198,7 +197,7 @@ public class ChangePasswordServlet extends TopServlet {
             }
         }
 
-        final int strength = PasswordUtility.checkPasswordStrength(pwmSession, password1);
+        final int strength = PasswordUtility.checkPasswordStrength(pwmSession.getConfig(), pwmSession, password1);
         return new PasswordCheckInfo(userMessage, pass, strength);
     }
 
@@ -221,8 +220,7 @@ public class ChangePasswordServlet extends TopServlet {
             final PwmSession pwmSession,
             final PasswordCheckInfo checkInfo,
             final MATCH_STATUS matchStatus
-    )
-    {
+    ) {
         final String userMessage;
         if (checkInfo.isPassed()) {
             switch (matchStatus) {
@@ -242,12 +240,12 @@ public class ChangePasswordServlet extends TopServlet {
             userMessage = checkInfo.getUserStr();
         }
 
-        final Map<String,String> outputMap = new HashMap<String,String>();
-        outputMap.put("version","2");
-        outputMap.put("strength",String.valueOf(checkInfo.getStrength()));
-        outputMap.put("match",matchStatus.toString());
+        final Map<String, String> outputMap = new HashMap<String, String>();
+        outputMap.put("version", "2");
+        outputMap.put("strength", String.valueOf(checkInfo.getStrength()));
+        outputMap.put("match", matchStatus.toString());
         outputMap.put("message", userMessage);
-        outputMap.put("passed",String.valueOf(checkInfo.isPassed()));
+        outputMap.put("passed", String.valueOf(checkInfo.isPassed()));
 
         return JSONObject.toJSONString(outputMap);
     }
@@ -264,16 +262,15 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws ServletException for an error
      */
     protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmException
-    {
+            throws IOException, ServletException, PwmException {
         final long startTime = System.currentTimeMillis();
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession);
 
-        final Map<String,String> outputMap = new HashMap<String,String>();
-        outputMap.put("version","1");
-        outputMap.put("password",randomPassword);
+        final Map<String, String> outputMap = new HashMap<String, String>();
+        outputMap.put("version", "1");
+        outputMap.put("password", randomPassword);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getOutputStream().print(JSONObject.toJSONString(outputMap));
@@ -297,15 +294,16 @@ public class ChangePasswordServlet extends TopServlet {
      * @param resp http response
      * @throws ServletException should never throw
      * @throws IOException      if error writing response
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException if an unexpected error occurs
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
+     *                          if ldap server becomes unavailable
+     * @throws password.pwm.error.PwmException
+     *                          if an unexpected error occurs
      */
     private void handleChangeRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, PwmException, ChaiUnavailableException
-    {
+            throws ServletException, IOException, PwmException, ChaiUnavailableException {
         //Fetch the required managers/beans
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -364,7 +362,7 @@ public class ChangePasswordServlet extends TopServlet {
         // password accepted, setup change password
         {
             cpb.setNewPassword(password1);
-            LOGGER.trace(pwmSession,"wrote password to changePasswordBean");
+            LOGGER.trace(pwmSession, "wrote password to changePasswordBean");
 
             final StringBuilder returnURL = new StringBuilder();
             returnURL.append(req.getContextPath());
@@ -383,14 +381,14 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws ServletException         should never throw
      * @throws IOException              if error writing response
      * @throws ChaiUnavailableException if ldap disappears
-     * @throws password.pwm.error.PwmException             if there is an unexpected error setting password
+     * @throws password.pwm.error.PwmException
+     *                                  if there is an unexpected error setting password
      */
     private void handleDoChangeRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = pwmSession.getContextManager();
@@ -421,10 +419,10 @@ public class ChangePasswordServlet extends TopServlet {
         } else {
             final ErrorInformation errorMsg = ssBean.getSessionError();
             if (errorMsg != null) { // add the bad password to the history cache
-                cpb.getPasswordTestCache().put(newPassword,new PasswordCheckInfo(
+                cpb.getPasswordTestCache().put(newPassword, new PasswordCheckInfo(
                         errorMsg.toUserStr(pwmSession),
                         false,
-                        PasswordUtility.checkPasswordStrength(pwmSession, newPassword)
+                        PasswordUtility.checkPasswordStrength(pwmSession.getConfig(), pwmSession, newPassword)
                 ));
             }
             cpb.setPasswordChangeError(errorMsg);
@@ -438,11 +436,10 @@ public class ChangePasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final String agreementMsg = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE,userLocale);
+        final String agreementMsg = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, userLocale);
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
