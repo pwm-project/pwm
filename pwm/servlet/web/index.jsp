@@ -32,7 +32,7 @@
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="WEB-INF/jsp/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="APPLICATION-TITLE"/>
+        <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Long_Title_Main_Menu"/></p>

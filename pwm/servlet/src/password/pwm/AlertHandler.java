@@ -263,7 +263,7 @@ public abstract class AlertHandler {
                     }
 
                     textBody.append(", detail='").append(record.getDetail()).append("'").append("\n");
-                    htmlBody.append("<td>").append(record.getDetail()).append("<td></tr>");
+                    htmlBody.append("<td>").append(record.getDetail()).append("</td></tr>");
                 }
                 htmlBody.append("</table>");
 

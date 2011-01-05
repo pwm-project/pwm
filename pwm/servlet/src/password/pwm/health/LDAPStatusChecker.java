@@ -78,8 +78,6 @@ public class LDAPStatusChecker implements HealthChecker {
 
     private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration, final ContextManager contextManager) {
         final Configuration config = new Configuration(storedconfiguration);
-
-
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
         final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
