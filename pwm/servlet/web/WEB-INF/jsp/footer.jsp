@@ -31,7 +31,6 @@
         &nbsp;
     </span>
     <br/>
-    PWM <%= PwmConstants.SERVLET_VERSION %> |
     <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
     <%= PwmSession.getUserInfoBean(session).getUserID()%>
     |
@@ -41,7 +40,7 @@
         final java.text.DateFormat df = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.DEFAULT, SimpleDateFormat.DEFAULT, request.getLocale());
         out.write(df.format(new java.util.Date()));
     %>
-    |
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     src:
     <%
         final String userIP = sessionStateBean.getSrcAddress();

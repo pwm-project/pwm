@@ -48,6 +48,7 @@ public class ConfigManagerServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
     private static final int MAX_INPUT_LENGTH = 1024 * 10;
+    private static final String DEFAULT_PW = "DEFAULT-PW";
 
     protected void processRequest(
             final HttpServletRequest req,
@@ -214,6 +215,9 @@ public class ConfigManagerServlet extends TopServlet {
                 case LOCALIZED_TEXT_AREA:
                     returnValue = new TreeMap<String, String>(storedConfig.readLocalizedStringSetting(theSetting));
                     break;
+                case PASSWORD:
+                    returnValue = DEFAULT_PW;
+                    break;
 
                 default:
                     returnValue = storedConfig.readSetting(theSetting);
@@ -290,6 +294,13 @@ public class ConfigManagerServlet extends TopServlet {
                     outputMap.put(localeKeyObject.toString(), loopList);
                 }
                 storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
+            }
+            break;
+
+            case PASSWORD: {
+                if (!value.equals(DEFAULT_PW)) {
+                    storedConfig.writeSetting(setting, value);
+                }
             }
             break;
 

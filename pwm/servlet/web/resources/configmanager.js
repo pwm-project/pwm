@@ -21,21 +21,6 @@
  */
 
 dojo.require("dijit.form.Button");
-dojo.require("dijit.layout.ContentPane");
-dojo.require("dojox.layout.ContentPane");
-dojo.require("dijit.layout.TabContainer");
-dojo.require("dijit.layout.AccordionContainer");
-dojo.require("dijit.form.NumberSpinner");
-dojo.require("dijit.form.ValidationTextBox");
-dojo.require("dijit.form.Textarea");
-dojo.require("dijit.form.ComboBox");
-dojo.require("dojox.form.PasswordValidator");
-dojo.require("dijit.form.Button");
-dojo.require("dijit.Dialog");
-dojo.require("dijit.TitlePane");
-dojo.require("dijit.Menu");
-dojo.require("dijit.MenuItem");
-
 
 var clientSettingCache = { };
 var availableLocales = new Array();
@@ -185,11 +170,13 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
+    dojo.require("dijit.form.ComboBox");
     clearDigitWidget(keyName + '-addLocaleValue');
     new dijit.form.ComboBox({
         id: keyName + '-addLocaleValue'
     }, keyName + '-addLocaleValue');
 
+    dojo.require("dijit.form.Button");
     clearDigitWidget(keyName + '-addLocaleButton');
     new dijit.form.Button({
         id: keyName + '-addLocaleButton',
@@ -213,6 +200,8 @@ function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
         });
 
         clientSettingCache[keyName] = resultValue;
+        dojo.require("dijit.form.Button");
+        dojo.require("dijit.form.Textarea");
         dojo.parser.parse(parentDiv);
     });
 }
@@ -349,6 +338,8 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
             parentDivElement.appendChild(newTableRow);
         }
         clientSettingCache[keyName] = counter;
+        dojo.require("dijit.form.Button");
+        dojo.require("dijit.form.Textarea");
         dojo.parser.parse(parentDiv);
     });
 }
@@ -543,6 +534,8 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
 
         addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
         clientSettingCache[keyName] = resultValue;
+        dojo.require("dijit.form.Button");
+        dojo.require("dijit.form.Textarea");
         dojo.parser.parse(parentDiv);
     });
 }
@@ -584,6 +577,7 @@ function showWaitDialog(title, body) {
     if (body == null || body.length < 1) {
         body = '<div style="text-align: center"><img src="../resources/wait.gif"/></div>';
     }
+    dojo.require("dijit.Dialog");
     var theDialog = new dijit.Dialog({
         id: 'waitDialog',
         title: title,

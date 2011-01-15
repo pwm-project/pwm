@@ -290,16 +290,6 @@ public class ContextManager implements Serializable {
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " (" + PwmConstants.BUILD_NUMBER + ") open for bidness! (" + totalTime.asCompactString() + ")");
 
-        // warmup the proxy ldap connection
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    final ChaiProvider provider = getProxyChaiProvider();
-                    LOGGER.debug("detected ldap directory vendor: " + provider.getDirectoryVendor());
-                } catch (Exception e) { /**/}
-            }
-        }).start();
-
         // detect if config has been modified since previous startup
         try {
             if (pwmDB != null) {
@@ -316,16 +306,6 @@ public class ContextManager implements Serializable {
         }
 
         AlertHandler.alertStartup(this);
-
-        // kick off a health check in its own thread.
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    healthMonitor.checkImmediately();
-                    healthMonitor.getHealthRecords();
-                } catch (Exception e) { /**/}
-            }
-        }).start();
     }
 
     public void reinitialize() {
@@ -825,7 +805,7 @@ public class ContextManager implements Serializable {
         @Override
         public void run() {
             if (configReader != null) {
-                if (!restartRequested && configReader.inputFileHasBeenModified()) {
+                if (!restartRequested && configReader.modifiedSinceLoad()) {
                     LOGGER.info("configuration file modification has been detected");
                     reinitialize();
                     restartRequested = true;

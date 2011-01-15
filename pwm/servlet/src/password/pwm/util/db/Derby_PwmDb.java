@@ -31,9 +31,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static password.pwm.util.db.PwmDB.DB;
-import static password.pwm.util.db.PwmDB.TransactionItem;
 
 /**
  * Apache Derby Wrapper for {@link password.pwm.util.db.PwmDB} interface.   Uses a single table per DB, with
@@ -44,7 +45,7 @@ import static password.pwm.util.db.PwmDB.TransactionItem;
 public class Derby_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Derby_PwmDb.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(Derby_PwmDb.class, true);
 
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
@@ -57,9 +58,13 @@ public class Derby_PwmDb implements PwmDBProvider {
     private File dbDirectory;
 
     // cache of dbIterators
-    private final Map<DB, DbIterator> dbIterators = new ConcurrentHashMap<DB, DbIterator>();
+    private final Map<DB, DbIterator<String>> dbIterators = new ConcurrentHashMap<DB, DbIterator<String>>();
 
     private final Map<DB, Connection> connectionMap = new ConcurrentHashMap<DB, Connection>();
+
+    // operation lock
+    private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -160,11 +165,12 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public void close()
             throws PwmDBException {
-        for (final Connection connection : connectionMap.values()) {
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (connection) {
+        try {
+            LOCK.writeLock().lock();
+            for (final Connection connection : connectionMap.values()) {
                 if (connection != null) {
                     try {
+
                         connection.close();
                         final String connectionURL = baseConnectionURL + ";shutdown=true";
 
@@ -176,9 +182,11 @@ public class Derby_PwmDb implements PwmDBProvider {
                     } catch (Exception e) {
                         LOGGER.debug("error while closing DB: " + e.getMessage());
                     }
-                    connectionMap.values().remove(connection);
                 }
+                connectionMap.values().remove(connection);
             }
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
 
@@ -199,24 +207,23 @@ public class Derby_PwmDb implements PwmDBProvider {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                statement = connection.prepareStatement(sb.toString());
-                statement.setString(1, key);
-                statement.setMaxRows(1);
-                resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    return resultSet.getString(VALUE_COLUMN);
-                }
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-                close(resultSet);
+        try {
+            LOCK.readLock().lock();
+            statement = connection.prepareStatement(sb.toString());
+            statement.setString(1, key);
+            statement.setMaxRows(1);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(VALUE_COLUMN);
             }
-            return null;
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.readLock().unlock();
+            close(statement);
+            close(resultSet);
         }
+        return null;
     }
 
     public void init(final File dbDirectory, final Map<String, String> initParams)
@@ -232,7 +239,7 @@ public class Derby_PwmDb implements PwmDBProvider {
         }
     }
 
-    public synchronized Iterator<TransactionItem> iterator(final DB db)
+    public synchronized Iterator<String> iterator(final DB db)
             throws PwmDBException {
         try {
             if (dbIterators.containsKey(db)) {
@@ -254,33 +261,32 @@ public class Derby_PwmDb implements PwmDBProvider {
         final String insertSqlString = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
 
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                // just in case anyone was unclear: sql does indeed suck.
-                removeStatement = connection.prepareStatement(removeSqlString);
-                insertStatement = connection.prepareStatement(insertSqlString);
+        try {
+            LOCK.writeLock().lock();
+            // just in case anyone was unclear: sql does indeed suck.
+            removeStatement = connection.prepareStatement(removeSqlString);
+            insertStatement = connection.prepareStatement(insertSqlString);
 
-                for (final String loopKey : keyValueMap.keySet()) {
-                    removeStatement.clearParameters();
-                    removeStatement.setString(1, loopKey);
-                    removeStatement.addBatch();
+            for (final String loopKey : keyValueMap.keySet()) {
+                removeStatement.clearParameters();
+                removeStatement.setString(1, loopKey);
+                removeStatement.addBatch();
 
-                    insertStatement.clearParameters();
-                    insertStatement.setString(1, loopKey);
-                    insertStatement.setString(2, keyValueMap.get(loopKey));
-                    insertStatement.addBatch();
-                }
-
-                removeStatement.executeBatch();
-                insertStatement.executeBatch();
-                connection.commit();
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(removeStatement);
-                close(insertStatement);
+                insertStatement.clearParameters();
+                insertStatement.setString(1, loopKey);
+                insertStatement.setString(2, keyValueMap.get(loopKey));
+                insertStatement.addBatch();
             }
+
+            removeStatement.executeBatch();
+            insertStatement.executeBatch();
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.writeLock().unlock();
+            close(removeStatement);
+            close(insertStatement);
         }
     }
 
@@ -292,19 +298,18 @@ public class Derby_PwmDb implements PwmDBProvider {
             PreparedStatement statement = null;
 
             final Connection connection = connectionMap.get(db);
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (connection) {
-                try {
-                    statement = connection.prepareStatement(sqlText);
-                    statement.setString(1, key);
-                    statement.setString(2, value);
-                    statement.executeUpdate();
-                    connection.commit();
-                } catch (SQLException ex) {
-                    throw new PwmDBException(ex.getCause());
-                } finally {
-                    close(statement);
-                }
+            try {
+                LOCK.writeLock().lock();
+                statement = connection.prepareStatement(sqlText);
+                statement.setString(1, key);
+                statement.setString(2, value);
+                statement.executeUpdate();
+                connection.commit();
+            } catch (SQLException ex) {
+                throw new PwmDBException(ex.getCause());
+            } finally {
+                LOCK.writeLock().unlock();
+                close(statement);
             }
             return false;
         }
@@ -313,19 +318,19 @@ public class Derby_PwmDb implements PwmDBProvider {
         PreparedStatement statement = null;
 
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                statement = connection.prepareStatement(sqlText);
-                statement.setString(1, value);
-                statement.setString(2, key);
-                statement.executeUpdate();
-                connection.commit();
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-            }
+        try {
+            LOCK.writeLock().lock();
+            statement = connection.prepareStatement(sqlText);
+            statement.setString(1, value);
+            statement.setString(2, key);
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.writeLock().unlock();
+            close(statement);
+
         }
 
         return true;
@@ -342,18 +347,17 @@ public class Derby_PwmDb implements PwmDBProvider {
 
         PreparedStatement statement = null;
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                statement = connection.prepareStatement(sqlText.toString());
-                statement.setString(1, key);
-                statement.executeUpdate();
-                connection.commit();
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-            }
+        try {
+            LOCK.writeLock().lock();
+            statement = connection.prepareStatement(sqlText.toString());
+            statement.setString(1, key);
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.writeLock().unlock();
+            close(statement);
         }
 
         return true;
@@ -379,20 +383,19 @@ public class Derby_PwmDb implements PwmDBProvider {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                statement = connection.prepareStatement(sb.toString());
-                resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    return resultSet.getInt(1);
-                }
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-                close(resultSet);
+        try {
+            LOCK.readLock().lock();
+            statement = connection.prepareStatement(sb.toString());
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
             }
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.readLock().unlock();
+            close(statement);
+            close(resultSet);
         }
 
         return 0;
@@ -405,19 +408,40 @@ public class Derby_PwmDb implements PwmDBProvider {
 
         PreparedStatement statement = null;
         final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-            try {
-                statement = connection.prepareStatement(sqlText.toString());
-                statement.executeUpdate();
-                connection.commit();
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-            }
-
+        try {
+            LOCK.writeLock().lock();
+            statement = connection.prepareStatement(sqlText.toString());
+            statement.executeUpdate();
+            connection.commit();
             initTable(connection, db);
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.writeLock().unlock();
+            close(statement);
+        }
+    }
+
+    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
+        final String sqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
+        PreparedStatement statement = null;
+        final Connection connection = connectionMap.get(db);
+        try {
+            LOCK.writeLock().lock();
+            statement = connection.prepareStatement(sqlString);
+
+            for (final String loopKey : keys) {
+                statement.clearParameters();
+                statement.setString(1, loopKey);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new PwmDBException(ex.getCause());
+        } finally {
+            LOCK.writeLock().unlock();
+            close(statement);
         }
     }
 
@@ -441,9 +465,9 @@ public class Derby_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator implements Iterator<TransactionItem> {
-        private TransactionItem nextItem;
-        private TransactionItem currentItem;
+    private class DbIterator<K> implements Iterator<String> {
+        private String nextItem;
+        private String currentItem;
 
         private ResultSet resultSet;
         private final DB db;
@@ -470,9 +494,7 @@ public class Derby_PwmDb implements PwmDBProvider {
         private void fetchNext() {
             try {
                 if (resultSet.next()) {
-                    final String key = resultSet.getString(KEY_COLUMN);
-                    final String value = resultSet.getString(VALUE_COLUMN);
-                    nextItem = new TransactionItem(db, key, value);
+                    nextItem = resultSet.getString(KEY_COLUMN);
                 } else {
                     nextItem = null;
                 }
@@ -491,7 +513,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             dbIterators.remove(db);
         }
 
-        public TransactionItem next() {
+        public String next() {
             currentItem = nextItem;
             fetchNext();
             return currentItem;
@@ -500,7 +522,7 @@ public class Derby_PwmDb implements PwmDBProvider {
         public void remove() {
             if (currentItem != null) {
                 try {
-                    Derby_PwmDb.this.remove(db, currentItem.getKey());
+                    Derby_PwmDb.this.remove(db, currentItem);
                 } catch (PwmDBException e) {
                     throw new RuntimeException(e);
                 }
@@ -522,28 +544,4 @@ public class Derby_PwmDb implements PwmDBProvider {
         return 0;
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
-        final String sqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
-        PreparedStatement statement = null;
-        final Connection connection = connectionMap.get(db);
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (connection) {
-
-            try {
-                statement = connection.prepareStatement(sqlString);
-
-                for (final String loopKey : keys) {
-                    statement.clearParameters();
-                    statement.setString(1, loopKey);
-                    statement.addBatch();
-                }
-                statement.executeBatch();
-                connection.commit();
-            } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
-            } finally {
-                close(statement);
-            }
-        }
-    }
 }

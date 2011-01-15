@@ -39,22 +39,31 @@ public class PwmLogger {
 // ------------------------------ FIELDS ------------------------------
 
     private static PwmDBLogger pwmDBLogger;
-    private final String name;
-    private final org.apache.log4j.Logger log4jLogger;
     private static PwmLogLevel minimumDbLogLevel;
     private static ContextManager contextManager;
 
+    private final String name;
+    private final org.apache.log4j.Logger log4jLogger;
+    private final boolean pwmDBdisabled;
+
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PwmLogger getLogger(final Class className)
-    {
-        return new PwmLogger(className.getName());
+    public static PwmLogger getLogger(final Class className) {
+        return new PwmLogger(className.getName(), false);
     }
 
-    public static PwmLogger getLogger(final String name)
-    {
-        return new PwmLogger(name);
+    public static PwmLogger getLogger(final String name) {
+        return new PwmLogger(name, false);
     }
+
+    public static PwmLogger getLogger(final Class className, final boolean pwmDBdisabled) {
+        return new PwmLogger(className.getName(), pwmDBdisabled);
+    }
+
+    public static PwmLogger getLogger(final String name, final boolean pwmDBdisabled) {
+        return new PwmLogger(name, pwmDBdisabled);
+    }
+
 
     public static PwmDBLogger initContextManager(
             final PwmDB pwmDB,
@@ -84,23 +93,21 @@ public class PwmLogger {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmLogger(final String name)
-    {
+    public PwmLogger(final String name, final boolean pwmDBdisabled) {
         this.name = name;
+        this.pwmDBdisabled = pwmDBdisabled;
         log4jLogger = org.apache.log4j.Logger.getLogger(name);
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private static String wrapWithSessionInfo(final PwmSession pwmSession, final String message)
-    {
+    private static String wrapWithSessionInfo(final PwmSession pwmSession, final String message) {
         if (pwmSession == null) {
             return message;
         }
@@ -129,8 +136,7 @@ public class PwmLogger {
         return output.toString();
     }
 
-    private static String makeSrcString(final PwmSession pwmSession)
-    {
+    private static String makeSrcString(final PwmSession pwmSession) {
         try {
             final StringBuilder from = new StringBuilder();
             {
@@ -163,23 +169,19 @@ public class PwmLogger {
         return "";
     }
 
-    public void debug(final Object message)
-    {
+    public void debug(final Object message) {
         doLogEvent(PwmLogLevel.DEBUG, null, message, null);
     }
 
-    public void debug(final PwmSession pwmSession, final Object message)
-    {
+    public void debug(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.DEBUG, pwmSession, message, null);
     }
 
-    public void debug(final Object message, final Throwable exception)
-    {
+    public void debug(final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.DEBUG, null, message, exception);
     }
 
-    public void debug(final PwmSession pwmSession, final Object message, final Throwable e)
-    {
+    public void debug(final PwmSession pwmSession, final Object message, final Throwable e) {
         doLogEvent(PwmLogLevel.DEBUG, pwmSession, message, e);
     }
 
@@ -216,7 +218,7 @@ public class PwmLogger {
                     level
             );
 
-            if (pwmDBLogger != null) {
+            if (pwmDBLogger != null && !pwmDBdisabled) {
                 if (minimumDbLogLevel == null || level.compareTo(minimumDbLogLevel) >= 0) {
                     pwmDBLogger.writeEvent(logEvent);
                 }
@@ -231,83 +233,67 @@ public class PwmLogger {
     }
 
 
-    public void error(final Object message)
-    {
+    public void error(final Object message) {
         doLogEvent(PwmLogLevel.ERROR, null, message, null);
     }
 
-    public void error(final PwmSession pwmSession, final Object message)
-    {
+    public void error(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.ERROR, pwmSession, message, null);
     }
 
-    public void error(final Object message, final Throwable exception)
-    {
+    public void error(final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.ERROR, null, message, exception);
     }
 
-    public void error(final PwmSession pwmSession, final Object message, final Throwable exception)
-    {
+    public void error(final PwmSession pwmSession, final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.ERROR, pwmSession, message, exception);
     }
 
-    public void fatal(final Object message)
-    {
+    public void fatal(final Object message) {
         doLogEvent(PwmLogLevel.FATAL, null, message, null);
     }
 
-    public void fatal(final PwmSession pwmSession, final Object message)
-    {
+    public void fatal(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.FATAL, pwmSession, message, null);
     }
 
-    public void fatal(final Object message, final Throwable exception)
-    {
+    public void fatal(final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.FATAL, null, message, exception);
     }
 
-    public void info(final Object message)
-    {
+    public void info(final Object message) {
         doLogEvent(PwmLogLevel.INFO, null, message, null);
     }
 
-    public void info(final PwmSession pwmSession, final Object message)
-    {
+    public void info(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.INFO, pwmSession, message, null);
     }
 
-    public void info(final Object message, final Throwable exception)
-    {
+    public void info(final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.INFO, null, message, exception);
     }
 
-    public void trace(final String message)
-    {
+    public void trace(final String message) {
         doLogEvent(PwmLogLevel.TRACE, null, message, null);
     }
 
-    public void trace(final PwmSession pwmSession, final Object message)
-    {
+    public void trace(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.TRACE, pwmSession, message, null);
     }
 
-    public void trace(final String message, final Throwable exception)
-    {
+    public void trace(final String message, final Throwable exception) {
         doLogEvent(PwmLogLevel.TRACE, null, message, exception);
     }
 
-    public void warn(final Object message)
-    {
+    public void warn(final Object message) {
         doLogEvent(PwmLogLevel.WARN, null, message, null);
     }
 
-    public void warn(final PwmSession pwmSession, final Object message)
-    {
+    public void warn(final PwmSession pwmSession, final Object message) {
         doLogEvent(PwmLogLevel.WARN, pwmSession, message, null);
     }
 
-    public void warn(final PwmSession pwmSession, final ErrorInformation message)
-    {
+    public void warn(final PwmSession pwmSession, final ErrorInformation message) {
         doLogEvent(PwmLogLevel.WARN, pwmSession, convertErrorInformation(message), null);
     }
 
@@ -315,18 +301,15 @@ public class PwmLogger {
         return info.toDebugStr();
     }
 
-    public void warn(final Object message, final Throwable exception)
-    {
+    public void warn(final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.WARN, null, message, exception);
     }
 
-    public void warn(final PwmSession pwmSession, final Object message, final Throwable exception)
-    {
+    public void warn(final PwmSession pwmSession, final Object message, final Throwable exception) {
         doLogEvent(PwmLogLevel.WARN, pwmSession, message, exception);
     }
 
-    public void warn(final PwmSession pwmSession, final ErrorInformation errorInformation, final Throwable exception)
-    {
+    public void warn(final PwmSession pwmSession, final ErrorInformation errorInformation, final Throwable exception) {
         doLogEvent(PwmLogLevel.WARN, pwmSession, convertErrorInformation(errorInformation), exception);
     }
 

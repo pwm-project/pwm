@@ -36,7 +36,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * String Etag/Expire Time based file servlet request; used to get around tomcat's lame default
  * cache header handling.
- *
+ * <p/>
  * Based on http://balusc.blogspot.com/2009/02/fileservlet-supporting-resume-and.html
  */
 public class ResourceFileServlet extends HttpServlet {
@@ -64,21 +64,18 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     protected void doHead(final HttpServletRequest request, final HttpServletResponse response)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         processRequest(request, response, false);
     }
 
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         processRequest(request, response, true);
     }
 
     private void processRequest
             (final HttpServletRequest request, final HttpServletResponse response, final boolean content)
-            throws IOException
-    {
+            throws IOException {
         LOGGER.trace(PwmSession.getPwmSession(request), Helper.debugHttpRequest(request));
 
         final File file = resolveRequestedFile(request);
@@ -89,7 +86,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         final String fileName = file.getName();
-        final String eTag = makeETag(request,file);
+        final String eTag = makeETag(request, file);
 
         // If-None-Match header should contain "*" or ETag. If so, then return 304.
         final String ifNoneMatch = request.getHeader("If-None-Match");
@@ -128,7 +125,7 @@ public class ResourceFileServlet extends HttpServlet {
         // Initialize response.
         response.reset();
         response.setBufferSize(DEFAULT_BUFFER_SIZE);
-        response.setHeader("ETag", eTag);
+        //response.setHeader("ETag", eTag);
         response.setDateHeader("Expires", System.currentTimeMillis() + expireTime);
 
         // Prepare streams.
@@ -166,8 +163,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     /**
      * Returns true if the given accept header accepts the given value.
+     *
      * @param acceptHeader The accept header.
-     * @param toAccept The value to be accepted.
+     * @param toAccept     The value to be accepted.
      * @return True if the given accept header accepts the given value.
      */
     private static boolean accepts(final String acceptHeader, final String toAccept) {
@@ -180,8 +178,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     /**
      * Returns true if the given match header matches the given value.
+     *
      * @param matchHeader The match header.
-     * @param toMatch The value to be matched.
+     * @param toMatch     The value to be matched.
      * @return True if the given match header matches the given value.
      */
     private static boolean matches(final String matchHeader, final String toMatch) {
@@ -193,13 +192,13 @@ public class ResourceFileServlet extends HttpServlet {
 
     /**
      * Copy the given byte range of the given input to the given output.
-     * @param input The input to copy the given range to the given output for.
+     *
+     * @param input  The input to copy the given range to the given output for.
      * @param output The output to copy the given range from the given input for.
      * @throws IOException If something fails at I/O level.
      */
     private static void copy(final RandomAccessFile input, final OutputStream output)
-            throws IOException
-    {
+            throws IOException {
         final byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         int read;
 
@@ -210,6 +209,7 @@ public class ResourceFileServlet extends HttpServlet {
 
     /**
      * Close the given resource.
+     *
      * @param resource The resource to be closed.
      */
     private static void close(final Closeable resource) {
@@ -237,13 +237,12 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static File resolveRequestedFile(final HttpServletRequest request)
-            throws UnsupportedEncodingException
-    {
+            throws UnsupportedEncodingException {
         final ServletContext servletContext = request.getSession().getServletContext();
 
         // Get requested file by path info.
         final String requestURI = request.getRequestURI();
-        final String requestFileURI = requestURI.substring(request.getContextPath().length(),requestURI.length());
+        final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
 
         // URL-decode the file name (might contain spaces and on) and prepare file object.
         final String filename = URLDecoder.decode(requestFileURI, "UTF-8");

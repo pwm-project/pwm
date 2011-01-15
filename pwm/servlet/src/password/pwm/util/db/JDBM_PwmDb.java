@@ -22,22 +22,21 @@
 
 package password.pwm.util.db;
 
-import password.pwm.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.Sleeper;
-import password.pwm.util.TimeDuration;
+import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
-import jdbm.helper.FastIterator;
-import jdbm.htree.HTree;
+import password.pwm.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static password.pwm.util.db.PwmDB.DB;
-import static password.pwm.util.db.PwmDB.TransactionItem;
 
 /**
  * @author Jason D. Rivard
@@ -45,15 +44,20 @@ import static password.pwm.util.db.PwmDB.TransactionItem;
 public class JDBM_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(JDBM_PwmDb.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(JDBM_PwmDb.class, true);
     private static final String FILE_NAME = "jdbm";
 
     private RecordManager recman;
-    private final Map<String, HTree> treeMap = new HashMap<String, HTree>();
+    private final Map<String, Map<String, String>> treeMap = new HashMap<String, Map<String, String>>();
     private File dbDirectory;
 
     // cache of dbIterators
-    private final Map<DB, DbIterator> dbIterators = new ConcurrentHashMap<DB, DbIterator>();
+    private final Map<DB, DbIterator<String>> dbIterators = new ConcurrentHashMap<DB, DbIterator<String>>();
+
+    // operation lock
+    private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+
+    private PwmDB.Status status = PwmDB.Status.NEW;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -67,61 +71,87 @@ public class JDBM_PwmDb implements PwmDBProvider {
 
     public void close()
             throws PwmDBException {
+        status = PwmDB.Status.CLOSED;
+
+        if (recman == null) {
+            return;
+        }
+
         try {
+            LOCK.writeLock().lock();
+            final long startTime = System.currentTimeMillis();
+            LOGGER.debug("closing pwmDB");
             recman.commit();
             recman.close();
             recman = null;
-        } catch (IOException e) {
+            LOGGER.info("pwmDB closed in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        } catch (Exception e) {
+            LOGGER.error("error while closing pwmDB: " + e.getMessage(), e);
             throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
 
     public PwmDB.Status getStatus() {
-        return recman == null ? PwmDB.Status.CLOSED : PwmDB.Status.OPEN;
+        return status;
     }
 
     public boolean contains(final PwmDB.DB db, final String key)
             throws PwmDBException {
-        return get(db, key) != null;
+        try {
+            LOCK.readLock().lock();
+            return get(db, key) != null;
+        } finally {
+            LOCK.readLock().unlock();
+        }
     }
 
     public String get(final PwmDB.DB db, final String key)
             throws PwmDBException {
         try {
-            final HTree tree = getHTree(db);
+            LOCK.readLock().lock();
+            final Map<String, String> tree = getHTree(db);
             final Object value = tree.get(key);
             return value == null ? null : value.toString();
         } catch (IOException e) {
             throw new PwmDBException(e);
+        } finally {
+            LOCK.readLock().unlock();
         }
     }
 
     public void init(final File dbDirectory, final Map<String, String> initParameters)
             throws PwmDBException {
+        if (status != PwmDB.Status.NEW) {
+            throw new IllegalStateException("already initialized");
+        }
+
+        final long startTime = System.currentTimeMillis();
         try {
+            LOCK.writeLock().lock();
             this.dbDirectory = dbDirectory;
             final String dbFileName = dbDirectory.getAbsolutePath() + File.separator + FILE_NAME;
             recman = RecordManagerFactory.createRecordManager(dbFileName, new Properties());
-            recman.commit();
 
-            LOGGER.debug("counting db records...");
-            for (final DB db : DB.values()) {
-                final long startTime = System.currentTimeMillis();
-                final int size = size(db);
-                LOGGER.debug("found " + size + " records in " + db.toString() + " in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
-            }
-        } catch (IOException e) {
+            LOGGER.info("pwmDB opened in " + TimeDuration.fromCurrent(startTime).asCompactString());
+            status = PwmDB.Status.OPEN;
+        } catch (Exception e) {
+            LOGGER.error("error while opening pwmDB: " + e.getMessage(), e);
             throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
 
-    public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {
+    public Iterator<String> iterator(final DB db)
+            throws PwmDBException {
         try {
             if (dbIterators.containsKey(db)) {
                 throw new IllegalArgumentException("multiple iterators per DB are not permitted");
             }
 
-            final DbIterator iterator = new DbIterator(db);
+            final DbIterator<String> iterator = new DbIterator<String>(db);
             dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
@@ -132,10 +162,9 @@ public class JDBM_PwmDb implements PwmDBProvider {
     public void putAll(final DB db, final Map<String, String> keyValueMap)
             throws PwmDBException {
         try {
-            final HTree tree = getHTree(db);
-            for (final String loopKey : keyValueMap.keySet()) {
-                tree.put(loopKey, keyValueMap.get(loopKey));
-            }
+            LOCK.writeLock().lock();
+            final Map<String, String> tree = getHTree(db);
+            tree.putAll(keyValueMap);
             recman.commit();
         } catch (IOException e) {
             try {
@@ -143,6 +172,8 @@ public class JDBM_PwmDb implements PwmDBProvider {
             } catch (IOException e2) {
                 throw new PwmDBException(e2);
             }
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
 
@@ -150,30 +181,33 @@ public class JDBM_PwmDb implements PwmDBProvider {
             throws PwmDBException {
         final boolean preExists;
         try {
+            LOCK.writeLock().lock();
             preExists = remove(db, key);
-            final HTree tree = getHTree(db);
+            final Map<String, String> tree = getHTree(db);
             tree.put(key, value);
             recman.commit();
         } catch (IOException e) {
             throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
 
         return preExists;
     }
 
+
     public boolean remove(final PwmDB.DB db, final String key)
             throws PwmDBException {
         try {
-            final HTree tree = getHTree(db);
-            if (contains(db, key)) {
-                tree.remove(key);
-                recman.commit();
-                return true;
-            } else {
-                return false;
-            }
+            LOCK.writeLock().lock();
+            final Map<String, String> tree = getHTree(db);
+            final String removedValue = tree.remove(key);
+            recman.commit();
+            return removedValue != null;
         } catch (IOException e) {
             throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
 
@@ -184,145 +218,35 @@ public class JDBM_PwmDb implements PwmDBProvider {
     public int size(final PwmDB.DB db)
             throws PwmDBException {
         try {
-            int size = 0;
-            for (FastIterator fastIter = getHTree(db).keys(); fastIter.next() != null;) {
-                size++;
-            }
-            return size;
+            LOCK.readLock().lock();
+            return getHTree(db).size();
         } catch (IOException e) {
             throw new PwmDBException(e);
+        } finally {
+            LOCK.readLock().unlock();
         }
     }
 
     public void truncate(final PwmDB.DB db)
             throws PwmDBException {
-        final int reportInterval = 60 * 1000;
-
-        final Sleeper sleeper = new Sleeper(50);
         final int startSize = size(db);
+
+        LOGGER.info("beginning truncate of " + startSize + " records in " + db.toString() + " database, this may take a while...");
+
         final long startTime = System.currentTimeMillis();
-        long lastReportTime = System.currentTimeMillis();
 
         try {
-            while (size(db) > 0) {
-                final Object nextKey = getHTree(db).keys().next();
-                remove(db, nextKey.toString());
-
-                sleeper.sleep();
-
-                // output status once a minute.
-                if (System.currentTimeMillis() - lastReportTime > reportInterval) {
-                    LOGGER.info("truncating " + db.toString() + ", " + size(db) + " remaining...");
-                    lastReportTime = System.currentTimeMillis();
-                }
-            }
+            LOCK.writeLock().lock();
+            final Map<String, String> tree = getHTree(db);
+            tree.keySet().clear();
+            recman.commit();
         } catch (IOException e) {
             throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
 
-        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    private HTree getHTree(final DB keyName)
-            throws IOException {
-        HTree tree = treeMap.get(keyName.toString());
-        if (tree == null) {
-            tree = openHTree(keyName.toString(), recman);
-            treeMap.put(keyName.toString(), tree);
-        }
-        return tree;
-    }
-
-    private static HTree openHTree(
-            final String name,
-            final RecordManager recman
-    )
-            throws IOException {
-        final long recid = recman.getNamedObject(name);
-        final HTree tree;
-
-        if (recid != 0) {
-            tree = HTree.load(recman, recid);
-        } else {
-            // createSharedHistoryManager a new B+Tree data structure and use a StringComparator
-            // to order the records based on people's name.
-
-            tree = HTree.createInstance(recman);
-            recman.setNamedObject(name, tree.getRecid());
-            LOGGER.debug("created a new empty " + name);
-        }
-
-        return tree;
-    }
-
-// -------------------------- INNER CLASSES --------------------------
-
-    private class DbIterator implements Iterator<TransactionItem> {
-        private final DB db;
-        private FastIterator fastIter;
-
-        private TransactionItem currentItem;
-        private TransactionItem nextItem;
-
-
-        private DbIterator(final DB db) throws IOException, PwmDBException {
-            this.db = db;
-            this.fastIter = getHTree(db).keys();
-            fetchNext();
-        }
-
-        private void fetchNext() throws PwmDBException {
-            if (fastIter == null) {
-                close();
-                return;
-            }
-
-            final Object nextKey = fastIter.next();
-            if (nextKey == null) {
-                close();
-                return;
-            }
-
-            final Object value = get(db, nextKey.toString());
-            nextItem = new TransactionItem(db, nextKey.toString(), value == null ? null : value.toString());
-        }
-
-        public boolean hasNext() {
-            return nextItem != null;
-        }
-
-        public void close() {
-            fastIter = null;
-            nextItem = null;
-            dbIterators.remove(db);
-        }
-
-        public TransactionItem next() {
-            currentItem = nextItem;
-            try {
-                fetchNext();
-            } catch (PwmDBException e) {
-                throw new IllegalStateException("unexpected pwmDB error: " + e.getMessage());
-            }
-            return currentItem;
-        }
-
-        public void remove() {
-            if (currentItem != null) {
-                try {
-                    JDBM_PwmDb.this.remove(db, currentItem.getKey());
-                } catch (PwmDBException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        protected void finalize() throws Throwable {
-            super.finalize();
-            close();
-        }
+        LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString() + ", " + size(db) + " records in database");
     }
 
     public long diskSpaceUsed() {
@@ -334,9 +258,73 @@ public class JDBM_PwmDb implements PwmDBProvider {
         return 0;
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
-        for (final String key : keys) {
-            remove(db, key); //@todo improve this
+    public void removeAll(final DB db, final Collection<String> keys)
+            throws PwmDBException {
+        try {
+            LOCK.writeLock().lock();
+            final Map<String, String> tree = getHTree(db);
+            tree.keySet().removeAll(keys);
+            recman.commit();
+        } catch (IOException e) {
+            throw new PwmDBException(e);
+        } finally {
+            LOCK.writeLock().unlock();
         }
     }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    private Map<String, String> getHTree(final DB keyName)
+            throws IOException {
+        Map<String, String> tree = treeMap.get(keyName.toString());
+        if (tree == null) {
+            tree = openHTree(keyName.toString(), recman);
+            treeMap.put(keyName.toString(), tree);
+        }
+        return tree;
+    }
+
+    private static Map<String, String> openHTree(
+            final String name,
+            final RecordManager recman
+    )
+            throws IOException {
+        final PrimaryTreeMap storeMap = recman.treeMap(name);
+        return storeMap;
+    }
+
+// -------------------------- INNER CLASSES --------------------------
+
+    private class DbIterator<K> implements Iterator<String> {
+        private final PwmDB.DB db;
+        private Iterator<String> theIterator;
+
+        private DbIterator(final DB db) throws IOException, PwmDBException {
+            this.db = db;
+            this.theIterator = getHTree(db).keySet().iterator();
+        }
+
+        public boolean hasNext() {
+            return theIterator.hasNext();
+        }
+
+        public void close() {
+            theIterator = null;
+            dbIterators.remove(db);
+        }
+
+        public String next() {
+            return theIterator.next();
+        }
+
+        public void remove() {
+            theIterator.remove();
+        }
+
+        protected void finalize() throws Throwable {
+            super.finalize();
+            close();
+        }
+    }
+
 }

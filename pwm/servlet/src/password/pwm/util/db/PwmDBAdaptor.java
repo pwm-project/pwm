@@ -81,10 +81,10 @@ public class PwmDBAdaptor implements PwmDB {
         innerDB.init(dbDirectory, initParameters);
     }
 
-    public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {
+    public Iterator<String> iterator(final DB db) throws PwmDBException {
         ParameterValidator.validateDBValue(db);
-        final Iterator<TransactionItem> innerIterator = innerDB.iterator(db);
-        return (Iterator<TransactionItem>) new SizeIterator<TransactionItem>(db, innerIterator);
+        final Iterator<String> innerIterator = innerDB.iterator(db);
+        return (Iterator<String>) new SizeIterator<String>(db, innerIterator);
     }
 
     private class SizeIterator<T> implements Iterator {

@@ -1,0 +1,45 @@
+English below
+
+Nederlands
+----------
+
+De standaardvertaling is geschreven in de formele vorm (u-vorm). Naast deze
+formele vorm is ook een informele vorm (jij-vorm) beschikbaar. De informele
+vorm kan worden gebruikt door deze over de standaardversie te kopiëren en 
+het pakket opnieuw op te bouwen.
+
+In het onderstaande is <dist-root> de map waarin het zip-bestand van PWM is
+uitgepakt.
+
+De vertaling bestaat uit twee bestanden:
+  <dist-root>/supplemental/i18n/Display_nl-colloquial.properties
+  <dist-root>/supplemental/i18n/Message_nl-colloquial.properties
+
+Kopieer deze over
+  <dist-root>/servlet/src/password/pwm/config/Display_nl.properties
+  <dist-root>/servlet/src/password/pwm/config/Message_nl.properties
+
+Bouw dan het pakket (.war) opnieuw op door naar de map <dist-root>/servlet/ te 
+gaan en het commando 'ant' uit te voeren. Het bestand bevindt zich dan in 
+<dist-root>/servlet/build/pwm.war.
+
+English
+-------
+
+The default Dutch translation is written in the formal way. Apart from this
+form, an informal version is available. The informal form can be used by
+copying the language files over the default version and rebuild the package.
+
+Below <dist-root> is the folder into which the PWM zip file has been expanded.
+
+The translation consists of two files:
+  <dist-root>/supplemental/i18n/Display_nl-colloquial.properties
+  <dist-root>/supplemental/i18n/Message_nl-colloquial.properties
+
+Copy these files over:
+  <dist-root>/servlet/src/password/pwm/config/Display_nl.properties
+  <dist-root>/servlet/src/password/pwm/config/Message_nl.properties
+
+Then rebuild the package (.war). To do so, go to <dist-root>/servlet/ and
+execute the command 'ant'. The new package can then be found as 
+<dist-root>/servlet/build/pwm.war.

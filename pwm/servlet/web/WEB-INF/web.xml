@@ -37,13 +37,15 @@
         <param-value>PwmConfiguration.xml</param-value>
     </context-param>
     <context-param>
-        <description>Percentage of time the wordlist populator should sleep every second.  Settings less than one will cause much cpu and disk access during load.  Lower settings cause faster populating, but more system load.</description>
+        <description>Percentage of time the wordlist populator should sleep every second. Settings less than one will
+            cause much cpu and disk access during load. Lower settings cause faster populating, but more system load.
+        </description>
         <param-name>wordlistLoadFactor</param-name>
         <param-value>50</param-value>
     </context-param>
     <context-param>
         <param-name>bulkDbLogEventsTest</param-name>
-        <param-value>0</param-value>
+        <param-value>9999990</param-value>
     </context-param>
     <filter>
         <filter-name>SessionFilter</filter-name>
@@ -258,7 +260,7 @@
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>5</session-timeout>
+        <session-timeout>20</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>

@@ -89,8 +89,7 @@ public class SharedHistoryManager implements Wordlist {
             LOGGER.debug("max age=" + maxAgeMs + ", will remain closed");
 
             new Thread(new Runnable() {
-                public void run()
-                {
+                public void run() {
                     LOGGER.trace("clearing wordlist");
                     try {
                         pwmDB.truncate(WORDS_DB);
@@ -103,8 +102,7 @@ public class SharedHistoryManager implements Wordlist {
         }
 
         new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 LOGGER.debug("starting up in background thread");
                 init(maxAgeMs);
             }
@@ -183,8 +181,7 @@ public class SharedHistoryManager implements Wordlist {
 
 
     private void checkSalt()
-            throws Exception
-    {
+            throws Exception {
         salt = pwmDB.get(META_DB, KEY_SALT);
         if (salt == null || salt.length() < 1) {
             LOGGER.info("no salt found in DB, creating new salt and clearing global history");
@@ -196,8 +193,7 @@ public class SharedHistoryManager implements Wordlist {
     }
 
     private boolean checkDbVersion()
-            throws Exception
-    {
+            throws Exception {
         LOGGER.trace("checking version number stored in pwmDB");
 
         final Object versionInDB = pwmDB.get(META_DB, KEY_VERSION);
@@ -232,7 +228,7 @@ public class SharedHistoryManager implements Wordlist {
         try {
             checkSalt();
         } catch (Exception e) {
-            LOGGER.error("unexpected error examing salt in DB, will remain closed: " + e.getMessage(),e);
+            LOGGER.error("unexpected error examing salt in DB, will remain closed: " + e.getMessage(), e);
             wlStatus = WordlistStatus.CLOSED;
             return;
         }
@@ -247,7 +243,7 @@ public class SharedHistoryManager implements Wordlist {
                 LOGGER.trace("oldest timestamp loaded from pwmDB, age is " + TimeDuration.fromCurrent(oldestEntry).asCompactString());
             }
         } catch (PwmDBException e) {
-            LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(),e);
+            LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e);
             wlStatus = WordlistStatus.CLOSED;
             return;
         }
@@ -261,7 +257,7 @@ public class SharedHistoryManager implements Wordlist {
             sb.append(", oldestEntry=").append(new TimeDuration(System.currentTimeMillis(), oldestEntry).asCompactString());
             LOGGER.info(sb.toString());
         } catch (PwmDBException e) {
-            LOGGER.error("unexpected error examing size of DB, will remain closed: " + e.getMessage(),e);
+            LOGGER.error("unexpected error examing size of DB, will remain closed: " + e.getMessage(), e);
             wlStatus = WordlistStatus.CLOSED;
             return;
         }
@@ -275,7 +271,7 @@ public class SharedHistoryManager implements Wordlist {
 
             LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
             cleanerTimer = new Timer("pwm-SharedHistoryManager timer", true);
-            cleanerTimer.schedule(new CleanerTask(),1000, frequencyMs);
+            cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
     }
 
@@ -383,14 +379,13 @@ public class SharedHistoryManager implements Wordlist {
 
 
         private void reduceWordDB()
-                throws PwmDBException
-        {
+                throws PwmDBException {
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
             if (oldestEntryAge < maxAgeMs) {
                 LOGGER.debug("skipping wordDB reduce operation, eldestEntry="
                         + TimeDuration.asCompactString(oldestEntryAge)
                         + ", maxAge="
-                        + TimeDuration.asCompactString(maxAgeMs) );
+                        + TimeDuration.asCompactString(maxAgeMs));
                 return;
             }
 
@@ -402,10 +397,11 @@ public class SharedHistoryManager implements Wordlist {
             LOGGER.debug("beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString(maxAgeMs));
 
             try {
-                final Iterator<PwmDB.TransactionItem> iter = pwmDB.iterator(WORDS_DB);
+                final Iterator<String> iter = pwmDB.iterator(WORDS_DB);
                 while (wlStatus == WordlistStatus.OPEN && iter.hasNext()) {
-                    final PwmDB.TransactionItem loopItem = iter.next();
-                    final long timeStamp = Long.parseLong(loopItem.getValue());
+                    final String key = iter.next();
+                    final String value = pwmDB.get(WORDS_DB, key);
+                    final long timeStamp = Long.parseLong(value);
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 
                     if (entryAge > maxAgeMs) {
@@ -421,7 +417,11 @@ public class SharedHistoryManager implements Wordlist {
                     sleeper.sleep();
                 }
             } finally {
-                try { pwmDB.returnIterator(WORDS_DB); } catch (Exception e) { LOGGER.warn("error returning pwmDB iterator: " + e.getMessage()); }
+                try {
+                    pwmDB.returnIterator(WORDS_DB);
+                } catch (Exception e) {
+                    LOGGER.warn("error returning pwmDB iterator: " + e.getMessage());
+                }
             }
 
             //update the oldest entry

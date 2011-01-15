@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static password.pwm.util.db.PwmDB.DB;
-import static password.pwm.util.db.PwmDB.TransactionItem;
 
 /**
  * @author Jason D. Rivard
@@ -43,7 +42,7 @@ import static password.pwm.util.db.PwmDB.TransactionItem;
 public class Berkeley_PwmDb implements PwmDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
     private final static int MAX_CLEANER_BACKLOG_GOAL = 10;
@@ -55,7 +54,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<DB, Database>();
 
     // cache of dbIterators
-    private final Map<DB, DbIterator> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator>());
+    private final Map<DB, DbIterator<String>> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator<String>>());
 
     private PwmDB.Status status = PwmDB.Status.NEW;
 
@@ -190,7 +189,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         status = PwmDB.Status.OPEN;
     }
 
-    public synchronized Iterator<TransactionItem> iterator(final DB db)
+    public synchronized Iterator<String> iterator(final DB db)
             throws PwmDBException {
         preCheck(true);
         try {
@@ -198,7 +197,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                 throw new IllegalArgumentException("multiple outstanding iterators per DB are not permitted");
             }
 
-            final DbIterator iterator = new DbIterator(db);
+            final DbIterator<String> iterator = new DbIterator<String>(db);
             dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
@@ -302,7 +301,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator implements Iterator<TransactionItem> {
+    private class DbIterator<K> implements Iterator<String> {
         private Iterator<String> innerIter;
         final private DB db;
 
@@ -320,14 +319,8 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             dbIterators.remove(db);
         }
 
-        public TransactionItem next() {
-            try {
-                final String key = innerIter.next();
-                final String value = get(db, key);
-                return new TransactionItem(db, key, value);
-            } catch (PwmDBException e) {
-                throw new RuntimeException(e);
-            }
+        public String next() {
+            return innerIter.next();
         }
 
         public void remove() {

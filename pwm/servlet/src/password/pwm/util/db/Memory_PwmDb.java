@@ -25,13 +25,10 @@ package password.pwm.util.db;
 import password.pwm.Helper;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static password.pwm.util.db.PwmDB.DB;
-import static password.pwm.util.db.PwmDB.TransactionItem;
 
 
 /**
@@ -58,11 +55,18 @@ public class Memory_PwmDb implements PwmDBProvider {
         }
     }
 
+    private void opertationPreCheck() throws PwmDBException {
+        if (state != PwmDB.Status.OPEN) {
+            throw new IllegalStateException("db is not open");
+        }
+        checkFreeMem();
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Memory_PwmDb() {
         for (final DB db : PwmDB.DB.values()) {
-            final Map<String, String> newMap = new HashMap<String, String>();
+            final Map<String, String> newMap = new ConcurrentHashMap<String, String>();
             maps.put(db, newMap);
         }
     }
@@ -76,22 +80,21 @@ public class Memory_PwmDb implements PwmDBProvider {
     public void close()
             throws PwmDBException {
         state = PwmDB.Status.CLOSED;
+        for (final DB db : PwmDB.DB.values()) {
+            maps.get(db).clear();
+        }
     }
 
     public boolean contains(final DB db, final String key)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
+        opertationPreCheck();
         final Map<String, String> map = maps.get(db);
         return map.containsKey(key);
     }
 
     public String get(final DB db, final String key)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
+        opertationPreCheck();
         final Map<String, String> map = maps.get(db);
         return map.get(key);
     }
@@ -108,18 +111,14 @@ public class Memory_PwmDb implements PwmDBProvider {
         state = PwmDB.Status.OPEN;
     }
 
-    public Iterator<TransactionItem> iterator(final DB db) throws PwmDBException {
+    public Iterator<String> iterator(final DB db) throws PwmDBException {
         return new DbIterator(db);
     }
 
     @PwmDB.WriteOperation
     public void putAll(final DB db, final Map<String, String> keyValueMap)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
-
-        checkFreeMem();
+        opertationPreCheck();
 
         if (keyValueMap != null) {
             final Map<String, String> map = maps.get(db);
@@ -130,29 +129,19 @@ public class Memory_PwmDb implements PwmDBProvider {
     @PwmDB.WriteOperation
     public boolean put(final DB db, final String key, final String value)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
-
-        checkFreeMem();
+        opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
-
-        final boolean preExistingKey = map.containsKey(key);
-        map.put(key, value);
-
-        return preExistingKey;
+        return null != map.put(key, value);
     }
 
     @PwmDB.WriteOperation
     public boolean remove(final DB db, final String key)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
+        opertationPreCheck();
+
         final Map<String, String> map = maps.get(db);
-        map.remove(key);
-        return true;
+        return null != map.remove(key);
     }
 
     public void returnIterator(final DB db) throws PwmDBException {
@@ -160,9 +149,8 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     public int size(final DB db)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
+        opertationPreCheck();
+
         final Map<String, String> map = maps.get(db);
         return map.size();
     }
@@ -170,15 +158,20 @@ public class Memory_PwmDb implements PwmDBProvider {
     @PwmDB.WriteOperation
     public void truncate(final DB db)
             throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
-            throw new IllegalStateException("db is not open");
-        }
+        opertationPreCheck();
+
         final Map<String, String> map = maps.get(db);
         map.clear();
     }
 
+    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
+        opertationPreCheck();
+
+        maps.get(db).keySet().removeAll(keys);
+    }
+
     public PwmDB.Status getStatus() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return state;
     }
 
     // -------------------------- ENUMERATIONS --------------------------
@@ -186,12 +179,10 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator implements Iterator<TransactionItem> {
-        private final DB db;
+    private class DbIterator<K> implements Iterator<String> {
         private final Iterator<String> iterator;
 
         private DbIterator(final DB db) {
-            this.db = db;
             iterator = maps.get(db).keySet().iterator();
         }
 
@@ -199,18 +190,8 @@ public class Memory_PwmDb implements PwmDBProvider {
             return iterator.hasNext();
         }
 
-        public TransactionItem next() {
-            final String key = iterator.next();
-            if (key != null) {
-                final String value;
-                try {
-                    value = get(db, key);
-                    return new TransactionItem(db, key, value);
-                } catch (PwmDBException e) {
-                    throw new IllegalStateException("unexpected get error", e);
-                }
-            }
-            return null;
+        public String next() {
+            return iterator.next();
         }
 
         public void remove() {
@@ -222,7 +203,4 @@ public class Memory_PwmDb implements PwmDBProvider {
         return 0;
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
-        maps.get(db).keySet().removeAll(keys);
-    }
 }

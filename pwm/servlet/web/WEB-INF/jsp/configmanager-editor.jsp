@@ -62,6 +62,7 @@
                                 <%=loopCategory.getLabel(request.getLocale())%>
                             </div>
                             <script type="text/javascript">
+                                dojo.require("dijit.MenuItem");
                                 var item = new dijit.MenuItem({
                                     onClick: function() {
                                         selectCategory('<%=loopCategory.toString()%>');
@@ -73,7 +74,35 @@
                         </div>
                         <script type="text/javascript">
                             <%-- create nav menu --%>
+                            dojo.require("dijit.Menu");
                             var menuBar = new dijit.Menu({}, "navMenu");
+
+
+                            menuBar.addChild(new dijit.MenuSeparator());
+                            <%-- add menu seperator --%>
+
+                            <% if (level == PwmSetting.Level.BASIC) { %>
+                            var switchMode = new dijit.MenuItem({
+                                id: "switchMode",
+                                label: "Show All Settings",
+                                onClick: function() {
+                                    showWaitDialog('Loading...');
+                                    getObject('levelAdvanced').submit();
+                                }
+                            });
+                            menuBar.addChild(switchMode);
+                            <% } else { %>
+                            var switchMode = new dijit.MenuItem({
+                                id: "switchMode",
+                                label: "Show Basic Settngs",
+                                onClick: function() {
+                                    showWaitDialog('Loading...');
+                                    getObject('levelBasic').submit();
+                                }
+                            });
+                            menuBar.addChild(switchMode);
+                            <% } %>
+
 
                             <%-- add save/update and cancel button --%>
                             menuBar.addChild(new dijit.MenuSeparator());
@@ -125,31 +154,18 @@
                             <input type="hidden" name="processAction" value="cancelEditing"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
-                        <form action="<pwm:url url='ConfigManager'/>" method="post" id="levelAdvanced"
+                        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelAdvanced"
                               enctype="application/x-www-form-urlencoded">
                             <input type="hidden" name="processAction" value="setLevel"/>
                             <input type="hidden" name="level" value="ADVANCED"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
-                        <form action="<pwm:url url='ConfigManager'/>" method="post" id="levelBasic"
+                        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelBasic"
                               enctype="application/x-www-form-urlencoded">
                             <input type="hidden" name="processAction" value="setLevel"/>
                             <input type="hidden" name="level" value="BASIC"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
-                    </div>
-                    <div style="text-align:center">
-                        <br/>
-                        <br/>
-                        <% if (level == PwmSetting.Level.BASIC) { %>
-                        <a href="#" onclick="showWaitDialog('Loading...');getObject('levelAdvanced').submit();">
-                            Mode: Basic
-                        </a>
-                        <% } else { %>
-                        <a href="#" onclick="showWaitDialog('Loading...');getObject('levelBasic').submit();">
-                            Mode: Advanced
-                        </a>
-                        <% } %>
                     </div>
                 </td>
                 <td style="border:0" width="600">
@@ -160,6 +176,7 @@
         </table>
         <script type="text/javascript">
             var mainPane = dojo.addOnLoad(function() {
+                dojo.require("dojox.layout.ContentPane");
                 new dojox.layout.ContentPane({
                     executeScripts: true
                 }, "mainContentPane");

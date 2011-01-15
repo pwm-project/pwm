@@ -29,11 +29,12 @@ import java.util.List;
 
 public class JavaChecker implements HealthChecker {
     private static final String TOPIC = "Java Platform";
+
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
         if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "No Java platform issues detected"));
+            records.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "Java platform is operating normally"));
         }
 
         return records;

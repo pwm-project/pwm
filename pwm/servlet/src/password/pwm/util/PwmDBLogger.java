@@ -83,6 +83,7 @@ public class PwmDBLogger {
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents sent to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
+            pwmDBListQueue.clear();
             throw new IllegalArgumentException("maxEvents=0, will remain closed");
         }
 
@@ -146,12 +147,14 @@ public class PwmDBLogger {
 
     private void bulkAddEvents(final int size) {
         int eventsRemaining = size;
+        final Sleeper sleeper = new Sleeper(99);
         while (eventsRemaining > 0 && open) {
             while (eventQueue.size() >= MAX_WRITES_PER_CYCLE) Helper.pause(100);
 
             final Collection<PwmLogEvent> events = makeBulkEvents(MAX_WRITES_PER_CYCLE + 1);
             eventQueue.addAll(events);
             eventsRemaining = eventsRemaining - events.size();
+            sleeper.sleep();
         }
     }
 

@@ -61,7 +61,7 @@ public interface PwmDB {
     String get(DB db, String key)
             throws PwmDBException;
 
-    Iterator<TransactionItem> iterator(DB db)
+    Iterator<String> iterator(DB db)
             throws PwmDBException;
 
     @WriteOperation

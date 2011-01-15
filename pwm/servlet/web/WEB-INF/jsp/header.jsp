@@ -35,6 +35,8 @@
     <meta name="Description" content="PWM Password Self Service"/>
     <meta name="X-Pwm-Instance"
           content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
+    <meta name="X-Pwm-Version"
+          content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
     <meta name="viewport" content="width=320, user-scalable=no"/>
     <link rel="icon" type="image/vnd.microsoft.icon"
           href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>

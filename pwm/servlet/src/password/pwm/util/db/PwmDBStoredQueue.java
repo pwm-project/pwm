@@ -49,22 +49,20 @@ public class PwmDBStoredQueue {
     private volatile Position tailPosition;
 
     public PwmDBStoredQueue(final PwmDB pwmDB, final PwmDB.DB DB)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         this.pwmDB = pwmDB;
         this.DB = DB;
         init();
     }
 
     private void init()
-            throws PwmDBException
-    {
+            throws PwmDBException {
         if (!checkVersion()) {
             initializeNewSystem();
         }
 
-        final String headPositionStr = pwmDB.get(DB,KEY_HEAD_POSITION);
-        final String tailPositionStr = pwmDB.get(DB,KEY_TAIL_POSITION);
+        final String headPositionStr = pwmDB.get(DB, KEY_HEAD_POSITION);
+        final String tailPositionStr = pwmDB.get(DB, KEY_TAIL_POSITION);
 
         headPosition = headPositionStr != null && headPositionStr.length() > 0 ? new Position(headPositionStr) : new Position("0");
         tailPosition = tailPositionStr != null && tailPositionStr.length() > 0 ? new Position(tailPositionStr) : new Position("0");
@@ -80,7 +78,7 @@ public class PwmDBStoredQueue {
     }
 
     private boolean checkVersion() throws PwmDBException {
-        final String storedVersion = pwmDB.get(DB,KEY_VERSION);
+        final String storedVersion = pwmDB.get(DB, KEY_VERSION);
         if (storedVersion == null || !VALUE_VERSION.equals(storedVersion)) {
             LOGGER.warn("values in db " + DB + " use an outdated format, the stored events will be purged!");
             return false;
@@ -88,22 +86,25 @@ public class PwmDBStoredQueue {
         return true;
     }
 
+    public void clear() throws PwmDBException {
+        initializeNewSystem();
+    }
+
+
     private void initializeNewSystem()
-            throws PwmDBException
-    {
+            throws PwmDBException {
         pwmDB.truncate(DB);
 
         headPosition = new Position("0");
         tailPosition = new Position("0");
-        pwmDB.put(DB,KEY_HEAD_POSITION,headPosition.toString());
-        pwmDB.put(DB,KEY_TAIL_POSITION,tailPosition.toString());
+        pwmDB.put(DB, KEY_HEAD_POSITION, headPosition.toString());
+        pwmDB.put(DB, KEY_TAIL_POSITION, tailPosition.toString());
 
         pwmDB.put(DB, KEY_VERSION, VALUE_VERSION);
     }
 
     public void add(final List<String> values)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         if (values == null) {
             return;
         }
@@ -119,15 +120,15 @@ public class PwmDBStoredQueue {
         final Lock lock = LOCK.writeLock();
         lock.lock();
         try {
-            final Map<String,String> keyValueMap = new HashMap<String,String>();
+            final Map<String, String> keyValueMap = new HashMap<String, String>();
             Position nextHead = headPosition;
             for (final String loopValue : values) {
-                keyValueMap.put(nextHead.toString(),loopValue);
+                keyValueMap.put(nextHead.toString(), loopValue);
                 nextHead = nextHead.next();
             }
 
             pwmDB.putAll(DB, keyValueMap);
-            pwmDB.put(DB,KEY_HEAD_POSITION,String.valueOf(nextHead));
+            pwmDB.put(DB, KEY_HEAD_POSITION, String.valueOf(nextHead));
             headPosition = nextHead;
         } finally {
             lock.unlock();
@@ -148,8 +149,8 @@ public class PwmDBStoredQueue {
                 removalKeys.add(nextTail.toString());
                 nextTail = nextTail.next();
             }
-            pwmDB.removeAll(DB,removalKeys);
-            pwmDB.put(DB,KEY_TAIL_POSITION,String.valueOf(nextTail));
+            pwmDB.removeAll(DB, removalKeys);
+            pwmDB.put(DB, KEY_TAIL_POSITION, String.valueOf(nextTail));
             tailPosition = nextTail;
         } finally {
             lock.unlock();
@@ -166,10 +167,10 @@ public class PwmDBStoredQueue {
 
     /**
      * Determines the item count based on difference between the tail position and head position
+     *
      * @return calculated item count;
      */
-    public int size()
-    {
+    public int size() {
         final Lock lock = LOCK.readLock();
         lock.lock();
         try {
@@ -180,8 +181,7 @@ public class PwmDBStoredQueue {
     }
 
     private String readKey(final Position position)
-            throws PwmDBException
-    {
+            throws PwmDBException {
         final Lock lock = LOCK.readLock();
         lock.lock();
         try {
@@ -195,8 +195,7 @@ public class PwmDBStoredQueue {
         return new InnerIterator(headPosition);
     }
 
-    private class InnerIterator implements Iterator
-    {
+    private class InnerIterator implements Iterator {
         private Position position;
         private boolean nullFound;
 
@@ -232,7 +231,7 @@ public class PwmDBStoredQueue {
 
     private static class Position {
         private final static int RADIX = 36;
-        private final static BigInteger MAXIMUM_POSITION = new BigInteger("zzzzzz",RADIX);
+        private final static BigInteger MAXIMUM_POSITION = new BigInteger("zzzzzz", RADIX);
         private final static BigInteger MINIMUM_POSITION = BigInteger.ZERO;
 
         private final BigInteger bigInt;
@@ -274,12 +273,11 @@ public class PwmDBStoredQueue {
             return minToHead.add(tailToMax);
         }
 
-        public String toString()
-        {
+        public String toString() {
             final StringBuilder sb = new StringBuilder();
             sb.append(bigInt.toString(RADIX).toUpperCase());
             while (sb.length() < 6) {
-                sb.insert(0,"0");
+                sb.insert(0, "0");
             }
             return sb.toString();
         }

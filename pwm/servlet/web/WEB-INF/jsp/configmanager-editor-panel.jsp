@@ -72,6 +72,7 @@
          style="visibility:hidden; vertical-align:middle;"
          onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
+        dojo.require("dijit.form.Button");
         new dijit.form.Button({
             disabled: true,
             onClick: function() {
@@ -101,6 +102,7 @@
          style="visibility:hidden; vertical-align:bottom;"
          onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
+        dojo.require("dijit.form.ValidationTextBox");
         new dijit.form.ValidationTextBox({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -120,6 +122,7 @@
          style="visibility:hidden; vertical-align:bottom;"
          onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
+        dojo.require("dijit.form.NumberSpinner");
         new dijit.form.NumberSpinner({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -165,14 +168,13 @@
         </div>
     </div>
     <script type="text/javascript">
+        dojo.require("dojox.form.PasswordValidator");
         new dojox.form.PasswordValidator({
             required: <%=loopSetting.isRequired()%>,
             style: "width: 450px",
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>', this.value);
-            },
-            value: "[Loading..]",
-            disabled: true
+            }
         }, "password_wrapper_<%=loopSetting.getKey()%>")
     </script>
     <br class="clear"/>
@@ -181,8 +183,9 @@
         readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
             getObject('value_<%=loopSetting.getKey()%>').value = dataValue;
             getObject('value_<%=loopSetting.getKey()%>').disabled = false;
+            dijit.byId('value_<%=loopSetting.getKey()%>').set('disabled', false);
             dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);
-            dijit.byId('value_<%=loopSetting.getKey()%>').setDisabled(false);
+            dijit.byId('value_<%=loopSetting.getKey()%>').startup();
         })
     </script>
     <% } %>
