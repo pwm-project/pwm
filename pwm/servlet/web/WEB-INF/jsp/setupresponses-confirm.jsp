@@ -33,7 +33,8 @@
 <% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();startupResponsesPage()(false); document.forms.setupResponses.elements[0].focus();">
+<body onload="pwmPageLoadHandler();startupResponsesPage()(false); document.forms.setupResponses.elements[0].focus();"
+      class="tundra">
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>

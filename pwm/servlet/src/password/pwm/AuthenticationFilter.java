@@ -140,7 +140,11 @@ public class AuthenticationFilter implements Filter {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        final String requestedURL = req.getRequestURI();
+        String requestedURL = req.getRequestURI();
+
+        if (requestedURL.contains(";")) {
+            requestedURL = requestedURL.substring(0, requestedURL.indexOf(";"));
+        }
 
         // check if current request is actually for the login servlet url, if it is, just do nothing.
         if (requestedURL.equals(loginServletURL)) {

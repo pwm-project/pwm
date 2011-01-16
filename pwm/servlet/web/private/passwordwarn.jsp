@@ -32,7 +32,7 @@
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
-<body onload="pwmPageLoadHandler();">
+<body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PasswordWarning"/>

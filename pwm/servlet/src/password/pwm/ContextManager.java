@@ -591,6 +591,21 @@ public class ContextManager implements Serializable {
         return pwmDB;
     }
 
+    public List<Locale> getKnownLocales() {
+        final List<Locale> returnList = new ArrayList<Locale>();
+        final String localeList = this.getParameter(PwmConstants.CONTEXT_PARAM.KNOWN_LOCALES);
+        if (localeList != null) {
+            final String[] splitLocales = localeList.split(";;;");
+            for (final String localeString : splitLocales) {
+                final Locale theLocale = Helper.parseLocaleString(localeString);
+                if (theLocale != null && !returnList.contains(theLocale)) {
+                    returnList.add(theLocale);
+                }
+            }
+        }
+        return returnList;
+    }
+
 // -------------------------- INNER CLASSES --------------------------
 
     public class DebugLogOutputter extends TimerTask {

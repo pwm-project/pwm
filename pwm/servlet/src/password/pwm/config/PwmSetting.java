@@ -278,7 +278,7 @@ public enum PwmSetting {
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
+            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.CHALLENGE, true, Level.ADVANCED),
 

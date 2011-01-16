@@ -74,6 +74,8 @@ public class CommandServlet extends TopServlet {
             processContinue(req, resp);
         } else if (action.equalsIgnoreCase("refreshHealthCheck")) {
             processRefreshHealthCheck(req);
+        } else if (action.equalsIgnoreCase("getHealthCheckData")) {
+            processGetHealthCheckData(req);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -118,6 +120,14 @@ public class CommandServlet extends TopServlet {
         } else {
             LOGGER.warn(pwmSession, "unauthorized attempt to update health check status");
         }
+    }
+
+    private static void processGetHealthCheckData(
+            final HttpServletRequest req
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
     }
 
     private static void processCheckResponses(

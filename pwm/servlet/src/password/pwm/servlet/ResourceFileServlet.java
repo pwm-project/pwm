@@ -245,7 +245,14 @@ public class ResourceFileServlet extends HttpServlet {
         final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
 
         // URL-decode the file name (might contain spaces and on) and prepare file object.
-        final String filename = URLDecoder.decode(requestFileURI, "UTF-8");
+        String filename = URLDecoder.decode(requestFileURI, "UTF-8");
+
+        // parse out the session key...
+        if (filename.contains(";")) {
+            filename = filename.substring(0, filename.indexOf(";"));
+        }
+
+        // convert to file.
         final String filePath = servletContext.getRealPath(filename);
         final File file = new File(filePath);
 

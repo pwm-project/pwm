@@ -139,7 +139,9 @@ public abstract class PwmConstants {
     public static enum CONTEXT_PARAM {
         CONFIG_FILE("pwmConfigPath"),
         WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        BULK_DB_LOGEVENTS_TEST("bulkDbLogEventsTest"),;
+        BULK_DB_LOGEVENTS_TEST("bulkDbLogEventsTest"),
+        KNOWN_LOCALES("knownLocales");
+
 
         private final String key;
 

@@ -29,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();">
+<body onload="pwmPageLoadHandler();" class="tundra">
 <% final Map<String, ShortcutItem> shortcutItems = PwmSession.getSessionStateBean(session).getVisibleShortcutItems(); %>
 <div id="wrapper">
     <jsp:include page="header-body.jsp">

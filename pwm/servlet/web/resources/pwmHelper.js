@@ -28,7 +28,7 @@ var PWM_GLOBAL = {};
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
-        loopForm.setAttribute('autocomplete','off');
+        loopForm.setAttribute('autocomplete', 'off');
     }
 }
 
@@ -38,9 +38,9 @@ function checkForCapsLock(e) {
         return;
     }
 
-    var kc = e.keyCode?e.keyCode:e.which;
-    var sk = e.shiftKey?e.shiftKey:((kc == 16));
-    if(((kc >= 65 && kc <= 90) && !sk)||((kc >= 97 && kc <= 122) && sk)) {
+    var kc = e.keyCode ? e.keyCode : e.which;
+    var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
+    if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
         if ((e.target != null && e.target.type == 'password') || (e.srcElement != null && e.srcElement.type == 'password')) {
             capsLockWarningElement.style.visibility = 'visible';
         }
@@ -154,23 +154,23 @@ function urlEncode(str) {
 }
 
 // this method exists because IE doesn't support simply changing the type of object
-function changeInputTypeField(object,type){
+function changeInputTypeField(object, type) {
     var newObject = document.createElement('input');
     newObject.type = type;
 
-    if(object.size) newObject.size = object.size;
-    if(object.value) newObject.value = object.value;
-    if(object.name) newObject.name = object.name;
-    if(object.id) newObject.id = object.id;
-    if(object.className) newObject.className = object.className;
-    if(object.onclick) newObject.onclick = object.onclick;
-    if(object.onkeyup) newObject.onkeyup = object.onkeyup;
-    if(object.onkeydown) newObject.onkeydown = object.onkeydown;
-    if(object.onkeypress) newObject.onkeypress = object.onkeypress;
-    if(object.disabled) newObject.disabled = object.disabled;
-    if(object.readonly) newObject.readonly = object.readonly;
+    if (object.size) newObject.size = object.size;
+    if (object.value) newObject.value = object.value;
+    if (object.name) newObject.name = object.name;
+    if (object.id) newObject.id = object.id;
+    if (object.className) newObject.className = object.className;
+    if (object.onclick) newObject.onclick = object.onclick;
+    if (object.onkeyup) newObject.onkeyup = object.onkeyup;
+    if (object.onkeydown) newObject.onkeydown = object.onkeydown;
+    if (object.onkeypress) newObject.onkeypress = object.onkeypress;
+    if (object.disabled) newObject.disabled = object.disabled;
+    if (object.readonly) newObject.readonly = object.readonly;
 
-    object.parentNode.replaceChild(newObject,object);
+    object.parentNode.replaceChild(newObject, object);
     return newObject;
 }
 
@@ -181,5 +181,39 @@ function clearDigitWidget(widgetName) {
             oldDijitNode.destroy();
         } catch (error) {
         }
+    }
+}
+
+function startupLocaleSelectorMenu(localeData, attachNode) {
+    dojo.require("dijit.Menu");
+    var pMenu;
+    pMenu = new dijit.Menu({
+        targetNodeIds: [attachNode]
+    });
+    pMenu.startup();
+
+    var loopFunction = function(pMenu, localeKey, localeDisplayName) {
+        pMenu.addChild(new dijit.MenuItem({
+            label: localeDisplayName,
+            onClick: function() {
+                var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
+                dojo.xhrGet({
+                    url: pingURL,
+                    sync: true,
+                    load: function() {
+                        PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+                        window.location = window.location;
+                    },
+                    error: function(error) {
+                        alert('unable to set locale: ' + error);
+                    }
+                });
+            }
+        }));
+    };
+
+    for (var localeKey in localeData) {
+        var localeDisplayName = localeData[localeKey];
+        loopFunction(pMenu, localeKey, localeDisplayName);
     }
 }

@@ -150,7 +150,7 @@ public class ChangePasswordServlet extends TopServlet {
         final MATCH_STATUS matchStatus = figureMatchStatus(pwmSession, password1, password2);
         cache.put(password1, passwordCheckInfo); //update the cache
 
-        final String outputString = generateOutputString(pwmSession, passwordCheckInfo, matchStatus);
+        final String outputString = generateJsonOutputString(pwmSession, passwordCheckInfo, matchStatus);
 
         {
             final StringBuilder sb = new StringBuilder();
@@ -172,7 +172,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
 
-        resp.setContentType("text/plain;charset=utf-8");
+        resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
 
@@ -216,7 +216,7 @@ public class ChangePasswordServlet extends TopServlet {
         return matchStatus;
     }
 
-    private static String generateOutputString(
+    private static String generateJsonOutputString(
             final PwmSession pwmSession,
             final PasswordCheckInfo checkInfo,
             final MATCH_STATUS matchStatus
@@ -272,7 +272,7 @@ public class ChangePasswordServlet extends TopServlet {
         outputMap.put("version", "1");
         outputMap.put("password", randomPassword);
 
-        resp.setContentType("text/plain;charset=utf-8");
+        resp.setContentType("application/json;charset=utf-8");
         resp.getOutputStream().print(JSONObject.toJSONString(outputMap));
 
         {

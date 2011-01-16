@@ -40,6 +40,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -58,8 +59,7 @@ public class SessionFilter implements Filter {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession)
-    {
+    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) {
         final String userIPAddress = readUserIPAddress(req, pwmSession);
         try {
             return InetAddress.getByName(userIPAddress).getCanonicalHostName();
@@ -77,8 +77,7 @@ public class SessionFilter implements Filter {
      * @param pwmSession pwmSession used for config lookup
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
      */
-    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession)
-    {
+    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) {
         final boolean useXForwardedFor = pwmSession.getConfig() != null && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
 
         String userIP = "";
@@ -105,8 +104,7 @@ public class SessionFilter implements Filter {
 // --------------------- Interface Filter ---------------------
 
     public void init(final FilterConfig filterConfig)
-            throws ServletException
-    {
+            throws ServletException {
         //servletContext = filterConfig.getServletContext();
     }
 
@@ -115,8 +113,7 @@ public class SessionFilter implements Filter {
             final ServletResponse servletResponse,
             final FilterChain filterChain
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
 
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
@@ -153,10 +150,17 @@ public class SessionFilter implements Filter {
         //set the session's locale
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
         if (langReqParamter != null && langReqParamter.length() > 0) {
-            LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'locale' request parameter");
-            ssBean.setLocale(new Locale(langReqParamter));
+            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
+            final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
+            if (knownLocales.contains(requestedLocale)) {
+                LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
+                ssBean.setLocale(new Locale(langReqParamter));
+            } else {
+                LOGGER.error(pwmSession, "ignoring unknown value for 'pwmLocale' request parameter: " + langReqParamter);
+            }
         } else if (ssBean.getLocale() == null) {
-            ssBean.setLocale(req.getLocale());
+            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
+            ssBean.setLocale(knownLocales.get(0));
         }
 
         //clear any errors in the session's state bean
@@ -168,7 +172,7 @@ public class SessionFilter implements Filter {
             if (theManager.getConfig() != null && !theManager.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
                 ssBean.setSessionVerified(true);
             } else {
-                verifySession(req,resp,servletContext);
+                verifySession(req, resp, servletContext);
                 return;
             }
         }
@@ -237,8 +241,7 @@ public class SessionFilter implements Filter {
         ssBean.setLastAccessTime(System.currentTimeMillis());
     }
 
-    public void destroy()
-    {
+    public void destroy() {
         //servletContext = null;
     }
 
@@ -247,7 +250,7 @@ public class SessionFilter implements Filter {
             final HttpServletResponse resp = (HttpServletResponse) response;
             final String newURL = resp.encodeURL(resp.encodeURL(url));
             if (!url.equals(newURL)) {
-                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest)request);
+                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest) request);
                 LOGGER.trace(pwmSession, "rewriting URL from '" + url + "' to '" + newURL + "'");
             }
             return newURL;
@@ -261,8 +264,8 @@ public class SessionFilter implements Filter {
             final HttpServletResponse resp = (HttpServletResponse) response;
             final String newURL = resp.encodeRedirectURL(resp.encodeURL(url));
             if (!url.equals(newURL)) {
-                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest)request);
-                LOGGER.trace(pwmSession,"rewriting redirect URL from '" + url + "' to '" + newURL + "'");
+                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest) request);
+                LOGGER.trace(pwmSession, "rewriting redirect URL from '" + url + "' to '" + newURL + "'");
             }
             return newURL;
         } else {
@@ -282,10 +285,10 @@ public class SessionFilter implements Filter {
     /**
      * Attempt to determine if user agent is able to track sessions (either via url rewriting or cookies).
      *
-     * @param req http request
-     * @param resp http response
+     * @param req            http request
+     * @param resp           http response
      * @param servletContext pwm servlet context
-     * @throws IOException if error touching the io streams
+     * @throws IOException                    if error touching the io streams
      * @throws javax.servlet.ServletException error using the servlet context
      */
     private static void verifySession(
@@ -297,16 +300,16 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATION_KEY,255);
+        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATION_KEY, 255);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
 
             final String returnURL = figureValidationURL(req, ssBean.getSessionVerificationKey());
 
-            LOGGER.trace(pwmSession,"session has not been validated, redirecting with verification key to " + returnURL);
+            LOGGER.trace(pwmSession, "session has not been validated, redirecting with verification key to " + returnURL);
 
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL,req,resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
             return;
         }
 
@@ -315,21 +318,20 @@ public class SessionFilter implements Filter {
             final String returnURL = figureValidationURL(req, null);
 
             // session looks, good, mark it as such and return;
-            LOGGER.trace(pwmSession,"session validated, redirecting to original request url: " + returnURL);
+            LOGGER.trace(pwmSession, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
 
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL,req,resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
             return;
         }
 
         // user's session is messed up.  send to error page.
         LOGGER.error(pwmSession, "incorrect verification key sent during session verification check");
         ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION));
-        Helper.forwardToErrorPage(req,resp,servletContext);
+        Helper.forwardToErrorPage(req, resp, servletContext);
     }
 
-    private static String figureValidationURL(final HttpServletRequest req, final String validationKey)
-    {
+    private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {
         final StringBuilder sb = new StringBuilder();
         sb.append(req.getRequestURL());
         if (req.getQueryString() != null && req.getQueryString().length() > 0) {
@@ -340,16 +342,16 @@ public class SessionFilter implements Filter {
         // remove any pre-existing session keys.
         while (sb.toString().contains(PwmConstants.PARAM_VERIFICATION_KEY)) {
             final int startIndex = sb.indexOf(PwmConstants.PARAM_VERIFICATION_KEY);
-            final int endIndex = sb.indexOf("&",startIndex);
+            final int endIndex = sb.indexOf("&", startIndex);
             if (endIndex != -1) {
-                sb.delete(startIndex,endIndex);
+                sb.delete(startIndex, endIndex);
             } else {
-                sb.delete(startIndex,sb.length());
+                sb.delete(startIndex, sb.length());
             }
         }
 
         // clear any dangling ? or & separators.
-        while (sb.length() > 2 && sb.charAt(sb.length() - 1) == '&' || sb.charAt(sb.length() - 1) == '?' ) {
+        while (sb.length() > 2 && sb.charAt(sb.length() - 1) == '&' || sb.charAt(sb.length() - 1) == '?') {
             sb.delete(sb.length() - 1, sb.length());
         }
 

@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();updateContinueButton()">
+<body onload="pwmPageLoadHandler();updateContinueButton()" class="tundra">
 <script type="text/javascript">
     function updateContinueButton() {
         var checkBox = getObject("agreeCheckBox");

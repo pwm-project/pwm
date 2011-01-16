@@ -41,7 +41,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
-<div id="wrapper">
+<div id="wrapper" class="tundra">
 <jsp:include page="/WEB-INF/jsp/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>
