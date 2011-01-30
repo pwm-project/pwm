@@ -44,7 +44,7 @@
         }
     %>
     |
-    <span id="localeSelectionMenu" onclick="pMenu.setAttribute('visible',true)">
+    <span id="localeSelectionMenu" onclick="pMenu.setAttribute('isShowingNow',true)">
     <%= sessionStateBean.getLocale().getDisplayName() %>
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
@@ -72,6 +72,9 @@
         PWM_STRINGS['Display_IdleWarningMessage'] = "<pwm:Display key="Display_IdleWarningMessage"/>";
         PWM_STRINGS['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";
         PWM_STRINGS['url-command'] = "<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>";
+        PWM_STRINGS['url-resources'] = "<%=request.getContextPath()%>/resources";
+        var imageCache = new Image();
+        imageCache.src = PWM_STRINGS['url-resources'] + "/wait.gif"
     </script>
     <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);</script>
 </div>

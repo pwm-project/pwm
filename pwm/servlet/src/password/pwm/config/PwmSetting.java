@@ -106,6 +106,10 @@ public enum PwmSetting {
             "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_PROXY_IDLE_TIMEOUT(
             "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true, Level.ADVANCED),
+    LDAP_GUID_ATTRIBUTE(
+            "ldap.guidAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
+    LDAP_GUID_AUTO_ADD(
+            "ldap.guid.autoAddValue", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -265,14 +269,18 @@ public enum PwmSetting {
 
 
     // challenge policy
+    CHALLENGE_FORCE_SETUP(
+            "challenge.forceSetup", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_RANDOM_CHALLENGES(
-            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.ADVANCED),
+            "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.BASIC),
     CHALLENGE_REQUIRED_CHALLENGES(
-            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.ADVANCED),
+            "challenge.requiredChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.BASIC),
     CHALLENGE_MIN_RANDOM_REQUIRED(
-            "challenge.minRandomRequired", Syntax.NUMERIC, Category.CHALLENGE, true, Level.ADVANCED),
+            "challenge.minRandomRequired", Syntax.NUMERIC, Category.CHALLENGE, true, Level.BASIC),
     CHALLENGE_MIN_RANDOM_SETUP(
-            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.CHALLENGE, true, Level.ADVANCED),
+            "challenge.minRandomsSetup", Syntax.NUMERIC, Category.CHALLENGE, true, Level.BASIC),
+    CHALLENGE_SHOW_CONFIRMATION(
+            "challenge.showConfirmation", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.BASIC),
     CHALLENGE_CASE_INSENSITIVE(
             "challenge.caseInsensitive", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
@@ -281,23 +289,21 @@ public enum PwmSetting {
             "challenge.applyWorldlist", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.CHALLENGE, true, Level.ADVANCED),
+    QUERY_MATCH_CHECK_RESPONSES(
+            "command.checkResponses.queryMatch", Syntax.STRING, Category.CHALLENGE, true, Level.ADVANCED),
 
 
     // recovery settings
-    CHALLENGE_FORCE_SETUP(
-            "challenge.forceSetup", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_STORAGE_HASHED(
             "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_SHOW_CONFIRMATION(
-            "challenge.showConfirmation", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_ATTRIBUTES(
             "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
-    QUERY_MATCH_CHECK_RESPONSES(
-            "command.checkResponses.queryMatch", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
+    CHALLENGE_REQUIRE_RESPONSES(
+            "challenge.requireResponses", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_TOKEN_ENABLE(
             "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_CHARACTERS(

@@ -45,7 +45,7 @@
         <br/>
 
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button');"
+              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false"
               onreset="handleFormClear();return false">
             <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
             <% final String reCaptchaPublicKey = password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>

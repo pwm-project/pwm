@@ -37,7 +37,8 @@
 
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false;" id="searchForm">
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false;"
+              id="searchForm">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>

@@ -33,6 +33,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -42,6 +43,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -122,6 +124,59 @@ public class Helper {
         }
 
         return chaiConfig;
+    }
+
+    public static void addLdapGuidValue(
+            final String userDN,
+            final PwmSession pwmSession
+    )
+            throws ChaiUnavailableException {
+        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+            return;
+        }
+
+        final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        final String userGUID = pwmSession.getUserInfoBean().getAllUserAttributes().getProperty(GUIDattributeName, "");
+        if (userGUID.length() > 0) {
+            LOGGER.debug("user GUID read as: " + userGUID);
+            return;
+        }
+
+        LOGGER.debug(pwmSession, "assigning new GUID to user " + pwmSession.getUserInfoBean().getUserDN());
+
+        final ChaiProvider proxyChaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
+        final String baseContext = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+        int attempts = 0;
+        while (attempts < 10) {
+            final String newGUID;
+            {
+                final StringBuilder guidValue = new StringBuilder();
+                guidValue.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
+                while (guidValue.length() < 12) {
+                    guidValue.insert(0, "0");
+                }
+                guidValue.append(PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
+                newGUID = guidValue.toString();
+            }
+            final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
+            searchHelper.setFilter(GUIDattributeName, newGUID);
+            try {
+                final Map<String, Properties> result = proxyChaiProvider.search(baseContext, searchHelper);
+                if (result.isEmpty()) {
+                    try {
+                        pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).addAttribute(GUIDattributeName, newGUID);
+                        pwmSession.getUserInfoBean().getAllUserAttributes().setProperty(GUIDattributeName, newGUID);
+                        LOGGER.info(pwmSession, "successfully added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
+                        return;
+                    } catch (PwmException e) {
+                        LOGGER.error(pwmSession, "error writing GUID value to user: " + e.getMessage(), e);
+                    }
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "unexpected error while searching GUID for uniqueness: " + e.getMessage(), e);
+            }
+            attempts++;
+        }
     }
 
     /**

@@ -85,10 +85,9 @@ function pollActivity() {
 
 function pingServer() {
     var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    var xmlhttp = createXmlHttpObject();
-    xmlhttp.abort();
-    xmlhttp.open("POST", pingURL, true);
-    xmlhttp.send(null);
+    dojo.xhrPost({
+        url: pingURL
+    });
 }
 
 function calcIdleSeconds() {

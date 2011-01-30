@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn');">
+              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>

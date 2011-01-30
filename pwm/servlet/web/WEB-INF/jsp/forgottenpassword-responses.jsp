@@ -51,7 +51,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>

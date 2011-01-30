@@ -22,8 +22,8 @@
 
 package password.pwm.util.stats;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import password.pwm.util.PwmLogger;
 
 import java.math.BigInteger;
@@ -36,10 +36,10 @@ public class StatisticsBundle {
 
     private static final int MAX_AVG_HISTORY_SIZE = 10;
     final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+
     static {
         STORED_DATETIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("Zulu"));
     }
-
 
 
     private final Map<Statistic, String> valueMap = new HashMap<Statistic, String>();
@@ -48,17 +48,20 @@ public class StatisticsBundle {
     }
 
     public String output() {
-        return JSONObject.toJSONString(valueMap);
+        final Gson gson = new Gson();
+        return gson.toJson(valueMap);
     }
 
     public static StatisticsBundle input(final String inputString) {
-        final JSONObject srcMap = (JSONObject) JSONValue.parse(inputString);
+        final Gson gson = new Gson();
+        final Map<Statistic, String> srcMap = gson.fromJson(inputString, new TypeToken<Map<Statistic, String>>() {
+        }.getType());
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {
-            final Object value = srcMap.get(loopStat.toString());
+            final String value = srcMap.get(loopStat);
             if (value != null && !value.equals("")) {
-                bundle.valueMap.put(loopStat,value.toString());
+                bundle.valueMap.put(loopStat, value);
             }
         }
 
@@ -78,7 +81,7 @@ public class StatisticsBundle {
             } else {
                 currentValue = BigInteger.ZERO;
             }
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             LOGGER.error("error reading counter/incrementor stat " + statistic);
         }
         final BigInteger newValue = currentValue.add(BigInteger.ONE);

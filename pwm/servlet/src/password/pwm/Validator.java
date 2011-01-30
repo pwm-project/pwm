@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
@@ -261,33 +262,40 @@ public class Validator {
                 }
             }
 
-            theString = theString.trim();
+            final String sanatizedValue = sanatizeInputValue(theManager.getConfig(), theString, maxLength);
 
-            // strip off any length beyond the specified maxLength.
-            if (theString.length() > maxLength) {
-                theString = theString.substring(0, maxLength);
-            }
-
-            // strip off any disallowed chars.
-            if (theManager != null && theManager.getConfig() != null) {
-                final List<String> disallowedInputs = theManager.getConfig().readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
-                for (final String testString : disallowedInputs) {
-                    final String newString = theString.replaceAll(testString, "");
-                    if (!newString.equals(theString)) {
-                        LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString + "'");
-
-                        theString = newString;
-                    }
-                }
-            }
-
-
-            if (theString.length() > 0) {
-                resultSet.add(theString);
+            if (sanatizedValue.length() > 0) {
+                resultSet.add(sanatizedValue);
             }
         }
 
         return resultSet;
+    }
+
+    public static String sanatizeInputValue(final Configuration config, final String input, final int maxLength) {
+
+        String theString = input;
+
+        theString = theString.trim();
+
+        // strip off any length beyond the specified maxLength.
+        if (theString.length() > maxLength) {
+            theString = theString.substring(0, maxLength);
+        }
+
+        // strip off any disallowed chars.
+        if (config != null) {
+            final List<String> disallowedInputs = config.readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+            for (final String testString : disallowedInputs) {
+                final String newString = theString.replaceAll(testString, "");
+                if (!newString.equals(theString)) {
+                    LOGGER.warn("removing potentially malicious string values from input, converting '" + input + "' newValue=" + newString + "' pattern='" + testString + "'");
+                    theString = newString;
+                }
+            }
+        }
+
+        return theString;
     }
 
     /**

@@ -36,7 +36,7 @@
         <p><pwm:Display key="Display_NewUser"/></p>
 
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>

@@ -22,8 +22,8 @@
 
 package password.pwm.util;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,28 +58,29 @@ public class PwmLogEvent implements Serializable, Comparable {
 // -------------------------- STATIC METHODS --------------------------
 
     public static PwmLogEvent fromEncodedString(final String encodedString)
-            throws ClassNotFoundException, IOException
-    {
-        final JSONObject srcMap = (JSONObject)JSONValue.parse(encodedString);
+            throws ClassNotFoundException, IOException {
+        final Gson gson = new Gson();
+        final Map<String, String> srcMap = gson.fromJson(encodedString, new TypeToken<Map<String, String>>() {
+        }.getType());
 
-        final String topic = (String)srcMap.get(KEY_TOPIC);
-        final String message = (String)srcMap.get(KEY_MESSAGE);
-        final String source = (String)srcMap.get(KEY_SOURCE);
-        final String actor = (String)srcMap.get(KEY_ACTOR);
+        final String topic = srcMap.get(KEY_TOPIC);
+        final String message = srcMap.get(KEY_MESSAGE);
+        final String source = srcMap.get(KEY_SOURCE);
+        final String actor = srcMap.get(KEY_ACTOR);
 
         Date date = null;
         if (srcMap.containsKey(KEY_DATE)) {
-            date = new Date(Long.valueOf((String)srcMap.get(KEY_DATE)));
+            date = new Date(Long.valueOf(srcMap.get(KEY_DATE)));
         }
 
         Throwable throwable = null;
         if (srcMap.containsKey(KEY_THROWABLE)) {
-            throwable = (Throwable)Base64Util.decodeToObject((String)srcMap.get(KEY_THROWABLE));
+            throwable = (Throwable) Base64Util.decodeToObject((String) srcMap.get(KEY_THROWABLE));
         }
 
         PwmLogLevel level = null;
         if (srcMap.containsKey(KEY_LEVEL)) {
-            level = PwmLogLevel.valueOf((String)srcMap.get(KEY_LEVEL));
+            level = PwmLogLevel.valueOf(srcMap.get(KEY_LEVEL));
         }
 
         return new PwmLogEvent(date, topic, message, source, actor, throwable, level);
@@ -132,7 +133,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
     public String getHtmlSafeMessage() {
-        return message.replaceAll("<","&lt;").replaceAll(">","&gt;");
+        return message.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
     }
 
     public String getSource() {
@@ -156,15 +157,14 @@ public class PwmLogEvent implements Serializable, Comparable {
         if (!(o instanceof PwmLogEvent)) {
             throw new IllegalArgumentException("cannot compare with non PwmLogEvent");
         }
-        return this.getDate().compareTo( ((PwmLogEvent)o).getDate() );
+        return this.getDate().compareTo(((PwmLogEvent) o).getDate());
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public String toEncodedString()
-            throws IOException
-    {
-        final Map<String,String> tempMap = new HashMap<String,String>();
+            throws IOException {
+        final Map<String, String> tempMap = new HashMap<String, String>();
         tempMap.put(KEY_VERSION, VERSION);
         tempMap.put(KEY_TOPIC, topic);
         tempMap.put(KEY_MESSAGE, message);
@@ -181,7 +181,8 @@ public class PwmLogEvent implements Serializable, Comparable {
             tempMap.put(KEY_DATE, String.valueOf(date.getTime()));
         }
 
-        return JSONObject.toJSONString(tempMap);
+        final Gson gson = new Gson();
+        return gson.toJson(tempMap);
     }
 
     public String toLogString(final boolean htmlSafe) {

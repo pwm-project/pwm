@@ -39,7 +39,7 @@
         <p><pwm:Display key="Display_Login"/></p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();return false"
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
               onkeypress="checkForCapsLock(event);">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {

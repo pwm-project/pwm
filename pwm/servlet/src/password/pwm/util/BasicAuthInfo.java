@@ -20,10 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.util;
 
-import password.pwm.util.Base64Util;
-import password.pwm.util.PwmLogger;
+import password.pwm.PwmConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
@@ -49,8 +48,7 @@ public class BasicAuthInfo implements Serializable {
      * @param req http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
-    public static BasicAuthInfo parseAuthHeader(final HttpServletRequest req)
-    {
+    public static BasicAuthInfo parseAuthHeader(final HttpServletRequest req) {
         final String authHeader = req.getHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH);
 
         if (authHeader != null) {
@@ -91,7 +89,7 @@ public class BasicAuthInfo implements Serializable {
             }
         } catch (Exception e) {
             LOGGER.error("error decoding auth header: " + e.getMessage());
-            throw new IllegalArgumentException("invalid basic authentication input string: " + e.getMessage(),e);
+            throw new IllegalArgumentException("invalid basic authentication input string: " + e.getMessage(), e);
         }
     }
 
@@ -100,28 +98,24 @@ public class BasicAuthInfo implements Serializable {
     public BasicAuthInfo(
             final String username,
             final String password
-    )
-    {
+    ) {
         this.username = username;
         this.password = password;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getPassword()
-    {
+    public String getPassword() {
         return password;
     }
 
-    public String getUsername()
-    {
+    public String getUsername() {
         return username;
     }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    public boolean equals(final Object o)
-    {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -134,8 +128,7 @@ public class BasicAuthInfo implements Serializable {
         return !(password != null ? !password.equals(basicAuthInfo.password) : basicAuthInfo.password != null) && !(username != null ? !username.equals(basicAuthInfo.username) : basicAuthInfo.username != null);
     }
 
-    public int hashCode()
-    {
+    public int hashCode() {
         int result;
         result = (username != null ? username.hashCode() : 0);
         result = 29 * result + (password != null ? password.hashCode() : 0);

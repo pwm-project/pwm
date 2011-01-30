@@ -22,15 +22,21 @@
 
 package password.pwm.util;
 
+import com.google.gson.Gson;
 import password.pwm.ContextManager;
 import password.pwm.Helper;
 import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.health.HealthRecord;
+import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
+import password.pwm.util.db.PwmDBStoredQueue;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -41,58 +47,94 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author Jason D. Rivard
  */
-public class EmailQueueManager {
+public class EmailQueueManager implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
     private static final int ERROR_RETRY_WAIT_TIME = 30;
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
-    private final Queue<EmailEvent> mailSendQueue = new ConcurrentLinkedQueue<EmailEvent>();
-
+    private final PwmDBStoredQueue mailSendQueue;
     private long lastErrorTime;
-
     private final ContextManager theManager;
 
-    private volatile EmailSendThread emailSendThread = null;
-
-    private volatile boolean open = true;
+    private STATUS status = PwmService.STATUS.NEW;
+    private boolean threadActive;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public EmailQueueManager(final ContextManager theManager)
-    {
+            throws PwmDBException {
         this.theManager = theManager;
+        final PwmDB pwmDB = theManager.getPwmDB();
+        mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
+
+        final EmailSendThread emailSendThread = new EmailSendThread();
+        emailSendThread.setDaemon(true);
+        emailSendThread.setName("pwm-EmailQueueManager");
+        emailSendThread.start();
+        threadActive = true;
+
+        status = PwmService.STATUS.OPEN;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
 
-// --------------------- Interface Runnable ---------------------
+// --------------------- Interface PwmService ---------------------
 
-    public void run()
-    {
-        this.processQueue();
+    public void init(final ContextManager contextManager) throws PwmException {
+    }
+
+    public STATUS status() {
+        return status;
+    }
+
+    public void close() {
+        status = PwmService.STATUS.CLOSED;
+
+        if (threadActive) {
+            final long startTime = System.currentTimeMillis();
+            LOGGER.info("waiting up to 30 seconds for email queue to empty....");
+
+            while (threadActive && (System.currentTimeMillis() - startTime) < 30 * 1000) {
+                Helper.pause(100);
+            }
+
+            try {
+                if (!mailSendQueue.isEmpty()) {
+                    LOGGER.warn("unable to close email queue, abandoning queue with " + mailSendQueue.size() + " messages");
+                }
+            } catch (Exception e) {
+                LOGGER.error("unexpected exception while shutting down: " + e.getMessage());
+            }
+        }
+
+        LOGGER.debug("closed");
+    }
+
+    public List<HealthRecord> doHealthCheck(ContextManager contextManager) {
+        return null;
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public void addMailToQueue(final EmailItemBean emailItem)
-            throws PwmException
-    {
-        if (!open) {
+            throws PwmException {
+        if (status != PwmService.STATUS.OPEN) {
             throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
         final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+        /*
         if (serverAddress == null || serverAddress.length() < 1) {
             LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
             return;
@@ -117,45 +159,44 @@ public class EmailQueueManager {
             LOGGER.error("discarding email event (no body): " + emailItem.toString());
             return;
         }
+        */
 
-        final EmailEvent event = new EmailEvent(emailItem);
+        final EmailEvent event = new EmailEvent(emailItem, System.currentTimeMillis());
         if (mailSendQueue.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
-            mailSendQueue.add(event);
+            try {
+                final String jsonEvent = (new Gson()).toJson(event);
+                mailSendQueue.addLast(jsonEvent);
+            } catch (Exception e) {
+                LOGGER.error("error writing to pwmDB queue, discarding email send request: " + e.getMessage());
+            }
         } else {
-            LOGGER.warn("email queue full, discarding email send request: ");
-        }
-
-        startSendThread();
-    }
-
-    private synchronized void startSendThread() {
-        if (emailSendThread == null) {
-            emailSendThread = new EmailSendThread();
-            emailSendThread.setDaemon(true);
-            emailSendThread.setName("pwm-EmailQueueManager");
-            emailSendThread.start();
+            LOGGER.warn("email queue full, discarding email send request: " + emailItem);
         }
     }
 
-    private synchronized void processQueue()
-    {
-        if (System.currentTimeMillis() - lastErrorTime > (ERROR_RETRY_WAIT_TIME * 1000)) {
-            while (!mailSendQueue.isEmpty()) {
-                final EmailEvent event = mailSendQueue.poll();
-                if (event != null) {
-                    final boolean success = this.sendEmail(event.getEmailItem());
-                    if (!success) {
-                        event.setSendAttempts(event.getSendAttempts() + 1);
+    public void run() {
+        this.processQueue();
+    }
+
+    private void processQueue() {
+        while (mailSendQueue.peekFirst() != null) {
+            try {
+                final String jsonEvent = mailSendQueue.poll();
+                if (jsonEvent != null) {
+                    final EmailEvent event = (new Gson()).fromJson(jsonEvent, EmailEvent.class);
+
+                    if (event != null) {
+                        sendEmail(event.getEmailItem());
                     }
                 }
+            } catch (Exception e) {
+                LOGGER.error("unexpected error reading email send queue: " + e.getMessage());
             }
         }
     }
 
-    private boolean sendEmail(final EmailItemBean emailItemBean)
-    {
+    private boolean sendEmail(final EmailItemBean emailItemBean) {
         final StatisticsManager statsMgr = theManager.getStatisticsManager();
-
 
         // createSharedHistoryManager a new MimeMessage object (using the Session created above)
         try {
@@ -183,8 +224,7 @@ public class EmailQueueManager {
     }
 
     private Message convertEmailItemToMessage(final EmailItemBean emailItemBean, final Configuration config)
-            throws MessagingException
-    {
+            throws MessagingException {
         final boolean hasPlainText = emailItemBean.getBodyPlain() != null && emailItemBean.getBodyPlain().length() > 0;
         final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
 
@@ -198,7 +238,7 @@ public class EmailQueueManager {
         props.put("mail.smtp.host", config.readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
 
         //Specify configured advanced settings.
-        final Map<String,String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readStringArraySetting(PwmSetting.EMAIL_ADVANCED_SETTINGS),"=");
+        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readStringArraySetting(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
         for (final String key : advancedSettingValues.keySet()) {
             props.put(key, advancedSettingValues.get(key));
         }
@@ -226,64 +266,50 @@ public class EmailQueueManager {
         return message;
     }
 
-    private static boolean sendIsRetryable(final MessagingException e)
-    {
+    private static boolean sendIsRetryable(final MessagingException e) {
+        if (e != null) {
+        }
+
         return false;
     }
 
+// -------------------------- INNER CLASSES --------------------------
+
     private class EmailSendThread extends Thread {
         public void run() {
+            LOGGER.trace("starting up email queue processing thread");
             try {
-                while (!mailSendQueue.isEmpty()) {
+                while (status == PwmService.STATUS.OPEN) {
                     processQueue();
+                    Helper.pause(1000);
                 }
-            } finally {
-                emailSendThread = null;
+            } catch (Exception e) {
+                LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
             }
+            threadActive = false;
+            LOGGER.trace("closing email queue processing thread");
         }
     }
 
-    private static class EmailEvent {
-        private final EmailItemBean emailItem;
-        private int sendAttempts = 0;
+    private static class EmailEvent implements Serializable {
+        private EmailItemBean emailItem;
+        private long queueInsertTimestamp;
 
-        private EmailEvent(final EmailItemBean emailItem) {
+        private EmailEvent() {
+        }
+
+        private EmailEvent(EmailItemBean emailItem, long queueInsertTimestamp) {
             this.emailItem = emailItem;
+            this.queueInsertTimestamp = queueInsertTimestamp;
         }
 
         public EmailItemBean getEmailItem() {
             return emailItem;
         }
 
-        public int getSendAttempts() {
-            return sendAttempts;
+        public long getQueueInsertTimestamp() {
+            return queueInsertTimestamp;
         }
-
-        public void setSendAttempts(final int sendAttempts) {
-            this.sendAttempts = sendAttempts;
-        }
-    }
-
-    public void close() {
-        open = false;
-
-        startSendThread();
-        Helper.pause(200);
-
-        if (emailSendThread != null) {
-            final long startTime = System.currentTimeMillis();
-            LOGGER.info("waiting up to 30 seconds for email queue to empty....");
-
-            while ((emailSendThread != null) && (System.currentTimeMillis() - startTime) < 30 * 1000) {
-                Helper.pause(100);
-            }
-
-            if (!mailSendQueue.isEmpty()) {
-                LOGGER.warn("unable to close email queue, abandoning queue with " + mailSendQueue.size() + " messages");
-            }
-        }
-
-        LOGGER.debug("closed");
     }
 }
 

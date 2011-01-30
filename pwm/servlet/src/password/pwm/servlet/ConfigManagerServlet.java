@@ -22,9 +22,9 @@
 
 package password.pwm.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.Configuration;
@@ -154,13 +154,14 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String, Object> returnMap = new HashMap<String, Object>();
+        final Map<String, String> returnMap = new HashMap<String, String>();
         if (configEpoch != null && configEpoch.length() > 0) {
             returnMap.put("configEpoch", configEpoch);
         } else {
             returnMap.put("configEpoch", "none");
         }
-        final String outputString = JSONObject.toJSONString(returnMap);
+        final Gson gson = new Gson();
+        final String outputString = gson.toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -228,7 +229,8 @@ public class ConfigManagerServlet extends TopServlet {
             returnMap.put("syntax", theSetting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
         }
-        final String outputString = JSONObject.toJSONString(returnMap);
+        final Gson gson = new Gson();
+        final String outputString = gson.toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -244,55 +246,41 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
 
-        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+        final Gson gson = new Gson();
+        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        }.getType());
 
         if (srcMap == null) {
             LOGGER.error("set operation missing json body");
             return;
         }
 
-        final String key = String.valueOf(srcMap.get("key"));
-        final String value = String.valueOf(srcMap.get("value"));
+        final String key = srcMap.get("key");
+        final String value = srcMap.get("value");
         final PwmSetting setting = PwmSetting.forKey(key);
 
         switch (setting.getSyntax()) {
             case STRING_ARRAY: {
-                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                final Map<String, String> outputMap = new TreeMap<String, String>();
-                for (final Object keyObject : inputMap.keySet()) {
-                    outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
-                }
+                final Map<String, String> valueMap = gson.fromJson(value, new TypeToken<Map<String, String>>() {
+                }.getType());
+                final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
                 storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
             }
             break;
 
             case LOCALIZED_STRING:
             case LOCALIZED_TEXT_AREA: {
-                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                final Map<String, String> outputMap = new TreeMap<String, String>();
-                for (final Object keyObject : inputMap.keySet()) {
-                    outputMap.put(String.valueOf(keyObject), String.valueOf(inputMap.get(keyObject)));
-                }
+                final Map<String, String> valueMap = gson.fromJson(value, new TypeToken<Map<String, String>>() {
+                }.getType());
+                final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
                 storedConfig.writeLocalizedSetting(setting, outputMap);
             }
             break;
 
             case LOCALIZED_STRING_ARRAY: {
-                final JSONObject inputMap = (JSONObject) JSONValue.parse(value);
-                final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>();
-                for (final Object localeKeyObject : inputMap.keySet()) {
-                    final JSONObject localeMap = (JSONObject) inputMap.get(localeKeyObject);
-
-                    final TreeMap<String, String> sortedMap = new TreeMap<String, String>();
-                    for (final Object iterationKey : localeMap.keySet()) {
-                        sortedMap.put(iterationKey.toString(), localeMap.get(iterationKey).toString());
-                    }
-
-                    final List<String> loopList = new ArrayList<String>();
-                    for (final String loopValue : sortedMap.values()) loopList.add(loopValue);
-
-                    outputMap.put(localeKeyObject.toString(), loopList);
-                }
+                final Map<String, List<String>> valueMap = gson.fromJson(value, new TypeToken<Map<String, List<String>>>() {
+                }.getType());
+                final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>(valueMap);
                 storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
             }
             break;
@@ -315,7 +303,7 @@ public class ConfigManagerServlet extends TopServlet {
         returnMap.put("category", setting.getCategory().toString());
         returnMap.put("syntax", setting.getSyntax().toString());
         returnMap.put("isDefault", storedConfig.isDefaultValue(setting));
-        final String outputString = JSONObject.toJSONString(returnMap);
+        final String outputString = gson.toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -349,10 +337,12 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
 
-        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
+        final Gson gson = new Gson();
+        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        }.getType());
 
         if (srcMap != null) {
-            final String key = String.valueOf(srcMap.get("key"));
+            final String key = srcMap.get("key");
             final PwmSetting setting = PwmSetting.forKey(key);
             storedConfig.resetSetting(setting);
         }

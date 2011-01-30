@@ -38,7 +38,7 @@
         <p><pwm:Display key="Display_ActivateUser"/></p>
 
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
-              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn');"
+              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false"
               onreset="handleFormClear();return false">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {

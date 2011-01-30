@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.BasicAuthInfo;
+import password.pwm.util.BasicAuthInfo;
 import password.pwm.Validator;
 import password.pwm.config.Message;
 import password.pwm.config.ShortcutItem;
@@ -37,7 +37,7 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- *  Only information that is particular to the http session is stored in the
+ * Only information that is particular to the http session is stored in the
  * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.
  * <p/>
  * For any given HTTP session using PWM, one and only one {@link SessionStateBean} will be
@@ -86,153 +86,123 @@ public class SessionStateBean implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public FINISH_ACTION getFinishAction()
-    {
+    public FINISH_ACTION getFinishAction() {
         return finishAction;
     }
 
-    public void setFinishAction(final FINISH_ACTION finishAction)
-    {
+    public void setFinishAction(final FINISH_ACTION finishAction) {
         this.finishAction = finishAction;
     }
 
-    public String getForwardURL()
-    {
+    public String getForwardURL() {
         return forwardURL;
     }
 
-    public void setForwardURL(final String forwardURL)
-    {
+    public void setForwardURL(final String forwardURL) {
         this.forwardURL = forwardURL;
     }
 
-    public int getIncorrectLogins()
-    {
+    public int getIncorrectLogins() {
         return incorrectLogins;
     }
 
-    public long getLastAccessTime()
-    {
+    public long getLastAccessTime() {
         return lastAccessTime;
     }
 
-    public void setLastAccessTime(final long lastAccessTime)
-    {
+    public void setLastAccessTime(final long lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
     }
 
-    public Properties getLastParameterValues()
-    {
+    public Properties getLastParameterValues() {
         return lastParameterValues;
     }
 
-    public Locale getLocale()
-    {
+    public Locale getLocale() {
         return locale;
     }
 
-    public void setLocale(final Locale locale)
-    {
+    public void setLocale(final Locale locale) {
         this.locale = locale;
     }
 
-    public String getLogoutURL()
-    {
+    public String getLogoutURL() {
         return logoutURL;
     }
 
-    public void setLogoutURL(final String logoutURL)
-    {
+    public void setLogoutURL(final String logoutURL) {
         this.logoutURL = logoutURL;
     }
 
-    public BasicAuthInfo getOriginalBasicAuthInfo()
-    {
+    public BasicAuthInfo getOriginalBasicAuthInfo() {
         return originalBasicAuthInfo;
     }
 
-    public void setOriginalBasicAuthInfo(final BasicAuthInfo originalBasicAuthInfo)
-    {
+    public void setOriginalBasicAuthInfo(final BasicAuthInfo originalBasicAuthInfo) {
         this.originalBasicAuthInfo = originalBasicAuthInfo;
     }
 
-    public String getOriginalRequestURL()
-    {
+    public String getOriginalRequestURL() {
         return originalRequestURL;
     }
 
-    public void setOriginalRequestURL(final String originalRequestURL)
-    {
+    public void setOriginalRequestURL(final String originalRequestURL) {
         this.originalRequestURL = originalRequestURL;
     }
 
-    public String getPostWaitURL()
-    {
+    public String getPostWaitURL() {
         return postWaitURL;
     }
 
-    public void setPostWaitURL(final String postWaitURL)
-    {
+    public void setPostWaitURL(final String postWaitURL) {
         this.postWaitURL = postWaitURL;
     }
 
-    public ErrorInformation getSessionError()
-    {
+    public ErrorInformation getSessionError() {
         return sessionError;
     }
 
-    public void setSessionError(final ErrorInformation sessionError)
-    {
+    public void setSessionError(final ErrorInformation sessionError) {
         this.sessionError = sessionError;
     }
 
-    public String getSessionID()
-    {
+    public String getSessionID() {
         return sessionID;
     }
 
-    public void setSessionID(final String sessionID)
-    {
+    public void setSessionID(final String sessionID) {
         this.sessionID = sessionID;
     }
 
-    public Message getSessionSuccess()
-    {
+    public Message getSessionSuccess() {
         return sessionSuccess;
     }
 
-    public void setSessionSuccess(final Message sessionSuccess)
-    {
+    public void setSessionSuccess(final Message sessionSuccess) {
         this.sessionSuccess = sessionSuccess;
     }
 
-    public String getSrcAddress()
-    {
+    public String getSrcAddress() {
         return srcAddress;
     }
 
-    public void setSrcAddress(final String srcAddress)
-    {
+    public void setSrcAddress(final String srcAddress) {
         this.srcAddress = srcAddress;
     }
 
-    public String getSrcHostname()
-    {
+    public String getSrcHostname() {
         return srcHostname;
     }
 
-    public void setSrcHostname(final String srcHostname)
-    {
+    public void setSrcHostname(final String srcHostname) {
         this.srcHostname = srcHostname;
     }
 
-    public boolean isAuthenticated()
-    {
+    public boolean isAuthenticated() {
         return authenticated;
     }
 
-    public void setAuthenticated(final boolean authenticated)
-    {
+    public void setAuthenticated(final boolean authenticated) {
         this.authenticated = authenticated;
     }
 
@@ -246,35 +216,29 @@ public class SessionStateBean implements Serializable {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public void clearLastParameterValues()
-    {
+    public void clearLastParameterValues() {
         this.lastParameterValues = new Properties();
     }
 
-    public long getIdleTime()
-    {
+    public long getIdleTime() {
         final long lastAccessTime = getLastAccessTime();
         return System.currentTimeMillis() - lastAccessTime;
     }
 
-    public String getLastParameterValue(final String name)
-    {
+    public String getLastParameterValue(final String name) {
         final Properties props = this.lastParameterValues;
         return props.getProperty(name, "");
     }
 
-    public void incrementIncorrectLogins()
-    {
+    public void incrementIncorrectLogins() {
         this.incorrectLogins++;
     }
 
-    public void resetIncorrectLogins()
-    {
+    public void resetIncorrectLogins() {
         this.incorrectLogins = 0;
     }
 
-    public void setLastParameterValues(final HttpServletRequest req)
-    {
+    public void setLastParameterValues(final HttpServletRequest req) {
         final Set keyNames = req.getParameterMap().keySet();
         final Properties newParamProperty = new Properties();
 

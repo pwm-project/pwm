@@ -79,7 +79,7 @@ public class PwmDBLogger {
         this.pwmDB = pwmDB;
         this.setting_maxAgeMs = ((long) maxAge) * 1000L;
         this.setting_bulkAddEvents = bulkAddEvents;
-        this.pwmDBListQueue = new PwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
+        this.pwmDBListQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents sent to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
@@ -125,7 +125,7 @@ public class PwmDBLogger {
     private long readTailTimestamp() {
         final PwmLogEvent loopEvent;
         try {
-            loopEvent = readEvent(pwmDBListQueue.tail());
+            loopEvent = readEvent(pwmDBListQueue.getLast());
             return loopEvent.getDate().getTime();
         } catch (Exception e) {
             LOGGER.error("unexpected error attempting to determine tail event timestamp: " + e.getMessage());
@@ -237,7 +237,7 @@ public class PwmDBLogger {
                 }
             }
 
-            pwmDBListQueue.add(transactions);
+            pwmDBListQueue.addAll(transactions);
 
             if (transactions.size() >= (MAX_WRITES_PER_CYCLE - 100)) {
                 LOGGER.trace("added " + transactions.size() + " in " + TimeDuration.compactFromCurrent(startTime) + " " + debugStats());
@@ -507,7 +507,7 @@ public class PwmDBLogger {
                 final int purgeCount = determineTailRemovalCount();
                 if (purgeCount > 0) {
                     final int removalCount = purgeCount > MAX_REMOVALS_PER_CYCLE ? MAX_REMOVALS_PER_CYCLE : purgeCount;
-                    pwmDBListQueue.removeTail(removalCount);
+                    pwmDBListQueue.removeLast(removalCount);
                     tailTimestampMs = readTailTimestamp();
                     workDone = true;
                 }

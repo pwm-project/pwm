@@ -6,6 +6,21 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.5.3
+---
++ Added locale selector menu to footer (issue #31)
++ Changed forgotten password sequence so email token is after response questions (issue #26)
+
+* Added menu title for main index page (issue #30)
+* Added i18n and Dutch localizations for index page (issue #27)
+* Updated Dutch localizations (issue #32)
+
+- Fixed broken login contexts option on activation page (issue #26)
+- Fixed issue with cookieless (URL) sessions not working since v1.5.2
+- Fixed issue wih CommandServlet?processAction=checkExpire not working
+- Improved ConfigManager UI performance and layout
+
+
 v1.5.2 (October 22, 2010) build 996
 ---
 + Changed main menu to hide un-enabled functions

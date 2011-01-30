@@ -22,6 +22,8 @@
 
 package password.pwm.config;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.jdom.CDATA;
 import org.jdom.Comment;
 import org.jdom.Document;
@@ -29,9 +31,6 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.util.Base64Util;
@@ -686,19 +685,19 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     return new StoredValueLocaleList(Collections.<String, String>emptyMap());
                 }
 
-                final JSONObject srcMap = (JSONObject) JSONValue.parse(input);
-                final Map<String, String> returnMap = new TreeMap<String, String>();
-                for (final Object key : srcMap.keySet()) {
-                    returnMap.put(key.toString(), srcMap.get(key).toString());
-                }
+                final Gson gson = new Gson();
+                final Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
+                }.getType());
+                final Map<String, String> returnMap = new TreeMap<String, String>(srcMap);
                 return new StoredValueLocaleList(returnMap);
             }
 
             public String toJsonString() {
+                final Gson gson = new Gson();
                 if (values == null) {
-                    return JSONObject.toJSONString(Collections.emptyMap());
+                    return gson.toJson(Collections.emptyMap());
                 }
-                return JSONObject.toJSONString(values);
+                return gson.toJson(values);
             }
 
             public List<Element> toXmlValues(final String valueElementName) {
@@ -736,19 +735,18 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     return new StoredValueList(Collections.<String>emptyList());
                 }
 
-                final JSONArray srcList = (JSONArray) JSONValue.parse(input);
-                final List<String> returnList = new ArrayList<String>();
-                for (final Object item : srcList) {
-                    returnList.add(item.toString());
-                }
-                return new StoredValueList(returnList);
+                final Gson gson = new Gson();
+                final List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
+                }.getType());
+                return new StoredValueList(srcList);
             }
 
             public String toJsonString() {
+                final Gson gson = new Gson();
                 if (values == null) {
-                    return JSONArray.toJSONString(Collections.emptyList());
+                    return gson.toJson(Collections.emptyList());
                 }
-                return JSONArray.toJSONString(values);
+                return gson.toJson(values);
             }
 
             public List<Element> toXmlValues(final String valueElementName) {
@@ -782,24 +780,19 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     return new StoredValueLocaleMap(Collections.<String, List<String>>emptyMap());
                 }
 
-                final JSONObject srcMap = (JSONObject) JSONValue.parse(input);
-                final Map<String, List<String>> returnMap = new TreeMap<String, List<String>>();
-                for (final Object key : srcMap.keySet()) {
-                    final List<String> returnList = new ArrayList<String>();
-                    final JSONArray srcList = (JSONArray) srcMap.get(key);
-                    for (final Object item : srcList) {
-                        returnList.add(item.toString());
-                    }
-                    returnMap.put(key.toString(), returnList);
-                }
+                final Gson gson = new Gson();
+                final Map<String, List<String>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<String>>>() {
+                }.getType());
+                final Map<String, List<String>> returnMap = new TreeMap<String, List<String>>(srcMap);
                 return new StoredValueLocaleMap(returnMap);
             }
 
             public String toJsonString() {
+                final Gson gson = new Gson();
                 if (values == null) {
-                    return JSONObject.toJSONString(Collections.emptyMap());
+                    return gson.toJson(Collections.emptyMap());
                 }
-                return JSONObject.toJSONString(values);
+                return gson.toJson(values);
             }
 
             public List<Element> toXmlValues(final String valueElementName) {

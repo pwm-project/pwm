@@ -22,15 +22,19 @@
 
 package password.pwm.bean;
 
-public class EmailItemBean {
-    private final String to;
-    private final String from;
-    private final String subject;
-    private final String bodyPlain;
-    private final String bodyHtml;
+import java.io.Serializable;
+
+public class EmailItemBean implements Serializable {
+    private String to;
+    private String from;
+    private String subject;
+    private String bodyPlain;
+    private String bodyHtml;
 
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
+    private EmailItemBean() {
+    }
 
     public EmailItemBean(
             final String to,

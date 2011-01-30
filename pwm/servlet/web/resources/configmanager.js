@@ -573,23 +573,8 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
     writeSetting(settingKey, currentValues);
 }
 
-function showWaitDialog(title, body) {
-    if (body == null || body.length < 1) {
-        body = '<div style="text-align: center"><img src="../resources/wait.gif"/></div>';
-    }
-    dojo.require("dijit.Dialog");
-    var theDialog = new dijit.Dialog({
-        id: 'waitDialog',
-        title: title,
-        style: "width: 300px",
-        content: body,
-        closable: false
-    });
-    theDialog.show();
-}
-
 function saveConfiguration() {
-    showWaitDialog('Saving Configuration...');
+    showWaitDialog('Saving Configuration...', null);
 
     dojo.xhrGet({
         url:"ConfigManager?processAction=getConfigEpoch",

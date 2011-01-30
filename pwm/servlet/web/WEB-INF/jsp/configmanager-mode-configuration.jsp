@@ -95,7 +95,7 @@
                                     alert('unable to refresh data ' + errorObj)
                                 },
                                 load: function(data) {
-                                    window.location = window.location;
+                                    window.location.reload();
                                 }
                             });
                         }

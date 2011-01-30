@@ -69,7 +69,7 @@
         <% } %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);"
-              onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button');"
+              onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
               onreset="handleFormClear();validatePasswords();setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">

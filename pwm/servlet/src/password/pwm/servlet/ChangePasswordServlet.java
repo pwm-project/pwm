@@ -22,9 +22,9 @@
 
 package password.pwm.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
 import password.pwm.bean.SessionStateBean;
@@ -140,9 +140,11 @@ public class ChangePasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         final String bodyString = Helper.readRequestBody(req, 10 * 1024);
-        final JSONObject srcMap = (JSONObject) JSONValue.parse(bodyString);
-        final String password1 = srcMap.get("password1") != null ? srcMap.get("password1").toString() : "";
-        final String password2 = srcMap.get("password2") != null ? srcMap.get("password2").toString() : "";
+        final Gson gson = new Gson();
+        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        }.getType());
+        final String password1 = srcMap.get("password1") != null ? srcMap.get("password1") : "";
+        final String password2 = srcMap.get("password2") != null ? srcMap.get("password2") : "";
 
         final Map<String, PasswordCheckInfo> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
         final boolean foundInCache = cache.containsKey(password1);
@@ -247,7 +249,8 @@ public class ChangePasswordServlet extends TopServlet {
         outputMap.put("message", userMessage);
         outputMap.put("passed", String.valueOf(checkInfo.isPassed()));
 
-        return JSONObject.toJSONString(outputMap);
+        final Gson gson = new Gson();
+        return gson.toJson(outputMap);
     }
 
     /**
@@ -273,7 +276,8 @@ public class ChangePasswordServlet extends TopServlet {
         outputMap.put("password", randomPassword);
 
         resp.setContentType("application/json;charset=utf-8");
-        resp.getOutputStream().print(JSONObject.toJSONString(outputMap));
+        final Gson gson = new Gson();
+        resp.getOutputStream().print(gson.toJson(outputMap));
 
         {
             final StringBuilder sb = new StringBuilder();

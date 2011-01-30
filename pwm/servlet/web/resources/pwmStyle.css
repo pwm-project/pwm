@@ -247,3 +247,6 @@ div.progress-container > div {
     border-radius: 3px
 }
 
+#waitDialog_underlay {
+    background-color: #444444;
+}

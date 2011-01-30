@@ -127,6 +127,8 @@ public interface PwmDB {
         SEEDLIST_WORDS,
         PWM_STATS,
         EVENTLOG_EVENTS,
+        EMAIL_QUEUE,
+        TEMP // cleared on each initializtaion of the pwmDB.
     }
 
     interface PwmDBEventListener {

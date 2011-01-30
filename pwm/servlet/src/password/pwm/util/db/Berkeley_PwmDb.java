@@ -90,8 +90,10 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(IS_TRANSACTIONAL);
 
-        for (final String key : initProps.keySet()) {
-            environmentConfig.setConfigParam(key, initProps.get(key));
+        if (initProps != null) {
+            for (final String key : initProps.keySet()) {
+                environmentConfig.setConfigParam(key, initProps.get(key));
+            }
         }
 
         LOGGER.trace("opening environment with config: " + environmentConfig.toString());

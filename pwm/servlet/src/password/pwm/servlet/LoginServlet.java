@@ -29,6 +29,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -55,8 +56,7 @@ public class
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
@@ -114,7 +114,7 @@ public class
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
             }
         } else {
-            forwardToJSP(req,resp);
+            forwardToJSP(req, resp);
         }
     }
 
@@ -122,8 +122,7 @@ public class
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {                                        
+            throws IOException, ServletException {
         final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }

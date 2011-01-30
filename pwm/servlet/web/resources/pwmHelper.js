@@ -49,7 +49,7 @@ function checkForCapsLock(e) {
     }
 }
 
-function handleFormSubmit(buttonID) {
+function handleFormSubmit(buttonID, form) {
     getObject(buttonID).value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Display_PleaseWait'] + "\u00A0\u00A0\u00A0";
     getObject(buttonID).disabled = true;
 
@@ -57,6 +57,12 @@ function handleFormSubmit(buttonID) {
     for (var i = 0; i < formElements.length; i++) {
         formElements[i].readOnly = true;
     }
+
+    showWaitDialog("Please Wait....", "");
+
+    setTimeout(function() {
+        form.submit();
+    }, 100);
 }
 
 function handleFormClear() {
@@ -84,37 +90,6 @@ function setFocus(elementName) {
 }
 
 
-function getAllFormValues() {
-    var allFormsValues = "";
-    for (var j = 0; j < document.forms.length; j++) {
-        for (var i = 0; i < document.forms[j].length; i++) {
-            var current = document.forms[j].elements[i];
-            allFormsValues += i;
-            allFormsValues += current.name;
-            allFormsValues += current.value;
-        }
-    }
-    return allFormsValues;
-}
-
-function createXmlHttpObject() {
-    var xmlhttp = null;
-    try {
-        xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-    } catch (e) {
-        try {
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        } catch (E) {
-            xmlhttp = false;
-        }
-    }
-
-    if (!xmlhttp && typeof XMLHttpRequest != 'undefined') {
-        xmlhttp = new XMLHttpRequest();
-    }
-    return xmlhttp;
-}
-
 function getObject(name) {
     var ns4 = document.layers;
     var w3c = document.getElementById;
@@ -137,20 +112,6 @@ function trimString(sInString) {
     // strip leading
     return sInString.replace(/\s+$/g, "");
     // strip trailing
-}
-
-function closeWindow() {
-    window.close();
-}
-
-function urlDecode(str) {
-    str = str.replace(new RegExp('\\+', 'g'), ' ');
-    return unescape(str);
-}
-function urlEncode(str) {
-    str = escape(str);
-    str = str.replace(new RegExp('\\+', 'g'), '%2B');
-    return str.replace(new RegExp('%20', 'g'), '+');
 }
 
 // this method exists because IE doesn't support simply changing the type of object
@@ -202,7 +163,7 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
                     sync: true,
                     load: function() {
                         PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                        window.location = window.location;
+                        window.location.reload();
                     },
                     error: function(error) {
                         alert('unable to set locale: ' + error);
@@ -216,4 +177,19 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
         var localeDisplayName = localeData[localeKey];
         loopFunction(pMenu, localeKey, localeDisplayName);
     }
+}
+
+function showWaitDialog(title, body) {
+    if (body == null || body.length < 1) {
+        body = '<div style="text-align: center"><img alt="altText" src="' + PWM_STRINGS['url-resources'] + '/wait.gif"/></div>';
+    }
+    dojo.require("dijit.Dialog");
+    var theDialog = new dijit.Dialog({
+        id: 'waitDialog',
+        title: title,
+        style: "width: 300px",
+        content: body,
+        closable: false
+    });
+    theDialog.show();
 }
