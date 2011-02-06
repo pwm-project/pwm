@@ -559,7 +559,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                             if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
                                 errorString.append("missing required value");
                                 errorStrings.add(errorString.toString());
-                            } else {
+                            } else if (value != null) {
                                 final Matcher matcher = loopPattern.matcher(value);
                                 if (value != null && value.length() > 0 && !matcher.matches()) {
                                     errorString.append("incorrect value format for locale '").append(locale).append("': ").append(value);
@@ -636,7 +636,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
 
-    private interface StoredValue {
+    private interface StoredValue extends Serializable {
         String toJsonString();
 
         List<Element> toXmlValues(final String valueElementName);

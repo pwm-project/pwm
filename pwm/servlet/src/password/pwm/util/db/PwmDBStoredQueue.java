@@ -34,7 +34,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * synchronized.  This class actually implements all the {@code Deque} methods, but implements {@code Queue} instead
  * to retain compatability with JDK 1.5.
  */
-public class PwmDBStoredQueue implements Queue<String> {
+public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
+{
 // ------------------------------ FIELDS ------------------------------
 
     private final static PwmLogger LOGGER = PwmLogger.getLogger(PwmDBStoredQueue.class, true);
@@ -43,7 +44,7 @@ public class PwmDBStoredQueue implements Queue<String> {
     private final static String KEY_HEAD_POSITION = "_HEAD_POSITION";
     private final static String KEY_TAIL_POSITION = "_TAIL_POSITION";
     private final static String KEY_VERSION = "_KEY_VERSION";
-    private final static String VALUE_VERSION = "6";
+    private final static String VALUE_VERSION = "7b";
 
     private final InternalQueue internalQueue;
 
@@ -65,7 +66,7 @@ public class PwmDBStoredQueue implements Queue<String> {
             queue = new PwmDBStoredQueue(pwmDB, DB);
             singletonMap.put(DB, queue);
         }
-        return new PwmDBStoredQueue(pwmDB, DB);
+        return queue;
 
     }
 
@@ -547,11 +548,9 @@ public class PwmDBStoredQueue implements Queue<String> {
             headPosition = headPositionStr != null && headPositionStr.length() > 0 ? new Position(headPositionStr) : new Position("0");
             tailPosition = tailPositionStr != null && tailPositionStr.length() > 0 ? new Position(tailPositionStr) : new Position("0");
 
-            if (pwmDB.get(DB, headPosition.toString()) != null) {
-                empty = false;
-            }
+            empty = pwmDB.get(DB, headPosition.toString()) == null;
 
-            LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition);
+            LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
         }
 
         private boolean checkVersion() throws PwmDBException {

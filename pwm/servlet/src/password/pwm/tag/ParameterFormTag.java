@@ -35,7 +35,7 @@ import java.util.Properties;
 
 /**
  * Output form html elements.
- *
+ * <p/>
  * //@todo Could be greatly improved to avoid hardcoding html inside this class.
  *
  * @author Jason D. Rivard
@@ -53,8 +53,7 @@ public class ParameterFormTag extends TagSupport {
             final Map<String,
                     FormConfiguration> parameters,
             final Properties values,
-            final PwmSession pwmSession)
-    {
+            final PwmSession pwmSession) {
         if (parameters == null) {
             return "";
         }
@@ -76,14 +75,13 @@ public class ParameterFormTag extends TagSupport {
             final String value,
             final boolean confirm,
             final PwmSession pwmSession
-    )
-    {
+    ) {
         final StringBuilder sb = new StringBuilder();
 
         {
             sb.append("<h2>");
             if (confirm) {
-                final String confirmPrefix = PwmError.getDisplayString("Field_Confirm_Prefix",pwmSession.getSessionStateBean().getLocale());
+                final String confirmPrefix = PwmError.getDisplayString("Field_Confirm_Prefix", pwmSession.getSessionStateBean().getLocale());
                 sb.append(confirmPrefix);
                 sb.append(" ");
             }
@@ -95,6 +93,8 @@ public class ParameterFormTag extends TagSupport {
                 sb.append("<input");
                 if (param.getType() == FormConfiguration.Type.PASSWORD) {
                     sb.append(" type=\"password\"");
+                } else if (param.getType() == FormConfiguration.Type.EMAIL) {
+                    sb.append(" type=\"email\"");
                 } else {
                     sb.append(" type=\"text\"");
                 }
@@ -117,13 +117,11 @@ public class ParameterFormTag extends TagSupport {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getFormName()
-    {
+    public String getFormName() {
         return formName;
     }
 
-    public void setFormName(final String formName)
-    {
+    public void setFormName(final String formName) {
         this.formName = formName;
     }
 
@@ -133,8 +131,7 @@ public class ParameterFormTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
-    {
+            throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -151,8 +148,7 @@ public class ParameterFormTag extends TagSupport {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private Map<String, FormConfiguration> getParameterMap(final PwmSession pwmSession)
-    {
+    private Map<String, FormConfiguration> getParameterMap(final PwmSession pwmSession) {
         if (formName.equalsIgnoreCase("newuser")) {
             return pwmSession.getNewUserServletBean().getCreationParams();
         } else if (formName.equalsIgnoreCase("activateuser")) {

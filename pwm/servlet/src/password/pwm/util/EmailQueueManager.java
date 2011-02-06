@@ -36,7 +36,6 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
-import password.pwm.util.db.PwmDBStoredQueue;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -47,10 +46,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard
@@ -62,12 +60,12 @@ public class EmailQueueManager implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
-    private final PwmDBStoredQueue mailSendQueue;
-    private long lastErrorTime;
+    private final java.util.Deque<String> mailSendQueue;
     private final ContextManager theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
     private boolean threadActive;
+    private long maxErrorWaitTime = 5 * 60 * 1000;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -75,7 +73,8 @@ public class EmailQueueManager implements PwmService {
             throws PwmDBException {
         this.theManager = theManager;
         final PwmDB pwmDB = theManager.getPwmDB();
-        mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
+        //mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
+        mailSendQueue = new ArrayDeque<String>();
 
         final EmailSendThread emailSendThread = new EmailSendThread();
         emailSendThread.setDaemon(true);
@@ -134,7 +133,7 @@ public class EmailQueueManager implements PwmService {
         }
 
         final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
-        /*
+
         if (serverAddress == null || serverAddress.length() < 1) {
             LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
             return;
@@ -159,7 +158,7 @@ public class EmailQueueManager implements PwmService {
             LOGGER.error("discarding email event (no body): " + emailItem.toString());
             return;
         }
-        */
+
 
         final EmailEvent event = new EmailEvent(emailItem, System.currentTimeMillis());
         if (mailSendQueue.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
@@ -174,27 +173,35 @@ public class EmailQueueManager implements PwmService {
         }
     }
 
-    public void run() {
-        this.processQueue();
-    }
-
-    private void processQueue() {
+    private boolean processQueue() {
         while (mailSendQueue.peekFirst() != null) {
-            try {
-                final String jsonEvent = mailSendQueue.poll();
-                if (jsonEvent != null) {
-                    final EmailEvent event = (new Gson()).fromJson(jsonEvent, EmailEvent.class);
+            final String jsonEvent = mailSendQueue.peekFirst();
+            if (jsonEvent != null) {
+                final EmailEvent event = (new Gson()).fromJson(jsonEvent, EmailEvent.class);
 
-                    if (event != null) {
-                        sendEmail(event.getEmailItem());
+                if ((System.currentTimeMillis() - maxErrorWaitTime) > event.getQueueInsertTimestamp()) {
+                    LOGGER.debug("discarding email event due to maximum retry age: " + event.getEmailItem().toString());
+                    mailSendQueue.pollFirst();
+                } else {
+                    final boolean success = sendEmail(event.getEmailItem());
+                    if (!success) {
+                        return false;
                     }
+                    mailSendQueue.pollFirst();
                 }
-            } catch (Exception e) {
-                LOGGER.error("unexpected error reading email send queue: " + e.getMessage());
             }
         }
+        return true;
     }
 
+
+    /**
+     * Attempt to send an email based on the emailItemBean.  If the send successfully sends OR fails, it will return true, however
+     * if the send fails due to an IO error or some other type of re-tryable error, this method returns false.
+     *
+     * @param emailItemBean
+     * @return
+     */
     private boolean sendEmail(final EmailItemBean emailItemBean) {
         final StatisticsManager statsMgr = theManager.getStatisticsManager();
 
@@ -209,15 +216,14 @@ public class EmailQueueManager implements PwmService {
             return true;
         } catch (MessagingException e) {
             statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
-            this.lastErrorTime = System.currentTimeMillis();
 
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
-                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + " will retry in " + ERROR_RETRY_WAIT_TIME + " seconds.");
+                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + " will retry in " + ERROR_RETRY_WAIT_TIME + " seconds.");
                 return false;
             } else {
-                LOGGER.warn("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding");
+                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding");
                 return true;
             }
         }
@@ -268,8 +274,12 @@ public class EmailQueueManager implements PwmService {
 
     private static boolean sendIsRetryable(final MessagingException e) {
         if (e != null) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                LOGGER.trace("email failure cause is due to an IOException: " + e.getMessage());
+                return true;
+            }
         }
-
         return false;
     }
 
@@ -278,10 +288,27 @@ public class EmailQueueManager implements PwmService {
     private class EmailSendThread extends Thread {
         public void run() {
             LOGGER.trace("starting up email queue processing thread");
+
+            if (mailSendQueue.size() > 0) {
+                LOGGER.debug("email queue size: " + mailSendQueue.size());
+            }
+
+
             try {
+                final TimeDuration errorSleepTime = new TimeDuration(60 * 1000);
+                long lastErrorTime;
                 while (status == PwmService.STATUS.OPEN) {
-                    processQueue();
+                    final boolean success = processQueue();
+                    if (success) {
+                        lastErrorTime = 0;
+                    } else {
+                        LOGGER.error("unable to process email queue successfully; sleeping for " + errorSleepTime.asCompactString());
+                        lastErrorTime = System.currentTimeMillis();
+                    }
                     Helper.pause(1000);
+                    while (lastErrorTime != 0 && status == PwmService.STATUS.OPEN && (System.currentTimeMillis() - lastErrorTime) < errorSleepTime.getTotalMilliseconds()) {
+                        Helper.pause(1000);
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
