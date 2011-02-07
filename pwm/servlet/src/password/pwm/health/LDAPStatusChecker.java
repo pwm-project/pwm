@@ -127,9 +127,9 @@ public class LDAPStatusChecker implements HealthChecker {
                     final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, contextManager);
                     theUser.setPassword(newPassword);
                     userPassword = newPassword;
-                } catch (ChaiException e) {
-                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
                 } catch (ChaiPasswordPolicyException e) {
+                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                } catch (ChaiException e) {
                     return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
                 }
             }

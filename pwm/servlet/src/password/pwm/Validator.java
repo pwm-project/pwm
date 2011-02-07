@@ -24,11 +24,11 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
@@ -134,8 +134,8 @@ public class Validator {
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
-            final ChaiPasswordPolicyException.PASSWORD_ERROR passwordError = e.getPasswordError();
-            final PwmError pwmError = PwmError.forChaiPasswordError(passwordError.getErrorKey());
+            final ChaiError passwordError = e.getErrorCode();
+            final PwmError pwmError = PwmError.forChaiError(passwordError);
             final ErrorInformation info = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
             LOGGER.trace(pwmSession, "ChaiPasswordPolicyException was thrown while validating password: " + e.toString());
             errorResults.add(info);
@@ -262,40 +262,33 @@ public class Validator {
                 }
             }
 
-            final String sanatizedValue = sanatizeInputValue(theManager.getConfig(), theString, maxLength);
+            theString = theString.trim();
 
-            if (sanatizedValue.length() > 0) {
-                resultSet.add(sanatizedValue);
+            // strip off any length beyond the specified maxLength.
+            if (theString.length() > maxLength) {
+                theString = theString.substring(0, maxLength);
+            }
+
+            // strip off any disallowed chars.
+            if (theManager != null && theManager.getConfig() != null) {
+                final List<String> disallowedInputs = theManager.getConfig().readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+                for (final String testString : disallowedInputs) {
+                    final String newString = theString.replaceAll(testString, "");
+                    if (!newString.equals(theString)) {
+                        LOGGER.warn("removing potentially malicious string values from input field " + value + "='" + theString + "' newValue=" + newString + "' pattern='" + testString + "'");
+
+                        theString = newString;
+                    }
+                }
+            }
+
+
+            if (theString.length() > 0) {
+                resultSet.add(theString);
             }
         }
 
         return resultSet;
-    }
-
-    public static String sanatizeInputValue(final Configuration config, final String input, final int maxLength) {
-
-        String theString = input;
-
-        theString = theString.trim();
-
-        // strip off any length beyond the specified maxLength.
-        if (theString.length() > maxLength) {
-            theString = theString.substring(0, maxLength);
-        }
-
-        // strip off any disallowed chars.
-        if (config != null) {
-            final List<String> disallowedInputs = config.readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
-            for (final String testString : disallowedInputs) {
-                final String newString = theString.replaceAll(testString, "");
-                if (!newString.equals(theString)) {
-                    LOGGER.warn("removing potentially malicious string values from input, converting '" + input + "' newValue=" + newString + "' pattern='" + testString + "'");
-                    theString = newString;
-                }
-            }
-        }
-
-        return theString;
     }
 
     /**
@@ -340,7 +333,7 @@ public class Validator {
             final ContextManager contextManager
     ) {
         final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
-        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
+        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmSession.getConfig(), pwmSession, policy, password);
         internalResults.addAll(externalResults);
         return internalResults;
     }
@@ -666,15 +659,39 @@ public class Validator {
         return false;
     }
 
+
+    private static boolean checkContainsTokens(final String baseValue, final String checkPattern) {
+        if (baseValue == null || baseValue.length() == 0)
+            return false;
+
+        if (checkPattern == null || checkPattern.length() == 0)
+            return false;
+
+        final String baseValueLower = baseValue.toLowerCase();
+        final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-–—_ £\\t]+");
+        if (tokens != null && tokens.length > 0) {
+            for (final String token : tokens) {
+                if (token.length() > 2) {
+                    if (baseValueLower.contains(token))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Check a supplied password for it's validity according to AD compexity rules.
      * - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
      * - Be at least six characters in length
-     * - Contain characters from three of the following four categories:
+     * - Contain characters from three of the following five categories:
      * - English uppercase characters (A through Z)
      * - English lowercase characters (a through z)
      * - Base 10 digits (0 through 9)
      * - Non-alphabetic characters (for example, !, $, #, %)
+     * - Any character categorized as an alphabetic but is not uppercase or lowercase.
+     * <p/>
+     * See this article: http://technet.microsoft.com/en-us/library/cc786468%28WS.10%29.aspx
      *
      * @param pwmSession  current pwmSession (used for logging)
      * @param password    password to test
@@ -687,23 +704,24 @@ public class Validator {
             final String password,
             final PasswordCharCounter charCounter
     ) {
-        List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
-        if (password.length() < 6) {
-            LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password too short (6 char minimum)");
-            errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_SHORT));
-        }
+        final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
+        final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
 
-        if (pwmSession != null && pwmSession.getUserInfoBean() != null) {
-            final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
-            if (userAttrs != null) {
-                if (checkContains(password, userAttrs.getProperty("cn"), 2)) {
+        if (userAttrs != null) {
+            final String samAccountName = userAttrs.getProperty("sAMAccountName");
+            if (samAccountName != null
+                    && samAccountName.length() > 2
+                    && samAccountName.length() >= password.length()) {
+                if (password.toLowerCase().contains(samAccountName.toLowerCase())) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    LOGGER.trace("Password violation due to ADComplexity check: Password contains sAMAccountName");
                 }
-                if (checkContains(password, userAttrs.getProperty("displayName"), 2)) {
+            }
+            final String displayName = userAttrs.getProperty("displayName");
+            if (displayName != null && displayName.length() > 2) {
+                if (checkContainsTokens(password, displayName)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
-                }
-                if (checkContains(password, userAttrs.getProperty("fullName"), 2)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    LOGGER.trace("Password violation due to ADComplexity check: Tokens from displayName used in password");
                 }
             }
         }
@@ -721,6 +739,9 @@ public class Validator {
         if (charCounter.getSpecialChars() > 0) {
             complexityPoints++;
         }
+        if (charCounter.getOtherLetter() > 0) {
+            complexityPoints++;
+        }
 
         if (complexityPoints < 3) {
             LOGGER.trace(pwmSession, "Password violation due to ADComplexity check: Password not complex enough");
@@ -735,6 +756,9 @@ public class Validator {
             }
             if (charCounter.getSpecialChars() < 1) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+            }
+            if (charCounter.getOtherLetter() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION));
             }
         }
 

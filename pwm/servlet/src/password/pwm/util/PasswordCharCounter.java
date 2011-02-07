@@ -26,14 +26,12 @@ public class PasswordCharCounter {
     private final CharSequence password;
     private final int passwordLength;
 
-    public PasswordCharCounter(final CharSequence password)
-    {
+    public PasswordCharCounter(final CharSequence password) {
         this.password = password;
         this.passwordLength = password.length();
     }
 
-    public int getNumericChars()
-    {
+    public int getNumericChars() {
         int numberOfNumericChars = 0;
         for (int i = 0; i < passwordLength; i++)
             if (Character.isDigit(password.charAt(i)))
@@ -42,8 +40,7 @@ public class PasswordCharCounter {
         return numberOfNumericChars;
     }
 
-    public int getUpperChars()
-    {
+    public int getUpperChars() {
         int numberOfUpperChars = 0;
         for (int i = 0; i < passwordLength; i++)
             if (Character.isUpperCase(password.charAt(i)))
@@ -52,8 +49,7 @@ public class PasswordCharCounter {
         return numberOfUpperChars;
     }
 
-    public int getAlphaChars()
-    {
+    public int getAlphaChars() {
         int numberOfAlphaChars = 0;
         for (int i = 0; i < passwordLength; i++)
             if (Character.isLetter(password.charAt(i)))
@@ -62,8 +58,7 @@ public class PasswordCharCounter {
         return numberOfAlphaChars;
     }
 
-    public int getNonAlphaChars()
-    {
+    public int getNonAlphaChars() {
         int numberOfNonAlphaChars = 0;
         for (int i = 0; i < passwordLength; i++)
             if (!Character.isLetter(password.charAt(i)))
@@ -72,8 +67,7 @@ public class PasswordCharCounter {
         return numberOfNonAlphaChars;
     }
 
-    public int getLowerChars()
-    {
+    public int getLowerChars() {
         int numberOfLowerChars = 0;
         for (int i = 0; i < passwordLength; i++)
             if (Character.isLowerCase(password.charAt(i)))
@@ -82,8 +76,7 @@ public class PasswordCharCounter {
         return numberOfLowerChars;
     }
 
-    public int getSpecialChars()
-    {
+    public int getSpecialChars() {
         int numberOfSpecial = 0;
         for (int i = 0; i < passwordLength; i++)
             if (!Character.isLetterOrDigit(password.charAt(i)))
@@ -92,8 +85,7 @@ public class PasswordCharCounter {
         return numberOfSpecial;
     }
 
-    public int getRepeatedChars()
-    {
+    public int getRepeatedChars() {
         int numberOfRepeats = 0;
         final CharSequence passwordL = password.toString().toLowerCase();
 
@@ -110,8 +102,7 @@ public class PasswordCharCounter {
         return numberOfRepeats;
     }
 
-    public int getSequentialRepeatedChars()
-    {
+    public int getSequentialRepeatedChars() {
         int numberOfRepeats = 0;
         final CharSequence passwordL = password.toString().toLowerCase();
 
@@ -130,8 +121,7 @@ public class PasswordCharCounter {
         return numberOfRepeats;
     }
 
-    public int getSequentialNumericChars()
-    {
+    public int getSequentialNumericChars() {
         int numberOfRepeats = 0;
 
         for (int i = 0; i < passwordLength - 1; i++) {
@@ -147,8 +137,7 @@ public class PasswordCharCounter {
         return numberOfRepeats;
     }
 
-    public int getSequentialAlphaChars()
-    {
+    public int getSequentialAlphaChars() {
         int numberOfRepeats = 0;
 
         for (int i = 0; i < passwordLength - 1; i++) {
@@ -164,8 +153,7 @@ public class PasswordCharCounter {
         return numberOfRepeats;
     }
 
-    public int getUniqueChars()
-    {
+    public int getUniqueChars() {
         final StringBuilder sb = new StringBuilder();
         final String passwordL = password.toString().toLowerCase();
         for (int i = 0; i < passwordLength; i++) {
@@ -176,23 +164,28 @@ public class PasswordCharCounter {
         return sb.length();
     }
 
-    public boolean isFirstNumeric()
-    {
+    public int getOtherLetter() {
+        int numberOfOtherLetter = 0;
+        for (int i = 0, n = passwordLength; i < n; i++) {
+            if (Character.getType(password.charAt(i)) == Character.OTHER_LETTER)
+                numberOfOtherLetter++;
+        }
+        return numberOfOtherLetter;
+    }
+
+    public boolean isFirstNumeric() {
         return password.length() > 0 && Character.isDigit(password.charAt(0));
     }
 
-    public boolean isLastNumeric()
-    {
+    public boolean isLastNumeric() {
         return password.length() > 0 && Character.isDigit(password.charAt(password.length() - 1));
     }
 
-    public boolean isFirstSpecial()
-    {
+    public boolean isFirstSpecial() {
         return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(0));
     }
 
-    public boolean isLastSpecial()
-    {
+    public boolean isLastSpecial() {
         return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(password.length() - 1));
     }
 }

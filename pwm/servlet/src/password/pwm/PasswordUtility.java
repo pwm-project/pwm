@@ -125,17 +125,17 @@ public class PasswordUtility {
 
         try {
             theUser.changePassword(oldPassword, newPassword); // this method handles AD, edir or nmas password changes.
-        } catch (ChaiOperationException e) {
-            final PwmError returnMsg = PwmError.forChaiPasswordError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiPasswordError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
-            ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
-            return false;
         } catch (ChaiPasswordPolicyException e) {
-            final PwmError pwmError = PwmError.forChaiPasswordError(e.getPasswordError().getErrorKey());
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr());
+            return false;
+        } catch (ChaiOperationException e) {
+            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            ssBean.setSessionError(error);
+            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
             return false;
         }
 

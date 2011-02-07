@@ -27,7 +27,7 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
-import com.novell.ldapchai.exception.ChaiErrorCode;
+import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -247,7 +247,7 @@ public class SetupResponsesServlet extends TopServlet {
                 LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
                 successes++;
             } catch (ChaiOperationException e) {
-                if (e.getErrorCode() == ChaiErrorCode.NO_ACCESS) {
+                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
                     LOGGER.warn(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
                     LOGGER.warn(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
                 } else {
@@ -472,7 +472,7 @@ public class SetupResponsesServlet extends TopServlet {
             final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
             if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
-                    throw new ChaiValidationException(ChaiValidationException.VALIDATION_ERROR.TOO_FEW_RANDOM_RESPONSES);
+                    throw new ChaiValidationException("too few random responses", ChaiError.CR_TOO_FEW_RANDOM_RESPONSES);
                 }
             }
 
@@ -502,25 +502,25 @@ public class SetupResponsesServlet extends TopServlet {
     private static ErrorInformation convertChaiValidationException(
             final ChaiValidationException e
     ) {
-        switch (e.getValidationError()) {
-            case TOO_FEW_CHALLENGES:
-                return new ErrorInformation(PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, e.getValidationField());
+        switch (e.getErrorCode()) {
+            case CR_TOO_FEW_CHALLENGES:
+                return new ErrorInformation(PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, e.getFieldName());
 
-            case TOO_FEW_RANDOM_RESPONSES:
-                return new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, e.getValidationField());
+            case CR_TOO_FEW_RANDOM_RESPONSES:
+                return new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, e.getFieldName());
 
-            case MISSING_REQUIRED_CHALLENGE_TEXT:
-                return new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, e.getValidationField());
+            case CR_MISSING_REQUIRED_CHALLENGE_TEXT:
+                return new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, e.getFieldName());
 
-            case RESPONSE_TOO_LONG:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_LONG, null, e.getValidationField());
+            case CR_RESPONSE_TOO_LONG:
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_LONG, null, e.getFieldName());
 
-            case RESPONSE_TOO_SHORT:
-            case MISSING_REQUIRED_RESPONSE_TEXT:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_SHORT, null, e.getValidationField());
+            case CR_RESPONSE_TOO_SHORT:
+            case CR_MISSING_REQUIRED_RESPONSE_TEXT:
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_SHORT, null, e.getFieldName());
 
-            case DUPLICATE_RESPONSES:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, e.getValidationField());
+            case CR_DUPLICATE_RESPONSES:
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, e.getFieldName());
 
             default:
                 return new ErrorInformation(PwmError.ERROR_UNKNOWN);

@@ -230,14 +230,14 @@ public class UserStatusHelper {
             final Set<String> interestingUserAttributes = new HashSet<String>(pwmSession.getConfig().getAllUsedLdapAttributes());
             interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-            interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
             interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
-                interestingUserAttributes.add("cn");
+                interestingUserAttributes.add("sAMAccountName");
                 interestingUserAttributes.add("displayName");
                 interestingUserAttributes.add("fullname");
+                interestingUserAttributes.add("cn");
             }
-            final Properties allUserAttrs = theUser.readStringAttributes(null);
+            final Properties allUserAttrs = theUser.readStringAttributes(interestingUserAttributes);
             uiBean.setAllUserAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);

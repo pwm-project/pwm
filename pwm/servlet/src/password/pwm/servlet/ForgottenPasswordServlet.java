@@ -278,7 +278,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.debug(pwmSession, "incorrect response answer during check for " + theUser.getEntryDN());
         } catch (ChaiValidationException e) {
             LOGGER.debug(pwmSession, "chai validation error checking user responses: " + e.getMessage());
-            ssBean.setSessionError(new ErrorInformation(PwmError.forChaiPasswordError(e.getValidationError().getErrorKey())));
+            ssBean.setSessionError(new ErrorInformation(PwmError.forChaiError(e.getErrorCode())));
         } catch (ValidationException e) {
             LOGGER.debug(pwmSession, "validation error checking user responses: " + e.getMessage());
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_WRONGANSWER));

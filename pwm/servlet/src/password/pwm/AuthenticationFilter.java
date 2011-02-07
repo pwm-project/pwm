@@ -432,11 +432,11 @@ public class AuthenticationFilter implements Filter {
 
                     // if old password is not known, then mark the UIB accordingly.
                     pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
-                } catch (ChaiOperationException e) {
+                } catch (ChaiPasswordPolicyException e) {
                     final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);
                     throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
-                } catch (ChaiPasswordPolicyException e) {
+                } catch (ChaiOperationException e) {
                     final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);
                     throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
