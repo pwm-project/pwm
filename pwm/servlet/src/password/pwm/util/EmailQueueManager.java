@@ -36,6 +36,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
+import password.pwm.util.db.PwmDBStoredQueue;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -48,7 +49,9 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Jason D. Rivard
@@ -60,27 +63,30 @@ public class EmailQueueManager implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
-    private final java.util.Deque<String> mailSendQueue;
+    private final PwmDBStoredQueue mailSendQueue;
     private final ContextManager theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
     private boolean threadActive;
-    private long maxErrorWaitTime = 5 * 60 * 1000;
+    private long maxErrorWaitTimeMS = 5 * 60 * 1000;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public EmailQueueManager(final ContextManager theManager)
             throws PwmDBException {
         this.theManager = theManager;
-        final PwmDB pwmDB = theManager.getPwmDB();
-        //mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
-        mailSendQueue = new ArrayDeque<String>();
+        this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsInt(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
 
-        final EmailSendThread emailSendThread = new EmailSendThread();
-        emailSendThread.setDaemon(true);
-        emailSendThread.setName("pwm-EmailQueueManager");
-        emailSendThread.start();
-        threadActive = true;
+        final PwmDB pwmDB = theManager.getPwmDB();
+        mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
+
+        {
+            final EmailSendThread emailSendThread = new EmailSendThread();
+            emailSendThread.setDaemon(true);
+            emailSendThread.setName("pwm-EmailQueueManager");
+            emailSendThread.start();
+            threadActive = true;
+        }
 
         status = PwmService.STATUS.OPEN;
     }
@@ -102,7 +108,7 @@ public class EmailQueueManager implements PwmService {
 
         if (threadActive) {
             final long startTime = System.currentTimeMillis();
-            LOGGER.info("waiting up to 30 seconds for email queue to empty....");
+            LOGGER.info("waiting up to 30 seconds for email thread to close....");
 
             while (threadActive && (System.currentTimeMillis() - startTime) < 30 * 1000) {
                 Helper.pause(100);
@@ -179,7 +185,7 @@ public class EmailQueueManager implements PwmService {
             if (jsonEvent != null) {
                 final EmailEvent event = (new Gson()).fromJson(jsonEvent, EmailEvent.class);
 
-                if ((System.currentTimeMillis() - maxErrorWaitTime) > event.getQueueInsertTimestamp()) {
+                if ((System.currentTimeMillis() - maxErrorWaitTimeMS) > event.getQueueInsertTimestamp()) {
                     LOGGER.debug("discarding email event due to maximum retry age: " + event.getEmailItem().toString());
                     mailSendQueue.pollFirst();
                 } else {
@@ -292,7 +298,6 @@ public class EmailQueueManager implements PwmService {
             if (mailSendQueue.size() > 0) {
                 LOGGER.debug("email queue size: " + mailSendQueue.size());
             }
-
 
             try {
                 final TimeDuration errorSleepTime = new TimeDuration(60 * 1000);

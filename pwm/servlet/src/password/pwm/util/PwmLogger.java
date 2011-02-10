@@ -80,12 +80,12 @@ public class PwmLogger {
             bulkAddEvents = 0;
         }
 
-
         try {
             PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge, bulkAddEvents);
         } catch (PwmDBException e) {
             //nothing to do;
         }
+
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
         PwmLogger.contextManager = contextManager;
         return PwmLogger.pwmDBLogger;

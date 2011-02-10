@@ -60,6 +60,10 @@ public class SessionFilter implements Filter {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) {
+        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
+            return "";
+        }
+
         final String userIPAddress = readUserIPAddress(req, pwmSession);
         try {
             return InetAddress.getByName(userIPAddress).getCanonicalHostName();

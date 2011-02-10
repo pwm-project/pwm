@@ -44,7 +44,7 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
     private final static String KEY_HEAD_POSITION = "_HEAD_POSITION";
     private final static String KEY_TAIL_POSITION = "_TAIL_POSITION";
     private final static String KEY_VERSION = "_KEY_VERSION";
-    private final static String VALUE_VERSION = "7b";
+    private final static String VALUE_VERSION = "7";
 
     private final InternalQueue internalQueue;
 
@@ -551,6 +551,8 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             empty = pwmDB.get(DB, headPosition.toString()) == null;
 
             LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
+
+            //LOGGER.trace("debug INIT\n" + debugOutput());
         }
 
         private boolean checkVersion() throws PwmDBException {
@@ -575,6 +577,8 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
             empty = true;
             modCount++;
+
+            //LOGGER.trace("debug CLEAR\n" + debugOutput());
         }
 
         public int getModCount() {
@@ -605,6 +609,8 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             pwmDB.put(DB, KEY_TAIL_POSITION, nextHead.toString());
             headPosition = nextHead;
             modCount++;
+
+            //LOGGER.trace("debug removeFIRST\n" + debugOutput());
         }
 
         public void removeLast(final int removalCount) throws PwmDBException {
@@ -627,6 +633,7 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             pwmDB.put(DB, KEY_TAIL_POSITION, nextTail.toString());
             tailPosition = nextTail;
             modCount++;
+            //LOGGER.trace("debug removeLAST\n" + debugOutput());
         }
 
         public void addFirst(final Collection<String> values)
@@ -658,6 +665,8 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             headPosition = nextHead;
             modCount++;
             empty = false;
+
+            //LOGGER.trace("debug addFirst\n" + debugOutput());
         }
 
         public void addLast(final Collection<String> values) throws PwmDBException {
@@ -684,10 +693,12 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             }
 
             pwmDB.putAll(DB, keyValueMap);
-            pwmDB.put(DB, KEY_HEAD_POSITION, String.valueOf(tailPosition));
+            pwmDB.put(DB, KEY_TAIL_POSITION, String.valueOf(nextTail));
             tailPosition = nextTail;
             modCount++;
             empty = false;
+
+            //LOGGER.trace("debug addLast\n" + debugOutput());
         }
 
         public List<String> getFirst(int getCount)
@@ -731,5 +742,25 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
             return returnList;
         }
+
+        public String debugOutput() {
+            final StringBuilder sb = new StringBuilder();
+            try {
+                sb.append("tailPosition=").append(tailPosition).append(", headPosition=").append(headPosition).append(", modCount=").append(modCount).append(", db=").append(DB);
+                sb.append(", size=").append(size());
+
+                Position pos = new Position("ZZZZZS");
+                for (int i = 0; i < 20; i++) {
+                    sb.append("\n").append(pos.toString()).append("=").append(pwmDB.get(DB, pos.toString()));
+                    pos = pos.next();
+                }
+            } catch (PwmDBException e) {
+                e.printStackTrace();
+            }
+
+            return sb.toString();
+        }
     }
+
+
 }

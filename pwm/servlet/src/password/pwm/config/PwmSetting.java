@@ -113,21 +113,23 @@ public enum PwmSetting {
 
     // email settings
     EMAIL_SERVER_ADDRESS(
-            "email.smtp.address", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.smtp.address", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true, Level.ADVANCED),
+    EMAIL_MAX_QUEUE_AGE(
+            "email.queueMaxAge", Syntax.NUMERIC, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_ADMIN_ALERT_TO(
             "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ADMIN_ALERT_FROM(
-            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_FROM(
-            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_SUBJECT(
-            "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_BODY(
-            "email.changePassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.changePassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_BODY_HMTL(
-            "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_SUBJECT(
             "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_FROM(
@@ -397,6 +399,8 @@ public enum PwmSetting {
             "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     FORCE_BASIC_AUTH(
             "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+    REVERSE_DNS_ENABLE(
+            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
     EXTERNAL_CHANGE_METHODS(
             "externalChangeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     EXTERNAL_JUDGE_METHODS(
