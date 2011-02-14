@@ -10,15 +10,19 @@ v1.5.3
 ---
 + Added locale selector menu to footer (issue #31)
 + Changed forgotten password sequence so email token is after response questions (issue #26)
++ Added option to disable reverse dns resolution (in advanced) (issue #35)
 
 * Added menu title for main index page (issue #30)
 * Added i18n and Dutch localizations for index page (issue #27)
 * Updated Dutch localizations (issue #32)
+* Improved AD complexity password checking (issue #34)
 
 - Fixed broken login contexts option on activation page (issue #26)
 - Fixed issue with cookieless (URL) sessions not working since v1.5.2
 - Fixed issue wih CommandServlet?processAction=checkExpire not working
 - Improved ConfigManager UI performance and layout
+
+! Added url escapig to user input reflected html form values to prevent certain types of XSS attacks
 
 
 v1.5.2 (October 22, 2010) build 996

@@ -22,6 +22,7 @@
 
 package password.pwm.servlet;
 
+import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
@@ -30,14 +31,14 @@ import password.pwm.config.*;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Processes a variety of different commands sent in an HTTP Request, including logoff.
@@ -75,7 +76,7 @@ public class CommandServlet extends TopServlet {
         } else if (action.equalsIgnoreCase("refreshHealthCheck")) {
             processRefreshHealthCheck(req);
         } else if (action.equalsIgnoreCase("getHealthCheckData")) {
-            processGetHealthCheckData(req);
+            processGetHealthCheckData(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             Helper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -123,11 +124,21 @@ public class CommandServlet extends TopServlet {
     }
 
     private static void processGetHealthCheckData(
-            final HttpServletRequest req
+            final HttpServletRequest req, final HttpServletResponse resp
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        if (!preCheckUser(req, resp)) {
+            return;
+        }
 
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final List<HealthRecord> healthRecords = pwmSession.getContextManager().getHealthMonitor().getHealthRecords();
+
+        if (healthRecords != null) {
+            resp.setContentType("application/json;charset=utf-8");
+            final Gson gson = new Gson();
+            resp.getOutputStream().print(gson.toJson(healthRecords));
+        }
     }
 
     private static void processCheckResponses(

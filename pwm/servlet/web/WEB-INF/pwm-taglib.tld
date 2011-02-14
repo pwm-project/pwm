@@ -140,6 +140,7 @@
         <attribute>
             <name>displayIfMissing</name>
             <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
         </attribute>
     </tag>
     <tag>

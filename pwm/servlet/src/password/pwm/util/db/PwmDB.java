@@ -43,7 +43,7 @@ public interface PwmDB {
 // -------------------------- OTHER METHODS --------------------------
 
     public static final int MAX_KEY_LENGTH = 128;
-    public static final int MAX_VALUE_LENGTH = 1024 * 10;
+    public static final int MAX_VALUE_LENGTH = 1024 * 100;
 
     public static enum Status {
         NEW, OPEN, CLOSED

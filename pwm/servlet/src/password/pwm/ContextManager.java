@@ -194,6 +194,13 @@ public class ContextManager implements Serializable {
         this.lastLdapFailure = new Date();
     }
 
+    public PwmService getPwmService(final PwmService.SERVICE service) {
+        if (service == PwmService.SERVICE.EmailQueueManager) {
+            return emailQueue;
+        }
+        return null;
+    }
+
     // -------------------------- OTHER METHODS --------------------------
 
     public Configuration getConfig() {

@@ -175,10 +175,11 @@
     <br class="clear"/>
 </div>
 <script type="text/javascript">
-    PWM_STRINGS['Button_Hide_Responses'] = '<pwm:Display key="Button_Hide_Responses"/>';
-    PWM_STRINGS['Button_Show_Responses'] = '<pwm:Display key="Button_Show_Responses"/>';
-    PWM_STRINGS['Display_CheckingResponses'] = '<pwm:Display key="Display_CheckingResponses"/>';
-    PWM_STRINGS['Display_CommunicationError'] = '<pwm:Display key="Display_CommunicationError"/>';
+    PWM_STRINGS['Button_Hide_Responses'] = "<pwm:Display key="Button_Hide_Responses" escapeHtml="true"/>";
+    PWM_STRINGS['Button_Show_Responses'] = "<pwm:Display key="Button_Show_Responses" escapeHtml="true"/>";
+    PWM_STRINGS['Display_CheckingResponses'] = "<pwm:Display key="Display_CheckingResponses" escapeHtml="true"/>";
+    PWM_STRINGS['Display_CommunicationError'] = ""
+    <pwm:Display key="Display_CommunicationError" escapeHtml="true"/>";
     PWM_STRINGS['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
 </script>
 <%@ include file="footer.jsp" %>

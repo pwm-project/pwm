@@ -35,11 +35,15 @@ public interface PwmService {
         CLOSED
     }
 
+    enum SERVICE {
+        EmailQueueManager
+    }
+
     void init(ContextManager contextManager) throws PwmException;
 
     STATUS status();
 
     void close();
 
-    List<HealthRecord> doHealthCheck(ContextManager contextManager);
+    List<HealthRecord> healthCheck(ContextManager contextManager);
 }

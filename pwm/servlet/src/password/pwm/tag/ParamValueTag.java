@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
 
@@ -39,8 +40,7 @@ public class ParamValueTag extends TagSupport {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public void setName(final String name)
-    {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -50,14 +50,14 @@ public class ParamValueTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
-    {
+            throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
             final String paramValue = ssBean.getLastParameterValues().getProperty(name);
             if (paramValue != null && paramValue.length() > 0) {
-                pageContext.getOut().write(paramValue);
+                final String escapedValue = StringEscapeUtils.escapeHtml(paramValue);
+                pageContext.getOut().write(escapedValue);
             }
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

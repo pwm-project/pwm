@@ -361,7 +361,7 @@ public class PwmDBAdaptor implements PwmDB {
             }
 
             if (key.length() > PwmDB.MAX_KEY_LENGTH) {
-                throw new IllegalArgumentException("key length cannot be greater than " + PwmDB.MAX_KEY_LENGTH);
+                throw new IllegalArgumentException("key length " + key.length() + " is greater than max " + PwmDB.MAX_KEY_LENGTH);
             }
         }
 
@@ -371,7 +371,7 @@ public class PwmDBAdaptor implements PwmDB {
             }
 
             if (value.length() > PwmDB.MAX_VALUE_LENGTH) {
-                throw new IllegalArgumentException("key length cannot be greater than " + PwmDB.MAX_VALUE_LENGTH);
+                throw new IllegalArgumentException("value length " + value.length() + " is greater than max " + PwmDB.MAX_VALUE_LENGTH);
             }
         }
     }

@@ -20,13 +20,16 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.Helper" %>
+<%@ page import="password.pwm.PwmService" %>
+<%@ page import="password.pwm.health.HealthMonitor" %>
+<%@ page import="password.pwm.health.HealthRecord" %>
+<%@ page import="password.pwm.util.EmailQueueManager" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.*" %>
-<%@ page import="password.pwm.health.HealthMonitor" %>
-<%@ page import="password.pwm.health.HealthRecord" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -364,6 +367,20 @@
         </td>
         <td>
             <%= Helper.formatDiskSize(contextManager.getPwmDbDiskSize()) %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            EmailQueueStatus
+        </td>
+        <td>
+            <%= contextManager.getPwmService(PwmService.SERVICE.EmailQueueManager).status() %>
+        </td>
+        <td class="key">
+            Email Queue Size
+        </td>
+        <td>
+            <%= ((EmailQueueManager) contextManager.getPwmService(PwmService.SERVICE.EmailQueueManager)).queueSize() %>
         </td>
     </tr>
 </table>

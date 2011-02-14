@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
@@ -49,33 +50,27 @@ public class DisplayTag extends PwmAbstractTag {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getKey()
-    {
+    public String getKey() {
         return key;
     }
 
-    public void setKey(final String key)
-    {
+    public void setKey(final String key) {
         this.key = key;
     }
 
-    public String getValue1()
-    {
+    public String getValue1() {
         return value1;
     }
 
-    public void setValue1(final String value1)
-    {
+    public void setValue1(final String value1) {
         this.value1 = value1;
     }
 
-    public String getValue2()
-    {
+    public String getValue2() {
         return value2;
     }
 
-    public void setValue2(final String value1)
-    {
+    public void setValue2(final String value1) {
         this.value2 = value1;
     }
 
@@ -93,8 +88,7 @@ public class DisplayTag extends PwmAbstractTag {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
-    {
+            throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getSessionStateBean(req.getSession()).getLocale();

@@ -59,7 +59,7 @@ import java.util.Properties;
 public class EmailQueueManager implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final int ERROR_RETRY_WAIT_TIME = 30;
+    private static final int ERROR_RETRY_WAIT_TIME_MS = 60 * 1000;
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
@@ -67,7 +67,7 @@ public class EmailQueueManager implements PwmService {
     private final ContextManager theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
-    private boolean threadActive;
+    private volatile boolean threadActive;
     private long maxErrorWaitTimeMS = 5 * 60 * 1000;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -80,6 +80,8 @@ public class EmailQueueManager implements PwmService {
         final PwmDB pwmDB = theManager.getPwmDB();
         mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
 
+        status = PwmService.STATUS.OPEN;
+
         {
             final EmailSendThread emailSendThread = new EmailSendThread();
             emailSendThread.setDaemon(true);
@@ -87,8 +89,6 @@ public class EmailQueueManager implements PwmService {
             emailSendThread.start();
             threadActive = true;
         }
-
-        status = PwmService.STATUS.OPEN;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -106,9 +106,16 @@ public class EmailQueueManager implements PwmService {
     public void close() {
         status = PwmService.STATUS.CLOSED;
 
+        {
+            final long startTime = System.currentTimeMillis();
+            while (threadActive && (System.currentTimeMillis() - startTime) < 300) {
+                Helper.pause(100);
+            }
+        }
+
         if (threadActive) {
             final long startTime = System.currentTimeMillis();
-            LOGGER.info("waiting up to 30 seconds for email thread to close....");
+            LOGGER.info("waiting up to 30 seconds for email sender thread to close....");
 
             while (threadActive && (System.currentTimeMillis() - startTime) < 30 * 1000) {
                 Helper.pause(100);
@@ -116,7 +123,7 @@ public class EmailQueueManager implements PwmService {
 
             try {
                 if (!mailSendQueue.isEmpty()) {
-                    LOGGER.warn("unable to close email queue, abandoning queue with " + mailSendQueue.size() + " messages");
+                    LOGGER.warn("closing queue with " + mailSendQueue.size() + " message in queue");
                 }
             } catch (Exception e) {
                 LOGGER.error("unexpected exception while shutting down: " + e.getMessage());
@@ -126,7 +133,7 @@ public class EmailQueueManager implements PwmService {
         LOGGER.debug("closed");
     }
 
-    public List<HealthRecord> doHealthCheck(ContextManager contextManager) {
+    public List<HealthRecord> healthCheck(ContextManager contextManager) {
         return null;
     }
 
@@ -179,6 +186,10 @@ public class EmailQueueManager implements PwmService {
         }
     }
 
+    public int queueSize() {
+        return this.mailSendQueue.size();
+    }
+
     private boolean processQueue() {
         while (mailSendQueue.peekFirst() != null) {
             final String jsonEvent = mailSendQueue.peekFirst();
@@ -226,10 +237,10 @@ public class EmailQueueManager implements PwmService {
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
-                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + " will retry in " + ERROR_RETRY_WAIT_TIME + " seconds.");
+                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", will retry");
                 return false;
             } else {
-                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding");
+                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
                 return true;
             }
         }
@@ -293,31 +304,32 @@ public class EmailQueueManager implements PwmService {
 
     private class EmailSendThread extends Thread {
         public void run() {
-            LOGGER.trace("starting up email queue processing thread");
+            LOGGER.trace("starting up email queue processing thread, queue size is " + mailSendQueue.size());
 
-            if (mailSendQueue.size() > 0) {
-                LOGGER.debug("email queue size: " + mailSendQueue.size());
+            while (status == PwmService.STATUS.OPEN) {
+
+                boolean success = false;
+                try {
+                    success = processQueue();
+                } catch (Exception e) {
+                    LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
+                    LOGGER.error("unable to process email queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));
+                }
+
+                final long startTime = System.currentTimeMillis();
+                final long sleepTime = success ? 1000 : ERROR_RETRY_WAIT_TIME_MS;
+                while (PwmService.STATUS.OPEN == status && (System.currentTimeMillis() - startTime) < sleepTime) {
+                    Helper.pause(100);
+                }
             }
 
+            // try to clear out the queue before the thread exits...
             try {
-                final TimeDuration errorSleepTime = new TimeDuration(60 * 1000);
-                long lastErrorTime;
-                while (status == PwmService.STATUS.OPEN) {
-                    final boolean success = processQueue();
-                    if (success) {
-                        lastErrorTime = 0;
-                    } else {
-                        LOGGER.error("unable to process email queue successfully; sleeping for " + errorSleepTime.asCompactString());
-                        lastErrorTime = System.currentTimeMillis();
-                    }
-                    Helper.pause(1000);
-                    while (lastErrorTime != 0 && status == PwmService.STATUS.OPEN && (System.currentTimeMillis() - lastErrorTime) < errorSleepTime.getTotalMilliseconds()) {
-                        Helper.pause(1000);
-                    }
-                }
+                processQueue();
             } catch (Exception e) {
                 LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
             }
+
             threadActive = false;
             LOGGER.trace("closing email queue processing thread");
         }

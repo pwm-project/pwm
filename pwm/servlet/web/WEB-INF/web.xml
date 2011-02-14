@@ -45,7 +45,7 @@
     </context-param>
     <context-param>
         <param-name>bulkDbLogEventsTest</param-name>
-        <param-value>0</param-value>
+        <param-value>5000000</param-value>
     </context-param>
     <context-param>
         <param-name>knownLocales</param-name>
