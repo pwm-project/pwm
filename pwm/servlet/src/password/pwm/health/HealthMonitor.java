@@ -23,11 +23,15 @@ package password.pwm.health;
  */
 
 import password.pwm.ContextManager;
+import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class HealthMonitor implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthMonitor.class);
@@ -40,6 +44,7 @@ public class HealthMonitor implements Serializable {
 
     private Date lastHealthCheckDate = null;
     private int intervalSeconds = 0;
+
     private boolean open = true;
 
     public HealthMonitor(final ContextManager contextManager) {
@@ -52,13 +57,8 @@ public class HealthMonitor implements Serializable {
             intervalSeconds = MAX_INTERVAL_SECONDS;
         }
 
-        final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started.");
+        final HealthRecord hr = new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started.");
         healthRecords.add(hr);
-    }
-
-    public void checkImmediately() {
-        LOGGER.trace("immediate health check requested");
-        doHealthChecks();
     }
 
     public Date getLastHealthCheckDate() {
@@ -70,7 +70,11 @@ public class HealthMonitor implements Serializable {
     }
 
     public List<HealthRecord> getHealthRecords() {
-        if (lastHealthCheckDate == null) {
+        return getHealthRecords(false);
+    }
+
+    public List<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
+        if (lastHealthCheckDate == null || refreshImmediate) {
             doHealthChecks();
         } else {
             final long lastHealthCheckMs = lastHealthCheckDate.getTime();
@@ -84,7 +88,7 @@ public class HealthMonitor implements Serializable {
 
     public void close() {
         healthRecords.clear();
-        healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
+        healthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
         open = false;
     }
 
@@ -103,6 +107,12 @@ public class HealthMonitor implements Serializable {
                 }
             } catch (Exception e) {
                 LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+            }
+        }
+        for (final PwmService service : contextManager.getPwmServices().values()) {
+            final List<HealthRecord> loopResults = service.healthCheck(contextManager);
+            if (loopResults != null) {
+                newResults.addAll(loopResults);
             }
         }
         healthRecords.clear();

@@ -25,6 +25,7 @@ package password.pwm.config;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.Date;
 
 /**
@@ -129,9 +130,8 @@ public class ConfigurationReader {
         { // increment the config epoch
             String epochStrValue = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
             try {
-                int epochIntValue = epochStrValue == null || epochStrValue.length() < 0 ? 0 : Integer.valueOf(epochStrValue);
-                epochIntValue++;
-                epochStrValue = Integer.toString(epochIntValue);
+                final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
+                epochStrValue = epochValue.add(BigInteger.ONE).toString();
             } catch (Exception e) {
                 LOGGER.error("error trying to parse previous config epoch property: " + e.getMessage());
                 epochStrValue = "0";
@@ -152,6 +152,10 @@ public class ConfigurationReader {
     }
 
     public boolean modifiedSincePWMSave() {
+        if (this.getConfigMode() == MODE.NEW) {
+            return false;
+        }
+
         try {
             final String storedChecksum = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
             final String actualChecksum = storedConfiguration.settingChecksum();

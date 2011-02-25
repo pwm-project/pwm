@@ -34,7 +34,7 @@ public class JavaChecker implements HealthChecker {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
         if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "Java platform is operating normally"));
+            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "Java platform is operating normally"));
         }
 
         return records;

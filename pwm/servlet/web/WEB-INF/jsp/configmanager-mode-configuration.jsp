@@ -63,76 +63,16 @@
                     PWM Health
                 </td>
             </tr>
-            <%
-                final HealthMonitor healthMonitor = contextManager.getHealthMonitor();
-                final List<HealthRecord> healthRecords = healthMonitor.getHealthRecords();
-            %>
             <tr>
-                <td colspan="15" style="text-align:center">
-                    <%= healthMonitor.getLastHealthCheckDate() == null ? "" : "Last health check performed at " + dateFormat.format(healthMonitor.getLastHealthCheckDate()) %>
+                <td colspan="10" style="border:0; margin:0; padding:0">
+                    <div id="healthBody" style="border:0; margin:0; padding:0"></div>
                     <script type="text/javascript">
-                        dojo.require("dijit.Dialog");
-                        dojo.require("dijit.Button");
-                        function refreshHealthCheck() {
-                            var refreshWaitDialog = new dijit.Dialog({
-                                title: 'Please Wait',
-                                style: "width: 260px; border: 2px solid #D4D4D4;",
-                                content: 'Health Check status is being refreshed.',
-                                closable: false,
-                                draggable: true
-                            });
-                            refreshWaitDialog.show();
-                            setTimeout(function() {
-                                doRefreshCheck()
-                            }, 1000);
-                        }
-
-                        function doRefreshCheck() {
-                            dojo.xhrGet({
-                                url: '<%=request.getContextPath()%>/public/CommandServlet' + "?processAction=refreshHealthCheck&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                                sync: true,
-                                error: function(errorObj) {
-                                    alert('unable to refresh data ' + errorObj)
-                                },
-                                load: function(data) {
-                                    window.location.reload();
-                                }
-                            });
-                        }
+                        dojo.addOnLoad(function() {
+                            showPwmHealth('healthBody', false);
+                        });
                     </script>
-                    &nbsp;&nbsp;
-                    <button onclick="refreshHealthCheck()">Refresh Now</button>
                 </td>
             </tr>
-            <% for (final HealthRecord healthRecord : healthRecords) { %>
-            <%
-                final String color;
-                switch (healthRecord.getHealthStatus()) {
-                    case GOOD:
-                        color = "#8ced3f";
-                        break;
-                    case CAUTION:
-                        color = "#FFCD59";
-                        break;
-                    case WARN:
-                        color = "#d20734";
-                        break;
-                    default:
-                        color = "white";
-                }
-            %>
-            <tr>
-                <td class="key">
-                    <%= healthRecord.getTopic() %>
-                </td>
-                <td width="5%" style="background-color: <%=color%>">
-                    <%= healthRecord.getHealthStatus() %>
-                </td>
-                <td>
-                    <%= healthRecord.getDetail() %>
-                </td>
-            </tr>
-            <% } %>
         </table>
         <br class="clear"/>
 
@@ -166,7 +106,7 @@
         <p>Upload an existing configuration. The uploaded file will be saved as the PWM configuration.</p>
 
         <h2><a href="#"
-               onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); document.forms['lockConfiguration'].submit();}">Finalize
+               onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); finalizeConfiguration();}">Finalize
             Configuration</a></h2>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"

@@ -163,7 +163,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     }
 
     private static boolean checkIfUserHasValidResponses(final PwmSession pwmSession, final ChaiUser theUser, final ForgottenPasswordBean forgottenPasswordBean)
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmException {
         // retrieve the responses for the user from ldap
         final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, theUser);
 

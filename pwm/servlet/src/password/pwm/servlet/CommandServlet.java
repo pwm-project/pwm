@@ -31,6 +31,7 @@ import password.pwm.config.*;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
 
@@ -38,7 +39,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Processes a variety of different commands sent in an HTTP Request, including logoff.
@@ -73,8 +77,6 @@ public class CommandServlet extends TopServlet {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(req, resp);
-        } else if (action.equalsIgnoreCase("refreshHealthCheck")) {
-            processRefreshHealthCheck(req);
         } else if (action.equalsIgnoreCase("getHealthCheckData")) {
             processGetHealthCheckData(req, resp);
         } else {
@@ -95,49 +97,41 @@ public class CommandServlet extends TopServlet {
         }
     }
 
-    private static void processRefreshHealthCheck(
-            final HttpServletRequest req
-    )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
-        boolean hasPermission = false;
-
-        if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) {
-            LOGGER.trace("allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
-            hasPermission = true;
-        }
-        if (!hasPermission) {
-            try {
-                hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
-            } catch (Exception e) {
-                LOGGER.warn("error during authorization check: " + e.getMessage());
-            }
-        }
-
-
-        if (hasPermission) {
-            pwmSession.getContextManager().getHealthMonitor().checkImmediately();
-        } else {
-            LOGGER.warn(pwmSession, "unauthorized attempt to update health check status");
-        }
-    }
-
     private static void processGetHealthCheckData(
             final HttpServletRequest req, final HttpServletResponse resp
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmException {
-        if (!preCheckUser(req, resp)) {
-            return;
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final HealthMonitor healthMonitor = pwmSession.getContextManager().getHealthMonitor();
+
+        boolean refreshImmediate = false;
+        {
+            final String refreshImmediateParam = Validator.readStringFromRequest(req, "refreshImmediate");
+            if (refreshImmediateParam != null && refreshImmediateParam.equalsIgnoreCase("true")) {
+                if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) {
+                    LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
+                    refreshImmediate = true;
+                } else {
+                    try {
+                        refreshImmediate = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
+                    } catch (Exception e) {
+                        LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
+                    }
+                }
+            }
         }
 
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final List<HealthRecord> healthRecords = pwmSession.getContextManager().getHealthMonitor().getHealthRecords();
-
+        final List<HealthRecord> healthRecords = healthMonitor.getHealthRecords(refreshImmediate);
         if (healthRecords != null) {
-            resp.setContentType("application/json;charset=utf-8");
+            final Map<String, Object> returnMap = new HashMap<String, Object>();
+            returnMap.put("date", healthMonitor.getLastHealthCheckDate());
+            returnMap.put("timestamp", healthMonitor.getLastHealthCheckDate().getTime());
+            returnMap.put("data", healthRecords);
+
             final Gson gson = new Gson();
-            resp.getOutputStream().print(gson.toJson(healthRecords));
+            final String outputString = gson.toJson(returnMap);
+            resp.setContentType("application/json;charset=utf-8");
+            resp.getOutputStream().print(outputString);
         }
     }
 
@@ -170,7 +164,8 @@ public class CommandServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!ssBean.isAuthenticated() && !AuthenticationFilter.authUserUsingBasicHeader(req)) {
-            LOGGER.info("checkExpire: authentication required");
+            final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+            LOGGER.info(pwmSession, "authentication required for " + action);
             ssBean.setSessionError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return false;

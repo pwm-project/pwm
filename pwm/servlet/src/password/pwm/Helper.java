@@ -127,22 +127,23 @@ public class Helper {
     }
 
     public static void addLdapGuidValue(
-            final String userDN,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException {
+        {
+            final String currentGuid = pwmSession.getUserInfoBean().getUserGuid();
+            if (currentGuid != null && currentGuid.length() > 1) {
+                return;
+            }
+        }
+
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+            LOGGER.warn(pwmSession, "user " + pwmSession.getUserInfoBean().getUserDN() + " does not have a valid GUID");
             return;
         }
 
         final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
-        final String userGUID = pwmSession.getUserInfoBean().getAllUserAttributes().getProperty(GUIDattributeName, "");
-        if (userGUID.length() > 0) {
-            LOGGER.debug("user GUID read as: " + userGUID);
-            return;
-        }
-
-        LOGGER.debug(pwmSession, "assigning new GUID to user " + pwmSession.getUserInfoBean().getUserDN());
+        LOGGER.trace(pwmSession, "assigning new GUID to user " + pwmSession.getUserInfoBean().getUserDN());
 
         final ChaiProvider proxyChaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
         final String baseContext = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
@@ -155,7 +156,7 @@ public class Helper {
                 while (guidValue.length() < 12) {
                     guidValue.insert(0, "0");
                 }
-                guidValue.append(PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
+                guidValue.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
                 newGUID = guidValue.toString();
             }
             final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
@@ -166,7 +167,7 @@ public class Helper {
                     try {
                         pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).addAttribute(GUIDattributeName, newGUID);
                         pwmSession.getUserInfoBean().getAllUserAttributes().setProperty(GUIDattributeName, newGUID);
-                        LOGGER.info(pwmSession, "successfully added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
+                        LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
                         return;
                     } catch (PwmException e) {
                         LOGGER.error(pwmSession, "error writing GUID value to user: " + e.getMessage(), e);

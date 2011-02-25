@@ -71,5 +71,10 @@
         <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
         PWM_GLOBAL['setting-showHidePasswordFields'] =<%=password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS)%>;
         <% } %>
+        PWM_GLOBAL['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";
+        PWM_GLOBAL['url-command'] = "<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>";
+        PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%>/resources";
+        var imageCache = new Image();
+        imageCache.src = PWM_GLOBAL['url-resources'] + "/wait.gif"
     </script>
 </head>

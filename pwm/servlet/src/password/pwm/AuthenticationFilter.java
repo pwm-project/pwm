@@ -251,7 +251,7 @@ public class AuthenticationFilter implements Filter {
             Helper.addConfiguredUserObjectClass(userDN, pwmSession);
 
             //add a guid value if needed.
-            Helper.addLdapGuidValue(userDN, pwmSession);
+            Helper.addLdapGuidValue(pwmSession);
 
             //notify the intruder manager with a successfull login
             intruderManager.addGoodAddressAttempt(pwmSession);

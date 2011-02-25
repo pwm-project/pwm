@@ -63,7 +63,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
-        initialize(pwmSession, configMode, configManagerBean);
+        initialize(pwmSession, configMode, configManagerBean, pwmSession.getContextManager().getConfigReader().getConfigurationReadTime());
 
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
@@ -107,15 +107,16 @@ public class ConfigManagerServlet extends TopServlet {
         forwardToJSP(req, resp);
     }
 
-    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean) {
-        if (configManagerBean.getInitialMode() == null || configMode != configManagerBean.getInitialMode()) {
-            LOGGER.debug(pwmSession, "initializing configuration bean");
-            configManagerBean.setInitialMode(configMode);
+    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean, final Date configurationLoadTime) {
+        if (configManagerBean.getConfigurationLoadTime() == null || configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
+            LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configMode);
+            configManagerBean.setConfigurationLoadTime(configurationLoadTime);
             configManagerBean.setConfiguration(null);
         }
 
         // first time setup
         if (configManagerBean.getConfiguration() == null) {
+            configManagerBean.setEditorMode(false);
             configManagerBean.setLevel(PwmSetting.Level.BASIC);
             switch (configMode) {
                 case NEW:
@@ -243,25 +244,14 @@ public class ConfigManagerServlet extends TopServlet {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
-
+        final String key = Validator.readStringFromRequest(req, "key");
         final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
-
         final Gson gson = new Gson();
-        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());
-
-        if (srcMap == null) {
-            LOGGER.error("set operation missing json body");
-            return;
-        }
-
-        final String key = srcMap.get("key");
-        final String value = srcMap.get("value");
         final PwmSetting setting = PwmSetting.forKey(key);
 
         switch (setting.getSyntax()) {
             case STRING_ARRAY: {
-                final Map<String, String> valueMap = gson.fromJson(value, new TypeToken<Map<String, String>>() {
+                final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
                 }.getType());
                 final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
                 storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
@@ -270,7 +260,7 @@ public class ConfigManagerServlet extends TopServlet {
 
             case LOCALIZED_STRING:
             case LOCALIZED_TEXT_AREA: {
-                final Map<String, String> valueMap = gson.fromJson(value, new TypeToken<Map<String, String>>() {
+                final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
                 }.getType());
                 final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
                 storedConfig.writeLocalizedSetting(setting, outputMap);
@@ -278,7 +268,7 @@ public class ConfigManagerServlet extends TopServlet {
             break;
 
             case LOCALIZED_STRING_ARRAY: {
-                final Map<String, List<String>> valueMap = gson.fromJson(value, new TypeToken<Map<String, List<String>>>() {
+                final Map<String, List<String>> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, List<String>>>() {
                 }.getType());
                 final Map<String, List<String>> outputMap = new TreeMap<String, List<String>>(valueMap);
                 storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
@@ -286,14 +276,14 @@ public class ConfigManagerServlet extends TopServlet {
             break;
 
             case PASSWORD: {
-                if (!value.equals(DEFAULT_PW)) {
-                    storedConfig.writeSetting(setting, value);
+                if (!bodyString.equals(DEFAULT_PW)) {
+                    storedConfig.writeSetting(setting, bodyString);
                 }
             }
             break;
 
             default:
-                storedConfig.writeSetting(setting, value);
+                storedConfig.writeSetting(setting, bodyString);
         }
 
         final Map<String, Object> returnMap = new HashMap<String, Object>();
@@ -367,7 +357,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setEditorMode(false);
-        LOGGER.debug(pwmSession, "switching to action mode");
+        LOGGER.debug(pwmSession, "save configuration operation completed");
     }
 
     private void doCancelEditing(
@@ -376,14 +366,9 @@ public class ConfigManagerServlet extends TopServlet {
             throws IOException, ServletException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
-        configManagerBean.setConfiguration(null);
+        configManagerBean.setConfigurationLoadTime(null);
         configManagerBean.setEditorMode(false);
-        configManagerBean.setInitialMode(null);
-
-        initialize(pwmSession, configMode, configManagerBean);
-
         LOGGER.debug(pwmSession, "cancelled edit actions");
     }
 
@@ -402,11 +387,7 @@ public class ConfigManagerServlet extends TopServlet {
         } catch (PwmException e) {
             final ErrorInformation errorInfo = e.getError();
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
-            return;
         }
-
-        configManagerBean.setEditorMode(false);
-        LOGGER.debug(pwmSession, "switching to action mode");
     }
 
     static void saveConfiguration(final PwmSession pwmSession)
@@ -434,8 +415,7 @@ public class ConfigManagerServlet extends TopServlet {
             throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
         }
 
-        configManagerBean.setConfiguration(null);
-        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_SAVE_SUCCESS));
+        configManagerBean.setConfigurationLoadTime(null);
     }
 
     private boolean doGenerateXml(

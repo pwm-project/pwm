@@ -112,13 +112,13 @@ public class PwmDBFactory {
         final Thread sizeReader = new Thread() {
             public void run() {
                 try {
-                    Helper.pause(30 * 1000);
+                    Helper.pause(90 * 1000);
                     for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
                         final int size = pwmDB.size(loopDB);
                         LOGGER.debug("size of " + loopDB + " read as " + size);
                     }
                 } catch (Exception e) {
-
+                //do nothing
                 }
             }
         };
@@ -127,5 +127,4 @@ public class PwmDBFactory {
         sizeReader.start();
     }
     */
-
 }

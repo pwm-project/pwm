@@ -20,12 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.health.HealthMonitor" %>
-<%@ page import="password.pwm.health.HealthRecord" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -33,11 +27,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
-<% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
 <% password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); %>
 <body class="tundra">
-<meta http-equiv="refresh" content="60"/>
 <div id="wrapper">
     <div id="centerbody">
         <table class="tablemain">
@@ -45,50 +36,21 @@
                 <td class="title" colspan="10">
                     <pwm:Display key="APPLICATION-TITLE"/> Health
                 </td>
-            </tr>
-            <%
-                final HealthMonitor healthMonitor = contextManager.getHealthMonitor();
-                final List<HealthRecord> healthRecords = healthMonitor.getHealthRecords();
-            %>
             <tr>
-                <td colspan="15" style="text-align:center">
-                    <%= healthMonitor.getLastHealthCheckDate() == null ? "" : "Last health check performed at " + dateFormat.format(healthMonitor.getLastHealthCheckDate()) %>
+                <td colspan="10" style="border:0; margin:0; padding:0">
+                    <div id="healthBody" style="border:0; margin:0; padding:0"></div>
+                    <script type="text/javascript">
+                        dojo.addOnLoad(function() {
+                            showPwmHealth('healthBody', false);
+                        });
+                    </script>
                 </td>
             </tr>
-            <% for (final HealthRecord healthRecord : healthRecords) { %>
-            <%
-                final String color;
-                switch (healthRecord.getHealthStatus()) {
-                    case GOOD:
-                        color = "#8ced3f";
-                        break;
-                    case CAUTION:
-                        color = "#FFCD59";
-                        break;
-                    case WARN:
-                        color = "#d20734";
-                        break;
-                    default:
-                        color = "white";
-                }
-            %>
-            <tr>
-                <td class="key">
-                    <%= healthRecord.getTopic() %>
-                </td>
-                <td width="5%" style="background-color: <%=color%>">
-                    <%= healthRecord.getHealthStatus() %>
-                </td>
-                <td>
-                    <%= healthRecord.getDetail() %>
-                </td>
-            </tr>
-            <% } %>
         </table>
-        <p style="text-align:center;">
-            <a href="<%=request.getContextPath()%>">PWM Main Menu</a> | <a
-                href="<%=request.getContextPath()%>/admin/status.jsp">Admin Menu</a>
-        </p>
+        <br/>
+        <br/>
+
+        <p style="text-align:center;">This page refreshes automatically.</p>
     </div>
 </div>
 </body>

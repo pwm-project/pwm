@@ -243,10 +243,10 @@ public abstract class AlertHandler {
                     textBody.append("topic='").append(record.getTopic()).append("'");
                     htmlBody.append("<tr><td class='key'>").append(record.getTopic()).append("</td>");
 
-                    textBody.append(", status=").append(record.getHealthStatus());
+                    textBody.append(", status=").append(record.getStatus());
                     {
                         final String color;
-                        switch (record.getHealthStatus()) {
+                        switch (record.getStatus()) {
                             case GOOD:
                                 color = "#8ced3f";
                                 break;
@@ -259,7 +259,7 @@ public abstract class AlertHandler {
                             default:
                                 color = "white";
                         }
-                        htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getHealthStatus()).append("</td>");
+                        htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getStatus()).append("</td>");
                     }
 
                     textBody.append(", detail='").append(record.getDetail()).append("'").append("\n");

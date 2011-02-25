@@ -60,7 +60,7 @@ public class SessionFilter implements Filter {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) {
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
+        if (pwmSession.getConfig() != null && !pwmSession.getConfig().readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
             return "";
         }
 
@@ -280,10 +280,7 @@ public class SessionFilter implements Filter {
     private static boolean urlSessionsAllowed(final ServletRequest request) {
         final HttpServletRequest req = (HttpServletRequest) request;
         final ContextManager theManager = ContextManager.getContextManager(req);
-        if (theManager != null && theManager.getConfig() != null) {
-            return theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
-        }
-        return false;
+        return theManager != null && theManager.getConfig() != null && theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
     }
 
     /**

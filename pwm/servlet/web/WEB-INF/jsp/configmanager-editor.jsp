@@ -20,10 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.TreeSet" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -107,7 +107,7 @@
                             <%-- add save/update and cancel button --%>
                             menuBar.addChild(new dijit.MenuSeparator());
                             <%-- add menu seperator --%>
-                            <% if (configManagerBean.getInitialMode() == ConfigurationReader.MODE.RUNNING) { %>
+                            <% if (ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
                             var updateButtonMenuItem = new dijit.MenuItem({
                                 id: "updateButton",
                                 label: "Finished",

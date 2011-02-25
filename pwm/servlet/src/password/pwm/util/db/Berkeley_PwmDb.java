@@ -58,9 +58,6 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     private PwmDB.Status status = PwmDB.Status.NEW;
 
-    private volatile int outstandingCleanerThreads;
-    private volatile int outstandingCleanerThreadCounter;
-
 // -------------------------- STATIC METHODS --------------------------
 
     private static Database openDatabase(final DB db, final Environment environment)
@@ -342,37 +339,6 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private void preCheck(final boolean write) throws PwmDBException {
         if (status != PwmDB.Status.OPEN) {
             throw new PwmDBException("pwmDB is not open, cannot begin a new transaction");
-        }
-
-        if (write) {
-            final int cleanerBacklog = environment.getStats(null).getCleanerBacklog();
-            if (cleanerBacklog > MAX_CLEANER_BACKLOG_GOAL) {
-                synchronized (this) {
-                    final int maxThreads = Runtime.getRuntime().availableProcessors();
-                    if (outstandingCleanerThreads < maxThreads) {
-                        final Thread t = new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    LOGGER.debug("starting up auxiliary cleaner process; " + outstandingCleanerThreads + " concurrent processes, cleanerBackLog=" + cleanerBacklog);
-                                    environment.cleanLog();
-                                    environment.checkpoint(null);
-                                } catch (Exception e) {
-                                    LOGGER.error("error from auxiliary cleaner process: " + e.getMessage());
-                                } finally {
-                                    outstandingCleanerThreads--;
-                                }
-                            }
-                        };
-                        t.setDaemon(true);
-                        t.setName("pwm-berkeley-pwmDB cleaner thread " + outstandingCleanerThreadCounter++);
-                        t.start();
-                        outstandingCleanerThreads++;
-                    }
-                    final int sleepTime = 200 + (15 * cleanerBacklog);
-                    Helper.pause(sleepTime);
-                }
-            }
         }
     }
 }

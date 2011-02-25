@@ -115,6 +115,7 @@ public enum PwmError {
     ERROR_TOKEN_INCORRECT("Error_TokenIncorrect", 5037),
     ERROR_BAD_CURRENT_PASSWORD("Error_BadCurrentPassword", 5038),
     ERROR_CLOSING("Error_Closing", 5039),
+    ERROR_MISSING_GUID("Error_Missing_GUID", 5040),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

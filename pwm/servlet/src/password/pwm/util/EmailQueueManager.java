@@ -34,6 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
 import password.pwm.util.db.PwmDBStoredQueue;
@@ -49,6 +50,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -69,6 +71,8 @@ public class EmailQueueManager implements PwmService {
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
     private long maxErrorWaitTimeMS = 5 * 60 * 1000;
+
+    private HealthRecord lastSendFailure;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -133,8 +137,12 @@ public class EmailQueueManager implements PwmService {
         LOGGER.debug("closed");
     }
 
-    public List<HealthRecord> healthCheck(ContextManager contextManager) {
-        return null;
+    public List<HealthRecord> healthCheck(final ContextManager contextManager) {
+        if (lastSendFailure == null) {
+            return null;
+        }
+
+        return Collections.singletonList(lastSendFailure);
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -145,33 +153,9 @@ public class EmailQueueManager implements PwmService {
             throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
-        final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
-
-        if (serverAddress == null || serverAddress.length() < 1) {
-            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
+        if (!determineIfEmailCanBeDelivered(emailItem)) {
             return;
         }
-
-        if (emailItem.getFrom() == null || emailItem.getFrom().length() < 1) {
-            LOGGER.error("discarding email event (no from address): " + emailItem.toString());
-            return;
-        }
-
-        if (emailItem.getTo() == null || emailItem.getTo().length() < 1) {
-            LOGGER.error("discarding email event (no to address): " + emailItem.toString());
-            return;
-        }
-
-        if (emailItem.getSubject() == null || emailItem.getSubject().length() < 1) {
-            LOGGER.error("discarding email event (no subject): " + emailItem.toString());
-            return;
-        }
-
-        if ((emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1) && (emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1)) {
-            LOGGER.error("discarding email event (no body): " + emailItem.toString());
-            return;
-        }
-
 
         final EmailEvent event = new EmailEvent(emailItem, System.currentTimeMillis());
         if (mailSendQueue.size() < PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
@@ -185,6 +169,38 @@ public class EmailQueueManager implements PwmService {
             LOGGER.warn("email queue full, discarding email send request: " + emailItem);
         }
     }
+
+    private boolean determineIfEmailCanBeDelivered(final EmailItemBean emailItem) {
+        final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+
+        if (serverAddress == null || serverAddress.length() < 1) {
+            LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
+            return false;
+        }
+
+        if (emailItem.getFrom() == null || emailItem.getFrom().length() < 1) {
+            LOGGER.error("discarding email event (no from address): " + emailItem.toString());
+            return false;
+        }
+
+        if (emailItem.getTo() == null || emailItem.getTo().length() < 1) {
+            LOGGER.error("discarding email event (no to address): " + emailItem.toString());
+            return false;
+        }
+
+        if (emailItem.getSubject() == null || emailItem.getSubject().length() < 1) {
+            LOGGER.error("discarding email event (no subject): " + emailItem.toString());
+            return false;
+        }
+
+        if ((emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1) && (emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1)) {
+            LOGGER.error("discarding email event (no body): " + emailItem.toString());
+            return false;
+        }
+
+        return true;
+    }
+
 
     public int queueSize() {
         return this.mailSendQueue.size();
@@ -200,7 +216,13 @@ public class EmailQueueManager implements PwmService {
                     LOGGER.debug("discarding email event due to maximum retry age: " + event.getEmailItem().toString());
                     mailSendQueue.pollFirst();
                 } else {
-                    final boolean success = sendEmail(event.getEmailItem());
+                    final EmailItemBean emailItem = event.getEmailItem();
+                    if (!determineIfEmailCanBeDelivered(emailItem)) {
+                        mailSendQueue.pollFirst();
+                        return true;
+                    }
+
+                    final boolean success = sendEmail(emailItem);
                     if (!success) {
                         return false;
                     }
@@ -233,7 +255,7 @@ public class EmailQueueManager implements PwmService {
             return true;
         } catch (MessagingException e) {
             statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
-
+            lastSendFailure = new HealthRecord(HealthStatus.WARN, "EmailQueue", "Unable to send email in queue due to error: " + e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
@@ -311,6 +333,9 @@ public class EmailQueueManager implements PwmService {
                 boolean success = false;
                 try {
                     success = processQueue();
+                    if (success) {
+                        lastSendFailure = null;
+                    }
                 } catch (Exception e) {
                     LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
                     LOGGER.error("unable to process email queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));

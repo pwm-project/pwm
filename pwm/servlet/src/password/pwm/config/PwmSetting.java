@@ -298,6 +298,8 @@ public enum PwmSetting {
     // recovery settings
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
+    RESPONSE_STORAGE_PWMDB(
+            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_STORAGE_HASHED(
@@ -314,12 +316,12 @@ public enum PwmSetting {
             "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
 
 
-/*    // forgotten username
+    // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
             "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false, Level.ADVANCED),
-*/
+
 
     // new user settings
     NEWUSER_ENABLE(
@@ -423,6 +425,7 @@ public enum PwmSetting {
             "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),;
+
 // ------------------------------ STATICS ------------------------------
 
     private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
@@ -554,6 +557,7 @@ public enum PwmSetting {
         INTRUDER,
         LOGGING,
         RECOVERY,
+        FORGOTTEN_USERNAME,
         NEWUSER,
         ACTIVATION,
         UPDATE,

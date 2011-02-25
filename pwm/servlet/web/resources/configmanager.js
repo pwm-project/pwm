@@ -62,10 +62,9 @@ function readSetting(keyName, valueWriter) {
 }
 
 function writeSetting(keyName, valueData) {
-    var jsonData = { key:keyName, value:valueData };
-    var jsonString = dojo.toJson(jsonData);
+    var jsonString = dojo.toJson(valueData);
     dojo.xhrPost({
-        url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
         postData: jsonString,
         contentType: "application/json;charset=utf-8",
         dataType: "json",
@@ -588,7 +587,10 @@ function saveConfiguration() {
             });
             var oldEpoch = data['configEpoch'];
             var currentTime = new Date().getTime();
-            waitForRestart(currentTime, oldEpoch);
+            showError('Waiting for server restart');
+            setTimeout(function() {
+                waitForRestart(currentTime, oldEpoch);
+            }, 10 * 1000);
         },
         error: function(error) {
             alert(error);
@@ -596,6 +598,34 @@ function saveConfiguration() {
         }
     });
 }
+
+function finalizeConfiguration() {
+    showWaitDialog('Finalizing Configuration...', null);
+
+    dojo.xhrGet({
+        url:"ConfigManager?processAction=getConfigEpoch",
+        sync: false,
+        dataType: "json",
+        handleAs: "json",
+        load: function(data) {
+            dojo.xhrGet({
+                url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                sync:true
+            });
+            var oldEpoch = data['configEpoch'];
+            var currentTime = new Date().getTime();
+            showError('Waiting for server restart');
+            setTimeout(function() {
+                waitForRestart(currentTime, oldEpoch);
+            }, 10 * 1000);
+        },
+        error: function(error) {
+            alert(error);
+            window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
+        }
+    });
+}
+
 
 function waitForRestart(startTime, oldEpoch) {
     var currentTime = new Date().getTime();
@@ -608,17 +638,18 @@ function waitForRestart(startTime, oldEpoch) {
             var epoch = data['configEpoch'];
             if (epoch != oldEpoch) {
                 window.location = "ConfigManager?new_epoch_detected"; //refresh page
-            } else if (currentTime - startTime > 30 * 1000) { // timeout
+            } else if (currentTime - startTime > 90 * 1000) { // timeout
                 alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
                 window.location = "ConfigManager?no_restart_detected"; //refresh page
             } else {
+                showError('Waiting for server restart, server has not yet restarted');
                 setTimeout(function() {
                     waitForRestart(startTime, oldEpoch)
                 }, 2000);
             }
         },
         error: function(error) {
-            showError('Error while waiting restart: ' + error);
+            showError('Waiting for server restart, unable to contact server: ' + error);
             setTimeout(function() {
                 waitForRestart(startTime, oldEpoch)
             }, 2000);

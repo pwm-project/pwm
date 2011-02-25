@@ -22,27 +22,27 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class ConfigManagerBean implements Serializable {
     private StoredConfiguration configuration;
     private boolean editorMode;
-    private ConfigurationReader.MODE initialMode;
+    private java.util.Date configurationLoadTime;
     private PwmSetting.Level level;
 
     public ConfigManagerBean() {
     }
 
-    public ConfigurationReader.MODE getInitialMode() {
-        return initialMode;
+    public Date getConfigurationLoadTime() {
+        return configurationLoadTime;
     }
 
-    public void setInitialMode(final ConfigurationReader.MODE initialMode) {
-        this.initialMode = initialMode;
+    public void setConfigurationLoadTime(Date configurationLoadTime) {
+        this.configurationLoadTime = configurationLoadTime;
     }
 
     public StoredConfiguration getConfiguration() {

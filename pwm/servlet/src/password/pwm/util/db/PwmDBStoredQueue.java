@@ -52,6 +52,8 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     private static final Map<PwmDB.DB, PwmDBStoredQueue> singletonMap = Collections.synchronizedMap(new HashMap<PwmDB.DB, PwmDBStoredQueue>());
 
+    private static final boolean developerDebug = false;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private PwmDBStoredQueue(final PwmDB pwmDB, final PwmDB.DB DB)
@@ -67,7 +69,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             singletonMap.put(DB, queue);
         }
         return queue;
-
     }
 
     public void removeLast(final int removalCount) {
@@ -552,7 +553,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
             LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
 
-            //LOGGER.trace("debug INIT\n" + debugOutput());
+            if (developerDebug) {
+                LOGGER.trace("debug INIT\n" + debugOutput());
+            }
         }
 
         private boolean checkVersion() throws PwmDBException {
@@ -578,7 +581,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             empty = true;
             modCount++;
 
-            //LOGGER.trace("debug CLEAR\n" + debugOutput());
+            if (developerDebug) {
+                LOGGER.trace("debug CLEAR\n" + debugOutput());
+            }
         }
 
         public int getModCount() {
@@ -610,7 +615,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             headPosition = nextHead;
             modCount++;
 
-            //LOGGER.trace("debug removeFIRST\n" + debugOutput());
+            if (developerDebug) {
+                LOGGER.trace("debug removeFIRST\n" + debugOutput());
+            }
         }
 
         public void removeLast(final int removalCount) throws PwmDBException {
@@ -633,7 +640,10 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             pwmDB.put(DB, KEY_TAIL_POSITION, nextTail.toString());
             tailPosition = nextTail;
             modCount++;
-            //LOGGER.trace("debug removeLAST\n" + debugOutput());
+
+            if (developerDebug) {
+                LOGGER.trace("debug removeLAST\n" + debugOutput());
+            }
         }
 
         public void addFirst(final Collection<String> values)
@@ -666,7 +676,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             modCount++;
             empty = false;
 
-            //LOGGER.trace("debug addFirst\n" + debugOutput());
+            if (developerDebug) {
+                LOGGER.trace("debug addFirst\n" + debugOutput());
+            }
         }
 
         public void addLast(final Collection<String> values) throws PwmDBException {
@@ -698,7 +710,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             modCount++;
             empty = false;
 
-            //LOGGER.trace("debug addLast\n" + debugOutput());
+            if (developerDebug) {
+                LOGGER.trace("debug addLast\n" + debugOutput());
+            }
         }
 
         public List<String> getFirst(int getCount)
@@ -717,6 +731,10 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             while (returnList.size() < getCount) {
                 returnList.add(pwmDB.get(DB, nextHead.toString()));
                 nextHead = nextHead.previous();
+            }
+
+            if (developerDebug) {
+                LOGGER.trace("debug getFirst\n" + debugOutput());
             }
 
             return returnList;
@@ -740,6 +758,10 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
                 nextTail = nextTail.next();
             }
 
+            if (developerDebug) {
+                LOGGER.trace("debug getLast\n" + debugOutput());
+            }
+
             return returnList;
         }
 
@@ -761,6 +783,4 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             return sb.toString();
         }
     }
-
-
 }

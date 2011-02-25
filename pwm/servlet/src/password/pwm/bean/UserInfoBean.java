@@ -52,8 +52,12 @@ public class UserInfoBean implements Serializable {
      * The logged in user's password,
      */
     private String userCurrentPassword;
+
     private String userID;
+
     private String userEmailAddress;
+
+    private String userGuid;
 
     private boolean authFromUnknownPw;
 
@@ -76,67 +80,55 @@ public class UserInfoBean implements Serializable {
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
 
-    private Map<String,PostChangePasswordAction> postChangePasswordActions = new HashMap<String,PostChangePasswordAction>();
+    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<String, PostChangePasswordAction>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public Properties getAllUserAttributes()
-    {
+    public Properties getAllUserAttributes() {
         return this.allUserAttributes;
     }
 
-    public void setAllUserAttributes(final Properties userAttributes)
-    {
+    public void setAllUserAttributes(final Properties userAttributes) {
         allUserAttributes = userAttributes;
     }
 
-    public long getAuthTime()
-    {
+    public long getAuthTime() {
         return authTime;
     }
 
-    public void setAuthTime(final long authTime)
-    {
+    public void setAuthTime(final long authTime) {
         this.authTime = authTime;
     }
 
-    public ChallengeSet getChallengeSet()
-    {
+    public ChallengeSet getChallengeSet() {
         return challengeSet;
     }
 
-    public void setChallengeSet(final ChallengeSet challengeSet)
-    {
+    public void setChallengeSet(final ChallengeSet challengeSet) {
         this.challengeSet = challengeSet;
     }
 
-    public PwmPasswordPolicy getPasswordPolicy()
-    {
+    public PwmPasswordPolicy getPasswordPolicy() {
         return passwordPolicy;
     }
 
-    public void setPasswordPolicy(final PwmPasswordPolicy passwordPolicy)
-    {
+    public void setPasswordPolicy(final PwmPasswordPolicy passwordPolicy) {
         this.passwordPolicy = passwordPolicy;
     }
 
-    public String getUserCurrentPassword()
-    {
+    public String getUserCurrentPassword() {
         return userCurrentPassword;
     }
 
-    public void setUserCurrentPassword(final String userCurrentPassword)
-    {
+    public void setUserCurrentPassword(final String userCurrentPassword) {
         this.userCurrentPassword = userCurrentPassword;
     }
 
-    public String getUserDN()
-    {
+    public String getUserDN() {
         return userDN;
     }
 
-    public void setUserDN(final String userDN)
-    {
+    public void setUserDN(final String userDN) {
         this.userDN = userDN;
     }
 
@@ -156,23 +148,19 @@ public class UserInfoBean implements Serializable {
         this.permissions = permissions;
     }
 
-    public String getUserID()
-    {
+    public String getUserID() {
         return userID;
     }
 
-    public void setUserID(final String userID)
-    {
+    public void setUserID(final String userID) {
         this.userID = userID;
     }
 
-    public PasswordStatus getPasswordState()
-    {
+    public PasswordStatus getPasswordState() {
         return passwordState;
     }
 
-    public void setPasswordState(final PasswordStatus passwordState)
-    {
+    public void setPasswordState(final PasswordStatus passwordState) {
         this.passwordState = passwordState;
     }
 
@@ -216,29 +204,34 @@ public class UserInfoBean implements Serializable {
         this.userEmailAddress = userEmailAddress;
     }
 
+    public String getUserGuid() {
+        return userGuid;
+    }
+
+    public void setUserGuid(final String userGuid) {
+        this.userGuid = userGuid;
+    }
+
     // -------------------------- OTHER METHODS --------------------------
 
-    public void clearPermissions()
-    {
+    public void clearPermissions() {
         permissions.clear();
     }
 
-    public Permission.PERMISSION_STATUS getPermission(final Permission permission)
-    {
+    public Permission.PERMISSION_STATUS getPermission(final Permission permission) {
         final Permission.PERMISSION_STATUS status = permissions.get(permission);
         return status == null ? Permission.PERMISSION_STATUS.UNCHECKED : status;
     }
 
-    public void setPermission(final Permission permission, final Permission.PERMISSION_STATUS status)
-    {
+    public void setPermission(final Permission permission, final Permission.PERMISSION_STATUS status) {
         permissions.put(permission, status);
     }
 
-    public void addPostChangePasswordActions(final String key, final PostChangePasswordAction postChangePasswordAction ) {
+    public void addPostChangePasswordActions(final String key, final PostChangePasswordAction postChangePasswordAction) {
         if (postChangePasswordAction == null) {
             postChangePasswordActions.remove(key);
         } else {
-            postChangePasswordActions.put(key,postChangePasswordAction);
+            postChangePasswordActions.put(key, postChangePasswordAction);
         }
     }
 

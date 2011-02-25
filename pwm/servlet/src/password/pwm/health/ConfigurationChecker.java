@@ -38,13 +38,13 @@ public class ConfigurationChecker implements HealthChecker {
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
         if (contextManager.getConfig() == null) {
-            final HealthRecord hr = new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "Unable to read configuration");
+            final HealthRecord hr = new HealthRecord(HealthStatus.WARN, TOPIC, "Unable to read configuration");
             return Collections.singletonList(hr);
         }
 
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
         if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
-            records.add(new HealthRecord(HealthRecord.HealthStatus.CAUTION, TOPIC, "Promiscuous LDAP SSL connection is being used"));
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Promiscuous LDAP SSL connection is being used"));
         }
 
         {
@@ -54,7 +54,7 @@ public class ConfigurationChecker implements HealthChecker {
                     final URL url = new URL(novellUserAppURL);
                     final boolean secure = "https".equalsIgnoreCase(url.getProtocol());
                     if (!secure) {
-                        records.add(new HealthRecord(HealthRecord.HealthStatus.CAUTION, TOPIC, "UserApp Password SOAP Service URL is not secure (should be https)"));
+                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "UserApp Password SOAP Service URL is not secure (should be https)"));
                     }
                 } catch (MalformedURLException e) {
                     LOGGER.debug("error parsing Novell PwdMgt Web Service URL: " + e.getMessage());
@@ -63,11 +63,11 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (contextManager.getConfigReader().modifiedSincePWMSave()) {
-            records.add(new HealthRecord(HealthRecord.HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
         }
 
         if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "No configuration issues detected"));
+            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "No configuration issues detected"));
         }
 
         return records;

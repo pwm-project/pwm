@@ -83,6 +83,7 @@ public class ContextManager implements Serializable {
     private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
 
+    private transient Map<PwmService.SERVICE, PwmService> pwmServices;
     private transient HealthMonitor healthMonitor;
     private transient StatisticsManager statisticsManager;
     private transient WordlistManager wordlistManager;
@@ -150,6 +151,12 @@ public class ContextManager implements Serializable {
 
     public HealthMonitor getHealthMonitor() {
         return healthMonitor;
+    }
+
+    public Map<PwmService.SERVICE, PwmService> getPwmServices() {
+        final Map<PwmService.SERVICE, PwmService> pwmServices = new HashMap<PwmService.SERVICE, PwmService>();
+        pwmServices.put(PwmService.SERVICE.EmailQueueManager, this.emailQueue);
+        return pwmServices;
     }
 
     private void openProxyChaiProvider() throws ChaiUnavailableException {

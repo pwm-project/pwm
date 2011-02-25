@@ -40,7 +40,7 @@
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, request.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();">
+<body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/header-body.jsp">
     <jsp:param name="pwm.PageName" value="User Information"/>
@@ -97,10 +97,10 @@
     </tr>
     <tr>
         <td class="key">
-            <%= pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE) %>
+            UserID
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)) %>
+            <%= searchedUserInfo.getUserID() %>
         </td>
     </tr>
     <tr>
@@ -109,6 +109,14 @@
         </td>
         <td>
             <%= searchedUserInfo.getUserDN() %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            GUID
+        </td>
+        <td>
+            <%= searchedUserInfo.getUserGuid() %>
         </td>
     </tr>
     <tr>
@@ -125,14 +133,6 @@
         </td>
         <td>
             <%= searchedUserInfo.getAllUserAttributes().getProperty("sn", "") %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <%= pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE)%>
-        </td>
-        <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE), "") %>
         </td>
     </tr>
     <tr>

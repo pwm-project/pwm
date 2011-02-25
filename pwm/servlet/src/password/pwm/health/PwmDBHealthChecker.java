@@ -43,17 +43,17 @@ public class PwmDBHealthChecker implements HealthChecker {
         final PwmDB pwmDB = contextManager.getPwmDB();
 
         if (pwmDB == null) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot"));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot"));
             return healthRecords;
         }
 
         if (PwmDB.Status.NEW == pwmDB.getStatus()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled"));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled"));
             return healthRecords;
         }
 
         if (PwmDB.Status.CLOSED == pwmDB.getStatus()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot"));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot"));
             return healthRecords;
         }
 
@@ -63,22 +63,22 @@ public class PwmDBHealthChecker implements HealthChecker {
                 final int eventCount = pwmDBLogger.getEventCount();
                 final int maxEventCount = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 if (eventCount > maxEventCount + 5000) {
-                    healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
+                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
                 }
 
                 final long maxTailMs = (long) contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
                 final long tailDate = pwmDBLogger.getTailTimestamp();
                 final long maxTailDate = System.currentTimeMillis() - maxTailMs;
                 if (tailDate < maxTailDate - (60 * 60 * 1000)) { // older than an hour past tail date
-                    healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB Logger contains records older than the configured maximum of " + new TimeDuration(maxTailMs).asLongString()));
+                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains records older than the configured maximum of " + new TimeDuration(maxTailMs).asLongString()));
                 }
             } else {
-                healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, "PwmDB", "PwmDB Logger is not running"));
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger is not running"));
             }
         }
 
         if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, "PwmDB", "PwmDB and related services are operating correctly"));
+            healthRecords.add(new HealthRecord(HealthStatus.GOOD, "PwmDB", "PwmDB and related services are operating correctly"));
         }
 
         return healthRecords;

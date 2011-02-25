@@ -427,7 +427,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new Exception("Error reading configuration file format: " + e.getMessage());
         }
 
-        LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values");
+        LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values, epoch " + newConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
         return newConfiguration;
     }
 

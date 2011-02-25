@@ -24,14 +24,19 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
-import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.exception.ChaiValidationException;
+import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
+import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
 import javax.xml.rpc.Stub;
@@ -54,8 +59,7 @@ public class CrUtility {
             final ChaiUser theUser,
             final PwmPasswordPolicy policy,
             final Locale locale
-    )
-    {
+    ) {
         final long methodStartTime = System.currentTimeMillis();
 
         ChallengeSet returnSet = null;
@@ -100,18 +104,36 @@ public class CrUtility {
     }
 
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException
-    {
-        ResponseSet userResponseSet = null;
+            throws ChaiUnavailableException, PwmException {
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
+            final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+            if (userGUID == null || userGUID.length() < 1) {
+                throw new PwmException(PwmError.ERROR_MISSING_GUID.toInfo(), "cannot read responses from pwmDB without pwmGUID");
+            }
+
+            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+
+            try {
+                final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                if (responseStringBlob != null && responseStringBlob.length() > 0) {
+                    final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
+                    LOGGER.debug(pwmSession, "read user responses from pwmDB");
+                    return userResponseSet;
+                }
+            } catch (PwmDBException e) {
+                LOGGER.error(pwmSession, "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage());
+            } catch (ChaiValidationException e) {
+                LOGGER.error(pwmSession, "unexpected chai error reading responses from pwmDB: " + e.getMessage());
+            }
+        }
 
         final String novellUserAppWebServiceURL = pwmSession.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-
         if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
             try {
                 LOGGER.trace(pwmSession, "establishing connection to web service at " + novellUserAppWebServiceURL);
                 final PasswordManagementServiceLocator locater = new PasswordManagementServiceLocator();
                 final PasswordManagement service = locater.getPasswordManagementPort(new URL(novellUserAppWebServiceURL));
-                ((Stub)service)._setProperty(javax.xml.rpc.Stub.SESSION_MAINTAIN_PROPERTY, Boolean.TRUE);
+                ((Stub) service)._setProperty(javax.xml.rpc.Stub.SESSION_MAINTAIN_PROPERTY, Boolean.TRUE);
                 final ProcessUserRequest userRequest = new ProcessUserRequest(theUser.getEntryDN());
                 final ForgotPasswordWSBean processUserResponse = service.processUser(userRequest);
                 if (processUserResponse.isTimeout()) {
@@ -130,12 +152,89 @@ public class CrUtility {
         }
 
         try {
-            userResponseSet = theUser.readResponseSet();
+            return theUser.readResponseSet();
         } catch (ChaiOperationException e) {
             LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
         }
 
-        return userResponseSet;
+        return null;
+    }
+
+    public static boolean saveResponses(final PwmSession pwmSession, final ResponseSet responses)
+            throws PwmException, ChaiUnavailableException {
+        int attempts = 0, successes = 0;
+
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
+            attempts++;
+            final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+            if (userGUID == null || userGUID.length() < 1) {
+                throw new PwmException(PwmError.ERROR_MISSING_GUID.toInfo(), "cannot save responses to pwmDB without pwmGUID");
+            }
+
+            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+
+            try {
+                pwmDB.put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());
+                LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
+                successes++;
+            } catch (PwmDBException e) {
+                LOGGER.error(pwmSession, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+            }
+        }
+
+
+        final String ldapStorageAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
+            try {
+                attempts++;
+                final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
+                final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
+                responses.write(writeMode);
+                LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
+                successes++;
+            } catch (ChaiOperationException e) {
+                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+                    LOGGER.warn(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
+                    LOGGER.warn(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
+                } else {
+                    LOGGER.debug(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
+                }
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
+            }
+        }
+
+        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            try {
+                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                    attempts++;
+                    responses.write(CrMode.NMAS);
+                    LOGGER.info(pwmSession, "saved responses for user using method " + CrMode.NMAS);
+                    successes++;
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession, "error writing user's supplied new responses to nmas: " + e.getMessage());
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
+            }
+        }
+
+        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
+        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
+        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES);
+        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
+
+        if (attempts == successes) {
+            if (attempts == 0) {
+                LOGGER.warn(pwmSession, "no response saving methods available or configured");
+                return false;
+            }
+            final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+            UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+            //pwmSession.getSetupResponseBean().clear();
+            return true;
+        }
+
+        LOGGER.warn(pwmSession, "response storage only partially successful; attempts=" + attempts + ", successes=" + successes);
+        return false;
     }
 
     public static class NovellWSResponseSet implements ResponseSet, Serializable {
@@ -149,8 +248,7 @@ public class CrUtility {
                 final ForgotPasswordWSBean wsBean,
                 final PwmSession pwmSession
         )
-                throws ChaiValidationException
-        {
+                throws ChaiValidationException {
             this.userDN = wsBean.getUserDN();
             this.service = service;
             this.pwmSession = pwmSession;
@@ -165,7 +263,7 @@ public class CrUtility {
                 );
                 challenges.add(loopChallenge);
             }
-            challengeSet = CrFactory.newChallengeSet(challenges,Locale.getDefault(),0,"NovellWSResponseSet derived ChallengeSet");
+            challengeSet = CrFactory.newChallengeSet(challenges, Locale.getDefault(), 0, "NovellWSResponseSet derived ChallengeSet");
         }
 
         public ChallengeSet getChallengeSet() {
@@ -182,10 +280,10 @@ public class CrUtility {
 
         public boolean test(final Map<Challenge, String> responseTest) throws ChaiUnavailableException {
             if (service == null) {
-                LOGGER.error(pwmSession,"beginning web service 'processChaRes' response test, however service bean is not in session memory, aborting response test...");
+                LOGGER.error(pwmSession, "beginning web service 'processChaRes' response test, however service bean is not in session memory, aborting response test...");
                 return false;
             }
-            LOGGER.trace(pwmSession,"beginning web service 'processChaRes' response test ");
+            LOGGER.trace(pwmSession, "beginning web service 'processChaRes' response test ");
             final String[] responseArray = new String[challengeSet.getAdminDefinedChallenges().size()];
             {
                 int i = 0;
@@ -212,7 +310,7 @@ public class CrUtility {
                     LOGGER.error(pwmSession, "NovellWSResponseSet: web service reports error: " + response.getMessage());
                     return false;
                 }
-                LOGGER.debug(pwmSession,"NovellWSResponseSet: web service has validated the users responses");
+                LOGGER.debug(pwmSession, "NovellWSResponseSet: web service has validated the users responses");
                 return true;
             } catch (RemoteException e) {
                 LOGGER.error("NovellWSResponseSet: error processing web service response: " + e.getMessage());

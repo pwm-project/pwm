@@ -28,7 +28,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.ChaiError;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -42,7 +41,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.ServletException;
@@ -192,7 +190,7 @@ public class SetupResponsesServlet extends TopServlet {
             pwmSession.getSetupResponseBean().setResponseMap(responseMap);
             this.forwardToConfirmJSP(req, resp);
         } else {
-            final boolean saveSuccess = saveResponses(pwmSession, responses);
+            final boolean saveSuccess = CrUtility.saveResponses(pwmSession, responses);
             if (saveSuccess) {
                 Helper.forwardToSuccessPage(req, resp, this.getServletContext());
             } else {
@@ -217,7 +215,7 @@ public class SetupResponsesServlet extends TopServlet {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
                 validateResponses(pwmSession, challengeSet, responseMap);
                 final ResponseSet responses = generateResponseSet(pwmSession, challengeSet, responseMap);
-                saveSuccess = saveResponses(pwmSession, responses);
+                saveSuccess = CrUtility.saveResponses(pwmSession, responses);
             } catch (SetupResponsesException e) {
                 LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
@@ -231,65 +229,6 @@ public class SetupResponsesServlet extends TopServlet {
         } else {
             this.forwardToConfirmJSP(req, resp);
         }
-    }
-
-    private static boolean saveResponses(final PwmSession pwmSession, final ResponseSet responses)
-            throws PwmException, ChaiUnavailableException {
-        int attempts = 0, successes = 0;
-
-        final String ldapStorageAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
-        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
-            try {
-                attempts++;
-                final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
-                final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
-                responses.write(writeMode);
-                LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
-                successes++;
-            } catch (ChaiOperationException e) {
-                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                    LOGGER.warn(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
-                    LOGGER.warn(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
-                } else {
-                    LOGGER.debug(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
-                }
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
-            }
-        }
-
-
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
-            try {
-                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                    attempts++;
-                    responses.write(CrMode.NMAS);
-                    LOGGER.info(pwmSession, "saved responses for user using method " + CrMode.NMAS);
-                    successes++;
-                }
-            } catch (ChaiOperationException e) {
-                LOGGER.debug(pwmSession, "error writing user's supplied new responses to nmas: " + e.getMessage());
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
-            }
-        }
-
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
-        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES);
-        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
-
-        if (attempts == successes) {
-            if (attempts == 0) {
-                LOGGER.warn(pwmSession, "no response saving methods available or configured");
-                return false;
-            }
-            final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-            UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
-            //pwmSession.getSetupResponseBean().clear();
-            return true;
-        }
-
-        LOGGER.warn(pwmSession, "response storage only partially successful; attempts=" + attempts + ", successes=" + successes);
-        return false;
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

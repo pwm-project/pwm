@@ -58,9 +58,9 @@ public class LDAPStatusChecker implements HealthChecker {
         { // check ldap server
             final ErrorInformation result = doLdapStatusCheck(storedConfig);
             if (result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
-                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
+                returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
             } else {
-                returnRecords.add(new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, result.toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, result.toDebugStr()));
                 return returnRecords;
             }
         }
@@ -83,7 +83,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         if (testUserDN == null || testUserDN.length() < 1) {
-            return new HealthRecord(HealthRecord.HealthStatus.CAUTION, TOPIC, "LDAP test user is not configured");
+            return new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP test user is not configured");
         }
 
         final ChaiUser theUser;
@@ -96,13 +96,13 @@ public class LDAPStatusChecker implements HealthChecker {
 
             theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
             if (!theUser.isValid()) {
-                return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "LDAP test user '" + testUserDN + "' does not exist");
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP test user '" + testUserDN + "' does not exist");
             }
 
         } catch (ChaiUnavailableException e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
+            return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
         } catch (Throwable e) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
+            return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
         }
 
 
@@ -128,18 +128,18 @@ public class LDAPStatusChecker implements HealthChecker {
                     theUser.setPassword(newPassword);
                     userPassword = newPassword;
                 } catch (ChaiPasswordPolicyException e) {
-                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
                 } catch (ChaiException e) {
-                    return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
                 }
             }
         }
 
         if (userPassword == null) {
-            return new HealthRecord(HealthRecord.HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
+            return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
         }
 
-        return new HealthRecord(HealthRecord.HealthStatus.GOOD, TOPIC, "LDAP test user account is functioning normally");
+        return new HealthRecord(HealthStatus.GOOD, TOPIC, "LDAP test user account is functioning normally");
     }
 
 

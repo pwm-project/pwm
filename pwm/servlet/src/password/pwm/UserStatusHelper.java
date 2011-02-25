@@ -231,6 +231,7 @@ public class UserStatusHelper {
             interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
             interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+            interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 interestingUserAttributes.add("sAMAccountName");
                 interestingUserAttributes.add("displayName");
@@ -246,6 +247,10 @@ public class UserStatusHelper {
         // set userID
         final String ldapNamingAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         uiBean.setUserID(uiBean.getAllUserAttributes().getProperty(ldapNamingAttribute));
+
+        // set guid
+        final String userGuidAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        uiBean.setUserGuid(uiBean.getAllUserAttributes().getProperty(userGuidAttribute));
 
         // set email address
         final String ldapEmailAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);

@@ -157,7 +157,7 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
         pMenu.addChild(new dijit.MenuItem({
             label: localeDisplayName,
             onClick: function() {
-                var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
+                var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
                 dojo.xhrGet({
                     url: pingURL,
                     sync: true,
@@ -181,7 +181,7 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
 
 function showWaitDialog(title, body) {
     if (body == null || body.length < 1) {
-        body = '<div style="text-align: center"><img alt="altText" src="' + PWM_STRINGS['url-resources'] + '/wait.gif"/></div>';
+        body = '<div style="text-align: center"><img alt="altText" src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
     }
     dojo.require("dijit.Dialog");
     var theDialog = new dijit.Dialog({
@@ -192,4 +192,82 @@ function showWaitDialog(title, body) {
         closable: false
     });
     theDialog.show();
+}
+
+function showPwmHealth(parentDivID, refreshNow) {
+    var parentDiv = dojo.byId(parentDivID);
+    PWM_GLOBAL['healthCheckInProgress'] = "true";
+
+    setTimeout(function() {
+        if (PWM_GLOBAL['healthCheckInProgress']) {
+            parentDiv.innerHTML = '<div style="text-align: center"><img alt="loading..." src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
+        }
+    }, 1000);
+
+    var refreshUrl = PWM_GLOBAL['url-command'] + "?processAction=getHealthCheckData";
+    if (refreshNow) {
+        refreshUrl += "&refreshImmediate=true";
+    }
+
+    dojo.xhrGet({
+        url: refreshUrl,
+        dataType: "json",
+        handleAs: "json",
+        timeout: 30 * 1000,
+        load: function(data) {
+            var healthRecords = data['data'];
+            var htmlBody = '<table width="100%" style="width=100%; border=0">';
+            for (var i = 0; i < healthRecords.length; i++) {
+                var healthData = healthRecords[i];
+                var backgroundColor;
+                switch (healthData['status']) {
+                    case "GOOD":
+                        backgroundColor = "#8ced3f";
+                        break;
+                    case "CAUTION":
+                        backgroundColor = "#FFCD59";
+                        break;
+                    case "WARN":
+                        backgroundColor = "#d20734";
+                        break;
+                    default:
+                        backgroundColor = "white";
+                }
+
+                htmlBody += '<tr><td class="key" width="1%">';
+                htmlBody += healthData['topic'];
+                htmlBody += '</td><td width="5%" style="background-color: ' + backgroundColor + '">';
+                htmlBody += healthData['status'];
+                htmlBody += "</td><td>";
+                htmlBody += healthData['detail'];
+                htmlBody += "</td></tr>";
+            }
+
+            htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+            htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
+            htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
+            htmlBody += "</td></tr>";
+
+            htmlBody += '</table>';
+            parentDiv.innerHTML = htmlBody;
+            PWM_GLOBAL['healthCheckInProgress'] = false;
+            setTimeout(function() {
+                showPwmHealth(parentDivID, false);
+            }, 30 * 1000);
+        },
+        error: function(error) {
+            var htmlBody = '<div style="text-align:center; background-color: #d20734">';
+            htmlBody += '<br/><span style="font-weight: bold;">unable to load health data</span></br>';
+
+            htmlBody += '<br/>' + error + '<br/>';
+            htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
+            htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
+            htmlBody += '</div>';
+            parentDiv.innerHTML = htmlBody;
+            PWM_GLOBAL['healthCheckInProgress'] = false;
+            setTimeout(function() {
+                showPwmHealth(parentDivID, false);
+            }, 10 * 1000);
+        }
+    });
 }

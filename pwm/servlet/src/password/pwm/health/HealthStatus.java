@@ -22,29 +22,15 @@
 
 package password.pwm.health;
 
-import java.io.Serializable;
-
-public class HealthRecord implements Serializable {
-    private final HealthStatus status;
-    private final String topic;
-    private final String detail;
-
-    public HealthRecord(final HealthStatus status, final String topic, final String detail) {
-        this.status = status;
-        this.topic = topic;
-        this.detail = detail;
-    }
-
-    public HealthStatus getStatus() {
-        return status;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
+/**
+ * Created by IntelliJ IDEA.
+ * User: J
+ * Date: 2/19/11
+ * Time: 10:05 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public enum HealthStatus {
+    GOOD,
+    CAUTION,
+    WARN
 }

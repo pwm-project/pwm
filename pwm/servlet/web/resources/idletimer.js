@@ -75,7 +75,7 @@ function pollActivity() {
 
     if (idleSeconds < 0) {
         PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-        window.location = PWM_STRINGS['url-logout'];
+        window.location = PWM_GLOBAL['url-logout'];
     }
 
     if (idleSeconds < SETTING_WARN_SECONDS) {
@@ -84,7 +84,7 @@ function pollActivity() {
 }
 
 function pingServer() {
-    var pingURL = PWM_STRINGS['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     dojo.xhrPost({
         url: pingURL
     });

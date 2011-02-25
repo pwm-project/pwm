@@ -128,6 +128,7 @@ public interface PwmDB {
         PWM_STATS,
         EVENTLOG_EVENTS,
         EMAIL_QUEUE,
+        RESPONSE_STORAGE,
         TEMP // cleared on each initializtaion of the pwmDB.
     }
 
