@@ -43,6 +43,11 @@
         <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
     </jsp:include>
     <div id="centerbody">
+        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <% } else { %>
+        <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
+        <% } %>
         <p>Welcome to the PWM ConfigManager. PWM is in configuration mode, which means you can make changes to the
             running configuration
             directly through this page. Changes made in the configuration editor will be saved immediately, and PWM will

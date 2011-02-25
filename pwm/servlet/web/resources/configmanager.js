@@ -28,13 +28,19 @@ var menuItems = new Array();
 var selectedCategory = "";
 
 function showError(errorMsg) {
+    var errorMsgObj = getObject("error_msg");
+
+    if (errorMsgObj == null) {
+        return;
+    }
+
     if (errorMsg != null && errorMsg != "") {
-        getObject("error_msg").firstChild.nodeValue = errorMsg;
-        getObject("error_msg").className = "msg-error";
-        getObject("error_msg").style.visibility = 'visible';
-        window.scrollTo(getObject("error_msg").offsetLeft, getObject("error_msg").offsetTop)
+        errorMsgObj.firstChild.nodeValue = errorMsg;
+        errorMsgObj.className = "msg-error";
+        errorMsgObj.style.visibility = 'visible';
+        window.scrollTo(errorMsgObj.offsetLeft, errorMsgObj.offsetTop)
     } else {
-        getObject("error_msg").style.visibility = 'hidden';
+        errorMsgObj.style.visibility = 'hidden';
     }
 }
 

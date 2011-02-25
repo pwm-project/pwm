@@ -33,6 +33,11 @@
         <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
     </jsp:include>
     <div id="centerbody">
+        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <% } else { %>
+        <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
+        <% } %>
         <p>The configuration for this server is now finalized and locked. You can see the running configuration <a
                 href="<%=request.getContextPath()%><pwm:url url="/admin/config.jsp"/>">here</a>.
             If you wish to make configuration changes to this PWM installation, you can take any one
