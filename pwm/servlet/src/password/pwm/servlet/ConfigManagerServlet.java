@@ -108,7 +108,7 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean, final Date configurationLoadTime) {
-        if (configManagerBean.getConfigurationLoadTime() == null || configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
+        if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
             LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configMode);
             configManagerBean.setConfigurationLoadTime(configurationLoadTime);
             configManagerBean.setConfiguration(null);
@@ -276,14 +276,18 @@ public class ConfigManagerServlet extends TopServlet {
             break;
 
             case PASSWORD: {
+                final String value = gson.fromJson(bodyString, new TypeToken<String>() {
+                }.getType());
                 if (!bodyString.equals(DEFAULT_PW)) {
-                    storedConfig.writeSetting(setting, bodyString);
+                    storedConfig.writeSetting(setting, value);
                 }
             }
             break;
 
             default:
-                storedConfig.writeSetting(setting, bodyString);
+                final String value = gson.fromJson(bodyString, new TypeToken<String>() {
+                }.getType());
+                storedConfig.writeSetting(setting, value);
         }
 
         final Map<String, Object> returnMap = new HashMap<String, Object>();

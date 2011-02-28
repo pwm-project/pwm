@@ -377,7 +377,7 @@ public class SetupResponsesServlet extends TopServlet {
         final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
         final WordlistManager wordlistManager = pwmSession.getContextManager().getWordlistManager();
 
-        if (applyWordlist && wordlistManager.getStatus().isAvailable()) {
+        if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
             for (final Challenge loopChallenge : responseMap.keySet()) {
                 final String answer = responseMap.get(loopChallenge);
                 if (wordlistManager.containsWord(pwmSession, answer)) {

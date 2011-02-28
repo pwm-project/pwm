@@ -24,11 +24,11 @@ package password.pwm.tag;
 
 import password.pwm.ContextManager;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.util.PwmLogger;
-import password.pwm.wordlist.WordlistStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -41,8 +41,7 @@ import java.util.MissingResourceException;
 /**
  * @author Jason D. Rivard
  */
-public class PasswordRequirementsTag extends TagSupport
-{
+public class PasswordRequirementsTag extends TagSupport {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordRequirementsTag.class);
@@ -55,8 +54,7 @@ public class PasswordRequirementsTag extends TagSupport
             final PwmPasswordPolicy pwordPolicy,
             final ContextManager contextManager,
             final Locale locale
-    )
-    {
+    ) {
         final List<String> returnValues = new ArrayList<String>();
 
         int value = 0;
@@ -186,7 +184,7 @@ public class PasswordRequirementsTag extends TagSupport
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale));
         }
 
-        if (contextManager.getWordlistManager().getStatus() != WordlistStatus.CLOSED) {
+        if (contextManager.getWordlistManager().status() == PwmService.STATUS.OPEN) {
             returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale));
         }
 
@@ -211,7 +209,7 @@ public class PasswordRequirementsTag extends TagSupport
                 durationStr = valueAsHours + " " + Message.getDisplayString(key, locale);
             }
 
-            userMsg = userMsg.replace(Message.FIELD_REPLACE_VALUE,durationStr);
+            userMsg = userMsg.replace(Message.FIELD_REPLACE_VALUE, durationStr);
             returnValues.add(userMsg);
         }
 
@@ -226,13 +224,12 @@ public class PasswordRequirementsTag extends TagSupport
         return returnValues;
     }
 
-    private static String getLocalString(final Message message, final int size, final Locale locale)
-    {
+    private static String getLocalString(final Message message, final int size, final Locale locale) {
         try {
             if (size > 1) {
                 final Message pluralMessage = Message.forResourceKey(message.getResourceKey() + "Plural");
                 if (pluralMessage != null) {
-                    return Message.getLocalizedMessage(locale,pluralMessage,String.valueOf(size));
+                    return Message.getLocalizedMessage(locale, pluralMessage, String.valueOf(size));
                 }
             }
         } catch (MissingResourceException e) {
@@ -240,17 +237,16 @@ public class PasswordRequirementsTag extends TagSupport
         }
 
         try {
-            return Message.getLocalizedMessage(locale,message,String.valueOf(size));
+            return Message.getLocalizedMessage(locale, message, String.valueOf(size));
         } catch (MissingResourceException e) {
             LOGGER.error("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }
         return "UNKNOWN MESSAGE STRING";
     }
 
-    private static String getLocalString(final Message message, final String field, final Locale locale)
-    {
+    private static String getLocalString(final Message message, final String field, final Locale locale) {
         try {
-            return Message.getLocalizedMessage(locale,message,field);
+            return Message.getLocalizedMessage(locale, message, field);
         } catch (MissingResourceException e) {
             LOGGER.error("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }
@@ -258,13 +254,11 @@ public class PasswordRequirementsTag extends TagSupport
     }
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getSeparator()
-    {
+    public String getSeparator() {
         return separator;
     }
 
-    public void setSeparator(final String separator)
-    {
+    public void setSeparator(final String separator) {
         this.separator = separator;
     }
 
@@ -282,8 +276,7 @@ public class PasswordRequirementsTag extends TagSupport
     // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
-    {
+            throws javax.servlet.jsp.JspTagException {
         final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         try {
@@ -300,7 +293,7 @@ public class PasswordRequirementsTag extends TagSupport
 
             pageContext.getOut().write(requirementsText.toString());
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "unexpected error during password requirements generation: " + e.getMessage(),e);
+            LOGGER.error(pwmSession, "unexpected error during password requirements generation: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());
         }
         return EVAL_PAGE;

@@ -23,7 +23,9 @@
 package password.pwm.wordlist;
 
 import password.pwm.Helper;
+import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.Sleeper;
@@ -34,6 +36,7 @@ import password.pwm.util.db.PwmDBException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -55,8 +58,7 @@ public class SharedHistoryManager implements Wordlist {
     private static final PwmDB.DB META_DB = PwmDB.DB.SHAREDHISTORY_META;
     private static final PwmDB.DB WORDS_DB = PwmDB.DB.SHAREDHISTORY_WORDS;
 
-
-    private volatile WordlistStatus wlStatus = WordlistStatus.CLOSED;
+    private volatile PwmService.STATUS status = STATUS.NEW;
 
     private volatile Timer cleanerTimer = null;
 
@@ -113,7 +115,7 @@ public class SharedHistoryManager implements Wordlist {
 // -------------------------- OTHER METHODS --------------------------
 
     public void close() {
-        wlStatus = WordlistStatus.CLOSED;
+        status = STATUS.CLOSED;
         LOGGER.debug("closed");
         if (cleanerTimer != null) {
             cleanerTimer.cancel();
@@ -122,7 +124,7 @@ public class SharedHistoryManager implements Wordlist {
     }
 
     public boolean containsWord(final PwmSession pwmSession, final String word) {
-        if (wlStatus != WordlistStatus.OPEN) {
+        if (status != STATUS.OPEN) {
             return false;
         }
 
@@ -154,8 +156,8 @@ public class SharedHistoryManager implements Wordlist {
         return result;
     }
 
-    public WordlistStatus getStatus() {
-        return wlStatus;
+    public PwmService.STATUS status() {
+        return status;
     }
 
     public long getOldestEntryAge() {
@@ -214,22 +216,22 @@ public class SharedHistoryManager implements Wordlist {
 
     private void init(final long maxAgeMs) {
         this.maxAgeMs = maxAgeMs;
-        wlStatus = WordlistStatus.OPENING;
+        status = STATUS.OPENING;
         final long startTime = System.currentTimeMillis();
 
         try {
             checkDbVersion();
         } catch (Exception e) {
             LOGGER.error("error checking db version", e);
-            wlStatus = WordlistStatus.CLOSED;
+            status = STATUS.CLOSED;
             return;
         }
 
         try {
             checkSalt();
         } catch (Exception e) {
-            LOGGER.error("unexpected error examing salt in DB, will remain closed: " + e.getMessage(), e);
-            wlStatus = WordlistStatus.CLOSED;
+            LOGGER.error("unexpected error examining salt in DB, will remain closed: " + e.getMessage(), e);
+            status = STATUS.CLOSED;
             return;
         }
 
@@ -244,7 +246,7 @@ public class SharedHistoryManager implements Wordlist {
             }
         } catch (PwmDBException e) {
             LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e);
-            wlStatus = WordlistStatus.CLOSED;
+            status = STATUS.CLOSED;
             return;
         }
 
@@ -258,11 +260,11 @@ public class SharedHistoryManager implements Wordlist {
             LOGGER.info(sb.toString());
         } catch (PwmDBException e) {
             LOGGER.error("unexpected error examing size of DB, will remain closed: " + e.getMessage(), e);
-            wlStatus = WordlistStatus.CLOSED;
+            status = STATUS.CLOSED;
             return;
         }
 
-        wlStatus = WordlistStatus.OPEN;
+        status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
         {
@@ -288,7 +290,7 @@ public class SharedHistoryManager implements Wordlist {
             }
 
             final long startTime = System.currentTimeMillis();
-            while (iter.hasNext() && wlStatus == WordlistStatus.OPEN) {
+            while (iter.hasNext() && status == WordlistStatus.OPEN) {
                 counter++;
                 final PwmDB.TransactionItem item = iter.next();
                 final String key = item.getKey();
@@ -323,7 +325,7 @@ public class SharedHistoryManager implements Wordlist {
     }
 
     public synchronized void addWord(final PwmSession pwmSession, final String word) {
-        if (wlStatus != WordlistStatus.OPEN) {
+        if (status != STATUS.OPEN) {
             return;
         }
 
@@ -398,7 +400,7 @@ public class SharedHistoryManager implements Wordlist {
 
             try {
                 final Iterator<String> iter = pwmDB.iterator(WORDS_DB);
-                while (wlStatus == WordlistStatus.OPEN && iter.hasNext()) {
+                while (status == STATUS.OPEN && iter.hasNext()) {
                     final String key = iter.next();
                     final String value = pwmDB.get(WORDS_DB, key);
                     final long timeStamp = Long.parseLong(value);
@@ -425,7 +427,7 @@ public class SharedHistoryManager implements Wordlist {
             }
 
             //update the oldest entry
-            if (wlStatus == WordlistStatus.OPEN) {
+            if (status == STATUS.OPEN) {
                 oldestEntry = localOldestEntry;
                 pwmDB.put(META_DB, KEY_OLDEST_ENTRY, Long.toString(oldestEntry));
             }
@@ -438,5 +440,9 @@ public class SharedHistoryManager implements Wordlist {
             sb.append(" in ").append(TimeDuration.asCompactString(System.currentTimeMillis() - startTime));
             LOGGER.debug(sb.toString());
         }
+    }
+
+    public List<HealthRecord> healthCheck() {
+        return null;
     }
 }

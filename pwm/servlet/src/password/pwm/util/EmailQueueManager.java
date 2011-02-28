@@ -137,7 +137,7 @@ public class EmailQueueManager implements PwmService {
         LOGGER.debug("closed");
     }
 
-    public List<HealthRecord> healthCheck(final ContextManager contextManager) {
+    public List<HealthRecord> healthCheck() {
         if (lastSendFailure == null) {
             return null;
         }

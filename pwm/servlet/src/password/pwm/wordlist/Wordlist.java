@@ -23,10 +23,11 @@
 package password.pwm.wordlist;
 
 import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.PwmSession;
 
 
-public interface Wordlist {
+public interface Wordlist extends PwmService {
 
     static final String KEY_STATUS = "STATUS";
     static final String KEY_LASTLINE = "LASTLINE";
@@ -34,13 +35,11 @@ public interface Wordlist {
     static final String KEY_CHECKSUM = "CHECKSUM";
     static final String KEY_ELAPSEDSECONDS = "RUNTIME";
     static final String KEY_SIZE = "SIZE";
-                                                  
+
     // string used as db version checksum, if different then value in db, db will be cleared.
     static final String VALUE_VERSION = "pwm-wordlist-db-10-a5" + "_" + PwmConstants.BUILD_NUMBER + "_" + PwmConstants.PWM_VERSION;
 
     public boolean containsWord(final PwmSession pwmSession, final String word);
-
-    WordlistStatus getStatus();
 
     int size();
 }

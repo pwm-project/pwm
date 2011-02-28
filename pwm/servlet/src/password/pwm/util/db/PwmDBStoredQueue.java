@@ -521,7 +521,7 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
         private InternalQueue(final PwmDB pwmDB, final PwmDB.DB DB)
                 throws PwmDBException {
             if (pwmDB == null) {
-                throw new NullPointerException("PwnDB cannot be null");
+                throw new NullPointerException("PwmDB cannot be null");
             }
 
             if (pwmDB.getStatus() != PwmDB.Status.OPEN) {

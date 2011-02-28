@@ -38,14 +38,13 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
      * will be truncated and replaced with the wordlist file.
      *
      * @param wordlistConfiguration wordlist configuration
-     * @param pwmDB          Functioning instance
+     * @param pwmDB                 Functioning instance
      * @return WordlistManager for the instance.
      */
     public synchronized static SeedlistManager createSeedlistManager(
             final WordlistConfiguration wordlistConfiguration,
             final PwmDB pwmDB
-    )
-    {
+    ) {
         return new SeedlistManager(
                 wordlistConfiguration,
                 pwmDB
@@ -60,13 +59,12 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         super(wordlistConfiguration, pwmDB);
 
         this.LOGGER = PwmLogger.getLogger(this.getClass());
-        this.DEBUG_LABEL = "pwm-seedist";                                                                        
+        this.DEBUG_LABEL = "pwm-seedist";
         this.META_DB = PwmDB.DB.SEEDLIST_META;
         this.WORD_DB = PwmDB.DB.SEEDLIST_WORDS;
 
         final Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
                 init();
             }
@@ -75,9 +73,8 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         t.start();
     }
 
-    public String randomSeed()
-    {
-        if (!wlStatus.isAvailable()) {
+    public String randomSeed() {
+        if (wlStatus != STATUS.OPEN) {
             return null;
         }
         final long startTime = System.currentTimeMillis();
@@ -91,7 +88,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
                     returnValue = obj.toString();
                 }
             }
-        } catch (Exception e) {                                                                
+        } catch (Exception e) {
             LOGGER.warn("error while generating random word: " + e.getMessage());
         }
 
@@ -100,7 +97,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         return returnValue;
     }
 
-    protected Map<String,String> getWriteTxnForValue(final String value) {
+    protected Map<String, String> getWriteTxnForValue(final String value) {
         final Map<String, String> txItem = Collections.singletonMap(String.valueOf(initialPopulationCounter), value);
         initialPopulationCounter++;
         return txItem;

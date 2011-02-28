@@ -23,26 +23,31 @@
 package password.pwm.wordlist;
 
 import password.pwm.Helper;
+import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.error.PwmException;
+import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.Sleeper;
-import password.pwm.util.db.PwmDBException;
-import password.pwm.util.stats.Statistic;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
+import password.pwm.util.stats.Statistic;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-abstract class AbstractWordlist implements Wordlist {
+abstract class AbstractWordlist implements Wordlist, PwmService {
     protected PwmDB.DB META_DB = null;
     protected PwmDB.DB WORD_DB = null;
 
     protected WordlistConfiguration wordlistConfiguration;
 
-    protected volatile WordlistStatus wlStatus = WordlistStatus.CLOSED;
+    protected volatile STATUS wlStatus = STATUS.NEW;
     protected PwmDB pwmDB;
     protected Populator populator;
 
@@ -57,16 +62,14 @@ abstract class AbstractWordlist implements Wordlist {
     protected AbstractWordlist(
             final WordlistConfiguration wordlistConfiguration,
             final PwmDB pwmDB
-    )
-    {
+    ) {
         this.wordlistConfiguration = wordlistConfiguration;
         this.pwmDB = pwmDB;
     }
 
-    protected void init()
-    {
+    protected void init() {
         final long startTime = System.currentTimeMillis();
-        wlStatus = WordlistStatus.OPENING;
+        wlStatus = STATUS.OPENING;
 
         if (pwmDB == null) {
             LOGGER.warn("pwmDB is not available, " + DEBUG_LABEL + " will remain closed");
@@ -112,8 +115,8 @@ abstract class AbstractWordlist implements Wordlist {
             LOGGER.warn(DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage());
         }
 
-        if (wlStatus == WordlistStatus.OPENING || wlStatus == WordlistStatus.POPULATING) {
-            wlStatus = WordlistStatus.OPEN;
+        if (wlStatus == STATUS.OPENING) {
+            wlStatus = STATUS.OPEN;
             final int wordlistSize = size();
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
             LOGGER.debug(DEBUG_LABEL + " open with " + wordlistSize + " words in " + totalTime.asCompactString());
@@ -138,8 +141,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     protected String makeChecksumString(final File wordlistFile)
-            throws IOException
-    {
+            throws IOException {
         final StringBuilder checksumString = new StringBuilder();
         checksumString.append("checksum=").append(Helper.md5sum(wordlistFile));
         checksumString.append(",length=").append(wordlistFile.length());
@@ -148,8 +150,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     protected void checkPopulation()
-            throws Exception
-    {
+            throws Exception {
         LOGGER.trace("calculating checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath());
         final String checksumString = makeChecksumString(wordlistConfiguration.getWordlistFile());
         LOGGER.trace("checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
@@ -167,13 +168,12 @@ abstract class AbstractWordlist implements Wordlist {
             resetDB(checksumString);
         }
 
-        if (wlStatus != WordlistStatus.OPENING) {
+        if (wlStatus != STATUS.OPENING) {
             LOGGER.warn(DEBUG_LABEL + " changed unexpectedly during startup, closing");
             close();
             return;
         }
 
-        wlStatus = WordlistStatus.POPULATING;
         populator = new Populator(
                 new ZipReader(wordlistConfiguration.getWordlistFile()),
                 new Sleeper(wordlistConfiguration.getLoadFactor()),
@@ -184,8 +184,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     private boolean checkChecksum(final String checksum)
-            throws Exception
-    {
+            throws Exception {
         LOGGER.trace("checking wordlist file checksum stored in pwmDB");
 
         final Object checksumInDb = pwmDB.get(META_DB, KEY_CHECKSUM);
@@ -201,8 +200,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     private boolean checkDbStatus()
-            throws Exception
-    {
+            throws Exception {
         LOGGER.trace("checking " + DEBUG_LABEL + " db status");
 
         final VALUE_STATUS statusInDb = VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS));
@@ -217,8 +215,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     private boolean checkDbVersion()
-            throws Exception
-    {
+            throws Exception {
         LOGGER.trace("checking version number stored in pwmDB");
 
         final Object versionInDB = pwmDB.get(META_DB, KEY_VERSION);
@@ -234,8 +231,7 @@ abstract class AbstractWordlist implements Wordlist {
     }
 
     private void resetDB(final String checksum)
-            throws Exception
-    {
+            throws Exception {
         pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
 
         for (final PwmDB.DB db : new PwmDB.DB[]{META_DB, WORD_DB}) {
@@ -247,9 +243,8 @@ abstract class AbstractWordlist implements Wordlist {
         pwmDB.put(META_DB, KEY_CHECKSUM, checksum);
     }
 
-    public boolean containsWord(final PwmSession pwmSession, final String word)
-    {
-        if (!wlStatus.isAvailable()) {
+    public boolean containsWord(final PwmSession pwmSession, final String word) {
+        if (wlStatus != STATUS.OPEN) {
             return false;
         }
 
@@ -266,7 +261,7 @@ abstract class AbstractWordlist implements Wordlist {
 
             if (pwmSession != null) {
                 LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + TimeDuration.asCompactString(totalTime));
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_WORDLIST_CHECK_TIME,totalTime);
+                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_WORDLIST_CHECK_TIME, totalTime);
             }
 
             return result;
@@ -277,8 +272,7 @@ abstract class AbstractWordlist implements Wordlist {
         return false;
     }
 
-    public int size()
-    {
+    public int size() {
         if (populator != null) {
             return 0;
         }
@@ -286,8 +280,7 @@ abstract class AbstractWordlist implements Wordlist {
         return storedSize;
     }
 
-    public synchronized void close()
-    {
+    public synchronized void close() {
         if (populator != null) {
             populator.pause();
             final long beginWaitTime = System.currentTimeMillis();
@@ -300,38 +293,35 @@ abstract class AbstractWordlist implements Wordlist {
             populator = null;
         }
 
-        if (wlStatus != WordlistStatus.CLOSED) {
+        if (wlStatus != STATUS.CLOSED) {
             LOGGER.debug("closed");
         }
 
-        wlStatus = WordlistStatus.CLOSED;
+        wlStatus = STATUS.CLOSED;
         pwmDB = null;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public File getWordlistFile()
-    {
+    public File getWordlistFile() {
         return wordlistConfiguration.getWordlistFile();
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public WordlistStatus getStatus()
-    {
+    public STATUS status() {
         return wlStatus;
     }
 
-    public String getDebugStatus()
-    {
-        if (wlStatus == WordlistStatus.POPULATING && populator != null) {
-            return wlStatus.toString() + " " + populator.percentComplete();
+    public String getDebugStatus() {
+        if (wlStatus == STATUS.OPENING && populator != null) {
+            return "populating " + populator.percentComplete();
         } else {
             return wlStatus.toString();
         }
     }
 
-    protected abstract Map<String,String> getWriteTxnForValue(String value);
+    protected abstract Map<String, String> getWriteTxnForValue(String value);
 
 // -------------------------- ENUMERATIONS --------------------------
 
@@ -340,8 +330,7 @@ abstract class AbstractWordlist implements Wordlist {
         DIRTY,
         IN_PROGRESS;
 
-        static VALUE_STATUS forString(final String status)
-        {
+        static VALUE_STATUS forString(final String status) {
             for (final VALUE_STATUS s : VALUE_STATUS.values()) {
                 if (s.toString().equals(status)) {
                     return s;
@@ -350,5 +339,13 @@ abstract class AbstractWordlist implements Wordlist {
 
             return null;
         }
+    }
+
+    public List<HealthRecord> healthCheck() {
+        if (wlStatus == STATUS.OPENING) {
+            final HealthRecord healthRecord = new HealthRecord(HealthStatus.CAUTION, this.DEBUG_LABEL, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus());
+            return Collections.singletonList(healthRecord);
+        }
+        return null;
     }
 }

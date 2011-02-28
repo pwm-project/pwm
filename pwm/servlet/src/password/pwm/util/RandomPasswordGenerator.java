@@ -28,7 +28,6 @@ import password.pwm.config.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.wordlist.SeedlistManager;
-import password.pwm.wordlist.WordlistStatus;
 
 import java.util.*;
 
@@ -78,7 +77,7 @@ public class RandomPasswordGenerator {
     ) {
         Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-        if (seedlistManagr != null && seedlistManagr.getStatus() != WordlistStatus.CLOSED && seedlistManagr.size() > 0) {
+        if (seedlistManagr != null && seedlistManagr.status() == PwmService.STATUS.OPEN && seedlistManagr.size() > 0) {
             seeds = new HashSet<String>();
             int safteyCounter = 0;
             while (seeds.size() < 10 && safteyCounter < 100) {

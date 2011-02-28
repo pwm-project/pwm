@@ -109,8 +109,8 @@ public class HealthMonitor implements Serializable {
                 LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
             }
         }
-        for (final PwmService service : contextManager.getPwmServices().values()) {
-            final List<HealthRecord> loopResults = service.healthCheck(contextManager);
+        for (final PwmService service : contextManager.getPwmServices()) {
+            final List<HealthRecord> loopResults = service.healthCheck();
             if (loopResults != null) {
                 newResults.addAll(loopResults);
             }

@@ -83,7 +83,6 @@ public class ContextManager implements Serializable {
     private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
 
-    private transient Map<PwmService.SERVICE, PwmService> pwmServices;
     private transient HealthMonitor healthMonitor;
     private transient StatisticsManager statisticsManager;
     private transient WordlistManager wordlistManager;
@@ -153,10 +152,11 @@ public class ContextManager implements Serializable {
         return healthMonitor;
     }
 
-    public Map<PwmService.SERVICE, PwmService> getPwmServices() {
-        final Map<PwmService.SERVICE, PwmService> pwmServices = new HashMap<PwmService.SERVICE, PwmService>();
-        pwmServices.put(PwmService.SERVICE.EmailQueueManager, this.emailQueue);
-        return pwmServices;
+    public Set<PwmService> getPwmServices() {
+        final Set<PwmService> pwmServices = new HashSet<PwmService>();
+        pwmServices.add(this.emailQueue);
+        pwmServices.add(this.wordlistManager);
+        return Collections.unmodifiableSet(pwmServices);
     }
 
     private void openProxyChaiProvider() throws ChaiUnavailableException {
@@ -193,19 +193,16 @@ public class ContextManager implements Serializable {
         return seedlistManager;
     }
 
+    public EmailQueueManager getEmailQueue() {
+        return emailQueue;
+    }
+
     public Date getLastLdapFailure() {
         return lastLdapFailure;
     }
 
     public void setLastLdapFailure() {
         this.lastLdapFailure = new Date();
-    }
-
-    public PwmService getPwmService(final PwmService.SERVICE service) {
-        if (service == PwmService.SERVICE.EmailQueueManager) {
-            return emailQueue;
-        }
-        return null;
     }
 
     // -------------------------- OTHER METHODS --------------------------
@@ -331,7 +328,9 @@ public class ContextManager implements Serializable {
                     final String filename = "web.xml";
                     final String filepath = "WEB-INF";
                     final File theFile = ContextManager.figureFilepath(filename, filepath, servletContext);
-                    theFile.setLastModified(System.currentTimeMillis());
+                    if (!theFile.setLastModified(System.currentTimeMillis())) {
+                        LOGGER.error("unable to modify the last modified time of web.xml");
+                    }
                 } catch (Exception e) {
                     try {
                         LOGGER.error("unexpected error while trying to reinitialize context by touching web.xml");

@@ -22,7 +22,6 @@
 
 package password.pwm;
 
-import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 
 import java.util.List;
@@ -31,19 +30,14 @@ public interface PwmService {
 
     enum STATUS {
         NEW,
+        OPENING,
         OPEN,
         CLOSED
     }
-
-    enum SERVICE {
-        EmailQueueManager
-    }
-
-    void init(ContextManager contextManager) throws PwmException;
 
     STATUS status();
 
     void close();
 
-    List<HealthRecord> healthCheck(ContextManager contextManager);
+    List<HealthRecord> healthCheck();
 }

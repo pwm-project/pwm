@@ -23,13 +23,10 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.Helper" %>
 <%@ page import="password.pwm.PwmService" %>
-<%@ page import="password.pwm.health.HealthMonitor" %>
-<%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.util.EmailQueueManager" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -246,7 +243,7 @@
             Shared Password History Status
         </td>
         <td>
-            <%= contextManager.getSharedHistoryManager().getStatus() %>
+            <%= contextManager.getSharedHistoryManager().status() %>
         </td>
         <td class="key">
             Shared Password History Size
@@ -307,13 +304,13 @@
             EmailQueueStatus
         </td>
         <td>
-            <%= contextManager.getPwmService(PwmService.SERVICE.EmailQueueManager).status() %>
+            <%= contextManager.getEmailQueue().status() %>
         </td>
         <td class="key">
             Email Queue Size
         </td>
         <td>
-            <%= ((EmailQueueManager) contextManager.getPwmService(PwmService.SERVICE.EmailQueueManager)).queueSize() %>
+            <%= contextManager.getEmailQueue().queueSize() %>
         </td>
     </tr>
 </table>

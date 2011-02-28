@@ -1,6 +1,6 @@
+<%@ page import="password.pwm.PwmService" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
-<%@ page import="password.pwm.wordlist.WordlistStatus" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,11 +28,6 @@
   - which by default is a blue-gray gradieted and rounded block.       cd ..
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% if (PwmSession.getPwmSession(session).getContextManager().getWordlistManager() != null && PwmSession.getPwmSession(session).getContextManager().getWordlistManager().getStatus() == WordlistStatus.POPULATING) { %>
-<div id="header-warning" style="background: #8b0000; color:white;">PWM may be slow while wordlist population completes.
-    Status: <%= PwmSession.getPwmSession(session).getContextManager().getWordlistManager().getDebugStatus()%>
-</div>
-<% } %>
 <% if (PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a>
     to modify or finalize the configuration.
