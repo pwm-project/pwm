@@ -170,11 +170,13 @@ public class Helper {
                         LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
                         return;
                     } catch (PwmException e) {
-                        LOGGER.error(pwmSession, "error writing GUID value to user: " + e.getMessage(), e);
+                        LOGGER.warn(pwmSession, "error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user");
+                        return;
                     }
                 }
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "unexpected error while searching GUID for uniqueness: " + e.getMessage(), e);
+                LOGGER.warn(pwmSession, "unexpected error while searching GUID attribute " + GUIDattributeName + " for uniqueness: " + e.getMessage() + ", cannot write GUID value to user");
+                return;
             }
             attempts++;
         }
