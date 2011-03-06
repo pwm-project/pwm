@@ -267,7 +267,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     settingElement.addContent(labelElement);
                 }
 
-                {
+                if (isDefaultValue(setting)) {
+                    settingElement.addContent(new Element("default"));
+                } else {
                     final List<Element> valueElements;
                     if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
                         final String key = STORED_DATE_FORMAT.format(createTime) + StoredConfiguration.class.getSimpleName();
@@ -330,7 +332,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 if (pwmSetting == null) {
                     LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
                 } else {
-
                     if (settingElement.getChild("value") == null) {
                         newConfiguration.settingMap.put(pwmSetting, defaultValue(pwmSetting));
                     } else {
@@ -456,12 +457,16 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public String settingChecksum() throws IOException {
+
         final StringBuilder sb = new StringBuilder();
+        sb.append("PwmSettingsChecksum");
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
-            sb.append(loopSetting.getKey());
-            sb.append("=");
-            sb.append(settingMap.get(loopSetting));
+            if (!isDefaultValue(loopSetting)) {
+                sb.append(loopSetting.getKey());
+                sb.append("=");
+                sb.append(settingMap.get(loopSetting));
+            }
         }
 
         sb.append(modifyTime);

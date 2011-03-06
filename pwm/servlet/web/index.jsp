@@ -41,10 +41,13 @@
 
         <p><pwm:Display key="Long_Title_ChangePassword"/></p>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a></h2>
 
         <p>
             <pwm:Display key="Long_Title_ForgottenPassword"/>
+                <% } %>
+
 
                 <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
 
@@ -54,9 +57,12 @@
             <pwm:Display key="Long_Title_ForgottenUsername"/>
                 <% } %>
 
+                <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
+
         <h2><a href="<pwm:url url='private/SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a></h2>
 
         <p><pwm:Display key="Long_Title_SetupResponses"/></p>
+        <% } %>
 
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a></h2>
@@ -78,10 +84,12 @@
         <p><pwm:Display key="Long_Title_UpdateAttributes"/></p>
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
         <h2><a href="<pwm:url url='private/history.jsp'/>" class="tablekey"><pwm:Display
                 key="Title_UserEventHistory"/></a></h2>
 
         <p><pwm:Display key="Long_Title_UserEventHistory"/></p>
+        <% } %>
 
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
         <h2><a href="<pwm:url url='private/Shortcuts'/>" class="tablekey"><pwm:Display key="Title_Shortcuts"/></a></h2>
@@ -89,10 +97,12 @@
         <p><pwm:Display key="Long_Title_Shortcuts"/></p>
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey"><pwm:Display
                 key="Title_UserInformation"/></a></h2>
 
         <p><pwm:Display key="Long_Title_UserInformation"/></p>
+        <% } %>
 
         <hr/>
 

@@ -39,7 +39,8 @@ public class ForgottenPasswordBean implements Serializable {
     private ChallengeSet challengeSet;
     private boolean responsesSatisfied;
     private String token;
-    private boolean passedToken;
+    private boolean tokenSatisfied;
+    private boolean allPassed;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -83,12 +84,20 @@ public class ForgottenPasswordBean implements Serializable {
         this.token = token;
     }
 
-    public boolean isPassedToken() {
-        return passedToken;
+    public boolean isTokenSatisfied() {
+        return tokenSatisfied;
     }
 
-    public void setPassedToken(final boolean passedToken) {
-        this.passedToken = passedToken;
+    public void setTokenSatisfied(final boolean passedToken) {
+        this.tokenSatisfied = passedToken;
+    }
+
+    public boolean isAllPassed() {
+        return allPassed;
+    }
+
+    public void setAllPassed(boolean allPassed) {
+        this.allPassed = allPassed;
     }
 }
 

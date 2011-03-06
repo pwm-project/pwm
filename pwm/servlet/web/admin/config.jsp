@@ -68,7 +68,8 @@
                 <td class="key" style="width:100px; text-align:center;">
                     <%= loopSetting.getLabel(request.getLocale()) %>
                 </td>
-                <td>
+                <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
+                <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>
                     <%
                         if (loopSetting.isConfidential()) {
                             out.write("* not shown *");
@@ -116,6 +117,10 @@
         <br class="clear"/>
         <% } %>
         <br class="clear"/>
+
+        <div style="text-align:center;">
+            Values in <span style="color:blue;">blue</span> are modified from the default values.
+        </div>
     </div>
 </div>
 <br class="clear"/>

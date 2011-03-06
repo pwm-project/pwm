@@ -340,7 +340,7 @@ public class Validator {
             final ContextManager contextManager
     ) {
         final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
-        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmSession.getConfig(), pwmSession, policy, password);
+        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
         internalResults.addAll(externalResults);
         return internalResults;
     }

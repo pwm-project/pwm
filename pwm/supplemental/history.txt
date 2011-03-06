@@ -21,8 +21,9 @@ v1.5.3
 - Fixed issue with cookieless (URL) sessions not working since v1.5.2
 - Fixed issue wih CommandServlet?processAction=checkExpire not working
 - Improved ConfigManager UI performance and layout
+- changed from simpleJson java libray to google json (gson) library for flexibility
 
-! Added url escapig to user input reflected html form values to prevent certain types of XSS attacks
+! Added url escaping to user input reflected html form values to prevent certain types of XSS attacks
 
 
 v1.5.2 (October 22, 2010) build 996

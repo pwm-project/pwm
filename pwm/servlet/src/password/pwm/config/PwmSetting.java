@@ -75,6 +75,10 @@ public enum PwmSetting {
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+    DISPLAY_PASSWORD_HISTORY(
+            "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+    DISPLAY_ACCOUNT_INFORMATION(
+            "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
 
 
     //ldap directory
@@ -271,6 +275,8 @@ public enum PwmSetting {
 
 
     // challenge policy
+    CHALLENGE_ENABLE(
+            "challenge.enable", Syntax.BOOLEAN, Category.CHALLENGE, false, Level.ADVANCED),
     CHALLENGE_FORCE_SETUP(
             "challenge.forceSetup", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_RANDOM_CHALLENGES(
@@ -296,6 +302,8 @@ public enum PwmSetting {
 
 
     // recovery settings
+    FORGOTTEN_PASSWORD_ENABLE(
+            "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
     RESPONSE_STORAGE_PWMDB(

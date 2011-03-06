@@ -72,6 +72,12 @@ public class SetupResponsesServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final ChallengeSet assignedCs = uiBean.getChallengeSet();
 
+        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
+            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
         // read the action request parameter
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 

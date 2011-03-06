@@ -106,24 +106,30 @@ public class CrUtility {
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
             throws ChaiUnavailableException, PwmException {
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
-            final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
-            if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmException(PwmError.ERROR_MISSING_GUID.toInfo(), "cannot read responses from pwmDB without pwmGUID");
+            final String GUIDattr = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+            String userGUID = null;
+            try {
+                userGUID = theUser.readStringAttribute(GUIDattr);
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, " error reading pwmGUID attribute " + GUIDattr + " on user " + theUser.getEntryDN() + ": " + e.getMessage());
             }
 
-            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
-
-            try {
-                final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
-                if (responseStringBlob != null && responseStringBlob.length() > 0) {
-                    final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
-                    LOGGER.debug(pwmSession, "read user responses from pwmDB");
-                    return userResponseSet;
+            if (userGUID == null || userGUID.length() < 1) {
+                LOGGER.error(pwmSession, "user " + theUser.getEntryDN() + " does not have a pwmGUID, skipping search for responses in pwmDB");
+            } else {
+                final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+                try {
+                    final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                    if (responseStringBlob != null && responseStringBlob.length() > 0) {
+                        final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
+                        LOGGER.debug(pwmSession, "found user responses in pwmDB: " + userResponseSet.toString());
+                        return userResponseSet;
+                    }
+                } catch (PwmDBException e) {
+                    LOGGER.error(pwmSession, "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage());
+                } catch (ChaiValidationException e) {
+                    LOGGER.error(pwmSession, "unexpected chai error reading responses from pwmDB: " + e.getMessage());
                 }
-            } catch (PwmDBException e) {
-                LOGGER.error(pwmSession, "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage());
-            } catch (ChaiValidationException e) {
-                LOGGER.error(pwmSession, "unexpected chai error reading responses from pwmDB: " + e.getMessage());
             }
         }
 

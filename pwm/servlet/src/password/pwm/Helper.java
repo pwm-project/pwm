@@ -165,8 +165,8 @@ public class Helper {
                 final Map<String, Properties> result = proxyChaiProvider.search(baseContext, searchHelper);
                 if (result.isEmpty()) {
                     try {
-                        pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).addAttribute(GUIDattributeName, newGUID);
-                        pwmSession.getUserInfoBean().getAllUserAttributes().setProperty(GUIDattributeName, newGUID);
+                        pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).writeStringAttribute(GUIDattributeName, newGUID);
+                        pwmSession.getUserInfoBean().setUserGuid(newGUID);
                         LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
                         return;
                     } catch (PwmException e) {

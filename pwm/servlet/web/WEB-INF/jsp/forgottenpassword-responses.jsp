@@ -70,6 +70,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                    value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getAttributeName(),"") %>"/>
             <% } %>
 
+            <% if (Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>
             <% // loop through challenges
                 int counter = 0;
                 for (final Challenge loopChallenge : recoverBean.getResponseSet().getChallengeSet().getChallenges()) {
@@ -80,6 +81,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <input type="password" name="PwmResponse_R_<%= counter %>" class="inputfield" maxlength="255"
                    id="PwmResponse_R_<%=counter%>"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + counter,"") %>"/>
+            <% } %>
             <% } %>
 
             <div id="buttonbar">

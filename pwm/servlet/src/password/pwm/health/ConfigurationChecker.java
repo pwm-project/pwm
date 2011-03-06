@@ -23,14 +23,14 @@
 package password.pwm.health;
 
 import password.pwm.ContextManager;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ConfigurationChecker implements HealthChecker {
     private static final String TOPIC = "Configuration Checker";
@@ -42,13 +42,15 @@ public class ConfigurationChecker implements HealthChecker {
             return Collections.singletonList(hr);
         }
 
+        final Configuration config = contextManager.getConfig();
+
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
-        if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
+        if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Promiscuous LDAP SSL connection is being used"));
         }
 
         {
-            final String novellUserAppURL = contextManager.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
+            final String novellUserAppURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
             if (novellUserAppURL != null && novellUserAppURL.length() > 0) {
                 try {
                     final URL url = new URL(novellUserAppURL);
@@ -58,6 +60,19 @@ public class ConfigurationChecker implements HealthChecker {
                     }
                 } catch (MalformedURLException e) {
                     LOGGER.debug("error parsing Novell PwdMgt Web Service URL: " + e.getMessage());
+                    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "error parsing Novell PwdMgt Web Service URL: " + e.getMessage()));
+                }
+            }
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
+            if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+                if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
+                    final Collection<String> configValues = config.readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
+                    final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+                    if (formSettings.isEmpty()) {
+                        records.add(new HealthRecord(HealthStatus.WARN, TOPIC, "No forgotten password recovery options are enabled"));
+                    }
                 }
             }
         }

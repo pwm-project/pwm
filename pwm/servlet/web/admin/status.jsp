@@ -157,7 +157,8 @@
         </script>
     </td>
 </table>
-
+<p style="text-align:center; width:100%">Public PWM Health Page is at <a
+        href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a></p>
 <br class="clear"/>
 <table class="tablemain">
     <tr>
