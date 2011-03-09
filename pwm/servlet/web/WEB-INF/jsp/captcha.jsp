@@ -28,7 +28,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.verifyCaptcha.recaptcha_response_field.focus();" class="tundra">
+<body onload="pwmPageLoadHandler();try {document.forms.verifyCaptcha.recaptcha_response_field.focus()} catch (e) {}"
+      class="tundra">
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
@@ -49,15 +50,15 @@
               onreset="handleFormClear();return false">
             <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
             <% final String reCaptchaPublicKey = password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
-            <% final String reCaptchaProcotocol = request.isSecure() ? "https" : "http"; %>
+            <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
             <script type="text/javascript">
                 var RecaptchaOptions = { theme : 'clean' };
             </script>
             <script type="text/javascript"
-                    src="<%=reCaptchaProcotocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>">
+                    src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>">
             </script>
             <noscript>
-                <iframe src="<%=reCaptchaProcotocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProcotocol%>"
+                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProtocol%>"
                         height="300" width="500" frameborder="0"></iframe>
                 <br>
                 <textarea name="recaptcha_challenge_field" rows="3" cols="40">
@@ -71,8 +72,7 @@
                        id="verify_button"
                        value="    <pwm:Display key="Button_Verify"/>    "/>
                 <input type="reset" name="reset" class="btn"
-                       value="    <pwm:Display key="Button_Reset"/>    "
-                        />
+                       value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -82,4 +82,3 @@
 <%@ include file="footer.jsp" %>
 </body>
 </html>
-

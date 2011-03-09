@@ -24,7 +24,6 @@ package password.pwm.util;
 
 import com.google.gson.Gson;
 import password.pwm.ContextManager;
-import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
@@ -79,7 +78,7 @@ public class EmailQueueManager implements PwmService {
     public EmailQueueManager(final ContextManager theManager)
             throws PwmDBException {
         this.theManager = theManager;
-        this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsInt(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
+        this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
 
         final PwmDB pwmDB = theManager.getPwmDB();
         mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);

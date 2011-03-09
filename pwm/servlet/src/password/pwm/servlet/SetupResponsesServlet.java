@@ -41,6 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.ServletException;
@@ -74,7 +75,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -84,7 +85,7 @@ public class SetupResponsesServlet extends TopServlet {
         // check to see if the user is permitted to setup responses
         if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -92,7 +93,7 @@ public class SetupResponsesServlet extends TopServlet {
         if (assignedCs == null || assignedCs.getChallenges().isEmpty()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES));
             LOGGER.debug(pwmSession, "no challenge sets configured for user " + uiBean.getUserDN());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -198,7 +199,7 @@ public class SetupResponsesServlet extends TopServlet {
         } else {
             final boolean saveSuccess = CrUtility.saveResponses(pwmSession, responses);
             if (saveSuccess) {
-                Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
             } else {
                 this.forwardToJSP(req, resp);
             }
@@ -231,7 +232,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         if (saveSuccess) {
-            Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
         } else {
             this.forwardToConfirmJSP(req, resp);
         }
@@ -260,7 +261,7 @@ public class SetupResponsesServlet extends TopServlet {
             throws SetupResponsesException, PwmException, IOException {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
-        final String bodyString = Helper.readRequestBody(req, 10 * 1024);
+        final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
 
         final Gson gson = new Gson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
@@ -478,7 +479,7 @@ public class SetupResponsesServlet extends TopServlet {
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<String, Challenge>();
 
         {
-            minRandomSetup = pwmSession.getConfig().readSettingAsInt(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+            minRandomSetup = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
             if (minRandomSetup != 0 && minRandomSetup < challengeSet.getMinRandomRequired()) {
                 minRandomSetup = challengeSet.getMinRandomRequired();
             }

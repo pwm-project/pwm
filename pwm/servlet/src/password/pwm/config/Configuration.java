@@ -28,7 +28,7 @@ import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.ContextManager;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.util.PwmLogLevel;
@@ -111,8 +111,8 @@ public class Configuration implements Serializable {
         return StringHelper.convertStrToBoolean(storedConfiguration.readSetting(setting));
     }
 
-    public int readSettingAsInt(final PwmSetting setting) {
-        return StringHelper.convertStrToInt(storedConfiguration.readSetting(setting), 0);
+    public long readSettingAsLong(final PwmSetting setting) {
+        return StringHelper.convertStrToLong(storedConfiguration.readSetting(setting), 0);
     }
 
     public String readLocalizedStringSetting(final PwmSetting setting, final Locale locale) {
@@ -206,7 +206,7 @@ public class Configuration implements Serializable {
             }
         }
 
-        int minimumRands = readSettingAsInt(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED);
+        int minimumRands = (int) readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED);
         if (minimumRands > randomQuestions.size()) {
             minimumRands = randomQuestions.size();
         }

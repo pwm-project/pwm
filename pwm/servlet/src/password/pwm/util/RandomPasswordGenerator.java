@@ -258,7 +258,7 @@ public class RandomPasswordGenerator {
         }
     }
 
-    protected static void deleteRandChar(final StringBuilder password, final String charsToRemove)
+    private static void deleteRandChar(final StringBuilder password, final String charsToRemove)
             throws ImpossiblePasswordPolicyException {
         final List<Integer> removePossibilities = new ArrayList<Integer>();
         for (int i = 0; i < password.length(); i++) {

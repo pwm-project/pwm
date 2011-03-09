@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -97,7 +98,7 @@ public class
                 if (mismatch) {
                     pwmSession.unauthenticateUser();
                     ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_USER_MISMATCH));
-                    Helper.forwardToErrorPage(req, resp, this.getServletContext());
+                    ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                     return;
                 }
             }

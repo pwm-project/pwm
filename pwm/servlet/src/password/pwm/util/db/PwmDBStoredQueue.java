@@ -426,9 +426,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             try {
                 final String nextValue = internalQueue.pwmDB.get(internalQueue.DB, position.toString());
                 if (first) {
-                    position = position == internalQueue.tailPosition ? null : position.previous();
+                    position = position.equals(internalQueue.tailPosition) ? null : position.previous();
                 } else {
-                    position = position == internalQueue.headPosition ? null : position.next();
+                    position = position.equals(internalQueue.headPosition) ? null : position.next();
                 }
                 return nextValue;
             } catch (PwmDBException e) {

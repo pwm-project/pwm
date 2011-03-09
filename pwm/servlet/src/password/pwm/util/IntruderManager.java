@@ -62,8 +62,7 @@ public class IntruderManager implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    private static void cleanup(final Map<String, IntruderRecord> table)
-    {
+    private static void cleanup(final Map<String, IntruderRecord> table) {
         final int cleanTime = INTRUDER_RETENTION_TIME;
         final Map<String, IntruderRecord> copiedMap = new HashMap<String, IntruderRecord>(table);
         for (final String key : copiedMap.keySet()) {
@@ -79,8 +78,7 @@ public class IntruderManager implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public IntruderManager(final ContextManager contextManager)
-    {
+    public IntruderManager(final ContextManager contextManager) {
         this.theManager = contextManager;
     }
 
@@ -91,20 +89,19 @@ public class IntruderManager implements Serializable {
      *
      * @param pwmSession Session state
      */
-    public void addBadAddressAttempt(final PwmSession pwmSession)
-    {
+    public void addBadAddressAttempt(final PwmSession pwmSession) {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.incrementIncorrectLogins();
 
         final Configuration config = pwmSession.getConfig();
         final String addressString = ssBean.getSrcAddress();
-        final int resetTime = config.readSettingAsInt(PwmSetting.INTRUDER_ADDRESS_RESET_TIME) * 1000;
+        final long resetTime = config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_RESET_TIME) * 1000;
 
         if (resetTime <= 0) {
             return;
         }
 
-        markBadAttempt(addressLockTable, addressString, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS));
+        markBadAttempt(addressLockTable, addressString, resetTime, (int) config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS));
         final IntruderRecord record = addressLockTable.get(addressString);
 
         try {
@@ -123,12 +120,11 @@ public class IntruderManager implements Serializable {
                 sb.append(", alerted=").append(record.isAlerted());
                 sb.append(", timeRemaining=").append(TimeDuration.asCompactString(record.timeRemaining()));
             }
-            LOGGER.debug(pwmSession,sb.toString());
+            LOGGER.debug(pwmSession, sb.toString());
         }
     }
 
-    private static void markBadAttempt(final Map<String, IntruderRecord> table, final String key, final long maxTime, final int maxAttempts)
-    {
+    private static void markBadAttempt(final Map<String, IntruderRecord> table, final String key, final long maxTime, final int maxAttempts) {
         IntruderRecord record = table.get(key);
         if (record == null) {
             record = new IntruderRecord(maxTime, maxAttempts);
@@ -142,17 +138,17 @@ public class IntruderManager implements Serializable {
      * the ssBean's error status is set appropriately
      *
      * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmException if the user is locked out
+     * @throws password.pwm.error.PwmException
+     *          if the user is locked out
      */
     public void checkAddress(final PwmSession pwmSession)
-            throws PwmException
-    {
+            throws PwmException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String addressString = ssBean.getSrcAddress();
         final Configuration config = pwmSession.getConfig();
 
 
-        final int sessionMaxAttempts = config.readSettingAsInt(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS);
+        final int sessionMaxAttempts = (int) config.readSettingAsLong(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS);
         if (sessionMaxAttempts > 0 && ssBean.getIncorrectLogins() > sessionMaxAttempts) {
             LOGGER.warn(pwmSession, "session intruder limit exceeded for " + addressString);
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_SESSION);
@@ -170,16 +166,15 @@ public class IntruderManager implements Serializable {
         }
     }
 
-    public void addBadUserAttempt(final String username, final PwmSession pwmSession)
-    {
+    public void addBadUserAttempt(final String username, final PwmSession pwmSession) {
         final Configuration config = pwmSession.getConfig();
-        final int resetTime = config.readSettingAsInt(PwmSetting.INTRUDER_USER_RESET_TIME) * 1000;
+        final long resetTime = config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME) * 1000;
 
         if (resetTime <= 0) {
             return;
         }
 
-        markBadAttempt(userLockTable, username, resetTime, config.readSettingAsInt(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS));
+        markBadAttempt(userLockTable, username, resetTime, (int) config.readSettingAsLong(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS));
         final IntruderRecord record = userLockTable.get(username);
 
         try {
@@ -198,7 +193,7 @@ public class IntruderManager implements Serializable {
                 sb.append(", alerted=").append(record.isAlerted());
                 sb.append(", timeRemaining=").append(TimeDuration.asCompactString(record.timeRemaining()));
             }
-            LOGGER.debug(pwmSession,sb.toString());
+            LOGGER.debug(pwmSession, sb.toString());
         }
     }
 
@@ -208,8 +203,8 @@ public class IntruderManager implements Serializable {
         }
         record.setAlerted(true);
 
-        final Map<String,String> values = new LinkedHashMap<String,String>();
-        values.put("type","user");
+        final Map<String, String> values = new LinkedHashMap<String, String>();
+        values.put("type", "user");
         values.put("username", username);
         values.put("attempts", String.valueOf(record.getAttemptCount()));
         values.put("duration", TimeDuration.asCompactString(record.timeRemaining()));
@@ -221,7 +216,7 @@ public class IntruderManager implements Serializable {
             final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
             if (userDN != null) {
                 final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
-                UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK,"");
+                UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
                 LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
             } else {
                 LOGGER.debug(pwmSession, "error updating user history for " + username + ", unable to discover user in directory");
@@ -240,8 +235,8 @@ public class IntruderManager implements Serializable {
         }
         record.setAlerted(true);
 
-        final Map<String,String> values = new LinkedHashMap<String,String>();
-        values.put("type","address");
+        final Map<String, String> values = new LinkedHashMap<String, String>();
+        values.put("type", "address");
         values.put("address", addressString);
         values.put("attempts", String.valueOf(record.getAttemptCount()));
         values.put("duration", TimeDuration.asCompactString(record.timeRemaining()));
@@ -254,13 +249,13 @@ public class IntruderManager implements Serializable {
      * Checks to see if a userDN has been locked out.  If the userDN is locked out, a PWMException is thrown, and
      * the ssBean's error status is set appropriately
      *
-     * @param username the userDN to test
+     * @param username   the userDN to test
      * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmException if the user is locked out
+     * @throws password.pwm.error.PwmException
+     *          if the user is locked out
      */
     public void checkUser(final String username, final PwmSession pwmSession)
-            throws PwmException
-    {
+            throws PwmException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final IntruderRecord record = userLockTable.get(username);
@@ -272,35 +267,30 @@ public class IntruderManager implements Serializable {
         }
     }
 
-    public void addGoodAddressAttempt(final PwmSession pwmSession)
-    {
+    public void addGoodAddressAttempt(final PwmSession pwmSession) {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.resetIncorrectLogins();
         doGoodAttempt(addressLockTable, ssBean.getSrcAddress());
-        LOGGER.debug(pwmSession, "address intruder count reset for " + ssBean.getSrcAddress() );
+        LOGGER.debug(pwmSession, "address intruder count reset for " + ssBean.getSrcAddress());
     }
 
-    private static void doGoodAttempt(final Map table, final String key)
-    {
+    private static void doGoodAttempt(final Map table, final String key) {
         final IntruderRecord record = (IntruderRecord) table.get(key);
         if (record != null) {
             record.clearAttemptCount();
         }
     }
 
-    public void addGoodUserAttempt(final String username, final PwmSession pwmSession)
-    {
+    public void addGoodUserAttempt(final String username, final PwmSession pwmSession) {
         doGoodAttempt(userLockTable, username);
-        LOGGER.debug(pwmSession, "user intruder count reset for " + username );
+        LOGGER.debug(pwmSession, "user intruder count reset for " + username);
     }
 
-    public int currentLockedAddresses()
-    {
+    public int currentLockedAddresses() {
         return lockCount(getAddressLockTable());
     }
 
-    public static int lockCount(final Map<String, IntruderRecord> map)
-    {
+    public static int lockCount(final Map<String, IntruderRecord> map) {
         int counter = 0;
         for (final String key : map.keySet()) {
             if (map.get(key).isLocked()) {
@@ -310,18 +300,15 @@ public class IntruderManager implements Serializable {
         return counter;
     }
 
-    public Map<String, IntruderRecord> getAddressLockTable()
-    {
+    public Map<String, IntruderRecord> getAddressLockTable() {
         return Collections.unmodifiableMap(new HashMap<String, IntruderRecord>(addressLockTable));
     }
 
-    public int currentLockedUsers()
-    {
+    public int currentLockedUsers() {
         return lockCount(getUserLockTable());
     }
 
-    public Map<String, IntruderRecord> getUserLockTable()
-    {
+    public Map<String, IntruderRecord> getUserLockTable() {
         return Collections.unmodifiableMap(new HashMap<String, IntruderRecord>(userLockTable));
     }
 
@@ -334,8 +321,7 @@ public class IntruderManager implements Serializable {
         private final int maxAttempts;
         private boolean alerted;
 
-        public IntruderRecord(final long maxTimeout, final int maxAttempts)
-        {
+        public IntruderRecord(final long maxTimeout, final int maxAttempts) {
             this.timeStamp = System.currentTimeMillis();
             this.attemptCount = 0;
             this.alerted = false;
@@ -343,18 +329,15 @@ public class IntruderManager implements Serializable {
             this.maxAttempts = maxAttempts;
         }
 
-        public long getTimeStamp()
-        {
+        public long getTimeStamp() {
             return timeStamp;
         }
 
-        public int getAttemptCount()
-        {
+        public int getAttemptCount() {
             return attemptCount;
         }
 
-        public void incrementAttemptCount()
-        {
+        public void incrementAttemptCount() {
             if (timeRemaining() < 0) {
                 attemptCount = 0;
                 alerted = false;
@@ -363,18 +346,15 @@ public class IntruderManager implements Serializable {
             attemptCount++;
         }
 
-        public void clearAttemptCount()
-        {
+        public void clearAttemptCount() {
             attemptCount = 0;
         }
 
-        public long timeRemaining()
-        {
+        public long timeRemaining() {
             return (timeStamp + maxTimeout) - System.currentTimeMillis();
         }
 
-        public boolean isLocked()
-        {
+        public boolean isLocked() {
             if (timeRemaining() > 0) {
                 if (attemptCount >= maxAttempts) {
                     return true;
@@ -383,23 +363,19 @@ public class IntruderManager implements Serializable {
             return false;
         }
 
-        public long getMaxTimeout()
-        {
+        public long getMaxTimeout() {
             return maxTimeout;
         }
 
-        public int getMaxAttempts()
-        {
+        public int getMaxAttempts() {
             return maxAttempts;
         }
 
-        public boolean isAlerted()
-        {
+        public boolean isAlerted() {
             return alerted;
         }
 
-        public void setAlerted(final boolean alerted)
-        {
+        public void setAlerted(final boolean alerted) {
             this.alerted = alerted;
         }
     }
@@ -407,13 +383,11 @@ public class IntruderManager implements Serializable {
     public static class CleanerTask extends TimerTask {
         private final IntruderManager intruderManager;
 
-        public CleanerTask(final IntruderManager intruderManager)
-        {
+        public CleanerTask(final IntruderManager intruderManager) {
             this.intruderManager = intruderManager;
         }
 
-        public void run()
-        {
+        public void run() {
             cleanup(intruderManager.addressLockTable);
             cleanup(intruderManager.userLockTable);
         }

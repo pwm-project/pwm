@@ -21,9 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.Helper" %>
-<%@ page import="password.pwm.PwmService" %>
-<%@ page import="password.pwm.util.EmailQueueManager" %>
+<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>

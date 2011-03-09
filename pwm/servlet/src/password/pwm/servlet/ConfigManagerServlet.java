@@ -35,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -245,7 +246,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String key = Validator.readStringFromRequest(req, "key");
-        final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
+        final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
         final Gson gson = new Gson();
         final PwmSetting setting = PwmSetting.forKey(key);
 
@@ -290,6 +291,13 @@ public class ConfigManagerServlet extends TopServlet {
                 if (!bodyString.equals(DEFAULT_PW)) {
                     storedConfig.writeSetting(setting, value);
                 }
+            }
+            break;
+
+            case NUMERIC: {
+                final Long value = gson.fromJson(bodyString, new TypeToken<Long>() {
+                }.getType());
+                storedConfig.writeSetting(setting, value.toString());
             }
             break;
 
@@ -338,7 +346,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
-        final String bodyString = Helper.readRequestBody(req, MAX_INPUT_LENGTH);
+        final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
 
         final Gson gson = new Gson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {

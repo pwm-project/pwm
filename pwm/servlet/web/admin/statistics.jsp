@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.Helper" %>
+<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>

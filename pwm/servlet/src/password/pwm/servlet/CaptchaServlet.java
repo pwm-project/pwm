@@ -23,15 +23,13 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmConstants;
-import password.pwm.Helper;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -67,30 +65,29 @@ public class CaptchaServlet extends TopServlet {
     }
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         //check intruder detection, if it is tripped, send user to error page
         try {
             pwmSession.getContextManager().getIntruderManager().checkAddress(pwmSession);
         } catch (PwmException e) {
-            Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext(), false);
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext(), false);
             return;
         }
 
         if (checkRequestForCaptchaSkipCookie(pwmSession, req)) {
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
             LOGGER.debug(pwmSession, "browser has a valid " + SKIP_COOKIE_NAME + " cookie value of " + figureSkipCookieValue(pwmSession) + ", skipping captcha check");
-            forwardToOriginalLocation(req,resp);
+            forwardToOriginalLocation(req, resp);
             return;
         }
-        
+
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("doVerify")) {
-                handleVerify(req,resp);
+                handleVerify(req, resp);
             }
         }
 
@@ -99,18 +96,17 @@ public class CaptchaServlet extends TopServlet {
         }
     }
 
-    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         Validator.validatePwmFormID(req);
-        
+
         final boolean verified;
         try {
             verified = verifyReCaptcha(req, pwmSession);
         } catch (PwmException e) {
             LOGGER.fatal("error " + e.getCause().getClass().getName() + "during recaptcha api validation: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getError());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -121,7 +117,7 @@ public class CaptchaServlet extends TopServlet {
             LOGGER.debug(pwmSession, "captcha passcode verified");
             pwmSession.getContextManager().getIntruderManager().addGoodAddressAttempt(pwmSession);
             writeCaptchaSkipCookie(pwmSession, resp);
-            forwardToOriginalLocation(req,resp);
+            forwardToOriginalLocation(req, resp);
         } else { //failed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(false);
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE));
@@ -129,16 +125,18 @@ public class CaptchaServlet extends TopServlet {
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
             pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
-            forwardToJSP(req,resp);
+            forwardToJSP(req, resp);
         }
     }
 
     /**
      * Verify a reCaptcha request.  The reCaptcha request API is documented at <a href="http://recaptcha.net/apidocs/captcha/">reCaptcha API.
-     * @param req httpRequest
+     *
+     * @param req        httpRequest
      * @param pwmSession users session
      * @return true if correct captcha response
-     * @throws password.pwm.error.PwmException if a captcha api error occurs
+     * @throws password.pwm.error.PwmException
+     *          if a captcha api error occurs
      */
     private boolean verifyReCaptcha(
             final HttpServletRequest req,
@@ -151,10 +149,10 @@ public class CaptchaServlet extends TopServlet {
         try {
             final URI requestURI = new URI(RECAPTCHA_VALIDATE_URL);
             httpPost = new PostMethod(requestURI.toString());
-            httpPost.setParameter("privatekey",pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
-            httpPost.setParameter("remoteip",PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
-            httpPost.setParameter("challenge",Validator.readStringFromRequest(req, "recaptcha_challenge_field", 1024));
-            httpPost.setParameter("response",Validator.readStringFromRequest(req, "recaptcha_response_field", 1024));
+            httpPost.setParameter("privatekey", pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
+            httpPost.setParameter("remoteip", PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
+            httpPost.setParameter("challenge", Validator.readStringFromRequest(req, "recaptcha_challenge_field", 1024));
+            httpPost.setParameter("response", Validator.readStringFromRequest(req, "recaptcha_response_field", 1024));
 
             LOGGER.debug(pwmSession, "sending reCaptcha verification request: " + httpMethodToDebugString(httpPost));
             final int statusCode = httpClient.executeMethod(httpPost);
@@ -178,7 +176,7 @@ public class CaptchaServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "reCaptcha error response: " + errorCode);
             }
         } catch (Exception e) {
-            final PwmException pwmE = PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR,e.getMessage()));
+            final PwmException pwmE = PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR, e.getMessage()));
             pwmE.initCause(e);
             throw pwmE;
         } finally {
@@ -218,8 +216,7 @@ public class CaptchaServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CAPTCHA).forward(req, resp);
     }
 
@@ -227,15 +224,14 @@ public class CaptchaServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
-        Helper.forwardToOriginalRequestURL(req,resp);
+            throws IOException, ServletException {
+        ServletHelper.forwardToOriginalRequestURL(req, resp);
     }
 
     private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletResponse resp) {
         final String cookieValue = figureSkipCookieValue(pwmSession);
         if (cookieValue != null) {
-            final Cookie skipCookie = new Cookie(SKIP_COOKIE_NAME,cookieValue);
+            final Cookie skipCookie = new Cookie(SKIP_COOKIE_NAME, cookieValue);
             skipCookie.setMaxAge(60 * 60 * 24 * 365);
             LOGGER.debug(pwmSession, "setting " + SKIP_COOKIE_NAME + " cookie to " + cookieValue);
             resp.addCookie(skipCookie);

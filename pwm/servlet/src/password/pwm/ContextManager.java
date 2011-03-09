@@ -52,7 +52,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -168,7 +167,7 @@ public class ContextManager implements Serializable {
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-            final int idleSeconds = this.getConfig().readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT);
+            final int idleSeconds = (int) this.getConfig().readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT);
 
             try {
                 proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleSeconds * 1000);
@@ -239,7 +238,7 @@ public class ContextManager implements Serializable {
 
         // initialize configuration
         try {
-            final File configFile = figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
+            final File configFile = ServletHelper.figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
             configReader = new ConfigurationReader(configFile);
             configuration = configReader.getConfiguration();
             if (configuration == null) {
@@ -327,7 +326,7 @@ public class ContextManager implements Serializable {
                     LOGGER.warn("attempting to reinitialize context by touching web.xml");
                     final String filename = "web.xml";
                     final String filepath = "WEB-INF";
-                    final File theFile = ContextManager.figureFilepath(filename, filepath, servletContext);
+                    final File theFile = ServletHelper.figureFilepath(filename, filepath, servletContext);
                     if (!theFile.setLastModified(System.currentTimeMillis())) {
                         LOGGER.error("unable to modify the last modified time of web.xml");
                     }
@@ -451,58 +450,6 @@ public class ContextManager implements Serializable {
 
     public StatisticsManager getStatisticsManager() {
         return statisticsManager;
-    }
-
-    /**
-     * Try to find the real path to a file.  Used for configuration, database, and temporary files.
-     * <p/>
-     * Multiple strategies are used to determine the real path of files because different servlet containers
-     * have different symantics.  In principal, servlets are not supposed
-     *
-     * @param filename       A filename that will be appended to the end of the verified directory
-     * @param suggestedPath  The desired path of the file, either relative to the servlet directory or an absolute path
-     *                       on the file system
-     * @param servletContext The HttpServletContext to be used to retrieve a path.
-     * @return a File referencing the desired suggestedPath and filename.
-     * @throws Exception if unabble to discover a path.
-     */
-    public static File figureFilepath(final String filename, final String suggestedPath, final ServletContext servletContext)
-            throws Exception {
-        if (filename == null || filename.trim().length() < 1) {
-            throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
-        }
-
-        if ((new File(filename)).isAbsolute()) {
-            return new File(filename);
-        }
-
-        if ((new File(suggestedPath).isAbsolute())) {
-            return new File(suggestedPath + File.separator + filename);
-        }
-
-        { // tomcat, and some other containers will correctly return the "real path", so try that first.
-            final String relativePath = servletContext.getRealPath(suggestedPath);
-            if (relativePath != null) {
-                final File finalDirectory = new File(relativePath);
-                if (finalDirectory.exists()) {
-                    return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
-                }
-            }
-        }
-
-        // for containers which do not retrieve the real path, try to use the classloader to find the path.
-        final String cManagerName = ContextManager.class.getCanonicalName();
-        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
-        final URL fileURL = ContextManager.class.getResource(resourcePathname);
-        if (fileURL != null) {
-            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
-            final File finalDirectory = new File(new URL(newString + suggestedPath).toURI());
-            if (finalDirectory.exists()) {
-                return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
-            }
-        }
-
-        throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
     }
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem) {
@@ -665,7 +612,7 @@ public class ContextManager implements Serializable {
             // try to configure using the log4j config file (if it iexists)
             if (log4jFilename != null && log4jFilename.length() > 0) {
                 try {
-                    final File theFile = figureFilepath(log4jFilename, "WEB-INF/", servletContext);
+                    final File theFile = ServletHelper.figureFilepath(log4jFilename, "WEB-INF/", servletContext);
                     if (!theFile.exists()) {
                         throw new Exception("file not found: " + theFile.getAbsolutePath());
                     }
@@ -704,7 +651,7 @@ public class ContextManager implements Serializable {
             // see if META-INF isn't already there, then use WEB-INF.
             try {
                 final String pwmDBLocationSetting = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
-                databaseDirectory = figureFilepath(pwmDBLocationSetting, "WEB-INF", contextManager.getServletContext());
+                databaseDirectory = ServletHelper.figureFilepath(pwmDBLocationSetting, "WEB-INF", contextManager.getServletContext());
             } catch (Exception e) {
                 LOGGER.warn("error locating configured pwmDB directory: " + e.getMessage());
                 return;
@@ -717,7 +664,7 @@ public class ContextManager implements Serializable {
                 final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
                 final List<String> initStrings = contextManager.getConfig().readStringArraySetting(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers);
+                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, false);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }
@@ -726,8 +673,8 @@ public class ContextManager implements Serializable {
         public static void initializePwmDBLogger(final ContextManager contextManager) {
             // initialize the pwmDBLogger
             try {
-                final int maxEvents = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-                final int maxAge = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_PWMDB_MAX_AGE);
+                final int maxEvents = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+                final int maxAge = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
                 final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
                 contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel, contextManager);
             } catch (Exception e) {
@@ -754,7 +701,7 @@ public class ContextManager implements Serializable {
                 LOGGER.trace("opening wordlist");
 
                 final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
-                final File wordlistFile = setting == null || setting.length() < 1 ? null : figureFilepath(setting, "WEB-INF", contextManager.servletContext);
+                final File wordlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", contextManager.servletContext);
                 final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
                 final int loadFactor = Integer.parseInt(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
                 final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive);
@@ -773,7 +720,7 @@ public class ContextManager implements Serializable {
                 LOGGER.trace("opening seedlist");
 
                 final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
-                final File seedlistFile = setting == null || setting.length() < 1 ? null : figureFilepath(setting, "WEB-INF", contextManager.servletContext);
+                final File seedlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", contextManager.servletContext);
                 final int loadFactor = Integer.parseInt(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
                 final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true);
 
@@ -789,7 +736,7 @@ public class ContextManager implements Serializable {
         public static void initializeSharedHistory(final ContextManager contextManager) {
 
             try {
-                final long maxAgeSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
+                final long maxAgeSeconds = contextManager.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
                 final long maxAgeMS = maxAgeSeconds * 1000;  // convert to MS;
                 final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
 

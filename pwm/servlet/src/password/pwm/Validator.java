@@ -37,6 +37,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.Helper;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -340,8 +341,10 @@ public class Validator {
             final ContextManager contextManager
     ) {
         final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
-        final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
-        internalResults.addAll(externalResults);
+        if (contextManager != null) {
+            final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
+            internalResults.addAll(externalResults);
+        }
         return internalResults;
     }
 
@@ -585,10 +588,12 @@ public class Validator {
         {   // check password strength
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
-                final int passwordStrength = PasswordUtility.checkPasswordStrength(contextManager.getConfig(), pwmSession, password);
-                if (passwordStrength < requiredPasswordStrength) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
-                    LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
+                if (contextManager != null) {
+                    final int passwordStrength = PasswordUtility.checkPasswordStrength(contextManager.getConfig(), pwmSession, password);
+                    if (passwordStrength < requiredPasswordStrength) {
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
+                        LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
+                    }
                 }
             }
         }
@@ -611,25 +616,29 @@ public class Validator {
 
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
-            if (contextManager.getWordlistManager().status() == PwmService.STATUS.OPEN) {
-                final boolean found = contextManager.getWordlistManager().containsWord(pwmSession, password);
+            if (contextManager != null) {
+                if (contextManager.getWordlistManager().status() == PwmService.STATUS.OPEN) {
+                    final boolean found = contextManager.getWordlistManager().containsWord(pwmSession, password);
 
-                if (found) {
-                    LOGGER.trace(pwmSession, "password rejected, in wordlist file");
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    if (found) {
+                        LOGGER.trace(pwmSession, "password rejected, in wordlist file");
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    }
+                } else {
+                    LOGGER.warn(pwmSession, "password wordlist checking enabled, but wordlist is not available, skipping wordlist check");
                 }
-            } else {
-                LOGGER.warn(pwmSession, "password wordlist checking enabled, but wordlist is not available, skipping wordlist check");
             }
         }
 
         // check for shared (global) password history
-        if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && contextManager.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
-            final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession, password);
+        if (contextManager != null) {
+            if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && contextManager.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
+                final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession, password);
 
-            if (found) {
-                LOGGER.trace(pwmSession, "password rejected, in global shared history");
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                if (found) {
+                    LOGGER.trace(pwmSession, "password rejected, in global shared history");
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
             }
         }
 

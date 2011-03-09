@@ -41,6 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -114,14 +115,14 @@ public class UserStatusHelper {
                 final long diff = ldapPasswordExpirationTime.getTime() - System.currentTimeMillis();
 
                 // now check to see if the user's expire time is within the 'preExpireTime' setting.
-                final int preExpireMs = config.readSettingAsInt(PwmSetting.PASSWORD_EXPIRE_PRE_TIME) * 1000;
+                final long preExpireMs = config.readSettingAsLong(PwmSetting.PASSWORD_EXPIRE_PRE_TIME) * 1000;
                 if (diff < preExpireMs) {
                     LOGGER.info(pwmSession, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as expired");
                     returnState.setPreExpired(true);
                 }
 
                 // now check to see if the user's expire time is within the 'preWarnTime' setting.
-                final int preWarnMs = config.readSettingAsInt(PwmSetting.PASSWORD_EXPIRE_WARN_TIME) * 1000;
+                final long preWarnMs = config.readSettingAsLong(PwmSetting.PASSWORD_EXPIRE_WARN_TIME) * 1000;
                 if (diff < preWarnMs) {
                     LOGGER.info(pwmSession, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as warn");
                     returnState.setWarnPeriod(true);

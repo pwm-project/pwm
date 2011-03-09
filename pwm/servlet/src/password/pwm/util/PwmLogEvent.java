@@ -63,6 +63,10 @@ public class PwmLogEvent implements Serializable, Comparable {
         final Map<String, String> srcMap = gson.fromJson(encodedString, new TypeToken<Map<String, String>>() {
         }.getType());
 
+        if (srcMap == null) {
+            return null;
+        }
+
         final String topic = srcMap.get(KEY_TOPIC);
         final String message = srcMap.get(KEY_MESSAGE);
         final String source = srcMap.get(KEY_SOURCE);

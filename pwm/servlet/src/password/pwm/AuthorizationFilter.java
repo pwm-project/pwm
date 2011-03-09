@@ -25,6 +25,7 @@ package password.pwm;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -48,13 +49,11 @@ public class AuthorizationFilter implements Filter {
 // --------------------- Interface Filter ---------------------
 
     public void init(final FilterConfig filterConfig)
-            throws ServletException
-    {
+            throws ServletException {
     }
 
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
@@ -80,10 +79,9 @@ public class AuthorizationFilter implements Filter {
         }
 
         ssBean.setSessionError(PwmError.ERROR_UNAUTHORIZED.toInfo());
-        Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+        ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
     }
 
-    public void destroy()
-    {
+    public void destroy() {
     }
 }

@@ -33,7 +33,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +83,7 @@ public class CommandServlet extends TopServlet {
             processGetHealthCheckData(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
 
@@ -167,7 +169,7 @@ public class CommandServlet extends TopServlet {
             final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
             LOGGER.info(pwmSession, "authentication required for " + action);
             ssBean.setSessionError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
-            Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return false;
         }
         return true;

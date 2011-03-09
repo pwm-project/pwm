@@ -22,7 +22,7 @@
 
 package password.pwm.util.db;
 
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 
 import java.io.File;
 import java.util.*;
@@ -39,7 +39,7 @@ public class Memory_PwmDb implements PwmDBProvider {
 
     private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
     private PwmDB.Status state = PwmDB.Status.NEW;
-    private final Map<DB, Map<String, String>> maps = new HashMap<DB, Map<String, String>>();
+    private Map<DB, Map<String, String>> maps = new HashMap<DB, Map<String, String>>();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -100,8 +100,11 @@ public class Memory_PwmDb implements PwmDBProvider {
     }
 
     @PwmDB.WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
             throws PwmDBException {
+        if (readOnly) {
+            maps = Collections.unmodifiableMap(maps);
+        }
         if (state == PwmDB.Status.OPEN) {
             throw new IllegalStateException("cannot init db more than one time");
         }

@@ -25,7 +25,7 @@ package password.pwm.util.db;
 import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -121,8 +121,12 @@ public class JDBM_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParameters)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
             throws PwmDBException {
+        if (readOnly) {
+            throw new UnsupportedOperationException("readOnly not supported");
+        }
+
         if (status != PwmDB.Status.NEW) {
             throw new IllegalStateException("already initialized");
         }

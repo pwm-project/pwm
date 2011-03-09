@@ -22,7 +22,7 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.error.PwmException;

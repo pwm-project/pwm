@@ -54,7 +54,7 @@ public class PwmDBStoredQueueTest extends TestCase {
         }
 
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        final PwmDB pwmDB = PwmDBFactory.getInstance(fileLocation, null, null);
+        final PwmDB pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
         storedQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.TEMP);
     }
 

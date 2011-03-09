@@ -23,7 +23,6 @@
 package password.pwm.util;
 
 import password.pwm.PwmConstants;
-import password.pwm.Helper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +38,7 @@ import java.util.zip.ZipFile;
 public class BuildChecksumMaker {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String[] IGNORE_LIST = new String[] {
+    private static final String[] IGNORE_LIST = new String[]{
             "MANIFEST.MF",
             PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME
     };
@@ -47,8 +46,7 @@ public class BuildChecksumMaker {
 // --------------------------- main() method ---------------------------
 
     public static void main(final String[] args)
-            throws IOException
-    {
+            throws IOException {
         if (args == null || args.length < 2) {
             output("usage: BuildManifestMaker <pwm.war_file_location> <output path>");
             System.exit(-1);
@@ -73,9 +71,9 @@ public class BuildChecksumMaker {
 
 
         final ZipFile war = new ZipFile(args[0]);
-        final Map<String,String> props = new TreeMap<String,String>();
+        final Map<String, String> props = new TreeMap<String, String>();
         for (Enumeration warEnum = war.entries(); warEnum.hasMoreElements();) {
-            final ZipEntry entry = (ZipEntry)warEnum.nextElement();
+            final ZipEntry entry = (ZipEntry) warEnum.nextElement();
             if (!entry.isDirectory()) {
                 boolean ignore = false;
 
@@ -97,7 +95,7 @@ public class BuildChecksumMaker {
         final Properties outputProps = new Properties();
         outputProps.putAll(props);
 
-        outputProps.store(new FileOutputStream(new File(args[1] + File.separator + PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME)),"");
+        outputProps.store(new FileOutputStream(new File(args[1] + File.separator + PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME)), "");
 
         output("build Build Checksum Maker completed successfully");
     }

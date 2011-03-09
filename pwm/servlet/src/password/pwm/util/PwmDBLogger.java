@@ -22,7 +22,6 @@
 
 package password.pwm.util;
 
-import password.pwm.Helper;
 import password.pwm.PwmSession;
 import password.pwm.util.db.PwmDBStoredQueue;
 import password.pwm.util.db.PwmDB;

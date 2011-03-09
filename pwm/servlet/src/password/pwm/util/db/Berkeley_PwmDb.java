@@ -26,7 +26,7 @@ import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.*;
 import com.sleepycat.util.RuntimeExceptionWrapper;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -45,7 +45,6 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
-    private final static int MAX_CLEANER_BACKLOG_GOAL = 10;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -58,13 +57,16 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     private PwmDB.Status status = PwmDB.Status.NEW;
 
+    private boolean readOnly;
+
 // -------------------------- STATIC METHODS --------------------------
 
-    private static Database openDatabase(final DB db, final Environment environment)
+    private static Database openDatabase(final DB db, final Environment environment, final boolean readonly)
             throws DatabaseException {
         final DatabaseConfig dbConfig = new DatabaseConfig();
         dbConfig.setAllowCreate(true);
         dbConfig.setTransactional(IS_TRANSACTIONAL);
+        dbConfig.setReadOnly(readonly);
 
         return environment.openDatabase(null, db.toString(), dbConfig);
     }
@@ -76,16 +78,18 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         return storedMap;
     }
 
-    private static Environment openEnvironment(final File databaseDirectory, final Map<String, String> initProps)
+    private static Environment openEnvironment(final File databaseDirectory, final Map<String, String> initProps, final boolean readonly)
             throws DatabaseException {
-        //noinspection ResultOfMethodCallIgnored
-        databaseDirectory.mkdir();
+        if (databaseDirectory.mkdir()) {
+            LOGGER.info("created file system directory " + databaseDirectory.toString());
+        }
 
         LOGGER.trace("beginning open of db environment (" + JEVersion.CURRENT_VERSION.getVersionString() + ")");
 
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(IS_TRANSACTIONAL);
+        environmentConfig.setReadOnly(readonly);
 
         if (initProps != null) {
             for (final String key : initProps.keySet()) {
@@ -168,15 +172,16 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParameters)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
             throws PwmDBException {
         LOGGER.trace("begin initialization");
 
+        this.readOnly = readOnly;
         try {
-            environment = openEnvironment(dbDirectory, initParameters);
+            environment = openEnvironment(dbDirectory, initParameters, readOnly);
 
             for (final DB db : DB.values()) {
-                final Database database = openDatabase(db, environment);
+                final Database database = openDatabase(db, environment, readOnly);
                 cachedDatabases.put(db, database);
                 cachedMaps.put(db, openStoredMap(database));
                 LOGGER.trace("database '" + db.toString() + "' open");
@@ -289,7 +294,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
             environment.truncateDatabase(null, db.toString(), false);
 
-            final Database database = openDatabase(db, environment);
+            final Database database = openDatabase(db, environment, readOnly);
             cachedDatabases.put(db, database);
             cachedMaps.put(db, openStoredMap(database));
         } catch (DatabaseException e) {

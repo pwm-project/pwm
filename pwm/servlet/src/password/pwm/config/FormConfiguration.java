@@ -23,7 +23,7 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
 import password.pwm.error.ErrorInformation;
@@ -66,7 +66,7 @@ import java.util.StringTokenizer;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type { STRING, EMAIL, NUMBER, PASSWORD }
+    public enum Type {STRING, EMAIL, NUMBER, PASSWORD}
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 
@@ -82,8 +82,7 @@ public class FormConfiguration implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static FormConfiguration parseConfigString(final String config)
-    {
+    public static FormConfiguration parseConfigString(final String config) {
         if (config == null) {
             throw new NullPointerException();
         }
@@ -160,8 +159,7 @@ public class FormConfiguration implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private FormConfiguration()
-    {
+    private FormConfiguration() {
         super();
 
         // set defaults;
@@ -175,55 +173,45 @@ public class FormConfiguration implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getAttributeName()
-    {
+    public String getAttributeName() {
         return attributeName;
     }
 
-    public String getLabel()
-    {
+    public String getLabel() {
         return label;
     }
 
-    public int getMaximumLength()
-    {
+    public int getMaximumLength() {
         return maximumLength;
     }
 
-    public int getMinimumLength()
-    {
+    public int getMinimumLength() {
         return minimumLength;
     }
 
-    public Type getType()
-    {
+    public Type getType() {
         return type;
     }
 
-    public String getValue()
-    {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(final String value)
-    {
+    public void setValue(final String value) {
         this.value = value;
     }
 
-    public boolean isConfirmationRequired()
-    {
+    public boolean isConfirmationRequired() {
         return confirmationRequired;
     }
 
-    public boolean isRequired()
-    {
+    public boolean isRequired() {
         return required;
     }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    public boolean equals(final Object o)
-    {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -236,13 +224,11 @@ public class FormConfiguration implements Serializable {
         return !(attributeName != null ? !attributeName.equals(parameterConfig.attributeName) : parameterConfig.attributeName != null);
     }
 
-    public int hashCode()
-    {
+    public int hashCode() {
         return (attributeName != null ? attributeName.hashCode() : 0);
     }
 
-    public String toString()
-    {
+    public String toString() {
         final StringBuilder sb = new StringBuilder();
 
         sb.append("FormConfiguration (attrName=").append(this.getAttributeName());
@@ -261,8 +247,7 @@ public class FormConfiguration implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public void valueIsValid(final PwmSession pwmSession)
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, this.label);

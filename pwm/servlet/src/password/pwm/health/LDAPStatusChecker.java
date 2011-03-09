@@ -30,7 +30,7 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -92,7 +92,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     config,
                     proxyUserDN,
                     proxyUserPW,
-                    config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+                    config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
 
             theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
             if (!theUser.isValid()) {
@@ -184,7 +184,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 config,
                 config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
                 config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                config.readSettingAsInt(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+                config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
         chaiProvider.getDirectoryVendor();
 
         return chaiProvider;

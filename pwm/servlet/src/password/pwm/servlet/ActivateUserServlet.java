@@ -43,9 +43,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -73,15 +71,14 @@ public class ActivateUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException
-    {
+            throws ServletException, ChaiUnavailableException, IOException, PwmException {
         final Configuration config = PwmSession.getPwmSession(req).getConfig();
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (!config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -94,8 +91,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     public void handleActivationRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException
-    {
+            throws PwmException, ChaiUnavailableException, IOException, ServletException {
         final ContextManager theManager = ContextManager.getContextManager(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
@@ -133,7 +129,7 @@ public class ActivateUserServlet extends TopServlet {
                 ssBean.setSessionError(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH.toInfo());
                 theManager.getIntruderManager().addBadUserAttempt(theUser.getEntryDN(), pwmSession);
                 theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
-                Helper.forwardToErrorPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 return;
             }
         } catch (ValidationException e) {
@@ -153,11 +149,11 @@ public class ActivateUserServlet extends TopServlet {
             activateUser(req, pwmSession, theUser);
 
             // redirect user to change password screen.
-            Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
 
             return;
         } catch (PwmException e) {
-            LOGGER.warn(pwmSession,"error during user activation: " + e.getMessage());
+            LOGGER.warn(pwmSession, "error during user activation: " + e.getMessage());
             ssBean.setSessionError(e.getError());
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         }
@@ -196,25 +192,24 @@ public class ActivateUserServlet extends TopServlet {
                 }
 
                 public boolean doAction(final PwmSession pwmSession, final String newPassword)
-                        throws PwmException
-                {
+                        throws PwmException {
                     try {
                         final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
                         LOGGER.debug(pwmSession, "writing activate user attribute write values to user " + theUser.getEntryDN());
                         final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
-                        final Map<String,String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues,"=");
+                        final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
                         Helper.writeMapToEdir(pwmSession, theUser, writeAttributesSettings);
                     } catch (ChaiException e) {
-                        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error writing to ldap: " + e.getMessage());
+                        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
                         throw PwmException.createPwmException(info);
                     }
                     return true;
                 }
             };
 
-            PwmSession.getPwmSession(req).getUserInfoBean().addPostChangePasswordActions("activateUserWriteAttributes",postAction);
+            PwmSession.getPwmSession(req).getUserInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
         } catch (ImpossiblePasswordPolicyException e) {
-            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected ImpossiblePasswordPolicyException error while activating user");
+            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user");
             LOGGER.warn(pwmSession, info, e);
             throw PwmException.createPwmException(info);
         }
@@ -224,8 +219,7 @@ public class ActivateUserServlet extends TopServlet {
             final Map<String, FormConfiguration> paramConfigs,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         String searchFilter = pwmSession.getConfig().readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
 
         for (final String key : paramConfigs.keySet()) {
@@ -238,8 +232,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter, final String searchBase)
-            throws PwmException, ChaiUnavailableException
-    {
+            throws PwmException, ChaiUnavailableException {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(2);
         searchHelper.setFilter(searchFilter);
@@ -274,8 +267,7 @@ public class ActivateUserServlet extends TopServlet {
             final PwmSession pwmSession,
             final String contextParam
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final String searchFilter = figureSearchFilterForParams(paramConfigs, pwmSession);
 
         final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam);
@@ -287,7 +279,7 @@ public class ActivateUserServlet extends TopServlet {
             if (usernameParam != null) {
                 final String usernameValue = usernameParam.getValue();
                 if (usernameValue != null) {
-                    pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(usernameValue,pwmSession);
+                    pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(usernameValue, pwmSession);
                 }
             }
             throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED));
@@ -301,8 +293,7 @@ public class ActivateUserServlet extends TopServlet {
             final PwmSession pwmSession,
             final ChaiUser theUser
     )
-            throws ChaiUnavailableException, ValidationException
-    {
+            throws ChaiUnavailableException, ValidationException {
 
         final HashMap<String, FormConfiguration> localConfigs = new HashMap<String, FormConfiguration>(paramConfigs);
         localConfigs.remove(USERNAME_PARAM_NAME);
@@ -312,12 +303,12 @@ public class ActivateUserServlet extends TopServlet {
 
             try {
                 if (!theUser.compareStringAttribute(attrName, paramConfig.getValue())) {
-                    throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'",attrName));
+                    throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
                 }
-                LOGGER.trace(pwmSession,"successful validation of ldap value for '" + attrName + "'");
+                LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession,"error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'",attrName));
+                LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
+                throw ValidationException.createValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
             }
         }
     }
@@ -326,22 +317,20 @@ public class ActivateUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER).forward(req, resp);
     }
 
-    private void sendActivationEmail(final PwmSession pwmSession)
-    {
+    private void sendActivationEmail(final PwmSession pwmSession) {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_SUBJECT,locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY,locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY_HTML,locale);
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_FROM, locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_SUBJECT, locale);
+        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY, locale);
+        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY_HTML, locale);
 
         final String toAddress = userInfoBean.getUserEmailAddress();
 

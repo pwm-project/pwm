@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
@@ -98,7 +99,7 @@ public class ConfigurationReader {
 
         final String theFileData;
         try {
-            theFileData = readFileAsString(configFile);
+            theFileData = Helper.readFileAsString(configFile, MAX_FILE_CHARS);
         } catch (Exception e) {
             LOGGER.warn("unable to read configuration file: " + e.getMessage());
             return null;
@@ -164,24 +165,6 @@ public class ConfigurationReader {
             LOGGER.warn("unable to evaluate checksum file: " + e.getMessage());
         }
         return true;
-    }
-
-    private static String readFileAsString(final File filePath)
-            throws java.io.IOException {
-        final StringBuffer fileData = new StringBuffer(1000);
-        final BufferedReader reader = new BufferedReader(
-                new FileReader(filePath));
-        char[] buf = new char[1024];
-        int numRead;
-        int charsRead = 0;
-        while ((numRead = reader.read(buf)) != -1 && (charsRead < MAX_FILE_CHARS)) {
-            final String readData = String.valueOf(buf, 0, numRead);
-            fileData.append(readData);
-            buf = new char[1024];
-            charsRead += numRead;
-        }
-        reader.close();
-        return fileData.toString();
     }
 
     private static String readFileChecksum(final File file) {

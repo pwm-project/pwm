@@ -49,7 +49,7 @@ public class HealthMonitor implements Serializable {
 
     public HealthMonitor(final ContextManager contextManager) {
         this.contextManager = contextManager;
-        this.intervalSeconds = contextManager.getConfig().readSettingAsInt(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
+        this.intervalSeconds = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
 
         if (intervalSeconds < MIN_INTERVAL_SECONDS) {
             intervalSeconds = MIN_INTERVAL_SECONDS;

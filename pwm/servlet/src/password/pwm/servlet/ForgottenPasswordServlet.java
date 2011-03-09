@@ -39,8 +39,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -75,7 +77,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         if (!theManager.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -141,7 +143,6 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, theManager.getProxyChaiProvider());
         forgottenPasswordBean.setProxiedUser(proxiedUser);
-        checkIfUserHasValidResponses(pwmSession, forgottenPasswordBean);
 
         this.advancedToNextStage(req, resp);
     }
@@ -298,13 +299,15 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // if responses are required, and user has responses, then send to response screen.
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-            if (!forgottenPasswordBean.isResponsesSatisfied()) {
-                if (forgottenPasswordBean.getResponseSet() == null) {
+            if (forgottenPasswordBean.getResponseSet() == null) {
+                if (!checkIfUserHasValidResponses(pwmSession, forgottenPasswordBean)) {
                     pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES));
-                    Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
                     this.forwardToSearchJSP(req, resp);
                     return;
                 }
+            }
+
+            if (!forgottenPasswordBean.isResponsesSatisfied()) {
                 this.forwardToResponsesJSP(req, resp);
                 return;
             }
@@ -367,7 +370,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 theUser.unlock();
                 pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UNLOCK_ACCOUNT);
-                Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
                 return;
             } catch (ChaiOperationException e) {
                 LOGGER.info(pwmSession, "error unlocking user: " + theUser.getEntryDN());
@@ -403,7 +406,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         } catch (PwmException e) {
             LOGGER.warn("unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getError());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
 
@@ -518,7 +521,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
     public static String generateRecoverCode(final Configuration config) {
         final String RANDOM_CHARS = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
-        final int CODE_LENGTH = config.readSettingAsInt(PwmSetting.CHALLENGE_TOKEN_LENGTH);
+        final int CODE_LENGTH = (int) config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH);
         final PwmRandom RANDOM = PwmRandom.getInstance();
 
         final StringBuilder sb = new StringBuilder();

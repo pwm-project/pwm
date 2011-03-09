@@ -245,32 +245,34 @@ public class PwmPasswordPolicy implements Serializable {
         final long methodStartTime = System.currentTimeMillis();
         PwmPasswordPolicy returnPolicy = config.getGlobalPasswordPolicy(locale);
 
-        if (ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY == theUser.getChaiProvider().getDirectoryVendor()) {
-            if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_PASSWORD_POLICY)) {
-                PwmPasswordPolicy userPolicy = null;
-                try {
-                    final Map<String, String> ruleMap = new HashMap<String, String>();
-                    final ChaiPasswordPolicy chaiPolicy = theUser.getPasswordPolicy();
-                    if (chaiPolicy != null) {
-                        for (final String key : chaiPolicy.getKeys()) {
-                            ruleMap.put(key, chaiPolicy.getValue(key));
+        if (theUser != null) {
+            if (ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY == theUser.getChaiProvider().getDirectoryVendor()) {
+                if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_PASSWORD_POLICY)) {
+                    PwmPasswordPolicy userPolicy = null;
+                    try {
+                        final Map<String, String> ruleMap = new HashMap<String, String>();
+                        final ChaiPasswordPolicy chaiPolicy = theUser.getPasswordPolicy();
+                        if (chaiPolicy != null) {
+                            for (final String key : chaiPolicy.getKeys()) {
+                                ruleMap.put(key, chaiPolicy.getValue(key));
+                            }
+                            userPolicy = new PwmPasswordPolicy(ruleMap, chaiPolicy);
                         }
-                        userPolicy = new PwmPasswordPolicy(ruleMap, chaiPolicy);
+                    } catch (Exception e) {
+                        LOGGER.trace(pwmSession, "unable to read ldap password policy: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    LOGGER.trace(pwmSession, "unable to read ldap password policy: " + e.getMessage());
-                }
-                if (userPolicy != null) {
-                    if (userPolicy.getChaiPasswordPolicy() != null && userPolicy.getChaiPasswordPolicy().getPolicyEntry() != null) {
-                        LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " at " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
+                    if (userPolicy != null) {
+                        if (userPolicy.getChaiPasswordPolicy() != null && userPolicy.getChaiPasswordPolicy().getPolicyEntry() != null) {
+                            LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " at " + userPolicy.getChaiPasswordPolicy().getPolicyEntry().getEntryDN() + " " + userPolicy.toString());
+                        } else {
+                            LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + userPolicy.toString());
+                        }
+                        final PwmPasswordPolicy mergedPolicy = returnPolicy.merge(userPolicy);
+                        returnPolicy = mergedPolicy;
+                        LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
                     } else {
-                        LOGGER.debug(pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + userPolicy.toString());
+                        LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
                     }
-                    final PwmPasswordPolicy mergedPolicy = returnPolicy.merge(userPolicy);
-                    returnPolicy = mergedPolicy;
-                    LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
-                } else {
-                    LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
                 }
             }
         }

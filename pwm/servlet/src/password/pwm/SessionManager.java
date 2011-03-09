@@ -30,6 +30,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -57,16 +58,14 @@ public class SessionManager implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SessionManager(final PwmSession pwmSession)
-    {
+    public SessionManager(final PwmSession pwmSession) {
         this.pwmSession = pwmSession;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public ChaiProvider getChaiProvider(final String userDN, final String userPassword)
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         try {
             providerLock.lock();
             closeConnectionImpl();
@@ -79,10 +78,8 @@ public class SessionManager implements Serializable {
 
 
     public ChaiProvider getChaiProvider()
-            throws ChaiUnavailableException, PwmException
-    {
-        try
-        {
+            throws ChaiUnavailableException, PwmException {
+        try {
             providerLock.lock();
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw PwmException.createPwmException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
@@ -101,8 +98,7 @@ public class SessionManager implements Serializable {
     }
 
     private static ChaiProvider makeChaiProvider(final PwmSession pwmSession, final String userDN, final String userPassword)
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
         final StringBuilder debugLogText = new StringBuilder();
         final Configuration config = pwmSession.getConfig();
@@ -115,8 +111,7 @@ public class SessionManager implements Serializable {
         if (
                 config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) &&
                         pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY
-                )
-        {
+                ) {
             username = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             password = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             debugLogText.append("opened new proxy ldap connection for ");
@@ -137,14 +132,12 @@ public class SessionManager implements Serializable {
 // ------------------------ CANONICAL METHODS ------------------------
 
     protected void finalize()
-            throws Throwable
-    {
+            throws Throwable {
         super.finalize();
         this.closeConnections();
     }
 
-    public void closeConnections()
-    {
+    public void closeConnections() {
         synchronized (providerLock) {
             closeConnectionImpl();
         }
@@ -165,8 +158,7 @@ public class SessionManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public ChaiUser getActor()
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
 
         if (userDN == null || userDN.length() < 1) {

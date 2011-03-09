@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -166,7 +167,7 @@ public class PasswordUtility {
         if (pwmSession.getConfig().readStringArraySetting(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
         } else {
-            final long maxWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
+            final long maxWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
 
             if (successfullyWrotePwdUpdateAttr && maxWaitTime > 0) {
                 LOGGER.trace(pwmSession, "beginning password replication checking");
@@ -190,7 +191,7 @@ public class PasswordUtility {
         }
 
         // be sure minimum wait time has passed
-        final long minWaitTime = pwmSession.getConfig().readSettingAsInt(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
+        final long minWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
         if ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {
             LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
             while ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {

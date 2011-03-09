@@ -37,6 +37,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -76,7 +77,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (!ssBean.isAuthenticated()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -88,7 +89,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -139,7 +140,7 @@ public class ChangePasswordServlet extends TopServlet {
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final String bodyString = Helper.readRequestBody(req, 10 * 1024);
+        final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
         final Gson gson = new Gson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
@@ -372,7 +373,7 @@ public class ChangePasswordServlet extends TopServlet {
             returnURL.append(req.getContextPath());
             returnURL.append(req.getServletPath());
             returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
-            Helper.forwardToWaitPage(req, resp, this.getServletContext(), returnURL.toString());
+            ServletHelper.forwardToWaitPage(req, resp, this.getServletContext(), returnURL.toString());
         }
     }
 
@@ -419,7 +420,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.CHANGE_PASSWORD, null);
 
-            Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
         } else {
             final ErrorInformation errorMsg = ssBean.getSessionError();
             if (errorMsg != null) { // add the bad password to the history cache

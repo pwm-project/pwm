@@ -70,8 +70,7 @@ public class UserHistory implements Serializable {
             final Record.Event eventCode,
             final String message
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
         updateUserHistory(pwmSession, theUser, eventCode, message);
     }
@@ -82,14 +81,13 @@ public class UserHistory implements Serializable {
             final Record.Event eventCode,
             final String message
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final String corRecordIdentifer = "0001";
         final Record record = new Record(eventCode, message);
         final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
         if (corAttribute == null || corAttribute.length() < 1) {
-            LOGGER.debug(pwmSession,"no user event log attribute configured, skipping write of log data");
+            LOGGER.debug(pwmSession, "no user event log attribute configured, skipping write of log data");
             return;
         }
 
@@ -101,30 +99,27 @@ public class UserHistory implements Serializable {
             } else {
                 theCor = ConfigObjectRecord.createNew(theUser, corAttribute, corRecordIdentifer, null, null);
             }
-            final UserHistory history = new UserHistory(pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENTS_LDAP_MAX_EVENTS), theCor.getPayload());
+            final UserHistory history = new UserHistory((int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS), theCor.getPayload());
             history.addEvent(record);
             theCor.updatePayload(history.getCurrentPayload());
-            LOGGER.info(pwmSession, "user log event " + eventCode + " written to user " + theUser.getEntryDN() );
+            LOGGER.info(pwmSession, "user log event " + eventCode + " written to user " + theUser.getEntryDN());
         } catch (ChaiOperationException e) {
             LOGGER.error("ldap error writing user event log: " + e.getMessage());
         }
     }
 
-    public void addEvent(final Record record)
-    {
+    public void addEvent(final Record record) {
         records.add(record);
         trim();
     }
 
-    private void trim()
-    {
+    private void trim() {
         while (records.size() > maxSize) {
             records.removeFirst();
         }
     }
 
-    public String getCurrentPayload()
-    {
+    public String getCurrentPayload() {
         final Element rootElement = new Element(XML_NODE_ROOT);
 
         for (final Object record1 : records) {
@@ -137,7 +132,7 @@ public class UserHistory implements Serializable {
                     hrElement.setContent(new CDATA(record.getMessage()));
                 }
                 rootElement.addContent(hrElement);
-                
+
             }
         }
 
@@ -149,14 +144,13 @@ public class UserHistory implements Serializable {
     }
 
     public static UserHistory readUserHistory(final PwmSession pwmSession)
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmException {
         final String corRecordIdentifer = "0001";
         final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
-        final int maxUserEvents = pwmSession.getConfig().readSettingAsInt(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
+        final int maxUserEvents = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
 
         if (corAttribute == null || corAttribute.length() < 1) {
-            LOGGER.trace(pwmSession,"no user event log attribute configured, skipping write of log data");
+            LOGGER.trace(pwmSession, "no user event log attribute configured, skipping write of log data");
             return new UserHistory(maxUserEvents);
         }
 
@@ -177,20 +171,17 @@ public class UserHistory implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public UserHistory(final int maxSize)
-    {
+    public UserHistory(final int maxSize) {
         this.maxSize = maxSize;
     }
 
-    public UserHistory(final int maxSize, final String xmlPayload)
-    {
+    public UserHistory(final int maxSize, final String xmlPayload) {
         this(maxSize);
         parseInputString(xmlPayload);
         trim();
     }
 
-    private void parseInputString(final String input)
-    {
+    private void parseInputString(final String input) {
         if (input == null || input.length() < 1) {
             return;
         }
@@ -215,16 +206,14 @@ public class UserHistory implements Serializable {
         }
     }
 
-    public void addEvent(final long timestamp, final Record.Event eventCode, final String message)
-    {
+    public void addEvent(final long timestamp, final Record.Event eventCode, final String message) {
         final Record record = new Record(timestamp, eventCode, message);
         this.addEvent(record);
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public SortedSet<Record> getRecords()
-    {
+    public SortedSet<Record> getRecords() {
         return Collections.unmodifiableSortedSet(new TreeSet<Record>(records));
     }
 
@@ -242,8 +231,7 @@ public class UserHistory implements Serializable {
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
             UPDATE_ATTRIBUTES(Message.EVENT_LOG_UPDATE_ATTRIBUTES),
             INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
-            UNKNOWN(null)
-            ;
+            UNKNOWN(null);
 
             final private Message message;
 
@@ -274,35 +262,29 @@ public class UserHistory implements Serializable {
         private Event eventCode;
         private String message;
 
-        public Record(final Event eventCode, final String message)
-        {
+        public Record(final Event eventCode, final String message) {
             this(System.currentTimeMillis(), eventCode, message);
         }
 
-        public Record(final long timestamp, final Event eventCode, final String message)
-        {
+        public Record(final long timestamp, final Event eventCode, final String message) {
             this.timestamp = timestamp;
             this.eventCode = eventCode;
             this.message = message;
         }
 
-        public long getTimestamp()
-        {
+        public long getTimestamp() {
             return timestamp;
         }
 
-        public Event getEventCode()
-        {
+        public Event getEventCode() {
             return eventCode;
         }
 
-        public String getMessage()
-        {
+        public String getMessage() {
             return message;
         }
 
-        public int compareTo(final Object o)
-        {
+        public int compareTo(final Object o) {
             final Record otherRecord = (Record) o;
 
             if (otherRecord.equals(this)) {
@@ -320,8 +302,7 @@ public class UserHistory implements Serializable {
             return 0;  //To change body of implemented methods use File | Settings | File Templates.
         }
 
-        public boolean equals(final Object o)
-        {
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
@@ -330,8 +311,7 @@ public class UserHistory implements Serializable {
             return timestamp == record.timestamp && !(eventCode != null ? !eventCode.equals(record.eventCode) : record.eventCode != null) && !(message != null ? !message.equals(record.message) : record.message != null);
         }
 
-        public int hashCode()
-        {
+        public int hashCode() {
             int result;
             result = (int) (timestamp ^ (timestamp >>> 32));
             result = 29 * result + (eventCode != null ? eventCode.hashCode() : 0);

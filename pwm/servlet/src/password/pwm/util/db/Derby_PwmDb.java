@@ -22,7 +22,7 @@
 
 package password.pwm.util.db;
 
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.File;
@@ -226,8 +226,12 @@ public class Derby_PwmDb implements PwmDBProvider {
         return null;
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParams)
+    public void init(final File dbDirectory, final Map<String, String> initParams, final boolean readOnly)
             throws PwmDBException {
+        if (readOnly) {
+            throw new UnsupportedOperationException("readOnly not supported");
+        }
+
         this.dbDirectory = dbDirectory;
 
         for (final DB db : DB.values()) {

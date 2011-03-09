@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.util;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
@@ -34,22 +34,16 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
-import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
@@ -76,7 +70,7 @@ public class Helper {
             final Configuration config,
             final String userDN,
             final String userPassword,
-            final int idleTimeoutMs
+            final long idleTimeoutMs
     )
             throws ChaiUnavailableException {
         final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword, idleTimeoutMs);
@@ -88,7 +82,7 @@ public class Helper {
             final Configuration config,
             final String userDN,
             final String userPassword,
-            final int idleTimeoutMs
+            final long idleTimeoutMs
     )
             throws ChaiUnavailableException {
         final List<String> ldapURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
@@ -225,115 +219,6 @@ public class Helper {
 
             LOGGER.error(pwmSession, errorMsg.toString());
         }
-    }
-
-    /**
-     * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.ServletContext, boolean)} )}
-     * with forceLogout=true;
-     *
-     * @param req        Users http request
-     * @param resp       Users http response
-     * @param theContext The Servlet context
-     * @throws IOException      if there is an error writing to the response
-     * @throws ServletException if there is a problem accessing the http objects
-     */
-    public static void forwardToErrorPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
-    )
-            throws IOException, ServletException {
-        forwardToErrorPage(req, resp, theContext, true);
-    }
-
-    /**
-     * Forwards the user to the error page.  Callers to this method should populate the sesssion bean's
-     * session error state.  If the session error state is null, then this method will populate it
-     * with a generic unknown error.
-     *
-     * @param req         Users http request
-     * @param resp        Users http response
-     * @param theContext  The Servlet context
-     * @param forceLogout if the user should be unauthenticed after showing the error
-     * @throws IOException      if there is an error writing to the response
-     * @throws ServletException if there is a problem accessing the http objects
-     */
-    public static void forwardToErrorPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext,
-            final boolean forceLogout
-    )
-            throws IOException, ServletException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        if (ssBean.getSessionError() == null) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN));
-        }
-
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
-
-        if (forceLogout) {
-            pwmSession.unauthenticateUser();
-        }
-    }
-
-    public static void forwardToLoginPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException {
-        final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
-    }
-
-    public static void forwardToOriginalRequestURL(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        String destURL = ssBean.getOriginalRequestURL();
-
-        if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
-            destURL = req.getContextPath();
-        }
-
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
-    }
-
-    public static void forwardToSuccessPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
-    )
-            throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
-
-        if (ssBean.getSessionSuccess() == null) {
-            ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN);
-        }
-
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
-    }
-
-    public static void forwardToWaitPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext,
-            final String nextURL
-    )
-            throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
-        ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
-
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
     }
 
     public static String md5sum(final File theFile)
@@ -805,52 +690,59 @@ public class Helper {
     }
 
 
-    public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
-        final StringBuilder inputData = new StringBuilder();
-        String line;
-        try {
-            final BufferedReader reader = request.getReader();
-            while (((line = reader.readLine()) != null) && inputData.length() < maxChars) {
-                inputData.append(line);
-            }
-        } catch (Exception e) {
-            LOGGER.error("error reading request body stream: " + e.getMessage());
+    public static File figureFilepath(final String filename, final String suggestedPath, final String relativePath)
+            throws Exception {
+        if (filename == null || filename.trim().length() < 1) {
+            throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
         }
-        return inputData.toString();
-    }
 
-    public static String debugHttpRequest(final HttpServletRequest req) {
-        final StringBuilder sb = new StringBuilder();
+        if ((new File(filename)).isAbsolute()) {
+            return new File(filename);
+        }
 
-        sb.append(req.getMethod());
-        sb.append(" request for: ");
-        sb.append(req.getRequestURI());
+        if ((new File(suggestedPath).isAbsolute())) {
+            return new File(suggestedPath + File.separator + filename);
+        }
 
-        if (req.getParameterMap().isEmpty()) {
-            sb.append(" (no params)");
-        } else {
-            sb.append("\n");
-
-            for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
-                final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
-
-                for (final String paramValue : paramValues) {
-                    sb.append("  ").append(paramName).append("=");
-                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
-                        sb.append("***removed***");
-                    } else {
-                        sb.append('\'');
-                        sb.append(paramValue);
-                        sb.append('\'');
-                    }
-
-                    sb.append('\n');
+        { // tomcat, and some other containers will correctly return the "real path", so try that first.
+            if (relativePath != null) {
+                final File finalDirectory = new File(relativePath);
+                if (finalDirectory.exists()) {
+                    return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
                 }
             }
-
-            sb.deleteCharAt(sb.length() - 1);
         }
-        return sb.toString();
+
+        // for containers which do not retrieve the real path, try to use the classloader to find the path.
+        final String cManagerName = ContextManager.class.getCanonicalName();
+        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
+        final URL fileURL = ContextManager.class.getResource(resourcePathname);
+        if (fileURL != null) {
+            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
+            final File finalDirectory = new File(new URL(newString + suggestedPath).toURI());
+            if (finalDirectory.exists()) {
+                return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
+            }
+        }
+
+        throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
+    }
+
+    public static String readFileAsString(final File filePath, final long maxLength)
+            throws IOException {
+        final StringBuffer fileData = new StringBuffer(1000);
+        final BufferedReader reader = new BufferedReader(
+                new FileReader(filePath));
+        char[] buf = new char[1024];
+        int numRead;
+        int charsRead = 0;
+        while ((numRead = reader.read(buf)) != -1 && (charsRead < maxLength)) {
+            final String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+            buf = new char[1024];
+            charsRead += numRead;
+        }
+        reader.close();
+        return fileData.toString();
     }
 }

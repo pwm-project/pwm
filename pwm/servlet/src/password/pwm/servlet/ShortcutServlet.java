@@ -30,6 +30,7 @@ import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -43,25 +44,23 @@ public class ShortcutServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ShortcutServlet.class);
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) {
             pwmSession.getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
 
         if (pwmSession.getSessionStateBean().getVisibleShortcutItems() == null) {
-            LOGGER.debug(pwmSession,"building visible shortcut list for user");
-            final Map<String,ShortcutItem> visibleItems  = figureVisibleShortcuts(pwmSession, req);
+            LOGGER.debug(pwmSession, "building visible shortcut list for user");
+            final Map<String, ShortcutItem> visibleItems = figureVisibleShortcuts(pwmSession, req);
             pwmSession.getSessionStateBean().setVisibleShortcutItems(visibleItems);
         } else {
-            LOGGER.trace(pwmSession,"using cashed shortcut values");
+            LOGGER.trace(pwmSession, "using cashed shortcut values");
         }
-
 
 
         final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
@@ -72,38 +71,37 @@ public class ShortcutServlet extends TopServlet {
             return;
         }
 
-        this.forwardToJSP(req,resp);
+        this.forwardToJSP(req, resp);
     }
 
     private void forwardToJSP(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SHORTCUT).forward(req, resp);
     }
 
 
     /**
      * Loop through each configured shortcut setting to determine if the shortcut is is able to the user pwmSession.
+     *
      * @param pwmSession Valid (authenticated) PwmSession
-     * @param request httpRequest
+     * @param request    httpRequest
      * @return List of visible ShortcutItems
-     * @throws PwmException if something goes wrong
+     * @throws PwmException             if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
-    private static Map<String,ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
-            throws PwmException, ChaiUnavailableException
-    {
-        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.SHORTCUT_ITEMS,pwmSession.getSessionStateBean().getLocale());
+    private static Map<String, ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
+            throws PwmException, ChaiUnavailableException {
+        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.SHORTCUT_ITEMS, pwmSession.getSessionStateBean().getLocale());
 
         final Set<String> labelsFromHeader = new HashSet<String>();
         {
             for (final String headerName : pwmSession.getConfig().readStringArraySetting(PwmSetting.SHORTCUT_HEADER_NAMES)) {
                 final Set<String> headerStrings = Validator.readStringsFromRequest(request, headerName, 10 * 1024);
                 for (final String loopString : headerStrings) {
-                    labelsFromHeader.addAll(StringHelper.tokenizeString(loopString,","));
+                    labelsFromHeader.addAll(StringHelper.tokenizeString(loopString, ","));
                 }
             }
         }
@@ -114,13 +112,13 @@ public class ShortcutServlet extends TopServlet {
             configuredItems.add(item);
         }
 
-        final Map<String, ShortcutItem> visibleItems = new HashMap<String,ShortcutItem>();
+        final Map<String, ShortcutItem> visibleItems = new HashMap<String, ShortcutItem>();
 
         if (!labelsFromHeader.isEmpty()) {
-            LOGGER.trace("detected the following labels from headers: " + StringHelper.stringCollectionToString(labelsFromHeader,","));
+            LOGGER.trace("detected the following labels from headers: " + StringHelper.stringCollectionToString(labelsFromHeader, ","));
             visibleItems.keySet().retainAll(labelsFromHeader);
         } else {
-            for (final ShortcutItem item : configuredItems ) {
+            for (final ShortcutItem item : configuredItems) {
                 final boolean queryMatch = Permission.testQueryMatch(
                         pwmSession.getSessionManager().getActor(),
                         item.getLdapQuery(),
@@ -138,10 +136,9 @@ public class ShortcutServlet extends TopServlet {
     }
 
     private void handleUserSelection(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException
-    {
+            throws PwmException, ChaiUnavailableException, IOException, ServletException {
         final String link = Validator.readStringFromRequest(req, "link", 255);
-        final Map<String,ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
+        final Map<String, ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
 
         if (link != null && visibleItems.keySet().contains(link)) {
             final ShortcutItem item = visibleItems.get(link);
@@ -158,7 +155,7 @@ public class ShortcutServlet extends TopServlet {
             return;
         }
 
-        LOGGER.error(pwmSession,"unknown/unexpected link requested to " + link);
-        forwardToJSP(req,resp);
+        LOGGER.error(pwmSession, "unknown/unexpected link requested to " + link);
+        forwardToJSP(req, resp);
     }
 }

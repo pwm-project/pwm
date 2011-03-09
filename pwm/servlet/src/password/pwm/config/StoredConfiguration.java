@@ -31,7 +31,7 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.util.Base64Util;
 import password.pwm.util.PwmLogger;
@@ -494,9 +494,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
                         errorStrings.add(errorString.toString());
                     } else {
                         try {
-                            Integer.parseInt(value);
+                            Long.parseLong(value);
                         } catch (Exception e) {
-                            errorString.append("can not parse integer value:").append(e.getMessage());
+                            errorString.append("can not parse numeric value:").append(e.getMessage());
                             errorStrings.add(errorString.toString());
                         }
                     }

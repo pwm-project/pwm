@@ -17,9 +17,9 @@
 
 package password.pwm.servlet;
 
-import password.pwm.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -76,7 +76,7 @@ public class ResourceFileServlet extends HttpServlet {
     private void processRequest
             (final HttpServletRequest request, final HttpServletResponse response, final boolean content)
             throws IOException {
-        LOGGER.trace(PwmSession.getPwmSession(request), Helper.debugHttpRequest(request));
+        LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
 
         final File file = resolveRequestedFile(request);
 

@@ -40,8 +40,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
+import password.pwm.util.Helper;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -64,8 +66,7 @@ public class NewUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException
-    {
+            throws ServletException, ChaiUnavailableException, IOException, PwmException {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -76,7 +77,7 @@ public class NewUserServlet extends TopServlet {
 
         if (!config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
             ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
@@ -144,7 +145,7 @@ public class NewUserServlet extends TopServlet {
                 final Properties createAttrs = new Properties();
                 for (final String key : creationParams.keySet()) {
                     final FormConfiguration formConfig = creationParams.get(key);
-                    createAttrs.put(formConfig.getAttributeName(),formConfig.getValue());
+                    createAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
                 }
 
                 provider.createEntry(dn.toString(), ChaiConstant.OBJECTCLASS_BASE_LDAP_USER, createAttrs);
@@ -153,13 +154,13 @@ public class NewUserServlet extends TopServlet {
 
                 LOGGER.info(pwmSession, "created user object: " + dn.toString());
             } catch (ChaiOperationException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error creating user: " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating user: " + e.getMessage());
                 ssBean.setSessionError(info);
                 LOGGER.warn(pwmSession, info);
                 this.forwardToJSP(req, resp);
                 return;
             } catch (NullPointerException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error creating user (missing cn/sn?): " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating user (missing cn/sn?): " + e.getMessage());
                 ssBean.setSessionError(info);
                 LOGGER.warn(pwmSession, info);
                 this.forwardToJSP(req, resp);
@@ -172,21 +173,21 @@ public class NewUserServlet extends TopServlet {
                 // write out configured attributes.
                 LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
                 final List<String> configValues = config.readStringArraySetting(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
-                final Map<String,String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues,"=");
+                final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
                 Helper.writeMapToEdir(pwmSession, theUser, configNameValuePairs);
 
                 AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
             } catch (ImpossiblePasswordPolicyException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected ImpossiblePasswordPolicyException error while creating user");
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while creating user");
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
                 this.forwardToJSP(req, resp);
                 return;
             } catch (ChaiOperationException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error writing to ldap: " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
-                Helper.forwardToErrorPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 return;
             }
 
@@ -195,7 +196,7 @@ public class NewUserServlet extends TopServlet {
             ssBean.setSessionSuccess(Message.SUCCESS_CREATE_USER);
 
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
-            Helper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
             return;
         }
         this.forwardToJSP(req, resp);
@@ -206,8 +207,7 @@ public class NewUserServlet extends TopServlet {
             final FormConfiguration paramConfig,
             final String userDN
     )
-            throws ValidationException, ChaiUnavailableException
-    {
+            throws ValidationException, ChaiUnavailableException {
         try {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
@@ -232,17 +232,16 @@ public class NewUserServlet extends TopServlet {
         }
     }
 
-    private void sendNewUserEmailConfirmation(final PwmSession pwmSession)
-    {
+    private void sendNewUserEmailConfirmation(final PwmSession pwmSession) {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_SUBJECT,locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY,locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY_HTML,locale);
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_FROM, locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_SUBJECT, locale);
+        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY, locale);
+        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY_HTML, locale);
 
         final String toAddress = userInfoBean.getUserEmailAddress();
 
@@ -258,8 +257,7 @@ public class NewUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
     }
 }

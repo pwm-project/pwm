@@ -23,8 +23,8 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Helper;
 import password.pwm.PwmSession;
+import password.pwm.util.ServletHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -51,13 +51,12 @@ public abstract class TopServlet extends HttpServlet {
      */
     private static final PwmLogger LOGGER = PwmLogger.getLogger(TopServlet.class);
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
     public void doGet(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         this.handleRequest(req, resp);
     }
 
@@ -65,8 +64,7 @@ public abstract class TopServlet extends HttpServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.setLastParameterValues(req);
@@ -79,10 +77,10 @@ public abstract class TopServlet extends HttpServlet {
             ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmException e) {
             if (PwmError.ERROR_UNKNOWN.equals(e.getError().getError())) {
-                LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(),e);
+                LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
             } else {
                 LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
@@ -92,13 +90,13 @@ public abstract class TopServlet extends HttpServlet {
             } else {
                 ssBean.setSessionError(e.getError());
             }
-            Helper.forwardToErrorPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
             if (pwmSession.getContextManager().getStatisticsManager() != null) {
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
                 LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
                 ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
-                Helper.forwardToErrorPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 //throw new ServletException(e);
             }
         }
@@ -114,8 +112,7 @@ public abstract class TopServlet extends HttpServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         this.handleRequest(req, resp);
     }
 }

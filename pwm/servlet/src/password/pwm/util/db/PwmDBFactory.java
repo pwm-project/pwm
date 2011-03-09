@@ -22,7 +22,7 @@
 
 package password.pwm.util.db;
 
-import password.pwm.Helper;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -48,7 +48,8 @@ public class PwmDBFactory {
     public static synchronized PwmDB getInstance(
             final File dbDirectory,
             final String className,
-            final Map<String, String> initParameters
+            final Map<String, String> initParameters,
+            final boolean readonly
     )
             throws Exception {
         PwmDB db = singletonMap.get(dbDirectory);
@@ -62,10 +63,12 @@ public class PwmDBFactory {
 
             db = new PwmDBAdaptor(dbProvider);
 
-            initInstance(dbProvider, dbDirectory, initParameters, theClass);
+            initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
             final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
             LOGGER.trace("clearing TEMP db");
-            db.truncate(PwmDB.DB.TEMP);
+            if (!readonly) {
+                db.truncate(PwmDB.DB.TEMP);
+            }
             LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()) + " at " + dbDirectory.toString());
         }
 
@@ -92,13 +95,13 @@ public class PwmDBFactory {
         return pwmDB;
     }
 
-    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass)
+    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass, final boolean readonly)
             throws Exception {
         try {
             if (dbFileLocation.mkdir()) {
                 LOGGER.trace("created directory at " + dbFileLocation.getAbsolutePath());
             }
-            pwmDBProvider.init(dbFileLocation, initParameters);
+            pwmDBProvider.init(dbFileLocation, initParameters, readonly);
         } catch (Exception e) {
             LOGGER.warn("error while initializing pwmDB instance: " + e.getMessage());
             throw e;

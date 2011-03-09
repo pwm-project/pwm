@@ -28,8 +28,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -148,7 +150,7 @@ public class SessionFilter implements Filter {
         ssBean.setSrcHostname(readUserHostname(req, pwmSession));
 
         // output request information to debug log
-        LOGGER.trace(pwmSession, Helper.debugHttpRequest(req));
+        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
 
 
         //set the session's locale
@@ -186,7 +188,7 @@ public class SessionFilter implements Filter {
             try {
                 theManager.getIntruderManager().checkAddress(pwmSession);
             } catch (PwmException e) {
-                Helper.forwardToErrorPage(req, resp, servletContext, false);
+                ServletHelper.forwardToErrorPage(req, resp, servletContext, false);
                 return;
             }
         }
@@ -329,7 +331,7 @@ public class SessionFilter implements Filter {
         // user's session is messed up.  send to error page.
         LOGGER.error(pwmSession, "incorrect verification key sent during session verification check");
         ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION));
-        Helper.forwardToErrorPage(req, resp, servletContext);
+        ServletHelper.forwardToErrorPage(req, resp, servletContext);
     }
 
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {

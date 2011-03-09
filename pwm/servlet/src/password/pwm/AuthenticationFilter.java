@@ -123,7 +123,7 @@ public class AuthenticationFilter implements Filter {
 
             // send en error to user.
             ssBean.setSessionError(PwmError.ERROR_FIELDS_DONT_MATCH.toInfo());
-            Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
         } else {
             // user session is authed, and session and auth header match, so forward request on.
             chain.doFilter(req, resp);
@@ -163,11 +163,11 @@ public class AuthenticationFilter implements Filter {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmSession.getContextManager().setLastLdapFailure();
             ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
-            Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
         } catch (PwmException e) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
-            Helper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
         }
 
@@ -191,7 +191,7 @@ public class AuthenticationFilter implements Filter {
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace(pwmSession, "user requested resource requiring authentication (" + req.getRequestURI() + "), but is not authenticated; redirecting to LoginServlet");
-        Helper.forwardToLoginPage(req, resp);
+        ServletHelper.forwardToLoginPage(req, resp);
     }
 
     public static boolean authenticateUser(
