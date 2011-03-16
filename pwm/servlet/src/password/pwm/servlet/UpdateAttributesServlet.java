@@ -170,7 +170,7 @@ public class UpdateAttributesServlet extends TopServlet {
 
             // success, so forward to success page
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
-            ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES);
+            ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
 
         } catch (ChaiOperationException e) {

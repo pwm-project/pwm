@@ -22,9 +22,36 @@
 
 package password.pwm.config;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * Empty class to facilitate easy resourcebundle loading of "Display" resource bundle.
  */
 public abstract class Display {
+
+    private static ResourceBundle getMessageBundle(final Locale locale) {
+        final ResourceBundle messagesBundle;
+        if (locale == null) {
+            messagesBundle = ResourceBundle.getBundle(Display.class.getName());
+        } else {
+            messagesBundle = ResourceBundle.getBundle(Display.class.getName(), locale);
+        }
+
+        return messagesBundle;
+    }
+
+    public static String getDisplayString(final String key, final Locale locale) {
+        final ResourceBundle bundle = getMessageBundle(locale);
+        return bundle.getString(key);
+    }
+
+    public static Set<String> getDisplayKeys() {
+        final ResourceBundle bundle = getMessageBundle(null);
+        return new TreeSet<String>(bundle.keySet());
+    }
+
 }
 

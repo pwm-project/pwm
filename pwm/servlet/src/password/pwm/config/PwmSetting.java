@@ -327,8 +327,12 @@ public enum PwmSetting {
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+    FORGOTTEN_USERNAME_FORM(
+            "forgottenUsername.form", Syntax.LOCALIZED_STRING_ARRAY, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
-            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, false, Level.ADVANCED),
+            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+    FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
+            "forgottenUsername.usernameAttribute", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
 
 
     // new user settings

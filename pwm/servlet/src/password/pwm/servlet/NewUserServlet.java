@@ -193,7 +193,7 @@ public class NewUserServlet extends TopServlet {
 
             //everything good so forward to change password page.
             this.sendNewUserEmailConfirmation(pwmSession);
-            ssBean.setSessionSuccess(Message.SUCCESS_CREATE_USER);
+            ssBean.setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
 
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());

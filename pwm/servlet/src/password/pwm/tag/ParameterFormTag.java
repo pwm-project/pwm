@@ -23,8 +23,8 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
+import password.pwm.config.Display;
 import password.pwm.config.FormConfiguration;
-import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +81,7 @@ public class ParameterFormTag extends TagSupport {
         {
             sb.append("<h2>");
             if (confirm) {
-                final String confirmPrefix = PwmError.getDisplayString("Field_Confirm_Prefix", pwmSession.getSessionStateBean().getLocale());
+                final String confirmPrefix = Display.getDisplayString("Field_Confirm_Prefix", pwmSession.getSessionStateBean().getLocale());
                 sb.append(confirmPrefix);
                 sb.append(" ");
             }
@@ -155,6 +155,8 @@ public class ParameterFormTag extends TagSupport {
             return pwmSession.getActivateUserServletBean().getActivateUserParams();
         } else if (formName.equalsIgnoreCase("updateattributes")) {
             return pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
+        } else if (formName.equalsIgnoreCase("forgottenusername")) {
+            return pwmSession.getForgottonUsernameBean().getForgottenUsernameForm();
         } else {
             LOGGER.warn("unknown form '" + formName + "' while generating ParamterFormTag");
         }

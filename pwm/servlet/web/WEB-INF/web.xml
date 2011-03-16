@@ -104,6 +104,10 @@
         <url-pattern>/public/ForgottenPassword</url-pattern>
     </filter-mapping>
     <filter-mapping>
+        <filter-name>CaptchaFilter</filter-name>
+        <url-pattern>/public/ForgottenUsername</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
     </filter-mapping>

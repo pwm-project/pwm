@@ -416,7 +416,7 @@ public class ChangePasswordServlet extends TopServlet {
                 ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
             }
 
-            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE);
+            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
 
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.CHANGE_PASSWORD, null);
 

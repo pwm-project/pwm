@@ -369,7 +369,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
             try {
                 theUser.unlock();
-                pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UNLOCK_ACCOUNT);
+                pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UNLOCK_ACCOUNT, null);
                 ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
                 return;
             } catch (ChaiOperationException e) {

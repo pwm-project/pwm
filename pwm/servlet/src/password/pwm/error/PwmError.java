@@ -23,11 +23,12 @@
 package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
-import password.pwm.config.Display;
 import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Utility class for managing messages returned by the servlet for inclusion in UI screens.
@@ -175,8 +176,13 @@ public enum PwmError {
     }
 
     public static String getDisplayString(final String key, final Locale locale) {
-        final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName(), locale);
+        final ResourceBundle bundle = getMessageBundle(locale);
         return bundle.getString(key);
+    }
+
+    public static Set<String> getDisplayKeys() {
+        final ResourceBundle bundle = getMessageBundle(null);
+        return new TreeSet<String>(bundle.keySet());
     }
 
     public static PwmError forChaiError(final ChaiError errorCode) {

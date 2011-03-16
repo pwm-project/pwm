@@ -22,12 +22,11 @@
 
 package password.pwm.tag;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.config.Display;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -120,7 +119,7 @@ public class DisplayTag extends PwmAbstractTag {
             locale = Locale.getDefault();
         }
         try {
-            String displayMessage = PwmError.getDisplayString(key, locale);
+            String displayMessage = Display.getDisplayString(key, locale);
 
             if (displayMessage != null) {
                 if (value1 != null && value1.length() > 0) {

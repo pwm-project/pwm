@@ -59,6 +59,7 @@ public class PwmSession implements Serializable {
     private NewUserServletBean newUserServletBean;
     private UpdateAttributesServletBean updateAttributesServletBean;
     private ActivateUserServletBean activateUserServletBean;
+    private ForgottenUsernameBean forgottenUsernameBean;
 
     private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
 
@@ -141,6 +142,16 @@ public class PwmSession implements Serializable {
             activateUserServletBean.setActivateUserParams(Collections.unmodifiableMap(formMap));
         }
         return activateUserServletBean;
+    }
+
+    public ForgottenUsernameBean getForgottonUsernameBean() {
+        if (forgottenUsernameBean == null) {
+            forgottenUsernameBean = new ForgottenUsernameBean();
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.FORGOTTEN_USERNAME_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            forgottenUsernameBean.setForgottenUsernameForm(Collections.unmodifiableMap(formMap));
+        }
+        return forgottenUsernameBean;
     }
 
     public ChangePasswordBean getChangePasswordBean() {

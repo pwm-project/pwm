@@ -44,6 +44,7 @@ public enum Message {
     SUCCESS_UPDATE_ATTRIBUTES("Success_UpdateAttributes"),
     SUCCESS_RESPONSES_MEET_RULES("Success_ResponsesMeetRules"),
     SUCCESS_UNLOCK_ACCOUNT("Success_UnlockAccount"),
+    SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
 
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
@@ -121,13 +122,11 @@ public enum Message {
         return null;
     }
 
-    public static String getLocalizedMessage(final Locale locale, final Message message)
-    {
+    public static String getLocalizedMessage(final Locale locale, final Message message) {
         return getLocalizedMessage(locale, message, null);
     }
 
-    public static String getLocalizedMessage(final Locale locale, final Message message, final String fieldValue)
-    {
+    public static String getLocalizedMessage(final Locale locale, final Message message, final String fieldValue) {
         final ResourceBundle bundle = getMessageBundle(locale);
         String result = message.getResourceKey();
         try {
@@ -141,8 +140,7 @@ public enum Message {
         return result;
     }
 
-    private static ResourceBundle getMessageBundle(final Locale locale)
-    {
+    private static ResourceBundle getMessageBundle(final Locale locale) {
         final ResourceBundle messagesBundle;
         if (locale == null) {
             messagesBundle = ResourceBundle.getBundle(Message.class.getName());
@@ -173,11 +171,11 @@ public enum Message {
 // -------------------------- OTHER METHODS --------------------------
 
     public String getLocalizedMessage(final Locale locale) {
-        return Message.getLocalizedMessage(locale,this);
+        return Message.getLocalizedMessage(locale, this);
     }
 
     public String getLocalizedMessage(final Locale locale, final String fieldValue) {
-        return Message.getLocalizedMessage(locale,this,fieldValue);
+        return Message.getLocalizedMessage(locale, this, fieldValue);
     }
 
 }

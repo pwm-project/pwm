@@ -36,8 +36,12 @@ public class PwmDBStoredQueueTest extends TestCase {
 
     private static final int SIZE = 1000;
 
+    private PwmDBStoredQueue storedQueue;
+    private PwmDB pwmDB;
+
     @Override
     protected void setUp() throws Exception {
+
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         {
             final String pwmPackageName = ContextManager.class.getPackage().getName();
@@ -54,11 +58,9 @@ public class PwmDBStoredQueueTest extends TestCase {
         }
 
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        final PwmDB pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
+        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
         storedQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.TEMP);
     }
-
-    private PwmDBStoredQueue storedQueue = null;
 
     private void populatedQueue(final int n, final PwmDBStoredQueue storedQueue) {
         storedQueue.clear();
@@ -138,9 +140,11 @@ public class PwmDBStoredQueueTest extends TestCase {
 
         populatedQueue(SIZE, storedQueue);
 
-        for (int i = 0; i < SIZE; ++i) {
+        for (int i = SIZE - 1; i >= 0; i--) {
+            System.out.println("iteration " + i);
             assertEquals(i, Integer.parseInt(storedQueue.poll()));
         }
+
         assertNull(storedQueue.poll());
     }
 
@@ -158,4 +162,16 @@ public class PwmDBStoredQueueTest extends TestCase {
         assertNull(storedQueue.poll());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        System.out.println("tearing down");
+        super.tearDown();
+        if (storedQueue != null) {
+            storedQueue = null;
+        }
+        if (pwmDB != null) {
+            pwmDB.close();
+            pwmDB = null;
+        }
+    }
 }

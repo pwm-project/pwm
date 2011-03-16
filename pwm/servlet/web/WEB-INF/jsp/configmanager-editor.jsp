@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.Set" %>
@@ -35,7 +34,6 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final Set<String> DEFAULT_LOCALES = new TreeSet<String>();
     for (final Locale l : Locale.getAvailableLocales()) DEFAULT_LOCALES.add(l.toString());%>
-<% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final PwmSetting.Level level = PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
@@ -77,12 +75,24 @@
                             dojo.require("dijit.Menu");
                             var menuBar = new dijit.Menu({}, "navMenu");
 
-
-                            menuBar.addChild(new dijit.MenuSeparator());
                             <%-- add menu seperator --%>
+                            menuBar.addChild(new dijit.MenuSeparator());
+
+                            /*
+                             var fieldEditor = new dijit.MenuItem({
+                             id: "fieldEditor",
+                             label: "Display Field Editor",
+                             onClick: function() {
+                             dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=fieldEditor');
+                             }
+                             });
+                             menuBar.addChild(fieldEditor);
+                            <%-- add menu seperator --%>
+                             menuBar.addChild(new dijit.MenuSeparator());
+                             */
 
                             <% if (level == PwmSetting.Level.BASIC) { %>
-                            var switchMode = new dijit.MenuItem({
+                            var switchModeAdvanced = new dijit.MenuItem({
                                 id: "switchMode",
                                 label: "Show All Settings",
                                 onClick: function() {
@@ -90,9 +100,9 @@
                                     getObject('levelAdvanced').submit();
                                 }
                             });
-                            menuBar.addChild(switchMode);
+                            menuBar.addChild(switchModeAdvanced);
                             <% } else { %>
-                            var switchMode = new dijit.MenuItem({
+                            var switchModeBasic = new dijit.MenuItem({
                                 id: "switchMode",
                                 label: "Show Basic Settngs",
                                 onClick: function() {
@@ -100,9 +110,8 @@
                                     getObject('levelBasic').submit();
                                 }
                             });
-                            menuBar.addChild(switchMode);
+                            menuBar.addChild(switchModeBasic);
                             <% } %>
-
 
                             <%-- add save/update and cancel button --%>
                             menuBar.addChild(new dijit.MenuSeparator());

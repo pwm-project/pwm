@@ -35,6 +35,7 @@ public abstract class PwmConstants {
     // ------------------------- PUBLIC CONSTANTS -------------------------
     public static final String BUILD_NUMBER = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.number");
     public static final String PWM_VERSION = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.version");
+    public static final String PWM_WEBSITE = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.website");
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER;
 
@@ -66,6 +67,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "WEB-INF/jsp/forgottenpassword-responses.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_CHOICE = "WEB-INF/jsp/forgottenpassword-choice.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "WEB-INF/jsp/forgottenpassword-entercode.jsp";
+    public static final String URL_JSP_FORGOTTEN_USERNAME = "WEB-INF/jsp/forgottenusername-search.jsp";
     public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
     public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateattributes.jsp";
     public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";

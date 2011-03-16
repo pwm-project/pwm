@@ -20,22 +20,20 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.Configuration" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
+<body onload="pwmPageLoadHandler();document.forms.searchForm.elements[0].focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
+        <jsp:param name="pwm.PageName" value="Title_ForgottenUsername"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ForgottenPassword"/></p>
+        <p><pwm:Display key="Display_ForgottenUsername"/></p>
 
-        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
               id="searchForm">
@@ -55,11 +53,7 @@
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="text" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
-
+            <pwm:ParameterForm formName="forgottenusername"/>
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"

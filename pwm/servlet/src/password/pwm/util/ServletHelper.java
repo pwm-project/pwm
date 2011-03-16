@@ -130,7 +130,7 @@ public class ServletHelper {
         final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
 
         if (ssBean.getSessionSuccess() == null) {
-            ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN);
+            ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
         }
 
         final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);

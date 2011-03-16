@@ -72,7 +72,11 @@ public class ConfigManagerServlet extends TopServlet {
                 doGetConfigEpoch(req, resp);
                 return;
             } else if ("editorPanel".equalsIgnoreCase(processActionParam)) {
-                req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PANEL).forward(req, resp);
+                if ("fieldEditor".equalsIgnoreCase(Validator.readStringFromRequest(req, "category"))) {
+                    req.getSession().getServletContext().getRequestDispatcher('/' + "WEB-INF/jsp/configmanager-editor-fields.jsp").forward(req, resp);
+                } else {
+                    req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PANEL).forward(req, resp);
+                }
                 return;
             }
 
@@ -180,8 +184,20 @@ public class ConfigManagerServlet extends TopServlet {
 
         final Object returnValue;
         final Map<String, Object> returnMap = new HashMap<String, Object>();
-
         final PwmSetting theSetting = PwmSetting.forKey(key);
+
+        /*
+        if (key.startsWith("Field-PwmError-")) {
+            final String displayKey = key.substring(15,key.length());
+            final Map<String,String> values = new TreeMap<String, String>();
+            for (final Locale locale : ContextManager.getContextManager(req).getKnownLocales()) {
+                values.put(locale.toString(),PwmError.getDisplayString(displayKey,locale));
+            }
+            returnValue = values;
+            returnMap.put("key", key);
+            returnMap.put("value", returnValue);
+            returnMap.put("isDefault", true);
+        } else */
         if (theSetting == null) {
             LOGGER.warn("readSetting request for unknown key: " + key);
             returnMap.put("key", key);
@@ -269,8 +285,6 @@ public class ConfigManagerServlet extends TopServlet {
             break;
 
             case LOCALIZED_STRING_ARRAY: {
-                System.out.println();
-                //final Map<String, List<String>> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, List<String>>>() {}.getType());
                 final Map<String, Map<String, String>> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, Map<String, String>>>() {
                 }.getType());
                 final Map<String, List<String>> outputMap = new HashMap<String, List<String>>();

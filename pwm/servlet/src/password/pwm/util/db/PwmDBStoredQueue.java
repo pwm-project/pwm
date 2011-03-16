@@ -50,8 +50,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
-    private static final Map<PwmDB.DB, PwmDBStoredQueue> singletonMap = Collections.synchronizedMap(new HashMap<PwmDB.DB, PwmDBStoredQueue>());
-
     private static final boolean developerDebug = false;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -63,12 +61,7 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public static synchronized PwmDBStoredQueue createPwmDBStoredQueue(final PwmDB pwmDB, final PwmDB.DB DB)
             throws PwmDBException {
-        PwmDBStoredQueue queue = singletonMap.get(DB);
-        if (queue == null) {
-            queue = new PwmDBStoredQueue(pwmDB, DB);
-            singletonMap.put(DB, queue);
-        }
-        return queue;
+        return new PwmDBStoredQueue(pwmDB, DB);
     }
 
     public void removeLast(final int removalCount) {
@@ -391,6 +384,10 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public String peek() {
         return this.peekFirst();
+    }
+
+    public PwmDB getPwmDB() {
+        return internalQueue.pwmDB;
     }
 
 // -------------------------- INNER CLASSES --------------------------

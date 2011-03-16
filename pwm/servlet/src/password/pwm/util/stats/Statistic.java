@@ -34,6 +34,8 @@ public enum Statistic {
     PWM_UNKNOWN_ERRORS(Type.INCREMENTOR, "PWM_UnknownErrors"),
     PASSWORD_CHANGES(Type.INCREMENTOR, "PasswordChanges"),
     RECOVERY_SUCCESSES(Type.INCREMENTOR, "RecoverySuccesses"),
+    FORGOTTEN_USERNAME_FAILURES(Type.INCREMENTOR, "ForgottenUsernameFailures"),
+    FORGOTTEN_USERNAME_SUCCESSES(Type.INCREMENTOR, "ForgottenUsernameSuccesses"),
     RECOVERY_FAILURES(Type.INCREMENTOR, "RecoveryFailures"),
     EMAIL_SEND_SUCCESSES(Type.INCREMENTOR, "EmailSendSuccesses"),
     EMAIL_SEND_FAILURES(Type.INCREMENTOR, "EmailSendFailures"),

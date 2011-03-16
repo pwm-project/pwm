@@ -56,6 +56,7 @@ public class SessionStateBean implements Serializable {
 
     private ErrorInformation sessionError;
     private Message sessionSuccess;
+    private String sessionSuccessField;
     private String originalRequestURL;
     private String srcAddress;
     private String srcHostname;
@@ -178,7 +179,12 @@ public class SessionStateBean implements Serializable {
         return sessionSuccess;
     }
 
-    public void setSessionSuccess(final Message sessionSuccess) {
+    public String getSessionSuccessField() {
+        return sessionSuccessField;
+    }
+
+    public void setSessionSuccess(final Message sessionSuccess, final String field) {
+        this.sessionSuccessField = field;
         this.sessionSuccess = sessionSuccess;
     }
 

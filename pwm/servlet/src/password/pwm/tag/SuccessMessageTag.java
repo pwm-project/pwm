@@ -40,17 +40,17 @@ public class SuccessMessageTag extends PwmAbstractTag {
 // --------------------- Interface Tag ---------------------
 
     public int doEndTag()
-            throws javax.servlet.jsp.JspTagException
-    {
+            throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final Message successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
+            final String successField = pwmSession.getSessionStateBean().getSessionSuccessField();
 
             boolean messageWritten = false;
             if (successMsg != null && successMsg == Message.SUCCESS_PASSWORDCHANGE) {
                 final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-                final String configuredMessage  = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_SUCCESS_MESSAGE,userLocale);
+                final String configuredMessage = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_SUCCESS_MESSAGE, userLocale);
                 if (configuredMessage != null && configuredMessage.length() > 0) {
                     pageContext.getOut().write(configuredMessage);
                     messageWritten = true;
@@ -58,7 +58,7 @@ public class SuccessMessageTag extends PwmAbstractTag {
             }
 
             if (!messageWritten && successMsg != null) {
-                final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale());
+                final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), successField);
                 pageContext.getOut().write(errorMsg);
             }
         } catch (Exception e) {
