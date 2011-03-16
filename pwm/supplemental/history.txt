@@ -11,17 +11,22 @@ v1.5.3
 + Added locale selector menu to footer (issue #31)
 + Changed forgotten password sequence so email token is after response questions (issue #26)
 + Added option to disable reverse dns resolution (in advanced) (issue #35)
++ Added functionality for token-only, user attribute-only, or response-only forgotten password operation, or any combination of the three
++ Added support for locally stored (PwmDB) responses
++ Added command line interface (PwmCommand.bat) to manage locally stored responses
++ Added forgotten username module
 
 * Added menu title for main index page (issue #30)
 * Added i18n and Dutch localizations for index page (issue #27)
-* Updated Dutch localizations (issue #32)
+* Updated Dutch localizations (issue #32, #42, #47)
 * Improved AD complexity password checking (issue #34)
+*
 
 - Fixed broken login contexts option on activation page (issue #26)
 - Fixed issue with cookieless (URL) sessions not working since v1.5.2
 - Fixed issue wih CommandServlet?processAction=checkExpire not working
-- Improved ConfigManager UI performance and layout
-- changed from simpleJson java libray to google json (gson) library for flexibility
+- Improved ConfigManager UI performance and layout, with simple/advanced mode
+- changed from simpleJson java libray to google json (gson) library for flexibility and correctness
 
 ! Added url escaping to user input reflected html form values to prevent certain types of XSS attacks
 
