@@ -22,7 +22,10 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <p id="admin-menu-bar" style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="UserInformation">User Information</a> | <a href="eventlog.jsp">Event Log</a>
+    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a
+        href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="UserInformation">User
+    Information</a> | <a href="eventlog.jsp">Event Log</a>
     <br/>
-    <a href="config.jsp">Configuration</a> | <a href="http-request-information.jsp">Http Debug</a> | <a href="http://code.google.com/p/pwm">PWM Project</a> | <a href="<%=request.getContextPath()%>">Main Menu</a>
+    <a href="config.jsp">Configuration</a> | <a href="http-request-information.jsp">Http Debug</a> | <a
+        href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project</a> | <a href="<%=request.getContextPath()%>">Main Menu</a>
 </p>
