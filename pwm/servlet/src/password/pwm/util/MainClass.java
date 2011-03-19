@@ -75,8 +75,8 @@ public class MainClass {
     static void handlePwmDbInfo() throws Exception {
         final Configuration config = loadConfiguration();
         final PwmDB pwmDB = loadPwmDB(config, true);
-
-        out("PwmDB Total Disk Space = " + pwmDB.diskSpaceUsed() + " (" + Helper.formatDiskSize(pwmDB.diskSpaceUsed()) + ")");
+        final long pwmDBdiskSpace = Helper.getFileDirectorySize(pwmDB.getFileLocation());
+        out("PwmDB Total Disk Space = " + pwmDBdiskSpace + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
         out("Checking row counts, this may take a moment.... ");
         for (final PwmDB.DB db : PwmDB.DB.values()) {
             out("  " + db.toString() + "=" + pwmDB.size(db));

@@ -20,10 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="java.util.Map" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -72,13 +71,13 @@
                 <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>
                     <%
                         if (loopSetting.isConfidential()) {
-                            out.write("* not shown *");
+                            out.write("<span style=\"color:gray;\">not shown</span>");
                         } else {
                             switch (loopSetting.getSyntax()) {
                                 case STRING_ARRAY: {
                                     final List<String> values = pwmConfig.readStringArraySetting(loopSetting);
                                     for (final String value : values) {
-                                        out.write(value + "<br/>");
+                                        out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
                                     }
                                 }
                                 break;
@@ -86,7 +85,8 @@
                                 case LOCALIZED_STRING:
                                 case LOCALIZED_TEXT_AREA: {
                                     for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
-                                        out.write("<b>" + locale + "</b>" + pwmConfig.readLocalizedStringSetting(loopSetting, locale) + "<br/>");
+                                        final String value = StringEscapeUtils.escapeHtml(pwmConfig.readLocalizedStringSetting(loopSetting, locale));
+                                        out.write("<b>" + locale + "</b>" + value + "<br/>");
                                     }
 
                                 }
@@ -97,7 +97,8 @@
                                         out.write("<table><tr><td>");
                                         out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
                                         out.write("</td><td>");
-                                        for (final String value : pwmConfig.readFormSetting(loopSetting, locale)) {
+                                        for (String value : pwmConfig.readFormSetting(loopSetting, locale)) {
+                                            value = StringEscapeUtils.escapeHtml(value);
                                             out.write(value + "<br/>");
                                         }
                                         out.write("</td></tr></table>");
@@ -106,7 +107,7 @@
                                 break;
 
                                 default:
-                                    out.write(pwmConfig.readSettingAsString(loopSetting));
+                                    out.write(StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsString(loopSetting)));
                             }
                         }
                     %>

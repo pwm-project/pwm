@@ -25,7 +25,6 @@ package password.pwm.util.db;
 import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -253,13 +252,8 @@ public class JDBM_PwmDb implements PwmDBProvider {
         LOGGER.debug("truncate complete of " + db.toString() + ", " + startSize + " records in " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString() + ", " + size(db) + " records in database");
     }
 
-    public long diskSpaceUsed() {
-        try {
-            return Helper.getFileDirectorySize(dbDirectory);
-        } catch (Exception e) {
-            LOGGER.error("error trying to compute db directory size: " + e.getMessage());
-        }
-        return 0;
+    public File getFileLocation() {
+        return dbDirectory;
     }
 
     public void removeAll(final DB db, final Collection<String> keys)

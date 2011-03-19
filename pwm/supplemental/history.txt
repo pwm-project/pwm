@@ -20,7 +20,7 @@ v1.5.3
 * Added i18n and Dutch localizations for index page (issue #27)
 * Updated Dutch localizations (issue #32, #42, #47)
 * Improved AD complexity password checking (issue #34)
-*
+* Improved health monitor checking and display screens
 
 - Fixed broken login contexts option on activation page (issue #26)
 - Fixed issue with cookieless (URL) sessions not working since v1.5.2

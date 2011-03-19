@@ -69,7 +69,12 @@ public class PwmDBFactory {
             if (!readonly) {
                 db.truncate(PwmDB.DB.TEMP);
             }
-            LOGGER.info("pwmDB open in " + (openTime.asCompactString()) + ", db size: " + Helper.formatDiskSize(db.diskSpaceUsed()) + " at " + dbDirectory.toString());
+
+            final StringBuilder debugText = new StringBuilder();
+            debugText.append("pwmDB open in ").append(openTime.asCompactString());
+            debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
+            debugText.append(" at ").append(dbDirectory.toString());
+            LOGGER.info(debugText);
         }
 
         //readDBSizes(db);

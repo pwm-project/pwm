@@ -332,13 +332,11 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
     }
 
-    public long diskSpaceUsed() {
-        try {
-            return Helper.getFileDirectorySize(environment.getHome());
-        } catch (Exception e) {
-            LOGGER.error("error trying to compute db directory size: " + e.getMessage());
+    public File getFileLocation() {
+        if (environment == null) {
+            return null;
         }
-        return 0;
+        return environment.getHome();
     }
 
     private void preCheck(final boolean write) throws PwmDBException {

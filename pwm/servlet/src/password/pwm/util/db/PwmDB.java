@@ -22,6 +22,7 @@
 
 package password.pwm.util.db;
 
+import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -106,7 +107,7 @@ public interface PwmDB {
     void truncate(DB db)
             throws PwmDBException;
 
-    long diskSpaceUsed();
+    File getFileLocation();
 
     void addEventListener(PwmDBEventListener eventListener);
 

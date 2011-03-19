@@ -43,6 +43,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -744,5 +745,18 @@ public class Helper {
         }
         reader.close();
         return fileData.toString();
+    }
+
+    public static String diskSpaceRemaining(final File file) {
+        String freeSpace = "n/a";
+        try {
+            final Method getFreeSpaceMethod = File.class.getMethod("getFreeSpace");
+            final Object rawResult = getFreeSpaceMethod.invoke(file);
+            final Long longResult = (Long) rawResult;
+            freeSpace = Helper.formatDiskSize(longResult);
+        } catch (Exception e) {
+            LOGGER.debug("error reading file space remaining for " + file.toString() + ", probably pre Java-1.6: " + e.getMessage());
+        }
+        return freeSpace;
     }
 }

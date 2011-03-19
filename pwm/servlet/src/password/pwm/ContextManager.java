@@ -93,7 +93,6 @@ public class ContextManager implements Serializable {
     private transient volatile ChaiProvider proxyChaiProvider;
     private transient boolean restartRequested;
 
-
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private Date lastLdapFailure = null;
@@ -344,17 +343,6 @@ public class ContextManager implements Serializable {
 
     public String getParameter(final PwmConstants.CONTEXT_PARAM param) {
         return servletContext.getInitParameter(param.getKey());
-    }
-
-    public long getPwmDbDiskSize() {
-        if (pwmDB != null) {
-            try {
-                return pwmDB.diskSpaceUsed();
-            } catch (Exception e) {
-                LOGGER.error("error reading pwmDB disk space size: " + e.getMessage());
-            }
-        }
-        return 0;
     }
 
     private static Date fetchInstallDate(final PwmDB pwmDB, final Date startupTime) {

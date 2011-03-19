@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
+<%@ page import="password.pwm.util.db.PwmDB" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -253,11 +254,24 @@
     </tr>
     <tr>
         <td class="key">
-            Oldest Shared Password Entry
+            Email Queue Status
         </td>
         <td>
-            <% final long oldestEntryAge = contextManager.getSharedHistoryManager().getOldestEntryAge(); %>
-            <%= oldestEntryAge == 0 ? "n/a" : TimeDuration.asCompactString(oldestEntryAge) %>
+            <%= contextManager.getEmailQueue().status() %>
+        </td>
+        <td class="key">
+            Email Queue Size
+        </td>
+        <td>
+            <%= contextManager.getEmailQueue().queueSize() %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            Log Events in Write Queue
+        </td>
+        <td>
+            <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getPendingEventCount()) : "n/a" %>
         </td>
         <td class="key">
             <a href="<pwm:url url='eventlog.jsp'/>">
@@ -272,10 +286,10 @@
     </tr>
     <tr>
         <td class="key">
-            Log Events in Write Queue
+            Oldest Log Event in Write Queue
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getPendingEventCount()) : "n/a" %>
+            <%= contextManager.getPwmDBLogger() != null ? contextManager.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
         </td>
         <td class="key">
             Oldest Log Event
@@ -286,30 +300,31 @@
     </tr>
     <tr>
         <td class="key">
-            Oldest Log Event in Write Queue
+            Oldest Shared Password Entry
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger() != null ? contextManager.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
+            <% final long oldestEntryAge = contextManager.getSharedHistoryManager().getOldestEntryAge(); %>
+            <%= oldestEntryAge == 0 ? "n/a" : TimeDuration.asCompactString(oldestEntryAge) %>
         </td>
         <td class="key">
-            Database Size
+            PwmDB Size On Disk
         </td>
         <td>
-            <%= Helper.formatDiskSize(contextManager.getPwmDbDiskSize()) %>
+            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(contextManager.getPwmDB().getFileLocation())) %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            EmailQueueStatus
+            User Responses in PwmDB
         </td>
         <td>
-            <%= contextManager.getEmailQueue().status() %>
+            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE) %>
         </td>
         <td class="key">
-            Email Queue Size
+            PwmDB Free Space
         </td>
         <td>
-            <%= contextManager.getEmailQueue().queueSize() %>
+            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.diskSpaceRemaining(contextManager.getPwmDB().getFileLocation()) %>
         </td>
     </tr>
 </table>

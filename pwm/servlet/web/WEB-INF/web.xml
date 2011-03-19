@@ -272,7 +272,7 @@
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>20</session-timeout>
+        <session-timeout>5</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>

@@ -40,6 +40,14 @@
     </jsp:include>
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
+        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getContextManager(session).getIntruderManager().getUserLockTable(); %>
+        <% if (userLockTable.isEmpty()) { %>
+        <br/>
+        <br/>
+
+        <div style="font-weight: bold; text-align:center; width:100%">No user accounts are currently locked.</div>
+        <br/>
+        <% } else { %>
         <table>
             <tr>
                 <td class="title" colspan="10">
@@ -64,7 +72,6 @@
                 </td>
             </tr>
             <%
-                final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getContextManager(session).getIntruderManager().getUserLockTable();
                 for (final String key : userLockTable.keySet()) {
                     final IntruderManager.IntruderRecord record = userLockTable.get(key);
             %>
@@ -100,7 +107,13 @@
             </tr>
             <% } %>
         </table>
+        <% } %>
         <br class="clear"/>
+        <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getContextManager(session).getIntruderManager().getAddressLockTable(); %>
+        <% if (addressLockTable.isEmpty()) { %>
+        <div style="font-weight: bold; text-align:center; width:100%">No network addresses are currently locked.</div>
+        <br/>
+        <% } else { %>
         <table>
             <tr>
                 <td class="title" colspan="10">
@@ -124,13 +137,10 @@
                     Last Bad Attempt
                 </td>
             </tr>
-
             <%
-                final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getContextManager(session).getIntruderManager().getAddressLockTable();
                 for (final String key : addressLockTable.keySet()) {
                     final IntruderManager.IntruderRecord record = addressLockTable.get(key);
             %>
-
             <tr>
                 <td>
                     <%= key %>
@@ -163,6 +173,7 @@
             </tr>
             <% } %>
         </table>
+        <% } %>
     </div>
 </div>
 <%@ include file="/WEB-INF/jsp/footer.jsp" %>

@@ -74,7 +74,7 @@ public interface PwmDBProvider {
     void truncate(PwmDB.DB db)
             throws PwmDBException;
 
-    long diskSpaceUsed();
+    File getFileLocation();
 
     PwmDB.Status getStatus();
 

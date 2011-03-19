@@ -202,8 +202,7 @@ public class Memory_PwmDb implements PwmDBProvider {
         }
     }
 
-    public long diskSpaceUsed() {
-        return 0;
+    public File getFileLocation() {
+        return null;
     }
-
 }

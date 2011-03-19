@@ -22,7 +22,6 @@
 
 package password.pwm.util.db;
 
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.File;
@@ -539,13 +538,7 @@ public class Derby_PwmDb implements PwmDBProvider {
         }
     }
 
-    public long diskSpaceUsed() {
-        try {
-            return Helper.getFileDirectorySize(dbDirectory);
-        } catch (Exception e) {
-            LOGGER.error("error trying to compute db directory size: " + e.getMessage());
-        }
-        return 0;
+    public File getFileLocation() {
+        return dbDirectory;
     }
-
 }

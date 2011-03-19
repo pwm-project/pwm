@@ -277,6 +277,8 @@ public class AuthenticationFilter implements Filter {
             final ContextManager theManager
     )
             throws ChaiUnavailableException, PwmException {
+        LOGGER.trace(pwmSession, "begging testCredentials process");
+
         final boolean alwaysUseProxy = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY);
         final boolean ldapIsEdirectory = theManager.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
 
@@ -300,6 +302,7 @@ public class AuthenticationFilter implements Filter {
                     // check if user's login is disabled
                     final boolean loginDisabled = theUser.readBooleanAttribute(ChaiUser.ATTR_LOGIN_DISABLED);
                     if (!loginDisabled) {
+                        LOGGER.debug(pwmSession, "ldap compare operation is failed due to ldap account being disabled");
                         return true;
                     }
                 }

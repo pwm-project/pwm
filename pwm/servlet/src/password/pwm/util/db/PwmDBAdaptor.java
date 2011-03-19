@@ -48,8 +48,8 @@ public class PwmDBAdaptor implements PwmDB {
 
     }
 
-    public long diskSpaceUsed() {
-        return innerDB.diskSpaceUsed();
+    public File getFileLocation() {
+        return innerDB.getFileLocation();
     }
 
     @WriteOperation

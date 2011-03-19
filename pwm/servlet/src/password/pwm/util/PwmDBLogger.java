@@ -140,7 +140,7 @@ public class PwmDBLogger {
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
         sb.append(", maxEvents=").append(setting_maxEvents);
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
-        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(pwmDB.diskSpaceUsed()));
+        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
         return sb.toString();
     }
 
