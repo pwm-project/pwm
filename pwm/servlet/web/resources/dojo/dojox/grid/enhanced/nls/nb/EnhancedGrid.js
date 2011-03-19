@@ -1,0 +1,1 @@
+({"descending":"Synkende","ascending":"Stigende","nestedSort":"Nestet sortering","unsorted":"Ikke sorter denne kolonnen","singleSort":"Enkel sortering","indirectSelectionRadio":"Row ${0}, single selection, radio box","indirectSelectionCheckBox":"Row ${0}, multiple selection, check box","selectAll":"Select all","sortingState":"${0} - ${1}"})

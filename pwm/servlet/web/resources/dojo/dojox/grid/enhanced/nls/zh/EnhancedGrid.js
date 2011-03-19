@@ -1,0 +1,1 @@
+({"descending":"降序","ascending":"升序","nestedSort":"嵌套排序","unsorted":"请勿对此列排序","singleSort":"单一排序","indirectSelectionRadio":"Row ${0}, single selection, radio box","indirectSelectionCheckBox":"Row ${0}, multiple selection, check box","selectAll":"Select all","sortingState":"${0} - ${1}"})

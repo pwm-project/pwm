@@ -1,0 +1,1 @@
+({"descending":"По убыванию","ascending":"По возрастанию","nestedSort":"Вложенная сортировка","unsorted":"Не сортировать этот столбец","singleSort":"Однократная сортировка","indirectSelectionRadio":"Row ${0}, single selection, radio box","indirectSelectionCheckBox":"Row ${0}, multiple selection, check box","selectAll":"Select all","sortingState":"${0} - ${1}"})

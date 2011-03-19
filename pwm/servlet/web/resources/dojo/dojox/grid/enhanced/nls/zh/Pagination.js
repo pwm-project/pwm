@@ -1,0 +1,1 @@
+({"gotoButtonTitle":"访问指定页面","prevTip":"上一页","pageCountIndication":"（共 ${0} 页）","pageStepLabelTemplate":"第 ${0} 页","descTemplate":"${2} - ${3} of ${1} ${0}","lastTip":"末页","nextTip":"下一页","pageSizeLabelTemplate":"每页 ${0} 项","dialogCancel":"取消","itemTitle":"项","dialogConfirm":"访问","firstTip":"首页","allItemsLabelTemplate":"所有项","dialogIndication":"指定页码","dialogTitle":"访问页面"})

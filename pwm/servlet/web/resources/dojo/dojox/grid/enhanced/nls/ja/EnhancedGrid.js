@@ -1,0 +1,1 @@
+({"descending":"降順","ascending":"昇順","nestedSort":"ネストされたソート","unsorted":"この列はソートしないでください","singleSort":"単一ソート","indirectSelectionRadio":"Row ${0}, single selection, radio box","indirectSelectionCheckBox":"Row ${0}, multiple selection, check box","selectAll":"Select all","sortingState":"${0} - ${1}"})

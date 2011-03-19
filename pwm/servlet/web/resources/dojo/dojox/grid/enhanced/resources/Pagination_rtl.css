@@ -1,0 +1,52 @@
+.dojoxGridRtl .dojoxGridDescription {
+	text-align: right;
+	margin-right: 9px;
+}
+.dojoxGridRtl .dojoxGridPaginatorStep {
+	float: left;
+}
+.dojoxGridRtl .dojoxGridPaginatorGotoDiv {
+	margin: 0 2px 0 6px;
+}
+.dojoxGridRtl .dojoxGridWardButton {
+	float: right;
+}
+.dojoxGridRtl .dojoxGridfirstPageBtn {
+	margin-right: 1px;
+}
+.dojoxGridRtl .dojoxGridfirstPageBtnDisable {
+	margin-left: 1px;
+}
+.dojoxGridRtl .dojoxGridprevPageBtn {
+	margin: 2px 9px 0 5px;
+}
+.dojoxGridRtl .dojoxGridprevPageBtnDisable {
+	margin: 2px 9px 0 5px;
+}
+.dojoxGridRtl .dojoxGridnextPageBtn {
+	margin-right: 3px;
+}
+.dojoxGridRtl .dojoxGridnextPageBtnDisable {
+	margin-right: 3px;
+}
+.dojoxGridRtl .dojoxGridInactived {
+	margin: 1px 5px 0 6px;
+	float: right;
+}
+.dojoxGridRtl .dojoxGridActived {
+	margin: 1px 5px 0 6px;
+	float: right;
+}
+.dijitRtl .dojoxGridDialogButton {
+	float: left;
+	margin-bottom: 10px;
+}
+.dijitRtl .dojoxGridInactiveSwitch {
+	float: right;
+}
+.dijitRtl .dojoxGridActivedSwitch {
+	float: right;
+}
+.dijitRtl .dojoxGridSeparator {
+	float: right;
+}

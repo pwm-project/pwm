@@ -1,0 +1,1 @@
+({"descending":"Csökkenő","ascending":"Növekvő","nestedSort":"Beágyazott rendezés","unsorted":"Az oszlop nincs rendezve","singleSort":"Egyszerű rendezés","indirectSelectionRadio":"Row ${0}, single selection, radio box","indirectSelectionCheckBox":"Row ${0}, multiple selection, check box","selectAll":"Select all","sortingState":"${0} - ${1}"})
