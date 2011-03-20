@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -32,7 +31,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_RecoverEnterCode"/></p>
+        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=PwmSession.getPwmSession(session).getForgottenPasswordBean().getTokenEmailAddress()%>"/></p>
 
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"

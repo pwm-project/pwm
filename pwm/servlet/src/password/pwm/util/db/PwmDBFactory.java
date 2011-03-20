@@ -74,6 +74,10 @@ public class PwmDBFactory {
             debugText.append("pwmDB open in ").append(openTime.asCompactString());
             debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
             debugText.append(" at ").append(dbDirectory.toString());
+            final long freeSpace = Helper.diskSpaceRemaining(db.getFileLocation());
+            if (freeSpace >= 0) {
+                debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
+            }
             LOGGER.info(debugText);
         }
 

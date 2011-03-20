@@ -87,6 +87,13 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
+        // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
+        if (processAction == null || processAction.length() < 1) {
+            if (checkForURLcommand(req, resp, pwmSession)) {
+                return;
+            }
+        }
+
         if (processAction != null && processAction.length() > 0) {
             Validator.validatePwmFormID(req);
 
@@ -152,6 +159,14 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = PwmSession.getForgottenPasswordBean(req);
 
+        if (forgottenPasswordBean.getProxiedUser() == null || forgottenPasswordBean.getToken() == null) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
+            pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            this.advancedToNextStage(req, resp);
+            return;
+        }
+
         final String recoverCode = Validator.readStringFromRequest(req, "code", 10 * 1024);
 
         final boolean codeIsCorrect = (recoverCode != null) && recoverCode.equalsIgnoreCase(forgottenPasswordBean.getToken());
@@ -160,7 +175,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             forgottenPasswordBean.setTokenSatisfied(true);
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
-
             this.advancedToNextStage(req, resp);
             return;
         }
@@ -168,6 +182,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
         pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+        pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         this.forwardToEnterCodeJSP(req, resp);
     }
@@ -194,7 +209,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
                     if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
-                        forgottenPasswordBean.setChallengeSet(challengeSet);
                         forgottenPasswordBean.setResponseSet(responseSet);
                         forgottenPasswordBean.setProxiedUser(theUser);
                         return true;
@@ -209,7 +223,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.info(pwmSession, "could not find a response set for " + theUser.getEntryDN());
         }
 
-        forgottenPasswordBean.setChallengeSet(null);
         forgottenPasswordBean.setResponseSet(null);
         forgottenPasswordBean.setProxiedUser(null);
         return false;
@@ -495,6 +508,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         String toAddress = null;
         try {
             toAddress = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+            forgottenPasswordBean.setTokenEmailAddress(toAddress);
         } catch (Exception e) {
             LOGGER.debug("error reading mail attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
@@ -530,6 +544,51 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         return sb.toString();
+    }
+
+    private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
+            throws IOException
+    {
+        final String uri = req.getRequestURI();
+        if (uri == null || uri.length() < 1) {
+            return false;
+        }
+        final String servletPath = req.getServletPath();
+        if (!uri.contains(servletPath)) {
+            LOGGER.error("unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'");
+            return false;
+        }
+
+        String aftPath = uri.substring(uri.indexOf(servletPath) + servletPath.length(),uri.length());
+        if (aftPath.startsWith("/")) {
+            aftPath = aftPath.substring(1,aftPath.length());
+        }
+
+        if (aftPath.contains("?")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.contains("&")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.length() <= 1) {
+            return false;
+        }
+
+        final StringBuilder redirectURL = new StringBuilder();
+        redirectURL.append(req.getContextPath());
+        redirectURL.append(req.getServletPath());
+        redirectURL.append("?");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=forgottenCode");
+        redirectURL.append("&");
+        redirectURL.append("code=").append(aftPath);
+        redirectURL.append("&");
+        redirectURL.append("pwmFormID=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+
+        LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
+        resp.sendRedirect(redirectURL.toString());
+        return true;
     }
 }
 

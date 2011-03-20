@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.PwmService" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%--

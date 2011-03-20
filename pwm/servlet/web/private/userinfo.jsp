@@ -251,7 +251,7 @@
                value="continue"/>
         <input type="submit" name="button" class="btn"
                value="    <pwm:Display key="Button_Continue"/>    "
-               id="button_logout"/>
+               id="button_continue"/>
     </form>
 </div>
 <br class="clear"/>

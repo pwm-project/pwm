@@ -22,10 +22,7 @@
 
 package password.pwm.config;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Empty class to facilitate easy resourcebundle loading of "Display" resource bundle.
@@ -50,7 +47,11 @@ public abstract class Display {
 
     public static Set<String> getDisplayKeys() {
         final ResourceBundle bundle = getMessageBundle(null);
-        return new TreeSet<String>(bundle.keySet());
+        final Set<String> returnSet = new TreeSet<String>();
+        for (final Enumeration keyEnum = bundle.getKeys(); keyEnum.hasMoreElements(); ) {
+            returnSet.add(keyEnum.nextElement().toString());
+        }
+        return returnSet;
     }
 
 }

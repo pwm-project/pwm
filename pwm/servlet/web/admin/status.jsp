@@ -280,7 +280,7 @@
         </td>
         <td>
             <a href="<pwm:url url='eventlog.jsp'/>">
-                <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getEventCount()) : "n/a" %>
+                <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getStoredEventCount()) : "n/a" %>
             </a>
         </td>
     </tr>
@@ -318,13 +318,19 @@
             User Responses in PwmDB
         </td>
         <td>
-            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE) %>
+            <%
+                String responseCount = "n/a";
+                try {
+                    responseCount = String.valueOf(contextManager.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE));
+                } catch (Exception e) { /* na */ }
+            %>
+            <%= responseCount %>
         </td>
         <td class="key">
             PwmDB Free Space
         </td>
         <td>
-            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.diskSpaceRemaining(contextManager.getPwmDB().getFileLocation()) %>
+            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(contextManager.getPwmDB().getFileLocation())) %>
         </td>
     </tr>
 </table>

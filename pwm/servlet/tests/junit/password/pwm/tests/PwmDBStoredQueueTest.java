@@ -22,10 +22,7 @@
 
 package password.pwm.tests;
 
-import com.novell.ldapchai.ChaiUser;
 import junit.framework.TestCase;
-import org.apache.log4j.*;
-import password.pwm.ContextManager;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBFactory;
 import password.pwm.util.db.PwmDBStoredQueue;
@@ -43,20 +40,7 @@ public class PwmDBStoredQueueTest extends TestCase {
     protected void setUp() throws Exception {
 
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
-        {
-            final String pwmPackageName = ContextManager.class.getPackage().getName();
-            final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
-            final String chaiPackageName = ChaiUser.class.getPackage().getName();
-            final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
-            final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
-            final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-            final Level level = Level.TRACE;
-            pwmPackageLogger.addAppender(consoleAppender);
-            pwmPackageLogger.setLevel(level);
-            chaiPackageLogger.addAppender(consoleAppender);
-            chaiPackageLogger.setLevel(level);
-        }
-
+        TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
         pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
         storedQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.TEMP);

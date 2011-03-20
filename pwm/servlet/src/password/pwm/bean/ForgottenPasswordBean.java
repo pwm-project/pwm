@@ -23,7 +23,6 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 
 import java.io.Serializable;
@@ -36,9 +35,10 @@ public class ForgottenPasswordBean implements Serializable {
 
     private transient ChaiUser proxiedUser;
     private transient ResponseSet responseSet;
-    private ChallengeSet challengeSet;
-    private boolean responsesSatisfied;
     private String token;
+    private String tokenEmailAddress;
+
+    private boolean responsesSatisfied;
     private boolean tokenSatisfied;
     private boolean allPassed;
 
@@ -68,14 +68,6 @@ public class ForgottenPasswordBean implements Serializable {
         this.responsesSatisfied = responsesSatisfied;
     }
 
-    public ChallengeSet getChallengeSet() {
-        return challengeSet;
-    }
-
-    public void setChallengeSet(final ChallengeSet challengeSet) {
-        this.challengeSet = challengeSet;
-    }
-
     public String getToken() {
         return token;
     }
@@ -96,8 +88,16 @@ public class ForgottenPasswordBean implements Serializable {
         return allPassed;
     }
 
-    public void setAllPassed(boolean allPassed) {
+    public void setAllPassed(final boolean allPassed) {
         this.allPassed = allPassed;
+    }
+
+    public String getTokenEmailAddress() {
+        return tokenEmailAddress;
+    }
+
+    public void setTokenEmailAddress(final String tokenEmailAddress) {
+        this.tokenEmailAddress = tokenEmailAddress;
     }
 }
 

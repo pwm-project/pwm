@@ -24,7 +24,6 @@ package password.pwm.util;
 
 import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
-import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.db.PwmDB;
@@ -68,20 +67,12 @@ public class PwmLogger {
     public static PwmDBLogger initContextManager(
             final PwmDB pwmDB,
             final int maxEvents,
-            final int maxAge,
+            final long maxAgeMS,
             final PwmLogLevel minimumDbLogLevel,
             final ContextManager contextManager
     ) {
-        final String bulkAddEventsSetting = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.BULK_DB_LOGEVENTS_TEST);
-        int bulkAddEvents;
         try {
-            bulkAddEvents = Integer.parseInt(bulkAddEventsSetting);
-        } catch (Exception e) {
-            bulkAddEvents = 0;
-        }
-
-        try {
-            PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAge, bulkAddEvents);
+            PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAgeMS);
         } catch (PwmDBException e) {
             //nothing to do;
         }

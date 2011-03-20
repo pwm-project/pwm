@@ -151,9 +151,9 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 
     var selectElement = document.createElement("select");
     selectElement.setAttribute('id', keyName + '-addLocaleValue');
-    for (var localeIter = 0; localeIter < availableLocales.length; localeIter++) {
+    for (var localeIter in availableLocales) {
         var optionElement = document.createElement("option");
-        optionElement.innerHTML = availableLocales[localeIter];
+        optionElement.innerHTML = localeIter;
         selectElement.appendChild(optionElement);
     }
     td1.appendChild(selectElement);

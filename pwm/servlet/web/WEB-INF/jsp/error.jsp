@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.error.PwmError" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -35,11 +34,25 @@
     </jsp:include>
     <div id="centerbody">
         <br/>
+        <h2><%=PwmSession.getPwmSession(session).getSessionStateBean().getSessionError().getError().getErrorCode()%></h2>
+        <br/>
+        <br/>
         <span id="error_msg" class="msg-error">
             <pwm:ErrorMessage/>
         </span>
-
-        <p><pwm:Display key="Display_ErrorBody"/></p>
+        <br/>
+        <br/>
+        <div id="buttonbar">
+            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+                  enctype="application/x-www-form-urlencoded">
+                <input type="hidden"
+                       name="processAction"
+                       value="continue"/>
+                <input type="submit" name="button" class="btn"
+                       value="    <pwm:Display key="Button_Continue"/>    "
+                       id="button_continue"/>
+            </form>
+        </div>
     </div>
     <br class="clear"/>
 </div>

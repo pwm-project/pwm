@@ -747,16 +747,16 @@ public class Helper {
         return fileData.toString();
     }
 
-    public static String diskSpaceRemaining(final File file) {
-        String freeSpace = "n/a";
+    public static long diskSpaceRemaining(final File file) {
         try {
             final Method getFreeSpaceMethod = File.class.getMethod("getFreeSpace");
             final Object rawResult = getFreeSpaceMethod.invoke(file);
-            final Long longResult = (Long) rawResult;
-            freeSpace = Helper.formatDiskSize(longResult);
+            return (Long) rawResult;
+        } catch (NoSuchMethodException e) {
+            /* no error, pre java 1.6 doesn't have this method */
         } catch (Exception e) {
-            LOGGER.debug("error reading file space remaining for " + file.toString() + ", probably pre Java-1.6: " + e.getMessage());
+            LOGGER.debug("error reading file space remaining for " + file.toString() + ",: " + e.getMessage());
         }
-        return freeSpace;
+        return -1;
     }
 }

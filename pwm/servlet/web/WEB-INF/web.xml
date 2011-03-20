@@ -44,10 +44,6 @@
         <param-value>50</param-value>
     </context-param>
     <context-param>
-        <param-name>bulkDbLogEventsTest</param-name>
-        <param-value>0</param-value>
-    </context-param>
-    <context-param>
         <param-name>knownLocales</param-name>
         <param-value>en;;;cs;;;de;;;es;;;fr;;;it;;;nl;;;pl;;;pt</param-value>
     </context-param>
@@ -228,6 +224,10 @@
         <url-pattern>/public/ForgottenPassword</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>ForgottenPasswordServlet</servlet-name>
+        <url-pattern>/public/ForgottenPassword/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>CommandServlet</servlet-name>
         <url-pattern>/public/CommandServlet</url-pattern>
     </servlet-mapping>
@@ -271,6 +271,14 @@
         <servlet-name>ResourceFileServlet</servlet-name>
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/jsp/errorHttp.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/jsp/errorHttp.jsp</location>
+    </error-page>
     <session-config>
         <session-timeout>5</session-timeout>
     </session-config>

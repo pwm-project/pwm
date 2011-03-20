@@ -60,7 +60,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         if (contextManager.getConfig() != null) {
             final PwmDBLogger pwmDBLogger = contextManager.getPwmDBLogger();
             if (pwmDBLogger != null) {
-                final int eventCount = pwmDBLogger.getEventCount();
+                final int eventCount = pwmDBLogger.getStoredEventCount();
                 final int maxEventCount = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 if (eventCount > maxEventCount + 5000) {
                     healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));

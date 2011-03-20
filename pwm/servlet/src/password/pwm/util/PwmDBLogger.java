@@ -60,7 +60,6 @@ public class PwmDBLogger {
 
     private final int setting_maxEvents;
     private final long setting_maxAgeMs;
-    private final int setting_bulkAddEvents;
 
     private final Queue<PwmLogEvent> eventQueue = new ConcurrentLinkedQueue<PwmLogEvent>();
 
@@ -72,12 +71,11 @@ public class PwmDBLogger {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final int maxAge, final int bulkAddEvents)
+    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final long maxAgeMS)
             throws PwmDBException {
         final long startTime = System.currentTimeMillis();
         this.pwmDB = pwmDB;
-        this.setting_maxAgeMs = ((long) maxAge) * 1000L;
-        this.setting_bulkAddEvents = bulkAddEvents;
+        this.setting_maxAgeMs = maxAgeMS;
         this.pwmDBListQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
@@ -102,19 +100,6 @@ public class PwmDBLogger {
             writerThread.setDaemon(true);
             writerThread.start();
         }
-
-        if (setting_bulkAddEvents > 0) {
-            Helper.pause(10 * 1000);
-            LOGGER.warn("beginning bulk add events testing process for " + setting_bulkAddEvents + " events!");
-            final Thread bulkAddThread = new Thread(new Thread(), "pwm-PwmDBLogger bulkadd") {
-                public void run() {
-                    bulkAddEvents(setting_bulkAddEvents);
-                }
-            };
-            bulkAddThread.setDaemon(true);
-            bulkAddThread.start();
-        }
-
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
@@ -142,41 +127,6 @@ public class PwmDBLogger {
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
         sb.append(", pwmDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
         return sb.toString();
-    }
-
-    private void bulkAddEvents(final int size) {
-        int eventsRemaining = size;
-        final Sleeper sleeper = new Sleeper(99);
-        while (eventsRemaining > 0 && open) {
-            while (eventQueue.size() >= MAX_WRITES_PER_CYCLE) Helper.pause(100);
-
-            final Collection<PwmLogEvent> events = makeBulkEvents(MAX_WRITES_PER_CYCLE + 1);
-            eventQueue.addAll(events);
-            eventsRemaining = eventsRemaining - events.size();
-            sleeper.sleep();
-        }
-    }
-
-
-    private static Collection<PwmLogEvent> makeBulkEvents(final int count) {
-
-        final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
-        final PwmRandom random = PwmRandom.getInstance();
-        final String randomDescr = random.alphaNumericString(1024 * 4);
-
-        for (int i = 0; i < count; i++) {
-            final StringBuilder description = new StringBuilder();
-            description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
-            description.append(randomDescr);
-
-            final PwmLogEvent event = new PwmLogEvent(
-                    new Date(),
-                    PwmDBLogger.class.getName(),
-                    description.toString(), "", "", null, PwmLogLevel.TRACE);
-            events.add(event);
-        }
-
-        return events;
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -250,7 +200,7 @@ public class PwmDBLogger {
         return tailTimestampMs;
     }
 
-    public int getEventCount() {
+    public int getStoredEventCount() {
         return pwmDBListQueue.size();
     }
 

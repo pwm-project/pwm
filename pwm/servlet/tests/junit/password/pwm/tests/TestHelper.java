@@ -22,6 +22,10 @@
 
 package password.pwm.tests;
 
+import com.novell.ldapchai.ChaiUser;
+import org.apache.log4j.*;
+import password.pwm.ContextManager;
+
 import java.util.ResourceBundle;
 
 public class TestHelper {
@@ -29,5 +33,19 @@ public class TestHelper {
 
     public static String getParameter(final String param) {
         return resourceBundle.getString(param);
+    }
+
+    public static void setupLogging() {
+        final String pwmPackageName = ContextManager.class.getPackage().getName();
+        final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
+        final String chaiPackageName = ChaiUser.class.getPackage().getName();
+        final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
+        final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
+        final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
+        final Level level = Level.TRACE;
+        pwmPackageLogger.addAppender(consoleAppender);
+        pwmPackageLogger.setLevel(level);
+        chaiPackageLogger.addAppender(consoleAppender);
+        chaiPackageLogger.setLevel(level);
     }
 }

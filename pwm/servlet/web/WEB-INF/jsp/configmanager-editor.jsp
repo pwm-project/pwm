@@ -23,8 +23,8 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.TreeSet" %>
+<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="java.util.Collection" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -32,12 +32,12 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
-<% final Set<String> DEFAULT_LOCALES = new TreeSet<String>();
-    for (final Locale l : Locale.getAvailableLocales()) DEFAULT_LOCALES.add(l.toString());%>
+<% final Collection<Locale> localeList = ContextManager.getContextManager(session).getKnownLocales(); %>
+<% localeList.remove(Helper.localeResolver(Locale.getDefault(), localeList)); %>
 <% final PwmSetting.Level level = PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
-<script type="text/javascript"><% { int i=0; for (final String loopLocale : DEFAULT_LOCALES) { %>availableLocales[<%=i++%>] = '<%=loopLocale%>'; <% }
+<script type="text/javascript"><% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
 } %></script>
 <div id="wrapper" style="border:1px">
     <jsp:include page="header-body.jsp">

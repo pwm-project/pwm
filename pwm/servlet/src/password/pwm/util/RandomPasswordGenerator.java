@@ -24,7 +24,9 @@ package password.pwm.util;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.*;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.wordlist.SeedlistManager;
@@ -41,7 +43,7 @@ public class RandomPasswordGenerator {
 
     /**
      * Default seed phrases.  Most basic ASCII chars, except those that are visually ambiguous are
-     * respresented here.  No multi-character phrases are included.
+     * represented here.  No multi-character phrases are included.
      */
     public static final Set<String> DEFAULT_SEED_PHRASES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
             "a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -111,6 +113,8 @@ public class RandomPasswordGenerator {
      * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
      *
      * @param pwmSession A valid pwmSession
+     * @param randomGeneratorConfig Policy to be used during generation
+     * @param contextManager Used to get configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
      * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
      *          If there is no way to create a password using the configured rules and
@@ -128,7 +132,7 @@ public class RandomPasswordGenerator {
         int tryCount = 0;
         final StringBuilder password = new StringBuilder();
 
-
+        // determine the password policy to use for random generation
         final PwmPasswordPolicy randomGenPolicy;
         {
             final Map<String, String> newPolicyMap = new HashMap<String, String>();
@@ -145,10 +149,11 @@ public class RandomPasswordGenerator {
             randomGenPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(newPolicyMap);
         }
 
-        //initial creation
+        // initial creation
         password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
-        boolean validPassword = false;
 
+        // modify until it passes all the rules
+        boolean validPassword = false;
         while (!validPassword && tryCount < randomGeneratorConfig.getMaximumTryCount()) {
             tryCount++;
             validPassword = true;
@@ -156,9 +161,15 @@ public class RandomPasswordGenerator {
             if (errors != null && !errors.isEmpty()) {
                 validPassword = false;
                 modifyPasswordBasedOnErrors(password, errors, seedMachine);
+            } else if (contextManager != null && checkPasswordAgainstDisallowedHttpValues(contextManager.getConfig(),password.toString())) {
+                validPassword = false;
+                password.delete(0,password.length());
+                password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
             }
+
         }
 
+        // report outcome
         {
             final TimeDuration td = TimeDuration.fromCurrent(startTimeMS);
             if (validPassword) {
@@ -169,7 +180,7 @@ public class RandomPasswordGenerator {
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);
-                LOGGER.trace(pwmSession, sb.toString());
+                LOGGER.error(pwmSession, sb.toString());
             }
         }
 
@@ -325,6 +336,18 @@ public class RandomPasswordGenerator {
             final char charToAdd = allowedChars.charAt(newCharPosition);
             password.insert(insertPosition, charToAdd);
         }
+    }
+
+    private static boolean checkPasswordAgainstDisallowedHttpValues(final Configuration config, final String password) {
+        if (config != null && password != null) {
+            final List<String> disallowedInputs = config.readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+            for (final String loopRegex : disallowedInputs) {
+                if (password.matches(loopRegex)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------

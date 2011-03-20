@@ -25,10 +25,7 @@ package password.pwm.error;
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.util.PwmLogger;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Utility class for managing messages returned by the servlet for inclusion in UI screens.
@@ -117,6 +114,7 @@ public enum PwmError {
     ERROR_BAD_CURRENT_PASSWORD("Error_BadCurrentPassword", 5038),
     ERROR_CLOSING("Error_Closing", 5039),
     ERROR_MISSING_GUID("Error_Missing_GUID", 5040),
+    ERROR_TOKEN_EXPIRED("Error_TokenExpired", 5040),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),
@@ -131,7 +129,11 @@ public enum PwmError {
     CONFIG_SAVE_SUCCESS("Error_ConfigSaveSuccess", 5203),
     CONFIG_FORMAT_ERROR("Error_ConfigFormatError", 5203),
     CONFIG_LDAP_FAILURE("Error_ConfigLdapFailure", 5204),
-    CONFIG_LDAP_SUCCESS("Error_ConfigLdapSuccess", 5205),;
+    CONFIG_LDAP_SUCCESS("Error_ConfigLdapSuccess", 5205),
+
+    ERROR_HTTP_404("Error_HTTP_404",5300),
+
+    ;
 
 
 // ------------------------------ FIELDS ------------------------------
@@ -182,7 +184,11 @@ public enum PwmError {
 
     public static Set<String> getDisplayKeys() {
         final ResourceBundle bundle = getMessageBundle(null);
-        return new TreeSet<String>(bundle.keySet());
+        final Set<String> returnSet = new TreeSet<String>();
+        for (final Enumeration keyEnum = bundle.getKeys(); keyEnum.hasMoreElements(); ) {
+            returnSet.add(keyEnum.nextElement().toString());
+        }
+        return returnSet;
     }
 
     public static PwmError forChaiError(final ChaiError errorCode) {

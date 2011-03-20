@@ -662,9 +662,9 @@ public class ContextManager implements Serializable {
             // initialize the pwmDBLogger
             try {
                 final int maxEvents = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-                final int maxAge = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
+                final long maxAgeMS = 1000 * contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
                 final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
-                contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAge, localLogLevel, contextManager);
+                contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAgeMS, localLogLevel, contextManager);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
             }

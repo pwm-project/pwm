@@ -52,7 +52,7 @@
     record of events, configure the log4jconfig.xml file.
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-    timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getEventCount())%> events. The oldest event is from
+    timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
     <%= SimpleDateFormat.getInstance().format(new Date(PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger().getTailTimestamp())) %>
     .
 </p>
