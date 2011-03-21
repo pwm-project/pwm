@@ -77,6 +77,8 @@ public class ErrorInformation implements Serializable {
 
     public String toDebugStr() {
         final StringBuilder sb = new StringBuilder();
+        sb.append(error.getErrorCode());
+        sb.append(" ");
         sb.append(error.toString());
         if (detailedError != null && detailedError.length() > 0) {
             sb.append(" (");

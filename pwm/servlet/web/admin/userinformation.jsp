@@ -100,7 +100,7 @@
             UserID
         </td>
         <td>
-            <%= searchedUserInfo.getUserID() %>
+            <%= searchedUserInfo.getUserID() == null ? "" : searchedUserInfo.getUserID() %>
         </td>
     </tr>
     <tr>
@@ -116,7 +116,7 @@
             GUID
         </td>
         <td>
-            <%= searchedUserInfo.getUserGuid() %>
+            <%= searchedUserInfo.getUserGuid() == null ? "" : searchedUserInfo.getUserGuid() %>
         </td>
     </tr>
     <tr>
@@ -148,7 +148,7 @@
             Last Login Time
         </td>
         <td>
-            <%= uisBean.getLastLoginTime() != null ? dateFormatter.format(uisBean.getLastLoginTime()) : "n/a"%>
+            <%= uisBean.getLastLoginTime() != null ? dateFormatter.format(uisBean.getLastLoginTime()) : ""%>
         </td>
     </tr>
 
@@ -227,7 +227,7 @@
             Last Modified Time (PWM)
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
+            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : ""%>
         </td>
     </tr>
     <tr>
@@ -235,7 +235,7 @@
             Expiration Time
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
+            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : ""%>
         </td>
     </tr>
 </table>

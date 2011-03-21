@@ -721,9 +721,9 @@ public class Validator {
             final PasswordCharCounter charCounter
     ) {
         final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
-        final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
 
-        if (userAttrs != null) {
+        if (pwmSession != null && pwmSession.getUserInfoBean() != null && pwmSession.getUserInfoBean().getAllUserAttributes() != null) {
+            final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
             final String samAccountName = userAttrs.getProperty("sAMAccountName");
             if (samAccountName != null
                     && samAccountName.length() > 2

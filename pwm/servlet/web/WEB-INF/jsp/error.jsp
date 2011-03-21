@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <br/>
-        <h2><%=PwmSession.getPwmSession(session).getSessionStateBean().getSessionError().getError().getErrorCode()%></h2>
+        <h2>PWM <%=PwmSession.getPwmSession(session).getSessionStateBean().getSessionError().getError().getErrorCode()%></h2>
         <br/>
         <br/>
         <span id="error_msg" class="msg-error">

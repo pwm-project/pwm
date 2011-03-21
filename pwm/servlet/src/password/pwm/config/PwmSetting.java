@@ -90,16 +90,18 @@ public enum PwmSetting {
             "ldap.proxy.username", Syntax.STRING, Category.LDAP, true, Level.BASIC),
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true, Level.BASIC),
-    LDAP_TEST_USER_DN(
-            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     LDAP_CONTEXTLESS_ROOT(
             "ldap.rootContexts", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     LDAP_LOGIN_CONTEXTS(
             "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
+    LDAP_TEST_USER_DN(
+            "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true, Level.BASIC),
     USERNAME_SEARCH_FILTER(
             "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
+    LDAP_READ_PASSWORD_POLICY(
+            "ldap.readPasswordPolicies", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_CHANGE_PASSWORD(
@@ -380,8 +382,6 @@ public enum PwmSetting {
 
 
     // edirectory settings
-    EDIRECTORY_READ_PASSWORD_POLICY(
-            "ldap.edirectory.readPasswordPolicies", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_ENABLE_NMAS(
             "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_STORE_NMAS_RESPONSES(

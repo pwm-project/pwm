@@ -95,9 +95,6 @@ public class LDAPStatusChecker implements HealthChecker {
                     config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
 
             theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
-            if (!theUser.isValid()) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP test user '" + testUserDN + "' does not exist");
-            }
 
         } catch (ChaiUnavailableException e) {
             return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
@@ -107,13 +104,11 @@ public class LDAPStatusChecker implements HealthChecker {
 
 
         String userPassword = null;
-        boolean readPassword = false;
         {
             try {
                 final String passwordFromLdap = theUser.readPassword();
                 if (passwordFromLdap != null && passwordFromLdap.length() > 0) {
                     userPassword = passwordFromLdap;
-                    readPassword = true;
                 }
             } catch (Exception e) {
                 LOGGER.trace("error retrieving user password from directory, this is probably okay; " + e.getMessage());
@@ -128,9 +123,9 @@ public class LDAPStatusChecker implements HealthChecker {
                     theUser.setPassword(newPassword);
                     userPassword = newPassword;
                 } catch (ChaiPasswordPolicyException e) {
-                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected policy error while writing test user temporary random password: " + e.getMessage());
                 } catch (ChaiException e) {
-                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unexpected error while writing test user temporary random password: " + e.getMessage());
+                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected ldap error while writing test user temporary random password: " + e.getMessage());
                 }
             }
         }
@@ -154,17 +149,17 @@ public class LDAPStatusChecker implements HealthChecker {
                 final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), chaiProvider);
                 if (!contextlessRootEntry.isValid()) {
                     final String errorString = "setting '" + contextlessRootSettingName + "' value does not appear to be correct";
-                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
+                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
                 }
             } catch (Exception e) {
                 final String errorString = "error verifying setting '" + contextlessRootSettingName + "' " + e.getMessage();
-                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
+                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
             }
 
             return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
         } catch (Exception e) {
             final String errorString = "error connecting to ldap server: " + e.getMessage();
-            return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString, errorString);
+            return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
         } finally {
             if (chaiProvider != null) {
                 try {
