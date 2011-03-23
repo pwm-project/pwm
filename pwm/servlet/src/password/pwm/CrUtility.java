@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
@@ -106,13 +107,7 @@ public class CrUtility {
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
             throws ChaiUnavailableException, PwmException {
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
-            final String GUIDattr = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
-            String userGUID = null;
-            try {
-                userGUID = theUser.readStringAttribute(GUIDattr);
-            } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, " error reading pwmGUID attribute " + GUIDattr + " on user " + theUser.getEntryDN() + ": " + e.getMessage());
-            }
+            final String userGUID = Helper.readLdapGuidValue(pwmSession, theUser.getEntryDN());
 
             if (userGUID == null || userGUID.length() < 1) {
                 LOGGER.error(pwmSession, "user " + theUser.getEntryDN() + " does not have a pwmGUID, skipping search for responses in pwmDB");

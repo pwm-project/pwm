@@ -116,14 +116,14 @@ public class UserStatusHelper {
 
                 // now check to see if the user's expire time is within the 'preExpireTime' setting.
                 final long preExpireMs = config.readSettingAsLong(PwmSetting.PASSWORD_EXPIRE_PRE_TIME) * 1000;
-                if (diff < preExpireMs) {
+                if (diff > 0 && diff < preExpireMs) {
                     LOGGER.info(pwmSession, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as expired");
                     returnState.setPreExpired(true);
                 }
 
                 // now check to see if the user's expire time is within the 'preWarnTime' setting.
                 final long preWarnMs = config.readSettingAsLong(PwmSetting.PASSWORD_EXPIRE_WARN_TIME) * 1000;
-                if (diff < preWarnMs) {
+                if (diff > 0 && diff < preWarnMs) {
                     LOGGER.info(pwmSession, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as warn");
                     returnState.setWarnPeriod(true);
                 }

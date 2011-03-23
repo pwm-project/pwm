@@ -192,7 +192,7 @@ public class UserInfoBean implements Serializable {
         return passwordLastModifiedTime;
     }
 
-    public void setPasswordLastModifiedTime(Date passwordLastModifiedTime) {
+    public void setPasswordLastModifiedTime(final Date passwordLastModifiedTime) {
         this.passwordLastModifiedTime = passwordLastModifiedTime;
     }
 
@@ -200,7 +200,7 @@ public class UserInfoBean implements Serializable {
         return userEmailAddress;
     }
 
-    public void setUserEmailAddress(String userEmailAddress) {
+    public void setUserEmailAddress(final String userEmailAddress) {
         this.userEmailAddress = userEmailAddress;
     }
 

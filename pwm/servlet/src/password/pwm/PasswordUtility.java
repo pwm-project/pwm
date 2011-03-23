@@ -121,11 +121,8 @@ public class PasswordUtility {
             return false;
         }
 
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-
         try {
-            theUser.changePassword(oldPassword, newPassword); // this method handles AD, edir or nmas password changes.
+            doPasswordSetOperation(pwmSession, newPassword, oldPassword);
         } catch (ChaiPasswordPolicyException e) {
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
@@ -159,8 +156,7 @@ public class PasswordUtility {
         uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
 
         //update the current last password update field in ldap
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(theUser.getEntryDN(), pwmSession.getContextManager().getProxyChaiProvider());
-
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmSession.getContextManager().getProxyChaiProvider());
         final long delayStartTime = System.currentTimeMillis();
         final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
 
@@ -217,6 +213,14 @@ public class PasswordUtility {
         Helper.invokeExternalChangeMethods(pwmSession, oldPassword, newPassword);
 
         return true;
+    }
+
+    private static void doPasswordSetOperation(final PwmSession pwmSession, final String newPassword, final String oldPassword)
+            throws ChaiUnavailableException, ChaiOperationException, PwmException
+    {
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+        theUser.changePassword(oldPassword, newPassword);
     }
 
     private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword) throws PwmException {

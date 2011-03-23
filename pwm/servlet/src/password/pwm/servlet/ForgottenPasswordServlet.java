@@ -407,6 +407,14 @@ public class ForgottenPasswordServlet extends TopServlet {
         try {
             final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
 
+            // try unlocking user
+            try {
+                theUser.unlock();
+                LOGGER.trace(pwmSession, "unlock account succeeded");
+            } catch (ChaiOperationException e) {
+                LOGGER.warn(pwmSession, "attempt to unlock user account failed: " + e.getMessage());
+            }
+
             AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());

@@ -121,60 +121,85 @@ public class Helper {
         return chaiConfig;
     }
 
-    public static void addLdapGuidValue(
-            final PwmSession pwmSession
+    public static String readLdapGuidValue(
+            final PwmSession pwmSession,
+            final String userDN
     )
-            throws ChaiUnavailableException {
-        {
-            final String currentGuid = pwmSession.getUserInfoBean().getUserGuid();
-            if (currentGuid != null && currentGuid.length() > 1) {
-                return;
+            throws ChaiUnavailableException
+    {
+        final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        if ("DN".equalsIgnoreCase(GUIDattributeName)) {
+            return userDN;
+        }
+
+        final ChaiProvider proxyChaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
+        if ("VENDORGUID".equals(GUIDattributeName)) {
+            try {
+                final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, proxyChaiProvider);
+                final String guidValue = theUser.readGUID();
+                if (guidValue != null && guidValue.length() > 1) {
+                    LOGGER.trace(pwmSession, "read VENDORGUID value for user " + userDN + ": " + guidValue);
+                } else {
+                    LOGGER.trace(pwmSession, "unable to find a VENDORGUID value for user " + userDN);
+                }
+                return guidValue;
+            } catch (Exception e) {
+                LOGGER.warn(pwmSession, "unexpected error while reading vendor GUID value: " + e.getMessage());
+                return null;
             }
+        }
+
+        final String guidValue = pwmSession.getUserInfoBean().getUserGuid();
+        if (guidValue != null && guidValue.length() > 1) {
+            LOGGER.trace(pwmSession, "read guid value for user " + userDN + ": " + guidValue);
+            return guidValue;
         }
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
             LOGGER.warn(pwmSession, "user " + pwmSession.getUserInfoBean().getUserDN() + " does not have a valid GUID");
-            return;
+            return null;
         }
 
-        final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         LOGGER.trace(pwmSession, "assigning new GUID to user " + pwmSession.getUserInfoBean().getUserDN());
 
-        final ChaiProvider proxyChaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
         final String baseContext = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         int attempts = 0;
         while (attempts < 10) {
+            // generate a guid
             final String newGUID;
             {
-                final StringBuilder guidValue = new StringBuilder();
-                guidValue.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
-                while (guidValue.length() < 12) {
-                    guidValue.insert(0, "0");
+                final StringBuilder sb = new StringBuilder();
+                sb.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
+                while (sb.length() < 12) {
+                    sb.insert(0, "0");
                 }
-                guidValue.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
-                newGUID = guidValue.toString();
+                sb.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
+                newGUID = sb.toString();
             }
-            final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-            searchHelper.setFilter(GUIDattributeName, newGUID);
+
+
             try {
+                // check if it is unique
+                final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
+                searchHelper.setFilter(GUIDattributeName, newGUID);
                 final Map<String, Properties> result = proxyChaiProvider.search(baseContext, searchHelper);
                 if (result.isEmpty()) {
                     try {
+                        // write it to the directory
                         pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).writeStringAttribute(GUIDattributeName, newGUID);
-                        pwmSession.getUserInfoBean().setUserGuid(newGUID);
                         LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
-                        return;
+                        return newGUID;
                     } catch (PwmException e) {
                         LOGGER.warn(pwmSession, "error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user");
-                        return;
+                        return null;
                     }
                 }
             } catch (ChaiOperationException e) {
                 LOGGER.warn(pwmSession, "unexpected error while searching GUID attribute " + GUIDattributeName + " for uniqueness: " + e.getMessage() + ", cannot write GUID value to user");
-                return;
             }
             attempts++;
         }
+        return null;
     }
 
     /**

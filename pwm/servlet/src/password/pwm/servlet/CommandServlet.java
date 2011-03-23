@@ -212,8 +212,8 @@ public class CommandServlet extends TopServlet {
         }
 
         if (expired) {
-            sb.insert(0, "checkExpire:  password state=");
-            sb.append("redirecting to change screen");
+            sb.insert(0, "checkExpire: password state=");
+            sb.append(", redirecting to change screen");
             LOGGER.info(pwmSession, sb.toString());
         }
 

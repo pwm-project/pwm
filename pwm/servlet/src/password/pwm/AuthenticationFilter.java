@@ -228,7 +228,6 @@ public class AuthenticationFilter implements Filter {
 
         if (successPasswordCheck) { // auth succeed
             ssBean.setAuthenticated(true);
-            UserStatusHelper.populateActorUserInfoBean(pwmSession, userDN, password);
 
             final StringBuilder debugMsg = new StringBuilder();
             debugMsg.append("successful ");
@@ -236,8 +235,16 @@ public class AuthenticationFilter implements Filter {
             debugMsg.append(" authentication for ").append(userDN);
             debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
             LOGGER.info(pwmSession, debugMsg);
-
             statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
+
+            //attempt to add the object class to the user
+            Helper.addConfiguredUserObjectClass(userDN, pwmSession);
+
+            // update the actor user info bean
+            UserStatusHelper.populateActorUserInfoBean(pwmSession, userDN, password);
+
+            // get the guid value of the user
+            pwmSession.getUserInfoBean().setUserGuid(Helper.readLdapGuidValue(pwmSession, userDN));
 
             if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
@@ -246,12 +253,6 @@ public class AuthenticationFilter implements Filter {
             } else if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED);
             }
-
-            //attempt to add the object class to the user
-            Helper.addConfiguredUserObjectClass(userDN, pwmSession);
-
-            //add a guid value if needed.
-            Helper.addLdapGuidValue(pwmSession);
 
             //notify the intruder manager with a successfull login
             intruderManager.addGoodAddressAttempt(pwmSession);
@@ -277,7 +278,7 @@ public class AuthenticationFilter implements Filter {
             final ContextManager theManager
     )
             throws ChaiUnavailableException, PwmException {
-        LOGGER.trace(pwmSession, "begging testCredentials process");
+        LOGGER.trace(pwmSession, "beginning testCredentials process");
 
         final boolean alwaysUseProxy = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY);
         final boolean ldapIsEdirectory = theManager.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
@@ -412,7 +413,7 @@ public class AuthenticationFilter implements Filter {
                 LOGGER.debug(pwmSession, "successfully retrieved password from directory");
             }
         } catch (Exception e) {
-            if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)) {
+            if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS) && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                 LOGGER.error(pwmSession, "error retrieving user password from directory; " + e.getMessage());
             } else {
                 LOGGER.trace(pwmSession, "error retrieving user password from directory; " + e.getMessage());
@@ -421,7 +422,7 @@ public class AuthenticationFilter implements Filter {
 
         // if retrieval didn't work, set to random password.
         if (currentPass == null || currentPass.length() <= 0) {
-            LOGGER.debug(pwmSession, "unable to retrieving user password from directory (allow retrieving passwords for admin is probably disabled), will set to temporary random password");
+            LOGGER.debug(pwmSession, "attempting to set temporary random password");
             try {
                 final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser);
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
@@ -432,6 +433,7 @@ public class AuthenticationFilter implements Filter {
                 // write the random password for the user.
                 try {
                     theUser.setPassword(currentPass);
+                    LOGGER.debug(pwmSession, "successfully wrote random password value to user");
 
                     // if old password is not known, then mark the UIB accordingly.
                     pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
