@@ -387,6 +387,7 @@ public class ConfigManagerServlet extends TopServlet {
             } catch (PwmException e) {
                 final ErrorInformation errorInfo = e.getError();
                 pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
                 return;
             }
         }

@@ -65,13 +65,6 @@
                           enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn" value="   <pwm:Display key="Button_ChangePassword"/>  "/>
                         <input type="hidden" name="processAction" value="selectResetPassword"/>
-                        <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                                onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                            &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
-                        </button>
-                        <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
-                        <% } %>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
@@ -79,6 +72,20 @@
                     <pwm:Display key="Display_RecoverChoiceReset"/>
                 </td>
             </tr>
+            <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <tr style="border: 0">
+                <td class="key" style="border: 0">
+                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                                onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                            &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                        </button>
+                        <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
+                </td>
+                <td style="border: 0">
+                    &nbsp;
+                </td>
+            </tr>
+            <% } %>
             <tr style="border: 0">
                 <td class="key" style="border: 0">
                     &nbsp;

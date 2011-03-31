@@ -433,7 +433,7 @@ public class AuthenticationFilter implements Filter {
                 // write the random password for the user.
                 try {
                     theUser.setPassword(currentPass);
-                    LOGGER.debug(pwmSession, "successfully wrote random password value to user");
+                    LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " password has been set to random value for pwm to use for user authentication");
 
                     // if old password is not known, then mark the UIB accordingly.
                     pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);

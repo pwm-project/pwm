@@ -36,7 +36,9 @@
     <meta name="X-Pwm-Instance"
           content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
     <meta name="X-Pwm-Version"
-          content="<%=password.pwm.PwmConstants.PWM_VERSION%>>"/>
+          content="<%=password.pwm.PwmConstants.PWM_VERSION%>"/>
+    <meta name="X-Pwm-Build"
+          content="<%=password.pwm.PwmConstants.BUILD_NUMBER%>"/>
     <meta name="viewport" content="width=320, user-scalable=no"/>
     <link rel="icon" type="image/vnd.microsoft.icon"
           href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>

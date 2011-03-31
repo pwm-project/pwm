@@ -684,7 +684,7 @@ public class Validator {
             return false;
 
         final String baseValueLower = baseValue.toLowerCase();
-        final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-–—_ £\\t]+");
+        final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-\u2013\u2014_ \u00a3\\t]+");
         if (tokens != null && tokens.length > 0) {
             for (final String token : tokens) {
                 if (token.length() > 2) {

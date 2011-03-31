@@ -72,8 +72,8 @@
                  sourcepath="${src.root}/src"
                  destdir="${destination}/javadoc"
                  private="yes" source="1.5">
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
-            <link href="http://java.sun.com/products/servlet/2.3/javadoc"/>
+            <link href="http://download.oracle.com/javase/1.5.0/docs/api/"/>
+            <link href="http://download.oracle.com/docs/cd/E17802_01/products/products/servlet/2.3/javadoc/"/>
             <link href="http://ldapchai.googlecode.com/svn/trunk/javadoc/"/>
             <classpath>
                 <fileset dir="${src.root}/web/WEB-INF/lib" includes="*.jar"/>

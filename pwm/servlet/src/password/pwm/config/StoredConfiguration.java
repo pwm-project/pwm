@@ -437,23 +437,45 @@ public class StoredConfiguration implements Serializable, Cloneable {
         return toString(false);
     }
 
+    public String toString(final PwmSetting setting) {
+        final StringBuilder outputString = new StringBuilder();
+        outputString.append(setting.getKey()).append("=");
+        if (setting.isConfidential()) {
+            outputString.append("**removed**");
+        } else {
+            outputString.append(settingMap.get(setting));
+        }
+        return outputString.toString();
+    }
+
     public String toString(final boolean linebreaks) {
-        final StringBuilder sb = new StringBuilder();
-        for (final PwmSetting setting : PwmSetting.values()) {
-            sb.append(setting.getKey());
-            sb.append("=");
-            if (setting.isConfidential()) {
-                sb.append("**removed**");
-            } else {
-                sb.append(settingMap.get(setting));
-            }
-            if (linebreaks) {
-                sb.append("\n");
-            } else {
-                sb.append(", ");
+        //organize into default / non-default sets.
+        final Set<PwmSetting> defaultSet = new HashSet<PwmSetting>(Arrays.asList(PwmSetting.values()));
+        final Set<PwmSetting> modifiedSet = new HashSet<PwmSetting>(defaultSet);
+        for (final Iterator<PwmSetting> settingIter = modifiedSet.iterator(); settingIter.hasNext();) {
+            if (!isDefaultValue(settingIter.next())) {
+                settingIter.remove();
             }
         }
-        return sb.toString();
+        defaultSet.removeAll(modifiedSet);
+
+        final StringBuilder outputString = new StringBuilder();
+
+        outputString.append("modified=[");
+        for (final Iterator<PwmSetting> settingIter = modifiedSet.iterator(); settingIter.hasNext();) {
+            final PwmSetting setting = settingIter.next();
+            outputString.append(toString(setting));
+            outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");
+        }
+        outputString.append("] default=[");
+        for (final Iterator<PwmSetting> settingIter = defaultSet.iterator(); settingIter.hasNext();) {
+            final PwmSetting setting = settingIter.next();
+            outputString.append(toString(setting));
+            outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");
+        }
+        outputString.append("]");
+
+        return outputString.toString();
     }
 
     public String settingChecksum() throws IOException {
@@ -482,7 +504,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
             final StringBuilder errorString = new StringBuilder();
-            errorString.append(loopSetting.getCategory().getLabel(Locale.getDefault())).append("-").append(loopSetting.getLabel(Locale.getDefault())).append(" ");
+            errorString.append(loopSetting.getCategory().getLabel(Locale.getDefault()));
+            errorString.append("-");
+            errorString.append(loopSetting.getLabel(Locale.getDefault()));
+            errorString.append(" ");
 
             final Pattern loopPattern = loopSetting.getRegExPattern();
 
