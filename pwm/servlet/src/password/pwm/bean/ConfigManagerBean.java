@@ -24,6 +24,7 @@ package password.pwm.bean;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
+import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -33,6 +34,7 @@ public class ConfigManagerBean implements Serializable {
     private boolean editorMode;
     private java.util.Date configurationLoadTime;
     private PwmSetting.Level level;
+    private ErrorInformation errorInformation;
 
     public ConfigManagerBean() {
     }
@@ -65,7 +67,15 @@ public class ConfigManagerBean implements Serializable {
         return level;
     }
 
-    public void setLevel(PwmSetting.Level level) {
+    public void setLevel(final PwmSetting.Level level) {
         this.level = level;
+    }
+
+    public ErrorInformation getErrorInformation() {
+        return errorInformation;
+    }
+
+    public void setErrorInformation(final ErrorInformation errorInformation) {
+        this.errorInformation = errorInformation;
     }
 }

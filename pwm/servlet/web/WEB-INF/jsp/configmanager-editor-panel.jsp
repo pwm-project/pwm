@@ -175,12 +175,13 @@
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>', this.value);
                 dojo.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
-                dijit.byId('value_verify_<%=loopSetting.getKey()%>').validate();
+                dijit.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
+                dijit.byId('value_verify_<%=loopSetting.getKey()%>').validator();
             },
             disabled: true
         }, "value_<%=loopSetting.getKey()%>");
         new dijit.form.ValidationTextBox({
-            required: false,
+            required: true,
             invalidMessage: "The password does not match.",
             style: "width: 200px",
             disabled: false,

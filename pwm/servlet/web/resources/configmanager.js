@@ -623,7 +623,7 @@ function finalizeConfiguration() {
             showError('Waiting for server restart');
             setTimeout(function() {
                 waitForRestart(currentTime, oldEpoch);
-            }, 10 * 1000);
+            }, 5 * 1000);
         },
         error: function(error) {
             alert(error);
@@ -641,6 +641,12 @@ function waitForRestart(startTime, oldEpoch) {
         dataType: "json",
         handleAs: "json",
         load: function(data) {
+            var error = data['error'];
+            if (error) {
+                clearDigitWidget('waitDialogID');
+                showError(data['errorDetail']);
+                return;
+            }
             var epoch = data['configEpoch'];
             if (epoch != oldEpoch) {
                 window.location = "ConfigManager?new_epoch_detected"; //refresh page

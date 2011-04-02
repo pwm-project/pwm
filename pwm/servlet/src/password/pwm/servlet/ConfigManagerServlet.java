@@ -160,11 +160,16 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String, String> returnMap = new HashMap<String, String>();
+        final Map<String, Object> returnMap = new HashMap<String, Object>();
         if (configEpoch != null && configEpoch.length() > 0) {
             returnMap.put("configEpoch", configEpoch);
         } else {
             returnMap.put("configEpoch", "none");
+        }
+        if (configManagerBean.getErrorInformation() != null) {
+            returnMap.put("error", true);
+            returnMap.put("errorCode", configManagerBean.getErrorInformation().getError().getErrorCode());
+            returnMap.put("errorDetail", configManagerBean.getErrorInformation().getDetailedError());
         }
         final Gson gson = new Gson();
         final String outputString = gson.toJson(returnMap);
@@ -382,11 +387,20 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
         if (configMode != ConfigurationReader.MODE.RUNNING) {
+            configManagerBean.setErrorInformation(null);
+            if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
+                final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString);
+                configManagerBean.setErrorInformation(errorInfo);
+                return;
+            }
+
             try {
                 saveConfiguration(pwmSession);
             } catch (PwmException e) {
                 final ErrorInformation errorInfo = e.getError();
                 pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                configManagerBean.setErrorInformation(errorInfo);
                 LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
                 return;
             }

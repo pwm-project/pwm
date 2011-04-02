@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.5.3
+v1.5.3 (April 2, 2011) build 1026
 ---
 + Added locale selector menu to footer (issue #31)
 + Changed forgotten password sequence so email token is after response questions (issue #26)
