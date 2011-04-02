@@ -243,9 +243,6 @@ public class AuthenticationFilter implements Filter {
             // update the actor user info bean
             UserStatusHelper.populateActorUserInfoBean(pwmSession, userDN, password);
 
-            // get the guid value of the user
-            pwmSession.getUserInfoBean().setUserGuid(Helper.readLdapGuidValue(pwmSession, userDN));
-
             if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
             } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired()) {

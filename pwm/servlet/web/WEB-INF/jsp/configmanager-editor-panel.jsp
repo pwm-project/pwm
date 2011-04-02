@@ -140,22 +140,19 @@
         <div style="float: left">
             <table style="width: 255px">
                 <tr>
-                    <td>
-                        <label>Password</label>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <label for="value_<%=loopSetting.getKey()%>">Password</label>
                     </td>
                     <td>
-                        <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"
-                               pwType="new"/>
+                        <input type="password" id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" style="width: 200px"/>
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        <label>Verify</label>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <label for="value_verify_<%=loopSetting.getKey()%>">Verify Password</label>
                     </td>
                     <td>
-                        <input id="value_verify_<%=loopSetting.getKey()%>"
-                               name="setting_verify_<%=loopSetting.getKey()%>"
-                               pwType="verify"/>
+                        <input type="password" id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>" style="width: 200px" >
                     </td>
                 </tr>
             </table>
@@ -168,14 +165,32 @@
         </div>
     </div>
     <script type="text/javascript">
-        dojo.require("dojox.form.PasswordValidator");
-        new dojox.form.PasswordValidator({
+        dojo.require("dijit.form.ValidationTextBox");
+        new dijit.form.ValidationTextBox({
             required: <%=loopSetting.isRequired()%>,
-            style: "width: 450px",
+            invalidMessage: "The password is not valid.",
+            style: "width: 200px",
+            value: "[Loading..]",
+            type: 'password',
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>', this.value);
+                dojo.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
+                dijit.byId('value_verify_<%=loopSetting.getKey()%>').validate();
+            },
+            disabled: true
+        }, "value_<%=loopSetting.getKey()%>");
+        new dijit.form.ValidationTextBox({
+            required: false,
+            invalidMessage: "The password does not match.",
+            style: "width: 200px",
+            disabled: false,
+            type: 'password',
+            validator: function() {
+                var password = dojo.byId('value_<%=loopSetting.getKey()%>').value;
+                var verifyPassword = dojo.byId('value_verify_<%=loopSetting.getKey()%>').value;
+                return password == verifyPassword;
             }
-        }, "password_wrapper_<%=loopSetting.getKey()%>")
+        }, "value_verify_<%=loopSetting.getKey()%>");
     </script>
     <br class="clear"/>
     <% } %>
