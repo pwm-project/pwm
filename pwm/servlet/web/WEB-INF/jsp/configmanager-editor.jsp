@@ -43,146 +43,126 @@
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Configuration Editor"/>
     </jsp:include>
-    <div id="centerbody" style="width: 800px">
+    <div id="centerbody" style="width: 600px">
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
         <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
         <% } %>
         <br class="clear"/>
-        <table border="0" style="border:0">
-            <tr style="border:0">
-                <td style="vertical-align:top; border:0">
-                    <div id="leftNav" style="text-align:right;" class="tundra">
-                        <div id="navMenu">
-                            <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
-                            <div id="categoryMenu_<%=loopCategory.toString()%>">
-                                <%=loopCategory.getLabel(request.getLocale())%>
-                            </div>
-                            <script type="text/javascript">
-                                dojo.require("dijit.MenuItem");
-                                var item = new dijit.MenuItem({
-                                    onClick: function() {
-                                        selectCategory('<%=loopCategory.toString()%>');
-                                    }
-                                }, "categoryMenu_<%=loopCategory.toString()%>");
-                                menuItems.push(item);
-                            </script>
-                            <% } %>
-                        </div>
-                        <script type="text/javascript">
-                            <%-- create nav menu --%>
-                            dojo.require("dijit.Menu");
-                            var menuBar = new dijit.Menu({}, "navMenu");
+        <div id="TopMenu" style="width:600px">
+        </div>
+        <script type="text/javascript">
+            dojo.require("dijit.MenuBar");
+            dojo.require("dijit.MenuItem");
+            dojo.require("dijit.PopupMenuBarItem");
+            dojo.addOnLoad(function() {
+                var pMenuBar = new dijit.MenuBar({});
+                { // Category Menu
+                    var pSubMenu = new dijit.Menu({});
+                <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
+                    pSubMenu.addChild(new dijit.MenuItem({
+                        label: '<%=loopCategory.getLabel(request.getLocale())%>',
+                        onClick: function() {
+                            selectCategory('<%=loopCategory.toString()%>');
+                        }
+                    }));
+                <% } %>
+                    pMenuBar.addChild(new dijit.PopupMenuBarItem({
+                        label: "Category",
+                        popup: pSubMenu
+                    }));
+                }
+                { // Edit
+                    var pSubMenu = new dijit.Menu({});
+                    pSubMenu.addChild(new dijit.MenuItem({
+                        <% if (level == PwmSetting.Level.BASIC) { %>
+                        label: "Show All Settings",
+                        onClick: function() {
+                            showWaitDialog('Loading...');
+                            getObject('levelAdvanced').submit();
+                        },
+                        checked: true
+                        <% } else { %>
+                        label: "Show Basic Settings",
+                        onClick: function() {
+                            showWaitDialog('Loading...');
+                            getObject('levelBasic').submit();
+                        },
+                        checked: true
+                        <% } %>
+                    }));
+                    pMenuBar.addChild(new dijit.PopupMenuBarItem({
+                        label: "View",
+                        popup: pSubMenu
+                    }));
+                }
+                { // Actions
+                    var pSubMenu = new dijit.Menu({});
 
-                            <%-- add menu seperator --%>
-                            menuBar.addChild(new dijit.MenuSeparator());
+                <% if (ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
+                    pSubMenu.addChild(new dijit.MenuItem({
+                        label: "Finish Editing",
+                        onClick: function() {
+                            showWaitDialog('Updating Configuration');
+                            setTimeout(function() {
+                                document.forms['completeEditing'].submit();
+                            }, 1000)
+                        }
+                    }));
+                <% } else { %>
+                    pSubMenu.addChild(new dijit.MenuItem({
+                        label: "Save",
+                        onClick: function() {
+                            if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
+                                saveConfiguration();
+                            }
+                        }
+                    }));
+                <% } %>
+                    pSubMenu.addChild(new dijit.MenuItem({
+                        label: "Cancel",
+                        onClick: function() {
+                            showWaitDialog('Canceling...');
+                            setTimeout(function() {
+                                document.forms['cancelEditing'].submit();
+                            }, 1000)
+                        }
+                    }));
 
-                            /*
-                             var fieldEditor = new dijit.MenuItem({
-                             id: "fieldEditor",
-                             label: "Display Field Editor",
-                             onClick: function() {
-                             dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=fieldEditor');
-                             }
-                             });
-                             menuBar.addChild(fieldEditor);
-                            <%-- add menu seperator --%>
-                             menuBar.addChild(new dijit.MenuSeparator());
-                             */
-
-                            <% if (level == PwmSetting.Level.BASIC) { %>
-                            var switchModeAdvanced = new dijit.MenuItem({
-                                id: "switchMode",
-                                label: "Show All Settings",
-                                onClick: function() {
-                                    showWaitDialog('Loading...');
-                                    getObject('levelAdvanced').submit();
-                                }
-                            });
-                            menuBar.addChild(switchModeAdvanced);
-                            <% } else { %>
-                            var switchModeBasic = new dijit.MenuItem({
-                                id: "switchMode",
-                                label: "Show Basic Settngs",
-                                onClick: function() {
-                                    showWaitDialog('Loading...');
-                                    getObject('levelBasic').submit();
-                                }
-                            });
-                            menuBar.addChild(switchModeBasic);
-                            <% } %>
-
-                            <%-- add save/update and cancel button --%>
-                            menuBar.addChild(new dijit.MenuSeparator());
-                            <%-- add menu seperator --%>
-                            <% if (ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
-                            var updateButtonMenuItem = new dijit.MenuItem({
-                                id: "updateButton",
-                                label: "Finished",
-                                onClick: function() {
-                                    showWaitDialog('Updating Configuration');
-                                    setTimeout(function() {
-                                        document.forms['completeEditing'].submit();
-                                    }, 1000)
-                                }
-                            });
-                            menuBar.addChild(updateButtonMenuItem);
-                            <% } else { %>
-                            var saveButtonMenuItem = new dijit.MenuItem({
-                                id: "saveButton",
-                                label: "Save",
-                                onClick: function() {
-                                    if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
-                                        saveConfiguration();
-                                    }
-                                }
-                            });
-                            menuBar.addChild(saveButtonMenuItem);
-                            <% } %>
-                            var cancelButtonMenuItem = new dijit.MenuItem({
-                                id: "cancelButton",
-                                label: "Cancel",
-                                onClick: function() {
-                                    showWaitDialog('Canceling...');
-                                    setTimeout(function() {
-                                        document.forms['cancelEditing'].submit();
-                                    }, 1000)
-                                }
-                            });
-                            menuBar.addChild(cancelButtonMenuItem);
-
-                        </script>
-                        <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
-                              enctype="application/x-www-form-urlencoded">
-                            <input type="hidden" name="processAction" value="finishEditing"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                        <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
-                              enctype="application/x-www-form-urlencoded">
-                            <input type="hidden" name="processAction" value="cancelEditing"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelAdvanced"
-                              enctype="application/x-www-form-urlencoded">
-                            <input type="hidden" name="processAction" value="setLevel"/>
-                            <input type="hidden" name="level" value="ADVANCED"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelBasic"
-                              enctype="application/x-www-form-urlencoded">
-                            <input type="hidden" name="processAction" value="setLevel"/>
-                            <input type="hidden" name="level" value="BASIC"/>
-                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        </form>
-                    </div>
-                </td>
-                <td style="border:0" width="600">
-                    <div id="mainContentPane" style="width: 600px">
-                    </div>
-                </td>
-            </tr>
-        </table>
+                    pMenuBar.addChild(new dijit.PopupMenuBarItem({
+                        label: "Actions",
+                        popup: pSubMenu
+                    }));
+                }
+                pMenuBar.placeAt("TopMenu");
+                pMenuBar.startup();
+            });
+        </script>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="finishEditing"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="cancelEditing"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelAdvanced"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="setLevel"/>
+            <input type="hidden" name="level" value="ADVANCED"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelBasic"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="setLevel"/>
+            <input type="hidden" name="level" value="BASIC"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <div id="mainContentPane" style="width: 600px">
+        </div>
         <script type="text/javascript">
             var mainPane = dojo.addOnLoad(function() {
                 dojo.require("dojox.layout.ContentPane");
