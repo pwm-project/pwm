@@ -24,6 +24,7 @@
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -66,19 +67,19 @@
                     if (challenge.isRequired()) {
             %>
             <% if (challenge.isAdminDefined()) { %>
-            <h2><label for="PwmResponse_R_<%=indexKey%>"><%= challenge.getChallengeText() %>
+            <h2><label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %>
             </label></h2>
             <% } else { %>
             <label for="PwmResponse_R_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
-                   value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
+                   value="<%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%>"
                    onkeyup="validateResponses();"/>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
                        id="PwmResponse_R_<%=indexKey%>"
-                       value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"") %>"
+                       value="<%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"")) %>"
                        onkeyup="validateResponses();"/>
             </p>
             <% } %>
@@ -98,7 +99,7 @@
                                 final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i, ""));
                     %>
                     <option <%=selected ? "selected=\"yes\"" : ""%>
-                            value="<%=challenge.getChallengeText()%>"><%=challenge.getChallengeText()%>
+                            value="<%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>"><%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>
                     </option>
                     <% } %>
                     <% } %>
@@ -130,18 +131,18 @@
                     if (!challenge.isRequired()) {
             %>
             <% if (challenge.isAdminDefined()) { %>
-            <h2><%= challenge.getChallengeText() %>
+            <h2><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %>
             </h2>
             <% } else { %>
             <pwm:Display key="Field_User_Supplied_Question"/>&nbsp;
             <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
-                   value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, "")%>"
+                   value="<%=StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%>"
                    onkeyup="validateResponses();"/>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
                 <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
-                       value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,"") %>"
+                       value="<%=StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,""))%>"
                        onkeyup="validateResponses();"/>
             </p>
             <% } %>

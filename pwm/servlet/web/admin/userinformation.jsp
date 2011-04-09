@@ -32,6 +32,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -124,7 +125,7 @@
             Given Name
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("givenName", "") %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty("givenName", "")) %>
         </td>
     </tr>
     <tr>
@@ -132,7 +133,7 @@
             Surname
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty("sn", "") %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty("sn", "")) %>
         </td>
     </tr>
     <tr>
@@ -140,7 +141,7 @@
             <%= pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
         </td>
         <td>
-            <%= searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE), "") %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE), "")) %>
         </td>
     </tr>
     <tr>
@@ -283,7 +284,7 @@
             Minimum Random: <%=searchedUserInfo.getChallengeSet().getMinRandomRequired()%><br/>
             <br/>
             <% for (final Challenge loopChallange : searchedUserInfo.getChallengeSet().getChallenges()) { %>
-            <p><%= loopChallange.toString() %>
+            <p><%= StringEscapeUtils.escapeHtml(loopChallange.toString()) %>
             </p>
             <% } %>
             <% } else { %>

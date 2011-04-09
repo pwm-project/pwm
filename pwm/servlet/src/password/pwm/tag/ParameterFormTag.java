@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmSession;
 import password.pwm.config.Display;
 import password.pwm.config.FormConfiguration;
@@ -106,7 +107,7 @@ public class ParameterFormTag extends TagSupport {
                 sb.append('\"');
                 sb.append(" class=\"inputfield\"");
                 sb.append(" maxlength=\"").append(param.getMaximumLength()).append('\"');
-                sb.append(" value=\"").append(value).append('\"');
+                sb.append(" value=\"").append(StringEscapeUtils.escapeHtml(value)).append('\"');
                 sb.append("/>");
             }
             sb.append("\n");

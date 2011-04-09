@@ -21,10 +21,8 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -52,12 +50,12 @@
             for (final Challenge loopChallenge : responseBean.getResponseMap().keySet()) {
                 final String responseText = responseBean.getResponseMap().get(loopChallenge);
         %>
-        <h2><%= loopChallenge.getChallengeText() %>
+        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
         </h2>
 
         <p>
             &nbsp;»&nbsp;
-            <%= responseText %>
+            <%= StringEscapeUtils.escapeHtml(responseText) %>
         </p>
         <% } %>
         <br/>
