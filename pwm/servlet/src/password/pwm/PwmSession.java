@@ -57,6 +57,8 @@ public class PwmSession implements Serializable {
     private SetupResponsesBean setupResponseBean = new SetupResponsesBean();
 
     private NewUserServletBean newUserServletBean;
+    private GuestRegistrationServletBean guestRegistrationServletBean;
+    private GuestUpdateServletBean guestUpdateServletBean;
     private UpdateAttributesServletBean updateAttributesServletBean;
     private ActivateUserServletBean activateUserServletBean;
     private ForgottenUsernameBean forgottenUsernameBean;
@@ -178,6 +180,50 @@ public class PwmSession implements Serializable {
             newUserServletBean.setCreationParams(Collections.unmodifiableMap(formMap));
         }
         return newUserServletBean;
+    }
+
+    public GuestRegistrationServletBean getGuestRegistrationServletBean() {
+        if (guestRegistrationServletBean == null) {
+            guestRegistrationServletBean = new GuestRegistrationServletBean();
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
+            if (expAttr != null && expAttr.length() > 0) {
+            	String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";            	
+            	formMap.put("__accountDuration__", FormConfiguration.parseConfigString(expConfig));
+            }
+            guestRegistrationServletBean.setCreationParams(Collections.unmodifiableMap(formMap));
+            Integer dur = 30;
+            try {
+	            dur = Integer.parseInt(getConfig().readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
+            } catch (Exception e) {
+            }
+            guestRegistrationServletBean.setMaximumDuration(dur);
+        }
+        return guestRegistrationServletBean;
+    }
+
+    public GuestUpdateServletBean getGuestUpdateServletBean() {
+        if (guestUpdateServletBean == null) {
+            guestUpdateServletBean = new GuestUpdateServletBean();
+            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
+            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
+            if (expAttr != null && expAttr.length() > 0) {
+            	String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";            	
+            	formMap.put("__accountDuration__", FormConfiguration.parseConfigString(expConfig));
+            }
+            guestUpdateServletBean.setUpdateParams(Collections.unmodifiableMap(formMap));
+            final String namingAttribute = getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            guestUpdateServletBean.setNamingAttribute(namingAttribute);
+            Integer dur = 30;
+            try {
+	            dur = Integer.parseInt(getConfig().readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
+            } catch (Exception e) {
+            }
+            guestUpdateServletBean.setMaximumDuration(dur);
+        }
+        return guestUpdateServletBean;
     }
 
     public SessionManager getSessionManager() {

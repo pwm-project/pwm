@@ -772,6 +772,29 @@ public class Helper {
         return fileData.toString();
     }
 
+    public static String replaceAllPatterns(final String input, final Properties fields) {
+    	String output = input;
+    	Enumeration names = fields.propertyNames();
+    	while (names.hasMoreElements()) {
+    		final String key = (String) names.nextElement();
+    		final String fieldName = "%"+key+"%";
+    		final String fieldValue = fields.getProperty(key);
+    		output = output.replaceAll(fieldName, fieldValue);
+    	}
+    	return output;
+    }
+
+    public static String generateToken(final String RANDOM_CHARS, int CODE_LENGTH) {
+        final PwmRandom RANDOM = PwmRandom.getInstance();
+
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+        }
+
+        return sb.toString();
+    }
+
     public static long diskSpaceRemaining(final File file) {
         try {
             final Method getFreeSpaceMethod = File.class.getMethod("getFreeSpace");

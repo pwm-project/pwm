@@ -104,8 +104,8 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("editMode".equalsIgnoreCase(processActionParam)) {
                 configManagerBean.setEditorMode(true);
                 LOGGER.debug(pwmSession, "switching to edit mode");
-            } else if ("setLevel".equalsIgnoreCase(processActionParam)) {
-                setLevel(req);
+            } else if ("setOption".equalsIgnoreCase(processActionParam)) {
+                setOptions(req);
             }
         }
 
@@ -122,7 +122,6 @@ public class ConfigManagerServlet extends TopServlet {
         // first time setup
         if (configManagerBean.getConfiguration() == null) {
             configManagerBean.setEditorMode(false);
-            configManagerBean.setLevel(PwmSetting.Level.BASIC);
             switch (configMode) {
                 case NEW:
                     if (configManagerBean.getConfiguration() == null) {
@@ -338,24 +337,51 @@ public class ConfigManagerServlet extends TopServlet {
         resp.getWriter().print(outputString);
     }
 
-    private void setLevel(
+    private void setOptions(
             final HttpServletRequest req
     ) throws IOException, PwmException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
-        final String requestedLevelstr = Validator.readStringFromRequest(req, "level", 255);
 
-        final PwmSetting.Level requestedLevel;
-
-        try {
-            requestedLevel = PwmSetting.Level.valueOf(requestedLevelstr);
-            LOGGER.trace("setting level to: " + requestedLevel);
-        } catch (Exception e) {
-            LOGGER.error("unknown level set request: " + requestedLevelstr);
-            return;
+        {
+            final String requestedLevelstr = Validator.readStringFromRequest(req, "level", 255);
+            if (requestedLevelstr != null && requestedLevelstr.length() > 0) {
+                try {
+                    configManagerBean.setLevel(PwmSetting.Level.valueOf(requestedLevelstr));
+                    LOGGER.trace("setting level to: " + configManagerBean.getLevel());
+                } catch (Exception e) {
+                    LOGGER.error("unknown level set request: " + requestedLevelstr);
+                }
+            }
+        }
+        {
+            final String requestedShowDesc = Validator.readStringFromRequest(req, "showDesc", 255);
+            if (requestedShowDesc != null && requestedShowDesc.length() > 0) {
+                try {
+                    configManagerBean.setShowDescr(Boolean.valueOf(requestedShowDesc));
+                    LOGGER.trace("setting showDesc to: " + configManagerBean.isShowDescr());
+                } catch (Exception e) {
+                    LOGGER.error("unknown showDesc set request: " + requestedShowDesc);
+                }
+            }
+        }
+        {
+            final String requestedCategory = Validator.readStringFromRequest(req, "category", 255);
+            if (requestedCategory != null && requestedCategory.length() > 0) {
+                try {
+                    configManagerBean.setCategory(PwmSetting.Category.valueOf(requestedCategory));
+                    LOGGER.trace("setting category to: " + configManagerBean.isShowDescr());
+                } catch (Exception e) {
+                    LOGGER.error("unknown category set request: " + requestedCategory);
+                }
+            }
         }
 
-        configManagerBean.setLevel(requestedLevel);
+        final Set<PwmSetting.Category> availCategories = PwmSetting.valuesByCategory(configManagerBean.getLevel()).keySet();
+        if (!availCategories.contains(configManagerBean.getCategory())) {
+            configManagerBean.setCategory(PwmSetting.Category.GENERAL);
+        }
+
     }
 
     private void resetSetting(

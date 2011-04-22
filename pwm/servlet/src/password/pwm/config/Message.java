@@ -40,6 +40,8 @@ public enum Message {
     SUCCESS_SETUP_RESPONSES("Success_SetupResponse"),
     SUCCESS_UNKNOWN("Success_Unknown"),
     SUCCESS_CREATE_USER("Success_CreateUser"),
+    SUCCESS_CREATE_GUEST("Success_CreateGuest"),
+    SUCCESS_UPDATE_GUEST("Success_UpdateGuest"),
     SUCCESS_ACTIVATE_USER("Success_ActivateUser"),
     SUCCESS_UPDATE_ATTRIBUTES("Success_UpdateAttributes"),
     SUCCESS_RESPONSES_MEET_RULES("Success_ResponsesMeetRules"),

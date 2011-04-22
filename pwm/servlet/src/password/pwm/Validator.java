@@ -321,6 +321,31 @@ public class Validator {
         }
     }
 
+	public static void validateNumericString(
+			final String numstr,
+			final Integer lowerbound,
+			final Integer upperbound,
+            final PwmSession pwmSession
+	) throws PwmException, NumberFormatException {
+		Integer num;
+		try {
+			num = Integer.parseInt(numstr);
+		} catch (Exception e) {
+        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_INVALIDNUMER, null, numstr);
+            LOGGER.trace(pwmSession, "Value \""+numstr+"\" is not a valid number");
+            throw ValidationException.createValidationException(error);			
+		}
+		if (num < lowerbound) {
+        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_LOWERBOUND, null, lowerbound.toString());
+            LOGGER.trace(pwmSession, "Value "+numstr+" below lower bound ("+lowerbound.toString()+")");
+            throw ValidationException.createValidationException(error);
+		}
+		if (num > upperbound) {
+        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_UPPERBOUND, null, upperbound.toString());
+            LOGGER.trace(pwmSession, "Value "+numstr+" above upper bound ("+upperbound.toString()+")");
+            throw ValidationException.createValidationException(error);
+		}
+	}
 
     /**
      * Validates a password against the configured rules of PWM.  No directory operations

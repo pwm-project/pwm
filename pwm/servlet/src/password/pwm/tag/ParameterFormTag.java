@@ -24,8 +24,11 @@ package password.pwm.tag;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmSession;
+import password.pwm.config.Configuration;
 import password.pwm.config.Display;
 import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -107,7 +110,16 @@ public class ParameterFormTag extends TagSupport {
                 sb.append('\"');
                 sb.append(" class=\"inputfield\"");
                 sb.append(" maxlength=\"").append(param.getMaximumLength()).append('\"');
+                if ((param.getType() == FormConfiguration.Type.RANDOM) && 
+                    (value == null || value.length() == 0)) {
+	                final Configuration config = pwmSession.getConfig();
+	                final String randomChars = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
+	                final int randomLength = (param.getMaximumLength()<=0)?(int)config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH):param.getMaximumLength();
+    	        	String randvalue = Helper.generateToken(randomChars, randomLength);
+		            sb.append(" value=\"").append(randvalue).append('\"');
+                } else {
                 sb.append(" value=\"").append(StringEscapeUtils.escapeHtml(value)).append('\"');
+                }
                 sb.append("/>");
             }
             sb.append("\n");
@@ -158,6 +170,10 @@ public class ParameterFormTag extends TagSupport {
             return pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
         } else if (formName.equalsIgnoreCase("forgottenusername")) {
             return pwmSession.getForgottonUsernameBean().getForgottenUsernameForm();
+        } else if (formName.equalsIgnoreCase("newguest")) {
+            return pwmSession.getGuestRegistrationServletBean().getCreationParams();
+        } else if (formName.equalsIgnoreCase("updateguest")) {
+            return pwmSession.getGuestUpdateServletBean().getUpdateParams();
         } else {
             LOGGER.warn("unknown form '" + formName + "' while generating ParamterFormTag");
         }

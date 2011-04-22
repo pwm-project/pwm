@@ -32,7 +32,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.NewUserServletBean;
+import password.pwm.bean.GuestRegistrationServletBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
@@ -41,50 +41,72 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.ValidationException;
 import password.pwm.util.Helper;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ContextManager;
+import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.wordlist.SeedlistManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
+import java.text.SimpleDateFormat;
 
 /**
- * User interaction servlet for creating new users (self registration)
+ * Servlet for creating new guest users (helpdesk/admin registration)
  *
- * @author Jason D. Rivard
+ * @author Jason D. Rivard, Menno Pieters
  */
-public class NewUserServlet extends TopServlet {
+public class GuestRegistrationServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(NewUserServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(GuestRegistrationServlet.class);
 
     protected void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmException, NumberFormatException
+    {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final Locale locale = Locale.getDefault();
+        String durationString = null;
+        Properties notifyAttrs = new Properties();
 
+        if (!ssBean.isAuthenticated()) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+        
+        if (!Permission.checkPermission(Permission.GUEST_REGISTRATION, pwmSession)) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+        
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         final IntruderManager intruderMgr = pwmSession.getContextManager().getIntruderManager();
         final Configuration config = pwmSession.getConfig();
 
-        if (!config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+        if (!config.readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) {
             ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
-        final NewUserServletBean nuBean = pwmSession.getNewUserServletBean();
+        final GuestRegistrationServletBean grBean = pwmSession.getGuestRegistrationServletBean();
 
         if (actionParam != null && actionParam.equalsIgnoreCase("create")) {
-            final Map<String, FormConfiguration> creationParams = nuBean.getCreationParams();
+            final Map<String, FormConfiguration> creationParams = grBean.getCreationParams();
+            final Properties createAttrs = new Properties();
+            final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
             Validator.validatePwmFormID(req);
 
@@ -100,6 +122,16 @@ public class NewUserServlet extends TopServlet {
             // see if the values meet form requirements.
             try {
                 Validator.validateParmValuesMeetRequirements(creationParams, pwmSession);
+                if (expirationAttribute != null && expirationAttribute.length() > 0) {
+	                durationString = creationParams.get("__accountDuration__").getValue();
+        	        final Integer maxDuration = Integer.parseInt(config.readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
+	                Validator.validateNumericString(durationString, 0, maxDuration, pwmSession);
+                }
+            } catch (NumberFormatException e) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null));
+                intruderMgr.addBadAddressAttempt(pwmSession);
+                this.forwardToJSP(req, resp);
+                return;
             } catch (ValidationException e) {
                 ssBean.setSessionError(e.getError());
                 intruderMgr.addBadAddressAttempt(pwmSession);
@@ -119,10 +151,10 @@ public class NewUserServlet extends TopServlet {
             }
 
             // check unique fields against ldap
-            for (final String attr : config.readStringArraySetting(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES)) {
+            for (final String attr : config.readStringArraySetting(PwmSetting.GUEST_UNIQUE_ATTRIBUTES)) {
                 final FormConfiguration paramConfig = creationParams.get(attr);
                 try {
-                    validateAttributeUniqueness(pwmSession, paramConfig, nuBean.getCreateUserDN());
+                    validateAttributeUniqueness(pwmSession, paramConfig, grBean.getCreateUserDN());
                 } catch (ValidationException e) {
                     ssBean.setSessionError(e.getError());
                     intruderMgr.addBadAddressAttempt(pwmSession);
@@ -133,21 +165,25 @@ public class NewUserServlet extends TopServlet {
 
             //create user
             try {
-                final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
+                final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
                 final String namingValue = creationParams.get(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)).getValue();
 
                 final StringBuilder dn = new StringBuilder();
                 dn.append(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE)).append("=");
                 dn.append(namingValue);
                 dn.append(",");
-                dn.append(config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT));
+                dn.append(config.readSettingAsString(PwmSetting.GUEST_CONTEXT));
 
-                final Properties createAttrs = new Properties();
                 for (final String key : creationParams.keySet()) {
-                    final FormConfiguration formConfig = creationParams.get(key);
-                    createAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
+                	if (!key.equalsIgnoreCase("__accountDuration__")) { 
+                    	final FormConfiguration formConfig = creationParams.get(key);
+                    	createAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
+                    	notifyAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
+                	}
                 }
-
+                // Write creator DN
+                createAttrs.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserDN());
+                
                 List<String> createObjectClasses = config.readStringArraySetting(PwmSetting.DEFAULT_OBJECT_CLASSES);
                 if (createObjectClasses == null || createObjectClasses.isEmpty()) {
                 	createObjectClasses = new ArrayList();
@@ -156,17 +192,17 @@ public class NewUserServlet extends TopServlet {
                 Set<String> createObjectClassesSet = new HashSet(createObjectClasses);
                 provider.createEntry(dn.toString(), createObjectClassesSet, createAttrs);
 
-                nuBean.setCreateUserDN(dn.toString());
+                grBean.setCreateUserDN(dn.toString());
 
-                LOGGER.info(pwmSession, "created user object: " + dn.toString());
+                LOGGER.info(pwmSession, "created guest user object: " + dn.toString());
             } catch (ChaiOperationException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating user: " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating guest user: " + e.getMessage());
                 ssBean.setSessionError(info);
                 LOGGER.warn(pwmSession, info);
                 this.forwardToJSP(req, resp);
                 return;
             } catch (NullPointerException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating user (missing cn/sn?): " + e.getMessage());
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error creating guest user (missing cn/sn?): " + e.getMessage());
                 ssBean.setSessionError(info);
                 LOGGER.warn(pwmSession, info);
                 this.forwardToJSP(req, resp);
@@ -174,17 +210,49 @@ public class NewUserServlet extends TopServlet {
             }
 
             try {
-                final ChaiUser theUser = ChaiFactory.createChaiUser(nuBean.getCreateUserDN(), pwmSession.getContextManager().getProxyChaiProvider());
+                final ChaiUser theGuest = ChaiFactory.createChaiUser(grBean.getCreateUserDN(), pwmSession.getSessionManager().getChaiProvider());
+				GregorianCalendar cal = null;
+				String expirationDate = null;
+				
+				// If an expiration date attribute is available, calculate the expiration date and convert it to
+				//   Greenwich Mean Time.
+				if (expirationAttribute != null && expirationAttribute.length() > 0 && durationString != null) {
+					cal = new GregorianCalendar(locale);
+					cal.set(Calendar.HOUR_OF_DAY,0);
+					cal.set(Calendar.MINUTE,0);
+					cal.set(Calendar.SECOND,0);
+					cal.set(Calendar.MILLISECOND,0);
+					cal.add(Calendar.DAY_OF_MONTH,Integer.parseInt(durationString));
+					TimeZone tz = TimeZone.getTimeZone("GMT");
+					cal.setTimeZone(tz);
+					SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+					expirationDate = fmt.format(cal.getTime());
+					SimpleDateFormat nfmt = new SimpleDateFormat();
+					notifyAttrs.put(expirationAttribute, nfmt.format(cal.getTime()));
+					LOGGER.trace("expiration: "+expirationAttribute+"="+expirationDate+" ("+nfmt.format(cal.getTime())+")");
+				}
 
                 // write out configured attributes.
-                LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
-                final List<String> configValues = config.readStringArraySetting(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
-                final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-                Helper.writeMapToEdir(pwmSession, theUser, configNameValuePairs);
+                LOGGER.debug(pwmSession, "writing guest.writeAttributes to user " + theGuest.getEntryDN());
+                final List<String> configValues = config.readStringArraySetting(PwmSetting.GUEST_WRITE_ATTRIBUTES);
+                final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues,"=");
+                if (expirationDate != null) {
+                	configNameValuePairs.put(expirationAttribute, expirationDate);
+                }
+                Helper.writeMapToEdir(pwmSession, theGuest, configNameValuePairs);
+                for (final String key : configNameValuePairs.keySet()) {
+                	notifyAttrs.put(key, configNameValuePairs.get(key));
+                }
 
-                AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
+                final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(config, locale, theGuest, null);
+                final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
+                final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, seedlistManager, pwmSession.getContextManager());
+                theGuest.setPassword(newPassword);
+				notifyAttrs.put("password", newPassword);
+
+                //AuthenticationFilter.authUserWithUnknownPassword(theGuest, pwmSession, req);
             } catch (ImpossiblePasswordPolicyException e) {
-                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while creating user");
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while creating guest user");
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
                 this.forwardToJSP(req, resp);
@@ -197,11 +265,11 @@ public class NewUserServlet extends TopServlet {
                 return;
             }
 
-            //everything good so forward to change password page.
-            this.sendNewUserEmailConfirmation(pwmSession);
-            ssBean.setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
+            //everything good so forward to confirmation page.
+            this.sendNewGuestEmailConfirmation(pwmSession, notifyAttrs);
+            ssBean.setSessionSuccess(Message.SUCCESS_CREATE_GUEST, null);
 
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
+            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.GUESTS);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
             return;
         }
@@ -213,7 +281,8 @@ public class NewUserServlet extends TopServlet {
             final FormConfiguration paramConfig,
             final String userDN
     )
-            throws ValidationException, ChaiUnavailableException {
+            throws ValidationException, ChaiUnavailableException
+    {
         try {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
@@ -238,21 +307,20 @@ public class NewUserServlet extends TopServlet {
         }
     }
 
-    private void sendNewUserEmailConfirmation(final PwmSession pwmSession) {
+    private void sendNewGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_FROM, locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_SUBJECT, locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY, locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_NEWUSER_BODY_HTML, locale);
+        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_GUEST_FROM,locale);
+        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_GUEST_SUBJECT,locale);
+        final String plainBody = Helper.replaceAllPatterns(config.readLocalizedStringSetting(PwmSetting.EMAIL_GUEST_BODY,locale), attrs);
+        final String htmlBody = Helper.replaceAllPatterns(config.readLocalizedStringSetting(PwmSetting.EMAIL_GUEST_BODY_HTML,locale), attrs);
 
-        final String toAddress = userInfoBean.getUserEmailAddress();
-
-        if (toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send new user email for '" + userInfoBean.getUserDN() + "' no email configured");
+        final String toAddress = attrs.getProperty(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send new guest user email: no email configured");
             return;
         }
 
@@ -264,7 +332,7 @@ public class NewUserServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_GUEST_REGISTRATION).forward(req, resp);
     }
 }
 

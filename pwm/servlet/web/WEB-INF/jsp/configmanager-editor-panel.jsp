@@ -23,19 +23,20 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmSetting.Category loopCategory = PwmSetting.Category.valueOf(request.getParameter("category")); %>
-<h1><%=loopCategory.getLabel(request.getLocale())%>
+<% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
+<% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
+<% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
+<h1 style="text-align:center;"><%=category.getLabel(request.getLocale())%>
 </h1>
-<span><%= loopCategory.getDescription(request.getLocale())%></span>
-<% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(loopCategory)) { %>
+<span><%= category.getDescription(request.getLocale())%></span>
+<% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(category)) { %>
 <script type="text/javascript">showError('');</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
-    <h2><%=loopSetting.getLabel(request.getLocale())%>
-    </h2>
-    <label for="value_<%=loopSetting.getKey()%>">
-        <%= loopSetting.getDescription(request.getLocale()) %>
-    </label>
+    <h2><label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(request.getLocale())%></label></h2>
+    <% if (showDesc) { %>
+    <%= loopSetting.getDescription(request.getLocale()) %>
     <br/>
+    <% } %>
 
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">

@@ -74,6 +74,10 @@ public enum PwmError {
     PASSWORD_NOT_ENOUGH_NON_ALPHA("Password_NotEnoughNonAlpha", 4036),
     PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4037),
 
+    NUMBERVALIDATION_INVALIDNUMER("NumberValidation_Invalid_Number", 4101),
+    NUMBERVALIDATION_LOWERBOUND("NumberValidation_Lowerbound", 4102),
+    NUMBERVALIDATION_UPPERBOUND("NumberValidation_Upperbound", 4103),
+
     ERROR_WRONGPASSWORD("Error_WrongPassword", 5001),
     ERROR_WRONGANSWER("Error_WrongAnswer", 5002),
     ERROR_USERAUTHENTICATED("Error_UserAuthenticated", 5003),
@@ -114,7 +118,9 @@ public enum PwmError {
     ERROR_BAD_CURRENT_PASSWORD("Error_BadCurrentPassword", 5038),
     ERROR_CLOSING("Error_Closing", 5039),
     ERROR_MISSING_GUID("Error_Missing_GUID", 5040),
-    ERROR_TOKEN_EXPIRED("Error_TokenExpired", 5040),
+    ERROR_TOKEN_EXPIRED("Error_TokenExpired", 5041),
+    ERROR_MULTI_USERNAME("Error_Multi_Username", 5042),
+    ERROR_ORIG_ADMIN_ONLY("Error_Orig_Admin_Only", 5043),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

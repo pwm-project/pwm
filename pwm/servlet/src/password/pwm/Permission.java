@@ -41,7 +41,8 @@ public enum Permission {
     PWMADMIN(PwmSetting.QUERY_MATCH_PWM_ADMIN),
     CHANGE_PASSWORD(PwmSetting.QUERY_MATCH_CHANGE_PASSWORD),
     ACTIVATE_USER(PwmSetting.ACTIVATE_USER_QUERY_MATCH),
-    SETUP_RESPONSE(PwmSetting.QUERY_MATCH_SETUP_RESPONSE);
+    SETUP_RESPONSE(PwmSetting.QUERY_MATCH_SETUP_RESPONSE),
+    GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP);
 
 // ------------------------------ FIELDS ------------------------------
 

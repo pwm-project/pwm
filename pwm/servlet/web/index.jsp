@@ -104,6 +104,20 @@
         <p><pwm:Display key="Long_Title_UserInformation"/></p>
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.GUEST_ENABLE) &&
+                                                         (!Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.GUEST_HIDDEN))) { %>
+        <hr/>
+
+        <h2><a href="<pwm:url url='private/GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/></a></h2>
+
+        <p><pwm:Display key="Long_Title_GuestRegistration"/></p>
+
+        <h2><a href="<pwm:url url='private/GuestUpdate'/>" class="tablekey"><pwm:Display key="Title_GuestUpdate"/></a></h2>
+
+        <p><pwm:Display key="Long_Title_GuestUpdate"/></p>
+
+        <% } %>
+
         <hr/>
 
         <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>

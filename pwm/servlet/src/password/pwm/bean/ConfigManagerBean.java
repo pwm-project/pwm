@@ -33,8 +33,10 @@ public class ConfigManagerBean implements Serializable {
     private StoredConfiguration configuration;
     private boolean editorMode;
     private java.util.Date configurationLoadTime;
-    private PwmSetting.Level level;
     private ErrorInformation errorInformation;
+    private PwmSetting.Level level = PwmSetting.Level.BASIC;
+    private boolean showDescr = true;
+    private PwmSetting.Category category = PwmSetting.Category.GENERAL;
 
     public ConfigManagerBean() {
     }
@@ -77,5 +79,21 @@ public class ConfigManagerBean implements Serializable {
 
     public void setErrorInformation(final ErrorInformation errorInformation) {
         this.errorInformation = errorInformation;
+    }
+
+    public boolean isShowDescr() {
+        return showDescr;
+    }
+
+    public void setShowDescr(final boolean showDescr) {
+        this.showDescr = showDescr;
+    }
+
+    public PwmSetting.Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(final PwmSetting.Category category) {
+        this.category = category;
     }
 }

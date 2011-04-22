@@ -138,6 +138,8 @@ public class Configuration implements Serializable {
         returnSet.addAll(this.getGlobalPasswordPolicy(Locale.getDefault()).getRuleHelper().getDisallowedAttributes());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE));
 
         return returnSet;
     }

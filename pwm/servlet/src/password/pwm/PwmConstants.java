@@ -71,6 +71,9 @@ public abstract class PwmConstants {
     public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
     public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateattributes.jsp";
     public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
+    public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/newguest.jsp";
+    public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/updateguest.jsp";
+    public static final String URL_JSP_GUEST_UPDATE_SEARCH = "WEB-INF/jsp/updateguest-search.jsp";
     public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";
     public static final String URL_JSP_PASSWORD_WARN = "WEB-INF/jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
@@ -90,6 +93,8 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
     public static final String URL_SERVLET_NEW_USER = "NewUser";
+    public static final String URL_SERVLET_GUEST_REGISTRATION = "GuestRegistration";
+    public static final String URL_SERVLET_GUEST_UPDATE = "GuestUpdate";
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
     public static final String URL_SERVLET_COMMAND = "CommandServlet";
     public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";

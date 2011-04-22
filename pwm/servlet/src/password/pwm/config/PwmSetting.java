@@ -104,6 +104,8 @@ public enum PwmSetting {
             "ldap.readPasswordPolicies", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
+    DEFAULT_OBJECT_CLASSES(
+            "ldap.defaultObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_CHANGE_PASSWORD(
             "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
@@ -144,6 +146,22 @@ public enum PwmSetting {
             "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_BODY_HTML(
             "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_GUEST_SUBJECT(
+            "email.guest.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_GUEST_FROM(
+            "email.guest.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_GUEST_BODY(
+            "email.guest.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_GUEST_BODY_HTML(
+            "email.guest.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_UPDATEGUEST_SUBJECT(
+            "email.updateguest.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_UPDATEGUEST_FROM(
+            "email.updateguest.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_UPDATEGUEST_BODY(
+            "email.updateguest.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_UPDATEGUEST_BODY_HTML(
+            "email.updateguest.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_SUBJECT(
             "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ACTIVATION_FROM(
@@ -349,6 +367,30 @@ public enum PwmSetting {
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
 
+
+    // guest settings
+    GUEST_ENABLE(
+            "guest.enable", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+    GUEST_HIDDEN(
+            "guest.hidden", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+    GUEST_CONTEXT(
+            "guest.createContext", Syntax.STRING, Category.GUEST, true, Level.ADVANCED),
+    GUEST_ADMIN_GROUP(
+            "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.ADVANCED),
+    GUEST_FORM(
+            "guest.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.ADVANCED),
+    GUEST_UNIQUE_ATTRIBUTES(
+            "guest.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.ADVANCED),
+    GUEST_WRITE_ATTRIBUTES(
+            "guest.writeAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.ADVANCED),
+    GUEST_ADMIN_ATTRIBUTE(
+            "guest.adminAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
+    GUEST_EDIT_ORIG_ADMIN_ONLY(
+            "guest.editOriginalAdminOnly", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+	GUEST_MAX_VALID_DAYS(
+			"guest.maxValidDays", Syntax.NUMERIC, Category.GUEST, true, Level.ADVANCED),
+	GUEST_EXPIRATION_ATTRIBUTE (
+            "guest.expirationAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
 
     // activation settings
     ACTIVATE_USER_ENABLE(
@@ -571,6 +613,7 @@ public enum PwmSetting {
         RECOVERY,
         FORGOTTEN_USERNAME,
         NEWUSER,
+        GUEST,
         ACTIVATION,
         UPDATE,
         SHORTCUT,

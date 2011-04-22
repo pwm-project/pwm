@@ -44,6 +44,8 @@ public enum Statistic {
     HTTP_SESSIONS(Type.INCREMENTOR, "HttpSessions"),
     ACTIVATED_USERS(Type.INCREMENTOR, "ActivatedUsers"),
     NEW_USERS(Type.INCREMENTOR, "NewUsers"),
+    GUESTS(Type.INCREMENTOR, "Guests"),
+    UPDATED_GUESTS(Type.INCREMENTOR, "UpdatedGuests"),
     LOCKED_USERS(Type.INCREMENTOR, "LockedUsers"),
     LOCKED_ADDRESSES(Type.INCREMENTOR, "LockedAddresses"),
     CAPTCHA_SUCCESSES(Type.INCREMENTOR, "CaptchaSuccessess"),

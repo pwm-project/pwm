@@ -155,6 +155,14 @@
         <servlet-class>password.pwm.servlet.NewUserServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>GuestRegistrationServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.GuestRegistrationServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GuestUpdateServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.GuestUpdateServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ActivateUserServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ActivateUserServlet</servlet-class>
     </servlet>
@@ -242,6 +250,14 @@
     <servlet-mapping>
         <servlet-name>NewUserServlet</servlet-name>
         <url-pattern>/public/NewUser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GuestRegistrationServlet</servlet-name>
+        <url-pattern>/private/GuestRegistration</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GuestUpdateServlet</servlet-name>
+        <url-pattern>/private/GuestUpdate</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ActivateUserServlet</servlet-name>

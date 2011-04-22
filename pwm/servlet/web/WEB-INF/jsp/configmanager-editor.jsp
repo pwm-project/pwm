@@ -34,7 +34,9 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final Collection<Locale> localeList = ContextManager.getContextManager(session).getKnownLocales(); %>
 <% localeList.remove(Helper.localeResolver(Locale.getDefault(), localeList)); %>
-<% final PwmSetting.Level level = PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
+<% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
+<% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
+<% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript"><% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
@@ -55,18 +57,50 @@
         <script type="text/javascript">
             dojo.require("dijit.MenuBar");
             dojo.require("dijit.MenuItem");
+            dojo.require("dijit.MenuBarItem");
             dojo.require("dijit.PopupMenuBarItem");
+            dojo.require("dijit.CheckedMenuItem");
             dojo.addOnLoad(function() {
                 var pMenuBar = new dijit.MenuBar({});
                 { // Category Menu
                     var pSubMenu = new dijit.Menu({});
                 <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
+                <% if (loopCategory == category) { %>
+                    pSubMenu.addChild(new dijit.CheckedMenuItem({
+                        label: '<%=loopCategory.getLabel(request.getLocale())%>',
+                        checked: true,
+                        onClick: function() {
+                            showWaitDialog('Loading...');
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                                sync: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = window.location;
+                                }
+                            });
+                        }
+                    }));
+                <% } else { %>
                     pSubMenu.addChild(new dijit.MenuItem({
                         label: '<%=loopCategory.getLabel(request.getLocale())%>',
                         onClick: function() {
-                            selectCategory('<%=loopCategory.toString()%>');
+                            showWaitDialog('Loading...');
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                                sync: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = window.location;
+                                }
+                            });
                         }
                     }));
+                <% } %>
                 <% } %>
                     pMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "Category",
@@ -75,22 +109,39 @@
                 }
                 { // Edit
                     var pSubMenu = new dijit.Menu({});
-                    pSubMenu.addChild(new dijit.MenuItem({
-                        <% if (level == PwmSetting.Level.BASIC) { %>
+                    pSubMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Show All Settings",
+                        checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                         onClick: function() {
                             showWaitDialog('Loading...');
-                            getObject('levelAdvanced').submit();
-                        },
-                        checked: true
-                        <% } else { %>
-                        label: "Show Basic Settings",
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
+                                sync: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = window.location;
+                                }
+                            });
+                        }
+                    }));
+                    pSubMenu.addChild(new dijit.CheckedMenuItem({
+                        label: "Display Help Text",
+                        checked: <%=showDesc ? "true" : "false"%>,
                         onClick: function() {
                             showWaitDialog('Loading...');
-                            getObject('levelBasic').submit();
-                        },
-                        checked: true
-                        <% } %>
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
+                                sync: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = window.location;
+                                }
+                            });
+                        }
                     }));
                     pMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "View",
@@ -113,6 +164,7 @@
                 <% } else { %>
                     pSubMenu.addChild(new dijit.MenuItem({
                         label: "Save",
+                        iconClass: "dijitEditorIcon dijitEditorIconSave",
                         onClick: function() {
                             if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
                                 saveConfiguration();
@@ -122,6 +174,7 @@
                 <% } %>
                     pSubMenu.addChild(new dijit.MenuItem({
                         label: "Cancel",
+                        iconClass: "dijitEditorIcon dijitEditorIconCancel",
                         onClick: function() {
                             showWaitDialog('Canceling...');
                             setTimeout(function() {
@@ -149,18 +202,6 @@
             <input type="hidden" name="processAction" value="cancelEditing"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelAdvanced"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="setLevel"/>
-            <input type="hidden" name="level" value="ADVANCED"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
-        <form action="<pwm:url url='ConfigManager'/>" method="get" id="levelBasic"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="setLevel"/>
-            <input type="hidden" name="level" value="BASIC"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
         <div id="mainContentPane" style="width: 600px">
         </div>
         <script type="text/javascript">
@@ -173,7 +214,7 @@
         </script>
         <script type="text/javascript">
             dojo.addOnLoad(function() { <%-- select the first category --%>
-                selectCategory('<%=PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet().iterator().next()%>');
+                dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel');
             });
         </script>
     </div>

@@ -669,14 +669,6 @@ function waitForRestart(startTime, oldEpoch) {
     });
 }
 
-function selectCategory(categoryName) {
-    for (var childNode in menuItems) {
-        menuItems[childNode].set('selected', false);
-    }
-    dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel&category=' + categoryName);
-    selectedCategory = categoryName;
-}
-
 function handleResetClick(settingKey) {
     var confirmLabel = 'Are you sure you want to reset this setting to the default value?';
     if (confirm(confirmLabel)) {

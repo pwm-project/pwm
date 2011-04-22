@@ -51,6 +51,7 @@ import java.util.StringTokenizer;
  * <li>int - interger value</li>
  * <li>str - normal string (default)</li>
  * <li>email - normal string with email validation</li>
+ * <li>randomstring - normal string prefilled with a random value from password generator</li>
  * </ul>
  * <tr><td>minimumLength</td><td>Minimum length</td></tr>
  * <tr><td>maximumLength</td><td>Maximum length</td></tr>
@@ -66,7 +67,7 @@ import java.util.StringTokenizer;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {STRING, EMAIL, NUMBER, PASSWORD}
+    public enum Type {STRING, EMAIL, NUMBER, PASSWORD, RANDOM}
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 
@@ -112,6 +113,8 @@ public class FormConfiguration implements Serializable {
                 newConfig.type = Type.EMAIL;
             } else if (type.equalsIgnoreCase(Type.PASSWORD.toString())) {
                 newConfig.type = Type.PASSWORD;
+            } else if (type.equalsIgnoreCase(Type.RANDOM.toString())) {
+                newConfig.type = Type.RANDOM;
             } else {
                 newConfig.type = Type.STRING;
             }
