@@ -29,6 +29,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -47,6 +49,28 @@ public class ConfigurationChecker implements HealthChecker {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
         if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Promiscuous LDAP SSL connection is being used"));
+        }
+
+        {
+            final List<String> ldapServerURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
+            boolean foundUnsecure = false;
+            if (ldapServerURLs != null && !ldapServerURLs.isEmpty()) {
+                for (final String urlStringValue : ldapServerURLs) {
+                    try {
+                        final URI url = new URI(urlStringValue);
+                        final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
+                        if (!secure) {
+                            foundUnsecure = true;
+                        }
+                    } catch (URISyntaxException  e) {
+                        LOGGER.debug("error parsing ldapServerURLs: " + e.getMessage());
+                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "error parsing ldapServerURLs: " + e.getMessage()));
+                    }
+                }
+            }
+            if (!foundUnsecure) {
+                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "One or more LDAP URLs are configured using non-secure connections."));
+            }
         }
 
         {

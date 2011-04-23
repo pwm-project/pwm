@@ -25,7 +25,10 @@ package password.pwm.servlet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
+import password.pwm.PwmSession;
+import password.pwm.Validator;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
@@ -77,6 +80,9 @@ public class ConfigManagerServlet extends TopServlet {
                 } else {
                     req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PANEL).forward(req, resp);
                 }
+                return;
+            } else if ("viewLog".equalsIgnoreCase(processActionParam)) {
+                doViewLog(req, resp);
                 return;
             }
 
@@ -366,6 +372,20 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
+            final String requestedTemplate = Validator.readStringFromRequest(req, "template", 255);
+            if (requestedTemplate != null && requestedTemplate.length() > 0) {
+
+                try {
+                    final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
+                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE,template.toString());
+                    LOGGER.trace("setting template to: " + requestedTemplate);
+                } catch (IllegalArgumentException e) {
+                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE,PwmSetting.Template.DEFAULT.toString());
+                    LOGGER.error("unknown template set request: " + requestedTemplate);
+                }
+            }
+        }
+        {
             final String requestedCategory = Validator.readStringFromRequest(req, "category", 255);
             if (requestedCategory != null && requestedCategory.length() > 0) {
                 try {
@@ -492,6 +512,20 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         configManagerBean.setConfigurationLoadTime(null);
+    }
+
+    static void doViewLog(final HttpServletRequest req, final HttpServletResponse resp)
+            throws PwmException, IOException, ServletException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+
+        if (configMode == ConfigurationReader.MODE.RUNNING) {
+            throw new PwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED),"cannot view log in RUNNING mode");
+        }
+
+        final ServletContext servletContext = req.getSession().getServletContext();
+        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGVIEW).forward(req, resp);
     }
 
     private boolean doGenerateXml(

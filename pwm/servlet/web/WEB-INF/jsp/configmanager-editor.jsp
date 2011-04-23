@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.Helper" %>
@@ -36,7 +37,8 @@
 <% localeList.remove(Helper.localeResolver(Locale.getDefault(), localeList)); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
-<% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
+<% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
+<% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript"><% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
@@ -145,6 +147,36 @@
                     }));
                     pMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "View",
+                        popup: pSubMenu
+                    }));
+                }
+                { // Templates
+                    var pSubMenu = new dijit.Menu({});
+                    <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+                    <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().template() == template; %>
+                    pSubMenu.addChild(new dijit.CheckedMenuItem({
+                        label: "<%=template.getDescription()%>",
+                        checked: <%=isCurrentTemplate ? "true" : "false"%>,
+                        onClick: function() {
+                            if (!confirm('Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.')) {
+                                return;
+                            }
+                            showWaitDialog('Loading...');
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
+                                sync: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = window.location;
+                                }
+                            });
+                        }
+                    }));
+                    <% } %>
+                    pMenuBar.addChild(new dijit.PopupMenuBarItem({
+                        label: "Template",
                         popup: pSubMenu
                     }));
                 }

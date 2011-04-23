@@ -22,7 +22,6 @@
 
 package password.pwm.health;
 
-import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -30,13 +29,14 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
-import password.pwm.util.Helper;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.UserStatusHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.wordlist.SeedlistManager;
@@ -142,20 +142,14 @@ public class LDAPStatusChecker implements HealthChecker {
         final Configuration config = new Configuration(storedconfiguration);
 
         ChaiProvider chaiProvider = null;
+
         try {
             chaiProvider = getChaiProviderForTesting(config);
-            final String contextlessRootSettingName = PwmSetting.LDAP_CONTEXTLESS_ROOT.getCategory().getLabel(Locale.getDefault()) + "-" + PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel(Locale.getDefault());
-            try {
-                final ChaiEntry contextlessRootEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), chaiProvider);
-                if (!contextlessRootEntry.isValid()) {
-                    final String errorString = "setting '" + contextlessRootSettingName + "' value does not appear to be correct";
-                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
-                }
-            } catch (Exception e) {
-                final String errorString = "error verifying setting '" + contextlessRootSettingName + "' " + e.getMessage();
-                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
-            }
-
+            final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
+            final String usernameContext = storedconfiguration.readSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+            final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
+            proxyUser.isValid();
+            UserStatusHelper.convertUsernameFieldtoDN("pwm-test-username-search",null,usernameContext,chaiProvider,config);
             return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
         } catch (Exception e) {
             final String errorString = "error connecting to ldap server: " + e.getMessage();

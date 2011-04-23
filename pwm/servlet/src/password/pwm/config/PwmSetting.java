@@ -389,9 +389,9 @@ public enum PwmSetting {
             "guest.adminAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
     GUEST_EDIT_ORIG_ADMIN_ONLY(
             "guest.editOriginalAdminOnly", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
-	GUEST_MAX_VALID_DAYS(
-			"guest.maxValidDays", Syntax.NUMERIC, Category.GUEST, true, Level.ADVANCED),
-	GUEST_EXPIRATION_ATTRIBUTE (
+    GUEST_MAX_VALID_DAYS(
+            "guest.maxValidDays", Syntax.NUMERIC, Category.GUEST, true, Level.ADVANCED),
+    GUEST_EXPIRATION_ATTRIBUTE (
             "guest.expirationAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
 
     // activation settings
@@ -553,8 +553,27 @@ public enum PwmSetting {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public String getDefaultValue() {
-        return readProps("DEFLT_" + this.getKey(), Locale.getDefault());
+    public String getDefaultValue(final Template template) {
+        final String DEFAULT_KEY_NAME = "DEFLT_" + this.getKey();
+        String keyName = DEFAULT_KEY_NAME;
+
+        if (template != null) {
+            switch (template){
+                case AD:
+                    keyName = "DEFLT-AD_" + this.getKey();
+                    break;
+
+                default:
+                    keyName = "DEFLT_" + this.getKey();
+                    break;
+            }
+        }
+
+        String returnValue = readProps(keyName, Locale.getDefault());
+        if (returnValue.equals(Static.RESOURCE_MISSING)) {
+            returnValue = readProps(DEFAULT_KEY_NAME, Locale.getDefault());
+        }
+        return returnValue;
     }
 
     public String getLabel(final Locale locale) {
@@ -635,6 +654,22 @@ public enum PwmSetting {
     public enum Level {
         BASIC,
         ADVANCED
+    }
+
+    public enum Template {
+        DEFAULT("Default (Novell, OpenLDAP, DirectoryServer389, Others)"),
+        AD("Active Directory")
+        ;
+
+        private final String description;
+
+        Template(final String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory(final Level byLevel) {

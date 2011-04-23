@@ -305,26 +305,40 @@ public class UserStatusHelper {
             final PwmSession pwmSession,
             final String context
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmException
+    {
+        final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
+        final Configuration config = pwmSession.getConfig();
+        return convertUsernameFieldtoDN(username, pwmSession, context, provider, config);
+    }
+
+    public static String convertUsernameFieldtoDN(
+            final String username,
+            final PwmSession pwmSession,
+            final String context,
+            final ChaiProvider provider,
+            final Configuration config
+    )
+            throws ChaiUnavailableException, PwmException {
         // if no username supplied, just return empty string
         if (username == null || username.length() < 1) {
             return "";
         }
 
         {   //if supplied user name starts with username attr assume its the full dn and skip the search
-            final String usernameAttribute = pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            final String usernameAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
                 LOGGER.trace(pwmSession, "username appears to be a DN; skipping username search");
                 return username;
             }
         }
 
-        final String searchDN = determineContextForSearch(pwmSession, context);
+        final String searchDN = determineContextForSearch(pwmSession, context, config);
         LOGGER.trace(pwmSession, "attempting username search for '" + username + "'" + " in context " + searchDN);
 
         final SearchHelper searchHelper = new SearchHelper();
         {
-            final String filterSetting = pwmSession.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
+            final String filterSetting = config.readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
             final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, username);
             searchHelper.setFilter(filter);
             searchHelper.setAttributes("");
@@ -334,11 +348,6 @@ public class UserStatusHelper {
         LOGGER.trace(pwmSession, "search for username: " + searchHelper.getFilter() + ", searchDN: " + searchDN);
 
         try {
-            final SessionManager sessionMgr = pwmSession.getSessionManager();
-            assert sessionMgr != null;
-
-            final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
-            assert provider != null;
 
             final Map<String, Properties> results = provider.search(searchDN, searchHelper);
 
@@ -355,12 +364,14 @@ public class UserStatusHelper {
             }
         } catch (ChaiOperationException e) {
             LOGGER.warn(pwmSession, "error during username search: " + e.getMessage());
+            final String errorDetail = "error during contextless login username search, setting 'LDAP Directory-LDAP Contextless Login Root' value does not appear to be correct: " + e.getMessage();
+            throw new PwmException(new ErrorInformation(PwmError.ERROR_USER_MISMATCH,errorDetail),errorDetail);
         }
         return null;
     }
 
-    public static String determineContextForSearch(final PwmSession pwmSession, final String context) {
-        final String configuredLdapContextlessRoot = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+    public static String determineContextForSearch(final PwmSession pwmSession, final String context, final Configuration config) {
+        final String configuredLdapContextlessRoot = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         if (context == null || context.length() < 1) {
             return configuredLdapContextlessRoot;
         }
@@ -371,7 +382,7 @@ public class UserStatusHelper {
         }
 
         // see if the baseDN is one of the configured login contexts.
-        final Map<String, String> contextsSettings = pwmSession.getConfig().getLoginContexts();
+        final Map<String, String> contextsSettings = config.getLoginContexts();
         if (contextsSettings.containsKey(context)) {
             if (contextsSettings.keySet().contains(context)) {
                 return context;

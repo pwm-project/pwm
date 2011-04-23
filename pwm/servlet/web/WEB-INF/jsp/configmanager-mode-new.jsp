@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.ConfigurationReader" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -38,34 +38,44 @@
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"
         djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
+<script type="text/javascript">
+    function startEditing(template) {
+        showWaitDialog('Loading...');
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+            sync: true,
+            error: function(errorObj) {
+                showError("error loading " + keyName + ", reason: " + errorObj)
+            },
+            load: function(data) {
+                document.forms['editMode'].submit();
+            }
+        });
+    }
+
+</script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
     </jsp:include>
     <div id="centerbody">
-        <p>Welcome to PWM. PWM is now in new configuration mode, which means you can make changes to the running
-            configuration
-            directly through this page. Changes made in the configuration editor will be saved immediately, and PWM will
-            automatically restart to have changes
-            take effect.</p>
-
-        <p>Once you have made all the required configuration changes, the configuration can be finalized to prevent
-            users
-            from being able to make changes.</p>
+        <p>Welcome to PWM.  We hope you enjoy using this software.</p>
+        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project Page</a></p>
+        <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting one of the
+            options below.</p>
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
-        <h2><a href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a></h2>
-
+        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+        <h2><a href="#" onclick="startEditing('<%=template.toString()%>')">New Configuration - <%=template.getDescription()%></a></h2>
+        <% } %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="editMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Start the PWM configuration editor. When you select "Finished Editing" in the configuration page, your
-            changes will be saved and
-            you will return to this screen.</p>
 
+        <br/>
         <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
 
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
@@ -80,5 +90,4 @@
 </div>
 <%@ include file="footer.jsp" %>
 </body>
-n
 </html>

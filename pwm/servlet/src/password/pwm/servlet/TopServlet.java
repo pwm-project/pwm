@@ -24,6 +24,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmSession;
+import password.pwm.error.ErrorInformation;
 import password.pwm.util.ServletHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
@@ -74,7 +75,7 @@ public abstract class TopServlet extends HttpServlet {
         } catch (ChaiUnavailableException e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmSession.getContextManager().setLastLdapFailure();
-            ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -86,7 +87,7 @@ public abstract class TopServlet extends HttpServlet {
                 LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
             }
             if (e.getMessage() == null) {
-                ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
             } else {
                 ssBean.setSessionError(e.getError());
             }
@@ -95,9 +96,8 @@ public abstract class TopServlet extends HttpServlet {
             if (pwmSession.getContextManager().getStatisticsManager() != null) {
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
                 LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
-                ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
                 ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-                //throw new ServletException(e);
             }
         }
     }

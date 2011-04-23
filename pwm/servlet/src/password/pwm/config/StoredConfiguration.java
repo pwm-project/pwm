@@ -61,6 +61,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public static final String PROPERTY_KEY_SETTING_CHECKSUM = "settingsChecksum";
     public static final String PROPERTY_KEY_CONFIG_IS_EDITABLE = "configIsEditable";
     public static final String PROPERTY_KEY_CONFIG_EPOCH = "configEpoch";
+    public static final String PROPERTY_KEY_TEMPLATE = "templateKey";
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
@@ -97,28 +98,35 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public static StoredConfiguration getDefaultConfiguration() {
-        final StoredConfiguration config = new StoredConfiguration();
-        for (final PwmSetting loopSetting : PwmSetting.values()) {
-            config.settingMap.put(loopSetting, defaultValue(loopSetting));
-        }
-        return config;
+        return new StoredConfiguration();
     }
 
-    private static StoredValue defaultValue(final PwmSetting pwmSetting) {
+    public PwmSetting.Template template() {
+        final String propertyValue = propertyMap.get(PROPERTY_KEY_TEMPLATE);
+        try {
+            return PwmSetting.Template.valueOf(propertyValue);
+        } catch (IllegalArgumentException e) {
+            return PwmSetting.Template.DEFAULT;
+        } catch (NullPointerException e) {
+            return PwmSetting.Template.DEFAULT;
+        }
+    }
+
+    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template) {
         switch (pwmSetting.getSyntax()) {
             case STRING:
             case BOOLEAN:
             case NUMERIC:
-                return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue());
+                return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
             case PASSWORD:
-                return StoredValue.StoredValuePassword.fromJsonString(pwmSetting.getDefaultValue());
+                return StoredValue.StoredValuePassword.fromJsonString(pwmSetting.getDefaultValue(template));
             case LOCALIZED_STRING:
             case LOCALIZED_TEXT_AREA:
-                return StoredValue.StoredValueLocaleList.fromJsonString(pwmSetting.getDefaultValue());
+                return StoredValue.StoredValueLocaleList.fromJsonString(pwmSetting.getDefaultValue(template));
             case LOCALIZED_STRING_ARRAY:
-                return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue());
+                return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue(template));
             case STRING_ARRAY:
-                return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue());
+                return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue(template));
 
             default:
                 throw new IllegalArgumentException("unable to read default value for: " + pwmSetting.toString());
@@ -126,9 +134,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public boolean isDefaultValue(final PwmSetting setting) {
-        final String jsonValue = settingMap.get(setting).toJsonString();
-        final String defaultString = defaultValue(setting).toJsonString();
-        return (defaultString == null || defaultString.length() < 1) && (jsonValue == null || jsonValue.length() < 1) || jsonValue.equals(defaultString);
+        return !settingMap.containsKey(setting);
     }
 
     public String readSetting(final PwmSetting setting) {
@@ -137,7 +143,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
             case BOOLEAN:
             case NUMERIC:
             case PASSWORD:
-                return (String) settingMap.get(setting).toNativeObject();
+                final StoredValue value = settingMap.get(setting);
+                return (String) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
 
             default:
                 throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
@@ -163,7 +170,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public void resetSetting(final PwmSetting setting) {
         preModifyActions();
-        settingMap.put(setting, defaultValue(setting));
+        settingMap.remove(setting);
     }
 
     public Map<String, String> readLocalizedStringSetting(final PwmSetting setting) {
@@ -171,7 +178,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new IllegalArgumentException("may not read LOCALIZED_STRING or LOCALIZED_TEXT_AREA values for setting: " + setting.toString());
         }
 
-        return (Map<String, String>) settingMap.get(setting).toNativeObject();
+        final StoredValue value = settingMap.get(setting);
+        return (Map<String, String>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
     }
 
     public void writeLocalizedSetting(final PwmSetting setting, final Map<String, String> values) {
@@ -188,7 +196,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
         }
 
-        return (List<String>) settingMap.get(setting).toNativeObject();
+        final StoredValue value = settingMap.get(setting);
+        return (List<String>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
     }
 
     public void writeStringArraySetting(final PwmSetting setting, final List<String> values) {
@@ -205,7 +214,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString());
         }
 
-        return (Map<String, List<String>>) settingMap.get(setting).toNativeObject();
+        final StoredValue value = settingMap.get(setting);
+        return (Map<String, List<String>>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
     }
 
     public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String, List<String>> values) {
@@ -332,9 +342,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 if (pwmSetting == null) {
                     LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
                 } else {
-                    if (settingElement.getChild("value") == null) {
-                        newConfiguration.settingMap.put(pwmSetting, defaultValue(pwmSetting));
-                    } else {
+                    if (settingElement.getChild("value") != null) {
                         switch (pwmSetting.getSyntax()) {
                             case LOCALIZED_STRING:
                             case LOCALIZED_TEXT_AREA: {

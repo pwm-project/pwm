@@ -270,7 +270,7 @@ public class ActivateUserServlet extends TopServlet {
             throws ChaiUnavailableException, PwmException {
         final String searchFilter = figureSearchFilterForParams(paramConfigs, pwmSession);
 
-        final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam);
+        final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmSession.getConfig());
         final ChaiUser theUser = performUserSearch(pwmSession, searchFilter, searchContext);
 
         if (theUser == null) {

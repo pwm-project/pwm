@@ -88,7 +88,10 @@
             <input type="hidden" name="processAction" value="editMode"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Start the PWM configuration editor to edit the running configuration.</p>
+        <p>Use the PWM configuration editor to edit the running configuration.</p>
+
+        <h2><a href="#" onclick="window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');">View Log Events</a></h2>
+        <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
 
         <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
 
@@ -97,7 +100,7 @@
             <input type="hidden" name="processAction" value="generateXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <p>Download the configuration XML file.</p>
+        <p>Download the current configuration XML file.</p>
 
         <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
 
@@ -108,7 +111,7 @@
             <input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>
-        <p>Upload an existing configuration. The uploaded file will be saved as the PWM configuration.</p>
+        <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replacethe current configuration.</p>
 
         <h2><a href="#"
                onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); finalizeConfiguration();}">Finalize

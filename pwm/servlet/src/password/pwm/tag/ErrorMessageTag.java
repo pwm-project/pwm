@@ -23,6 +23,8 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.PwmLogger;
 
@@ -49,9 +51,16 @@ public class ErrorMessageTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
+            final Configuration config = pwmSession.getConfig();
 
             if (error != null) {
-                final String errorMsg = error.toUserStr(pwmSession);
+                final String errorMsg;
+                if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                    final String errorDetail = error.getDetailedError() == null ? "" : " | " + error.getDetailedError();
+                    errorMsg = error.toUserStr(pwmSession) + errorDetail;
+                }  else {
+                    errorMsg = error.toUserStr(pwmSession);
+                }
                 pageContext.getOut().write(errorMsg);
             }
         } catch (Exception e) {
