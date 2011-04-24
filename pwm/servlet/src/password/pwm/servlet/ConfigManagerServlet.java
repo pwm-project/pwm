@@ -36,7 +36,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -58,7 +58,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         //clear any errors in the session's state bean
@@ -161,7 +161,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmException {
+            throws IOException, PwmUnrecoverableException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
@@ -174,7 +174,7 @@ public class ConfigManagerServlet extends TopServlet {
         if (configManagerBean.getErrorInformation() != null) {
             returnMap.put("error", true);
             returnMap.put("errorCode", configManagerBean.getErrorInformation().getError().getErrorCode());
-            returnMap.put("errorDetail", configManagerBean.getErrorInformation().getDetailedError());
+            returnMap.put("errorDetail", configManagerBean.getErrorInformation().getDetailedErrorMsg());
         }
         final Gson gson = new Gson();
         final String outputString = gson.toJson(returnMap);
@@ -186,7 +186,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmException {
+            throws IOException, PwmUnrecoverableException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
@@ -267,7 +267,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmException {
+            throws IOException, PwmUnrecoverableException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
@@ -345,7 +345,7 @@ public class ConfigManagerServlet extends TopServlet {
 
     private void setOptions(
             final HttpServletRequest req
-    ) throws IOException, PwmException {
+    ) throws IOException, PwmUnrecoverableException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
@@ -406,7 +406,7 @@ public class ConfigManagerServlet extends TopServlet {
 
     private void resetSetting(
             final HttpServletRequest req
-    ) throws IOException, PwmException {
+    ) throws IOException, PwmUnrecoverableException {
         Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
@@ -427,7 +427,7 @@ public class ConfigManagerServlet extends TopServlet {
     private void doFinishEditing(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
@@ -443,8 +443,8 @@ public class ConfigManagerServlet extends TopServlet {
 
             try {
                 saveConfiguration(pwmSession);
-            } catch (PwmException e) {
-                final ErrorInformation errorInfo = e.getError();
+            } catch (PwmUnrecoverableException e) {
+                final ErrorInformation errorInfo = e.getErrorInformation();
                 pwmSession.getSessionStateBean().setSessionError(errorInfo);
                 configManagerBean.setErrorInformation(errorInfo);
                 LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
@@ -459,7 +459,7 @@ public class ConfigManagerServlet extends TopServlet {
     private void doCancelEditing(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
@@ -471,7 +471,7 @@ public class ConfigManagerServlet extends TopServlet {
     private void doLockConfiguration(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
@@ -480,14 +480,14 @@ public class ConfigManagerServlet extends TopServlet {
 
         try {
             saveConfiguration(pwmSession);
-        } catch (PwmException e) {
-            final ErrorInformation errorInfo = e.getError();
+        } catch (PwmUnrecoverableException e) {
+            final ErrorInformation errorInfo = e.getErrorInformation();
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
         }
     }
 
     static void saveConfiguration(final PwmSession pwmSession)
-            throws PwmException {
+            throws PwmUnrecoverableException {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
 
@@ -495,7 +495,7 @@ public class ConfigManagerServlet extends TopServlet {
             final List<String> errorStrings = storedConfiguration.validateValues();
             if (errorStrings != null && !errorStrings.isEmpty()) {
                 final String errorString = errorStrings.get(0);
-                throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
             }
         }
 
@@ -508,20 +508,20 @@ public class ConfigManagerServlet extends TopServlet {
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
         }
 
         configManagerBean.setConfigurationLoadTime(null);
     }
 
     static void doViewLog(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmException, IOException, ServletException {
+            throws PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 
         if (configMode == ConfigurationReader.MODE.RUNNING) {
-            throw new PwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED),"cannot view log in RUNNING mode");
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
         }
 
         final ServletContext servletContext = req.getSession().getServletContext();
@@ -532,7 +532,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration configuration = configManagerBean.getConfiguration();
 

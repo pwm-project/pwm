@@ -37,7 +37,7 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class UserHistory implements Serializable {
             final Record.Event eventCode,
             final String message
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
         updateUserHistory(pwmSession, theUser, eventCode, message);
     }
@@ -81,7 +81,7 @@ public class UserHistory implements Serializable {
             final Record.Event eventCode,
             final String message
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = "0001";
         final Record record = new Record(eventCode, message);
         final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
@@ -144,7 +144,7 @@ public class UserHistory implements Serializable {
     }
 
     public static UserHistory readUserHistory(final PwmSession pwmSession)
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = "0001";
         final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
         final int maxUserEvents = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);

@@ -208,10 +208,7 @@
                         label: "Cancel",
                         iconClass: "dijitEditorIcon dijitEditorIconCancel",
                         onClick: function() {
-                            showWaitDialog('Canceling...');
-                            setTimeout(function() {
-                                document.forms['cancelEditing'].submit();
-                            }, 1000)
+                            document.forms['cancelEditing'].submit();
                         }
                     }));
 

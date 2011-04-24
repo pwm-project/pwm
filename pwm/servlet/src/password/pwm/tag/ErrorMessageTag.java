@@ -56,7 +56,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
             if (error != null) {
                 final String errorMsg;
                 if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
-                    final String errorDetail = error.getDetailedError() == null ? "" : " | " + error.getDetailedError();
+                    final String errorDetail = error.getDetailedErrorMsg() == null ? "" : " { " + error.getDetailedErrorMsg() + " }";
                     errorMsg = error.toUserStr(pwmSession) + errorDetail;
                 }  else {
                     errorMsg = error.toUserStr(pwmSession);

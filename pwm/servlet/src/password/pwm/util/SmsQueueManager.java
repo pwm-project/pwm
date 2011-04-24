@@ -32,7 +32,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
@@ -73,7 +73,7 @@ public class SmsQueueManager implements PwmService {
         PLAIN,
         PLUS,
         ZEROS
-    };
+    }
     
     public enum SmsDataEncoding {
     	NONE,
@@ -84,7 +84,7 @@ public class SmsQueueManager implements PwmService {
     	JAVA,
     	JAVASCRIPT,
     	SQL
-    };
+    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -150,7 +150,7 @@ public class SmsQueueManager implements PwmService {
 
 // --------------------- Interface PwmService ---------------------
 
-    public void init(final ContextManager contextManager) throws PwmException {
+    public void init(final ContextManager contextManager) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {
@@ -197,9 +197,9 @@ public class SmsQueueManager implements PwmService {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void addSmsToQueue(final SmsItemBean smsItem) throws PwmException {
+    public void addSmsToQueue(final SmsItemBean smsItem) throws PwmUnrecoverableException {
         if (status != PwmService.STATUS.OPEN) {
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
         if (!determineIfSmsCanBeDelivered(smsItem)) {
@@ -321,7 +321,7 @@ public class SmsQueueManager implements PwmService {
         
         LOGGER.trace("SMS data: " + requestData);
         try {
-            HttpURLConnection h = null;
+            final HttpURLConnection h;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
                 // POST request
                 final URL u = new URL(gatewayUrl);
@@ -344,8 +344,8 @@ public class SmsQueueManager implements PwmService {
                 h = (HttpURLConnection) u.openConnection(this.proxy);
             }
             if (gatewayAuthMethod.equalsIgnoreCase("BASIC") && gatewayUser != null && gatewayPass != null) {
-            	String userpass = gatewayUser + ":" + gatewayPass;
-            	String encodedAuthorization = Base64Util.encodeBytes(userpass.getBytes());
+            	final String userpass = gatewayUser + ":" + gatewayPass;
+            	final String encodedAuthorization = Base64Util.encodeBytes(userpass.getBytes());
             	h.setRequestProperty("Authorization", "Basic " + encodedAuthorization);
             }
             final InputStream ins = h.getInputStream();
@@ -376,7 +376,7 @@ public class SmsQueueManager implements PwmService {
     }
     
     private String smsDateEncode(final String data, final SmsDataEncoding encoding) {
-    	String returnData = null;
+    	final String returnData;
         switch (encoding) {
             case NONE:
                 returnData = data;

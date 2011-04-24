@@ -22,29 +22,18 @@
 
 package password.pwm.error;
 
-public abstract class PwmException extends Exception {
-    protected ErrorInformation errorInformation;
 
-    public PwmException(final ErrorInformation error) {
-        this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;
+/**
+ * A general exception thrown by PWM.
+ */
+public class PwmUnrecoverableException extends PwmException {
+
+    public PwmUnrecoverableException(final ErrorInformation error) {
+        super(error);
     }
 
-    public PwmException(final PwmError error) {
-        this.errorInformation = new ErrorInformation(error);
-    }
-
-    // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public ErrorInformation getErrorInformation() {
-        return errorInformation;
-    }
-
-    public PwmError getError() {
-        return errorInformation.getError();
-    }
-
-    @Override
-    public String getMessage() {
-        return errorInformation.toDebugStr();
+    public PwmUnrecoverableException(final PwmError error) {
+        super(error);
     }
 }
+

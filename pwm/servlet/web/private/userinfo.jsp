@@ -28,7 +28,7 @@
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -136,7 +136,7 @@
                     userResponses = CrUtility.readUserResponseSet(pwmSession, pwmSession.getSessionManager().getActor());
                 } catch (ChaiUnavailableException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                } catch (PwmException e) {
+                } catch (PwmUnrecoverableException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
             %>

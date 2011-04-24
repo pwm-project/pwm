@@ -37,10 +37,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -85,10 +82,10 @@ public class UserStatusHelper {
             if (password != null && password.length() > 0) {
                 try {
                     Validator.testPasswordAgainstPolicy(password, pwmSession, false, passwordPolicy);
-                } catch (ValidationException e) {
+                } catch (PwmDataValidationException e) {
                     LOGGER.info(pwmSession, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     returnState.setViolatesPolicy(true);
-                } catch (PwmException e) {
+                } catch (PwmUnrecoverableException e) {
                     LOGGER.info(pwmSession, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     returnState.setViolatesPolicy(true);
                 }
@@ -138,9 +135,9 @@ public class UserStatusHelper {
     }
 
     public static boolean checkIfResponseConfigNeeded(final PwmSession pwmSession, final ChaiUser theUser, final ChallengeSet challengeSet)
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED, "user must be authenticated to check if response configuration is needed"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED, "user must be authenticated to check if response configuration is needed"));
         }
 
         LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
@@ -184,7 +181,7 @@ public class UserStatusHelper {
             final String userDN,
             final String userCurrentPassword
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         populateUserInfoBean(uiBean, pwmSession, userDN, userCurrentPassword, provider);
@@ -198,7 +195,7 @@ public class UserStatusHelper {
             final String userCurrentPassword,
             final ChaiProvider provider
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final long methodStartTime = System.currentTimeMillis();
 
         if (userDN != null && userDN.length() < 1) {
@@ -305,8 +302,7 @@ public class UserStatusHelper {
             final PwmSession pwmSession,
             final String context
     )
-            throws ChaiUnavailableException, PwmException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
         final Configuration config = pwmSession.getConfig();
         return convertUsernameFieldtoDN(username, pwmSession, context, provider, config);
@@ -319,10 +315,11 @@ public class UserStatusHelper {
             final ChaiProvider provider,
             final Configuration config
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         // if no username supplied, just return empty string
         if (username == null || username.length() < 1) {
-            return "";
+            final String errorMessage = "an ldap user for for username value '" + username + "' was not found";
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
         }
 
         {   //if supplied user name starts with username attr assume its the full dn and skip the search
@@ -353,10 +350,12 @@ public class UserStatusHelper {
 
             if (results == null || results.size() == 0) {
                 LOGGER.trace(pwmSession, "no matches found");
-                return null;
+                final String errorMessage = "an ldap user for for username value '" + username + "' was not found";
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
             } else if (results.size() > 1) {
-                LOGGER.trace(pwmSession, "multiple matches found");
-                LOGGER.warn(pwmSession, "multiple matches found when doing search for username: " + username);
+                final String errorMessage = "multiple ldap users for for username value '" + username + "' was not found";
+                LOGGER.warn(pwmSession, errorMessage);
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
             } else {
                 final String userDN = results.keySet().iterator().next();
                 LOGGER.trace(pwmSession, "username match found: " + userDN);
@@ -365,9 +364,8 @@ public class UserStatusHelper {
         } catch (ChaiOperationException e) {
             LOGGER.warn(pwmSession, "error during username search: " + e.getMessage());
             final String errorDetail = "error during contextless login username search, setting 'LDAP Directory-LDAP Contextless Login Root' value does not appear to be correct: " + e.getMessage();
-            throw new PwmException(new ErrorInformation(PwmError.ERROR_USER_MISMATCH,errorDetail),errorDetail);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_USER_MISMATCH,errorDetail));
         }
-        return null;
     }
 
     public static String determineContextForSearch(final PwmSession pwmSession, final String context, final Configuration config) {

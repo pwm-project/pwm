@@ -35,9 +35,9 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
@@ -83,14 +83,14 @@ public class PasswordUtility {
      * @return true if the set was successful
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *          if the ldap directory is not unavailable
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *          if user is not authenticated
      */
     public static boolean setUserPassword(
             final PwmSession pwmSession,
             final String newPassword
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -105,8 +105,8 @@ public class PasswordUtility {
         // but we do it just in case.
         try {
             Validator.testPasswordAgainstPolicy(newPassword, pwmSession, false);
-        } catch (ValidationException e) {
-            ssBean.setSessionError(new ErrorInformation(e.getError().getError()));
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(new ErrorInformation(e.getErrorInformation().getError()));
             LOGGER.debug(pwmSession, "attempt to setUserPassword, but password does not pass PWM validator");
             return false;
         }
@@ -216,14 +216,16 @@ public class PasswordUtility {
     }
 
     private static void doPasswordSetOperation(final PwmSession pwmSession, final String newPassword, final String oldPassword)
-            throws ChaiUnavailableException, ChaiOperationException, PwmException
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
         theUser.changePassword(oldPassword, newPassword);
     }
 
-    private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword) throws PwmException {
+    private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword)
+            throws PwmUnrecoverableException
+    {
         final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserInfoBean().removePostChangePasswordActions();
         if (postChangePasswordActions == null || postChangePasswordActions.isEmpty()) {
             LOGGER.trace("no post change password actions ");
@@ -233,13 +235,13 @@ public class PasswordUtility {
         for (final PostChangePasswordAction postChangePasswordAction : postChangePasswordActions) {
             try {
                 postChangePasswordAction.doAction(pwmSession, newPassword);
-            } catch (PwmException e) {
+            } catch (PwmUnrecoverableException e) {
                 LOGGER.error(pwmSession, "error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage());
                 throw e;
             } catch (Exception e) {
                 LOGGER.error(pwmSession, "unexpected error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage(), e);
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
-                throw PwmException.createPwmException(errorInfo);
+                throw new PwmUnrecoverableException(errorInfo);
             }
         }
 

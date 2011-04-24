@@ -28,7 +28,7 @@ import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
@@ -44,7 +44,7 @@ public class ShortcutServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ShortcutServlet.class);
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) {
@@ -89,11 +89,11 @@ public class ShortcutServlet extends TopServlet {
      * @param pwmSession Valid (authenticated) PwmSession
      * @param request    httpRequest
      * @return List of visible ShortcutItems
-     * @throws PwmException             if something goes wrong
+     * @throws password.pwm.error.PwmUnrecoverableException             if something goes wrong
      * @throws ChaiUnavailableException if ldap is unavailable.
      */
     private static Map<String, ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.SHORTCUT_ITEMS, pwmSession.getSessionStateBean().getLocale());
 
         final Set<String> labelsFromHeader = new HashSet<String>();
@@ -136,7 +136,7 @@ public class ShortcutServlet extends TopServlet {
     }
 
     private void handleUserSelection(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final String link = Validator.readStringFromRequest(req, "link", 255);
         final Map<String, ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
 

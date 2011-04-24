@@ -31,7 +31,8 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserInformationServletBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -55,7 +56,7 @@ public class UserInformationServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -88,11 +89,15 @@ public class UserInformationServlet extends TopServlet {
     }
 
     private void processUserSearch(final PwmSession pwmSession, final String username, final String context)
-            throws ChaiUnavailableException, PwmException {
-        final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username,pwmSession,context);
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean();
 
-        if (userDN == null) {
+
+        final String userDN;
+        try {
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, context);
+        } catch (PwmOperationalException e) {
+            LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
             uisBean.setUserExists(false);
             return;
         }

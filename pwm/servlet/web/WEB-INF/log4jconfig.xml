@@ -53,7 +53,7 @@
     <!-- ldapchai logs information about ldap connections -->
     <category name="com.novell.ldapchai">
         <priority value="info"/>
-        <!-- possible priority values are "trace,debug,error,warn,fatal" -->                   
+        <!-- possible priority values are "trace,debug,error,warn,fatal" -->
 
         <appender-ref ref="PWMstdout"/>
         <!-- uncomment this to log to file <appender-ref ref="PWMfileLogger"/>-->

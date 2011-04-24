@@ -673,6 +673,6 @@ function handleResetClick(settingKey) {
     var confirmLabel = 'Are you sure you want to reset this setting to the default value?';
     if (confirm(confirmLabel)) {
         resetSetting(settingKey);
-        selectCategory(selectedCategory);
+        window.location = window.location;
     }
 }

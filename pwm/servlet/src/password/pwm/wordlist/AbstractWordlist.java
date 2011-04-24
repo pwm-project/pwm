@@ -22,10 +22,10 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
-import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
@@ -97,7 +97,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         try {
             checkPopulation();
         } catch (Exception e) {
-            if ((e instanceof PwmException) || (e instanceof NullPointerException) || (e instanceof PwmDBException)) {
+            if ((e instanceof PwmUnrecoverableException) || (e instanceof NullPointerException) || (e instanceof PwmDBException)) {
                 LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage());
             } else {
                 LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage(), e);

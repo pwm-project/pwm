@@ -37,9 +37,9 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
@@ -66,7 +66,7 @@ public class NewUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -91,8 +91,8 @@ public class NewUserServlet extends TopServlet {
             //read the values from the request
             try {
                 Validator.updateParamValues(pwmSession, req, creationParams);
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -100,8 +100,8 @@ public class NewUserServlet extends TopServlet {
             // see if the values meet form requirements.
             try {
                 Validator.validateParmValuesMeetRequirements(creationParams, pwmSession);
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 intruderMgr.addBadAddressAttempt(pwmSession);
                 this.forwardToJSP(req, resp);
                 return;
@@ -123,8 +123,8 @@ public class NewUserServlet extends TopServlet {
                 final FormConfiguration paramConfig = creationParams.get(attr);
                 try {
                     validateAttributeUniqueness(pwmSession, paramConfig, nuBean.getCreateUserDN());
-                } catch (ValidationException e) {
-                    ssBean.setSessionError(e.getError());
+                } catch (PwmDataValidationException e) {
+                    ssBean.setSessionError(e.getErrorInformation());
                     intruderMgr.addBadAddressAttempt(pwmSession);
                     this.forwardToJSP(req, resp);
                     return;
@@ -150,10 +150,10 @@ public class NewUserServlet extends TopServlet {
 
                 List<String> createObjectClasses = config.readStringArraySetting(PwmSetting.DEFAULT_OBJECT_CLASSES);
                 if (createObjectClasses == null || createObjectClasses.isEmpty()) {
-                	createObjectClasses = new ArrayList();
+                	createObjectClasses = new ArrayList<String>();
                 	createObjectClasses.add(ChaiConstant.OBJECTCLASS_BASE_LDAP_USER);
                 }
-                Set<String> createObjectClassesSet = new HashSet(createObjectClasses);
+                final Set<String> createObjectClassesSet = new HashSet<String>(createObjectClasses);
                 provider.createEntry(dn.toString(), createObjectClassesSet, createAttrs);
 
                 nuBean.setCreateUserDN(dn.toString());
@@ -213,7 +213,7 @@ public class NewUserServlet extends TopServlet {
             final FormConfiguration paramConfig,
             final String userDN
     )
-            throws ValidationException, ChaiUnavailableException {
+            throws PwmDataValidationException, ChaiUnavailableException {
         try {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
@@ -231,7 +231,7 @@ public class NewUserServlet extends TopServlet {
 
             if (resultDNs.size() > 0) {
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, paramConfig.getLabel());
-                throw ValidationException.createValidationException(error);
+                throw new PwmDataValidationException(error);
             }
         } catch (ChaiOperationException e) {
             LOGGER.debug(e);

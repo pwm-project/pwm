@@ -27,31 +27,15 @@ package password.pwm.error;
  *
  * @author Jason D. Rivard
  */
-public class ValidationException extends PwmException {
+public class PwmDataValidationException extends PwmOperationalException {
 // ------------------------------ FIELDS ------------------------------
 
-    private String fieldName;
-
-// -------------------------- STATIC METHODS --------------------------
-
-    public static ValidationException createValidationException(final ErrorInformation error) {
-        return new ValidationException(error, error.getDetailedError());
+    public PwmDataValidationException(final ErrorInformation error) {
+        super(error);
     }
 
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    private ValidationException(final ErrorInformation error, final String exceptionReason) {
-        super(error, exceptionReason);
-    }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getFieldName() {
-        if (this.error != null && this.error.getFieldValues() != null && !this.error.getFieldValues().isEmpty()) {
-            return this.error.getFieldValues().get(0);
-        }
-        return "";
+    public PwmDataValidationException(final PwmError error) {
+        super(error);
     }
 }
 

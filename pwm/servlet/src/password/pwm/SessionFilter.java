@@ -27,7 +27,7 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -187,7 +187,7 @@ public class SessionFilter implements Filter {
         if (theManager.getIntruderManager() != null && theManager.getConfig() != null) {
             try {
                 theManager.getIntruderManager().checkAddress(pwmSession);
-            } catch (PwmException e) {
+            } catch (PwmUnrecoverableException e) {
                 ServletHelper.forwardToErrorPage(req, resp, servletContext, false);
                 return;
             }

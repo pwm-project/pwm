@@ -34,27 +34,24 @@ import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.GuestRegistrationServletBean;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.Message;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
-import password.pwm.util.Helper;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.IntruderManager;
-import password.pwm.util.PwmLogger;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
-import password.pwm.ContextManager;
-import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.wordlist.SeedlistManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Servlet for creating new guest users (helpdesk/admin registration)
@@ -70,7 +67,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException, NumberFormatException
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException, NumberFormatException
     {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -113,8 +110,8 @@ public class GuestRegistrationServlet extends TopServlet {
             //read the values from the request
             try {
                 Validator.updateParamValues(pwmSession, req, creationParams);
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -132,8 +129,8 @@ public class GuestRegistrationServlet extends TopServlet {
                 intruderMgr.addBadAddressAttempt(pwmSession);
                 this.forwardToJSP(req, resp);
                 return;
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 intruderMgr.addBadAddressAttempt(pwmSession);
                 this.forwardToJSP(req, resp);
                 return;
@@ -155,8 +152,8 @@ public class GuestRegistrationServlet extends TopServlet {
                 final FormConfiguration paramConfig = creationParams.get(attr);
                 try {
                     validateAttributeUniqueness(pwmSession, paramConfig, grBean.getCreateUserDN());
-                } catch (ValidationException e) {
-                    ssBean.setSessionError(e.getError());
+                } catch (PwmDataValidationException e) {
+                    ssBean.setSessionError(e.getErrorInformation());
                     intruderMgr.addBadAddressAttempt(pwmSession);
                     this.forwardToJSP(req, resp);
                     return;
@@ -186,10 +183,10 @@ public class GuestRegistrationServlet extends TopServlet {
                 
                 List<String> createObjectClasses = config.readStringArraySetting(PwmSetting.DEFAULT_OBJECT_CLASSES);
                 if (createObjectClasses == null || createObjectClasses.isEmpty()) {
-                	createObjectClasses = new ArrayList();
+                	createObjectClasses = new ArrayList<String>();
                 	createObjectClasses.add(ChaiConstant.OBJECTCLASS_BASE_LDAP_USER);
                 }
-                Set<String> createObjectClassesSet = new HashSet(createObjectClasses);
+                final Set<String> createObjectClassesSet = new HashSet<String>(createObjectClasses);
                 provider.createEntry(dn.toString(), createObjectClassesSet, createAttrs);
 
                 grBean.setCreateUserDN(dn.toString());
@@ -281,7 +278,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final FormConfiguration paramConfig,
             final String userDN
     )
-            throws ValidationException, ChaiUnavailableException
+            throws PwmDataValidationException, ChaiUnavailableException
     {
         try {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
@@ -300,7 +297,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             if (resultDNs.size() > 0) {
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, paramConfig.getLabel());
-                throw ValidationException.createValidationException(error);
+                throw new PwmDataValidationException(error);
             }
         } catch (ChaiOperationException e) {
             LOGGER.debug(e);
@@ -309,7 +306,6 @@ public class GuestRegistrationServlet extends TopServlet {
 
     private void sendNewGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) {
         final ContextManager theManager = pwmSession.getContextManager();
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 

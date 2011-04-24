@@ -28,7 +28,7 @@ import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
 import password.pwm.Validator;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -40,7 +40,7 @@ public class LogoutServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LogoutServlet.class);
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("processing logout request from user");

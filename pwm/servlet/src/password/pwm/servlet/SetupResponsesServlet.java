@@ -39,7 +39,7 @@ import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.wordlist.WordlistManager;
@@ -66,7 +66,7 @@ public class SetupResponsesServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         // fetch the required beans / managers
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -126,7 +126,7 @@ public class SetupResponsesServlet extends TopServlet {
      * @param challengeSet Assigned challenges
      * @throws IOException              for an IO error
      * @throws ServletException         for an http servlet error
-     * @throws PwmException             for any unexpected error
+     * @throws password.pwm.error.PwmUnrecoverableException             for any unexpected error
      * @throws ChaiUnavailableException if the ldap directory becomes unavailable
      */
     protected static void handleValidateResponses(
@@ -135,7 +135,7 @@ public class SetupResponsesServlet extends TopServlet {
             final PwmSession pwmSession,
             final ChallengeSet challengeSet
     )
-            throws IOException, ServletException, PwmException, ChaiUnavailableException {
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
         Validator.validatePwmFormID(req);
 
         boolean success = true;
@@ -171,7 +171,7 @@ public class SetupResponsesServlet extends TopServlet {
             final PwmSession pwmSession,
             final ChallengeSet challengeSet
     )
-            throws PwmException, IOException, ServletException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         Validator.validatePwmFormID(req);
@@ -211,7 +211,7 @@ public class SetupResponsesServlet extends TopServlet {
             final HttpServletResponse resp,
             final PwmSession pwmSession
     )
-            throws PwmException, IOException, ServletException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
         boolean saveSuccess = false;
 
         Validator.validatePwmFormID(req);
@@ -242,7 +242,7 @@ public class SetupResponsesServlet extends TopServlet {
             final HttpServletRequest req,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmException {
+            throws SetupResponsesException, PwmUnrecoverableException {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
         for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements();) {
@@ -258,7 +258,7 @@ public class SetupResponsesServlet extends TopServlet {
             final HttpServletRequest req,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmException, IOException {
+            throws SetupResponsesException, PwmUnrecoverableException, IOException {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
         final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
@@ -283,7 +283,7 @@ public class SetupResponsesServlet extends TopServlet {
             final Map<String, String> inputMap,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmException {
+            throws SetupResponsesException, PwmUnrecoverableException {
         final Set<String> problemParams = new HashSet<String>();
         ErrorInformation errorInfo = null;
 
@@ -400,7 +400,7 @@ public class SetupResponsesServlet extends TopServlet {
             final ChallengeSet challengeSet,
             final Map<Challenge, String> readResponses
     )
-            throws ChaiUnavailableException, SetupResponsesException, PwmException {
+            throws ChaiUnavailableException, SetupResponsesException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
 

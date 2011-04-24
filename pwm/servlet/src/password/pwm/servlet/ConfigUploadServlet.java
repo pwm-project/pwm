@@ -32,7 +32,7 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -48,7 +48,7 @@ public class ConfigUploadServlet extends TopServlet {
     private static final int MAX_UPLOAD_CHARS = 1024 * 50;
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
@@ -91,7 +91,7 @@ public class ConfigUploadServlet extends TopServlet {
     private String getUploadedFile(
             final HttpServletRequest req
     )
-            throws IOException, ServletException, PwmException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         try {
             if (ServletFileUpload.isMultipartContent(req)) {
@@ -119,7 +119,7 @@ public class ConfigUploadServlet extends TopServlet {
 
                 if (!pwmFormIDvalidated) {
                     LOGGER.warn(PwmSession.getPwmSession(req), "form submitted with incorrect or missing pwmFormID value");
-                    throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
                 }
 
                 return uploadFile;

@@ -30,39 +30,39 @@ import java.util.*;
 /**
  * An ErrorInformation is a package of error data generated within PWM.  Error information includes an error code
  * (in the form of an {@link PwmError}), additional detailed error information for logging, and string substitutions
- * to use when presenting error messages to users. 
+ * to use when presenting error messages to users.
  */
 public class ErrorInformation implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private PwmError error = PwmError.ERROR_UNKNOWN;
-    private String detailedError;
-    private final List<String> fieldValues = new ArrayList<String>();
+    private final PwmError error;
+    private final String detailedErrorMsg;
+    private final String[] fieldValues;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public ErrorInformation(final PwmError error) {
-        this(error, null);
+        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.detailedErrorMsg = null;
+        this.fieldValues = new String[0];
     }
 
-    public ErrorInformation(final PwmError error, final String detailedError, final String... fields) {
-        if (detailedError != null && detailedError.length() > 0) {
-            this.detailedError = detailedError;
-        }
+    public ErrorInformation(final PwmError error, final String detailedErrorMsg) {
+        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.detailedErrorMsg = detailedErrorMsg;
+        this.fieldValues = new String[0];
+    }
 
-        if (error != null) {
-            this.error = error;
-        }
-
-        if (fields != null && fields.length > 0) {
-            fieldValues.addAll(Arrays.asList(fields));
-        }
+    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String... fields) {
+        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.detailedErrorMsg = detailedErrorMsg;
+        this.fieldValues = fields == null ? new String[0] : fields;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getDetailedError() {
-        return detailedError;
+    public String getDetailedErrorMsg() {
+        return detailedErrorMsg;
     }
 
     public PwmError getError() {
@@ -71,8 +71,8 @@ public class ErrorInformation implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public List<String> getFieldValues() {
-        return Collections.unmodifiableList(fieldValues);
+    public String[] getFieldValues() {
+        return fieldValues;
     }
 
     public String toDebugStr() {
@@ -80,15 +80,15 @@ public class ErrorInformation implements Serializable {
         sb.append(error.getErrorCode());
         sb.append(" ");
         sb.append(error.toString());
-        if (detailedError != null && detailedError.length() > 0) {
+        if (detailedErrorMsg != null && detailedErrorMsg.length() > 0) {
             sb.append(" (");
-            sb.append(detailedError);
+            sb.append(detailedErrorMsg);
             sb.append((")"));
         }
 
-        if (!fieldValues.isEmpty()) {
+        if (fieldValues != null && fieldValues.length > 0) {
             sb.append(" fields: ");
-            Arrays.toString(fieldValues.toArray(new String[fieldValues.size()]));
+            Arrays.toString(fieldValues);
         }
 
         return sb.toString();
@@ -97,13 +97,10 @@ public class ErrorInformation implements Serializable {
     public String toUserStr(final PwmSession pwmSession) {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
-        final String userStr;
-        if (fieldValues.isEmpty()) {
-            userStr = PwmError.getLocalizedMessage(userLocale, this.getError());
+        if (fieldValues != null && fieldValues.length > 0) {
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), fieldValues[0]);
         } else {
-            userStr = PwmError.getLocalizedMessage(userLocale, this.getError(), fieldValues.get(0));
+            return PwmError.getLocalizedMessage(userLocale, this.getError());
         }
-
-        return userStr;
     }
 }

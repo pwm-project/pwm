@@ -68,7 +68,7 @@ public class ConfigurationChecker implements HealthChecker {
                     }
                 }
             }
-            if (!foundUnsecure) {
+            if (foundUnsecure) {
                 records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "One or more LDAP URLs are configured using non-secure connections."));
             }
         }

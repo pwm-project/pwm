@@ -36,7 +36,7 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.*;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
@@ -220,9 +220,9 @@ public class ContextManager implements Serializable {
     }
 
     public ChaiUser getProxyChaiUserActor(final PwmSession pwmSession)
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw PwmException.createPwmException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
         }
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
 
@@ -451,7 +451,7 @@ public class ContextManager implements Serializable {
     public void sendEmailUsingQueue(final EmailItemBean emailItem) {
         try {
             emailQueue.addMailToQueue(emailItem);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
     }
@@ -459,7 +459,7 @@ public class ContextManager implements Serializable {
     public void sendSmsUsingQueue(final SmsItemBean smsItem) {
         try {
             smsQueue.addSmsToQueue(smsItem);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add sms to queue: " + e.getMessage());
         }
     }

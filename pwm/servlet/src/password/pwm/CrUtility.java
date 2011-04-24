@@ -31,7 +31,7 @@ import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -105,7 +105,7 @@ public class CrUtility {
     }
 
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
             final String userGUID = Helper.readLdapGuidValue(pwmSession, theUser.getEntryDN());
 
@@ -162,14 +162,14 @@ public class CrUtility {
     }
 
     public static boolean saveResponses(final PwmSession pwmSession, final ResponseSet responses)
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         int attempts = 0, successes = 0;
 
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
             attempts++;
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmException(PwmError.ERROR_MISSING_GUID.toInfo(), "cannot save responses to pwmDB without pwmGUID");
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
             }
 
             final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
@@ -306,7 +306,7 @@ public class CrUtility {
                 }
                 if (response.isError()) {
                     if ("Account restrictions prevent you from logging in. See your administrator for more details.".equals(response.getMessage())) {
-                        //throw PwmException.createPwmException(PwmError.ERROR_INTRUDER_USER);
+                        //throw PwmUnrecoverableException.createPwmException(PwmError.ERROR_INTRUDER_USER);
                     }
                     LOGGER.error(pwmSession, "NovellWSResponseSet: web service reports error: " + response.getMessage());
                     return false;

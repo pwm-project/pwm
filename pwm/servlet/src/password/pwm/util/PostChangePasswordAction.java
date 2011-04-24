@@ -23,11 +23,11 @@
 package password.pwm.util;
 
 import password.pwm.PwmSession;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 
 public interface PostChangePasswordAction extends Serializable {
     String getLabel();
-    boolean doAction(PwmSession pwmSession, String newPassword) throws PwmException;
+    boolean doAction(PwmSession pwmSession, String newPassword) throws PwmUnrecoverableException;
 }

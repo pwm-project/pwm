@@ -22,6 +22,7 @@
 
 package password.pwm.health;
 
+import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -30,7 +31,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.UserStatusHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
@@ -44,6 +44,7 @@ import password.pwm.wordlist.SeedlistManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class LDAPStatusChecker implements HealthChecker {
 
@@ -142,18 +143,28 @@ public class LDAPStatusChecker implements HealthChecker {
         final Configuration config = new Configuration(storedconfiguration);
 
         ChaiProvider chaiProvider = null;
-
         try {
-            chaiProvider = getChaiProviderForTesting(config);
-            final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
-            final String usernameContext = storedconfiguration.readSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-            final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
-            proxyUser.isValid();
-            UserStatusHelper.convertUsernameFieldtoDN("pwm-test-username-search",null,usernameContext,chaiProvider,config);
-            return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
-        } catch (Exception e) {
-            final String errorString = "error connecting to ldap server: " + e.getMessage();
-            return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+            try {
+                chaiProvider = getChaiProviderForTesting(config);
+                final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
+                final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
+                proxyUser.isValid();
+            } catch (Exception e) {
+                final String errorString = "error connecting to ldap server: " + e.getMessage();
+                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+            }
+            try {
+                final String usernameContext = storedconfiguration.readSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+                final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(usernameContext,chaiProvider);
+                final Set<String> objectClasses = contextEntry.readObjectClass();
+                if (objectClasses == null || objectClasses.isEmpty()) {
+                    final String errorString = "ldap root context setting is not valid";
+                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+                }
+            } catch (Exception e) {
+                final String errorString = "error validating root ldap context setting: " + e.getMessage();
+                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+            }
         } finally {
             if (chaiProvider != null) {
                 try {
@@ -163,6 +174,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 }
             }
         }
+
+        return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
     }
 
 

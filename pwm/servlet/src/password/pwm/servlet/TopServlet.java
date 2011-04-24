@@ -25,10 +25,10 @@ package password.pwm.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.ServletHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
@@ -79,8 +79,8 @@ public abstract class TopServlet extends HttpServlet {
             pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-        } catch (PwmException e) {
-            if (PwmError.ERROR_UNKNOWN.equals(e.getError().getError())) {
+        } catch (PwmUnrecoverableException e) {
+            if (PwmError.ERROR_UNKNOWN.equals(e.getErrorInformation().getError())) {
                 LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
             } else {
@@ -89,7 +89,7 @@ public abstract class TopServlet extends HttpServlet {
             if (e.getMessage() == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
             } else {
-                ssBean.setSessionError(e.getError());
+                ssBean.setSessionError(e.getErrorInformation());
             }
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public abstract class TopServlet extends HttpServlet {
             HttpServletRequest req,
             HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException;
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException;
 
     public void doPost(
             final HttpServletRequest req,

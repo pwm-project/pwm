@@ -29,7 +29,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -78,11 +78,11 @@ public class SessionManager implements Serializable {
 
 
     public ChaiProvider getChaiProvider()
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         try {
             providerLock.lock();
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                throw PwmException.createPwmException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
 
             if (chaiProvider == null) {
@@ -158,7 +158,7 @@ public class SessionManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public ChaiUser getActor()
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
 
         if (userDN == null || userDN.length() < 1) {

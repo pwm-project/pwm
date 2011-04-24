@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import java.util.Map;
@@ -53,7 +53,7 @@ public enum Permission {
 // -------------------------- STATIC METHODS --------------------------
 
     public static boolean checkPermission(final Permission permission, final PwmSession pwmSession)
-            throws ChaiUnavailableException, PwmException
+            throws ChaiUnavailableException, PwmUnrecoverableException
     {
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {

@@ -27,7 +27,7 @@ import password.pwm.*;
 import password.pwm.error.PwmError;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
@@ -65,13 +65,13 @@ public class CaptchaServlet extends TopServlet {
     }
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         //check intruder detection, if it is tripped, send user to error page
         try {
             pwmSession.getContextManager().getIntruderManager().checkAddress(pwmSession);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext(), false);
             return;
         }
@@ -96,16 +96,16 @@ public class CaptchaServlet extends TopServlet {
         }
     }
 
-    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmException {
+    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         Validator.validatePwmFormID(req);
 
         final boolean verified;
         try {
             verified = verifyReCaptcha(req, pwmSession);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("error " + e.getCause().getClass().getName() + "during recaptcha api validation: " + e.getMessage());
-            pwmSession.getSessionStateBean().setSessionError(e.getError());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
@@ -135,13 +135,15 @@ public class CaptchaServlet extends TopServlet {
      * @param req        httpRequest
      * @param pwmSession users session
      * @return true if correct captcha response
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *          if a captcha api error occurs
      */
     private boolean verifyReCaptcha(
             final HttpServletRequest req,
             final PwmSession pwmSession
-    ) throws PwmException {
+    ) throws
+            PwmUnrecoverableException
+    {
         final HttpClient httpClient = new HttpClient(HTTP_CONNECTION_MANAGER);
         httpClient.setParams(HTTP_CLIENT_PARAMS);
 
@@ -158,7 +160,7 @@ public class CaptchaServlet extends TopServlet {
             final int statusCode = httpClient.executeMethod(httpPost);
 
             if (statusCode != HttpStatus.SC_OK) {
-                throw PwmException.createPwmException(new ErrorInformation(
+                throw new PwmUnrecoverableException(new ErrorInformation(
                         PwmError.ERROR_CAPTCHA_API_ERROR,
                         "unexpected HTTP status code (" + statusCode + ")"
                 ));
@@ -176,7 +178,7 @@ public class CaptchaServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "reCaptcha error response: " + errorCode);
             }
         } catch (Exception e) {
-            final PwmException pwmE = PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR, e.getMessage()));
+            final PwmUnrecoverableException pwmE = new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR, e.getMessage()));
             pwmE.initCause(e);
             throw pwmE;
         } finally {

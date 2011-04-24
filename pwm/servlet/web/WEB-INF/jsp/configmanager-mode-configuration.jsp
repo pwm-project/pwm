@@ -21,11 +21,8 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.health.HealthMonitor" %>
-<%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -90,7 +87,7 @@
         </form>
         <p>Use the PWM configuration editor to edit the running configuration.</p>
 
-        <h2><a href="#" onclick="window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');">View Log Events</a></h2>
+        <h2><a href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a></h2>
         <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
 
         <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>

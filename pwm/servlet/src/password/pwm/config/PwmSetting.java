@@ -111,7 +111,7 @@ public enum PwmSetting {
     QUERY_MATCH_CHANGE_PASSWORD(
             "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
+            "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, false, Level.ADVANCED),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_PROXY_IDLE_TIMEOUT(

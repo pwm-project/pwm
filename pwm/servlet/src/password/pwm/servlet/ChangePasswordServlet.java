@@ -32,9 +32,9 @@ import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
@@ -68,7 +68,7 @@ public class ChangePasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
@@ -131,11 +131,11 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws ServletException for an error
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *                          if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *                          if an unexpected error occurs
      */
     protected static void handleValidatePasswords(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmException, ChaiUnavailableException {
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -183,7 +183,7 @@ public class ChangePasswordServlet extends TopServlet {
             final PwmSession pwmSession,
             final String password1
     )
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         boolean pass = false;
         String userMessage;
 
@@ -194,8 +194,8 @@ public class ChangePasswordServlet extends TopServlet {
                 Validator.testPasswordAgainstPolicy(password1, pwmSession, true);
                 userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession);
                 pass = true;
-            } catch (ValidationException e) {
-                userMessage = e.getError().toUserStr(pwmSession);
+            } catch (PwmDataValidationException e) {
+                userMessage = e.getErrorInformation().toUserStr(pwmSession);
                 pass = false;
             }
         }
@@ -262,11 +262,11 @@ public class ChangePasswordServlet extends TopServlet {
      * @param req  request
      * @param resp response
      * @throws IOException      for an error
-     * @throws PwmException     for an error
+     * @throws password.pwm.error.PwmUnrecoverableException     for an error
      * @throws ServletException for an error
      */
     protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final long startTime = System.currentTimeMillis();
         Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -301,14 +301,14 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws IOException      if error writing response
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *                          if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *                          if an unexpected error occurs
      */
     private void handleChangeRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, PwmException, ChaiUnavailableException {
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException {
         //Fetch the required managers/beans
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -349,9 +349,9 @@ public class ChangePasswordServlet extends TopServlet {
         {
             try {
                 Validator.testPasswordAgainstPolicy(password1, pwmSession, true);
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
-                LOGGER.debug(pwmSession, "failed password validation check: " + e.getError().toDebugStr());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
+                LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());
                 this.forwardToJSP(req, resp);
                 return;
             }
@@ -386,14 +386,14 @@ public class ChangePasswordServlet extends TopServlet {
      * @throws ServletException         should never throw
      * @throws IOException              if error writing response
      * @throws ChaiUnavailableException if ldap disappears
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *                                  if there is an unexpected error setting password
      */
     private void handleDoChangeRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = pwmSession.getContextManager();

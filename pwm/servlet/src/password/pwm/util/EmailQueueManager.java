@@ -31,7 +31,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.db.PwmDB;
@@ -99,7 +99,7 @@ public class EmailQueueManager implements PwmService {
 
 // --------------------- Interface PwmService ---------------------
 
-    public void init(final ContextManager contextManager) throws PwmException {
+    public void init(final ContextManager contextManager) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {
@@ -147,9 +147,9 @@ public class EmailQueueManager implements PwmService {
 // -------------------------- OTHER METHODS --------------------------
 
     public void addMailToQueue(final EmailItemBean emailItem)
-            throws PwmException {
+            throws PwmUnrecoverableException {
         if (status != PwmService.STATUS.OPEN) {
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
         if (!determineIfEmailCanBeDelivered(emailItem)) {

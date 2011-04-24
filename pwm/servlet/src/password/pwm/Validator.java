@@ -34,9 +34,9 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PwmLogger;
@@ -86,7 +86,7 @@ public class Validator {
             final PwmSession pwmSession,
             final boolean testOldPassword
     )
-            throws PwmException, ChaiUnavailableException {
+            throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmPasswordPolicy policy = pwmSession.getUserInfoBean().getPasswordPolicy();
         return testPasswordAgainstPolicy(password, pwmSession, testOldPassword, policy);
     }
@@ -96,13 +96,13 @@ public class Validator {
      * are performed here.
      *
      * @param password        desired new password
-     * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
+     * @param testOldPassword if the old password should be tested, the old password will be retrieved from the pwmSession
      * @param pwmSession      current pwmSesssion of user being tested.
      * @param policy          to be used during the test
      * @return true if the password is okay, never returns false.
-     * @throws password.pwm.error.ValidationException
+     * @throws password.pwm.error.PwmDataValidationException
      *                                  contains information about why the password was rejected.
-     * @throws PwmException             if an unexpected error occurs
+     * @throws password.pwm.error.PwmUnrecoverableException             if an unexpected error occurs
      *                                  contains information about why the password was rejected.
      * @throws ChaiUnavailableException if LDAP server is unreachable
      */
@@ -112,11 +112,11 @@ public class Validator {
             final boolean testOldPassword,
             final PwmPasswordPolicy policy
     )
-            throws PwmException, ChaiUnavailableException {
+            throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getContextManager());
 
         if (!errorResults.isEmpty()) {
-            throw ValidationException.createValidationException(errorResults.iterator().next());
+            throw new PwmDataValidationException(errorResults.iterator().next());
         }
 
         try {
@@ -126,9 +126,6 @@ public class Validator {
             actor.testPasswordPolicy(password);
         } catch (UnsupportedOperationException e) {
             LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
-        } catch (PwmException e) {
-            LOGGER.warn(pwmSession, "PwmException was thrown while validating password: " + e.toString());
-            throw e;
         } catch (ChaiUnavailableException e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmSession.getContextManager().setLastLdapFailure();
@@ -143,7 +140,7 @@ public class Validator {
         }
 
         if (!errorResults.isEmpty()) {
-            throw ValidationException.createValidationException(errorResults.iterator().next());
+            throw new PwmDataValidationException(errorResults.iterator().next());
         }
 
         return true;
@@ -154,7 +151,7 @@ public class Validator {
             final HttpServletRequest req,
             final Map<String, FormConfiguration> parameterConfigs
     )
-            throws ValidationException {
+            throws PwmDataValidationException {
         if (req == null || parameterConfigs == null) {
             return;
         }
@@ -169,7 +166,7 @@ public class Validator {
                 if (!confirmValue.equals(value)) {
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, null, paramConfig.getLabel());
                     LOGGER.trace(pwmSession, "bad field confirmation for " + paramConfig.getLabel());
-                    throw ValidationException.createValidationException(error);
+                    throw new PwmDataValidationException(error);
                 }
             }
 
@@ -189,7 +186,7 @@ public class Validator {
         return results.iterator().next();
     }
 
-    public static void validatePwmFormID(final HttpServletRequest req) throws PwmException {
+    public static void validatePwmFormID(final HttpServletRequest req) throws PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
@@ -197,12 +194,12 @@ public class Validator {
             final String submittedpwmFormID = req.getParameter("pwmFormID");
             if (submittedpwmFormID == null || submittedpwmFormID.length() < 1) {
                 LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
-                throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
+                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
             }
 
             if (!pwmFormID.equals(submittedpwmFormID)) {
                 LOGGER.warn(pwmSession, "form submitted with incorrect pwmFormID value");
-                throw PwmException.createPwmException(PwmError.ERROR_INVALID_FORMID);
+                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
             }
         }
     }
@@ -305,17 +302,17 @@ public class Validator {
      *
      * @param parameterConfigs - a Map containing String keys of parameter names and ParamConfigs as values
      * @param pwmSession       bean helper
-     * @throws ValidationException - If there is a problem with any of the fields
+     * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *                             if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
             final Map<String, FormConfiguration> parameterConfigs,
             final PwmSession pwmSession
     )
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException {
         for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
             entry.getValue().valueIsValid(pwmSession);
         }
@@ -326,24 +323,24 @@ public class Validator {
 			final Integer lowerbound,
 			final Integer upperbound,
             final PwmSession pwmSession
-	) throws PwmException, NumberFormatException {
-		Integer num;
+	) throws PwmUnrecoverableException, NumberFormatException, PwmDataValidationException {
+		final Integer num;
 		try {
 			num = Integer.parseInt(numstr);
 		} catch (Exception e) {
         	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_INVALIDNUMER, null, numstr);
-            LOGGER.trace(pwmSession, "Value \""+numstr+"\" is not a valid number");
-            throw ValidationException.createValidationException(error);			
+            LOGGER.trace(pwmSession, "value \""+numstr+"\" is not a valid number");
+            throw new PwmDataValidationException(error);
 		}
 		if (num < lowerbound) {
         	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_LOWERBOUND, null, lowerbound.toString());
-            LOGGER.trace(pwmSession, "Value "+numstr+" below lower bound ("+lowerbound.toString()+")");
-            throw ValidationException.createValidationException(error);
+            LOGGER.trace(pwmSession, "value "+numstr+" below lower bound ("+lowerbound.toString()+")");
+            throw new PwmDataValidationException(error);
 		}
 		if (num > upperbound) {
         	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_UPPERBOUND, null, upperbound.toString());
-            LOGGER.trace(pwmSession, "Value "+numstr+" above upper bound ("+upperbound.toString()+")");
-            throw ValidationException.createValidationException(error);
+            LOGGER.trace(pwmSession, "value "+numstr+" above upper bound ("+upperbound.toString()+")");
+            throw new PwmDataValidationException(error);
 		}
 	}
 

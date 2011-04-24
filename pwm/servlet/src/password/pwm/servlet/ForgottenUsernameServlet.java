@@ -39,8 +39,9 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -63,7 +64,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final Configuration config = PwmSession.getPwmSession(req).getConfig();
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
@@ -83,7 +84,7 @@ public class ForgottenUsernameServlet extends TopServlet {
     }
 
     public void handleSearchRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final ContextManager theManager = ContextManager.getContextManager(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenUsernameBean forgottenBean = pwmSession.getForgottonUsernameBean();
@@ -93,12 +94,21 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         final Map<String, FormConfiguration> searchParams = forgottenBean.getForgottenUsernameForm();
 
+        try {
+            //read the values from the request
+            Validator.updateParamValues(pwmSession, req, searchParams);
 
-        //read the values from the request
-        Validator.updateParamValues(pwmSession, req, searchParams);
+            // see if the values meet the configured form requirements.
+            Validator.validateParmValuesMeetRequirements(searchParams, pwmSession);
+        } catch (PwmDataValidationException e) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
+            ssBean.setSessionError(errorInfo);
+            theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
+            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            theManager.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
+            forwardToJSP(req, resp);
+        }
 
-        // see if the values meet the configured form requirements.
-        Validator.validateParmValuesMeetRequirements(searchParams, pwmSession);
 
         // get an ldap user object based on the params
         final String searchFilter = figureSearchFilterForParams(searchParams, pwmSession);
@@ -137,7 +147,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             final Map<String, FormConfiguration> paramConfigs,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         String searchFilter = pwmSession.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER);
 
         for (final String key : paramConfigs.keySet()) {
@@ -150,7 +160,7 @@ public class ForgottenUsernameServlet extends TopServlet {
     }
 
     private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter)
-            throws PwmException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(2);
         searchHelper.setFilter(searchFilter);

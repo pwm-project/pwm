@@ -28,7 +28,8 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -57,7 +58,7 @@ public class
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
@@ -74,10 +75,10 @@ public class
                 return;
             }
 
-            final boolean authSuccessful = AuthenticationFilter.authenticateUser(username, password, context, pwmSession, req.isSecure());
-
-            if (!authSuccessful) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD));
+            try {
+                AuthenticationFilter.authenticateUser(username, password, context, pwmSession, req.isSecure());
+            } catch (PwmOperationalException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
                 return;
             }

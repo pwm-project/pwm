@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
@@ -106,7 +107,7 @@ public class IntruderManager implements Serializable {
 
         try {
             this.checkAddress(pwmSession);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             lockAddress(pwmSession, record, addressString);
         }
 
@@ -138,11 +139,11 @@ public class IntruderManager implements Serializable {
      * the ssBean's error status is set appropriately
      *
      * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *          if the user is locked out
      */
     public void checkAddress(final PwmSession pwmSession)
-            throws PwmException {
+            throws PwmUnrecoverableException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String addressString = ssBean.getSrcAddress();
         final Configuration config = pwmSession.getConfig();
@@ -153,7 +154,7 @@ public class IntruderManager implements Serializable {
             LOGGER.warn(pwmSession, "session intruder limit exceeded for " + addressString);
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_SESSION);
             ssBean.setSessionError(error);
-            throw PwmException.createPwmException(error);
+            throw new PwmUnrecoverableException(error);
         }
 
 
@@ -162,7 +163,7 @@ public class IntruderManager implements Serializable {
             LOGGER.warn(pwmSession, "address intruder limit exceeded for " + addressString + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_ADDRESS);
             ssBean.setSessionError(error);
-            throw PwmException.createPwmException(error);
+            throw new PwmUnrecoverableException(error);
         }
     }
 
@@ -179,7 +180,7 @@ public class IntruderManager implements Serializable {
 
         try {
             this.checkUser(username, pwmSession);
-        } catch (PwmException e) {
+        } catch (PwmUnrecoverableException e) {
             lockUser(pwmSession, record, username);
         }
 
@@ -214,13 +215,9 @@ public class IntruderManager implements Serializable {
 
         try {
             final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
-            if (userDN != null) {
-                final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
-                UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
-                LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
-            } else {
-                LOGGER.debug(pwmSession, "error updating user history for " + username + ", unable to discover user in directory");
-            }
+            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
+            UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
+            LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
         } catch (ChaiUnavailableException e) {
             LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
 
@@ -251,11 +248,11 @@ public class IntruderManager implements Serializable {
      *
      * @param username   the userDN to test
      * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmException
+     * @throws password.pwm.error.PwmUnrecoverableException
      *          if the user is locked out
      */
     public void checkUser(final String username, final PwmSession pwmSession)
-            throws PwmException {
+            throws PwmUnrecoverableException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final IntruderRecord record = userLockTable.get(username);
@@ -263,7 +260,7 @@ public class IntruderManager implements Serializable {
             LOGGER.info(pwmSession, "user intruder limit exceeded for " + username + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_USER);
             ssBean.setSessionError(error);
-            throw PwmException.createPwmException(error);
+            throw new PwmUnrecoverableException(error);
         }
     }
 

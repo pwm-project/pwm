@@ -38,9 +38,9 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.IntruderManager;
 import password.pwm.util.PwmLogger;
@@ -68,7 +68,7 @@ public class GuestUpdateServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException, NumberFormatException
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException, NumberFormatException
     {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -111,7 +111,7 @@ public class GuestUpdateServlet extends TopServlet {
     protected void processSearch(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws ServletException, ChaiUnavailableException, IOException, PwmException {
+    ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Configuration config = pwmSession.getConfig();
         final ContextManager theManager = pwmSession.getContextManager();
@@ -192,7 +192,7 @@ public class GuestUpdateServlet extends TopServlet {
     protected void processUpdate(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws ServletException, ChaiUnavailableException, IOException, PwmException, NumberFormatException {
+    ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException, NumberFormatException {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -211,8 +211,8 @@ public class GuestUpdateServlet extends TopServlet {
         //read the values from the request
         try {
             Validator.updateParamValues(pwmSession, req, updateParams);
-        } catch (ValidationException e) {
-            ssBean.setSessionError(e.getError());
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(e.getErrorInformation());
             this.forwardToJSP(req, resp);
             return;
         }
@@ -230,8 +230,8 @@ public class GuestUpdateServlet extends TopServlet {
             intruderMgr.addBadAddressAttempt(pwmSession);
             this.forwardToJSP(req, resp);
             return;
-        } catch (ValidationException e) {
-            ssBean.setSessionError(e.getError());
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(e.getErrorInformation());
             intruderMgr.addBadAddressAttempt(pwmSession);
             this.forwardToJSP(req, resp);
             return;
@@ -245,8 +245,8 @@ public class GuestUpdateServlet extends TopServlet {
             	if (!attr.equalsIgnoreCase(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE))) {
 	                validateAttributeUniqueness(pwmSession, paramConfig, guBean.getUpdateUserDN());
             	}
-            } catch (ValidationException e) {
-                ssBean.setSessionError(e.getError());
+            } catch (PwmDataValidationException e) {
+                ssBean.setSessionError(e.getErrorInformation());
                 intruderMgr.addBadAddressAttempt(pwmSession);
                 this.forwardToJSP(req, resp);
                 return;
@@ -316,7 +316,7 @@ public class GuestUpdateServlet extends TopServlet {
             final FormConfiguration paramConfig,
             final String userDN
     )
-            throws ValidationException, ChaiUnavailableException
+            throws PwmDataValidationException, ChaiUnavailableException
     {
         try {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
@@ -335,7 +335,7 @@ public class GuestUpdateServlet extends TopServlet {
 
             if (resultDNs.size() > 0) {
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, paramConfig.getLabel());
-                throw ValidationException.createValidationException(error);
+                throw new PwmDataValidationException(error);
             }
         } catch (ChaiOperationException e) {
             LOGGER.debug(e);

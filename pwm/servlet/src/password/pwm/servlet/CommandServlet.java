@@ -28,9 +28,9 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
@@ -62,7 +62,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         LOGGER.trace(pwmSession, "received request for action " + action);
@@ -91,7 +91,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         Validator.validatePwmFormID(req);
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -102,7 +102,7 @@ public class CommandServlet extends TopServlet {
     private static void processGetHealthCheckData(
             final HttpServletRequest req, final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final HealthMonitor healthMonitor = pwmSession.getContextManager().getHealthMonitor();
 
@@ -141,7 +141,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -161,11 +161,11 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!ssBean.isAuthenticated() && !AuthenticationFilter.authUserUsingBasicHeader(req)) {
+        if (!ssBean.isAuthenticated()) {
             final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
             LOGGER.info(pwmSession, "authentication required for " + action);
             ssBean.setSessionError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
@@ -179,7 +179,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -233,7 +233,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         if (!preCheckUser(req, resp)) {
             return;
         }
@@ -250,7 +250,7 @@ public class CommandServlet extends TopServlet {
     private static boolean checkAttributes(
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
@@ -272,7 +272,7 @@ public class CommandServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formSettings, pwmSession);
             LOGGER.info(pwmSession, "checkAttributes: " + userDN + " has good attributes");
             return true;
-        } catch (ValidationException e) {
+        } catch (PwmDataValidationException e) {
             LOGGER.info(pwmSession, "checkAttributes: " + userDN + " does not have good attributes (" + e.getMessage() + ")");
             return false;
         }
@@ -282,7 +282,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         if (!preCheckUser(req, resp)) {
             return;
         }

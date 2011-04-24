@@ -40,7 +40,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -189,7 +189,7 @@ public class Helper {
                         pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).writeStringAttribute(GUIDattributeName, newGUID);
                         LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
                         return newGUID;
-                    } catch (PwmException e) {
+                    } catch (PwmUnrecoverableException e) {
                         LOGGER.warn(pwmSession, "error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user");
                         return null;
                     }
@@ -487,7 +487,7 @@ public class Helper {
             final String objectDN,
             final String queryString
     )
-            throws ChaiUnavailableException, PwmException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         if (objectDN == null || objectDN.length() < 1) {
             return true;
         }

@@ -36,7 +36,7 @@ public class ConfigManagerBean implements Serializable {
     private ErrorInformation errorInformation;
     private PwmSetting.Level level = PwmSetting.Level.BASIC;
     private boolean showDescr = true;
-    private PwmSetting.Category category = PwmSetting.Category.GENERAL;
+    private PwmSetting.Category category = PwmSetting.Category.LDAP;
 
     public ConfigManagerBean() {
     }
@@ -45,7 +45,7 @@ public class ConfigManagerBean implements Serializable {
         return configurationLoadTime;
     }
 
-    public void setConfigurationLoadTime(Date configurationLoadTime) {
+    public void setConfigurationLoadTime(final Date configurationLoadTime) {
         this.configurationLoadTime = configurationLoadTime;
     }
 

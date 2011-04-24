@@ -36,9 +36,9 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.ValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -69,7 +69,7 @@ public class UpdateAttributesServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) {
@@ -91,7 +91,7 @@ public class UpdateAttributesServlet extends TopServlet {
 
 
     private void populateFormFromLdap(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
         final Map<String, FormConfiguration> validationParams = pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
@@ -119,7 +119,7 @@ public class UpdateAttributesServlet extends TopServlet {
     }
 
     private void handleUpdateRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
@@ -132,8 +132,8 @@ public class UpdateAttributesServlet extends TopServlet {
         //read the values from the request
         try {
             Validator.updateParamValues(pwmSession, req, validationParams);
-        } catch (ValidationException e) {
-            ssBean.setSessionError(e.getError());
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(e.getErrorInformation());
             this.forwardToJSP(req, resp);
             return;
         }
@@ -141,8 +141,8 @@ public class UpdateAttributesServlet extends TopServlet {
         // see if the values meet requirements.
         try {
             Validator.validateParmValuesMeetRequirements(validationParams, pwmSession);
-        } catch (ValidationException e) {
-            ssBean.setSessionError(e.getError());
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(e.getErrorInformation());
             this.forwardToJSP(req, resp);
             return;
         }

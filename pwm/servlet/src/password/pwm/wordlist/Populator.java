@@ -24,7 +24,7 @@ package password.pwm.wordlist;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.Sleeper;
@@ -213,7 +213,7 @@ class Populator {
     }
 
     void populate()
-            throws PwmException, IOException, PwmDBException {
+            throws PwmUnrecoverableException, IOException, PwmDBException {
         try {
             long lastReportTime = System.currentTimeMillis() - (long)(DEBUG_OUTPUT_FREQUENCY * 0.33);
 
@@ -222,7 +222,7 @@ class Populator {
                     zipFileReader.nextLine();
 
                     if (abortFlag) {
-                        throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"pausing " + DEBUG_LABEL + " population","pausing " + DEBUG_LABEL + " population"));
+                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "pausing " + DEBUG_LABEL + " population", "pausing " + DEBUG_LABEL + " population"));
                     }
                 }
             }
@@ -233,7 +233,7 @@ class Populator {
                 sleeper.sleep();
 
                 if (abortFlag) {
-                    throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_CLOSING,"pausing " + DEBUG_LABEL + " population"));
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING, "pausing " + DEBUG_LABEL + " population"));
                 }
 
                 overallStats.incrementLines();
@@ -340,7 +340,7 @@ class Populator {
     }
 
     private void populationComplete()
-            throws PwmDBException,  PwmException
+            throws PwmDBException, PwmUnrecoverableException
     {
         flushBuffer();
         LOGGER.info(makeStatString());
@@ -350,7 +350,7 @@ class Populator {
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
         } else {
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_UNKNOWN, DEBUG_LABEL + " population completed, but no words stored"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, DEBUG_LABEL + " population completed, but no words stored"));
         }
 
         final StringBuilder sb = new StringBuilder();
