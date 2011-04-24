@@ -42,6 +42,7 @@ public abstract class PwmConstants {
     public static final String PWM_DEFAULT_APPLICATION_NAME = "PWM Password Management";
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
+    public static final int MAX_SMS_QUEUE_SIZE = 100;
 
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";

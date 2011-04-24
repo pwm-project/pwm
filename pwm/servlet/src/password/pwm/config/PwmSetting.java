@@ -181,6 +181,48 @@ public enum PwmSetting {
     EMAIL_CHALLENGE_TOKEN_BODY_HTML(
             "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
 
+    // sms settings
+    SMS_ENABLE(
+            "sms.enable", Syntax.BOOLEAN, Category.SMS, true, Level.ADVANCED),
+    SMS_PRIORITY_PREFERENCE(
+            "sms.priority", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_USER_PHONE_ATTRIBUTE(
+            "sms.userSmsAttribute", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_MAX_QUEUE_AGE(
+            "sms.queueMaxAge", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
+    SMS_GATEWAY_URL(
+            "sms.gatewayURL", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_GATEWAY_USER(
+            "sms.gatewayUser", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
+    SMS_GATEWAY_PASSWORD(
+            "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, false, Level.ADVANCED),
+    SMS_GATEWAY_METHOD(
+            "sms.gatewayMethod", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_GATEWAY_AUTHMETHOD(
+            "sms.gatewayAuthMethod", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_REQUEST_DATA(
+            "sms.requestData", Syntax.LOCALIZED_TEXT_AREA, Category.SMS, false, Level.ADVANCED),
+    SMS_REQUEST_CONTENT_TYPE(
+            "sms.requestContentType", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
+    SMS_REQUEST_CONTENT_ENCODING(
+            "sms.requestContentEncoding", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_MAX_TEXT_LENGTH(
+            "sms.maxTextLength", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
+    SMS_RESPONSE_OK_REGEX(
+            "sms.responseOkRegex", Syntax.STRING_ARRAY, Category.SMS, false, Level.ADVANCED),
+    SMS_SENDER_ID(
+            "sms.senderID", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
+    SMS_PHONE_NUMBER_FORMAT(
+            "sms.phoneNumberFormat", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_DEFAULT_COUNTRY_CODE(
+            "sms.defaultCountryCode", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
+    SMS_REQUESTID_CHARS(
+            "sms.requestId.characters", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_REQUESTID_LENGTH(
+            "sms.requestId.length", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
+    SMS_CHALLENGE_TOKEN_TEXT(
+            "sms.challenge.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.ADVANCED),
+
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
             "password.policy.minimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
@@ -480,7 +522,15 @@ public enum PwmSetting {
     PWM_INSTANCE_NAME(
             "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),;
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+    HTTP_PROXYTYPE(
+            "http.proxytype", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
+    HTTP_PROXYSERVER(
+            "http.proxyserver", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+    HTTP_PROXYPORT(
+            "http.proxyport", Syntax.NUMERIC, Category.ADVANCED, true, Level.ADVANCED),
+
+    ;
 
 // ------------------------------ STATICS ------------------------------
 
@@ -627,6 +677,7 @@ public enum PwmSetting {
         USER_INTERFACE,
         LDAP,
         EMAIL,
+        SMS,
         PASSWORD_POLICY,
         CHALLENGE,
         INTRUDER,
@@ -670,6 +721,13 @@ public enum PwmSetting {
         public String getDescription() {
             return description;
         }
+    }
+
+     public enum SmsPriority {
+        BOTH,
+        EMAILFIRST,
+        SMSFIRST,
+        SMSONLY
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory(final Level byLevel) {

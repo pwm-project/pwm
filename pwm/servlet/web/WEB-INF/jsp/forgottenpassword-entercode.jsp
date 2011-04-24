@@ -22,6 +22,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
@@ -31,7 +32,22 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=PwmSession.getPwmSession(session).getForgottenPasswordBean().getTokenEmailAddress()%>"/></p>
+        <% 
+           final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+           final String destMail = fpb.getTokenEmailAddress();
+           final String destSms = fpb.getTokenSmsNumber();
+           String destination = "";
+           if (fpb.getEmailUsed()) {
+             destination += destMail;
+           }
+           if (fpb.getSmsUsed()) {
+             if (destination.length() > 0) {
+               destination += " / ";
+             }
+             destination += destSms;
+           }
+        %>
+        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
 
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"

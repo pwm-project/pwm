@@ -37,10 +37,14 @@ public class ForgottenPasswordBean implements Serializable {
     private transient ResponseSet responseSet;
     private String token;
     private String tokenEmailAddress;
+    private String tokenSmsNumber;
 
     private boolean responsesSatisfied;
     private boolean tokenSatisfied;
     private boolean allPassed;
+
+    private boolean commEmailUsed = false;
+    private boolean commSmsUsed = false;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -98,6 +102,30 @@ public class ForgottenPasswordBean implements Serializable {
 
     public void setTokenEmailAddress(final String tokenEmailAddress) {
         this.tokenEmailAddress = tokenEmailAddress;
+    }
+
+    public String getTokenSmsNumber() {
+        return tokenSmsNumber;
+    }
+
+    public void setTokenSmsNumber(final String tokenSmsNumber) {
+        this.tokenSmsNumber = tokenSmsNumber;
+    }
+    
+    public void setEmailUsed(final boolean used) {
+    	this.commEmailUsed = used;
+    }
+    
+    public boolean getEmailUsed() {
+    	return commEmailUsed;
+    }
+
+    public void setSmsUsed(final boolean used) {
+    	this.commSmsUsed = used;
+    }
+    
+    public boolean getSmsUsed() {
+    	return commSmsUsed;
     }
 }
 

@@ -32,6 +32,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.ForgottenPasswordBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
@@ -521,15 +522,74 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.debug("error reading mail attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
 
+        String toSmsNumber = null;
+        if (config.readSettingAsBoolean(PwmSetting.SMS_ENABLE)) {
+            try {
+                toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+                forgottenPasswordBean.setTokenSmsNumber(toSmsNumber);
+            } catch (Exception e) {
+                LOGGER.debug("error reading SMS attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
+            }
+        }
+
+        sendToken(pwmSession, proxiedUser);
+    }
+
+	private void sendToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmException {
+        final Configuration config = pwmSession.getConfig();
+		final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.SMS_PRIORITY_PREFERENCE).toUpperCase());
+		if (config.readSettingAsBoolean(PwmSetting.SMS_ENABLE)) {
+			boolean success = false;
+            switch (pref) {
+                case BOTH:
+                    // Send both email and SMS, success if one of both succeeds
+                    boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
+                    boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
+                    success = suc1 || suc2;
+                    break;
+                case EMAILFIRST:
+                    // Send email first, try SMS if email is not available
+                    success = sendEmailToken(pwmSession, proxiedUser) || sendSmsToken(pwmSession, proxiedUser);
+                    break;
+                case SMSFIRST:
+                    // Send SMS first, try email if SMS is not available
+                    success = sendSmsToken(pwmSession, proxiedUser) || sendEmailToken(pwmSession, proxiedUser);
+                    break;
+                case SMSONLY:
+                    // Only try SMS
+                    success = sendSmsToken(pwmSession, proxiedUser);
+                    break;
+                default:
+                    // Only try email
+                    success = sendEmailToken(pwmSession, proxiedUser);
+                    break;
+		    }
+		    if (!success) {
+                throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
+   		    }
+		} else {
+            if (!sendEmailToken(pwmSession, proxiedUser)) {
+                throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
+            }
+		}
+	}
+
+	private boolean sendEmailToken(final PwmSession pwmSession, final ChaiUser proxiedUser) {
+        final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmSession.getConfig();
         final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_FROM, userLocale);
         final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_SUBJECT, userLocale);
         String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY, userLocale);
         String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY_HTML, userLocale);
+        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final String toAddress = forgottenPasswordBean.getTokenEmailAddress();
+        final String token = forgottenPasswordBean.getToken();
 
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send token email for '" + proxiedUser.getEntryDN() + "' no email address available in ldap");
-            throw PwmException.createPwmException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
+            forgottenPasswordBean.setEmailUsed(false);
+            return false;
         }
 
         plainBody = plainBody.replaceAll("%TOKEN%", token);
@@ -538,8 +598,36 @@ public class ForgottenPasswordServlet extends TopServlet {
         theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
+        forgottenPasswordBean.setEmailUsed(true);
+		return true;
     }
 
+	private boolean sendSmsToken(final PwmSession pwmSession, final ChaiUser proxiedUser) {
+        final ContextManager theManager = pwmSession.getContextManager();
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmSession.getConfig();
+        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
+        if (senderId == null) { senderId = ""; }
+        String message = config.readLocalizedStringSetting(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
+        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final String toSmsNumber = forgottenPasswordBean.getTokenSmsNumber();
+        final String token = forgottenPasswordBean.getToken();
+
+        if (toSmsNumber == null || toSmsNumber.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send token sms for '" + proxiedUser.getEntryDN() + "' no SMS number available in ldap");
+            forgottenPasswordBean.setSmsUsed(false);
+            return false;
+        }
+
+        message = message.replaceAll("%TOKEN%", token);
+
+        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
+        theManager.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale));
+        theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
+        forgottenPasswordBean.setSmsUsed(true);
+		return true;
+	}
 
     public static String generateRecoverCode(final Configuration config) {
         final String RANDOM_CHARS = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);

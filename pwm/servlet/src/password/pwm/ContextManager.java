@@ -30,6 +30,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
@@ -81,6 +82,7 @@ public class ContextManager implements Serializable {
     private transient Configuration configuration;
     private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
+    private transient SmsQueueManager smsQueue;
 
     private transient HealthMonitor healthMonitor;
     private transient StatisticsManager statisticsManager;
@@ -153,6 +155,7 @@ public class ContextManager implements Serializable {
     public Set<PwmService> getPwmServices() {
         final Set<PwmService> pwmServices = new HashSet<PwmService>();
         pwmServices.add(this.emailQueue);
+        pwmServices.add(this.smsQueue);
         pwmServices.add(this.wordlistManager);
         return Collections.unmodifiableSet(pwmServices);
     }
@@ -193,6 +196,10 @@ public class ContextManager implements Serializable {
 
     public EmailQueueManager getEmailQueue() {
         return emailQueue;
+    }
+
+    public SmsQueueManager getSmsQueue() {
+        return smsQueue;
     }
 
     public Date getLastLdapFailure() {
@@ -288,6 +295,7 @@ public class ContextManager implements Serializable {
         LOGGER.info(logDebugInfo(activeSessions.size()));
 
         emailQueue = new EmailQueueManager(this);
+        smsQueue = new SmsQueueManager(this);
         LOGGER.trace("email queue manager started");
 
         taskMaster = new Timer("pwm-ContextManager timer", true);
@@ -448,6 +456,14 @@ public class ContextManager implements Serializable {
         }
     }
 
+    public void sendSmsUsingQueue(final SmsItemBean smsItem) {
+        try {
+            smsQueue.addSmsToQueue(smsItem);
+        } catch (PwmException e) {
+            LOGGER.warn("unable to add sms to queue: " + e.getMessage());
+        }
+    }
+
     public void shutdown() {
         LOGGER.warn("shutting down");
         AlertHandler.alertShutdown(this);
@@ -479,6 +495,11 @@ public class ContextManager implements Serializable {
         if (emailQueue != null) {
             emailQueue.close();
             emailQueue = null;
+        }
+
+        if (smsQueue != null) {
+            smsQueue.close();
+            smsQueue = null;
         }
 
         if (pwmDBLogger != null) {
