@@ -81,7 +81,7 @@ public class ConfigurationReader {
             LOGGER.warn("configuration settings have been modified since the file was saved by pwm");
         }
 
-        configuration = new Configuration(this.storedConfiguration);
+        configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.getDefaultConfiguration() : this.storedConfiguration);
     }
 
     public MODE getConfigMode() {

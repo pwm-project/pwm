@@ -256,7 +256,6 @@ public class ContextManager implements Serializable {
                     return;
             }
         } catch (Exception e) {
-            //LOGGER.fatal("unable to load configuration file", e);
             LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
             return;
         }
