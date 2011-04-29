@@ -93,6 +93,19 @@ public class BasicAuthInfo implements Serializable {
         }
     }
 
+    public String toAuthHeader() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.getUsername());
+        sb.append(":");
+        sb.append(this.getPassword());
+
+        sb.replace(0, sb.length(), Base64Util.encodeBytes(sb.toString().getBytes()));
+
+        sb.insert(0, PwmConstants.HTTP_BASIC_AUTH_PREFIX);
+
+        return sb.toString();
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public BasicAuthInfo(

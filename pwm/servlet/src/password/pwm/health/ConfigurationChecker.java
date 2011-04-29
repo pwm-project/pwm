@@ -23,6 +23,7 @@
 package password.pwm.health;
 
 import password.pwm.ContextManager;
+import password.pwm.PasswordUtility;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -67,16 +68,6 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
         }
 
-        if (config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN) == null || config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN).length() < 1 ) {
-            final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
-            errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
-            errorMsg.append(" setting should be set to verify proper operation");
-
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
-        }
-
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getCategory().getLabel(Locale.getDefault()));
@@ -87,6 +78,15 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
         }
 
+        if (config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN) == null || config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN).length() < 1 ) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting should be set to verify proper operation");
+
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+        }
 
         {
             final List<String> ldapServerURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
@@ -114,6 +114,20 @@ public class ConfigurationChecker implements HealthChecker {
                         records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
                     }
                 }
+            }
+        }
+
+        {
+            final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            final int strength = PasswordUtility.checkPasswordStrength(config, null, proxyPassword);
+            if (strength < 50) {
+                final StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append(PwmSetting.LDAP_PROXY_USER_PASSWORD.getCategory().getLabel(Locale.getDefault()));
+                errorMsg.append(" -> ");
+                errorMsg.append(PwmSetting.LDAP_PROXY_USER_PASSWORD.getLabel(Locale.getDefault()));
+                errorMsg.append(" strength of password is weak (").append(strength).append("/100), increase password length/complexity for proper security");
+
+                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
             }
         }
 
@@ -148,6 +162,7 @@ public class ConfigurationChecker implements HealthChecker {
         if (contextManager.getConfigReader().modifiedSincePWMSave()) {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
         }
+
 
         if (records.isEmpty()) {
             records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "No configuration issues detected"));

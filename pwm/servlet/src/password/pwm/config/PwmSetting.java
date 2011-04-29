@@ -528,12 +528,8 @@ public enum PwmSetting {
             "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
-    HTTP_PROXYTYPE(
-            "http.proxytype", Syntax.SELECT, Category.ADVANCED, true, Level.ADVANCED),
-    HTTP_PROXYSERVER(
-            "http.proxyserver", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
-    HTTP_PROXYPORT(
-            "http.proxyport", Syntax.NUMERIC, Category.ADVANCED, true, Level.ADVANCED),
+    HTTP_PROXY_URL(
+            "http.proxy.url", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
 
     ;
 

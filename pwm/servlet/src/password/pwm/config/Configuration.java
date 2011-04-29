@@ -28,9 +28,9 @@ import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.ContextManager;
-import password.pwm.util.Helper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
 
@@ -49,7 +49,6 @@ public class Configuration implements Serializable {
     private final static PwmLogger LOGGER = PwmLogger.getLogger(Configuration.class);
 
     private final StoredConfiguration storedConfiguration;
-    private final long loadTime = System.currentTimeMillis();
 
     private PwmPasswordPolicy cachedPasswordPolicy = null;
 

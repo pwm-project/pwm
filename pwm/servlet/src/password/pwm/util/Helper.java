@@ -34,6 +34,12 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.DefaultHttpClient;
 import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -44,7 +50,7 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
@@ -773,15 +779,15 @@ public class Helper {
     }
 
     public static String replaceAllPatterns(final String input, final Properties fields) {
-    	String output = input;
-    	Enumeration names = fields.propertyNames();
-    	while (names.hasMoreElements()) {
-    		final String key = (String) names.nextElement();
-    		final String fieldName = "%"+key+"%";
-    		final String fieldValue = fields.getProperty(key);
-    		output = output.replaceAll(fieldName, fieldValue);
-    	}
-    	return output;
+        String output = input;
+        Enumeration names = fields.propertyNames();
+        while (names.hasMoreElements()) {
+            final String key = (String) names.nextElement();
+            final String fieldName = "%"+key+"%";
+            final String fieldValue = fields.getProperty(key);
+            output = output.replaceAll(fieldName, fieldValue);
+        }
+        return output;
     }
 
     public static String generateToken(final String RANDOM_CHARS, int CODE_LENGTH) {
@@ -806,5 +812,29 @@ public class Helper {
             LOGGER.debug("error reading file space remaining for " + file.toString() + ",: " + e.getMessage());
         }
         return -1;
+    }
+
+    public static HttpClient getHttpClient(final Configuration configuration)
+    {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+
+        final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
+        if (strValue != null && strValue.length() > 0) {
+            final URI proxyURI = URI.create(strValue);
+
+            final String host = proxyURI.getHost();
+            final int port = proxyURI.getPort();
+            final HttpHost proxy = new HttpHost(host,port);
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
+            final String username = proxyURI.getUserInfo();
+            if (username != null && username.length() > 0) {
+                final String password = (username.contains(":")) ? username.split(":")[1] : "";
+                final UsernamePasswordCredentials passwordCredentials = new UsernamePasswordCredentials(username,password);
+                httpClient.getCredentialsProvider().setCredentials (new AuthScope(host, port),passwordCredentials);
+            }
+        }
+
+        return httpClient;
     }
 }

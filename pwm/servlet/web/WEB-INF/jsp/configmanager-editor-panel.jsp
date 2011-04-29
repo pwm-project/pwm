@@ -165,13 +165,13 @@
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
     <div id="password_wrapper_<%=loopSetting.getKey()%>">
         <div style="float: left">
-            <table style="width: 255px">
+            <table style="width: 455px">
                 <tr>
                     <td style="text-align:right; white-space:nowrap;">
                         <label for="value_<%=loopSetting.getKey()%>">Password</label>
                     </td>
                     <td>
-                        <input type="password" id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" style="width: 200px"/>
+                        <input type="password" id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>" style="width: 400px"/>
                     </td>
                 </tr>
                 <tr>
@@ -179,7 +179,7 @@
                         <label for="value_verify_<%=loopSetting.getKey()%>">Verify Password</label>
                     </td>
                     <td>
-                        <input type="password" id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>" style="width: 200px" >
+                        <input type="password" id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>" style="width: 400px" >
                     </td>
                 </tr>
             </table>
@@ -196,7 +196,7 @@
         new dijit.form.ValidationTextBox({
             required: <%=loopSetting.isRequired()%>,
             invalidMessage: "The password is not valid.",
-            style: "width: 200px",
+            style: "width: 400px",
             value: "[Loading..]",
             type: 'password',
             onChange: function() {
@@ -210,7 +210,7 @@
         new dijit.form.ValidationTextBox({
             required: true,
             invalidMessage: "The password does not match.",
-            style: "width: 200px",
+            style: "width: 400px",
             disabled: false,
             type: 'password',
             validator: function() {

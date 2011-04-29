@@ -161,7 +161,7 @@ public class SessionFilter implements Filter {
 
         // make sure connection is secure.
         if (theManager.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SECURE_REUEST_REQUIRED));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SECURE_REQUEST_REQUIRED));
             ServletHelper.forwardToErrorPage(req,resp,servletContext,true);
             return;
         }

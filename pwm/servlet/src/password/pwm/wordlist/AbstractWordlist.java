@@ -22,12 +22,14 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
@@ -55,6 +57,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected String DEBUG_LABEL = "Generic Wordlist";
 
     protected int storedSize = 0;
+    private ErrorInformation lastError;
+
 
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -72,7 +76,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         wlStatus = STATUS.OPENING;
 
         if (pwmDB == null) {
-            LOGGER.warn("pwmDB is not available, " + DEBUG_LABEL + " will remain closed");
+            final String errorMsg = "pwmDB is not available, " + DEBUG_LABEL + " will remain closed";
+            LOGGER.warn(errorMsg);
+            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             close();
             return;
         }
@@ -82,14 +88,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             try {
                 resetDB("-1");
             } catch (Exception e) {
-                LOGGER.error("error while clearing wordlist DB.");
+                final String errorMsg = "error while clearing " + DEBUG_LABEL + " DB: " + e.getMessage();
+                LOGGER.warn(errorMsg);
+                lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             }
             close();
             return;
         }
 
         if (!wordlistConfiguration.getWordlistFile().exists()) {
-            LOGGER.warn("wordlist file \"" + wordlistConfiguration.getWordlistFile().getAbsolutePath() + "\" does not exist, " + DEBUG_LABEL + "will remain closed");
+            final String errorMsg = "wordlist file \"" + wordlistConfiguration.getWordlistFile().getAbsolutePath() + "\" does not exist, " + DEBUG_LABEL + "; will remain closed";
+            LOGGER.warn(errorMsg);
+            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             close();
             return;
         }
@@ -97,11 +107,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         try {
             checkPopulation();
         } catch (Exception e) {
+            final String errorMsg = "unexpected error while examining wordlist db: " + e.getMessage();
             if ((e instanceof PwmUnrecoverableException) || (e instanceof NullPointerException) || (e instanceof PwmDBException)) {
-                LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage());
+                LOGGER.warn(errorMsg);
             } else {
-                LOGGER.warn("unexpected error while examining wordlist db: " + e.getMessage(), e);
+                LOGGER.warn(errorMsg,e);
             }
+            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             populator = null;
             close();
             return;
@@ -112,7 +124,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             final String storedSizeStr = pwmDB.get(META_DB, KEY_SIZE);
             storedSize = Integer.valueOf(storedSizeStr);
         } catch (PwmDBException e) {
-            LOGGER.warn(DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage());
+            final String errorMsg = DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage();
+            LOGGER.warn(errorMsg);
+            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
+            close();
+            return;
         }
 
         if (wlStatus == STATUS.OPENING) {
@@ -121,7 +137,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
             LOGGER.debug(DEBUG_LABEL + " open with " + wordlistSize + " words in " + totalTime.asCompactString());
         } else {
-            LOGGER.warn(DEBUG_LABEL + " status changed unexpectedly during startup, closing");
+            final String errorMsg = DEBUG_LABEL + " status changed unexpectedly during startup, closing";
+            LOGGER.warn(errorMsg);
+            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             close();
         }
     }
@@ -344,6 +362,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     public List<HealthRecord> healthCheck() {
         if (wlStatus == STATUS.OPENING) {
             final HealthRecord healthRecord = new HealthRecord(HealthStatus.CAUTION, this.DEBUG_LABEL, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus());
+            return Collections.singletonList(healthRecord);
+        }
+
+        if (lastError != null) {
+            final HealthRecord healthRecord = new HealthRecord(HealthStatus.WARN, this.DEBUG_LABEL, this.DEBUG_LABEL + " error: " + lastError.toDebugStr());
             return Collections.singletonList(healthRecord);
         }
         return null;

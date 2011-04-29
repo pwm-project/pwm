@@ -100,6 +100,11 @@ public class LDAPStatusChecker implements HealthChecker {
             return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
         }
 
+        try {
+            theUser.readObjectClass();
+        } catch (ChaiException e) {
+            return new HealthRecord(HealthStatus.WARN, TOPIC, "error verifying test user account: " + e.getMessage());
+        }
 
         String userPassword = null;
         {

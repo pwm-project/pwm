@@ -23,20 +23,23 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
-import password.pwm.error.PwmError;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
+import password.pwm.PwmConstants;
+import password.pwm.PwmSession;
+import password.pwm.Validator;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpClientParams;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -51,18 +54,10 @@ public class CaptchaServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CaptchaServlet.class.getName());
 
     private static final String SKIP_COOKIE_NAME = "pwm-captcha-key";
-    private static final String COOKIE_SKIP_INSTANCE_VALUE = "instanceID";
+    private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
     private static final String RECAPTCHA_VALIDATE_URL = "http://www.google.com/recaptcha/api/verify";
 
-    private static final MultiThreadedHttpConnectionManager HTTP_CONNECTION_MANAGER = new MultiThreadedHttpConnectionManager();
-
-    private static final HttpClientParams HTTP_CLIENT_PARAMS = new HttpClientParams();
-
-    static {
-        HTTP_CLIENT_PARAMS.setSoTimeout(30 * 1000); // 30 seconds
-        HTTP_CLIENT_PARAMS.setConnectionManagerTimeout(30 * 1000); // 30 seconds
-    }
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
@@ -104,7 +99,7 @@ public class CaptchaServlet extends TopServlet {
         try {
             verified = verifyReCaptcha(req, pwmSession);
         } catch (PwmUnrecoverableException e) {
-            LOGGER.fatal("error " + e.getCause().getClass().getName() + "during recaptcha api validation: " + e.getMessage());
+            LOGGER.fatal("error " + e.getCause().getClass().getName() + " during recaptcha api validation: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -144,29 +139,31 @@ public class CaptchaServlet extends TopServlet {
     ) throws
             PwmUnrecoverableException
     {
-        final HttpClient httpClient = new HttpClient(HTTP_CONNECTION_MANAGER);
-        httpClient.setParams(HTTP_CLIENT_PARAMS);
+        final StringBuilder bodyText = new StringBuilder();
+        bodyText.append("privatekey=").append(pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
+        bodyText.append("&");
+        bodyText.append("remoteip=").append(PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
+        bodyText.append("&");
+        bodyText.append("challenge=").append(Validator.readStringFromRequest(req, "recaptcha_challenge_field", 1024));
+        bodyText.append("&");
+        bodyText.append("response=").append(Validator.readStringFromRequest(req, "recaptcha_response_field", 1024));
 
-        PostMethod httpPost = null;
         try {
             final URI requestURI = new URI(RECAPTCHA_VALIDATE_URL);
-            httpPost = new PostMethod(requestURI.toString());
-            httpPost.setParameter("privatekey", pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
-            httpPost.setParameter("remoteip", PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
-            httpPost.setParameter("challenge", Validator.readStringFromRequest(req, "recaptcha_challenge_field", 1024));
-            httpPost.setParameter("response", Validator.readStringFromRequest(req, "recaptcha_response_field", 1024));
+            final HttpPost httpPost = new HttpPost(requestURI.toString());
+            httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            httpPost.setEntity(new StringEntity(bodyText.toString()));
+            LOGGER.debug(pwmSession, "sending reCaptcha verification request: " + httpRequestToDebugString(httpPost));
 
-            LOGGER.debug(pwmSession, "sending reCaptcha verification request: " + httpMethodToDebugString(httpPost));
-            final int statusCode = httpClient.executeMethod(httpPost);
-
-            if (statusCode != HttpStatus.SC_OK) {
+            final HttpResponse httpResponse = Helper.getHttpClient(pwmSession.getConfig()).execute(httpPost);
+            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new PwmUnrecoverableException(new ErrorInformation(
                         PwmError.ERROR_CAPTCHA_API_ERROR,
-                        "unexpected HTTP status code (" + statusCode + ")"
+                        "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ")"
                 ));
             }
 
-            final String responseBody = new String(httpPost.getResponseBody());
+            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
 
             final String[] splitResponse = responseBody.split("\n");
             if (splitResponse.length > 0 && Boolean.parseBoolean(splitResponse[0])) {
@@ -178,38 +175,21 @@ public class CaptchaServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "reCaptcha error response: " + errorCode);
             }
         } catch (Exception e) {
-            final PwmUnrecoverableException pwmE = new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR, e.getMessage()));
+            final String errorMsg = "unexpected error during recpatcha API execution: " + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg);
+            final PwmUnrecoverableException pwmE = new PwmUnrecoverableException(errorInfo);
             pwmE.initCause(e);
             throw pwmE;
-        } finally {
-            if (httpPost != null) {
-                httpPost.releaseConnection();
-            }
         }
-
 
         return false;
     }
 
-    private static String httpMethodToDebugString(final PostMethod httpMethod) {
+    private static String httpRequestToDebugString(final HttpRequest httpRequest) {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(httpMethod.getName());
-        sb.append(" ");
-        sb.append(httpMethod.getPath());
-
-        final NameValuePair[] params = httpMethod.getParameters();
-        if (params != null && params.length > 0) {
-            sb.append(" {");
-
-            for (final NameValuePair nameValuePair : params) {
-                sb.append(nameValuePair.getName()).append("=").append(nameValuePair.getValue());
-                sb.append(", ");
-            }
-
-            sb.delete(sb.length() - 2, sb.length());
-            sb.append("}");
-        }
+        sb.append(httpRequest.getRequestLine());
 
         return sb.toString();
     }

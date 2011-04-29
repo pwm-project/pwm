@@ -24,6 +24,12 @@ package password.pwm.util;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.util.EntityUtils;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -38,16 +44,11 @@ import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
 import password.pwm.util.db.PwmDBStoredQueue;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.Serializable;
-import java.net.*;
+import java.net.URLEncoder;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -61,29 +62,28 @@ public class SmsQueueManager implements PwmService {
 
     private final PwmDBStoredQueue smsSendQueue;
     private final ContextManager theManager;
-    private final Proxy proxy;
 
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
     private long maxErrorWaitTimeMS = 5 * 60 * 1000;
 
     private HealthRecord lastSendFailure;
-    
+
     public enum SmsNumberFormat {
         PLAIN,
         PLUS,
         ZEROS
     }
-    
+
     public enum SmsDataEncoding {
-    	NONE,
-    	URL,
-    	XML,
-    	HTML,
-    	CSV,
-    	JAVA,
-    	JAVASCRIPT,
-    	SQL
+        NONE,
+        URL,
+        XML,
+        HTML,
+        CSV,
+        JAVA,
+        JAVASCRIPT,
+        SQL
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -92,46 +92,6 @@ public class SmsQueueManager implements PwmService {
             throws PwmDBException {
         this.theManager = theManager;
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
-        final String pType = theManager.getConfig().readSettingAsString(PwmSetting.HTTP_PROXYTYPE);
-        final String pAddr = theManager.getConfig().readSettingAsString(PwmSetting.HTTP_PROXYSERVER);
-        final Long pPort = theManager.getConfig().readSettingAsLong(PwmSetting.HTTP_PROXYPORT);
-        final Proxy.Type pt = Proxy.Type.valueOf(pType.toUpperCase());
-        Proxy proxy;
-        if (pt == Proxy.Type.DIRECT) {
-        	proxy = Proxy.NO_PROXY;
-        } else {
-        	try {
-    	    	final Pattern pat = Pattern.compile("^([A-Za-z0-9_\\.-]+\\.[A-Za-z]{2,}|[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}|[0-9A-Fa-f:]{3,})$");
-        		final Matcher mat = pat.matcher(pAddr);
-        		if (mat.matches()) {
-	        		final String hostname = mat.group(1);
-		        	int port = (pPort==null)?0:pPort.intValue();
-		        	if (port == 0) {
-		        		switch (pt) {
-		        			case SOCKS:
-		        				port = 1080;
-		        				break;
-		        			case HTTP:
-		        				port = 8080;
-		        				break;
-		        			default:
-		        				break;
-		        		}
-		        	}
-        			final InetSocketAddress sa = new InetSocketAddress(hostname, port);
-        			proxy = new Proxy(pt, sa);
-        			LOGGER.info("Proxy configured: [" + pAddr + "]:" + pPort.toString());
-	        	} else {
-    	    		LOGGER.error("Proxy address not valid: [" +  pAddr + "]:" + pPort.toString() +". Setting to NOPROXY");
-	    	    	proxy = Proxy.NO_PROXY;
-        		}
-        	} catch (Exception e) {
-        		LOGGER.error("Error retrieving proxy address: " + e.getMessage());
-   	    		LOGGER.error("Could not instantiate proxy for [" +  pAddr + "]:" + pPort.toString() +". Setting to NOPROXY");
-    	    	proxy = Proxy.NO_PROXY;
-        	}
-        }
-       	this.proxy = proxy;
 
         final PwmDB pwmDB = theManager.getPwmDB();
         smsSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.SMS_QUEUE);
@@ -205,7 +165,7 @@ public class SmsQueueManager implements PwmService {
         if (!determineIfSmsCanBeDelivered(smsItem)) {
             return;
         }
-        
+
         final SmsEvent event = new SmsEvent(smsItem, System.currentTimeMillis());
         if (smsSendQueue.size() < PwmConstants.MAX_SMS_QUEUE_SIZE) {
             try {
@@ -285,98 +245,83 @@ public class SmsQueueManager implements PwmService {
     }
 
     private boolean sendSms(final SmsItemBean smsItemBean) {
-    	boolean success = true;
-    	while (success && smsItemBean.hasNextPart()) {
-    		success = sendSmsPart(smsItemBean);
-    	}
-    	return success;
+        boolean success = true;
+        while (success && smsItemBean.hasNextPart()) {
+            success = sendSmsPart(smsItemBean);
+        }
+        return success;
     }
-    
+
     private boolean sendSmsPart(final SmsItemBean smsItemBean) {
         final Configuration config = theManager.getConfig();
-        final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
+
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
-        String senderId = smsItemBean.getFrom();
-        final String to = formatSmsNumber(smsItemBean.getTo());
         final String gatewayPass = config.readSettingAsString(PwmSetting.SMS_GATEWAY_PASSWORD);
-        final String gatewayMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_METHOD);
-        final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
-        String requestData = config.readLocalizedStringSetting(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
+
         final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
         final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
-        
+
+        String requestData = config.readLocalizedStringSetting(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
+
         // Replace strings in requestData
-        requestData = requestData.replaceAll("%USER%", smsDateEncode(gatewayUser, encoding));
-        requestData = requestData.replaceAll("%PASS%", smsDateEncode(gatewayPass, encoding));
-        if (senderId == null) { senderId = ""; }
-        requestData = requestData.replaceAll("%SENDERID%", smsDateEncode(senderId, encoding));
-        requestData = requestData.replaceAll("%MESSAGE%", smsDateEncode(smsItemBean.getNextPart(), encoding));
-        requestData = requestData.replaceAll("%TO%", smsDateEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
+        {
+            final String senderId = smsItemBean.getFrom() == null ? "" : smsItemBean.getFrom();
+            requestData = requestData.replaceAll("%USER%", smsDateEncode(gatewayUser, encoding));
+            requestData = requestData.replaceAll("%PASS%", smsDateEncode(gatewayPass, encoding));
+            requestData = requestData.replaceAll("%SENDERID%", smsDateEncode(senderId, encoding));
+            requestData = requestData.replaceAll("%MESSAGE%", smsDateEncode(smsItemBean.getNextPart(), encoding));
+            requestData = requestData.replaceAll("%TO%", smsDateEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
+        }
+
         if (requestData.indexOf("%REQUESTID%")>=0) {
             final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
             final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
             final String requestId = Helper.generateToken(chars, idLength);
             requestData = requestData.replaceAll("%REQUESTID%", smsDateEncode(requestId, encoding));
         }
-        
+
+        final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
+        final String gatewayMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_METHOD);
+        final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
         LOGGER.trace("SMS data: " + requestData);
         try {
-            final HttpURLConnection h;
+            final HttpUriRequest httpRequest;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
                 // POST request
-                final URL u = new URL(gatewayUrl);
-                h = (HttpURLConnection) u.openConnection(this.proxy);
-                h.setRequestMethod("POST");
+                httpRequest = new HttpPost(gatewayUrl);
+                final BasicHttpParams requestParams = new BasicHttpParams();
                 if (contentType != null && contentType.length()>0) {
-	                h.setRequestProperty("Content-Type", contentType);
+                    requestParams.setParameter("Content-Type", contentType);
                 }
-                h.setRequestProperty("Content-Length", String.valueOf(requestData.length()));
-                h.setDoOutput(true);
-                h.getOutputStream().write(requestData.getBytes());
+                requestParams.setIntParameter("Content-Length", requestData.length());
+                httpRequest.setParams(requestParams);
             } else {
                 // GET request
-                String fullUrl = gatewayUrl;
-                if (!fullUrl.endsWith("?")) {
-                    fullUrl += "?";
-                }
-                fullUrl += requestData;
-                final URL u = new URL(fullUrl);
-                h = (HttpURLConnection) u.openConnection(this.proxy);
+                final String fullUrl = gatewayUrl.endsWith("?") ? gatewayUrl + requestData : gatewayUrl + "?" + requestData;
+                httpRequest = new HttpPost(fullUrl);
             }
-            if (gatewayAuthMethod.equalsIgnoreCase("BASIC") && gatewayUser != null && gatewayPass != null) {
-            	final String userpass = gatewayUser + ":" + gatewayPass;
-            	final String encodedAuthorization = Base64Util.encodeBytes(userpass.getBytes());
-            	h.setRequestProperty("Authorization", "Basic " + encodedAuthorization);
+
+            if ("BASIC".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
+                httpRequest.getParams().setParameter("Authorization", new BasicAuthInfo(gatewayUser, gatewayPass).toAuthHeader());
             }
-            final InputStream ins = h.getInputStream();
-            final InputStreamReader isr = new InputStreamReader(ins);
-            final BufferedReader in = new BufferedReader(isr);
+
+            final HttpClient httpClient = Helper.getHttpClient(config);
+            final HttpResponse httpResponse = httpClient.execute(httpRequest);
+            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
+
             final List<String> okMessages = config.readStringArraySetting(PwmSetting.SMS_RESPONSE_OK_REGEX);
-            if (okMessages != null && okMessages.size() > 0) {
-                Boolean ok = false;
-                String input="-";
-                while (!ok && input != null) {
-                    input = in.readLine();
-                    LOGGER.trace("> " + input);                  
-                    ok = matchExpressions(input, okMessages);
-                }
-                in.close();
-                h.disconnect();
-                return ok;
-            } else { 
-                in.close();
-                h.disconnect();
+            if (matchExpressions(responseBody, okMessages)) {
                 return true;
-            }        
-        } catch (java.io.IOException e) {
+            }
+        } catch (IOException e) {
             LOGGER.error("unexpected exception while sending SMS: " + e.getMessage(), e);
         }
-        
+
         return false;
     }
-    
+
     private String smsDateEncode(final String data, final SmsDataEncoding encoding) {
-    	final String returnData;
+        final String returnData;
         switch (encoding) {
             case NONE:
                 returnData = data;
@@ -402,21 +347,22 @@ public class SmsQueueManager implements PwmService {
         }
         return returnData;
     }
-    
+
     private boolean matchExpressions(final String in, final List<String> regexes) {
         if (in != null) {
             if (regexes == null) {
                 return true;
             }
-            for (final Iterator iter = regexes.iterator(); iter.hasNext();) {
-                final String s = (String)iter.next();
-                LOGGER.trace("Matching string \""+in+"\" against pattern \"" + s + "\"");
-                if (in.matches(s)) return true;
+            for (final String regex : regexes) {
+                LOGGER.trace("Matching string \"" + in + "\" against pattern \"" + regex + "\"");
+                if (in.matches(regex)) {
+                    return true;
+                }
             }
         }
         return false;
     }
-    
+
     private String formatSmsNumber(final String smsNumber) {
         final Configuration config = theManager.getConfig();
         final String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
@@ -441,8 +387,8 @@ public class SmsQueueManager implements PwmService {
         ret = "";
         for(int i=0;i<tmp.length();i++) {
             if ((i==0&&tmp.charAt(i)=='+')||(
-                (tmp.charAt(i)>='0'&&tmp.charAt(i)<='9'))
-               ) {
+                    (tmp.charAt(i)>='0'&&tmp.charAt(i)<='9'))
+                    ) {
                 ret += tmp.charAt(i);
             }
         }
@@ -467,7 +413,7 @@ public class SmsQueueManager implements PwmService {
         return ret;
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
     private class SmsSendThread extends Thread {
         public void run() {
             LOGGER.trace("starting up sms queue processing thread, queue size is " + smsSendQueue.size());
@@ -503,7 +449,7 @@ public class SmsQueueManager implements PwmService {
             LOGGER.trace("closing sms queue processing thread");
         }
     }
-    
+
     private static class SmsEvent implements Serializable {
         private SmsItemBean smsItem;
         private long queueInsertTimestamp;
@@ -511,7 +457,7 @@ public class SmsQueueManager implements PwmService {
         private SmsEvent() {
         }
 
-        private SmsEvent(SmsItemBean smsItem, long queueInsertTimestamp) {
+        private SmsEvent(final SmsItemBean smsItem, final long queueInsertTimestamp) {
             this.smsItem = smsItem;
             this.queueInsertTimestamp = queueInsertTimestamp;
         }
@@ -524,5 +470,5 @@ public class SmsQueueManager implements PwmService {
             return queueInsertTimestamp;
         }
     }
-    
+
 }
