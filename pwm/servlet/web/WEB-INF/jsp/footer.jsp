@@ -27,6 +27,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
+    <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmLanguage.css'/>"
+          rel="stylesheet" type="text/css" media="screen"/>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='idletimer.js'/>"></script>
     <span class="idle_status" id="idle_status">
         &nbsp;

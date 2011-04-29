@@ -153,9 +153,10 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
     });
     pMenu.startup();
 
-    var loopFunction = function(pMenu, localeKey, localeDisplayName) {
+    var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
         pMenu.addChild(new dijit.MenuItem({
             label: localeDisplayName,
+            iconClass: localeIconClass,
             onClick: function() {
                 var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
                 dojo.xhrGet({
@@ -175,7 +176,8 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
 
     for (var localeKey in localeData) {
         var localeDisplayName = localeData[localeKey];
-        loopFunction(pMenu, localeKey, localeDisplayName);
+        var localeIconClass = "flagLang_"+localeKey;
+        loopFunction(pMenu, localeKey, localeDisplayName, localeIconClass);
     }
 }
 
