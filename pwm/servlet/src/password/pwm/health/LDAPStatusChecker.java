@@ -41,10 +41,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.wordlist.SeedlistManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 public class LDAPStatusChecker implements HealthChecker {
 
@@ -84,7 +81,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         if (testUserDN == null || testUserDN.length() < 1) {
-            return new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP test user is not configured");
+            return null;
         }
 
         final ChaiUser theUser;
@@ -139,20 +136,26 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
 
-    private static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration) {
-        final Configuration config = new Configuration(storedconfiguration);
-
+    private static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration)
+    {
+        final List<Configuration> configs = generateConfigPerLdapURL(storedconfiguration);
         ChaiProvider chaiProvider = null;
         try {
+            String loopUrl = "";
             try {
-                chaiProvider = getChaiProviderForTesting(config);
-                final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
-                final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
-                proxyUser.isValid();
+                for (final Configuration config : configs) {
+                    loopUrl = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS).get(0);
+                    chaiProvider = getChaiProviderForTesting(config);
+                    final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
+                    final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
+                    proxyUser.isValid();
+                }
             } catch (Exception e) {
-                final String errorString = "error connecting to ldap server: " + e.getMessage();
+                final String errorString = "error connecting to ldap server '" + loopUrl + "': " + e.getMessage();
                 return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
             }
+
+
             try {
                 final String usernameContext = storedconfiguration.readSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT);
                 final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(usernameContext,chaiProvider);
@@ -191,4 +194,22 @@ public class LDAPStatusChecker implements HealthChecker {
 
         return chaiProvider;
     }
+
+    private static List<Configuration> generateConfigPerLdapURL(final StoredConfiguration storedconfiguration)
+    {
+        final List<String> serverURLs = storedconfiguration.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
+        final List<Configuration> configs = new ArrayList<Configuration>();
+        for (final String loopURL : serverURLs) {
+
+            try {
+                final StoredConfiguration loopConfig = (StoredConfiguration)storedconfiguration.clone();
+                loopConfig.writeStringArraySetting(PwmSetting.LDAP_SERVER_URLS, Collections.singletonList(loopURL));
+                configs.add(new Configuration(loopConfig));
+            } catch (CloneNotSupportedException e) {
+                LOGGER.error("unexpected internal error: " + e.getMessage(),e);
+            }
+        }
+        return configs;
+    }
+
 }

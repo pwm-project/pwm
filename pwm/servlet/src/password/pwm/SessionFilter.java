@@ -129,20 +129,6 @@ public class SessionFilter implements Filter {
         final ContextManager theManager = ContextManager.getContextManager(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        // check for valid config
-        if (theManager == null || theManager.getConfig() == null || theManager.getConfigReader().getConfigMode() == ConfigurationReader.MODE.NEW) {
-            final String configServletPathPrefix = req.getContextPath() + "/config/";
-            final String requestedURL = req.getRequestURI();
-
-            // check if current request is actually for the config url, if it is, just do nothing.
-            if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
-                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
-                resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
-                return;
-            }
-        }
-
         // mark the user's IP address in the session bean
         ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
 
@@ -151,7 +137,6 @@ public class SessionFilter implements Filter {
 
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
-
 
         //set the session's locale
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
@@ -167,6 +152,18 @@ public class SessionFilter implements Filter {
         } else if (ssBean.getLocale() == null) {
             final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
             ssBean.setLocale(knownLocales.get(0));
+        }
+
+        // check for valid config
+        if (checkConfigModes(req, resp)) {
+            return;
+        }
+
+        // make sure connection is secure.
+        if (theManager.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SECURE_REUEST_REQUIRED));
+            ServletHelper.forwardToErrorPage(req,resp,servletContext,true);
+            return;
         }
 
         //clear any errors in the session's state bean
@@ -358,31 +355,6 @@ public class SessionFilter implements Filter {
             sb.delete(sb.length() - 1, sb.length());
         }
 
-        /*
-        final StringBuilder sb = new StringBuilder();
-        sb.append(req.getRequestURI());
-
-        if (!req.getParameterMap().isEmpty()) {
-            sb.append("?");
-            for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
-                final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
-
-                if (validationKey != null || !PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
-                    for (final String paramValue : paramValues) {
-                        sb.append(paramName);
-                        sb.append("=");
-                        sb.append(paramValue);
-                        sb.append("&");
-                    }
-                }
-                sb.deleteCharAt(sb.length() -1);
-                sb.append("&");
-            }
-            sb.deleteCharAt(sb.length() -1);
-        }
-        */
-
         if (validationKey != null) {
             if (!sb.toString().contains("?")) {
                 sb.append("?");
@@ -410,5 +382,38 @@ public class SessionFilter implements Filter {
         }
 
         return paramValue;
+    }
+
+    private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final ContextManager theManager = ContextManager.getContextManager(req.getSession());
+
+        ConfigurationReader.MODE mode = ConfigurationReader.MODE.NEW;
+        if (theManager != null && theManager.getConfigReader() != null) {
+            mode = theManager.getConfigReader().getConfigMode();
+        }
+
+        if (mode == ConfigurationReader.MODE.NEW) {
+            final String configServletPathPrefix = req.getContextPath() + "/config/";
+            final String requestedURL = req.getRequestURI();
+
+            // check if current request is actually for the config url, if it is, just do nothing.
+            if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
+                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
+                resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
+                return true;
+            }
+        } else if (mode == ConfigurationReader.MODE.ERROR) {
+            final ServletContext servletContext = pwmSession.getContextManager().getServletContext();
+            final ErrorInformation rootError = theManager.getConfigReader().getConfigFileError();
+            final ErrorInformation displayError = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,rootError.getDetailedErrorMsg(),rootError.getFieldValues());
+            ssBean.setSessionError(displayError);
+            ServletHelper.forwardToErrorPage(req,resp,servletContext,true);
+            return true;
+        }
+
+        return false;
     }
 }

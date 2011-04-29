@@ -22,6 +22,9 @@
 
 package password.pwm.config;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -33,6 +36,8 @@ import java.util.regex.Pattern;
  */
 public enum PwmSetting {
     // general settings
+    REQUIRE_HTTPS(
+            "pwm.requireHTTPS", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
@@ -185,7 +190,7 @@ public enum PwmSetting {
     SMS_ENABLE(
             "sms.enable", Syntax.BOOLEAN, Category.SMS, true, Level.ADVANCED),
     SMS_PRIORITY_PREFERENCE(
-            "sms.priority", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.priority", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_USER_PHONE_ATTRIBUTE(
             "sms.userSmsAttribute", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
     SMS_MAX_QUEUE_AGE(
@@ -197,15 +202,15 @@ public enum PwmSetting {
     SMS_GATEWAY_PASSWORD(
             "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, false, Level.ADVANCED),
     SMS_GATEWAY_METHOD(
-            "sms.gatewayMethod", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.gatewayMethod", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_GATEWAY_AUTHMETHOD(
-            "sms.gatewayAuthMethod", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.gatewayAuthMethod", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_REQUEST_DATA(
             "sms.requestData", Syntax.LOCALIZED_TEXT_AREA, Category.SMS, false, Level.ADVANCED),
     SMS_REQUEST_CONTENT_TYPE(
             "sms.requestContentType", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
     SMS_REQUEST_CONTENT_ENCODING(
-            "sms.requestContentEncoding", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.requestContentEncoding", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_MAX_TEXT_LENGTH(
             "sms.maxTextLength", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_RESPONSE_OK_REGEX(
@@ -213,7 +218,7 @@ public enum PwmSetting {
     SMS_SENDER_ID(
             "sms.senderID", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
     SMS_PHONE_NUMBER_FORMAT(
-            "sms.phoneNumberFormat", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.phoneNumberFormat", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_DEFAULT_COUNTRY_CODE(
             "sms.defaultCountryCode", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_REQUESTID_CHARS(
@@ -311,7 +316,7 @@ public enum PwmSetting {
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
             "events.healthCheck.minInterval", Syntax.NUMERIC, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_JAVA_STDOUT_LEVEL(
-            "events.java.stdoutLevel", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
+            "events.java.stdoutLevel", Syntax.SELECT, Category.LOGGING, false, Level.BASIC),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
             "events.java.log4jconfigFile", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_PWMDB_MAX_EVENTS(
@@ -524,7 +529,7 @@ public enum PwmSetting {
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     HTTP_PROXYTYPE(
-            "http.proxytype", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
+            "http.proxytype", Syntax.SELECT, Category.ADVANCED, true, Level.ADVANCED),
     HTTP_PROXYSERVER(
             "http.proxyserver", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
     HTTP_PROXYPORT(
@@ -626,6 +631,15 @@ public enum PwmSetting {
         return returnValue;
     }
 
+    public Map<String,String> getOptions() {
+        final String keyName = "OPTS_" + this.getKey();
+        final String inputValue = readProps(keyName, Locale.getDefault());
+        final Gson gson = new Gson();
+        final Map<String,String> valueList = gson.fromJson(inputValue, new TypeToken<Map<String,String>>(){}.getType());
+        return valueList;
+
+    }
+
     public String getLabel(final Locale locale) {
         return readProps("LABEL_" + this.getKey(), locale);
     }
@@ -669,7 +683,8 @@ public enum PwmSetting {
         LOCALIZED_STRING_ARRAY,
         PASSWORD,
         NUMERIC,
-        BOOLEAN
+        BOOLEAN,
+        SELECT
     }
 
     public enum Category {
@@ -691,7 +706,8 @@ public enum PwmSetting {
         SHORTCUT,
         EDIRECTORY,
         CAPTCHA,
-        ADVANCED;
+        ADVANCED
+        ;
 
         public String getLabel(final Locale locale) {
             return readProps("CATEGORY_LABEL_" + this.name(), locale);
@@ -721,13 +737,6 @@ public enum PwmSetting {
         public String getDescription() {
             return description;
         }
-    }
-
-     public enum SmsPriority {
-        BOTH,
-        EMAILFIRST,
-        SMSFIRST,
-        SMSONLY
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByCategory(final Level byLevel) {

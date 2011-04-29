@@ -35,7 +35,7 @@ import java.net.URL;
 import java.util.*;
 
 public class ConfigurationChecker implements HealthChecker {
-    private static final String TOPIC = "Configuration Checker";
+    private static final String TOPIC = "Configuration";
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthChecker.class);
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
@@ -45,31 +45,75 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         final Configuration config = contextManager.getConfig();
-
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
-        if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Promiscuous LDAP SSL connection is being used"));
+
+        if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting should be set to true for proper security");
+
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
         }
+
+        if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting should be set to false for proper security");
+
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+        }
+
+        if (config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN) == null || config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN).length() < 1 ) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting should be set to verify proper operation");
+
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting should be set to false for proper security");
+
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+        }
+
 
         {
             final List<String> ldapServerURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
-            boolean foundUnsecure = false;
             if (ldapServerURLs != null && !ldapServerURLs.isEmpty()) {
                 for (final String urlStringValue : ldapServerURLs) {
                     try {
                         final URI url = new URI(urlStringValue);
                         final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
                         if (!secure) {
-                            foundUnsecure = true;
+                            final StringBuilder errorMsg = new StringBuilder();
+                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(Locale.getDefault()));
+                            errorMsg.append(" -> ");
+                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(Locale.getDefault()));
+                            errorMsg.append(" url is configured for non-secure connection: ").append(urlStringValue);
+
+                            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
                         }
                     } catch (URISyntaxException  e) {
-                        LOGGER.debug("error parsing ldapServerURLs: " + e.getMessage());
-                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "error parsing ldapServerURLs: " + e.getMessage()));
+                        final StringBuilder errorMsg = new StringBuilder();
+                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(Locale.getDefault()));
+                        errorMsg.append(" -> ");
+                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(Locale.getDefault()));
+                        errorMsg.append(" error parsing urls: ").append(e.getMessage());
+
+                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
                     }
                 }
-            }
-            if (foundUnsecure) {
-                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "One or more LDAP URLs are configured using non-secure connections."));
             }
         }
 

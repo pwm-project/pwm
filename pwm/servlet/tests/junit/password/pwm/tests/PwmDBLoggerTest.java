@@ -71,6 +71,7 @@ public class PwmDBLoggerTest extends TestCase {
                     final StringBuilder sb = new StringBuilder();
                     sb.append("added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
                     sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
+                    sb.append(", db sizedevents: ").append(pwmDBLogger.getStoredEventCount());
                     sb.append(", free space: ").append(Helper.diskSpaceRemaining(pwmDB.getFileLocation()));
                     System.out.println(sb);
                 }

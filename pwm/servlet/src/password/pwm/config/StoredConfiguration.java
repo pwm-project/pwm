@@ -31,9 +31,13 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import password.pwm.util.Helper;
 import password.pwm.PwmConstants;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Base64Util;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import javax.crypto.*;
@@ -116,6 +120,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         switch (pwmSetting.getSyntax()) {
             case STRING:
             case BOOLEAN:
+            case SELECT:
             case NUMERIC:
                 return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
             case PASSWORD:
@@ -134,12 +139,24 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public boolean isDefaultValue(final PwmSetting setting) {
-        return !settingMap.containsKey(setting);
+        if (!settingMap.containsKey(setting)) {
+            return true;
+        }
+
+        final StoredValue defaultValue = defaultValue(setting,template());
+        if (defaultValue == null) {
+            return settingMap.get(setting) == null;
+        }
+
+        final String defaultJson = defaultValue.toJsonString();
+        final String currentJson = settingMap.get(setting).toJsonString();
+        return defaultJson.equals(currentJson);
     }
 
     public String readSetting(final PwmSetting setting) {
         switch (setting.getSyntax()) {
             case STRING:
+            case SELECT:
             case BOOLEAN:
             case NUMERIC:
             case PASSWORD:
@@ -155,6 +172,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         preModifyActions();
         switch (setting.getSyntax()) {
             case STRING:
+            case SELECT:
             case BOOLEAN:
             case NUMERIC:
                 settingMap.put(setting, new StoredValue.StoredValueString(value));
@@ -284,6 +302,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
                         final String key = STORED_DATE_FORMAT.format(createTime) + StoredConfiguration.class.getSimpleName();
                         valueElements = ((StoredValue.StoredValuePassword) settingMap.get(setting)).toXmlValues("value", key);
+                        settingElement.addContent(new Comment("Note: This value is encrypted and can not be edited directly."));
+                        settingElement.addContent(new Comment("Please use the PWM Configuration Manager to modify this value."));
                     } else {
                         valueElements = settingMap.get(setting).toXmlValues("value");
                     }
@@ -310,14 +330,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
 
     public static StoredConfiguration fromXml(final String xmlData)
-            throws Exception {
+            throws PwmUnrecoverableException
+    {
         final SAXBuilder builder = new SAXBuilder();
         final Reader in = new StringReader(xmlData);
         final Document inputDocument;
         try {
             inputDocument = builder.build(in);
         } catch (Exception e) {
-            throw new Exception("error parsing xml data: " + e.getMessage());
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error parsing xml data: " + e.getMessage()));
         }
 
         final Set<PwmSetting> seenSettings = new HashSet<PwmSetting>();
@@ -396,8 +417,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
                                     final String decodedValue = TextConversations.decryptValue(encodedValue, key);
                                     newConfiguration.writeSetting(pwmSetting, decodedValue);
                                 } catch (Exception e) {
-                                    newConfiguration.writeSetting(pwmSetting, "");
-                                    throw new RuntimeException("unable to decode value: " + e.getMessage());
+                                    final String errorMsg = "unable to decode encrypted password value for setting '" + pwmSetting.toString() + "' : " + e.getMessage();
+                                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+                                    throw new PwmOperationalException(errorInfo);
                                 }
                             }
                             break;
@@ -432,8 +454,12 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
             }
 
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (Exception e) {
-            throw new Exception("Error reading configuration file format: " + e.getMessage());
+            final String errorMsg = "error reading configuration file format: " + e.getMessage();
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            throw new PwmUnrecoverableException(errorInfo);
         }
 
         LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values, epoch " + newConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
@@ -457,26 +483,19 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public String toString(final boolean linebreaks) {
-        //organize into default / non-default sets.
-        final Set<PwmSetting> defaultSet = new HashSet<PwmSetting>(Arrays.asList(PwmSetting.values()));
-        final Set<PwmSetting> modifiedSet = new HashSet<PwmSetting>(defaultSet);
-        for (final Iterator<PwmSetting> settingIter = modifiedSet.iterator(); settingIter.hasNext();) {
-            if (!isDefaultValue(settingIter.next())) {
-                settingIter.remove();
-            }
-        }
-        defaultSet.removeAll(modifiedSet);
-
         final StringBuilder outputString = new StringBuilder();
 
+        final Set<PwmSetting> unmodifiedSettings = new HashSet<PwmSetting>(Arrays.asList(PwmSetting.values()));
+
         outputString.append("modified=[");
-        for (final Iterator<PwmSetting> settingIter = modifiedSet.iterator(); settingIter.hasNext();) {
+        for (final Iterator<PwmSetting> settingIter = this.settingMap.keySet().iterator(); settingIter.hasNext();) {
             final PwmSetting setting = settingIter.next();
             outputString.append(toString(setting));
             outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");
+            unmodifiedSettings.remove(setting);
         }
         outputString.append("] default=[");
-        for (final Iterator<PwmSetting> settingIter = defaultSet.iterator(); settingIter.hasNext();) {
+        for (final Iterator<PwmSetting> settingIter = unmodifiedSettings.iterator(); settingIter.hasNext();) {
             final PwmSetting setting = settingIter.next();
             outputString.append(toString(setting));
             outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");

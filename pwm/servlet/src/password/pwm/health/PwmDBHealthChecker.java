@@ -66,7 +66,7 @@ public class PwmDBHealthChecker implements HealthChecker {
                     healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
                 }
 
-                final long maxTailMs = (long) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
+                final long maxTailMs = contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
                 final long tailDate = pwmDBLogger.getTailTimestamp();
                 final long maxTailDate = System.currentTimeMillis() - maxTailMs;
                 if (tailDate < maxTailDate - (60 * 60 * 1000)) { // older than an hour past tail date

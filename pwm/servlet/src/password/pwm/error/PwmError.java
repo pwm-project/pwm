@@ -121,6 +121,7 @@ public enum PwmError {
     ERROR_TOKEN_EXPIRED("Error_TokenExpired", 5041),
     ERROR_MULTI_USERNAME("Error_Multi_Username", 5042),
     ERROR_ORIG_ADMIN_ONLY("Error_Orig_Admin_Only", 5043),
+    ERROR_SECURE_REUEST_REQUIRED("Error_SecureRequestRequired", 5044),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

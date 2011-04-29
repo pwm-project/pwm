@@ -247,6 +247,10 @@ public class ConfigManagerServlet extends TopServlet {
                 case PASSWORD:
                     returnValue = DEFAULT_PW;
                     break;
+                case SELECT:
+                    returnValue = storedConfig.readSetting(theSetting);
+                    returnMap.put("options",theSetting.getOptions());
+                    break;
 
                 default:
                     returnValue = storedConfig.readSetting(theSetting);
@@ -332,8 +336,6 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         final Map<String, Object> returnMap = new HashMap<String, Object>();
-        storedConfig.isDefaultValue(setting);
-
         returnMap.put("key", key);
         returnMap.put("category", setting.getCategory().toString());
         returnMap.put("syntax", setting.getSyntax().toString());

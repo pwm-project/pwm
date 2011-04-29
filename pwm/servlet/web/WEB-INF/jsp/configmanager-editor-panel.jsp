@@ -28,7 +28,7 @@
 <% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
 <h1 style="text-align:center;"><%=category.getLabel(request.getLocale())%>
 </h1>
-<span><%= category.getDescription(request.getLocale())%></span>
+<% if (showDesc) { %><span><%= category.getDescription(request.getLocale())%></span><% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(category)) { %>
 <script type="text/javascript">showError('');</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
@@ -93,6 +93,32 @@
             }
             buttonElement.disabled = false;
             dijit.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
+        });
+    </script>
+    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.SELECT) { %>
+    <select id="select_<%=loopSetting.getKey()%>" disabled="true">
+        <% for (final String loopValue : loopSetting.getOptions().keySet()) { %>
+        <option value="<%=loopValue%>"><%=loopSetting.getOptions().get(loopValue)%></option>
+        <% } %>
+    </select>
+    <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
+         id="resetButton-<%=loopSetting.getKey()%>"
+         style="visibility:hidden; vertical-align:middle;"
+         onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
+    <script type="text/javascript">
+        dojo.require("dijit.form.FilteringSelect");
+        new dijit.form.FilteringSelect({
+            disabled: true,
+            style: "min-width: 400px",
+            onChange: function() {
+                writeSetting('<%=loopSetting.getKey()%>',this.value);
+            }
+        }, "select_<%=loopSetting.getKey()%>");
+        readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+            var selectElement = getObject('select_' + '<%=loopSetting.getKey()%>');
+            selectElement.disabled = false;
+            dijit.byId('select_<%=loopSetting.getKey()%>').setDisabled(false);
+            dijit.byId('select_<%=loopSetting.getKey()%>').set('value',dataValue);
         });
     </script>
     <% } else { %>

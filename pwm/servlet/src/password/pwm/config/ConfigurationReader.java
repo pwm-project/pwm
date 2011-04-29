@@ -22,12 +22,18 @@
 
 package password.pwm.config;
 
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Read the PWM configuration.
@@ -42,48 +48,44 @@ public class ConfigurationReader {
 
     private final File configFile;
     private final String configFileChecksum;
-    private final StoredConfiguration storedConfiguration;
     private final Configuration configuration;
+    private StoredConfiguration storedConfiguration;
+    private ErrorInformation configFileError;
 
     private Date configurationReadTime;
 
-    private final MODE configMode;
+    private MODE configMode = MODE.NEW;
 
     public enum MODE {
         NEW,
         CONFIGURATION,
-        RUNNING
+        RUNNING,
+        ERROR
     }
 
     public ConfigurationReader(final File configFile) {
         this.configFile = configFile;
         this.configFileChecksum = readFileChecksum(configFile);
-        this.storedConfiguration = readStoredConfig();
-        this.configMode = determineConfigMode(storedConfiguration);
+        try {
+            this.storedConfiguration = readStoredConfig();
+            this.configFileError = null;
+        } catch (PwmUnrecoverableException e) {
+            this.storedConfiguration = StoredConfiguration.getDefaultConfiguration();
+            this.configFileError = e.getErrorInformation();
+            LOGGER.warn("error reading configuration file: " + e.getMessage());
+        }
+
         LOGGER.debug("configuration mode: " + configMode);
 
         if (modifiedSincePWMSave()) {
             LOGGER.warn("configuration settings have been modified since the file was saved by pwm");
         }
 
-        configuration = configMode == MODE.NEW ? null : new Configuration(this.storedConfiguration);
+        configuration = new Configuration(this.storedConfiguration);
     }
 
     public MODE getConfigMode() {
         return configMode;
-    }
-
-    private static MODE determineConfigMode(final StoredConfiguration storedConfig) {
-        if (storedConfig == null) {
-            return MODE.NEW;
-        }
-
-        final String configIsEditable = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
-        if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
-            return MODE.CONFIGURATION;
-        }
-
-        return MODE.RUNNING;
     }
 
     public StoredConfiguration getStoredConfiguration() {
@@ -94,30 +96,51 @@ public class ConfigurationReader {
         return configuration;
     }
 
-    private StoredConfiguration readStoredConfig() {
+    private StoredConfiguration readStoredConfig() throws PwmUnrecoverableException {
         LOGGER.debug("loading configuration file: " + configFile);
+
+        configurationReadTime = new Date();
+
+        if (!configFile.exists()) {
+            LOGGER.warn("configuration file '" + configFile.getAbsolutePath() + "' does not exist");
+            return null;
+        }
 
         final String theFileData;
         try {
             theFileData = Helper.readFileAsString(configFile, MAX_FILE_CHARS);
         } catch (Exception e) {
-            LOGGER.warn("unable to read configuration file: " + e.getMessage());
-            return null;
+            final String errorMsg = "unable to read configuration file: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            this.configMode = MODE.ERROR;
+            throw new PwmUnrecoverableException(errorInformation);
         }
 
         final StoredConfiguration storedConfiguration;
         try {
             storedConfiguration = StoredConfiguration.fromXml(theFileData);
-        } catch (Exception e) {
-            LOGGER.warn("unable to parse configuration file: " + e.getMessage());
-            return null;
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unable to parse configuration file: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            this.configMode = MODE.ERROR;
+            throw new PwmUnrecoverableException(errorInformation);
         }
 
-        for (final String errorString : storedConfiguration.validateValues()) {
-            LOGGER.error("error in config file, please investigate: " + errorString);
+        final List<String> validationErrorMsgs = storedConfiguration.validateValues();
+        if (validationErrorMsgs != null && !validationErrorMsgs.isEmpty()) {
+            final String errorMsg = "value error in config file, please investigate: " + validationErrorMsgs.get(0);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            this.configMode = MODE.ERROR;
+            throw new PwmUnrecoverableException(errorInformation);
         }
 
-        configurationReadTime = new Date();
+        final String configIsEditable = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
+            this.configMode = MODE.CONFIGURATION;
+        } else {
+            this.configMode = MODE.RUNNING;
+        }
+
         storedConfiguration.lock();
         return storedConfiguration;
     }
@@ -185,6 +208,10 @@ public class ConfigurationReader {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public ErrorInformation getConfigFileError() {
+        return configFileError;
     }
 }
 

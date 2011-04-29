@@ -534,14 +534,14 @@ public class ForgottenPasswordServlet extends TopServlet {
 
 	private void sendToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmUnrecoverableException {
         final Configuration config = pwmSession.getConfig();
-		final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.SMS_PRIORITY_PREFERENCE).toUpperCase());
+		final SmsPriority pref = SmsPriority.valueOf(config.readSettingAsString(PwmSetting.SMS_PRIORITY_PREFERENCE));
 		if (config.readSettingAsBoolean(PwmSetting.SMS_ENABLE)) {
-			boolean success = false;
+			final boolean success;
             switch (pref) {
                 case BOTH:
                     // Send both email and SMS, success if one of both succeeds
-                    boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
-                    boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
+                    final boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
+                    final boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
                     success = suc1 || suc2;
                     break;
                 case EMAILFIRST:
@@ -683,5 +683,12 @@ public class ForgottenPasswordServlet extends TopServlet {
         resp.sendRedirect(redirectURL.toString());
         return true;
     }
+
+    public enum SmsPriority {
+       BOTH,
+       EMAILFIRST,
+       SMSFIRST,
+       SMSONLY
+   }
 }
 

@@ -65,7 +65,7 @@ public class ConfigUploadServlet extends TopServlet {
                         LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
                         success = true;
                     }
-                } catch (Exception e) {
+                } catch (PwmUnrecoverableException e) {
                     pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", e.getMessage()));
                     LOGGER.error(pwmSession, "error reading config input file: " + e.getMessage());
                 }

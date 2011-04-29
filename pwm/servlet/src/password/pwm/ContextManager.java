@@ -247,10 +247,13 @@ public class ContextManager implements Serializable {
             final File configFile = ServletHelper.figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
             configReader = new ConfigurationReader(configFile);
             configuration = configReader.getConfiguration();
-            if (configuration == null) {
-                taskMaster = new Timer("pwm-ContextManager timer", true);
-                taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
-                return;
+
+            switch (configReader.getConfigMode()) {
+                case ERROR:
+                case NEW:
+                    taskMaster = new Timer("pwm-ContextManager timer", true);
+                    taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
+                    return;
             }
         } catch (Exception e) {
             //LOGGER.fatal("unable to load configuration file", e);
@@ -618,7 +621,7 @@ public class ContextManager implements Serializable {
             Exception configException = null;
             boolean configured = false;
 
-            // try to configure using the log4j config file (if it iexists)
+            // try to configure using the log4j config file (if it exists)
             if (log4jFilename != null && log4jFilename.length() > 0) {
                 try {
                     final File theFile = ServletHelper.figureFilepath(log4jFilename, "WEB-INF/", servletContext);
