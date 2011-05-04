@@ -269,9 +269,11 @@ public class FormConfiguration implements Serializable {
 
 
             case EMAIL:
-                if (!Helper.testEmailAddress(this.getValue())) {
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
-                    throw new PwmDataValidationException(error);
+                if (this.getValue() != null && this.getValue().length() > 0) {
+                    if (!Helper.testEmailAddress(this.getValue())) {
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
+                        throw new PwmDataValidationException(error);
+                    }
                 }
                 break;
 
