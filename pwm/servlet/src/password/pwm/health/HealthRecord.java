@@ -24,7 +24,7 @@ package password.pwm.health;
 
 import java.io.Serializable;
 
-public class HealthRecord implements Serializable {
+public class HealthRecord implements Serializable,Comparable<HealthRecord> {
     private final HealthStatus status;
     private final String topic;
     private final String detail;
@@ -47,4 +47,17 @@ public class HealthRecord implements Serializable {
         return detail;
     }
 
+    public int compareTo(final HealthRecord otherHealthRecord) {
+        final int statusCompare = status.compareTo(otherHealthRecord.status);
+        if (statusCompare != 0) {
+            return statusCompare;
+        }
+
+        final int topicCompare = topic.compareTo(otherHealthRecord.topic);
+        if (topicCompare != 0) {
+            return topicCompare;
+        }
+
+        return detail.compareTo(otherHealthRecord.detail);
+    }
 }

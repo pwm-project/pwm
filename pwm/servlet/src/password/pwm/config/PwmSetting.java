@@ -345,7 +345,7 @@ public enum PwmSetting {
 
     // challenge policy
     CHALLENGE_ENABLE(
-            "challenge.enable", Syntax.BOOLEAN, Category.CHALLENGE, false, Level.ADVANCED),
+            "challenge.enable", Syntax.BOOLEAN, Category.CHALLENGE, false, Level.BASIC),
     CHALLENGE_FORCE_SETUP(
             "challenge.forceSetup", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_RANDOM_CHALLENGES(
@@ -372,21 +372,21 @@ public enum PwmSetting {
 
     // recovery settings
     FORGOTTEN_PASSWORD_ENABLE(
-            "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
+            "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.ADVANCED),
+            "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
     RESPONSE_STORAGE_PWMDB(
-            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
+            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_ALLOW_UNLOCK(
-            "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
+            "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_STORAGE_HASHED(
             "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_ATTRIBUTES(
-            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.ADVANCED),
+            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_REQUIRE_RESPONSES(
-            "challenge.requireResponses", Syntax.BOOLEAN, Category.RECOVERY, false, Level.ADVANCED),
+            "challenge.requireResponses", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_TOKEN_ENABLE(
-            "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
+            "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_TOKEN_CHARACTERS(
             "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_LENGTH(

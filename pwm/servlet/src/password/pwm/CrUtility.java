@@ -26,18 +26,17 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Message;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.PwmDB;
 import password.pwm.util.db.PwmDBException;
-import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
 import javax.xml.rpc.Stub;
@@ -161,81 +160,103 @@ public class CrUtility {
         return null;
     }
 
-    public static boolean saveResponses(final PwmSession pwmSession, final ResponseSet responses)
-            throws PwmUnrecoverableException, ChaiUnavailableException {
+    public static void writeResponses(
+            final PwmSession pwmSession,
+            final ResponseSet responses
+    )
+            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+        final Configuration config = pwmSession.getConfig();
+        final ChaiUser theUser = pwmSession.getSessionManager().getActor();
+        final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+        writeResponses(theUser, userGUID, config, pwmDB, responses, pwmSession);
+    }
+
+    public static void writeResponses(
+            final ChaiUser theUser,
+            final String userGUID,
+            final Configuration config,
+            final PwmDB pwmDB,
+            final ResponseSet responses,
+            final PwmSession pwmSession
+
+    )
+            throws PwmOperationalException, ChaiUnavailableException
+    {
         int attempts = 0, successes = 0;
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
+        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
             attempts++;
-            final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
             }
 
-            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
 
             try {
                 pwmDB.put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
                 successes++;
             } catch (PwmDBException e) {
-                LOGGER.error(pwmSession, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
             }
         }
 
 
-        final String ldapStorageAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
         if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
             try {
                 attempts++;
-                final boolean storeUsingHash = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
+                final boolean storeUsingHash = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
                 final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
                 responses.write(writeMode);
                 LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
                 successes++;
             } catch (ChaiOperationException e) {
+                final String errorMsg;
                 if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                    LOGGER.warn(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
-                    LOGGER.warn(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserDN() + "' does not appear to have enough rights to save responses");
+                    errorMsg = "permission error writing user responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
                 } else {
-                    LOGGER.debug(pwmSession, "error writing user's supplied new responses to ldap: " + e.getMessage());
+                    errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
                 }
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
             }
         }
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
             try {
-                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     attempts++;
                     responses.write(CrMode.NMAS);
                     LOGGER.info(pwmSession, "saved responses for user using method " + CrMode.NMAS);
                     successes++;
                 }
             } catch (ChaiOperationException e) {
-                LOGGER.debug(pwmSession, "error writing user's supplied new responses to nmas: " + e.getMessage());
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage()));
+                final String errorMsg = "error writing responses to nmas: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
             }
         }
 
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
-        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
-        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
-
-        if (attempts == successes) {
-            if (attempts == 0) {
-                LOGGER.warn(pwmSession, "no response saving methods available or configured");
-                return false;
-            }
-            final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-            UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
-            //pwmSession.getSetupResponseBean().clear();
-            return true;
+        if (attempts == 0) {
+            final String errorMsg = "no response save methods are available or configured";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+            throw new PwmOperationalException(errorInfo);
         }
 
-        LOGGER.warn(pwmSession, "response storage only partially successful; attempts=" + attempts + ", successes=" + successes);
-        return false;
+        if (attempts != successes) { // should be impossible to get here, but just in case.
+            final String errorMsg = "response storage only partially successful; attempts=" + attempts + ", successes=" + successes;
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
     }
 
     public static class NovellWSResponseSet implements ResponseSet, Serializable {

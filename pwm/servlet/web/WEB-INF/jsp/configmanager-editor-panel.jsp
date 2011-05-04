@@ -37,7 +37,6 @@
     <%= loopSetting.getDescription(request.getLocale()) %>
     <br/>
     <% } %>
-
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">

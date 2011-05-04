@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -35,11 +36,13 @@ import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.*;
 import password.pwm.util.*;
 import password.pwm.util.db.PwmDB;
+import password.pwm.util.db.PwmDBException;
 import password.pwm.util.db.PwmDBFactory;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -69,6 +72,7 @@ public class ContextManager implements Serializable {
     private static final String DB_KEY_INSTANCE_ID = "context_instanceID";
     private static final String DB_KEY_CONFIG_SETTING_HASH = "configurationSettingHash";
     private static final String DB_KEY_INSTALL_DATE = "DB_KEY_INSTALL_DATE";
+    private static final String DB_KEY_LAST_LDAP_ERROR = "lastLdapError";
 
     private static final String DEFAULT_INSTANCE_ID = "-1";
 
@@ -97,7 +101,7 @@ public class ContextManager implements Serializable {
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
-    private Date lastLdapFailure = null;
+    private ErrorInformation lastLdapFailure = null;
 
 
 // -------------------------- STATIC METHODS --------------------------
@@ -175,7 +179,8 @@ public class ContextManager implements Serializable {
                 proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleSeconds * 1000);
             } catch (ChaiUnavailableException e) {
                 getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                setLastLdapFailure();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());
+                setLastLdapFailure(errorInformation);
                 LOGGER.fatal("check ldap proxy settings: " + e.getMessage());
                 throw e;
             }
@@ -202,12 +207,21 @@ public class ContextManager implements Serializable {
         return smsQueue;
     }
 
-    public Date getLastLdapFailure() {
+    public ErrorInformation getLastLdapFailure() {
         return lastLdapFailure;
     }
 
-    public void setLastLdapFailure() {
-        this.lastLdapFailure = new Date();
+    public void setLastLdapFailure(final ErrorInformation errorInformation) {
+        this.lastLdapFailure = errorInformation;
+        if (pwmDB != null) {
+            final Gson gson = new Gson();
+            final String jsonString = gson.toJson(errorInformation);
+            try {
+                pwmDB.put(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR,jsonString);
+            } catch (PwmDBException e) {
+                LOGGER.error("error writing lastLdapFailure time to pwmDB: " + e.getMessage());
+            }
+        }
     }
 
     // -------------------------- OTHER METHODS --------------------------
@@ -281,6 +295,9 @@ public class ContextManager implements Serializable {
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(pwmDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for this pwm instance's ID (instanceID)");
+
+        // read the lastLoginTime
+        lastLastLdapFailure(pwmDB, this);
 
         // get the pwm installation date
         installTime = fetchInstallDate(pwmDB, startupTime);
@@ -406,6 +423,20 @@ public class ContextManager implements Serializable {
         }
 
         return newInstanceID;
+    }
+
+    private static void lastLastLdapFailure(final PwmDB pwmDB, final ContextManager contextManager) {
+        if (pwmDB != null) {
+            try {
+                final String lastLdapFailureStr = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
+                if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
+                    final Gson gson = new Gson();
+                    contextManager.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
+                }
+            } catch (Exception e) {
+                LOGGER.error("error reading lastLdapFailure from pwmDB: " + e.getMessage(), e);
+            }
+        }
     }
 
     private static String logEnvironment() {

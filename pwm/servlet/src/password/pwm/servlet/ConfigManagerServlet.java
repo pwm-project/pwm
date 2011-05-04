@@ -51,7 +51,7 @@ public class ConfigManagerServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
-    private static final int MAX_INPUT_LENGTH = 1024 * 10;
+    private static final int MAX_INPUT_LENGTH = 1024 * 100;
     private static final String DEFAULT_PW = "DEFAULT-PW";
 
     protected void processRequest(
@@ -71,8 +71,8 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
-            if ("getConfigEpoch".equalsIgnoreCase(processActionParam)) {
-                doGetConfigEpoch(req, resp);
+            if ("getOptions".equalsIgnoreCase(processActionParam)) {
+                doGetOptions(req, resp);
                 return;
             } else if ("editorPanel".equalsIgnoreCase(processActionParam)) {
                 if ("fieldEditor".equalsIgnoreCase(Validator.readStringFromRequest(req, "category"))) {
@@ -119,10 +119,12 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean, final Date configurationLoadTime) {
-        if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
-            LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configMode);
-            configManagerBean.setConfigurationLoadTime(configurationLoadTime);
-            configManagerBean.setConfiguration(null);
+        if (configMode != ConfigurationReader.MODE.RUNNING) {
+            if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
+                LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configMode);
+                configManagerBean.setConfigurationLoadTime(configurationLoadTime);
+                configManagerBean.setConfiguration(null);
+            }
         }
 
         // first time setup
@@ -157,7 +159,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
-    private void doGetConfigEpoch(
+    private void doGetOptions(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -176,6 +178,12 @@ public class ConfigManagerServlet extends TopServlet {
             returnMap.put("errorCode", configManagerBean.getErrorInformation().getError().getErrorCode());
             returnMap.put("errorDetail", configManagerBean.getErrorInformation().getDetailedErrorMsg());
         }
+
+        {   // otherdata
+            final String notesText = configManagerBean.getConfiguration().readPropertyKeys().contains(StoredConfiguration.PROPERTY_KEY_NOTES) ? configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) : "";
+            returnMap.put("notesText",notesText);
+        }
+
         final Gson gson = new Gson();
         final String outputString = gson.toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
@@ -374,6 +382,17 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
+            final String requestedShowNotes = Validator.readStringFromRequest(req, "showNotes", 255);
+            if (requestedShowNotes != null && requestedShowNotes.length() > 0) {
+                try {
+                    configManagerBean.setShowNotes(Boolean.valueOf(requestedShowNotes));
+                    LOGGER.trace("setting showDesc to: " + configManagerBean.isShowDescr());
+                } catch (Exception e) {
+                    LOGGER.error("unknown showDesc set request: " + requestedShowNotes);
+                }
+            }
+        }
+        {
             final String requestedTemplate = Validator.readStringFromRequest(req, "template", 255);
             if (requestedTemplate != null && requestedTemplate.length() > 0) {
 
@@ -395,6 +414,22 @@ public class ConfigManagerServlet extends TopServlet {
                     LOGGER.trace("setting category to: " + configManagerBean.isShowDescr());
                 } catch (Exception e) {
                     LOGGER.error("unknown category set request: " + requestedCategory);
+                }
+            }
+        }
+
+        {
+            final String updateDescriptionTextCmd = Validator.readStringFromRequest(req, "updateNotesText", 255);
+            if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
+                try {
+                    final Gson gson = new Gson();
+                    final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
+                    final String value = gson.fromJson(bodyString, new TypeToken<String>() {
+                    }.getType());
+                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_NOTES, value);
+                    LOGGER.trace("updated notesText");
+                } catch (Exception e) {
+                    LOGGER.error("error updating notesText: " + e.getMessage());
                 }
             }
         }

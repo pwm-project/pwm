@@ -163,7 +163,7 @@ public class TimeDuration implements Comparable, Serializable {
         }
 
         if (this.equals(HOUR) || this.isLongerThan(HOUR)) {
-            if (getHours() != 0) {
+            if (getHours() != 0 && getHours() != 24) {
                 if (sb.length() > 0) {
                     sb.append(":");
                 }

@@ -65,7 +65,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public static final String PROPERTY_KEY_SETTING_CHECKSUM = "settingsChecksum";
     public static final String PROPERTY_KEY_CONFIG_IS_EDITABLE = "configIsEditable";
     public static final String PROPERTY_KEY_CONFIG_EPOCH = "configEpoch";
-    public static final String PROPERTY_KEY_TEMPLATE = "templateKey";
+    public static final String PROPERTY_KEY_TEMPLATE = "configTemplate";
+    public static final String PROPERTY_KEY_NOTES = "notes";
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
@@ -652,6 +653,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
             throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modifed");
         }
         modifyTime = new Date();
+    }
+
+    public boolean hasBeenModified() {
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (!this.isDefaultValue(setting)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class TextConversations {

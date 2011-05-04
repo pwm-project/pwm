@@ -414,16 +414,16 @@ public class Helper {
 
                     // invoke the passwordChange method;
                     final int result = externalClass.judgePassword(pwmSession, password);
-                    LOGGER.debug(pwmSession, "externalJudgeMethod '" + classNameString + "' returned a value of " + result);
+                    LOGGER.trace(pwmSession, "externalJudgeMethod '" + classNameString + "' returned a value of " + result);
                     returnList.add(result);
                 } catch (ClassCastException e) {
-                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
+                    LOGGER.error(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
                 } catch (ClassNotFoundException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
+                    LOGGER.error(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
                 } catch (IllegalAccessException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                    LOGGER.error(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
                 } catch (InstantiationException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
+                    LOGGER.error(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
                 }
             }
         }

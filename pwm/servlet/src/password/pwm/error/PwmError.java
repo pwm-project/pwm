@@ -79,7 +79,7 @@ public enum PwmError {
     NUMBERVALIDATION_UPPERBOUND("NumberValidation_Upperbound", 4103),
 
     ERROR_WRONGPASSWORD("Error_WrongPassword", 5001),
-    ERROR_WRONGANSWER("Error_WrongAnswer", 5002),
+    ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002),
     ERROR_USERAUTHENTICATED("Error_UserAuthenticated", 5003),
     ERROR_AUTHENTICATION_REQUIRED("Error_AuthenticationRequired", 5004),
     ERROR_RESPONSE_WRONGUSER("Error_Response_WrongUsername", 5005),
@@ -122,6 +122,8 @@ public enum PwmError {
     ERROR_MULTI_USERNAME("Error_Multi_Username", 5042),
     ERROR_ORIG_ADMIN_ONLY("Error_Orig_Admin_Only", 5043),
     ERROR_SECURE_REQUEST_REQUIRED("Error_SecureRequestRequired", 5044),
+    ERROR_WRITING_RESPONSES("Error_Writing_Responses",5045),
+    ERROR_UNLOCK_FAILURE("Error_Unlock_Failure",5046),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

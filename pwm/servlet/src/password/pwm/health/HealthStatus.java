@@ -22,15 +22,8 @@
 
 package password.pwm.health;
 
-/**
- * Created by IntelliJ IDEA.
- * User: J
- * Date: 2/19/11
- * Time: 10:05 PM
- * To change this template use File | Settings | File Templates.
- */
 public enum HealthStatus {
-    GOOD,
+    WARN,
     CAUTION,
-    WARN
+    GOOD
 }

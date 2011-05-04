@@ -74,9 +74,8 @@ public abstract class TopServlet extends HttpServlet {
             this.processRequest(req, resp);
         } catch (ChaiUnavailableException e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure();
+            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-            pwmSession.getContextManager().setLastLdapFailure();
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmUnrecoverableException e) {

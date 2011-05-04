@@ -128,7 +128,7 @@ public class Validator {
             LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
         } catch (ChaiUnavailableException e) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure();
+            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
@@ -318,31 +318,31 @@ public class Validator {
         }
     }
 
-	public static void validateNumericString(
-			final String numstr,
-			final Integer lowerbound,
-			final Integer upperbound,
+    public static void validateNumericString(
+            final String numstr,
+            final Integer lowerbound,
+            final Integer upperbound,
             final PwmSession pwmSession
-	) throws PwmUnrecoverableException, NumberFormatException, PwmDataValidationException {
-		final Integer num;
-		try {
-			num = Integer.parseInt(numstr);
-		} catch (Exception e) {
-        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_INVALIDNUMER, null, numstr);
+    ) throws PwmUnrecoverableException, NumberFormatException, PwmDataValidationException {
+        final Integer num;
+        try {
+            num = Integer.parseInt(numstr);
+        } catch (Exception e) {
+            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_INVALIDNUMER, null, numstr);
             LOGGER.trace(pwmSession, "value \""+numstr+"\" is not a valid number");
             throw new PwmDataValidationException(error);
-		}
-		if (num < lowerbound) {
-        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_LOWERBOUND, null, lowerbound.toString());
+        }
+        if (num < lowerbound) {
+            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_LOWERBOUND, null, lowerbound.toString());
             LOGGER.trace(pwmSession, "value "+numstr+" below lower bound ("+lowerbound.toString()+")");
             throw new PwmDataValidationException(error);
-		}
-		if (num > upperbound) {
-        	final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_UPPERBOUND, null, upperbound.toString());
+        }
+        if (num > upperbound) {
+            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_UPPERBOUND, null, upperbound.toString());
             LOGGER.trace(pwmSession, "value "+numstr+" above upper bound ("+upperbound.toString()+")");
             throw new PwmDataValidationException(error);
-		}
-	}
+        }
+    }
 
     /**
      * Validates a password against the configured rules of PWM.  No directory operations

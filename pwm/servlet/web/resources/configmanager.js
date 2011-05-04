@@ -38,6 +38,7 @@ function showError(errorMsg) {
         errorMsgObj.firstChild.nodeValue = errorMsg;
         errorMsgObj.className = "msg-error";
         errorMsgObj.style.visibility = 'visible';
+        errorMsgObj.style.marginBottom = '15px';
         window.scrollTo(errorMsgObj.offsetLeft, errorMsgObj.offsetTop)
     } else {
         errorMsgObj.style.visibility = 'hidden';
@@ -582,7 +583,7 @@ function saveConfiguration() {
     showWaitDialog('Saving Configuration...', null);
 
     dojo.xhrGet({
-        url:"ConfigManager?processAction=getConfigEpoch",
+        url:"ConfigManager?processAction=getOptions",
         sync: false,
         dataType: "json",
         handleAs: "json",
@@ -609,7 +610,7 @@ function finalizeConfiguration() {
     showWaitDialog('Finalizing Configuration...', null);
 
     dojo.xhrGet({
-        url:"ConfigManager?processAction=getConfigEpoch",
+        url:"ConfigManager?processAction=getOptions",
         sync: false,
         dataType: "json",
         handleAs: "json",
@@ -636,7 +637,7 @@ function finalizeConfiguration() {
 function waitForRestart(startTime, oldEpoch) {
     var currentTime = new Date().getTime();
     dojo.xhrGet({
-        url:"ConfigManager?processAction=getConfigEpoch",
+        url:"ConfigManager?processAction=getOptions",
         sync: true,
         dataType: "json",
         handleAs: "json",
@@ -676,3 +677,18 @@ function handleResetClick(settingKey) {
         window.location = window.location;
     }
 }
+
+function startNewConfigurationEditor(template) {
+    showWaitDialog('Loading...','');
+    dojo.xhrGet({
+        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+        sync: true,
+        error: function(errorObj) {
+            showError("error starting configuration editor: " + errorObj)
+        },
+        load: function(data) {
+            document.forms['editMode'].submit();
+        }
+    });
+}
+

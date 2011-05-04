@@ -217,7 +217,7 @@ function showPwmHealth(parentDivID, refreshNow) {
         url: refreshUrl,
         dataType: "json",
         handleAs: "json",
-        timeout: 30 * 1000,
+        timeout: 60 * 1000,
         load: function(data) {
             var healthRecords = data['data'];
             var htmlBody = '<table width="100%" style="width=100%; border=0">';
@@ -238,9 +238,9 @@ function showPwmHealth(parentDivID, refreshNow) {
                         backgroundColor = "white";
                 }
 
-                htmlBody += '<tr><td class="key" width="1%">';
+                htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
                 htmlBody += healthData['topic'];
-                htmlBody += '</td><td width="5%" style="background-color: ' + backgroundColor + '">';
+                htmlBody += '</td><td style="width: 1px; white-space:nowrap; background-color: ' + backgroundColor + '">';
                 htmlBody += healthData['status'];
                 htmlBody += "</td><td>";
                 htmlBody += healthData['detail'];
@@ -249,7 +249,7 @@ function showPwmHealth(parentDivID, refreshNow) {
 
             htmlBody += '<tr><td colspan="3" style="text-align:center;">';
             htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
-            htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
+            htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
             htmlBody += "</td></tr>";
 
             htmlBody += '</table>';
@@ -257,7 +257,7 @@ function showPwmHealth(parentDivID, refreshNow) {
             PWM_GLOBAL['healthCheckInProgress'] = false;
             setTimeout(function() {
                 showPwmHealth(parentDivID, false);
-            }, 30 * 1000);
+            }, 10 * 1000);
         },
         error: function(error) {
             var htmlBody = '<div style="text-align:center; background-color: #d20734">';

@@ -28,6 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogEvent;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -230,7 +231,7 @@ public abstract class AlertHandler {
 
 
             {
-                final List<HealthRecord> healthRecords = contextManager.getHealthMonitor().getHealthRecords();
+                final Collection<HealthRecord> healthRecords = contextManager.getHealthMonitor().getHealthRecords();
                 final java.util.Date lastHeathCheckDate = contextManager.getHealthMonitor().getLastHealthCheckDate();
 
                 textBody.append("-- PWM Health Check Results --\n");

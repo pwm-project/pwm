@@ -36,6 +36,7 @@ public class ConfigManagerBean implements Serializable {
     private ErrorInformation errorInformation;
     private PwmSetting.Level level = PwmSetting.Level.BASIC;
     private boolean showDescr = true;
+    private boolean showNotes = true;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
 
     public ConfigManagerBean() {
@@ -95,5 +96,13 @@ public class ConfigManagerBean implements Serializable {
 
     public void setCategory(final PwmSetting.Category category) {
         this.category = category;
+    }
+
+    public boolean isShowNotes() {
+        return showNotes;
+    }
+
+    public void setShowNotes(boolean showNotes) {
+        this.showNotes = showNotes;
     }
 }

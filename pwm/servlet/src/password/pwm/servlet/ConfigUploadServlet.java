@@ -51,6 +51,7 @@ public class ConfigUploadServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
         boolean success = false;
         if (ServletFileUpload.isMultipartContent(req)) {
@@ -59,8 +60,6 @@ public class ConfigUploadServlet extends TopServlet {
                 try {
                     final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
                     if (storedConfig != null) {
-                        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-                        storedConfig.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
                         configManagerBean.setConfiguration(storedConfig);
                         LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
                         success = true;
@@ -81,6 +80,7 @@ public class ConfigUploadServlet extends TopServlet {
         } else {
             if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_SUCCESS,"successfully imported config file"));
+                configManagerBean.setEditorMode(true);
             } else {
                 ConfigManagerServlet.saveConfiguration(pwmSession);
             }

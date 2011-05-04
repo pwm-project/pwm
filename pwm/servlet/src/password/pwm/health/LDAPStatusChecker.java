@@ -39,6 +39,7 @@ import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.TimeDuration;
 import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;
@@ -47,6 +48,9 @@ public class LDAPStatusChecker implements HealthChecker {
 
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LDAPStatusChecker.class);
     final private static String TOPIC = "LDAP Connectivity";
+
+    final private static TimeDuration CAUTION_TIME_DIFF = new TimeDuration(24 * 60 * 60 * 1000); // 24 hours minutes;
+    final private static TimeDuration WARN_TIME_DIFF = new TimeDuration(30 * 60 * 1000); // 30 minutes;
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
@@ -60,6 +64,19 @@ public class LDAPStatusChecker implements HealthChecker {
             } else {
                 returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, result.toDebugStr()));
                 return returnRecords;
+            }
+        }
+
+        { // check recent ldap status
+            final ErrorInformation errorInfo = contextManager.getLastLdapFailure();
+            if (errorInfo != null) {
+                final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+
+                if (errorAge.isShorterThan(WARN_TIME_DIFF)) {
+                    returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
+                } else if (errorAge.isShorterThan(CAUTION_TIME_DIFF)) {
+                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
+                }
             }
         }
 

@@ -28,10 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class HealthMonitor implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthMonitor.class);
@@ -39,7 +36,7 @@ public class HealthMonitor implements Serializable {
     private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
     private final ContextManager contextManager;
-    private final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+    private final Set<HealthRecord> healthRecords = new TreeSet<HealthRecord>();
     private final List<HealthChecker> healthCheckers = new ArrayList<HealthChecker>();
 
     private Date lastHealthCheckDate = null;
@@ -69,11 +66,11 @@ public class HealthMonitor implements Serializable {
         healthCheckers.add(healthChecker);
     }
 
-    public List<HealthRecord> getHealthRecords() {
+    public Set<HealthRecord> getHealthRecords() {
         return getHealthRecords(false);
     }
 
-    public List<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
+    public Set<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
         if (lastHealthCheckDate == null || refreshImmediate) {
             doHealthChecks();
         } else {
@@ -83,7 +80,7 @@ public class HealthMonitor implements Serializable {
                 doHealthChecks();
             }
         }
-        return Collections.unmodifiableList(healthRecords);
+        return Collections.unmodifiableSet(healthRecords);
     }
 
     public void close() {

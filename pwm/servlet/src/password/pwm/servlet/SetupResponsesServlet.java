@@ -26,7 +26,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.CrFactory;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -37,11 +40,10 @@ import password.pwm.bean.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.ServletException;
@@ -146,7 +148,7 @@ public class SetupResponsesServlet extends TopServlet {
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
             validateResponses(pwmSession, challengeSet, responseMap);
             generateResponseSet(pwmSession, challengeSet, responseMap);
-        } catch (SetupResponsesException e) {
+        } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession);
         }
@@ -183,8 +185,7 @@ public class SetupResponsesServlet extends TopServlet {
             responseMap = readResponsesFromHttpRequest(req, pwmSession, challengeSet);
             validateResponses(pwmSession, challengeSet, responseMap);
             responses = generateResponseSet(pwmSession, challengeSet, responseMap);
-
-        } catch (SetupResponsesException e) {
+        } catch (PwmDataValidationException e) {
             LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
             ssBean.setSessionError(e.getErrorInformation());
             this.forwardToJSP(req, resp);
@@ -197,12 +198,16 @@ public class SetupResponsesServlet extends TopServlet {
             pwmSession.getSetupResponseBean().setResponseMap(responseMap);
             this.forwardToConfirmJSP(req, resp);
         } else {
-            final boolean saveSuccess = CrUtility.saveResponses(pwmSession, responses);
-            if (saveSuccess) {
-                ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
-            } else {
+            try {
+                CrUtility.writeResponses(pwmSession, responses);
+            } catch (PwmOperationalException e) {
+                LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
+                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
+                return;
             }
+
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
         }
     }
 
@@ -212,7 +217,6 @@ public class SetupResponsesServlet extends TopServlet {
             final PwmSession pwmSession
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
-        boolean saveSuccess = false;
 
         Validator.validatePwmFormID(req);
 
@@ -222,27 +226,31 @@ public class SetupResponsesServlet extends TopServlet {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
                 validateResponses(pwmSession, challengeSet, responseMap);
                 final ResponseSet responses = generateResponseSet(pwmSession, challengeSet, responseMap);
-                saveSuccess = CrUtility.saveResponses(pwmSession, responses);
-            } catch (SetupResponsesException e) {
-                LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
+                CrUtility.writeResponses(pwmSession, responses);
+            } catch (PwmOperationalException e) {
+                LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
                 return;
             }
         }
 
-        if (saveSuccess) {
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
-        } else {
-            this.forwardToConfirmJSP(req, resp);
-        }
+
+        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
+        pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
+        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
+        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
+
+        ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(
             final HttpServletRequest req,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmUnrecoverableException {
+            throws PwmDataValidationException, PwmUnrecoverableException {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
         for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements();) {
@@ -258,7 +266,7 @@ public class SetupResponsesServlet extends TopServlet {
             final HttpServletRequest req,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmUnrecoverableException, IOException {
+            throws PwmDataValidationException, PwmUnrecoverableException, IOException {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
         final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
@@ -282,10 +290,11 @@ public class SetupResponsesServlet extends TopServlet {
     private static Map<Challenge, String> paramMapToChallengeMap(
             final Map<String, String> inputMap,
             final PwmSession pwmSession,
-            final ChallengeSet challengeSet)
-            throws SetupResponsesException, PwmUnrecoverableException {
-        final Set<String> problemParams = new HashSet<String>();
-        ErrorInformation errorInfo = null;
+            final ChallengeSet challengeSet
+    )
+            throws PwmDataValidationException, PwmUnrecoverableException
+    {
+        final List<ErrorInformation> errorInformations = new ArrayList<ErrorInformation>();
 
         { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
             final Set<String> questionTexts = new HashSet<String>();
@@ -293,8 +302,7 @@ public class SetupResponsesServlet extends TopServlet {
                 final String paramValue = inputMap.get(paramName);
                 if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(PwmConstants.PARAM_QUESTION_PREFIX)) {
                     if (questionTexts.contains(paramValue.toLowerCase())) {
-                        errorInfo = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE);
-                        problemParams.add(paramName);
+                        errorInformations.add(new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE,null,paramName));
                     } else {
                         questionTexts.add(paramValue.toLowerCase());
                     }
@@ -344,11 +352,11 @@ public class SetupResponsesServlet extends TopServlet {
             }
         }
 
-        if (errorInfo == null && problemParams.isEmpty()) {
-            return readResponses;
+        if (!errorInformations.isEmpty()) {
+            throw new PwmDataValidationException(errorInformations.get(0));
         }
 
-        throw new SetupResponsesException(errorInfo, problemParams.toArray(new String[problemParams.size()]));
+        return readResponses;
     }
 
     private static void validateResponses(
@@ -356,7 +364,7 @@ public class SetupResponsesServlet extends TopServlet {
             final ChallengeSet challengeSet,
             final Map<Challenge, String> responseMap
     )
-            throws SetupResponsesException {
+            throws PwmDataValidationException {
 
         final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
 
@@ -371,14 +379,14 @@ public class SetupResponsesServlet extends TopServlet {
             if (randomCount < challengeSet.getRandomChallenges().size()) {
                 LOGGER.debug(pwmSession, "all randoms required, but not all randoms are completed");
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
-                throw new SetupResponsesException(errorInfo);
+                throw new PwmDataValidationException(errorInfo);
             }
         }
 
         if (randomCount < minRandomRequiredSetup) {
             LOGGER.debug(pwmSession, minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed");
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
-            throw new SetupResponsesException(errorInfo);
+            throw new PwmDataValidationException(errorInfo);
         }
 
         final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
@@ -389,7 +397,7 @@ public class SetupResponsesServlet extends TopServlet {
                 final String answer = responseMap.get(loopChallenge);
                 if (wordlistManager.containsWord(pwmSession, answer)) {
                     final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, loopChallenge.getChallengeText());
-                    throw new SetupResponsesException(errorInfo);
+                    throw new PwmDataValidationException(errorInfo);
                 }
             }
         }
@@ -400,7 +408,7 @@ public class SetupResponsesServlet extends TopServlet {
             final ChallengeSet challengeSet,
             final Map<Challenge, String> readResponses
     )
-            throws ChaiUnavailableException, SetupResponsesException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
 
@@ -425,7 +433,7 @@ public class SetupResponsesServlet extends TopServlet {
             return responseSet;
         } catch (ChaiValidationException e) {
             final ErrorInformation errorInfo = convertChaiValidationException(e);
-            throw new SetupResponsesException(errorInfo);
+            throw new PwmDataValidationException(errorInfo);
         }
     }
 
@@ -516,27 +524,6 @@ public class SetupResponsesServlet extends TopServlet {
         pwmSession.getSetupResponseBean().setSimpleMode(useSimple);
         pwmSession.getSetupResponseBean().setChallengeList(indexedChallenges);
         pwmSession.getSetupResponseBean().setMinRandomSetup(minRandomSetup);
-    }
-
-    private static class SetupResponsesException extends Exception {
-        private final ErrorInformation errorInformation;
-        private final Set<String> problemParams = new HashSet<String>();
-
-
-        SetupResponsesException(final ErrorInformation errorInformation, final String... problemParams) {
-            this.errorInformation = errorInformation;
-            if (problemParams != null) {
-                this.problemParams.addAll(Arrays.asList(problemParams));
-            }
-        }
-
-        public ErrorInformation getErrorInformation() {
-            return errorInformation;
-        }
-
-        public Set<String> getProblemParams() {
-            return problemParams;
-        }
     }
 }
 

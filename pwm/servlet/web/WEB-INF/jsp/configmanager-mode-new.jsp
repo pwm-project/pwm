@@ -29,31 +29,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body class="tundra">
-<link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
-      type="text/css"/>
-<link href="<%=request.getContextPath()%>/resources/dojo/dojox/grid/enhanced/resources/tundraEnhancedGrid.css"
-      rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"
-        djConfig="parseOnLoad: true"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"
-        djConfig="parseOnLoad: true"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
-<script type="text/javascript">
-    function startEditing(template) {
-        showWaitDialog('Loading...');
-        dojo.xhrGet({
-            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
-            sync: true,
-            error: function(errorObj) {
-                showError("error loading " + keyName + ", reason: " + errorObj)
-            },
-            load: function(data) {
-                document.forms['editMode'].submit();
-            }
-        });
-    }
-
-</script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
@@ -67,7 +43,7 @@
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <h2><a href="#" onclick="startEditing('<%=template.toString()%>')">New Configuration - <%=template.getDescription()%></a></h2>
+        <h2><a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')">New Configuration - <%=template.getDescription()%></a></h2>
         <% } %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">

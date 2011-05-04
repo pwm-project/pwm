@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -61,7 +62,8 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 }  else {
                     errorMsg = error.toUserStr(pwmSession);
                 }
-                pageContext.getOut().write(errorMsg);
+                final String escapedErrorMsg = StringEscapeUtils.escapeHtml(errorMsg);
+                pageContext.getOut().write(escapedErrorMsg);
             }
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

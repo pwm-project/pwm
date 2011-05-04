@@ -160,7 +160,7 @@ public class AuthenticationFilter implements Filter {
                 return;
             } catch (ChaiUnavailableException e) {
                 pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getContextManager().setLastLdapFailure();
+                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
                 ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
                 return;
@@ -170,7 +170,6 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
         }
-
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {

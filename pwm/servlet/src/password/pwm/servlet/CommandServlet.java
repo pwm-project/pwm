@@ -43,7 +43,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -123,7 +122,7 @@ public class CommandServlet extends TopServlet {
             }
         }
 
-        final List<HealthRecord> healthRecords = healthMonitor.getHealthRecords(refreshImmediate);
+        final Collection<HealthRecord> healthRecords = healthMonitor.getHealthRecords(refreshImmediate);
         if (healthRecords != null) {
             final Map<String, Object> returnMap = new HashMap<String, Object>();
             returnMap.put("date", healthMonitor.getLastHealthCheckDate());

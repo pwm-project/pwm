@@ -38,8 +38,16 @@ public class ErrorInformation implements Serializable {
     private final PwmError error;
     private final String detailedErrorMsg;
     private final String[] fieldValues;
+    private final Date date = new Date();
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
+    // private constructor used for gson de-serialization
+    private ErrorInformation() {
+        error = PwmError.ERROR_UNKNOWN;
+        detailedErrorMsg = null;
+        fieldValues = null;
+    }
 
     public ErrorInformation(final PwmError error) {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
@@ -102,5 +110,9 @@ public class ErrorInformation implements Serializable {
         } else {
             return PwmError.getLocalizedMessage(userLocale, this.getError());
         }
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

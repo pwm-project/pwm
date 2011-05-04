@@ -21,6 +21,8 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.util.ServletHelper" %>
+<%@ page import="java.io.File" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -28,9 +30,11 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
+<%
+    final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext());
+    String configFilePath = "PwmConfiguration.xml";
+    try { configFilePath = ServletHelper.figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", request.getSession().getServletContext()).getAbsolutePath(); } catch (Exception e) { /* */ }
+%>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <body class="tundra">
@@ -108,7 +112,8 @@
             <input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>
-        <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replacethe current configuration.</p>
+        <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
+            the current configuration.</p>
 
         <h2><a href="#"
                onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); finalizeConfiguration();}">Finalize
@@ -119,10 +124,11 @@
             <input type="hidden" name="processAction" value="lockConfiguration"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
+
         <p>Finalize the configuration. Once the configuration is finalized, you can no longer directly edit the running
-            configuration using this interface. If you wish to make changes
-            after finalization, you will need to edit the <span style="font-style: italic;">PwmConfiguration.xml</span>
-            and set the property <span style="font-style: italic;">configIsEditable</span> to true.
+            configuration using this interface.  If you wish to make changes
+            after finalization, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
+            file on the PWM server.
 
         <h2><a href="<%=request.getContextPath()%>">PWM Main Menu</a></h2>
 

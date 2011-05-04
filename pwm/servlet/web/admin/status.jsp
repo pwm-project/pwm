@@ -122,7 +122,7 @@
             Last LDAP Unavailable Time
         </td>
         <td>
-            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure()) : "n/a" %>
+            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure().getDate()) : "n/a" %>
         </td>
     </tr>
     <tr>
