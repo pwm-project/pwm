@@ -540,6 +540,7 @@ public class ConfigManagerServlet extends TopServlet {
             if (pwmSession.getContextManager().getConfigReader().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
                 final ContextManager contextManager = pwmSession.getContextManager();
                 contextManager.getConfigReader().saveConfiguration(storedConfiguration);
+                contextManager.setLastLdapFailure(null);
                 contextManager.reinitialize();
             }
         } catch (Exception e) {

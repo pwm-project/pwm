@@ -38,10 +38,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.SeedlistManager;
@@ -253,6 +250,12 @@ public class GuestRegistrationServlet extends TopServlet {
                 LOGGER.warn(pwmSession, info, e);
                 ssBean.setSessionError(info);
                 this.forwardToJSP(req, resp);
+                return;
+            } catch (PwmOperationalException e) {
+                final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
+                LOGGER.warn(pwmSession, info, e);
+                ssBean.setSessionError(info);
+                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 return;
             } catch (ChaiOperationException e) {
                 final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());

@@ -46,6 +46,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.*;
@@ -567,10 +568,11 @@ public class Helper {
      * @param theUser          User to write to
      * @param stringOrParamMap A map with String keys and String or {@link password.pwm.config.FormConfiguration} values. @throws ChaiUnavailableException
      * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws ChaiOperationException   if their is an unexpected ldap problem
+     * @throws PwmOperationalException if their is an unexpected ldap problem
      */
     public static void writeMapToEdir(final PwmSession pwmSession, final ChaiUser theUser, final Map stringOrParamMap)
-            throws ChaiUnavailableException, ChaiOperationException {
+            throws ChaiUnavailableException, PwmOperationalException
+    {
         for (final Object key : stringOrParamMap.keySet()) {
             final String attrName = (String) key;
             final Object mapValue = stringOrParamMap.get(attrName);
@@ -586,11 +588,23 @@ public class Helper {
                     theUser.writeStringAttribute(attrName, attrValue);
                     LOGGER.info(pwmSession, "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
                 } catch (ChaiOperationException e) {
-                    LOGGER.error(pwmSession, "error setting attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ") " + e.getMessage());
-                    throw e;
+                    final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                    newException.initCause(e);
+                    throw newException;
                 }
             } else {
-                LOGGER.debug(pwmSession, "no value to set for " + attrName + " on user " + theUser.getEntryDN() + ", skipping");
+                try {
+                    theUser.deleteAttribute(attrName, null);
+                    LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                } catch (ChaiOperationException e) {
+                    final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                    newException.initCause(e);
+                    throw newException;
+                }
             }
         }
     }

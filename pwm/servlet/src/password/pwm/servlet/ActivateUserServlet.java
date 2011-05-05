@@ -24,7 +24,6 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
@@ -39,10 +38,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
@@ -125,22 +121,27 @@ public class ActivateUserServlet extends TopServlet {
 
             final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
             if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
-                LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " attempted activation, but does not match query string");
-                ssBean.setSessionError(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH.toInfo());
+                final String errorMsg = "user " + theUser.getEntryDN() + " attempted activation, but does not match query string";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
+                ssBean.setSessionError(errorInformation);
                 theManager.getIntruderManager().addBadUserAttempt(theUser.getEntryDN(), pwmSession);
                 theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
                 ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 return;
             }
         } catch (PwmDataValidationException e) {
+            final String errorMsg;
             if (theUser != null) {
                 theManager.getIntruderManager().addBadUserAttempt(theUser.getEntryDN(), pwmSession);
+                errorMsg = "validation error during activation for user '" + theUser.getEntryDN() + "', error: " + e.getMessage();
+            } else {
+                errorMsg = "validation error during activation , error: " + e.getMessage();
             }
-            ssBean.setSessionError(e.getErrorInformation());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+            ssBean.setSessionError(errorInformation);
             theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
-            this.forwardToJSP(req, resp);
-            LOGGER.error(pwmSession, "validation error during activation: " + e.getMessage());
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            this.forwardToJSP(req, resp);
             return;
         }
 
@@ -152,17 +153,18 @@ public class ActivateUserServlet extends TopServlet {
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
 
             return;
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.warn(pwmSession, "error during user activation: " + e.getMessage());
-            ssBean.setSessionError(e.getErrorInformation());
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "error for user '" + theUser.getEntryDN() + "' during activation: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+            LOGGER.warn(pwmSession, errorInformation);
+            ssBean.setSessionError(errorInformation);
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         }
         forwardToJSP(req, resp);
     }
 
     public void activateUser(final HttpServletRequest req, final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         try {
             theUser.unlock();
         } catch (ChaiOperationException e) {
@@ -201,9 +203,17 @@ public class ActivateUserServlet extends TopServlet {
                         final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
                         Helper.writeMapToEdir(pwmSession, theUser, writeAttributesSettings);
-                    } catch (ChaiException e) {
-                        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
-                        throw new PwmUnrecoverableException(info);
+                    } catch (PwmOperationalException e) {
+                        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
+                        final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
+                        newException.initCause(e);
+                        throw newException;
+                    } catch (ChaiUnavailableException e) {
+                        final String errorMsg = "unable to read ldap server while activating user: " + e.getMessage();
+                        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+                        final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
+                        newException.initCause(e);
+                        throw newException;
                     }
                     return true;
                 }
@@ -213,7 +223,7 @@ public class ActivateUserServlet extends TopServlet {
         } catch (ImpossiblePasswordPolicyException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user");
             LOGGER.warn(pwmSession, info, e);
-            throw new PwmUnrecoverableException(info);
+            throw new PwmOperationalException(info);
         }
     }
 

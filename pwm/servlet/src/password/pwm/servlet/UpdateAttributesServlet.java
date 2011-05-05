@@ -35,10 +35,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -69,7 +66,8 @@ public class UpdateAttributesServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) {
@@ -91,7 +89,8 @@ public class UpdateAttributesServlet extends TopServlet {
 
 
     private void populateFormFromLdap(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String userDN = pwmSession.getUserInfoBean().getUserDN();
         final Map<String, FormConfiguration> validationParams = pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
@@ -119,7 +118,8 @@ public class UpdateAttributesServlet extends TopServlet {
     }
 
     private void handleUpdateRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
@@ -173,13 +173,12 @@ public class UpdateAttributesServlet extends TopServlet {
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
 
-        } catch (ChaiOperationException e) {
-            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
-            LOGGER.warn(pwmSession, info);
+        } catch (PwmOperationalException e) {
+            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
+            LOGGER.error(pwmSession, info);
             ssBean.setSessionError(info);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
-
     }
 
     private void forwardToJSP(

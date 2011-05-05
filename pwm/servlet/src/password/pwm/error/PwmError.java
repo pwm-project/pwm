@@ -124,6 +124,8 @@ public enum PwmError {
     ERROR_SECURE_REQUEST_REQUIRED("Error_SecureRequestRequired", 5044),
     ERROR_WRITING_RESPONSES("Error_Writing_Responses",5045),
     ERROR_UNLOCK_FAILURE("Error_Unlock_Failure",5046),
+    ERROR_UPDATE_ATTRS_FAILURE("Error_Update_Attrs_Failure",5047),
+    ERROR_ACTIVATION_FAILURE("Error_Activation_Failure",5048),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

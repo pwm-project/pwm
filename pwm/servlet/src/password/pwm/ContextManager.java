@@ -214,10 +214,14 @@ public class ContextManager implements Serializable {
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
         this.lastLdapFailure = errorInformation;
         if (pwmDB != null) {
-            final Gson gson = new Gson();
-            final String jsonString = gson.toJson(errorInformation);
             try {
-                pwmDB.put(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR,jsonString);
+                if (errorInformation == null) {
+                    pwmDB.remove(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR);
+                } else {
+                    final Gson gson = new Gson();
+                    final String jsonString = gson.toJson(errorInformation);
+                    pwmDB.put(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR,jsonString);
+                }
             } catch (PwmDBException e) {
                 LOGGER.error("error writing lastLdapFailure time to pwmDB: " + e.getMessage());
             }
