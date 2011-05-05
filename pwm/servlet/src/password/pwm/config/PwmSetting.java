@@ -211,6 +211,8 @@ public enum PwmSetting {
             "sms.requestContentType", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
     SMS_REQUEST_CONTENT_ENCODING(
             "sms.requestContentEncoding", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
+    SMS_GATEWAY_REQUEST_HEADERS(
+            "sms.httpRequestHeaders", Syntax.STRING_ARRAY, Category.SMS, false, Level.ADVANCED),
     SMS_MAX_TEXT_LENGTH(
             "sms.maxTextLength", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_RESPONSE_OK_REGEX(

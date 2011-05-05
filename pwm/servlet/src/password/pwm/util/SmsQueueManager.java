@@ -28,8 +28,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.StringEntity;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -49,6 +50,9 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -260,6 +264,8 @@ public class SmsQueueManager implements PwmService {
 
         final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
         final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
+        
+        final List<String> extraHeaders = config.readStringArraySetting(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
 
         String requestData = config.readLocalizedStringSetting(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
 
@@ -285,20 +291,33 @@ public class SmsQueueManager implements PwmService {
         final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
         LOGGER.trace("SMS data: " + requestData);
         try {
-            final HttpUriRequest httpRequest;
+            final HttpPost httpRequest;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
                 // POST request
                 httpRequest = new HttpPost(gatewayUrl);
-                final BasicHttpParams requestParams = new BasicHttpParams();
                 if (contentType != null && contentType.length()>0) {
-                    requestParams.setParameter("Content-Type", contentType);
+                    httpRequest.setHeader("Content-Type", contentType);
                 }
-                requestParams.setIntParameter("Content-Length", requestData.length());
-                httpRequest.setParams(requestParams);
+                httpRequest.setEntity(new StringEntity(requestData));
             } else {
                 // GET request
                 final String fullUrl = gatewayUrl.endsWith("?") ? gatewayUrl + requestData : gatewayUrl + "?" + requestData;
                 httpRequest = new HttpPost(fullUrl);
+            }
+
+            if (extraHeaders != null) {
+               	final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
+                for (final String header : extraHeaders) {
+                    final Matcher matcher = pattern.matcher(header);
+                    if (matcher.matches()) {
+                    	final String hname = matcher.group(1);
+                    	final String hvalue = matcher.group(2);
+                    	LOGGER.debug("Adding HTTP header \"" + hname + "\" with value \"" + hvalue + "\"");
+                    	httpRequest.addHeader(hname, hvalue);
+                    } else {
+                    	LOGGER.warn("Cannot parse HTTP header: " + header);
+                    }
+                }
             }
 
             if ("BASIC".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
