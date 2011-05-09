@@ -32,9 +32,9 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.ForgottenPasswordBean;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.SmsItemBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
@@ -47,10 +47,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User interaction servlet for recovering user's password using secret question/answer
@@ -341,10 +338,9 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // if responses aren't required, but attributes are, send to response screen anyway
         {
-            final Collection<String> configValues = config.readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
-            final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+            final Collection<String> requiredAttributes = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
 
-            if (!formSettings.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
+            if (!requiredAttributes.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
                 this.forwardToResponsesJSP(req, resp);
                 return;
             }
@@ -435,7 +431,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         try {
-            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
+            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req.isSecure());
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
@@ -494,20 +490,19 @@ public class ForgottenPasswordServlet extends TopServlet {
 
     private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
             throws ChaiUnavailableException, PwmDataValidationException {
-        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
-        final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+        final List<FormConfiguration> requiredAttributesForm = pwmSession.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
 
-        if (formSettings.isEmpty()) {
+        if (requiredAttributesForm.isEmpty()) {
             return;
         }
 
-        Validator.updateParamValues(pwmSession, req, formSettings);
+        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm);
 
-        for (final FormConfiguration paramConfig : formSettings.values()) {
+        for (final FormConfiguration paramConfig : formValues.keySet()) {
             final String attrName = paramConfig.getAttributeName();
 
             try {
-                if (!theUser.compareStringAttribute(attrName, paramConfig.getValue())) {
+                if (!theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
                     throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", attrName));
                 }
                 LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
@@ -595,10 +590,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_FROM, userLocale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_SUBJECT, userLocale);
-        String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY, userLocale);
-        String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY_HTML, userLocale);
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_FROM, userLocale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_SUBJECT, userLocale);
+        String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY, userLocale);
+        String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY_HTML, userLocale);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String toAddress = forgottenPasswordBean.getTokenEmailAddress();
         final String token = forgottenPasswordBean.getToken();
@@ -625,7 +620,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Configuration config = pwmSession.getConfig();
         String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
         if (senderId == null) { senderId = ""; }
-        String message = config.readLocalizedStringSetting(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
+        String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String toSmsNumber = forgottenPasswordBean.getTokenSmsNumber();
         final String token = forgottenPasswordBean.getToken();

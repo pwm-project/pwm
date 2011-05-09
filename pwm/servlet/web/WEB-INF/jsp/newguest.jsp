@@ -45,7 +45,10 @@
             </span>
             <% } %>
 
-            <pwm:ParameterForm formName="newguest"/>
+            <pwm:ShowForm formName="newguest"/>
+            <h2>Account Validity Duration (Days)</h2>
+            <input type="number" required="true" name="__accountDuration__" class="inputfield" maxlength="5" value="10"/>
+
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>

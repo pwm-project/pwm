@@ -53,7 +53,7 @@
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-            <pwm:ParameterForm formName="forgottenusername"/>
+            <pwm:ShowForm formName="forgottenusername"/>
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"

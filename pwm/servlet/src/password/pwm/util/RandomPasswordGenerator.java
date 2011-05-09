@@ -340,7 +340,7 @@ public class RandomPasswordGenerator {
 
     private static boolean checkPasswordAgainstDisallowedHttpValues(final Configuration config, final String password) {
         if (config != null && password != null) {
-            final List<String> disallowedInputs = config.readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+            final List<String> disallowedInputs = config.readSettingAsStringArray(PwmSetting.DISALLOWED_HTTP_INPUTS);
             for (final String loopRegex : disallowedInputs) {
                 if (password.matches(loopRegex)) {
                     return true;

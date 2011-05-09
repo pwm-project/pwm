@@ -282,7 +282,7 @@ public class EmailQueueManager implements PwmService {
         props.put("mail.smtp.host", config.readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
 
         //Specify configured advanced settings.
-        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readStringArraySetting(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
+        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
         for (final String key : advancedSettingValues.keySet()) {
             props.put(key, advancedSettingValues.get(key));
         }

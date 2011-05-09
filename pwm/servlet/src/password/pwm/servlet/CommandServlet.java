@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,8 +73,8 @@ public class CommandServlet extends TopServlet {
             processCheckResponses(req, resp);
         } else if (action.equalsIgnoreCase("checkExpire")) {
             processCheckExpire(req, resp);
-        } else if (action.equalsIgnoreCase("checkAttributes")) {
-            processCheckAttributes(req, resp);
+        } else if (action.equalsIgnoreCase("checkProfile")) {
+            processCheckProfile(req, resp);
         } else if (action.equalsIgnoreCase("checkAll")) {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
@@ -228,7 +229,7 @@ public class CommandServlet extends TopServlet {
         return false;
     }
 
-    private static void processCheckAttributes(
+    private static void processCheckProfile(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -240,7 +241,7 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         if (!checkAttributes(pwmSession)) {
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_ATTRIBUTES, req, resp));
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_PROFILE, req, resp));
         } else {
             processContinue(req, resp);
         }
@@ -253,22 +254,21 @@ public class CommandServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
-        if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_ATTRIBUTES_QUERY_MATCH))) {
-            LOGGER.info(pwmSession, "checkAttributes: " + userDN + " is not eligible for checkAttributes due to query match");
+        if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
+            LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkAttributes due to query match");
             return true;
         }
 
-        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, pwmSession.getSessionStateBean().getLocale());
-        final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+        final List<FormConfiguration> updateFormFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
 
         // populate the map with attribute values from the uiBean, which was populated through ldap.
-        for (final String key : formSettings.keySet()) {
-            final FormConfiguration paramConfig = formSettings.get(key);
-            paramConfig.setValue(uiBean.getAllUserAttributes().getProperty(paramConfig.getAttributeName()));
+        final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
+        for (final FormConfiguration formConfiguration : updateFormFields) {
+            formValues.put(formConfiguration, uiBean.getAllUserAttributes().getProperty(formConfiguration.getAttributeName()));
         }
 
         try {
-            Validator.validateParmValuesMeetRequirements(formSettings, pwmSession);
+            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
             LOGGER.info(pwmSession, "checkAttributes: " + userDN + " has good attributes");
             return true;
         } catch (PwmDataValidationException e) {
@@ -292,8 +292,8 @@ public class CommandServlet extends TopServlet {
             processCheckExpire(req, resp);
         } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE) && !checkAttributes(pwmSession)) {
-            processCheckAttributes(req, resp);
+        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkAttributes(pwmSession)) {
+            processCheckProfile(req, resp);
         } else {
             processContinue(req, resp);
         }

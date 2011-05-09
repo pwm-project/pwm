@@ -28,13 +28,13 @@ import password.pwm.config.Configuration;
 import password.pwm.config.Display;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
-import java.util.Map;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -44,31 +44,30 @@ import java.util.Properties;
  *
  * @author Jason D. Rivard
  */
-public class ParameterFormTag extends TagSupport {
+public class ShowFormTag extends TagSupport {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ParameterFormTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(ShowFormTag.class);
 
     private String formName;
 
 // -------------------------- STATIC METHODS --------------------------
 
     private static String getForm(
-            final Map<String,
-                    FormConfiguration> parameters,
+            final List<FormConfiguration> formFields,
             final Properties values,
-            final PwmSession pwmSession) {
-        if (parameters == null) {
+            final PwmSession pwmSession)
+    {
+        if (formFields == null) {
             return "";
         }
 
         final StringBuilder sb = new StringBuilder();
 
-        for (final String key : parameters.keySet()) {
-            final FormConfiguration param = parameters.get(key);
-            sb.append(getFormLine(param, values.getProperty(param.getAttributeName(), ""), false, pwmSession));
-            if (param.isConfirmationRequired()) {
-                sb.append(getFormLine(param, values.getProperty(param.getAttributeName() + "_confirm", ""), true, pwmSession));
+        for (final FormConfiguration formField : formFields) {
+            sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName(), ""), false, pwmSession));
+            if (formField.isConfirmationRequired()) {
+                sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName() + "_confirm", ""), true, pwmSession));
             }
         }
         return sb.toString();
@@ -95,12 +94,20 @@ public class ParameterFormTag extends TagSupport {
 
             {
                 sb.append("<input");
-                if (param.getType() == FormConfiguration.Type.PASSWORD) {
+                if (FormConfiguration.Type.PASSWORD == param.getType()) {
                     sb.append(" type=\"password\"");
-                } else if (param.getType() == FormConfiguration.Type.EMAIL) {
+                } else if (FormConfiguration.Type.EMAIL == param.getType()) {
                     sb.append(" type=\"email\"");
+                } else if (FormConfiguration.Type.READONLY == param.getType()) {
+                    sb.append(" type=\"text\" readonly=\"true\"");
+                } else if (FormConfiguration.Type.NUMBER == param.getType()) {
+                    sb.append(" type=\"number\"");
                 } else {
                     sb.append(" type=\"text\"");
+                }
+
+                if (param.isRequired()) {
+                    sb.append(" required=\"true\"");
                 }
 
                 sb.append(" name=\"").append(param.getAttributeName());
@@ -110,12 +117,12 @@ public class ParameterFormTag extends TagSupport {
                 sb.append('\"');
                 sb.append(" class=\"inputfield\"");
                 sb.append(" maxlength=\"").append(param.getMaximumLength()).append('\"');
-                if ((param.getType() == FormConfiguration.Type.RANDOM) && 
+                if ((FormConfiguration.Type.RANDOM == param.getType()) &&
                     (value == null || value.length() == 0)) {
 	                final Configuration config = pwmSession.getConfig();
 	                final String randomChars = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
 	                final int randomLength = (param.getMaximumLength()<=0)?(int)config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH):param.getMaximumLength();
-    	        	String randvalue = Helper.generateToken(randomChars, randomLength);
+    	        	final String randvalue = PwmRandom.getInstance().alphaNumericString(randomChars, randomLength);
 		            sb.append(" value=\"").append(randvalue).append('\"');
                 } else {
                 sb.append(" value=\"").append(StringEscapeUtils.escapeHtml(value)).append('\"');
@@ -150,7 +157,7 @@ public class ParameterFormTag extends TagSupport {
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
             final Properties lastValues = pwmSession.getSessionStateBean().getLastParameterValues();
-            final String formText = getForm(this.getParameterMap(pwmSession), lastValues, pwmSession);
+            final String formText = getForm(this.getForm(pwmSession), lastValues, pwmSession);
 
             pageContext.getOut().write(formText);
         } catch (Exception e) {
@@ -161,17 +168,17 @@ public class ParameterFormTag extends TagSupport {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private Map<String, FormConfiguration> getParameterMap(final PwmSession pwmSession) {
+    private List<FormConfiguration> getForm(final PwmSession pwmSession) {
         if (formName.equalsIgnoreCase("newuser")) {
-            return pwmSession.getNewUserServletBean().getCreationParams();
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("activateuser")) {
-            return pwmSession.getActivateUserServletBean().getActivateUserParams();
-        } else if (formName.equalsIgnoreCase("updateattributes")) {
-            return pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM, pwmSession.getSessionStateBean().getLocale());
+        } else if (formName.equalsIgnoreCase("updateprofile")) {
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("forgottenusername")) {
-            return pwmSession.getForgottonUsernameBean().getForgottenUsernameForm();
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("newguest")) {
-            return pwmSession.getGuestRegistrationServletBean().getCreationParams();
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("updateguest")) {
             return pwmSession.getGuestUpdateServletBean().getUpdateParams();
         } else {

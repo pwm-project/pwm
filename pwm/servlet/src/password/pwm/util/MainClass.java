@@ -250,7 +250,7 @@ public class MainClass {
         databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, "WEB-INF", new File(".").toString());
 
         final String classname = config.readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-        final List<String> initStrings = config.readStringArraySetting(PwmSetting.PWMDB_INIT_STRING);
+        final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
         final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
         return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly);
     }

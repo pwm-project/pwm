@@ -61,11 +61,25 @@ public class PwmRandom {
     }
 
     public String alphaNumericString(final int length) {
+        return alphaNumericString(ALPHANUMERIC_STRING,length);
+    }
+
+    public String alphaNumericString(final String characters, final int length) {
         final StringBuilder sb = new StringBuilder();
         while (sb.length() < length) {
-            sb.append(ALPHANUMERIC_STRING.charAt(nextInt(ALPHANUMERIC_STRING.length())));
+            sb.append(nextChar(characters));
         }
         return sb.toString();
     }
 
+    public char nextChar() {
+        return nextChar(ALPHANUMERIC_STRING);
+    }
+
+    public char nextChar(final String characters) {
+        if (characters == null) {
+            throw new NullPointerException("characters cannot be null");
+        }
+        return characters.charAt(nextInt(characters.length()));
+    }
 }

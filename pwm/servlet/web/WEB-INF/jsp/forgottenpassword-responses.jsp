@@ -26,13 +26,13 @@
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.util.List" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession()); %>
 <% final ForgottenPasswordBean recoverBean = PwmSession.getForgottenPasswordBean(request); %>
-<% final Map<String, FormConfiguration> requiredAttrParams = Configuration.convertMapToFormConfiguration(PwmSession.getPwmSession(request).getConfig().readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale())); %>
+<% final List<FormConfiguration> requiredAttrParams = PwmSession.getPwmSession(request).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <%--
@@ -61,7 +61,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <% } %>
 
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
-                for (final FormConfiguration paramConfig : requiredAttrParams.values()) {
+                for (final FormConfiguration paramConfig : requiredAttrParams) {
             %>
             <h2><label for="attribute-<%= paramConfig.getAttributeName()%>"><%= paramConfig.getLabel() %>
             </label></h2>

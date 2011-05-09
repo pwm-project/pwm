@@ -27,10 +27,8 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -50,9 +48,8 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
-
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -265,9 +262,9 @@ public class SmsQueueManager implements PwmService {
         final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
         final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
         
-        final List<String> extraHeaders = config.readStringArraySetting(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
+        final List<String> extraHeaders = config.readSettingAsStringArray(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
 
-        String requestData = config.readLocalizedStringSetting(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
+        String requestData = config.readSettingAsLocalizedString(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
 
         // Replace strings in requestData
         {
@@ -282,7 +279,7 @@ public class SmsQueueManager implements PwmService {
         if (requestData.indexOf("%REQUESTID%")>=0) {
             final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
             final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
-            final String requestId = Helper.generateToken(chars, idLength);
+            final String requestId = PwmRandom.getInstance().alphaNumericString(chars, idLength);
             requestData = requestData.replaceAll("%REQUESTID%", smsDateEncode(requestId, encoding));
         }
 
@@ -328,7 +325,7 @@ public class SmsQueueManager implements PwmService {
             final HttpResponse httpResponse = httpClient.execute(httpRequest);
             final String responseBody = EntityUtils.toString(httpResponse.getEntity());
 
-            final List<String> okMessages = config.readStringArraySetting(PwmSetting.SMS_RESPONSE_OK_REGEX);
+            final List<String> okMessages = config.readSettingAsStringArray(PwmSetting.SMS_RESPONSE_OK_REGEX);
             if (matchExpressions(responseBody, okMessages)) {
                 return true;
             }

@@ -70,7 +70,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "WEB-INF/jsp/forgottenpassword-entercode.jsp";
     public static final String URL_JSP_FORGOTTEN_USERNAME = "WEB-INF/jsp/forgottenusername-search.jsp";
     public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
-    public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateattributes.jsp";
+    public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateprofile.jsp";
     public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
     public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/newguest.jsp";
     public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/updateguest.jsp";
@@ -91,7 +91,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_LOGOUT = "Logout";
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
-    public static final String URL_SERVLET_UPDATE_ATTRIBUTES = "UpdateAttributes";
+    public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
     public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
     public static final String URL_SERVLET_NEW_USER = "NewUser";

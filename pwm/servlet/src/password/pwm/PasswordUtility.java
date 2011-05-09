@@ -160,7 +160,7 @@ public class PasswordUtility {
         final long delayStartTime = System.currentTimeMillis();
         final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
 
-        if (pwmSession.getConfig().readStringArraySetting(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
+        if (pwmSession.getConfig().readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
         } else {
             final long maxWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
@@ -344,10 +344,10 @@ public class PasswordUtility {
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT, locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY, locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL, locale);
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT, locale);
+        final String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY, locale);
+        final String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL, locale);
 
         final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
         if (toAddress == null || toAddress.length() < 1) {

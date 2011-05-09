@@ -455,14 +455,14 @@ public enum PwmSetting {
     ACTIVATE_USER_WRITE_ATTRIBUTES(
             "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
 
-    // update attributes
-    UPDATE_ATTRIBUTES_ENABLE(
+    // update profile
+    UPDATE_PROFILE_ENABLE(
             "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.ADVANCED),
-    UPDATE_ATTRIBUTES_QUERY_MATCH(
+    UPDATE_PROFILE_QUERY_MATCH(
             "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.ADVANCED),
-    UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES(
+    UPDATE_PROFILE_WRITE_ATTRIBUTES(
             "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.ADVANCED),
-    UPDATE_ATTRIBUTES_FORM(
+    UPDATE_PROFILE_FORM(
             "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.ADVANCED),
 
     // shortcut settings

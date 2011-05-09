@@ -77,11 +77,11 @@
         <p><pwm:Display key="Long_Title_NewUser"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) { %>
-        <h2><a href="<pwm:url url='private/UpdateAttributes'/>" class="tablekey"><pwm:Display
-                key="Title_UpdateAttributes"/></a></h2>
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
+        <h2><a href="<pwm:url url='private/UpdateProfile'/>" class="tablekey"><pwm:Display
+                key="Title_UpdateProfile"/></a></h2>
 
-        <p><pwm:Display key="Long_Title_UpdateAttributes"/></p>
+        <p><pwm:Display key="Long_Title_UpdateProfile"/></p>
         <% } %>
 
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>

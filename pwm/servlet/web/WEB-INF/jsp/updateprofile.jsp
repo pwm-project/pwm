@@ -27,16 +27,16 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.updateAttributes.elements[0].focus();" class="tundra">
+<body onload="pwmPageLoadHandler();document.forms.updateProfile.elements[0].focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_UpdateAttributes"/>
+        <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_UpdateAttributes"/></p>
+        <p><pwm:Display key="Display_UpdateProfile"/></p>
 
-        <form action="<pwm:url url='UpdateAttributes'/>" method="post" name="updateAttributes"
-              enctype="application/x-www-form-urlencoded" onreset="handleFormClear();return false">
+        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <% //check to see if there is an error
                 if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
             %>
@@ -45,12 +45,12 @@
             </span>
             <% } %>
 
-            <pwm:ParameterForm formName="updateattributes"/>
+            <pwm:ShowForm formName="updateprofile"/>
 
             <div id="buttonbar">
-                <input type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>
+                <input id="submitBtn" type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>
                 <input type="reset" class="btn" name="reset" value="    <pwm:Display key="Button_Reset"/>    "/>
-                <input type="hidden" name="processAction" value="updateAttributes"/>
+                <input type="hidden" name="processAction" value="updateProfile"/>
                 <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">

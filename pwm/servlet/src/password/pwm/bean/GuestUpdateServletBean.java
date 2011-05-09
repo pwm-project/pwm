@@ -25,12 +25,7 @@ package password.pwm.bean;
 import password.pwm.config.FormConfiguration;
 
 import java.io.Serializable;
-import java.lang.Math;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Date;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard, Menno Pieters
@@ -43,7 +38,7 @@ public class GuestUpdateServletBean implements Serializable {
     private Integer maxDuration = 0;
     private String namingAttribute;
 
-    private Map<String, FormConfiguration> updateParams;
+    private List<FormConfiguration> updateParams;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -63,20 +58,21 @@ public class GuestUpdateServletBean implements Serializable {
         this.guestAdminDN = guestAdminDN;
     }
 
-    public Map<String, FormConfiguration> getUpdateParams() {
+    public List<FormConfiguration> getUpdateParams() {
     	if (namingAttribute == null) {
 	        return updateParams;
     	}
-    	Map<String, FormConfiguration> filteredUpdateParams = new HashMap<String, FormConfiguration>();
-    	for (final String key : updateParams.keySet()) {
+    	final List<FormConfiguration> filteredUpdateParams = new LinkedList<FormConfiguration>();
+    	for (final FormConfiguration formConfiguration : updateParams) {
+            final String key = formConfiguration.getAttributeName();
 			if (!key.equalsIgnoreCase(namingAttribute)) {
-    			filteredUpdateParams.put(key,updateParams.get(key));
+    			filteredUpdateParams.add(formConfiguration);
 			}
     	}
     	return filteredUpdateParams;
     }
 
-    public void setUpdateParams(final Map<String, FormConfiguration> updateParams) {
+    public void setUpdateParams(final List<FormConfiguration> updateParams) {
         this.updateParams = updateParams;
     }
     

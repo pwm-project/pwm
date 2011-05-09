@@ -97,7 +97,7 @@ public class DisplayTag extends PwmAbstractTag {
             if ("APPLICATION-TITLE".equals(key)) { // special case, this one value is set via configuration, net .properties files setting
                 final ContextManager contextManager = PwmSession.getPwmSession(req).getContextManager();
                 if (contextManager != null && contextManager.getConfig() != null) {
-                    final String pwmSettingValue = contextManager.getConfig().readLocalizedStringSetting(PwmSetting.APPLICATION_TILE, req.getLocale());
+                    final String pwmSettingValue = contextManager.getConfig().readSettingAsLocalizedString(PwmSetting.APPLICATION_TILE, req.getLocale());
                     if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
                         displayMessage = pwmSettingValue;
                     }

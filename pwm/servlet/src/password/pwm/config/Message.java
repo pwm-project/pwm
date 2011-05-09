@@ -43,7 +43,7 @@ public enum Message {
     SUCCESS_CREATE_GUEST("Success_CreateGuest"),
     SUCCESS_UPDATE_GUEST("Success_UpdateGuest"),
     SUCCESS_ACTIVATE_USER("Success_ActivateUser"),
-    SUCCESS_UPDATE_ATTRIBUTES("Success_UpdateAttributes"),
+    SUCCESS_UPDATE_ATTRIBUTES("Success_UpdateProfile"),
     SUCCESS_RESPONSES_MEET_RULES("Success_ResponsesMeetRules"),
     SUCCESS_UNLOCK_ACCOUNT("Success_UnlockAccount"),
     SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
@@ -52,7 +52,7 @@ public enum Message {
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
     EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),
     EVENT_LOG_ACTIVATE_USER("EventLog_ActivateUser"),
-    EVENT_LOG_UPDATE_ATTRIBUTES("EventLog_UpdateAttributes"),
+    EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),

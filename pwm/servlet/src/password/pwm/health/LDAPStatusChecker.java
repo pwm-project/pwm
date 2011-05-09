@@ -162,7 +162,7 @@ public class LDAPStatusChecker implements HealthChecker {
             String loopUrl = "";
             try {
                 for (final Configuration config : configs) {
-                    loopUrl = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS).get(0);
+                    loopUrl = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).get(0);
                     chaiProvider = getChaiProviderForTesting(config);
                     final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
                     final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);

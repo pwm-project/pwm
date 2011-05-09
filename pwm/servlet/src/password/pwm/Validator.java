@@ -22,12 +22,15 @@
 
 package password.pwm;
 
+import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -146,32 +149,51 @@ public class Validator {
         return true;
     }
 
-    public static void updateParamValues(
-            final PwmSession pwmSession,
+    public static Map<FormConfiguration, String> readFormValuesFromRequest(
             final HttpServletRequest req,
-            final Map<String, FormConfiguration> parameterConfigs
+            final Collection<FormConfiguration> formConfigurations
     )
-            throws PwmDataValidationException {
-        if (req == null || parameterConfigs == null) {
-            return;
+            throws PwmDataValidationException
+    {
+        if (formConfigurations == null || formConfigurations.isEmpty()) {
+            return Collections.emptyMap();
         }
-        parameterConfigs.entrySet();
-        for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
-            final FormConfiguration paramConfig = entry.getValue();
-            final String value = readStringFromRequest(req, paramConfig.getAttributeName(), 512);
 
-            if (paramConfig.isConfirmationRequired()) {
-                final String confirmValue = readStringFromRequest(req, paramConfig.getAttributeName() + PARAM_CONFIRM_SUFFIX, 512);
+        final Map<FormConfiguration, String> returnMap = new HashMap<FormConfiguration,String>();
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            returnMap.put(formConfiguration,"");
+        }
 
-                if (!confirmValue.equals(value)) {
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, null, paramConfig.getLabel());
-                    LOGGER.trace(pwmSession, "bad field confirmation for " + paramConfig.getLabel());
+        if (req == null) {
+            return returnMap;
+        }
+
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            final String keyName = formConfiguration.getAttributeName();
+            final String value = Validator.readStringFromRequest(req, keyName);
+
+            if (formConfiguration.isRequired()) {
+                if (value == null || value.length() < 0) {
+                    final String errorMsg = "missing required value for field '" + formConfiguration.getAttributeName() + "'";
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, formConfiguration.getLabel());
                     throw new PwmDataValidationException(error);
                 }
             }
 
-            paramConfig.setValue(value);
+            if (formConfiguration.isConfirmationRequired()) {
+                final String confirmValue = readStringFromRequest(req,keyName + PARAM_CONFIRM_SUFFIX);
+                if (!confirmValue.equals(value)) {
+                    final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getAttributeName() + "'";
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, formConfiguration.getLabel());
+                    throw new PwmDataValidationException(error);
+                }
+            }
+            if (value != null) {
+                returnMap.put(formConfiguration,value);
+            }
         }
+
+        return returnMap;
     }
 
     public static String readStringFromRequest(
@@ -283,7 +305,7 @@ public class Validator {
 
         // strip off any disallowed chars.
         if (config != null) {
-            final List<String> disallowedInputs = config.readStringArraySetting(PwmSetting.DISALLOWED_HTTP_INPUTS);
+            final List<String> disallowedInputs = config.readSettingAsStringArray(PwmSetting.DISALLOWED_HTTP_INPUTS);
             for (final String testString : disallowedInputs) {
                 final String newString = theString.replaceAll(testString, "");
                 if (!newString.equals(theString)) {
@@ -300,7 +322,7 @@ public class Validator {
      * Validates each of the parameters in the supplied map against the vales in the embedded config
      * and checks to make sure the ParamConfig value meets the requiremetns of the ParamConfig itself.
      *
-     * @param parameterConfigs - a Map containing String keys of parameter names and ParamConfigs as values
+     * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
      * @param pwmSession       bean helper
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
@@ -309,12 +331,15 @@ public class Validator {
      *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
-            final Map<String, FormConfiguration> parameterConfigs,
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final Map<FormConfiguration, String> formValues
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException {
-        for (final Map.Entry<String, FormConfiguration> entry : parameterConfigs.entrySet()) {
-            entry.getValue().valueIsValid(pwmSession);
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
+    {
+        final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+        for (final FormConfiguration formConfiguration : formValues.keySet()) {
+            final String value = formValues.get(formConfiguration);
+            formConfiguration.checkValue(value, passwordPolicy);
         }
     }
 
@@ -802,5 +827,33 @@ public class Validator {
 
         return errorList;
     }
+
+    public static void validateAttributeUniqueness(
+            final PwmSession pwmSession,
+            final Map<FormConfiguration,String> formValues,
+            final List<String> uniqueAttributes
+    )
+            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException {
+        final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
+
+        for (final FormConfiguration formConfiguration : formValues.keySet()) {
+            if (uniqueAttributes.contains(formConfiguration.getAttributeName())) {
+                final String value = formValues.get(formConfiguration);
+
+                final Map<String, String> filterClauses = new HashMap<String, String>();
+                filterClauses.put(ChaiConstant.ATTR_LDAP_OBJECTCLASS, ChaiConstant.OBJECTCLASS_BASE_LDAP_USER);
+                filterClauses.put(formConfiguration.getAttributeName(), value);
+                final SearchHelper searchHelper = new SearchHelper();
+                searchHelper.setFilterAnd(filterClauses);
+                final Set<String> resultDNs = new HashSet<String>(provider.search(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), searchHelper).keySet());
+
+                if (resultDNs.size() > 0) {
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, formConfiguration.getLabel());
+                    throw new PwmDataValidationException(error);
+                }
+            }
+        }
+    }
+
 }
 

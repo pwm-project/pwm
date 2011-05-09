@@ -70,7 +70,7 @@
     <% } %>
 
     <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-    <input tabindex="1" type="text" id="username" name="username" class="inputfield"
+    <input tabindex="1" type="search" id="username" name="username" class="inputfield"
            value="<pwm:ParamValue name='username'/>"/>
 
     <div id="buttonbar">

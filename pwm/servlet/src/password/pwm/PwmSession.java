@@ -26,6 +26,7 @@ import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -34,9 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author Jason D. Rivard
@@ -56,12 +56,7 @@ public class PwmSession implements Serializable {
     private SessionManager sessionManager = new SessionManager(this);
     private SetupResponsesBean setupResponseBean = new SetupResponsesBean();
 
-    private NewUserServletBean newUserServletBean;
-    private GuestRegistrationServletBean guestRegistrationServletBean;
     private GuestUpdateServletBean guestUpdateServletBean;
-    private UpdateAttributesServletBean updateAttributesServletBean;
-    private ActivateUserServletBean activateUserServletBean;
-    private ForgottenUsernameBean forgottenUsernameBean;
 
     private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
 
@@ -136,25 +131,6 @@ public class PwmSession implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public ActivateUserServletBean getActivateUserServletBean() {
-        if (activateUserServletBean == null) {
-            activateUserServletBean = new ActivateUserServletBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.ACTIVATE_USER_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
-            activateUserServletBean.setActivateUserParams(Collections.unmodifiableMap(formMap));
-        }
-        return activateUserServletBean;
-    }
-
-    public ForgottenUsernameBean getForgottonUsernameBean() {
-        if (forgottenUsernameBean == null) {
-            forgottenUsernameBean = new ForgottenUsernameBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.FORGOTTEN_USERNAME_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
-            forgottenUsernameBean.setForgottenUsernameForm(Collections.unmodifiableMap(formMap));
-        }
-        return forgottenUsernameBean;
-    }
 
     public ChangePasswordBean getChangePasswordBean() {
         return changePasswordBean;
@@ -172,48 +148,20 @@ public class PwmSession implements Serializable {
         return configManagerBean;
     }
 
-    public NewUserServletBean getNewUserServletBean() {
-        if (newUserServletBean == null) {
-            newUserServletBean = new NewUserServletBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.NEWUSER_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
-            newUserServletBean.setCreationParams(Collections.unmodifiableMap(formMap));
-        }
-        return newUserServletBean;
-    }
-
-    public GuestRegistrationServletBean getGuestRegistrationServletBean() {
-        if (guestRegistrationServletBean == null) {
-            guestRegistrationServletBean = new GuestRegistrationServletBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
-            final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
-            if (expAttr != null && expAttr.length() > 0) {
-            	String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";            	
-            	formMap.put("__accountDuration__", FormConfiguration.parseConfigString(expConfig));
-            }
-            guestRegistrationServletBean.setCreationParams(Collections.unmodifiableMap(formMap));
-            Integer dur = 30;
-            try {
-	            dur = Integer.parseInt(getConfig().readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
-            } catch (Exception e) {
-            }
-            guestRegistrationServletBean.setMaximumDuration(dur);
-        }
-        return guestRegistrationServletBean;
-    }
-
     public GuestUpdateServletBean getGuestUpdateServletBean() {
         if (guestUpdateServletBean == null) {
             guestUpdateServletBean = new GuestUpdateServletBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
+            final List<FormConfiguration> formMap = getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
             final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
             if (expAttr != null && expAttr.length() > 0) {
-            	String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";            	
-            	formMap.put("__accountDuration__", FormConfiguration.parseConfigString(expConfig));
+            	final String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";
+                try {
+                    formMap.add(FormConfiguration.parseConfigString(expConfig));
+                } catch (PwmOperationalException e) {
+                    LOGGER.error(this, "unexpected error setting account duration form line: " + e.getMessage(), e);
+                }
             }
-            guestUpdateServletBean.setUpdateParams(Collections.unmodifiableMap(formMap));
+            guestUpdateServletBean.setUpdateParams(Collections.unmodifiableList(formMap));
             final String namingAttribute = getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             guestUpdateServletBean.setNamingAttribute(namingAttribute);
             Integer dur = 30;
@@ -232,16 +180,6 @@ public class PwmSession implements Serializable {
 
     public SessionStateBean getSessionStateBean() {
         return sessionStateBean;
-    }
-
-    public UpdateAttributesServletBean getUpdateAttributesServletBean() {
-        if (updateAttributesServletBean == null) {
-            updateAttributesServletBean = new UpdateAttributesServletBean();
-            final Collection<String> configMap = getConfig().readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, sessionStateBean.getLocale());
-            final Map<String, FormConfiguration> formMap = Configuration.convertMapToFormConfiguration(configMap);
-            updateAttributesServletBean.setUpdateAttributesParams(Collections.unmodifiableMap(formMap));
-        }
-        return updateAttributesServletBean;
     }
 
     public UserInfoBean getUserInfoBean() {
@@ -265,10 +203,6 @@ public class PwmSession implements Serializable {
         changePasswordBean = new ChangePasswordBean();
         setupResponseBean = new SetupResponsesBean();
         configManagerBean = new ConfigManagerBean();
-
-        updateAttributesServletBean = null;
-        newUserServletBean = null;
-        activateUserServletBean = null;
 
         userInformationServletBean = new UserInformationServletBean();
 

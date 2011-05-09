@@ -50,7 +50,7 @@ public class SuccessMessageTag extends PwmAbstractTag {
             boolean messageWritten = false;
             if (successMsg != null && successMsg == Message.SUCCESS_PASSWORDCHANGE) {
                 final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-                final String configuredMessage = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_SUCCESS_MESSAGE, userLocale);
+                final String configuredMessage = pwmSession.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_SUCCESS_MESSAGE, userLocale);
                 if (configuredMessage != null && configuredMessage.length() > 0) {
                     pageContext.getOut().write(configuredMessage);
                     messageWritten = true;

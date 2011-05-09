@@ -173,7 +173,7 @@ public class AuthenticationFilter implements Filter {
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
-            String displayMessage = PwmSession.getPwmSession(req).getContextManager().getConfig().readLocalizedStringSetting(PwmSetting.APPLICATION_TILE, ssBean.getLocale());
+            String displayMessage = PwmSession.getPwmSession(req).getContextManager().getConfig().readSettingAsLocalizedString(PwmSetting.APPLICATION_TILE, ssBean.getLocale());
             if (displayMessage == null) {
                 displayMessage = "Password Self Service";
             }
@@ -381,7 +381,6 @@ public class AuthenticationFilter implements Filter {
      *
      * @param theUser    User to authenticate
      * @param pwmSession A PwmSession instance
-     * @param req        http request
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *          If ldap becomes unreachable
      * @throws password.pwm.error.PwmUnrecoverableException
@@ -393,7 +392,7 @@ public class AuthenticationFilter implements Filter {
     public static void authUserWithUnknownPassword(
             final ChaiUser theUser,
             final PwmSession pwmSession,
-            final HttpServletRequest req
+            final boolean secure
     )
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException {
         LOGGER.trace(pwmSession, "beginning auth processes for user with unknown password");
@@ -454,7 +453,7 @@ public class AuthenticationFilter implements Filter {
 
         // mark the session as being authenticated
         try {
-            authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, req.isSecure());
+            authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, secure);
         } catch (PwmOperationalException e) {
             final String errorStr = "unable to authenticate user with temporary or retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
             LOGGER.error(errorStr);

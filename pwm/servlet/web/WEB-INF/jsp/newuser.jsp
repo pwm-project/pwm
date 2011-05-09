@@ -45,7 +45,7 @@
             </span>
             <% } %>
 
-            <pwm:ParameterForm formName="newuser"/>
+            <pwm:ShowForm formName="newuser"/>
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>

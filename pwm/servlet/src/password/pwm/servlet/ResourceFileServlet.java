@@ -1,8 +1,4 @@
 /*
- * net/balusc/webapp/FileServlet.java
- *
- * Copyright (C) 2009 BalusC
- *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU Lesser General Public License as published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
@@ -19,8 +15,8 @@ package password.pwm.servlet;
 
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
 
 import javax.servlet.ServletContext;
@@ -30,37 +26,61 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLDecoder;
-import java.util.Arrays;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 /**
  * String Etag/Expire Time based file servlet request; used to get around tomcat's lame default
  * cache header handling.
  * <p/>
+ * Copyright (C) 2009 BalusC
  * Based on http://balusc.blogspot.com/2009/02/fileservlet-supporting-resume-and.html
+ *
+ * @author  BalusC
+ * @author Jason D. Rivard
  */
 public class ResourceFileServlet extends HttpServlet {
 
-    private static final int DEFAULT_BUFFER_SIZE = 1024 * 10; // 10k
-    private static final long DEFAULT_EXPIRE_TIME = 1000 * 60 * 10; // 10 minutes
+    private static final int BUFFER_SIZE = 10 * 1024; // 10k
+    private static final long DEFAULT_EXPIRE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+    private static final int DEFAULT_MAX_CACHE_FILE_SIZE = 50 * 1024; // 50k
+    private static final int DEFAULT_MAX_CACHE_ITEM_LIMIT = 100; // 100 items
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
 
-    private long expireTime;
+    private Map<CacheKey,CacheEntry> responseCache;
+
+    private long expireTimeMs = DEFAULT_EXPIRE_TIME_MS;
+    private int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
+    private int internalMaxCacheFileSize = DEFAULT_MAX_CACHE_FILE_SIZE;
 
     public void init() throws ServletException {
-        expireTime = DEFAULT_EXPIRE_TIME;
-
-        final String expireTimeStr = this.getInitParameter("expireTimeMs");
-        if (expireTimeStr != null && expireTimeStr.length() > 0) {
-            try {
-                expireTime = Long.parseLong(expireTimeStr);
-            } catch (Exception e) {
-                LOGGER.warn("unable to parse 'expireTimeMs' servlet parameter: " + e.getMessage());
-            }
+        try {
+            expireTimeMs = Long.parseLong(this.getInitParameter("expireTimeMs"));
+        } catch (Exception e) {
+            LOGGER.warn("unable to parse 'expireTimeMs' servlet parameter: " + e.getMessage());
         }
 
-        LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTime));
+        try {
+            internalCacheItemLimit = Integer.parseInt(this.getInitParameter("internalCacheItemLimit"));
+        } catch (Exception e) {
+            LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
+        }
+
+        try {
+            internalMaxCacheFileSize = Integer.parseInt(this.getInitParameter("internalMaxCacheFileSize"));
+        } catch (Exception e) {
+            LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
+        }
+
+        responseCache = new LinkedHashMap<CacheKey,CacheEntry>(internalCacheItemLimit, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(final Map.Entry<CacheKey, CacheEntry> entry) {
+                return this.size() > internalCacheItemLimit;
+            }
+        };
+
+        LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
     }
 
     protected void doHead(final HttpServletRequest request, final HttpServletResponse response)
@@ -74,14 +94,14 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private void processRequest
-            (final HttpServletRequest request, final HttpServletResponse response, final boolean content)
+            (final HttpServletRequest request, final HttpServletResponse response, final boolean includeBody)
             throws IOException {
-        LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
 
         final File file = resolveRequestedFile(request);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
             return;
         }
 
@@ -124,25 +144,93 @@ public class ResourceFileServlet extends HttpServlet {
 
         // Initialize response.
         response.reset();
-        response.setBufferSize(DEFAULT_BUFFER_SIZE);
-        //response.setHeader("ETag", eTag);
-        response.setDateHeader("Expires", System.currentTimeMillis() + expireTime);
+        response.setBufferSize(BUFFER_SIZE);
+        response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+        response.setContentType(contentType);
 
+        try {
+            handleCachedResponse(response, file, includeBody, acceptsGzip);
+            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request,"(from cache)"));
+        } catch (UncacheableResourceException e) {
+            handleUncachedResponse(response, file, includeBody, acceptsGzip);
+            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
+        }
+    }
+
+    private void handleCachedResponse(
+            final HttpServletResponse response,
+            final File file,
+            final boolean includeBody,
+            final boolean acceptsGzip
+    ) throws
+            UncacheableResourceException, IOException {
+        if (!includeBody) {
+            throw new UncacheableResourceException();
+        }
+
+        if (file.length() > internalMaxCacheFileSize) {
+            throw new UncacheableResourceException();
+        }
+
+        final CacheKey cacheKey = new CacheKey(file, acceptsGzip);
+        CacheEntry cacheEntry = responseCache.get(cacheKey);
+        if (cacheEntry == null) {
+            final Map<String,String> headers = new HashMap<String,String>();
+            final ByteArrayOutputStream output = new ByteArrayOutputStream(BUFFER_SIZE);
+            final FileInputStream input = new FileInputStream(file);
+
+            try {
+                if (acceptsGzip) {
+                    final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(output, BUFFER_SIZE);
+                    headers.put("Content-Encoding", "gzip");
+                    copy (input,gzipOutputStream);
+                    close(gzipOutputStream);
+                } else {
+                    copy(input,output);
+                }
+            } finally {
+                close(input);
+                close(output);
+            }
+
+            final byte[] entity = output.toByteArray();
+            headers.put("Content-Length", String.valueOf(entity.length));
+            cacheEntry = new CacheEntry(entity, headers);
+        }
+        responseCache.put(cacheKey,cacheEntry);
+        for (final String key : cacheEntry.getHeaderStrings().keySet()) {
+            response.setHeader(key, cacheEntry.getHeaderStrings().get(key));
+        }
+
+        final OutputStream responseOutputStream = response.getOutputStream();
+        try {
+            copy(new ByteArrayInputStream(cacheEntry.getEntity()), responseOutputStream);
+        } finally {
+            close(responseOutputStream);
+        }
+    }
+
+    private static void handleUncachedResponse(
+            final HttpServletResponse response,
+            final File file,
+            final boolean includeBody,
+            final boolean acceptsGzip
+    ) throws IOException
+    {
         // Prepare streams.
-        RandomAccessFile input = null;
         OutputStream output = null;
+        InputStream input = null;
 
         try {
             // Open streams.
-            input = new RandomAccessFile(file, "r");
+            input = new FileInputStream(file);
             output = response.getOutputStream();
-            response.setContentType(contentType);
 
-            if (content) {
+            if (includeBody) {
                 if (acceptsGzip) {
                     // The browser accepts GZIP, so GZIP the content.
                     response.setHeader("Content-Encoding", "gzip");
-                    output = new GZIPOutputStream(output, DEFAULT_BUFFER_SIZE);
+                    output = new GZIPOutputStream(output, BUFFER_SIZE);
                 } else {
                     // Content length is not directly predictable in case of GZIP.
                     // So only add it if there is no means of GZIP, else browser will hang.
@@ -157,6 +245,7 @@ public class ResourceFileServlet extends HttpServlet {
             close(output);
             close(input);
         }
+
     }
 
     // Helpers (can be refactored to public utility class) ----------------------------------------
@@ -197,9 +286,9 @@ public class ResourceFileServlet extends HttpServlet {
      * @param output The output to copy the given range from the given input for.
      * @throws IOException If something fails at I/O level.
      */
-    private static void copy(final RandomAccessFile input, final OutputStream output)
+    private static void copy(final InputStream input, final OutputStream output)
             throws IOException {
-        final byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        final byte[] buffer = new byte[BUFFER_SIZE];
         int read;
 
         while ((read = input.read(buffer)) > 0) {
@@ -274,5 +363,57 @@ public class ResourceFileServlet extends HttpServlet {
 
         LOGGER.warn("attempt to access file outside of servlet path " + file.getAbsolutePath());
         return null;
+    }
+
+    private static final class UncacheableResourceException extends Exception {
+
+    }
+
+    private static final class CacheEntry implements Serializable {
+        final private byte[] entity;
+        final private Map<String,String> headerStrings;
+
+        private CacheEntry(final byte[] entity, final Map<String,String> headerStrings) {
+            this.entity = entity;
+            this.headerStrings = headerStrings;
+        }
+
+        public byte[] getEntity() {
+            return entity;
+        }
+
+        public Map<String,String> getHeaderStrings() {
+            return headerStrings;
+        }
+    }
+
+    private static final class CacheKey implements Serializable {
+        final private File file;
+        final private boolean acceptsGzip;
+        final private long fileModificationTimestamp;
+
+        private CacheKey(final File file, final boolean acceptsGzip) {
+            this.file = file;
+            this.acceptsGzip = acceptsGzip;
+            this.fileModificationTimestamp = file.lastModified();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            final CacheKey cacheKey = (CacheKey) o;
+
+            return acceptsGzip == cacheKey.acceptsGzip && fileModificationTimestamp == cacheKey.fileModificationTimestamp && !(file != null ? !file.equals(cacheKey.file) : cacheKey.file != null);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = file != null ? file.hashCode() : 0;
+            result = 31 * result + (acceptsGzip ? 1 : 0);
+            result = 31 * result + (int) (fileModificationTimestamp ^ (fileModificationTimestamp >>> 32));
+            return result;
+        }
     }
 }

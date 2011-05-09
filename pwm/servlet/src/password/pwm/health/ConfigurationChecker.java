@@ -25,7 +25,6 @@ package password.pwm.health;
 import password.pwm.ContextManager;
 import password.pwm.PasswordUtility;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
@@ -89,7 +88,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         {
-            final List<String> ldapServerURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
+            final List<String> ldapServerURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
             if (ldapServerURLs != null && !ldapServerURLs.isEmpty()) {
                 for (final String urlStringValue : ldapServerURLs) {
                     try {
@@ -150,8 +149,7 @@ public class ConfigurationChecker implements HealthChecker {
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
                 if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
-                    final Collection<String> configValues = config.readFormSetting(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
-                    final Map<String, FormConfiguration> formSettings = Configuration.convertMapToFormConfiguration(configValues);
+                    final Collection<String> formSettings = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
                     if (formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.WARN, TOPIC, "No forgotten password recovery options are enabled"));
                     }

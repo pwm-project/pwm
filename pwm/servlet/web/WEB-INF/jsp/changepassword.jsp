@@ -164,7 +164,7 @@
     PWM_STRINGS['Title_RandomPasswords'] = "<pwm:Display key="Title_RandomPasswords"/>";
     PWM_STRINGS['Title_PasswordGuide'] = "<pwm:Display key="Title_PasswordGuide"/>";
     PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-    PWM_STRINGS['passwordGuideText'] = '<%=PwmSession.getPwmSession(session).getConfig().readLocalizedStringSetting(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getSessionStateBean(session).getLocale())%>';
+    PWM_STRINGS['passwordGuideText'] = '<%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getSessionStateBean(session).getLocale())%>';
 </script>
 <%-- end hidden fields --%>
 <%@ include file="footer.jsp" %>

@@ -76,13 +76,13 @@ public class GuestUpdateServlet extends TopServlet {
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
-        
+
         if (!Permission.checkPermission(Permission.GUEST_REGISTRATION, pwmSession)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
-        
+
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
         final Configuration config = pwmSession.getConfig();
 
@@ -93,13 +93,13 @@ public class GuestUpdateServlet extends TopServlet {
         }
 
         if (actionParam != null && actionParam.length() > 0) {
-        	if (actionParam.equalsIgnoreCase("search")) {
-        		this.processSearch(req, resp);
-        		return;
-        	} else if (actionParam.equalsIgnoreCase("update")) {
-        		this.processUpdate(req, resp);
-        		return;
-        	}
+            if (actionParam.equalsIgnoreCase("search")) {
+                this.processSearch(req, resp);
+                return;
+            } else if (actionParam.equalsIgnoreCase("update")) {
+                this.processUpdate(req, resp);
+                return;
+            }
         }
         LOGGER.trace("No parameters, initiate search");
         this.forwardToSearchJSP(req, resp);
@@ -124,49 +124,54 @@ public class GuestUpdateServlet extends TopServlet {
             filterClauses.put(namingAttribute, usernameParam);
             final SearchHelper searchHelper = new SearchHelper();
             searchHelper.setFilterAnd(filterClauses);
-            
+
             final Set<String> resultDNs = new HashSet<String>(provider.search(searchContext, searchHelper).keySet());
             if (resultDNs.size() > 1) {
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_MULTI_USERNAME, null, usernameParam);
-				ssBean.setSessionError(error);
-            	this.forwardToSearchJSP(req, resp);
-            	return;
+                ssBean.setSessionError(error);
+                this.forwardToSearchJSP(req, resp);
+                return;
             }
             if (resultDNs.size() == 0) {
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, null, usernameParam);
-				ssBean.setSessionError(error);
-            	this.forwardToSearchJSP(req, resp);
-            	return;
+                ssBean.setSessionError(error);
+                this.forwardToSearchJSP(req, resp);
+                return;
             }
             final String userDN = resultDNs.iterator().next();
             guBean.setUpdateUserDN(userDN);
             final ChaiUser theGuest = ChaiFactory.createChaiUser(userDN, provider);
-        	final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
-        	try {
-                final Map<String, FormConfiguration> updateParams = guBean.getUpdateParams();
-                final Collection<String> involvedAttrs = new HashSet<String>(updateParams.keySet());
-                involvedAttrs.remove("__accountDuration__");
+            final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
+            try {
+                final List<FormConfiguration> updateParams = guBean.getUpdateParams();
+                final Collection<String> involvedAttrs = new HashSet<String>();
+                for (final FormConfiguration formConfiguration : updateParams) {
+                    if (!formConfiguration.getAttributeName().equalsIgnoreCase("__accountDuration__")) {
+                        involvedAttrs.add(formConfiguration.getAttributeName());
+                    }
+                }
                 final Properties userAttrValues = provider.readStringAttributes(userDN, involvedAttrs.toArray(new String[involvedAttrs.size()]));
-        		final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
-        		final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
-        		if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) { 
-        			final String origAdminDn = userAttrValues.getProperty(adminDnAttribute);
-        			if (origAdminDn != null && origAdminDn.length() > 0) {
-        			    if (!pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(origAdminDn)) {
-        			        final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
+                final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
+                final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
+                if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
+                    final String origAdminDn = userAttrValues.getProperty(adminDnAttribute);
+                    if (origAdminDn != null && origAdminDn.length() > 0) {
+                        if (!pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(origAdminDn)) {
+                            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
                             ssBean.setSessionError(info);
                             LOGGER.warn(pwmSession, info);
                             forwardToSearchJSP(req, resp);
-        			    }
-        			}
-        		}
+                        }
+                    }
+                }
                 final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
-	    		final Date expiration = theGuest.readDateAttribute(expirationAttribute);
-		    	if (expiration != null) {
+                final Date expiration = theGuest.readDateAttribute(expirationAttribute);
+                if (expiration != null) {
                     guBean.setRemainingDays(expiration);
                 }
-                
-                for (final String key : updateParams.keySet()) {
+
+                for (final FormConfiguration formConfiguration : updateParams) {
+                    final String key = formConfiguration.getAttributeName();
                     final String value = userAttrValues.getProperty(key);
                     if (value != null) {
                         formProps.setProperty(key, value);
@@ -183,9 +188,9 @@ public class GuestUpdateServlet extends TopServlet {
             this.forwardToJSP(req, resp);
             return;
         }
-		this.forwardToJSP(req, resp);
+        this.forwardToJSP(req, resp);
     }
-    
+
     protected void processUpdate(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -196,106 +201,85 @@ public class GuestUpdateServlet extends TopServlet {
         final GuestUpdateServletBean guBean = pwmSession.getGuestUpdateServletBean();
         final Locale locale = Locale.getDefault();
         String durationString = null;
-        Properties notifyAttrs = new Properties();
+        final Properties notifyAttrs = new Properties();
         final IntruderManager intruderMgr = pwmSession.getContextManager().getIntruderManager();
         final Configuration config = pwmSession.getConfig();
-        
-        Map<String, FormConfiguration> updateParams = guBean.getUpdateParams();
+
+        final List<FormConfiguration> formConfigurations = guBean.getUpdateParams();
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
         Validator.validatePwmFormID(req);
 
-        //read the values from the request
         try {
-            Validator.updateParamValues(pwmSession, req, updateParams);
-        } catch (PwmDataValidationException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req, resp);
-            return;
-        }
-        
-        // see if the values meet form requirements.
-        try {
-            Validator.validateParmValuesMeetRequirements(updateParams, pwmSession);
+            //read the values from the request
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations);
+
+            // see if the values meet form requirements.
+            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
             if (expirationAttribute != null && expirationAttribute.length() > 0) {
-                durationString = updateParams.get("__accountDuration__").getValue();
-   	            final Integer maxDuration = Integer.parseInt(config.readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
+                durationString = Validator.readStringFromRequest(req,"__accountDuration__");
+                final Integer maxDuration = Integer.parseInt(config.readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
                 Validator.validateNumericString(durationString, 0, maxDuration, pwmSession);
             }
-        } catch (NumberFormatException e) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null));
-            intruderMgr.addBadAddressAttempt(pwmSession);
-            this.forwardToJSP(req, resp);
-            return;
-        } catch (PwmDataValidationException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            intruderMgr.addBadAddressAttempt(pwmSession);
-            this.forwardToJSP(req, resp);
-            return;
-        }
 
-        // check unique fields against ldap
-        for (final String attr : config.readStringArraySetting(PwmSetting.GUEST_UNIQUE_ATTRIBUTES)) {
-        	LOGGER.trace("ATTR: "+attr);
-            final FormConfiguration paramConfig = updateParams.get(attr);
-            try {
-            	if (!attr.equalsIgnoreCase(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE))) {
-	                validateAttributeUniqueness(pwmSession, paramConfig, guBean.getUpdateUserDN());
-            	}
-            } catch (PwmDataValidationException e) {
-                ssBean.setSessionError(e.getErrorInformation());
-                intruderMgr.addBadAddressAttempt(pwmSession);
-                this.forwardToJSP(req, resp);
-                return;
-            }
-        }
+            // check unique fields against ldap
+            final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
+            Validator.validateAttributeUniqueness(pwmSession, formValues, uniqueAttributes);
 
-        //update user
-        try {
+            //update user
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final Map<String, String> updateAttrs = new HashMap<String, String>();
 
-            for (final String key : updateParams.keySet()) {
-               	if (!key.equalsIgnoreCase("__accountDuration__")) { 
-                   	final FormConfiguration formConfig = updateParams.get(key);
-                   	LOGGER.trace("DEBUG: Attribute: " + key);
-                   	updateAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
-                   	notifyAttrs.put(formConfig.getAttributeName(), formConfig.getValue());
-             	}
+            for (final FormConfiguration formConfiguration : formValues.keySet()) {
+                final String attrName = formConfiguration.getAttributeName();
+                if (!attrName.equalsIgnoreCase("__accountDuration__")) {
+                    updateAttrs.put(attrName, formValues.get(formConfiguration));
+                    notifyAttrs.put(attrName, formValues.get(formConfiguration));
+                }
             }
 
             final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
-			GregorianCalendar cal = null;
-			String expirationDate = null;
-	
-			// If an expiration date attribute is available, calculate the expiration date and convert it to
-			//   Greenwich Mean Time.
-			if (expirationAttribute != null && expirationAttribute.length() > 0 && durationString != null) {
-				cal = new GregorianCalendar(locale);
-				cal.set(Calendar.HOUR_OF_DAY,0);
-				cal.set(Calendar.MINUTE,0);
-				cal.set(Calendar.SECOND,0);
-				cal.set(Calendar.MILLISECOND,0);
-				cal.add(Calendar.DAY_OF_MONTH,Integer.parseInt(durationString));
-				TimeZone tz = TimeZone.getTimeZone("GMT");
-				cal.setTimeZone(tz);
-				SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
-				expirationDate = fmt.format(cal.getTime());
-				SimpleDateFormat nfmt = new SimpleDateFormat();
-				notifyAttrs.put(expirationAttribute, nfmt.format(cal.getTime()));
-				LOGGER.trace("DEBUG: "+expirationAttribute+"="+expirationDate+" ("+nfmt.format(cal.getTime())+")");
-			}
+            GregorianCalendar cal = null;
+            String expirationDate = null;
+
+            // If an expiration date attribute is available, calculate the expiration date and convert it to
+            //   Greenwich Mean Time.
+            if (expirationAttribute != null && expirationAttribute.length() > 0 && durationString != null) {
+                cal = new GregorianCalendar(locale);
+                cal.set(Calendar.HOUR_OF_DAY,0);
+                cal.set(Calendar.MINUTE,0);
+                cal.set(Calendar.SECOND,0);
+                cal.set(Calendar.MILLISECOND,0);
+                cal.add(Calendar.DAY_OF_MONTH,Integer.parseInt(durationString));
+                TimeZone tz = TimeZone.getTimeZone("GMT");
+                cal.setTimeZone(tz);
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+                expirationDate = fmt.format(cal.getTime());
+                SimpleDateFormat nfmt = new SimpleDateFormat();
+                notifyAttrs.put(expirationAttribute, nfmt.format(cal.getTime()));
+                LOGGER.trace("DEBUG: "+expirationAttribute+"="+expirationDate+" ("+nfmt.format(cal.getTime())+")");
+            }
 
             if (expirationDate != null) {
-               	updateAttrs.put(expirationAttribute, expirationDate);
+                updateAttrs.put(expirationAttribute, expirationDate);
             }
             // Update user attributes
-            Helper.writeMapToEdir(pwmSession, theGuest, updateAttrs);
+            Helper.writeMapToLdap(pwmSession, theGuest, updateAttrs);
         } catch (PwmOperationalException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
             LOGGER.warn(pwmSession, info, e);
             ssBean.setSessionError(info);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        } catch (NumberFormatException e) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,e.getMessage()));
+            intruderMgr.addBadAddressAttempt(pwmSession);
+            this.forwardToJSP(req, resp);
+            return;
+        } catch (ChaiOperationException e) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            intruderMgr.addBadAddressAttempt(pwmSession);
+            this.forwardToJSP(req, resp);
             return;
         }
 
@@ -308,47 +292,16 @@ public class GuestUpdateServlet extends TopServlet {
         return;
     }
 
-    public static void validateAttributeUniqueness(
-            final PwmSession pwmSession,
-            final FormConfiguration paramConfig,
-            final String userDN
-    )
-            throws PwmDataValidationException, ChaiUnavailableException
-    {
-        try {
-            final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
-
-            final Map<String, String> filterClauses = new HashMap<String, String>();
-            //filterClauses.put(ChaiConstant.ATTR_LDAP_OBJECTCLASS, ChaiConstant.OBJECTCLASS_BASE_LDAP_USER);
-            filterClauses.put(paramConfig.getAttributeName(), paramConfig.getValue());
-
-            final SearchHelper searchHelper = new SearchHelper();
-            searchHelper.setFilterAnd(filterClauses);
-
-            final Set<String> resultDNs = new HashSet<String>(provider.search(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), searchHelper).keySet());
-
-            // remove the user DN from the result set.
-            resultDNs.remove(userDN);
-
-            if (resultDNs.size() > 0) {
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, paramConfig.getLabel());
-                throw new PwmDataValidationException(error);
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.debug(e);
-        }
-    }
-
     private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_UPDATEGUEST_FROM,locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_UPDATEGUEST_SUBJECT,locale);
-        final String plainBody = Helper.replaceAllPatterns(config.readLocalizedStringSetting(PwmSetting.EMAIL_UPDATEGUEST_BODY,locale), attrs);
-        final String htmlBody = Helper.replaceAllPatterns(config.readLocalizedStringSetting(PwmSetting.EMAIL_UPDATEGUEST_BODY_HTML,locale), attrs);
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_FROM, locale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_SUBJECT, locale);
+        final String plainBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_BODY, locale), attrs);
+        final String htmlBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_BODY_HTML, locale), attrs);
 
         final String toAddress = attrs.getProperty(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
         if (toAddress == null || toAddress.length() < 1) {

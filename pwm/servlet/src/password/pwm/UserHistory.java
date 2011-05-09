@@ -229,7 +229,7 @@ public class UserHistory implements Serializable {
             RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD),
             SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES),
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
-            UPDATE_ATTRIBUTES(Message.EVENT_LOG_UPDATE_ATTRIBUTES),
+            UPDATE_PROFILE(Message.EVENT_LOG_UPDATE_PROFILE),
             INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
             UNKNOWN(null);
 

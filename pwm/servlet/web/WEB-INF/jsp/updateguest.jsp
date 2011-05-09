@@ -45,7 +45,7 @@
             </span>
             <% } %>
 
-            <pwm:ParameterForm formName="updateguest"/>
+            <pwm:ShowForm formName="updateguest"/>
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="update"/>

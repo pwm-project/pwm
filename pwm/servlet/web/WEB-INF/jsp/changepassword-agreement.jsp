@@ -54,7 +54,7 @@
             </span>
         <% } %>
 
-        <span><%=PwmSession.getPwmSession(session).getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getSessionStateBean(session).getLocale())%></span>
+        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getSessionStateBean(session).getLocale())%></span>
 
         <div id="buttonbar">
             <form action="<pwm:url url='ChangePassword'/>" method="post"

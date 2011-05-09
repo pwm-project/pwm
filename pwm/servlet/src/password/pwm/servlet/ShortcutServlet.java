@@ -94,11 +94,11 @@ public class ShortcutServlet extends TopServlet {
      */
     private static Map<String, ShortcutItem> figureVisibleShortcuts(final PwmSession pwmSession, final HttpServletRequest request)
             throws PwmUnrecoverableException, ChaiUnavailableException {
-        final Collection<String> configValues = pwmSession.getConfig().readFormSetting(PwmSetting.SHORTCUT_ITEMS, pwmSession.getSessionStateBean().getLocale());
+        final Collection<String> configValues = pwmSession.getConfig().readSettingAsLocalizedStringArray(PwmSetting.SHORTCUT_ITEMS, pwmSession.getSessionStateBean().getLocale());
 
         final Set<String> labelsFromHeader = new HashSet<String>();
         {
-            for (final String headerName : pwmSession.getConfig().readStringArraySetting(PwmSetting.SHORTCUT_HEADER_NAMES)) {
+            for (final String headerName : pwmSession.getConfig().readSettingAsStringArray(PwmSetting.SHORTCUT_HEADER_NAMES)) {
                 final Set<String> headerStrings = Validator.readStringsFromRequest(request, headerName, 10 * 1024);
                 for (final String loopString : headerStrings) {
                     labelsFromHeader.addAll(StringHelper.tokenizeString(loopString, ","));

@@ -100,8 +100,8 @@
         </attribute>
     </tag>
     <tag>
-        <name>ParameterForm</name>
-        <tag-class>password.pwm.tag.ParameterFormTag</tag-class>
+        <name>ShowForm</name>
+        <tag-class>password.pwm.tag.ShowFormTag</tag-class>
         <body-content>empty</body-content>
         <description>Displays a form using the supplied Map of ParameterConfig
             values

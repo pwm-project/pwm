@@ -75,7 +75,7 @@
                         } else {
                             switch (loopSetting.getSyntax()) {
                                 case STRING_ARRAY: {
-                                    final List<String> values = pwmConfig.readStringArraySetting(loopSetting);
+                                    final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
                                     for (final String value : values) {
                                         out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
                                     }
@@ -85,7 +85,7 @@
                                 case LOCALIZED_STRING:
                                 case LOCALIZED_TEXT_AREA: {
                                     for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
-                                        final String value = StringEscapeUtils.escapeHtml(pwmConfig.readLocalizedStringSetting(loopSetting, locale));
+                                        final String value = StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsLocalizedString(loopSetting, locale));
                                         out.write("<b>" + locale + "</b>" + value + "<br/>");
                                     }
 
@@ -97,7 +97,7 @@
                                         out.write("<table><tr><td>");
                                         out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
                                         out.write("</td><td>");
-                                        for (String value : pwmConfig.readFormSetting(loopSetting, locale)) {
+                                        for (String value : pwmConfig.readSettingAsForm(loopSetting, locale)) {
                                             value = StringEscapeUtils.escapeHtml(value);
                                             out.write(value + "<br/>");
                                         }

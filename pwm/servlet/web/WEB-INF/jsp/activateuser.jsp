@@ -56,7 +56,7 @@
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-            <pwm:ParameterForm formName="activateuser"/>
+            <pwm:ShowForm formName="activateuser"/>
             <div id="buttonbar">
                 <input type="submit" name="button" class="btn"
                        value="     <pwm:Display key="Button_Activate"/>     "

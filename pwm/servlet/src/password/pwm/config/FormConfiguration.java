@@ -23,12 +23,9 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmSession;
+import password.pwm.PwmPasswordPolicy;
 import password.pwm.Validator;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
@@ -67,112 +64,91 @@ import java.util.StringTokenizer;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {STRING, EMAIL, NUMBER, PASSWORD, RANDOM}
+    public enum Type {TEXT, EMAIL, NUMBER, PASSWORD, RANDOM, READONLY}
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 
-    private int minimumLength = 0;
-    private int maximumLength = 40;
-    private Type type = Type.STRING;
-    private boolean required = false;
-    private boolean confirmationRequired = false;
-    private String label;
-    private String attributeName;
-
-    private String value;
+    private final int minimumLength;
+    private final int maximumLength;
+    private final Type type;
+    private final boolean required;
+    private final boolean confirmationRequired;
+    private final String label;
+    private final String attributeName;
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static FormConfiguration parseConfigString(final String config) {
+    public static FormConfiguration parseConfigString(final String config)
+            throws PwmOperationalException
+    {
         if (config == null) {
-            throw new NullPointerException();
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"input cannot be null"));
         }
-
-        final FormConfiguration newConfig = new FormConfiguration();
-
 
         final StringTokenizer st = new StringTokenizer(config, ":");
 
-        {  // attribute name
-            newConfig.attributeName = st.nextToken();
-        }
+        // attribute name
+        final String attributeName = st.nextToken();
 
         // label
-        if (st.hasMoreTokens()) {
-            newConfig.label = st.nextToken();
-        } else {
-            newConfig.label = newConfig.attributeName;
-        }
+        final String label = st.nextToken();
 
-        //type
-        if (st.hasMoreTokens()) {
-            final String type = st.nextToken();
-            if (type.equalsIgnoreCase(Type.NUMBER.toString())) {
-                newConfig.type = Type.NUMBER;
-            } else if (type.equalsIgnoreCase(Type.EMAIL.toString())) {
-                newConfig.type = Type.EMAIL;
-            } else if (type.equalsIgnoreCase(Type.PASSWORD.toString())) {
-                newConfig.type = Type.PASSWORD;
-            } else if (type.equalsIgnoreCase(Type.RANDOM.toString())) {
-                newConfig.type = Type.RANDOM;
-            } else {
-                newConfig.type = Type.STRING;
+        // type
+        final Type type;
+        {
+            final String typeStr = st.nextToken();
+            try {
+                type = Type.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"unknown type for form config: " + typeStr));
             }
         }
 
         //minimum length
-        if (st.hasMoreTokens()) {
-            final String minLengthStr = st.nextToken();
-            try {
-                newConfig.minimumLength = Integer.parseInt(minLengthStr);
-            } catch (NumberFormatException e) {
-                LOGGER.warn("error reading param config minimum length for attribute " + newConfig.attributeName);
-            }
+        final int minimumLength;
+        try {
+            minimumLength = Integer.parseInt(st.nextToken());
+        } catch (NumberFormatException e) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid minimum length type for form config: " + e.getMessage()));
         }
 
         //maximum length
-        if (st.hasMoreTokens()) {
-            final String maxLengthStr = st.nextToken();
-            try {
-                newConfig.maximumLength = Integer.parseInt(maxLengthStr);
-            } catch (NumberFormatException e) {
-                LOGGER.warn("error reading param config maximum length for attribute " + newConfig.attributeName);
-            }
+        final int maximumLength;
+        try {
+            maximumLength = Integer.parseInt(st.nextToken());
+        } catch (NumberFormatException e) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid maximum length type for form config: " + e.getMessage()));
         }
 
         //required
-        if (st.hasMoreTokens()) {
-            final String required = st.nextToken();
-            if (required.equalsIgnoreCase("true")) {
-                newConfig.required = true;
-            }
-        }
+        final boolean required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
         //confirmation
-        if (st.hasMoreTokens()) {
-            final String confirmationRequired = st.nextToken();
-            if (confirmationRequired.equalsIgnoreCase("true")) {
-                newConfig.confirmationRequired = true;
-            }
-        }
+        final boolean confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
-
-        return newConfig;
+        return new FormConfiguration(
+                minimumLength,
+                maximumLength,
+                type,
+                required,
+                confirmationRequired,
+                label,
+                attributeName
+        );
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private FormConfiguration() {
-        super();
-
-        // set defaults;
-        this.attributeName = "";
-        this.confirmationRequired = false;
-        this.required = false;
-        this.label = "";
-        this.maximumLength = 40;
-        this.minimumLength = 0;
+    public FormConfiguration(final int minimumLength, final int maximumLength, final Type type, final boolean required, final boolean confirmationRequired, final String label, final String attributeName) {
+        this.minimumLength = minimumLength;
+        this.maximumLength = maximumLength;
+        this.type = type;
+        this.required = required;
+        this.confirmationRequired = confirmationRequired;
+        this.label = label;
+        this.attributeName = attributeName;
     }
+
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -194,14 +170,6 @@ public class FormConfiguration implements Serializable {
 
     public Type getType() {
         return type;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(final String value) {
-        this.value = value;
     }
 
     public boolean isConfirmationRequired() {
@@ -236,20 +204,19 @@ public class FormConfiguration implements Serializable {
 
         sb.append("FormConfiguration (attrName=").append(this.getAttributeName());
         sb.append(", label=").append(this.getLabel());
+        sb.append(", type=").append(this.getType());
         sb.append(", minLength=").append(this.getMinimumLength());
         sb.append(", maxLength=").append(this.getMaximumLength());
         sb.append(", confirm=").append(String.valueOf(this.isConfirmationRequired()));
         sb.append(", required=").append(String.valueOf(this.isRequired()));
         sb.append(")");
-        sb.append(" value=");
-        sb.append(this.getValue());
 
         return sb.toString();
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void valueIsValid(final PwmSession pwmSession)
+    public void checkValue(final String value, final PwmPasswordPolicy passwordPolicy)
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
@@ -260,7 +227,7 @@ public class FormConfiguration implements Serializable {
         switch (type) {
             case NUMBER:
                 try {
-                    Integer.parseInt(this.getValue());
+                    Integer.parseInt(value);
                 } catch (NumberFormatException e) {
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER, null, this.label);
                     throw new PwmDataValidationException(error);
@@ -269,8 +236,8 @@ public class FormConfiguration implements Serializable {
 
 
             case EMAIL:
-                if (this.getValue() != null && this.getValue().length() > 0) {
-                    if (!Helper.testEmailAddress(this.getValue())) {
+                if (value != null && value.length() > 0) {
+                    if (!Helper.testEmailAddress(value)) {
                         final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
                         throw new PwmDataValidationException(error);
                     }
@@ -278,7 +245,7 @@ public class FormConfiguration implements Serializable {
                 break;
 
             case PASSWORD:
-                Validator.testPasswordAgainstPolicy(this.getValue(), pwmSession, true);
+                Validator.testPasswordAgainstPolicy(value, null, false, passwordPolicy);
                 break;
         }
 
@@ -287,7 +254,7 @@ public class FormConfiguration implements Serializable {
             throw new PwmDataValidationException(error);
         }
 
-        if (value.length() > this.maximumLength) {
+        if (value != null && value.length() > this.maximumLength) {
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_LONG, null, this.label);
             throw new PwmDataValidationException(error);
         }

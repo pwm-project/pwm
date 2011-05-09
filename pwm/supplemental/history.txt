@@ -6,6 +6,12 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.5.4
+---
+
+- Renamed Update Attributes servlet to UpdateProfile and changed checkAttributes parameter to checkProfile
+- General refactoring to improve error messages
+
 v1.5.3 (April 2, 2011) build 1026
 ---
 + Added locale selector menu to footer (issue #31)

@@ -30,6 +30,7 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
@@ -46,36 +47,79 @@ import java.util.*;
  * @author Jason D. Rivard
  */
 public class Configuration implements Serializable {
+// ------------------------------ FIELDS ------------------------------
+
     private final static PwmLogger LOGGER = PwmLogger.getLogger(Configuration.class);
 
     private final StoredConfiguration storedConfiguration;
 
     private PwmPasswordPolicy cachedPasswordPolicy = null;
 
+// -------------------------- STATIC METHODS --------------------------
+
+    public static Configuration getConfig(final HttpSession session) {
+        return ContextManager.getContextManager(session).getConfig();
+    }
+
+    public static Configuration getConfig(final HttpServletRequest request) {
+        return ContextManager.getContextManager(request).getConfig();
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
     public Configuration(final StoredConfiguration storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
     }
 
-    public String readSettingAsString(final PwmSetting setting) {
-        return storedConfiguration.readSetting(setting);
+// ------------------------ CANONICAL METHODS ------------------------
+
+    public String toString() {
+        return storedConfiguration.toString();
     }
 
-    public Date getModifyTime() {
-        return storedConfiguration.getModifyTime();
-    }
+// -------------------------- OTHER METHODS --------------------------
 
-    public List<String> readStringArraySetting(final PwmSetting setting) {
-        final List<String> results = new ArrayList<String>(storedConfiguration.readStringArraySetting(setting));
-        for (final Iterator iter = results.iterator(); iter.hasNext();) {
-            final Object loopString = iter.next();
-            if (loopString == null || loopString.toString().length() < 1) {
-                iter.remove();
+    public Set<String> getAllUsedLdapAttributes() {
+        final Set<String> returnSet = new HashSet<String>();
+        for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
+            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting, Locale.getDefault())) {
+                returnSet.add(formConfiguration.getAttributeName());
             }
         }
-        return results;
+        returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
+        returnSet.addAll(this.getGlobalPasswordPolicy(Locale.getDefault()).getRuleHelper().getDisallowedAttributes());
+        returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE));
+        returnSet.remove("");
+        return returnSet;
     }
 
-    public List<String> readFormSetting(final PwmSetting setting, final Locale locale) {
+    public List<FormConfiguration> readSettingAsForm(final PwmSetting setting, final Locale locale) {
+        final List<String> input = readSettingAsLocalizedStringArray(setting, locale);
+
+        if (input == null) {
+            return Collections.emptyList();
+        }
+
+        final List<FormConfiguration> returnList = new LinkedList<FormConfiguration>();
+        for (final String loopString : input) {
+            if (loopString != null && loopString.length() > 0) {
+                final FormConfiguration formConfig;
+                try {
+                    formConfig = FormConfiguration.parseConfigString(loopString);
+                    returnList.add(formConfig);
+                } catch (PwmOperationalException e) {
+                    LOGGER.error("error parsing form configuration: " + e.getMessage());
+                }
+            }
+        }
+        return returnList;
+    }
+
+    public List<String> readSettingAsLocalizedStringArray(final PwmSetting setting, final Locale locale) {
         final Map<String, List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
         final Map<Locale, List<String>> availableLocaleMap = new HashMap<Locale, List<String>>();
         for (final String localeStr : storedValues.keySet()) {
@@ -86,61 +130,8 @@ public class Configuration implements Serializable {
         return availableLocaleMap.get(matchedLocale);
     }
 
-    public Collection<Locale> localesForSetting(final PwmSetting setting) {
-        final Collection<Locale> returnCollection = new ArrayList<Locale>();
-        switch (setting.getSyntax()) {
-            case LOCALIZED_TEXT_AREA:
-            case LOCALIZED_STRING:
-                for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
-                }
-                break;
-
-            case LOCALIZED_STRING_ARRAY:
-                for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
-                }
-                break;
-        }
-
-        return returnCollection;
-    }
-
-    public boolean readSettingAsBoolean(final PwmSetting setting) {
-        return StringHelper.convertStrToBoolean(storedConfiguration.readSetting(setting));
-    }
-
-    public long readSettingAsLong(final PwmSetting setting) {
-        return StringHelper.convertStrToLong(storedConfiguration.readSetting(setting), 0);
-    }
-
-    public String readLocalizedStringSetting(final PwmSetting setting, final Locale locale) {
-        final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
-        final Map<Locale, String> availableLocaleMap = new HashMap<Locale, String>();
-        for (final String localeStr : availableValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
-        }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
-
-        return availableLocaleMap.get(matchedLocale);
-    }
-
-
-    public Set<String> getAllUsedLdapAttributes() {
-        final Set<String> returnSet = new HashSet<String>();
-
-        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.ACTIVATE_USER_FORM, Locale.getDefault())).keySet());
-        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.NEWUSER_FORM, Locale.getDefault())).keySet());
-        returnSet.addAll(convertMapToFormConfiguration(readFormSetting(PwmSetting.UPDATE_ATTRIBUTES_FORM, Locale.getDefault())).keySet());
-        returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
-        returnSet.addAll(this.getGlobalPasswordPolicy(Locale.getDefault()).getRuleHelper().getDisallowedAttributes());
-        returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE));
-
-        return returnSet;
+    public String readSettingAsString(final PwmSetting setting) {
+        return storedConfiguration.readSetting(setting);
     }
 
     public PwmLogLevel getEventLogLocalLevel() {
@@ -154,43 +145,9 @@ public class Configuration implements Serializable {
         return PwmLogLevel.TRACE;
     }
 
-
-    public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale) {
-        if (cachedPasswordPolicy != null) {
-            return cachedPasswordPolicy;
-        }
-
-        final Map<String, String> passwordPolicySettings = new HashMap<String, String>();
-        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            if (rule.getPwmSetting() != null) {
-                final String value;
-                final PwmSetting pwmSetting = rule.getPwmSetting();
-                switch (rule) {
-                    case DisallowedAttributes:
-                    case DisallowedValues:
-                        value = StringHelper.stringCollectionToString(readStringArraySetting(pwmSetting), "\n");
-                        break;
-                    case RegExMatch:
-                    case RegExNoMatch:
-                        value = StringHelper.stringCollectionToString(readStringArraySetting(pwmSetting), ";;;");
-                        break;
-                    case ChangeMessage:
-                        value = readLocalizedStringSetting(pwmSetting, locale);
-                        break;
-                    default:
-                        value = readSettingAsString(pwmSetting);
-                }
-                passwordPolicySettings.put(rule.getKey(), value);
-            }
-        }
-
-        cachedPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
-        return cachedPasswordPolicy;
-    }
-
     public ChallengeSet getGlobalChallengeSet(final Locale locale) {
-        final List<String> requiredQuestions = readFormSetting(PwmSetting.CHALLENGE_REQUIRED_CHALLENGES, locale);
-        final List<String> randomQuestions = readFormSetting(PwmSetting.CHALLENGE_RANDOM_CHALLENGES, locale);
+        final List<String> requiredQuestions = readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_CHALLENGES, locale);
+        final List<String> randomQuestions = readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_RANDOM_CHALLENGES, locale);
 
         final List<Challenge> challenges = new ArrayList<Challenge>();
         for (final String question : requiredQuestions) {
@@ -220,13 +177,7 @@ public class Configuration implements Serializable {
         return null;
     }
 
-    public Map<String, String> getLoginContexts() {
-        final List<String> values = readStringArraySetting(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        return Configuration.convertStringListToNameValuePair(values, ":::");
-    }
-
     private Challenge parseConfigStringToChallenge(String inputString, final boolean required) {
-
         if (inputString == null || inputString.length() < 1) {
             return null;
         }
@@ -262,6 +213,70 @@ public class Configuration implements Serializable {
         return CrFactory.newChallenge(required, inputString, minLength, maxLength, adminDefined);
     }
 
+    public long readSettingAsLong(final PwmSetting setting) {
+        return StringHelper.convertStrToLong(storedConfiguration.readSetting(setting), 0);
+    }
+
+    public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale) {
+        if (cachedPasswordPolicy != null) {
+            return cachedPasswordPolicy;
+        }
+
+        final Map<String, String> passwordPolicySettings = new HashMap<String, String>();
+        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+            if (rule.getPwmSetting() != null) {
+                final String value;
+                final PwmSetting pwmSetting = rule.getPwmSetting();
+                switch (rule) {
+                    case DisallowedAttributes:
+                    case DisallowedValues:
+                        value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), "\n");
+                        break;
+                    case RegExMatch:
+                    case RegExNoMatch:
+                        value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), ";;;");
+                        break;
+                    case ChangeMessage:
+                        value = readSettingAsLocalizedString(pwmSetting, locale);
+                        break;
+                    default:
+                        value = readSettingAsString(pwmSetting);
+                }
+                passwordPolicySettings.put(rule.getKey(), value);
+            }
+        }
+
+        cachedPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
+        return cachedPasswordPolicy;
+    }
+
+    public List<String> readSettingAsStringArray(final PwmSetting setting) {
+        final List<String> results = new ArrayList<String>(storedConfiguration.readStringArraySetting(setting));
+        for (final Iterator iter = results.iterator(); iter.hasNext();) {
+            final Object loopString = iter.next();
+            if (loopString == null || loopString.toString().length() < 1) {
+                iter.remove();
+            }
+        }
+        return results;
+    }
+
+    public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
+        final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
+        final Map<Locale, String> availableLocaleMap = new HashMap<Locale, String>();
+        for (final String localeStr : availableValues.keySet()) {
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
+        }
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+
+        return availableLocaleMap.get(matchedLocale);
+    }
+
+    public Map<String, String> getLoginContexts() {
+        final List<String> values = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
+        return Configuration.convertStringListToNameValuePair(values, ":::");
+    }
+
     public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
         if (input == null) {
             return Collections.emptyMap();
@@ -282,43 +297,43 @@ public class Configuration implements Serializable {
         return returnMap;
     }
 
-    public static Map<String, FormConfiguration> convertMapToFormConfiguration(final Collection<String> input) {
-        if (input == null) {
-            return Collections.emptyMap();
-        }
-
-        final Map<String, FormConfiguration> returnMap = new LinkedHashMap<String, FormConfiguration>();
-        for (final String loopString : input) {
-            if (loopString != null && loopString.length() > 0) {
-                final FormConfiguration formConfig = FormConfiguration.parseConfigString(loopString);
-                final String attrName = formConfig.getAttributeName();
-                returnMap.put(attrName, formConfig);
-            }
-        }
-        return returnMap;
+    public Date getModifyTime() {
+        return storedConfiguration.getModifyTime();
     }
 
-    public String toString() {
-        return storedConfiguration.toString();
+    public boolean isDefaultValue(final PwmSetting pwmSetting) {
+        return storedConfiguration.isDefaultValue(pwmSetting);
     }
 
-    public String toDebugString() {
-        return storedConfiguration.toString(true);
+    public Collection<Locale> localesForSetting(final PwmSetting setting) {
+        final Collection<Locale> returnCollection = new ArrayList<Locale>();
+        switch (setting.getSyntax()) {
+            case LOCALIZED_TEXT_AREA:
+            case LOCALIZED_STRING:
+                for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                }
+                break;
+
+            case LOCALIZED_STRING_ARRAY:
+                for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                }
+                break;
+        }
+
+        return returnCollection;
     }
 
     public String readProperty(final String key) {
         return storedConfiguration.readProperty(key);
     }
 
-    public static Configuration getConfig(final HttpSession session) {
-        return ContextManager.getContextManager(session).getConfig();
+    public boolean readSettingAsBoolean(final PwmSetting setting) {
+        return StringHelper.convertStrToBoolean(storedConfiguration.readSetting(setting));
     }
 
-    public static Configuration getConfig(final HttpServletRequest request) {
-        return ContextManager.getContextManager(request).getConfig();
-    }
-
-    public boolean isDefaultValue(final PwmSetting pwmSetting) {
-        return storedConfiguration.isDefaultValue(pwmSetting);
+    public String toDebugString() {
+        return storedConfiguration.toString(true);
     }
 }

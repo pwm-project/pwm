@@ -24,12 +24,10 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UpdateAttributesServletBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -46,7 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -55,10 +53,10 @@ import java.util.Properties;
  *
  * @author Jason D. Rivard
  */
-public class UpdateAttributesServlet extends TopServlet {
+public class UpdateProfileServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UpdateAttributesServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(UpdateProfileServlet.class);
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -70,7 +68,7 @@ public class UpdateAttributesServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_ATTRIBUTES_ENABLE)) {
+        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -79,42 +77,34 @@ public class UpdateAttributesServlet extends TopServlet {
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
-        if (actionParam != null && actionParam.equalsIgnoreCase("updateAttributes")) {
+        populateFormFromLdap(req);
+
+        if (actionParam != null && actionParam.equalsIgnoreCase("updateProfile")) {
             handleUpdateRequest(req, resp);
             return;
         }
 
-        populateFormFromLdap(req, resp);
+        this.forwardToJSP(req, resp);
     }
 
 
-    private void populateFormFromLdap(final HttpServletRequest req, final HttpServletResponse resp)
+    private void populateFormFromLdap(final HttpServletRequest req)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final String userDN = pwmSession.getUserInfoBean().getUserDN();
-        final Map<String, FormConfiguration> validationParams = pwmSession.getUpdateAttributesServletBean().getUpdateAttributesParams();
-
-        final Collection<String> involvedAttrs = new HashSet<String>(validationParams.keySet());
-
+        final List<FormConfiguration> formFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
         final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final Properties currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
-        try {
-            final Properties userAttrValues = provider.readStringAttributes(userDN, involvedAttrs.toArray(new String[involvedAttrs.size()]));
-
-            for (final String key : validationParams.keySet()) {
-                final String value = userAttrValues.getProperty(key);
-                if (value != null) {
-                    formProps.setProperty(key, value);
+        for (final FormConfiguration formConfiguration : formFields) {
+            final String attrName = formConfiguration.getAttributeName();
+            if (!formProps.containsKey(attrName)) {
+                final String userCurrentValue = currentUserAttributes.getProperty(attrName);
+                if (userCurrentValue != null) {
+                    formProps.setProperty(attrName, userCurrentValue);
                 }
             }
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error reading current attributes for user: " + e.getMessage());
         }
-
-        this.forwardToJSP(req, resp);
-
     }
 
     private void handleUpdateRequest(final HttpServletRequest req, final HttpServletResponse resp)
@@ -126,44 +116,31 @@ public class UpdateAttributesServlet extends TopServlet {
 
         Validator.validatePwmFormID(req);
 
-        final UpdateAttributesServletBean updateBean = pwmSession.getUpdateAttributesServletBean();
-        final Map<String, FormConfiguration> validationParams = updateBean.getUpdateAttributesParams();
-
-        //read the values from the request
-        try {
-            Validator.updateParamValues(pwmSession, req, validationParams);
-        } catch (PwmDataValidationException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req, resp);
-            return;
-        }
-
-        // see if the values meet requirements.
-        try {
-            Validator.validateParmValuesMeetRequirements(validationParams, pwmSession);
-        } catch (PwmDataValidationException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req, resp);
-            return;
-        }
+        final List<FormConfiguration> formFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
 
         try {
+            //read the values from the request
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields);
+
+            // see if the values meet requirements.
+            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+
             // write values.
-            LOGGER.info("updating attributes for " + uiBean.getUserDN());
+            LOGGER.info("updating profile for " + uiBean.getUserDN());
 
             // write the form values
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-            Helper.writeMapToEdir(pwmSession, actor, validationParams);
+            Helper.writeFormValuesToLdap(pwmSession, actor, formValues);
 
             // write configured values
-            final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.UPDATE_ATTRIBUTES_WRITE_ATTRIBUTES);
+            final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
             final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmSession.getContextManager().getProxyChaiProvider());
-            Helper.writeMapToEdir(pwmSession, proxiedUser, writeAttributesSettings);
+            Helper.writeMapToLdap(pwmSession, proxiedUser, writeAttributesSettings);
 
             // mark the event log
-            UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);
+            UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.UPDATE_PROFILE, null);
 
             // re-populate the uiBean because we have changed some values.
             UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
@@ -177,7 +154,7 @@ public class UpdateAttributesServlet extends TopServlet {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
             LOGGER.error(pwmSession, info);
             ssBean.setSessionError(info);
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            this.forwardToJSP(req,resp);
         }
     }
 

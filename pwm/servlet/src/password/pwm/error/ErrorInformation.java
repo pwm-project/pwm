@@ -96,7 +96,7 @@ public class ErrorInformation implements Serializable {
 
         if (fieldValues != null && fieldValues.length > 0) {
             sb.append(" fields: ");
-            Arrays.toString(fieldValues);
+            sb.append(Arrays.toString(fieldValues));
         }
 
         return sb.toString();

@@ -126,6 +126,8 @@ public enum PwmError {
     ERROR_UNLOCK_FAILURE("Error_Unlock_Failure",5046),
     ERROR_UPDATE_ATTRS_FAILURE("Error_Update_Attrs_Failure",5047),
     ERROR_ACTIVATION_FAILURE("Error_Activation_Failure",5048),
+    ERROR_NEW_USER_FAILURE("Error_NewUser_Failure",5049),
+    ERROR_ACTIVATION("Error_Activation",5050),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

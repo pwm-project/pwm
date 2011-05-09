@@ -167,8 +167,8 @@
         <servlet-class>password.pwm.servlet.ActivateUserServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>UpdateAttributesServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.UpdateAttributesServlet</servlet-class>
+        <servlet-name>UpdateProfileServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.UpdateProfileServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ForgottenUsernameServlet</servlet-name>
@@ -197,6 +197,16 @@
             <description>Default HTTP expiration time for resources (in milliseconds)</description>
             <param-name>expireTimeMs</param-name>
             <param-value>600000</param-value>
+        </init-param>
+        <init-param>
+            <description>Maximum item limit for internal resource cache</description>
+            <param-name>internalCacheItemLimit</param-name>
+            <param-value>100</param-value>
+        </init-param>
+        <init-param>
+            <description>Maximum file size limit for internal resource cache</description>
+            <param-name>internalMaxCacheFileSize</param-name>
+            <param-value>51200</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>
@@ -264,8 +274,8 @@
         <url-pattern>/public/ActivateUser</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>UpdateAttributesServlet</servlet-name>
-        <url-pattern>/private/UpdateAttributes</url-pattern>
+        <servlet-name>UpdateProfileServlet</servlet-name>
+        <url-pattern>/private/UpdateProfile</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ShortcutServlet</servlet-name>

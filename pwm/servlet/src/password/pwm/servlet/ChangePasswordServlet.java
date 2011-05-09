@@ -444,7 +444,7 @@ public class ChangePasswordServlet extends TopServlet {
             throws IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final String agreementMsg = pwmSession.getConfig().readLocalizedStringSetting(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, userLocale);
+        final String agreementMsg = pwmSession.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, userLocale);
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {

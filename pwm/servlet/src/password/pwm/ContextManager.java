@@ -708,7 +708,7 @@ public class ContextManager implements Serializable {
             // initialize the pwmDB
             try {
                 final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-                final List<String> initStrings = contextManager.getConfig().readStringArraySetting(PwmSetting.PWMDB_INIT_STRING);
+                final List<String> initStrings = contextManager.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
                 contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, false);
             } catch (Exception e) {

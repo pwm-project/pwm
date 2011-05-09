@@ -93,7 +93,7 @@ public class Helper {
             final long idleTimeoutMs
     )
             throws ChaiUnavailableException {
-        final List<String> ldapURLs = config.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
+        final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
@@ -114,7 +114,7 @@ public class Helper {
         }
 
         // write out any configured values;
-        final List<String> rawValues = config.readStringArraySetting(PwmSetting.LDAP_CHAI_SETTINGS);
+        final List<String> rawValues = config.readSettingAsStringArray(PwmSetting.LDAP_CHAI_SETTINGS);
         final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues, "=");
         for (final String key : configuredSettings.keySet()) {
             final ChaiSetting theSetting = ChaiSetting.forKey(key);
@@ -222,7 +222,7 @@ public class Helper {
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException {
-        final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readStringArraySetting(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
+        final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
         }
@@ -366,7 +366,7 @@ public class Helper {
             final PwmSession pwmSession,
             final String oldPassword,
             final String newPassword) {
-        final List<String> externalMethods = pwmSession.getConfig().readStringArraySetting(PwmSetting.EXTERNAL_CHANGE_METHODS);
+        final List<String> externalMethods = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
@@ -402,7 +402,7 @@ public class Helper {
             final Configuration config,
             final PwmSession pwmSession,
             final String password) {
-        final List<String> externalMethods = config.readStringArraySetting(PwmSetting.EXTERNAL_JUDGE_METHODS);
+        final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_JUDGE_METHODS);
         final List<Integer> returnList = new ArrayList<Integer>();
 
         // process any configured external change password methods configured.
@@ -437,7 +437,7 @@ public class Helper {
             final PwmSession pwmSession,
             final PwmPasswordPolicy pwmPasswordPolicy,
             final String password) {
-        final List<String> externalMethods = config.readStringArraySetting(PwmSetting.EXTERNAL_RULE_METHODS);
+        final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_RULE_METHODS);
         final List<ErrorInformation> returnList = new ArrayList<ErrorInformation>();
 
         // process any configured external change password methods configured.
@@ -557,54 +557,86 @@ public class Helper {
     }
 
 
+
+
     /**
-     * Writes a Map of values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.  The map value
-     * must be either a string, or a {@link password.pwm.config.FormConfiguration} object.
+     * Writes a Map of form values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
      * @param pwmSession       for looking up session info
      * @param theUser          User to write to
-     * @param stringOrParamMap A map with String keys and String or {@link password.pwm.config.FormConfiguration} values. @throws ChaiUnavailableException
+     * @param formValues       A map with {@link password.pwm.config.FormConfiguration} keys and String values.
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmOperationalException if their is an unexpected ldap problem
      */
-    public static void writeMapToEdir(final PwmSession pwmSession, final ChaiUser theUser, final Map stringOrParamMap)
+    public static void writeFormValuesToLdap(final PwmSession pwmSession, final ChaiUser theUser, final Map<FormConfiguration,String> formValues)
             throws ChaiUnavailableException, PwmOperationalException
     {
-        for (final Object key : stringOrParamMap.keySet()) {
-            final String attrName = (String) key;
-            final Object mapValue = stringOrParamMap.get(attrName);
-            String attrValue = null;
-            if (mapValue instanceof String) {
-                attrValue = (String) mapValue;
-            } else if (mapValue instanceof FormConfiguration) {
-                attrValue = ((FormConfiguration) mapValue).getValue();
-            }
+        final Map<String,String> tempMap = new HashMap<String,String>();
 
-            if (attrValue != null && attrValue.length() > 0) {
-                try {
-                    theUser.writeStringAttribute(attrName, attrValue);
-                    LOGGER.info(pwmSession, "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
-                } catch (ChaiOperationException e) {
-                    final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-                    newException.initCause(e);
-                    throw newException;
+        for (final FormConfiguration formConfiguration : formValues.keySet()) {
+            tempMap.put(formConfiguration.getAttributeName(),formValues.get(formConfiguration));
+        }
+
+        writeMapToLdap(pwmSession, theUser, tempMap);
+    }
+
+    /**
+     * Writes a Map of values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
+     * <p/>
+     * Any ldap operation exceptions are not reported (but logged).
+     *
+     * @param pwmSession       for looking up session info
+     * @param theUser          User to write to
+     * @param valueMap       A map with String keys and String values.
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmOperationalException if their is an unexpected ldap problem
+     */
+    public static void writeMapToLdap(final PwmSession pwmSession, final ChaiUser theUser, final Map<String,String> valueMap)
+            throws PwmOperationalException, ChaiUnavailableException
+    {
+        final Properties currentValues;
+        try {
+            currentValues = theUser.readStringAttributes(valueMap.keySet());
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+            newException.initCause(e);
+            throw newException;
+        }
+
+        for (final String attrName : valueMap.keySet()) {
+            final String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+            if (!attrValue.equals(currentValues.getProperty(attrName,""))) {
+                if (attrValue.length() > 0) {
+                    try {
+                        theUser.writeStringAttribute(attrName, attrValue);
+                        LOGGER.info(pwmSession, "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                        newException.initCause(e);
+                        throw newException;
+                    }
+                } else {
+                    try {
+                        theUser.deleteAttribute(attrName, null);
+                        LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                        newException.initCause(e);
+                        throw newException;
+                    }
                 }
             } else {
-                try {
-                    theUser.deleteAttribute(attrName, null);
-                    LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
-                } catch (ChaiOperationException e) {
-                    final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-                    newException.initCause(e);
-                    throw newException;
-                }
+                LOGGER.debug(pwmSession, "skipping attribute modify for attribute '" + attrName + "', no change in value");
             }
         }
     }
@@ -802,17 +834,6 @@ public class Helper {
             output = output.replaceAll(fieldName, fieldValue);
         }
         return output;
-    }
-
-    public static String generateToken(final String RANDOM_CHARS, int CODE_LENGTH) {
-        final PwmRandom RANDOM = PwmRandom.getInstance();
-
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < CODE_LENGTH; i++) {
-            sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-        }
-
-        return sb.toString();
     }
 
     public static long diskSpaceRemaining(final File file) {

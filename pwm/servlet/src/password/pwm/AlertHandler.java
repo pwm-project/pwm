@@ -39,7 +39,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM Alert - Startup";
             final StringBuilder body = new StringBuilder();
@@ -57,7 +57,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM Alert - Shutdown";
             final StringBuilder body = new StringBuilder();
@@ -75,7 +75,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM Admin Alert - Intruder Detection";
             final StringBuilder body = new StringBuilder();
@@ -100,7 +100,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM Alert - Fatal Event";
             final StringBuilder body = new StringBuilder();
@@ -124,7 +124,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM Alert - Configuration Modification";
             final StringBuilder body = new StringBuilder();
@@ -144,7 +144,7 @@ public abstract class AlertHandler {
             return;
         }
 
-        for (final String toAddress : contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
+        for (final String toAddress : contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
             final String subject = "PWM - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
@@ -286,7 +286,7 @@ public abstract class AlertHandler {
             return false;
         }
 
-        final List<String> toAddress = contextManager.getConfig().readStringArraySetting(PwmSetting.EMAIL_ADMIN_ALERT_TO);
+        final List<String> toAddress = contextManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO);
         final String fromAddress = contextManager.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
 
         if (toAddress == null || toAddress.isEmpty() || toAddress.get(0) == null || toAddress.get(0).length() < 1) {

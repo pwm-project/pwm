@@ -138,6 +138,9 @@ public class ServletHelper {
     }
 
     public static String debugHttpRequest(final HttpServletRequest req) {
+        return debugHttpRequest(req, "");
+    }
+    public static String debugHttpRequest(final HttpServletRequest req, final String extraText) {
         final StringBuilder sb = new StringBuilder();
 
         sb.append(req.getMethod());
@@ -146,7 +149,15 @@ public class ServletHelper {
 
         if (req.getParameterMap().isEmpty()) {
             sb.append(" (no params)");
+            if (extraText != null) {
+                sb.append(" ");
+                sb.append(extraText);
+            }
         } else {
+            if (extraText != null) {
+                sb.append(" ");
+                sb.append(extraText);
+            }
             sb.append("\n");
 
             for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {

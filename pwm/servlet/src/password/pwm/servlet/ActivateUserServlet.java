@@ -30,7 +30,6 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
-import password.pwm.bean.ActivateUserServletBean;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -90,34 +89,38 @@ public class ActivateUserServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final ContextManager theManager = ContextManager.getContextManager(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
+        //final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
         final Configuration config = theManager.getConfig();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         Validator.validatePwmFormID(req);
 
-        final Map<String, FormConfiguration> validationParams = activateBean.getActivateUserParams();
+        final List<FormConfiguration> formConfiguration = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM, ssBean.getLocale());
 
         ChaiUser theUser = null;
 
         try {
             //read the values from the request
-            Validator.updateParamValues(pwmSession, req, validationParams);
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfiguration);
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(validationParams, pwmSession);
+            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
 
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
 
             // get an ldap user object based on the params
-            theUser = getUserObjectForParams(validationParams, pwmSession, contextParam);
+            {
+                final String searchFilter = figureSearchFilterForParams(formValues, pwmSession);
+                final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmSession.getConfig());
+                theUser = performUserSearch(pwmSession, searchFilter, searchContext);
+            }
 
             // make sure the user isn't locked.
             theManager.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
 
             // see if the params match ldap values
-            validateParamsAgainstLDAP(validationParams, pwmSession, theUser);
+            validateParamsAgainstLDAP(formValues, pwmSession, theUser);
 
             final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
             if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
@@ -129,52 +132,56 @@ public class ActivateUserServlet extends TopServlet {
                 ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
                 return;
             }
+
+            LOGGER.info(pwmSession, "user activation requirements passed for " + theUser.getEntryDN() );
+
+            activateUser(pwmSession, theUser, req.isSecure());
+
+            // redirect user to change password screen.
+            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+
+            return;
         } catch (PwmDataValidationException e) {
             final String errorMsg;
             if (theUser != null) {
                 theManager.getIntruderManager().addBadUserAttempt(theUser.getEntryDN(), pwmSession);
                 errorMsg = "validation error during activation for user '" + theUser.getEntryDN() + "', error: " + e.getMessage();
             } else {
-                errorMsg = "validation error during activation , error: " + e.getMessage();
+                errorMsg = "validation error during activation, error: " + e.getMessage();
             }
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION, errorMsg);
             ssBean.setSessionError(errorInformation);
             theManager.getIntruderManager().addBadAddressAttempt(pwmSession);
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
-            this.forwardToJSP(req, resp);
-            return;
-        }
-
-        LOGGER.info(pwmSession, "new user activation requirements passed for: " + theUser.getEntryDN());
-        try {
-            activateUser(req, pwmSession, theUser);
-
-            // redirect user to change password screen.
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
-
-            return;
         } catch (PwmOperationalException e) {
-            final String errorMsg = "error for user '" + theUser.getEntryDN() + "' during activation: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-            LOGGER.warn(pwmSession, errorInformation);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
+            LOGGER.warn(pwmSession, errorInformation.toDebugStr());
             ssBean.setSessionError(errorInformation);
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         }
         forwardToJSP(req, resp);
     }
 
-    public void activateUser(final HttpServletRequest req, final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
+    public void activateUser(
+            final PwmSession pwmSession,
+            final ChaiUser theUser,
+            final boolean secure
+
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
         try {
             theUser.unlock();
         } catch (ChaiOperationException e) {
-            LOGGER.error(pwmSession, "error unlocking user " + theUser.getEntryDN() + ": " + e.getMessage());
+            final String errorMsg = "error unlocking user " + theUser.getEntryDN() + ": " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+            throw new PwmOperationalException(errorInformation);
         }
 
         try {
 
             //authenticate the pwm session
-            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, req);
+            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, secure);
 
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.ACTIVATE_USER, null);
@@ -200,9 +207,9 @@ public class ActivateUserServlet extends TopServlet {
                     try {
                         final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
                         LOGGER.debug(pwmSession, "writing activate user attribute write values to user " + theUser.getEntryDN());
-                        final Collection<String> configValues = pwmSession.getConfig().readStringArraySetting(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
+                        final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                        Helper.writeMapToEdir(pwmSession, theUser, writeAttributesSettings);
+                        Helper.writeMapToLdap(pwmSession, theUser, writeAttributesSettings);
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
                         final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
@@ -219,7 +226,7 @@ public class ActivateUserServlet extends TopServlet {
                 }
             };
 
-            PwmSession.getPwmSession(req).getUserInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
+            pwmSession.getUserInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
         } catch (ImpossiblePasswordPolicyException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user");
             LOGGER.warn(pwmSession, info, e);
@@ -228,23 +235,23 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private static String figureSearchFilterForParams(
-            final Map<String, FormConfiguration> paramConfigs,
+            final Map<FormConfiguration,String> formValues,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException
+    {
         String searchFilter = pwmSession.getConfig().readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
 
-        for (final String key : paramConfigs.keySet()) {
-            final FormConfiguration loopParamConfig = paramConfigs.get(key);
-            final String attrName = "%" + loopParamConfig.getAttributeName() + "%";
-            searchFilter = searchFilter.replaceAll(attrName, loopParamConfig.getValue());
+        for (final FormConfiguration formConfiguration : formValues.keySet()) {
+            final String attrName = "%" + formConfiguration.getAttributeName() + "%";
+            searchFilter = searchFilter.replaceAll(attrName, formValues.get(formConfiguration));
         }
 
         return searchFilter;
     }
 
     private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter, final String searchBase)
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmOperationalException {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(2);
         searchHelper.setFilter(searchFilter);
@@ -258,69 +265,51 @@ public class ActivateUserServlet extends TopServlet {
             final Map<String, Properties> results = chaiProvider.search(searchBase, searchHelper);
 
             if (results.isEmpty()) {
-                LOGGER.debug(pwmSession, "no search results for activation search");
-                return null;
+                final String errorMsg = "user not found using search filter " + searchFilter + ", in " + searchBase;
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+                throw new PwmOperationalException(errorInformation);
             } else if (results.size() > 1) {
-                LOGGER.debug(pwmSession, "multiple search results for activation search, discarding");
-                return null;
+                final String errorMsg = "multiple matches results for activation search";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+                throw new PwmOperationalException(errorInformation);
             }
 
             final String userDN = results.keySet().iterator().next();
             LOGGER.debug(pwmSession, "found userDN: " + userDN);
             return ChaiFactory.createChaiUser(userDN, chaiProvider);
         } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error searching for activation user: " + e.getMessage());
-            return null;
+            final String errorMsg = "ldap error during activation search: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+            newException.initCause(e);
+            throw newException;
         }
     }
 
-    private static ChaiUser getUserObjectForParams(
-            final Map<String, FormConfiguration> paramConfigs,
-            final PwmSession pwmSession,
-            final String contextParam
-    )
-            throws ChaiUnavailableException, PwmDataValidationException {
-        final String searchFilter = figureSearchFilterForParams(paramConfigs, pwmSession);
-
-        final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmSession.getConfig());
-        final ChaiUser theUser = performUserSearch(pwmSession, searchFilter, searchContext);
-
-        if (theUser == null) {
-            final String usernameAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-            final FormConfiguration usernameParam = paramConfigs.get(usernameAttribute);
-            if (usernameParam != null) {
-                final String usernameValue = usernameParam.getValue();
-                if (usernameValue != null) {
-                    pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(usernameValue, pwmSession);
-                }
-            }
-            throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED));
-        }
-
-        return theUser;
-    }
 
     public static void validateParamsAgainstLDAP(
-            final Map<String, FormConfiguration> paramConfigs,
+            final Map<FormConfiguration, String> formValues,
             final PwmSession pwmSession,
             final ChaiUser theUser
     )
-            throws ChaiUnavailableException, PwmDataValidationException {
-
-        final HashMap<String, FormConfiguration> localConfigs = new HashMap<String, FormConfiguration>(paramConfigs);
-        localConfigs.remove(USERNAME_PARAM_NAME);
-
-        for (final FormConfiguration paramConfig : localConfigs.values()) {
-            final String attrName = paramConfig.getAttributeName();
-
-            try {
-                if (!theUser.compareStringAttribute(attrName, paramConfig.getValue())) {
-                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
+            throws ChaiUnavailableException, PwmDataValidationException
+    {
+        for (final FormConfiguration formConfiguration : formValues.keySet()) {
+            final String attrName = formConfiguration.getAttributeName();
+            if (!USERNAME_PARAM_NAME.equalsIgnoreCase(attrName)) {
+                final String value = formValues.get(formConfiguration);
+                try {
+                    if (!theUser.compareStringAttribute(attrName, value)) {
+                        throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
+                    }
+                    LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
+                } catch (ChaiOperationException e) {
+                    LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
+                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
                 }
-                LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
-            } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
+
+
+
             }
         }
     }
@@ -339,10 +328,10 @@ public class ActivateUserServlet extends TopServlet {
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        final String fromAddress = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_FROM, locale);
-        final String subject = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_SUBJECT, locale);
-        final String plainBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY, locale);
-        final String htmlBody = config.readLocalizedStringSetting(PwmSetting.EMAIL_ACTIVATION_BODY_HTML, locale);
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_ACTIVATION_FROM, locale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_ACTIVATION_SUBJECT, locale);
+        final String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_ACTIVATION_BODY, locale);
+        final String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_ACTIVATION_BODY_HTML, locale);
 
         final String toAddress = userInfoBean.getUserEmailAddress();
 
