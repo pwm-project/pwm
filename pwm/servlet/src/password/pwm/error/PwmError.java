@@ -70,7 +70,7 @@ public enum PwmError {
     PASSWORD_TOO_SOON("Password_TooSoon", 4033, ChaiError.PASSWORD_TOO_SOON),
     PASSWORD_USING_DISALLOWED_VALUE("Password_UsingDisallowedValue", 4034),
     PASSWORD_TOO_WEAK("Password_TooWeak", 4035),
-    PASSWORD_TOO_MANY_NON_ALPHA("Password_TooManyMonAlpha", 4036),
+    PASSWORD_TOO_MANY_NON_ALPHA("Password_TooManyNonAlpha", 4036),
     PASSWORD_NOT_ENOUGH_NON_ALPHA("Password_NotEnoughNonAlpha", 4036),
     PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4037),
 
