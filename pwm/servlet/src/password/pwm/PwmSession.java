@@ -154,7 +154,7 @@ public class PwmSession implements Serializable {
             final List<FormConfiguration> formMap = getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
             final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
             if (expAttr != null && expAttr.length() > 0) {
-            	final String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":int:1:5:true:false";
+            	final String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":number:1:5:true:false";
                 try {
                     formMap.add(FormConfiguration.parseConfigString(expConfig));
                 } catch (PwmOperationalException e) {

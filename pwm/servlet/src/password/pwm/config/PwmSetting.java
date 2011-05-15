@@ -312,6 +312,15 @@ public enum PwmSetting {
             "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
     INTRUDER_SESSION_MAX_ATTEMPTS(
             "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+    // captcha
+    RECAPTCHA_KEY_PUBLIC(
+            "captcha.recaptcha.publicKey", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
+    RECAPTCHA_KEY_PRIVATE(
+            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.INTRUDER, false, Level.ADVANCED),
+    CAPTCHA_SKIP_PARAM(
+            "captcha.skip.param", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
+    CAPTCHA_SKIP_COOKIE(
+            "captcha.skip.cookie", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
 
 
     // logger settings
@@ -326,7 +335,7 @@ public enum PwmSetting {
     EVENTS_PWMDB_MAX_AGE(
             "events.pwmDB.maxAge", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_PWMDB_LOG_LEVEL(
-            "events.pwmDB.logLevel", Syntax.STRING, Category.LOGGING, true, Level.ADVANCED),
+            "events.pwmDB.logLevel", Syntax.SELECT, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_LDAP_MAX_EVENTS(
@@ -375,10 +384,14 @@ public enum PwmSetting {
     // recovery settings
     FORGOTTEN_PASSWORD_ENABLE(
             "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
+    FORGOTTEN_PASSWORD_READ_PREFERENCE(
+            "recovery.response.readPreference", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
+    RESPONSE_STORAGE_DB(
+            "responses.storage.db", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     RESPONSE_STORAGE_PWMDB(
-            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
+            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_STORAGE_HASHED(
@@ -487,16 +500,6 @@ public enum PwmSetting {
             "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
 
 
-    // captcha
-    RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
-    RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.CAPTCHA, false, Level.ADVANCED),
-    CAPTCHA_SKIP_PARAM(
-            "captcha.skip.param", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
-    CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", Syntax.STRING, Category.CAPTCHA, false, Level.ADVANCED),
-
     // advanced
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
@@ -532,6 +535,14 @@ public enum PwmSetting {
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+    DATABASE_CLASS(
+            "db.classname", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+    DATABASE_URL(
+            "db.url", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+    DATABASE_USERNAME(
+            "db.username", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+    DATABASE_PASSWORD(
+            "db.password", Syntax.PASSWORD, Category.DATABASE, false, Level.ADVANCED),
 
     ;
 
@@ -689,10 +700,10 @@ public enum PwmSetting {
         GENERAL,
         USER_INTERFACE,
         LDAP,
-        EMAIL,
-        SMS,
         PASSWORD_POLICY,
         CHALLENGE,
+        EMAIL,
+        SMS,
         INTRUDER,
         LOGGING,
         RECOVERY,
@@ -703,7 +714,7 @@ public enum PwmSetting {
         UPDATE,
         SHORTCUT,
         EDIRECTORY,
-        CAPTCHA,
+        DATABASE,
         ADVANCED
         ;
 

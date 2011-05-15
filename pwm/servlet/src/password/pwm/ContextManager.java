@@ -98,6 +98,7 @@ public class ContextManager implements Serializable {
     private transient PwmDBLogger pwmDBLogger;
     private transient volatile ChaiProvider proxyChaiProvider;
     private transient boolean restartRequested;
+    private transient volatile DatabaseAccessor databaseAccessor;
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
@@ -161,6 +162,7 @@ public class ContextManager implements Serializable {
         pwmServices.add(this.emailQueue);
         pwmServices.add(this.smsQueue);
         pwmServices.add(this.wordlistManager);
+        pwmServices.add(this.databaseAccessor);
         return Collections.unmodifiableSet(pwmServices);
     }
 
@@ -250,6 +252,12 @@ public class ContextManager implements Serializable {
 
     public Set<PwmSession> getPwmSessions() {
         return Collections.unmodifiableSet(activeSessions.keySet());
+    }
+
+    public synchronized DatabaseAccessor getDatabaseAccessor()
+            throws PwmUnrecoverableException
+    {
+        return databaseAccessor;
     }
 
     void initialize(final ServletContext servletContext)
@@ -343,6 +351,16 @@ public class ContextManager implements Serializable {
             }
         } catch (Exception e) {
             LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
+        }
+
+        {
+            final DatabaseAccessor.DBConfiguration dbConfiguration = new DatabaseAccessor.DBConfiguration(
+                    getConfig().readSettingAsString(PwmSetting.DATABASE_CLASS),
+                    getConfig().readSettingAsString(PwmSetting.DATABASE_URL),
+                    getConfig().readSettingAsString(PwmSetting.DATABASE_USERNAME),
+                    getConfig().readSettingAsString(PwmSetting.DATABASE_PASSWORD));
+
+            databaseAccessor = new DatabaseAccessor(dbConfiguration, this.getInstanceID());
         }
 
         AlertHandler.alertStartup(this);
@@ -537,6 +555,11 @@ public class ContextManager implements Serializable {
         if (smsQueue != null) {
             smsQueue.close();
             smsQueue = null;
+        }
+
+        if (databaseAccessor != null) {
+            databaseAccessor.close();
+            databaseAccessor = null;
         }
 
         if (pwmDBLogger != null) {

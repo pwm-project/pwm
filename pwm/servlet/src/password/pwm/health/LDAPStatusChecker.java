@@ -97,6 +97,19 @@ public class LDAPStatusChecker implements HealthChecker {
             return null;
         }
 
+        if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting is the same value as the ");
+            errorMsg.append(PwmSetting.LDAP_PROXY_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(" setting");
+
+            return new HealthRecord(HealthStatus.WARN, TOPIC, errorMsg.toString());
+
+        }
+
         final ChaiUser theUser;
         try {
             final ChaiProvider chaiProvider = Helper.createChaiProvider(

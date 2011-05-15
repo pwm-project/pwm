@@ -8,6 +8,8 @@
 
 v1.5.4
 ---
++ Storage of responses in RDBM database
++ SMS Integration for forgotten password reset
 
 - Renamed Update Attributes servlet to UpdateProfile and changed checkAttributes parameter to checkProfile
 - General refactoring to improve error messages

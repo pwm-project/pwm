@@ -80,7 +80,7 @@ public class HealthMonitor implements Serializable {
                 doHealthChecks();
             }
         }
-        return Collections.unmodifiableSet(healthRecords);
+        return Collections.unmodifiableSet(new TreeSet<HealthRecord>(healthRecords));
     }
 
     public void close() {

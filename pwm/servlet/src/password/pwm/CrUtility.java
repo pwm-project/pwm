@@ -32,6 +32,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.DatabaseAccessor;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -50,6 +51,8 @@ import java.util.*;
  */
 public class CrUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrUtility.class);
+
+    private enum STORAGE_METHOD { DB, LDAP, PWMDB }
 
     private CrUtility() {
     }
@@ -104,31 +107,132 @@ public class CrUtility {
     }
 
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
-            final String userGUID = Helper.readLdapGuidValue(pwmSession, theUser.getEntryDN());
-
-            if (userGUID == null || userGUID.length() < 1) {
-                LOGGER.error(pwmSession, "user " + theUser.getEntryDN() + " does not have a pwmGUID, skipping search for responses in pwmDB");
-            } else {
-                final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
-                try {
-                    final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
-                    if (responseStringBlob != null && responseStringBlob.length() > 0) {
-                        final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
-                        LOGGER.debug(pwmSession, "found user responses in pwmDB: " + userResponseSet.toString());
-                        return userResponseSet;
-                    }
-                } catch (PwmDBException e) {
-                    LOGGER.error(pwmSession, "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage());
-                } catch (ChaiValidationException e) {
-                    LOGGER.error(pwmSession, "unexpected chai error reading responses from pwmDB: " + e.getMessage());
-                }
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final String novellUserAppWebServiceURL = pwmSession.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
+        if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
+            final ResponseSet responseSet = ResponseReaders.readResponsesFromNovellUA(novellUserAppWebServiceURL,pwmSession,theUser);
+            if (responseSet != null) {
+                LOGGER.debug(pwmSession,"returning responses read via Novell UserApp SOAP Service");
+                return responseSet;
             }
         }
 
-        final String novellUserAppWebServiceURL = pwmSession.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-        if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
+        final String readRawValue = pwmSession.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+        final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
+        for (final String rawValue : readRawValue.split(",")) {
+            readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
+        }
+
+        final String userGUID;
+        if (readPreferences.contains(STORAGE_METHOD.DB) || readPreferences.contains(STORAGE_METHOD.PWMDB)) {
+            userGUID = Helper.readLdapGuidValue(pwmSession, theUser.getEntryDN());
+        } else {
+            userGUID = null;
+        }
+
+        for (final STORAGE_METHOD storageMethod : readPreferences) {
+            final ResponseSet readResponses;
+
+            switch (storageMethod) {
+                case DB:
+                    readResponses = ResponseReaders.readResponsesFromDatabase(pwmSession, theUser, userGUID);
+                    break;
+
+                case PWMDB:
+                    readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, theUser, userGUID);
+                    break;
+
+                case LDAP:
+                    readResponses = ResponseReaders.readResponsesFromLdap(pwmSession, theUser);
+                    break;
+
+                default:
+                    readResponses = null;
+            }
+
+            if (readResponses != null) {
+                LOGGER.debug(pwmSession,"returning responses read via " + storageMethod);
+                return readResponses;
+            }
+        }
+
+        return null;
+    }
+
+    static class ResponseReaders {
+
+        private static ResponseSet readResponsesFromPwmDB(
+                final PwmSession pwmSession,
+                final ChaiUser theUser,
+                final String userGUID
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if (userGUID == null || userGUID.length() < 1) {
+                final String errorMsg = "user " + theUser.getEntryDN() + " does not have a pwmGUID, unable to search for responses in PwmDB";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
+            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+            try {
+                final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                if (responseStringBlob != null && responseStringBlob.length() > 0) {
+                    final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
+                    LOGGER.debug(pwmSession, "found user responses in pwmDB: " + userResponseSet.toString());
+                    return userResponseSet;
+                }
+            } catch (PwmDBException e) {
+                final String errorMsg = "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            } catch (ChaiValidationException e) {
+                final String errorMsg = "unexpected chai error reading responses from pwmDB: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+            return null;
+        }
+
+        private static ResponseSet readResponsesFromDatabase(
+                final PwmSession pwmSession,
+                final ChaiUser theUser,
+                final String userGUID
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if (userGUID == null || userGUID.length() < 1) {
+                final String errorMsg = "user " + theUser.getEntryDN() + " does not have a pwmGUID, unable to search for responses in Database";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
+            final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
+            try {
+                final String responseStringBlob = databaseAccessor.get(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
+                if (responseStringBlob != null && responseStringBlob.length() > 0) {
+                    final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
+                    LOGGER.debug(pwmSession, "found user responses in database: " + userResponseSet.toString());
+                    return userResponseSet;
+                }
+            } catch (ChaiValidationException e) {
+                final String errorMsg = "unexpected chai error reading responses from database: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            } catch (PwmOperationalException e) {
+                final String errorMsg = "unexpected error reading responses from database: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+            return null;
+        }
+
+        private static ResponseSet readResponsesFromNovellUA(
+                final String novellUserAppWebServiceURL,
+                final PwmSession pwmSession,
+                final ChaiUser theUser) throws PwmUnrecoverableException {
+
             try {
                 LOGGER.trace(pwmSession, "establishing connection to web service at " + novellUserAppWebServiceURL);
                 final PasswordManagementServiceLocator locater = new PasswordManagementServiceLocator();
@@ -136,28 +240,31 @@ public class CrUtility {
                 ((Stub) service)._setProperty(javax.xml.rpc.Stub.SESSION_MAINTAIN_PROPERTY, Boolean.TRUE);
                 final ProcessUserRequest userRequest = new ProcessUserRequest(theUser.getEntryDN());
                 final ForgotPasswordWSBean processUserResponse = service.processUser(userRequest);
-                if (processUserResponse.isTimeout()) {
-                    LOGGER.error(pwmSession, "novell web service reports timeout: " + processUserResponse.getMessage());
-                    return null;
+                if (processUserResponse.isTimeout() || processUserResponse.isError()) {
+                    throw new Exception( "novell web service reports " + (processUserResponse.isTimeout() ? "timeout" : "error") + ": " + processUserResponse.getMessage());
                 }
-                if (processUserResponse.isError()) {
-                    LOGGER.error(pwmSession, "novell web service reports error: " + processUserResponse.getMessage());
-                    return null;
+                if (processUserResponse.getChallengeQuestions() != null) {
+                    return new NovellWSResponseSet(service, processUserResponse, pwmSession);
                 }
-                return new NovellWSResponseSet(service, processUserResponse, pwmSession);
             } catch (Throwable e) {
-                LOGGER.error(pwmSession, "error retrieving novell user responses from web service: " + e.getMessage());
-                return null;
+                final String errorMsg = "error retrieving novell user responses from web service: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
             }
+
+            return null;
         }
 
-        try {
-            return theUser.readResponseSet();
-        } catch (ChaiOperationException e) {
-            LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
+        private static ResponseSet readResponsesFromLdap(final PwmSession pwmSession, final ChaiUser theUser)
+                throws ChaiUnavailableException
+        {
+            try {
+                return theUser.readResponseSet();
+            } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
+            }
+            return null;
         }
-
-        return null;
     }
 
     public static void writeResponses(
@@ -186,6 +293,25 @@ public class CrUtility {
     {
         int attempts = 0, successes = 0;
 
+        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
+            attempts++;
+            if (userGUID == null || userGUID.length() < 1) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to remote database, user does not have a pwmGUID"));
+            }
+
+            try {
+                final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
+                databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responses.stringValue());
+                LOGGER.info(pwmSession, "saved responses for user in remote database");
+                successes++;
+            } catch (PwmUnrecoverableException e) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
+        }
+
         if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
             attempts++;
             if (userGUID == null || userGUID.length() < 1) {
@@ -204,7 +330,6 @@ public class CrUtility {
                 throw pwmOE;
             }
         }
-
 
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
         if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {

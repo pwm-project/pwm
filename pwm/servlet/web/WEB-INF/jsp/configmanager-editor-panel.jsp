@@ -108,7 +108,6 @@
         dojo.require("dijit.form.FilteringSelect");
         new dijit.form.FilteringSelect({
             disabled: true,
-            style: "min-width: 400px",
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>',this.value);
             }

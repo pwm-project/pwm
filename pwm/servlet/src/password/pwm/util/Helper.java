@@ -134,6 +134,14 @@ public class Helper {
     )
             throws ChaiUnavailableException
     {
+        {
+            final String guidValue = pwmSession.getUserInfoBean().getUserGuid();
+            if (guidValue != null && guidValue.length() > 1) {
+                LOGGER.trace(pwmSession, "read guid value for user from session cache " + userDN + ": " + guidValue );
+                return guidValue;
+            }
+        }
+
         final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if ("DN".equalsIgnoreCase(GUIDattributeName)) {
             return userDN;
@@ -154,12 +162,6 @@ public class Helper {
                 LOGGER.warn(pwmSession, "unexpected error while reading vendor GUID value: " + e.getMessage());
                 return null;
             }
-        }
-
-        final String guidValue = pwmSession.getUserInfoBean().getUserGuid();
-        if (guidValue != null && guidValue.length() > 1) {
-            LOGGER.trace(pwmSession, "read guid value for user " + userDN + ": " + guidValue);
-            return guidValue;
         }
 
         if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {

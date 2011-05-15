@@ -45,6 +45,7 @@ import password.pwm.util.db.PwmDBStoredQueue;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
@@ -337,7 +338,7 @@ public class SmsQueueManager implements PwmService {
     }
 
     private String smsDateEncode(final String data, final SmsDataEncoding encoding) {
-        final String returnData;
+        String returnData;
         switch (encoding) {
             case NONE:
                 returnData = data;
@@ -358,7 +359,12 @@ public class SmsQueueManager implements PwmService {
                 returnData = StringEscapeUtils.escapeXml(data);
                 break;
             default:
-                returnData = URLEncoder.encode(data);
+                try {
+                    returnData = URLEncoder.encode(data,"UTF8");
+                } catch (UnsupportedEncodingException e) {
+                    returnData = data;
+                    LOGGER.warn("Unexpected missing encoder for charset 'UTF8': " + e.getMessage());
+                }
                 break;
         }
         return returnData;

@@ -312,11 +312,14 @@ public class AuthenticationFilter implements Filter {
                 return;
             } catch (ChaiOperationException e) {
                 LOGGER.warn(pwmSession, "ldap bind compare failed, check ldap proxy user account");
-                if (e.getMessage() != null && e.getMessage().indexOf("(-197)") != -1) {
-                    LOGGER.warn(pwmSession, "intruder lockout detected for user " + userDN + " marking session as locked out");
+
+                if (e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT) {
+                    final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
+                    LOGGER.warn(pwmSession, errorInformation.toDebugStr());
                     theManager.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
-                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INTRUDER_USER));
-                    throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
+                    pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                    throw new PwmUnrecoverableException(errorInformation);
                 }
                 final String errorMsg = "ldap error during password check: " + e.getMessage();
                 LOGGER.debug(pwmSession, errorMsg);
@@ -333,11 +336,13 @@ public class AuthenticationFilter implements Filter {
             //issue a read operation to trigger a bind.
             testProvider.readStringAttribute(userDN, ChaiConstant.ATTR_LDAP_OBJECTCLASS);
         } catch (ChaiException e) {
-            if (e.getMessage() != null && e.getMessage().indexOf("(-197)") != -1) {
-                LOGGER.warn(pwmSession, "intruder lockout detected for user " + userDN + " marking session as locked out");
+            if (e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT) {
+                final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
+                LOGGER.warn(pwmSession, errorInformation.toDebugStr());
                 theManager.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INTRUDER_USER));
-                throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
+                pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                throw new PwmUnrecoverableException(errorInformation);
             }
             final String errorMsg = "ldap error during password check: " + e.getMessage();
             LOGGER.debug(pwmSession, errorMsg);

@@ -156,6 +156,7 @@ public class ConfigManagerServlet extends TopServlet {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
                     break;
             }
+            configManagerBean.setShowNotes(configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null);
         }
     }
 
