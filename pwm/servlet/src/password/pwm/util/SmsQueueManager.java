@@ -270,18 +270,18 @@ public class SmsQueueManager implements PwmService {
         // Replace strings in requestData
         {
             final String senderId = smsItemBean.getFrom() == null ? "" : smsItemBean.getFrom();
-            requestData = requestData.replaceAll("%USER%", smsDateEncode(gatewayUser, encoding));
-            requestData = requestData.replaceAll("%PASS%", smsDateEncode(gatewayPass, encoding));
-            requestData = requestData.replaceAll("%SENDERID%", smsDateEncode(senderId, encoding));
-            requestData = requestData.replaceAll("%MESSAGE%", smsDateEncode(smsItemBean.getNextPart(), encoding));
-            requestData = requestData.replaceAll("%TO%", smsDateEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
+            requestData = requestData.replaceAll("%USER%", smsDataEncode(gatewayUser, encoding));
+            requestData = requestData.replaceAll("%PASS%", smsDataEncode(gatewayPass, encoding));
+            requestData = requestData.replaceAll("%SENDERID%", smsDataEncode(senderId, encoding));
+            requestData = requestData.replaceAll("%MESSAGE%", smsDataEncode(smsItemBean.getNextPart(), encoding));
+            requestData = requestData.replaceAll("%TO%", smsDataEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
         }
 
         if (requestData.indexOf("%REQUESTID%")>=0) {
             final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
             final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
             final String requestId = PwmRandom.getInstance().alphaNumericString(chars, idLength);
-            requestData = requestData.replaceAll("%REQUESTID%", smsDateEncode(requestId, encoding));
+            requestData = requestData.replaceAll("%REQUESTID%", smsDataEncode(requestId, encoding));
         }
 
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
@@ -337,7 +337,7 @@ public class SmsQueueManager implements PwmService {
         return false;
     }
 
-    private String smsDateEncode(final String data, final SmsDataEncoding encoding) {
+    private String smsDataEncode(final String data, final SmsDataEncoding encoding) {
         String returnData;
         switch (encoding) {
             case NONE:
