@@ -151,7 +151,7 @@ public class SessionFilter implements Filter {
             }
         } else if (ssBean.getLocale() == null) {
             final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
-            ssBean.setLocale(knownLocales.get(0));
+            ssBean.setLocale(Helper.localeResolver(req.getLocale(),knownLocales));
         }
 
         // check for valid config

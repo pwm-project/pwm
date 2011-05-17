@@ -24,7 +24,6 @@ package password.pwm.tag;
 
 import password.pwm.ContextManager;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
@@ -184,7 +183,7 @@ public class PasswordRequirementsTag extends TagSupport {
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale));
         }
 
-        if (contextManager.getWordlistManager().status() == PwmService.STATUS.OPEN) {
+        if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
             returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale));
         }
 

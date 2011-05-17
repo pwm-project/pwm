@@ -59,7 +59,7 @@ function handleFormSubmit(buttonID, form) {
         formElements[i].readOnly = true;
     }
 
-    showWaitDialog("Please Wait....", "");
+    showWaitDialog(PWM_STRINGS['Display_PleaseWait'], "");
 
     setTimeout(function() {
         form.submit();

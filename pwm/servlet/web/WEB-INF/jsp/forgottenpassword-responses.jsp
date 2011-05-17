@@ -41,10 +41,10 @@ this is handled this way so on browsers where hiding fields is not possible, the
 --%>
 <body onload="pwmPageLoadHandler(); startupResponsesPage(); document.forms.responseForm.elements[0].focus();"
       class="tundra">
+<div id="wrapper">
 <jsp:include page="header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
-<div id="wrapper">
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>

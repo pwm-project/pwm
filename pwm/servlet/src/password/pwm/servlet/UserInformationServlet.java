@@ -88,7 +88,11 @@ public class UserInformationServlet extends TopServlet {
         forwardToJSP(req,resp);
     }
 
-    private void processUserSearch(final PwmSession pwmSession, final String username, final String context)
+    private void processUserSearch(
+            final PwmSession pwmSession,
+            final String username,
+            final String context
+    )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean();
 
@@ -168,6 +172,4 @@ public class UserInformationServlet extends TopServlet {
     {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_USER_INFORMATION).forward(req, resp);
     }
-
-
 }

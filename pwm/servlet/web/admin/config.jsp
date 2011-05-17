@@ -97,7 +97,7 @@
                                         out.write("<table><tr><td>");
                                         out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
                                         out.write("</td><td>");
-                                        for (String value : pwmConfig.readSettingAsForm(loopSetting, locale)) {
+                                        for (String value : pwmConfig.readSettingAsLocalizedStringArray(loopSetting, locale)) {
                                             value = StringEscapeUtils.escapeHtml(value);
                                             out.write(value + "<br/>");
                                         }
