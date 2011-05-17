@@ -465,8 +465,10 @@ public enum PwmSetting {
             "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
     ACTIVATE_USER_QUERY_MATCH(
             "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
-    ACTIVATE_USER_WRITE_ATTRIBUTES(
-            "activateUser.writeAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
+    ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
+            "activateUser.writePreAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
+    ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
+            "activateUser.writePostAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
 
     // update profile
     UPDATE_PROFILE_ENABLE(

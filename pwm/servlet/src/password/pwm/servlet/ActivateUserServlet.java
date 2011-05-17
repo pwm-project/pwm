@@ -179,6 +179,14 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         try {
+            // write out configured attributes.
+            {
+                LOGGER.debug(pwmSession, "writing pre-activate user attribute write values to user " + theUser.getEntryDN());
+                final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
+                final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
+                Helper.writeMapToLdap(pwmSession, theUser, writeAttributesSettings);
+            }
+
 
             //authenticate the pwm session
             AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, secure);
@@ -195,7 +203,7 @@ public class ActivateUserServlet extends TopServlet {
             // send email
             sendActivationEmail(pwmSession);
 
-            // write out configured attributes.
+            // setup post-change attributes
             final PostChangePasswordAction postAction = new PostChangePasswordAction() {
 
                 public String getLabel() {
@@ -206,8 +214,8 @@ public class ActivateUserServlet extends TopServlet {
                         throws PwmUnrecoverableException {
                     try {
                         final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
-                        LOGGER.debug(pwmSession, "writing activate user attribute write values to user " + theUser.getEntryDN());
-                        final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_WRITE_ATTRIBUTES);
+                        LOGGER.debug(pwmSession, "writing post-activate user attribute write values to user " + theUser.getEntryDN());
+                        final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
                         Helper.writeMapToLdap(pwmSession, theUser, writeAttributesSettings);
                     } catch (PwmOperationalException e) {
@@ -216,7 +224,7 @@ public class ActivateUserServlet extends TopServlet {
                         newException.initCause(e);
                         throw newException;
                     } catch (ChaiUnavailableException e) {
-                        final String errorMsg = "unable to read ldap server while activating user: " + e.getMessage();
+                        final String errorMsg = "unable to reach ldap server while writing post-activate attributes: " + e.getMessage();
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
                         final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
                         newException.initCause(e);
