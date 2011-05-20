@@ -300,7 +300,7 @@ public class DatabaseAccessor implements PwmService {
         }
 
         if (returnRecords.isEmpty()) {
-            returnRecords.add(new HealthRecord(HealthStatus.GOOD, "Database", "Database connection is okay"));
+            returnRecords.add(new HealthRecord(HealthStatus.GOOD, "Database", "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
         }
 
         return returnRecords;

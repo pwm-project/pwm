@@ -53,7 +53,7 @@ public class Configuration implements Serializable {
 
     private final StoredConfiguration storedConfiguration;
 
-    private PwmPasswordPolicy cachedPasswordPolicy = null;
+    private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -217,38 +217,40 @@ public class Configuration implements Serializable {
         return StringHelper.convertStrToLong(storedConfiguration.readSetting(setting), 0);
     }
 
-    public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale) {
-        if (cachedPasswordPolicy != null) {
-            return cachedPasswordPolicy;
-        }
+    public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale)
+    {
+        PwmPasswordPolicy policy = cachedPasswordPolicy.get(locale);
 
-        final Map<String, String> passwordPolicySettings = new HashMap<String, String>();
-        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            if (rule.getPwmSetting() != null) {
-                final String value;
-                final PwmSetting pwmSetting = rule.getPwmSetting();
-                switch (rule) {
-                    case DisallowedAttributes:
-                    case DisallowedValues:
-                        value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), "\n");
-                        break;
-                    case RegExMatch:
-                    case RegExNoMatch:
-                        value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), ";;;");
-                        break;
-                    case ChangeMessage:
-                        value = readSettingAsLocalizedString(pwmSetting, locale);
-                        break;
-                    default:
-                        value = readSettingAsString(pwmSetting);
+        if (policy == null) {
+            final Map<String, String> passwordPolicySettings = new HashMap<String, String>();
+            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+                if (rule.getPwmSetting() != null) {
+                    final String value;
+                    final PwmSetting pwmSetting = rule.getPwmSetting();
+                    switch (rule) {
+                        case DisallowedAttributes:
+                        case DisallowedValues:
+                            value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), "\n");
+                            break;
+                        case RegExMatch:
+                        case RegExNoMatch:
+                            value = StringHelper.stringCollectionToString(readSettingAsStringArray(pwmSetting), ";;;");
+                            break;
+                        case ChangeMessage:
+                            value = readSettingAsLocalizedString(pwmSetting, locale);
+                            break;
+                        default:
+                            value = readSettingAsString(pwmSetting);
+                    }
+                    passwordPolicySettings.put(rule.getKey(), value);
                 }
-                passwordPolicySettings.put(rule.getKey(), value);
             }
+            policy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
+            cachedPasswordPolicy.put(locale,policy);
         }
-
-        cachedPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
-        return cachedPasswordPolicy;
+        return policy;
     }
+
 
     public List<String> readSettingAsStringArray(final PwmSetting setting) {
         final List<String> results = new ArrayList<String>(storedConfiguration.readStringArraySetting(setting));
