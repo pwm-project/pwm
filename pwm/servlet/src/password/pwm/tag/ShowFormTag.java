@@ -176,7 +176,7 @@ public class ShowFormTag extends TagSupport {
         } else if (formName.equalsIgnoreCase("updateprofile")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("forgottenusername")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, pwmSession.getSessionStateBean().getLocale());
+            return pwmSession.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("newguest")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("updateguest")) {
