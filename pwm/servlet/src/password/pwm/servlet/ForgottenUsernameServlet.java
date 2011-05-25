@@ -127,6 +127,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             theManager.getIntruderManager().addGoodAddressAttempt(pwmSession);
             theManager.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            return;
         } catch (Exception e) {
             LOGGER.error("error reading username value for " + theUser.getEntryDN() + ", " + e.getMessage());
         }
