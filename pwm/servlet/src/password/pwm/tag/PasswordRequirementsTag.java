@@ -22,9 +22,9 @@
 
 package password.pwm.tag;
 
-import password.pwm.ContextManager;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
+import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.util.PwmLogger;
@@ -51,7 +51,7 @@ public class PasswordRequirementsTag extends TagSupport {
 
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy pwordPolicy,
-            final ContextManager contextManager,
+            final Configuration config,
             final Locale locale
     ) {
         final List<String> returnValues = new ArrayList<String>();
@@ -61,9 +61,9 @@ public class PasswordRequirementsTag extends TagSupport {
         final PwmPasswordPolicy.RuleHelper ruleHelper = pwordPolicy.getRuleHelper();
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.CaseSensitive)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_CASESENSITIVE, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_CASESENSITIVE, value, locale, config));
         } else {
-            returnValues.add(getLocalString(Message.REQUIREMENT_NOTCASESENSITIVE, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_NOTCASESENSITIVE, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLength);
@@ -71,101 +71,101 @@ public class PasswordRequirementsTag extends TagSupport {
             if (value < 6 && ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 value = 6;
             }
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINLENGTH, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MINLENGTH, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLength);
         if (value > 0 && value < 64) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLENGTH, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLENGTH, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINALPHA, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MINALPHA, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXALPHA, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXALPHA, value, locale, config));
         }
 
         if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWNUMERIC, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWNUMERIC, value, locale, config));
         } else {
             value = ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MINNUMERIC, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINNUMERIC, value, locale, config));
             }
 
             value = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MAXNUMERIC, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXNUMERIC, value, locale, config));
             }
 
             if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharNumeric)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTNUMERIC, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTNUMERIC, value, locale, config));
             }
 
             if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharNumeric)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_LASTNUMERIC, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_LASTNUMERIC, value, locale, config));
             }
         }
 
         if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWSPECIAL, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWSPECIAL, value, locale, config));
         } else {
             value = ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MINSPECIAL, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINSPECIAL, value, locale, config));
             }
 
             value = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MAXSPECIAL, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXSPECIAL, value, locale, config));
             }
 
             if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharSpecial)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTSPECIAL, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTSPECIAL, value, locale, config));
             }
 
             if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharSpecial)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_LASTSPECIAL, value, locale));
+                returnValues.add(getLocalString(Message.REQUIREMENT_LASTSPECIAL, value, locale, config));
             }
         }
 
         value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumRepeat);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXREPEAT, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXREPEAT, value, locale, config));
         }
 
         value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXSEQREPEAT, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXSEQREPEAT, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINLOWER, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MINLOWER, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLOWER, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLOWER, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINUPPER, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MINUPPER, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXUPPER, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MAXUPPER, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINUNIQUE, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_MINUNIQUE, value, locale, config));
         }
 
         List<String> setValue = ruleHelper.getDisallowedValues();
@@ -175,37 +175,37 @@ public class PasswordRequirementsTag extends TagSupport {
                 fieldValue.append(" ");
                 fieldValue.append(loopValue);
             }
-            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale, config));
         }
 
         setValue = ruleHelper.getDisallowedAttributes();
         if (!setValue.isEmpty() || ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale, config));
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MaximumOldChars);
         if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_OLDCHAR, value, locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_OLDCHAR, value, locale, config));
         }
 
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLifetime);
         if (value > 0) {
             final int SECONDS_PER_DAY = 60 * 60 * 24;
-            String userMsg = getLocalString(Message.REQUIREMENT_MINIMUMFREQUENCY, 0, locale);
+            String userMsg = getLocalString(Message.REQUIREMENT_MINIMUMFREQUENCY, 0, locale, config);
 
             final String durationStr;
             if (value % SECONDS_PER_DAY == 0) {
                 final int valueAsDays = value / (60 * 60 * 24);
                 final String key = valueAsDays <= 1 ? "Display_Day" : "Display_Days";
-                durationStr = valueAsDays + " " + Message.getDisplayString(key, locale);
+                durationStr = valueAsDays + " " + Message.getLocalizedMessage(locale, Message.forResourceKey(key), config);
             } else {
                 final int valueAsHours = value / (60 * 60);
                 final String key = valueAsHours <= 1 ? "Display_Hour" : "Display_Hours";
-                durationStr = valueAsHours + " " + Message.getDisplayString(key, locale);
+                durationStr = valueAsHours + " " + Message.getLocalizedMessage(locale, Message.forResourceKey(key), config);
             }
 
             userMsg = userMsg.replace(Message.FIELD_REPLACE_VALUE, durationStr);
@@ -213,22 +213,22 @@ public class PasswordRequirementsTag extends TagSupport {
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_AD_COMPLEXITY, "", locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_AD_COMPLEXITY, "", locale, config));
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.UniqueRequired)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_UNIQUE_REQUIRED, "", locale));
+            returnValues.add(getLocalString(Message.REQUIREMENT_UNIQUE_REQUIRED, "", locale, config));
         }
 
         return returnValues;
     }
 
-    private static String getLocalString(final Message message, final int size, final Locale locale) {
+    private static String getLocalString(final Message message, final int size, final Locale locale, final Configuration config) {
         try {
             if (size > 1) {
                 final Message pluralMessage = Message.forResourceKey(message.getResourceKey() + "Plural");
                 if (pluralMessage != null) {
-                    return Message.getLocalizedMessage(locale, pluralMessage, String.valueOf(size));
+                    return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
                 }
             }
         } catch (MissingResourceException e) {
@@ -236,16 +236,16 @@ public class PasswordRequirementsTag extends TagSupport {
         }
 
         try {
-            return Message.getLocalizedMessage(locale, message, String.valueOf(size));
+            return Message.getLocalizedMessage(locale, message, config, String.valueOf(size));
         } catch (MissingResourceException e) {
             LOGGER.error("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }
         return "UNKNOWN MESSAGE STRING";
     }
 
-    private static String getLocalString(final Message message, final String field, final Locale locale) {
+    private static String getLocalString(final Message message, final String field, final Locale locale, final Configuration config) {
         try {
-            return Message.getLocalizedMessage(locale, message, field);
+            return Message.getLocalizedMessage(locale, message, config, field);
         } catch (MissingResourceException e) {
             LOGGER.error("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }
@@ -278,10 +278,12 @@ public class PasswordRequirementsTag extends TagSupport {
             throws javax.servlet.jsp.JspTagException {
         final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final Configuration config = pwmSession.getConfig();
+        final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
         try {
             final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
             final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
-            final List<String> requirementsList = getPasswordRequirementsStrings(pwmSession.getUserInfoBean().getPasswordPolicy(), pwmSession.getContextManager(), pwmSession.getSessionStateBean().getLocale());
+            final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());
 
             final StringBuilder requirementsText = new StringBuilder();
             for (final String requirementStatement : requirementsList) {

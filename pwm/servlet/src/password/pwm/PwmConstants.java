@@ -79,7 +79,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_WARN = "WEB-INF/jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_PANEL = "WEB-INF/jsp/configmanager-editor-panel.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/configmanager-logview.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "WEB-INF/jsp/configmanager-mode-new.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";

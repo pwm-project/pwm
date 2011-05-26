@@ -80,7 +80,7 @@ public class ConfigUploadServlet extends TopServlet {
         } else {
             if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_SUCCESS,"successfully imported config file"));
-                configManagerBean.setEditorMode(true);
+                configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
             } else {
                 ConfigManagerServlet.saveConfiguration(pwmSession);
             }

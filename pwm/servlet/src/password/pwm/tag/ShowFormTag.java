@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -80,11 +81,13 @@ public class ShowFormTag extends TagSupport {
             final PwmSession pwmSession
     ) {
         final StringBuilder sb = new StringBuilder();
+        final Configuration config = pwmSession.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         {
             sb.append("<h2>");
             if (confirm) {
-                final String confirmPrefix = Display.getDisplayString("Field_Confirm_Prefix", pwmSession.getSessionStateBean().getLocale());
+                final String confirmPrefix = Display.getLocalizedMessage(locale, "Field_Confirm_Prefix", config);
                 sb.append(confirmPrefix);
                 sb.append(" ");
             }
@@ -119,7 +122,6 @@ public class ShowFormTag extends TagSupport {
                 sb.append(" maxlength=\"").append(param.getMaximumLength()).append('\"');
                 if ((FormConfiguration.Type.RANDOM == param.getType()) &&
                     (value == null || value.length() == 0)) {
-	                final Configuration config = pwmSession.getConfig();
 	                final String randomChars = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
 	                final int randomLength = (param.getMaximumLength()<=0)?(int)config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH):param.getMaximumLength();
     	        	final String randvalue = PwmRandom.getInstance().alphaNumericString(randomChars, randomLength);

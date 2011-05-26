@@ -134,7 +134,11 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         boolean closed = false;
         while (!closed && (System.currentTimeMillis() - startTime) < 90 * 1000) {
             try {
+                for (final Database database : cachedDatabases.values()) {
+                    database.close();
+                }
                 environment.close();
+                Helper.pause(200); // safety time
                 closed = true;
             } catch (Exception e) {
                 LOGGER.error("error while attempting to close berkeley pwmDB environment (will retry): " + e.getMessage());

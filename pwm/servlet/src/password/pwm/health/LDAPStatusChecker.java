@@ -47,7 +47,7 @@ import java.util.*;
 public class LDAPStatusChecker implements HealthChecker {
 
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LDAPStatusChecker.class);
-    final private static String TOPIC = "LDAP Connectivity";
+    final private static String TOPIC = "LDAP";
 
     public List<HealthRecord> doHealthCheck(final ContextManager contextManager)
     {
@@ -215,12 +215,12 @@ public class LDAPStatusChecker implements HealthChecker {
 
     private static ChaiProvider getChaiProviderForTesting(final Configuration config)
             throws ChaiUnavailableException {
-        ChaiProvider chaiProvider = null;
-        chaiProvider = Helper.createChaiProvider(
+        final ChaiProvider chaiProvider = Helper.createChaiProvider(
                 config,
                 config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
                 config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
                 config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+
         chaiProvider.getDirectoryVendor();
 
         return chaiProvider;

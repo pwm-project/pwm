@@ -106,9 +106,9 @@ public class ErrorInformation implements Serializable {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         if (fieldValues != null && fieldValues.length > 0) {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), fieldValues[0]);
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), pwmSession.getConfig(), fieldValues[0]);
         } else {
-            return PwmError.getLocalizedMessage(userLocale, this.getError());
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), pwmSession.getConfig());
         }
     }
 

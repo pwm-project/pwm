@@ -76,8 +76,6 @@ public enum PwmSetting {
             "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
-    PASSWORD_CHANGE_SUCCESS_MESSAGE(
-            "display.password.changeSuccess", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
     DISPLAY_CANCEL_BUTTON(

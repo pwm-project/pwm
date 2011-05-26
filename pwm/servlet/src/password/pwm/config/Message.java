@@ -22,9 +22,12 @@
 
 package password.pwm.config;
 
+import com.sun.istack.internal.Nullable;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 
@@ -124,17 +127,11 @@ public enum Message {
         return null;
     }
 
-    public static String getLocalizedMessage(final Locale locale, final Message message) {
-        return getLocalizedMessage(locale, message, null);
-    }
-
-    public static String getLocalizedMessage(final Locale locale, final Message message, final String fieldValue) {
-        final ResourceBundle bundle = getMessageBundle(locale);
-        String result = message.getResourceKey();
+    public static String getLocalizedMessage(final Locale locale, final Message message, @Nullable final Configuration config, final String... fieldValue) {
+        String result = getRawString(config, message.getResourceKey(),locale);
         try {
-            result = bundle.getString(message.getResourceKey());
-            if (fieldValue != null) {
-                result = result.replaceAll(FIELD_REPLACE_VALUE, fieldValue);
+            if (fieldValue != null && fieldValue.length > 0) {
+                result = result.replaceAll(FIELD_REPLACE_VALUE, fieldValue[0]);
             }
         } catch (Exception e) {
             LOGGER.trace("error fetching localized key for '" + message + "', error: " + e.getMessage());
@@ -153,9 +150,17 @@ public enum Message {
         return messagesBundle;
     }
 
-    public static String getDisplayString(final String key, final Locale locale) {
-        final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName(), locale);
+    private static String getRawString(@Nullable final Configuration config, final String key, final Locale locale) {
+        if (config != null) {
+            final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Message.class.getName(),key);
+            if (configuredBundle != null) {
+                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
+                return configuredBundle.get(resolvedLocale);
+            }
+        }
+        final ResourceBundle bundle = getMessageBundle(locale);
         return bundle.getString(key);
+
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -172,12 +177,8 @@ public enum Message {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public String getLocalizedMessage(final Locale locale) {
-        return Message.getLocalizedMessage(locale, this);
-    }
-
-    public String getLocalizedMessage(final Locale locale, final String fieldValue) {
-        return Message.getLocalizedMessage(locale, this, fieldValue);
+    public String getLocalizedMessage(final Locale locale, final String fieldValue, final Configuration config) {
+        return Message.getLocalizedMessage(locale, this, config, fieldValue);
     }
 
 }

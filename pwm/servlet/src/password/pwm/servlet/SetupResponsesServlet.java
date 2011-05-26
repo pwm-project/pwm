@@ -141,7 +141,7 @@ public class SetupResponsesServlet extends TopServlet {
         Validator.validatePwmFormID(req);
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES);
+        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES, pwmSession.getConfig());
 
         try {
             // read in the responses from the request

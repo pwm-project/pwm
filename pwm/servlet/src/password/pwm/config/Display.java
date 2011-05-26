@@ -22,12 +22,19 @@
 
 package password.pwm.config;
 
+import com.sun.istack.internal.Nullable;
+import password.pwm.util.Helper;
+
 import java.util.*;
 
 /**
  * Empty class to facilitate easy resourcebundle loading of "Display" resource bundle.
  */
 public abstract class Display {
+
+    public static String getLocalizedMessage(final Locale locale, final String key, @Nullable final Configuration config) {
+        return getRawString(config, key,locale);
+    }
 
     private static ResourceBundle getMessageBundle(final Locale locale) {
         final ResourceBundle messagesBundle;
@@ -40,18 +47,17 @@ public abstract class Display {
         return messagesBundle;
     }
 
-    public static String getDisplayString(final String key, final Locale locale) {
+    private static String getRawString(@Nullable final Configuration config, final String key, final Locale locale) {
+        if (config != null) {
+            final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Display.class.getName(),key);
+            if (configuredBundle != null) {
+                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
+                return configuredBundle.get(resolvedLocale);
+            }
+        }
         final ResourceBundle bundle = getMessageBundle(locale);
         return bundle.getString(key);
-    }
 
-    public static Set<String> getDisplayKeys() {
-        final ResourceBundle bundle = getMessageBundle(null);
-        final Set<String> returnSet = new TreeSet<String>();
-        for (final Enumeration keyEnum = bundle.getKeys(); keyEnum.hasMoreElements(); ) {
-            returnSet.add(keyEnum.nextElement().toString());
-        }
-        return returnSet;
     }
 
 }

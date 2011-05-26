@@ -44,9 +44,9 @@
         <br/>
         <span id="error_msg" class="msg-error">
             <% if (404 == statusCode) { %>
-            <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(Locale.getDefault())%>
+            <%=PwmError.getLocalizedMessage(request.getLocale(),PwmError.ERROR_HTTP_404,null)%>
             <% } else { %>
-            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(Locale.getDefault())%>
+            <%=PwmError.getLocalizedMessage(request.getLocale(),PwmError.ERROR_UNKNOWN,null)%>
             <% } %>
         </span>
         <br/>

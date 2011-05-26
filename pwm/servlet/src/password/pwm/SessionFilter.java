@@ -326,8 +326,16 @@ public class SessionFilter implements Filter {
         }
 
         // user's session is messed up.  send to error page.
-        LOGGER.error(pwmSession, "incorrect verification key sent during session verification check");
-        ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION));
+        final StringBuilder errorMsg = new StringBuilder();
+        errorMsg.append("if functionality without cookies is desired, then ");
+        errorMsg.append(PwmSetting.ALLOW_URL_SESSIONS.getCategory().getLabel(Locale.getDefault()));
+        errorMsg.append(" -> ");
+        errorMsg.append(PwmSetting.ALLOW_URL_SESSIONS.getLabel(Locale.getDefault()));
+        errorMsg.append(" must be set to true ");
+
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,errorMsg.toString());
+        LOGGER.error(pwmSession, errorInformation.toDebugStr());
+        ssBean.setSessionError(errorInformation);
         ServletHelper.forwardToErrorPage(req, resp, servletContext);
     }
 

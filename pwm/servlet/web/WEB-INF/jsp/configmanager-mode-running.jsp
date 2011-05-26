@@ -48,6 +48,7 @@
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="editMode"/>
+            <input type="hidden" name="mode" value="SETTINGS"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <% if (!hasBeenModified) { %>

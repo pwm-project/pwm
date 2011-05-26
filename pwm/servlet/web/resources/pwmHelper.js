@@ -195,6 +195,7 @@ function showWaitDialog(title, body) {
         style: "width: 300px",
         content: body,
         closable: false
+
     });
     theDialog.show();
 }

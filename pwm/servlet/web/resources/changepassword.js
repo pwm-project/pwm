@@ -456,11 +456,10 @@ function startupChangePasswordPage()
         }
     }
 
-
     // show the error panel
-    var autoGenPasswordElement = getObject("error_msg");
-    if (autoGenPasswordElement != null) {
-        autoGenPasswordElement.style.visibility = 'visible';
+    var errorObj = getObject("error_msg");
+    if (errorObj != null) {
+        errorObj.style.visibility = 'visible';
     }
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown

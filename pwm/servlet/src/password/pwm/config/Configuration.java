@@ -134,6 +134,20 @@ public class Configuration implements Serializable {
         return storedConfiguration.readSetting(setting);
     }
 
+    public Map<Locale,String> readLocalizedBundle(final String className, final String keyName) {
+        final Map<String,String> storedValue = storedConfiguration.readLocaleBundleMap(className,keyName);
+        if (storedValue == null || storedValue.isEmpty()) {
+            return null;
+        }
+
+        final Map<Locale,String> localizedMap = new LinkedHashMap<Locale, String>();
+        for (final String localeKey : storedValue.keySet()) {
+            localizedMap.put(new Locale(localeKey),storedValue.get(localeKey));
+        }
+
+        return localizedMap;
+    }
+
     public PwmLogLevel getEventLogLocalLevel() {
         final String value = readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL);
         for (final PwmLogLevel logLevel : PwmLogLevel.values()) {

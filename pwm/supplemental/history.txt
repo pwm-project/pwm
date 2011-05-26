@@ -10,9 +10,11 @@ v1.5.4
 ---
 + Storage of responses in RDBM database
 + SMS Integration for forgotten password reset
++ Added "selectable" type configuration syntax, and applied as appropriate
++ Added SMS token integration to provide for text messaging (sms) of tokens during forgotten password
 
 - Renamed Update Attributes servlet to UpdateProfile and changed checkAttributes parameter to checkProfile
-- General refactoring to improve error messages
+- General refactoring to improve error messages, reporting and handling
 
 v1.5.3 (April 2, 2011) build 1026
 ---
@@ -34,7 +36,7 @@ v1.5.3 (April 2, 2011) build 1026
 - Fixed issue with cookieless (URL) sessions not working since v1.5.2
 - Fixed issue wih CommandServlet?processAction=checkExpire not working
 - Improved ConfigManager UI performance and layout, with simple/advanced mode
-- changed from simpleJson java libray to google json (gson) library for flexibility and correctness
+- changed from simpleJson java library to google json (gson) library for flexibility and correctness
 
 ! Added url escaping to user input reflected html form values to prevent certain types of XSS attacks
 

@@ -36,6 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.servlet.ConfigManagerServlet;
 import password.pwm.util.Base64Util;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -72,6 +73,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     private Date modifyTime = new Date();
     private Map<PwmSetting, StoredValue> settingMap = new HashMap<PwmSetting, StoredValue>();
     private Map<String, String> propertyMap = new HashMap<String, String>();
+    private Map<String, Map<String,Map<String,String>>> localizationMap = new HashMap<String, Map<String,Map<String, String>>>();
 
     private boolean locked = false;
 
@@ -82,6 +84,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public void lock() {
         settingMap = Collections.unmodifiableMap(settingMap);
         propertyMap = Collections.unmodifiableMap(propertyMap);
+        //localizationMap = Collections.unmodifiableMap(localizationMap);
         locked = true;
     }
 
@@ -263,6 +266,51 @@ public class StoredConfiguration implements Serializable, Cloneable {
         return Collections.unmodifiableSet(propertyMap.keySet());
     }
 
+    public void writeLocaleBundleMap(final String bundleName, final String keyName, final Map<String,String> localeMap) {
+        ResourceBundle theBundle = null;
+        for (final ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES bundle : ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES.values()) {
+            if (bundle.getTheClass().getName().equals(bundleName)) {
+                theBundle = ResourceBundle.getBundle(bundleName);
+            }
+        }
+
+        if (theBundle == null) {
+            LOGGER.info("ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName);
+            return;
+        }
+
+        if (!theBundle.containsKey(keyName)) {
+            LOGGER.info("ignoring unknown key for bundle=" + bundleName + ", key=" + keyName);
+            return;
+        }
+
+        Map<String, Map<String,String>> keyMap = localizationMap.get(bundleName);
+        if (keyMap == null) {
+            keyMap = new HashMap<String, Map<String, String>>();
+            localizationMap.put(bundleName,keyMap);
+        }
+        keyMap.put(keyName,new LinkedHashMap<String, String>(localeMap));
+    }
+
+    public Map<String,String> readLocaleBundleMap(final String bundleName, final String keyName) {
+        final Map<String, Map<String,String>> keyMap = localizationMap.get(bundleName);
+        if (keyMap == null) {
+            return Collections.emptyMap();
+        }
+        if (keyMap.get(keyName) == null) {
+            return Collections.emptyMap();
+        }
+        return keyMap.get(keyName);
+    }
+
+    public void resetLocaleBundleMap(final String bundleName, final String keyName) {
+        final Map<String, Map<String,String>> keyMap = localizationMap.get(bundleName);
+        if (keyMap == null) {
+            return;
+        }
+        keyMap.remove(keyName);
+    }
+
     public String toXml()
             throws IOException {
         final Element pwmConfigElement = new Element("PwmConfiguration");
@@ -317,6 +365,28 @@ public class StoredConfiguration implements Serializable, Cloneable {
             }
         }
         pwmConfigElement.addContent(settingsElement);
+
+        if (!localizationMap.isEmpty()) {  // write localizedStrings
+            for (final String bundleKey : localizationMap.keySet()) {
+                for (final String keyName : localizationMap.get(bundleKey).keySet()) {
+                    final Map<String,String> localeMap = localizationMap.get(bundleKey).get(keyName);
+                    if (!localeMap.isEmpty()) {
+                        final Element localeBundleElement = new Element("localeBundle");
+                        localeBundleElement.setAttribute("bundle",bundleKey);
+                        localeBundleElement.setAttribute("key",keyName);
+                        for (final String locale : localeMap.keySet()) {
+                            final Element valueElement = new Element("value");
+                            if (locale != null && locale.length() > 0) {
+                                valueElement.setAttribute("locale",locale);
+                            }
+                            valueElement.setContent(new CDATA(localeMap.get(locale)));
+                            localeBundleElement.addContent(valueElement);
+                        }
+                        pwmConfigElement.addContent(localeBundleElement);
+                    }
+                }
+            }
+        }
 
         pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
         pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
@@ -441,6 +511,21 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     final String key = element.getAttributeValue("key");
                     final String value = element.getText();
                     newConfiguration.propertyMap.put(key, value);
+                }
+            }
+
+            for (final Object loopElementObj : rootElement.getChildren("localeBundle")) {
+                final Element localeBundleElement = (Element) loopElementObj;
+                final String bundle = localeBundleElement.getAttributeValue("bundle");
+                final String key = localeBundleElement.getAttributeValue("key");
+                final Map<String,String> bundleMap = new LinkedHashMap<String, String>();
+                for (final Object loopElementObj2 : localeBundleElement.getChildren("value")) {
+                    final Element valueElement = (Element) loopElementObj2;
+                    final String localeStrValue = valueElement.getAttributeValue("locale");
+                    bundleMap.put(localeStrValue == null ? "" : localeStrValue, valueElement.getText());
+                }
+                if (!bundleMap.isEmpty()) {
+                    newConfiguration.writeLocaleBundleMap(bundle,key,bundleMap);
                 }
             }
 
@@ -656,12 +741,20 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public boolean hasBeenModified() {
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (!this.isDefaultValue(setting)) {
-                return true;
-            }
+        boolean hasBeenModified = false;
+        if (!settingMap.isEmpty()) {
+            hasBeenModified = true;
         }
-        return false;
+        if (!localizationMap.isEmpty()) {
+            hasBeenModified = true;
+        }
+
+        final String notes = this.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+        if (notes != null && notes.length() > 0) {
+            hasBeenModified = true;
+        }
+
+        return hasBeenModified;
     }
 
     private static class TextConversations {
