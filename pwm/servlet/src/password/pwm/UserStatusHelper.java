@@ -236,7 +236,7 @@ public class UserStatusHelper {
                 interestingUserAttributes.add("fullname");
                 interestingUserAttributes.add("cn");
             }
-            final Properties allUserAttrs = theUser.readStringAttributes(interestingUserAttributes);
+            final Map<String,String> allUserAttrs = theUser.readStringAttributes(interestingUserAttributes);
             uiBean.setAllUserAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
@@ -244,20 +244,20 @@ public class UserStatusHelper {
 
         // set userID
         final String ldapNamingAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        uiBean.setUserID(uiBean.getAllUserAttributes().getProperty(ldapNamingAttribute));
+        uiBean.setUserID(uiBean.getAllUserAttributes().get(ldapNamingAttribute));
 
         // set guid
         uiBean.setUserGuid(Helper.readLdapGuidValue(pwmSession, userDN));
 
         // set email address
         final String ldapEmailAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-        uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().getProperty(ldapEmailAttribute));
+        uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().get(ldapEmailAttribute));
 
         // write password state
         uiBean.setPasswordState(readPasswordStatus(pwmSession, theUser, uiBean.getPasswordPolicy()));
 
-        final String userPasswordExpireTime = uiBean.getAllUserAttributes().getProperty(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME, "");
-        if (userPasswordExpireTime.length() > 0) {
+        final String userPasswordExpireTime = uiBean.getAllUserAttributes().get(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
+        if (userPasswordExpireTime != null && userPasswordExpireTime.length() > 0) {
             uiBean.setPasswordExpirationTime(EdirEntries.convertZuluToDate(userPasswordExpireTime));
         } else {
             uiBean.setPasswordExpirationTime(null);
@@ -267,8 +267,8 @@ public class UserStatusHelper {
         uiBean.setRequiresResponseConfig(checkIfResponseConfigNeeded(pwmSession, theUser, pwmSession.getUserInfoBean().getChallengeSet()));
 
         // fetch last password modification time;
-        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), "");
-        if (pwdLastModifiedStr.length() > 0) {
+        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
+        if (pwdLastModifiedStr != null && pwdLastModifiedStr.length() > 0) {
             try {
                 uiBean.setPasswordLastModifiedTime(EdirEntries.convertZuluToDate(pwdLastModifiedStr));
             } catch (Exception e) {
@@ -346,7 +346,7 @@ public class UserStatusHelper {
 
         try {
 
-            final Map<String, Properties> results = provider.search(searchDN, searchHelper);
+            final Map<String, Map<String,String>> results = provider.search(searchDN, searchHelper);
 
             if (results == null || results.size() == 0) {
                 LOGGER.trace(pwmSession, "no matches found");

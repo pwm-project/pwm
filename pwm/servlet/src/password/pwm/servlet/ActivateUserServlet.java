@@ -270,7 +270,7 @@ public class ActivateUserServlet extends TopServlet {
         LOGGER.debug(pwmSession, "performing ldap search for user activation, base=" + searchBase + " filter=" + searchFilter);
 
         try {
-            final Map<String, Properties> results = chaiProvider.search(searchBase, searchHelper);
+            final Map<String, Map<String,String>> results = chaiProvider.search(searchBase, searchHelper);
 
             if (results.isEmpty()) {
                 final String errorMsg = "user not found using search filter " + searchFilter + ", in " + searchBase;

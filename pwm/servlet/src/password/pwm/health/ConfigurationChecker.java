@@ -116,17 +116,19 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        {
-            final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            final int strength = PasswordUtility.checkPasswordStrength(config, null, proxyPassword);
-            if (strength < 50) {
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.LDAP_PROXY_USER_PASSWORD.getCategory().getLabel(Locale.getDefault()));
-                errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.LDAP_PROXY_USER_PASSWORD.getLabel(Locale.getDefault()));
-                errorMsg.append(" strength of password is weak (").append(strength).append("/100), increase password length/complexity for proper security");
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (PwmSetting.Syntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(setting)) {
+                final String passwordValue = config.readSettingAsString(setting);
+                final int strength = PasswordUtility.checkPasswordStrength(config, null, passwordValue);
+                if (strength < 50) {
+                    final StringBuilder errorMsg = new StringBuilder();
+                    errorMsg.append(setting.getCategory().getLabel(Locale.getDefault()));
+                    errorMsg.append(" -> ");
+                    errorMsg.append(setting.getLabel(Locale.getDefault()));
+                    errorMsg.append(" strength of password is weak (").append(strength).append("/100); increase password length/complexity for proper security");
 
-                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                }
             }
         }
 

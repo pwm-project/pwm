@@ -94,12 +94,12 @@ public class UpdateProfileServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final List<FormConfiguration> formFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
         final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
-        final Properties currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
+        final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
         for (final FormConfiguration formConfiguration : formFields) {
             final String attrName = formConfiguration.getAttributeName();
             if (!formProps.containsKey(attrName)) {
-                final String userCurrentValue = currentUserAttributes.getProperty(attrName);
+                final String userCurrentValue = currentUserAttributes.get(attrName);
                 if (userCurrentValue != null) {
                     formProps.setProperty(attrName, userCurrentValue);
                 }

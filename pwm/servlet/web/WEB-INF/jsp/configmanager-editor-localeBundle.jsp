@@ -24,9 +24,10 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.TreeSet" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
+<% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <h1 style="text-align:center;"><%=bundleName.getTheClass().getSimpleName()%></h1>
 <script type="text/javascript">

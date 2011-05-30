@@ -31,10 +31,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
+import java.util.Collections;
 import java.util.Map;
-import java.util.Properties;
 
-/**                    
+/**
  * @author Jason D. Rivard
  */
 public enum Permission {
@@ -42,8 +42,10 @@ public enum Permission {
     CHANGE_PASSWORD(PwmSetting.QUERY_MATCH_CHANGE_PASSWORD),
     ACTIVATE_USER(PwmSetting.ACTIVATE_USER_QUERY_MATCH),
     SETUP_RESPONSE(PwmSetting.QUERY_MATCH_SETUP_RESPONSE),
-    GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP);
+    GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP),
+    PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
 
+    ;
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Permission.class);
@@ -81,7 +83,7 @@ public enum Permission {
         } else {
             try {
                 LOGGER.trace(pwmSession, "checking ldap to see if " + theUser.getEntryDN() + " matches '" + queryMatch + "'");
-                final Map<String, Properties> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, new String[]{}, ChaiProvider.SEARCH_SCOPE.BASE);
+                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
                 if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
                     result = true;
                 }

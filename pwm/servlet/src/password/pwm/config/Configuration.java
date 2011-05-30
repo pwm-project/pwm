@@ -352,4 +352,8 @@ public class Configuration implements Serializable {
     public String toDebugString() {
         return storedConfiguration.toString(true);
     }
+
+    public String getNotes() {
+        return storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+    }
 }

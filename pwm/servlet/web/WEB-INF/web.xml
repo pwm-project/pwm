@@ -179,6 +179,10 @@
         <servlet-class>password.pwm.servlet.ShortcutServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>PeopleSearchServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.PeopleSearchServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>CaptchaServlet</servlet-name>
         <servlet-class>password.pwm.servlet.CaptchaServlet</servlet-class>
     </servlet>
@@ -280,6 +284,10 @@
     <servlet-mapping>
         <servlet-name>ShortcutServlet</servlet-name>
         <url-pattern>/private/Shortcuts</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PeopleSearchServlet</servlet-name>
+        <url-pattern>/private/PeopleSearch</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CaptchaServlet</servlet-name>

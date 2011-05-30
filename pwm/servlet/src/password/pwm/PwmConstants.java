@@ -22,6 +22,10 @@
 
 package password.pwm;
 
+import password.pwm.config.Display;
+import password.pwm.config.Message;
+import password.pwm.error.PwmError;
+
 import java.util.ResourceBundle;
 
 /**
@@ -78,6 +82,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";
     public static final String URL_JSP_PASSWORD_WARN = "WEB-INF/jsp/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
+    public static final String URL_JSP_PEOPLE_SEARCH = "WEB-INF/jsp/peoplesearch.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";
@@ -160,6 +165,23 @@ public abstract class PwmConstants {
 
         CONTEXT_PARAM(final String key) {
             this.key = key;
+        }
+    }
+
+    public static enum EDITABLE_LOCALE_BUNDLES {
+        DISPLAY(Display.class),
+        ERRORS(PwmError.class),
+        MESSAGE(Message.class),
+        ;
+
+        private final Class theClass;
+
+        EDITABLE_LOCALE_BUNDLES(final Class theClass) {
+            this.theClass = theClass;
+        }
+
+        public Class getTheClass() {
+            return theClass;
         }
     }
 }

@@ -611,14 +611,14 @@ public class Validator {
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
             final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
             if (pwmSession != null) {
-                final Properties userValues = pwmSession.getUserInfoBean().getAllUserAttributes();
+                final Map<String,String> userValues = pwmSession.getUserInfoBean().getAllUserAttributes();
                 final String lcasePwd = password.toLowerCase();
                 for (final Object paramConfig : paramConfigs) {
                     final String attr = (String) paramConfig;
-                    final String userValue = userValues.getProperty(attr, "").toLowerCase();
+                    final String userValue = userValues.get(attr) == null ? "" : userValues.get(attr).toLowerCase();
 
                     // if the password is greater then 1 char and the value is contained within it then disallow
-                    if (userValue.length() > 1 && lcasePwd.indexOf(userValue) != -1) {
+                    if (userValue.length() > 1 && lcasePwd.contains(userValue)) {
                         LOGGER.trace("password rejected, same as user attr " + attr);
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
                     }
@@ -770,8 +770,8 @@ public class Validator {
         final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
 
         if (pwmSession != null && pwmSession.getUserInfoBean() != null && pwmSession.getUserInfoBean().getAllUserAttributes() != null) {
-            final Properties userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
-            final String samAccountName = userAttrs.getProperty("sAMAccountName");
+            final Map<String,String> userAttrs = pwmSession.getUserInfoBean().getAllUserAttributes();
+            final String samAccountName = userAttrs.get("sAMAccountName");
             if (samAccountName != null
                     && samAccountName.length() > 2
                     && samAccountName.length() >= password.length()) {
@@ -780,7 +780,7 @@ public class Validator {
                     LOGGER.trace("Password violation due to ADComplexity check: Password contains sAMAccountName");
                 }
             }
-            final String displayName = userAttrs.getProperty("displayName");
+            final String displayName = userAttrs.get("displayName");
             if (displayName != null && displayName.length() > 2) {
                 if (checkContainsTokens(password, displayName)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));

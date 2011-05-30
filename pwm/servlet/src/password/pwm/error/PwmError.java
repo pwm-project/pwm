@@ -23,7 +23,6 @@
 package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
-import com.sun.istack.internal.Nullable;
 import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -167,7 +166,7 @@ public enum PwmError {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String getLocalizedMessage(final Locale locale, final PwmError message, @Nullable final Configuration config, final String... fieldValue) {
+    public static String getLocalizedMessage(final Locale locale, final PwmError message, final Configuration config, final String... fieldValue) {
         String result = getRawString(config, message.getResourceKey(),locale);
         try {
             if (fieldValue != null && fieldValue.length > 0) {
@@ -190,7 +189,7 @@ public enum PwmError {
         return messagesBundle;
     }
 
-    private static String getRawString(@Nullable final Configuration config, final String key, final Locale locale) {
+    private static String getRawString(final Configuration config, final String key, final Locale locale) {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(PwmError.class.getName(),key);
             if (configuredBundle != null) {

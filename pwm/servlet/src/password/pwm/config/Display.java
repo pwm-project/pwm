@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.sun.istack.internal.Nullable;
 import password.pwm.util.Helper;
 
 import java.util.*;
@@ -32,7 +31,7 @@ import java.util.*;
  */
 public abstract class Display {
 
-    public static String getLocalizedMessage(final Locale locale, final String key, @Nullable final Configuration config) {
+    public static String getLocalizedMessage(final Locale locale, final String key, final Configuration config) {
         return getRawString(config, key,locale);
     }
 
@@ -47,7 +46,7 @@ public abstract class Display {
         return messagesBundle;
     }
 
-    private static String getRawString(@Nullable final Configuration config, final String key, final Locale locale) {
+    private static String getRawString(final Configuration config, final String key, final Locale locale) {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Display.class.getName(),key);
             if (configuredBundle != null) {

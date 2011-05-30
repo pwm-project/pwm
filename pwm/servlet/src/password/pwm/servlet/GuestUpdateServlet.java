@@ -144,17 +144,17 @@ public class GuestUpdateServlet extends TopServlet {
             final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
             try {
                 final List<FormConfiguration> updateParams = guBean.getUpdateParams();
-                final Collection<String> involvedAttrs = new HashSet<String>();
+                final Set<String> involvedAttrs = new HashSet<String>();
                 for (final FormConfiguration formConfiguration : updateParams) {
                     if (!formConfiguration.getAttributeName().equalsIgnoreCase("__accountDuration__")) {
                         involvedAttrs.add(formConfiguration.getAttributeName());
                     }
                 }
-                final Properties userAttrValues = provider.readStringAttributes(userDN, involvedAttrs.toArray(new String[involvedAttrs.size()]));
+                final Map<String,String> userAttrValues = provider.readStringAttributes(userDN, involvedAttrs);
                 final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
                 final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
-                    final String origAdminDn = userAttrValues.getProperty(adminDnAttribute);
+                    final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
                         if (!pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(origAdminDn)) {
                             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
@@ -172,7 +172,7 @@ public class GuestUpdateServlet extends TopServlet {
 
                 for (final FormConfiguration formConfiguration : updateParams) {
                     final String key = formConfiguration.getAttributeName();
-                    final String value = userAttrValues.getProperty(key);
+                    final String value = userAttrValues.get(key);
                     if (value != null) {
                         formProps.setProperty(key, value);
                     }

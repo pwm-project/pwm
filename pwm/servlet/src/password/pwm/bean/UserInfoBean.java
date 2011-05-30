@@ -64,7 +64,7 @@ public class UserInfoBean implements Serializable {
     /**
      * A listing of all readable attributes on the ldap user object
      */
-    private Properties allUserAttributes = new Properties();
+    private Map<String,String> allUserAttributes = Collections.emptyMap();
 
     private PasswordStatus passwordState = new PasswordStatus();
     private long authTime;
@@ -84,11 +84,11 @@ public class UserInfoBean implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public Properties getAllUserAttributes() {
+    public Map<String,String> getAllUserAttributes() {
         return this.allUserAttributes;
     }
 
-    public void setAllUserAttributes(final Properties userAttributes) {
+    public void setAllUserAttributes(final Map<String,String> userAttributes) {
         allUserAttributes = userAttributes;
     }
 

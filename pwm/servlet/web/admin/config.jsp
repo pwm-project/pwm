@@ -45,6 +45,9 @@
             can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
             to modify the configuration.
         </p>
+        <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
+        <p><%=pwmConfig.getNotes()%></p>
+        <% } %>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) { %>
             <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%>

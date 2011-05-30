@@ -97,6 +97,12 @@
         <p><pwm:Display key="Long_Title_Shortcuts"/></p>
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
+        <h2><a href="<pwm:url url='private/PeopleSearch'/>" class="tablekey"><pwm:Display key="Title_PeopleSearch"/></a></h2>
+
+        <p><pwm:Display key="Long_Title_PeopleSearch"/></p>
+        <% } %>
+
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
         <h2><a href="<pwm:url url='private/userinfo.jsp'/>" class="tablekey"><pwm:Display
                 key="Title_UserInformation"/></a></h2>

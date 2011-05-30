@@ -29,7 +29,8 @@
 <h1 style="text-align:center;"><%=category.getLabel(request.getLocale())%>
 </h1>
 <% if (showDesc) { %><span><%= category.getDescription(request.getLocale())%></span><% } %>
-<% for (final PwmSetting loopSetting : PwmSetting.valuesByCategory(password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).get(category)) { %>
+<% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
+<% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
 <script type="text/javascript">showError('');</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
     <h2><label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(request.getLocale())%></label></h2>
@@ -232,4 +233,5 @@
     <% } %>
 </div>
 <br/>
+<% } %>
 <% } %>

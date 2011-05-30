@@ -49,14 +49,14 @@
 <jsp:include page="header-body.jsp">
     <jsp:param name="pwm.PageName" value="PWM Configuration Editor"/>
 </jsp:include>
-<div id="centerbody" style="width: 600px">
+<div id="TopMenu" style="width:600px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;">
+</div>
+<div id="centerbody" style="width: 600px; align: center" >
 <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
 <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
 <% } else { %>
 <span style="visibility:hidden; width:680px;" id="error_msg" class="msg-success"> </span>
 <% } %>
-<div id="TopMenu" style="width:600px">
-</div>
 <script type="text/javascript">
     dojo.require("dijit.MenuBar");
     dojo.require("dijit.MenuItem");
@@ -64,12 +64,12 @@
     dojo.require("dijit.PopupMenuBarItem");
     dojo.require("dijit.CheckedMenuItem");
     dojo.addOnLoad(function() {
-        var pMenuBar = new dijit.MenuBar({});
-        { // Category Menu
-            var pSubMenu = new dijit.Menu({});
-        <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(PwmSession.getPwmSession(session).getConfigManagerBean().getLevel()).keySet()) { %>
+        var topMenuBar = new dijit.MenuBar({});
+        { // Settings Menu
+            var settingsMenu = new dijit.Menu({});
+        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
         <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
+            settingsMenu.addChild(new dijit.CheckedMenuItem({
                         label: '<%=loopCategory.getLabel(request.getLocale())%>',
                         checked: true,
                         onClick: function() {
@@ -78,7 +78,7 @@
                                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
                                         sync: true,
                                         error: function(errorObj) {
-                                            showError("error loading " + keyName + ", reason: " + errorObj)
+                                            showError("error reason: " + errorObj)
                                         },
                                         load: function(data) {
                                             window.location = "ConfigManager";
@@ -87,7 +87,7 @@
                         }
                     }));
         <% } else { %>
-            pSubMenu.addChild(new dijit.MenuItem({
+            settingsMenu.addChild(new dijit.MenuItem({
                         label: '<%=loopCategory.getLabel(request.getLocale())%>',
                         onClick: function() {
                             showWaitDialog('Loading...');
@@ -95,7 +95,7 @@
                                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
                                         sync: true,
                                         error: function(errorObj) {
-                                            showError("error loading " + keyName + ", reason: " + errorObj)
+                                            showError("error reason: " + errorObj)
                                         },
                                         load: function(data) {
                                             window.location = "ConfigManager";
@@ -105,17 +105,62 @@
                     }));
         <% } %>
         <% } %>
-            pMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "Settings",
-                        popup: pSubMenu
+                        popup: settingsMenu
+                    }));
+        }
+        { // Modules Menu
+            var modulesMenu = new dijit.Menu({});
+        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
+        <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+            modulesMenu.addChild(new dijit.CheckedMenuItem({
+                        label: '<%=loopCategory.getLabel(request.getLocale())%>',
+                        checked: true,
+                        onClick: function() {
+                            showWaitDialog('Loading...');
+                            dojo.xhrGet({
+                                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                                        sync: true,
+                                        error: function(errorObj) {
+                                            showError("error reason: " + errorObj)
+                                        },
+                                        load: function(data) {
+                                            window.location = "ConfigManager";
+                                        }
+                                    });
+                        }
+                    }));
+        <% } else { %>
+            modulesMenu.addChild(new dijit.MenuItem({
+                        label: '<%=loopCategory.getLabel(request.getLocale())%>',
+                        onClick: function() {
+                            showWaitDialog('Loading...');
+                            dojo.xhrGet({
+                                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                                        sync: true,
+                                        error: function(errorObj) {
+                                            showError("error reason: " + errorObj)
+                                        },
+                                        load: function(data) {
+                                            window.location = "ConfigManager";
+                                        }
+                                    });
+                        }
+                    }));
+        <% } %>
+        <% } %>
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                        label: "Modules",
+                        popup: modulesMenu
                     }));
         }
         { // Display menu
-            var pSubMenu = new dijit.Menu({});
+            var displayMenu = new dijit.Menu({});
 
-        <% for (final ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES localeBundle : ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES.values()) { %>
+        <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
         <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
+            modulesMenu.addChild(new dijit.CheckedMenuItem({
                         label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                         checked: true,
                         onClick: function() {
@@ -133,7 +178,7 @@
                         }
                     }));
         <% } else { %>
-            pSubMenu.addChild(new dijit.MenuItem({
+            displayMenu.addChild(new dijit.MenuItem({
                         label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                         onClick: function() {
                             showWaitDialog('Loading...');
@@ -151,15 +196,15 @@
                     }));
         <% } %>
         <% } %>
-            pMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "Display",
-                        popup: pSubMenu
+                        popup: displayMenu
                     }));
         }
         { // Edit
-            var pSubMenu = new dijit.Menu({});
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
-                        label: "Show All Settings",
+            var editMenu = new dijit.Menu({});
+            editMenu.addChild(new dijit.CheckedMenuItem({
+                        label: "Show Advanced Settings",
                         checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                         onClick: function() {
                             showWaitDialog('Loading...');
@@ -172,7 +217,7 @@
                                     });
                         }
                     }));
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
+            editMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Display Help Text",
                         checked: <%=showDesc ? "true" : "false"%>,
                         onClick: function() {
@@ -186,7 +231,7 @@
                                     });
                         }
                     }));
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
+            editMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Show Configuration Notes",
                         checked: <%=showNotes ? "true" : "false"%>,
                         onClick: function() {
@@ -200,16 +245,16 @@
                                     });
                         }
                     }));
-            pMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "View",
-                        popup: pSubMenu
+                        popup: editMenu
                     }));
         }
         { // Templates
-            var pSubMenu = new dijit.Menu({});
+            var templateMenu = new dijit.Menu({});
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
         <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().template() == template; %>
-            pSubMenu.addChild(new dijit.CheckedMenuItem({
+            templateMenu.addChild(new dijit.CheckedMenuItem({
                         label: "<%=template.getDescription()%>",
                         checked: <%=isCurrentTemplate ? "true" : "false"%>,
                         onClick: function() {
@@ -230,16 +275,16 @@
                         }
                     }));
         <% } %>
-            pMenuBar.addChild(new dijit.PopupMenuBarItem({
+            templateMenu.addChild(new dijit.PopupMenuBarItem({
                         label: "Template",
-                        popup: pSubMenu
+                        popup: templateMenu
                     }));
         }
         { // Actions
-            var pSubMenu = new dijit.Menu({});
+            var actionsMenu = new dijit.Menu({});
 
         <% if (ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
-            pSubMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new dijit.MenuItem({
                         label: "Finish Editing",
                         onClick: function() {
                             showWaitDialog('Updating Configuration');
@@ -249,7 +294,7 @@
                         }
                     }));
         <% } else { %>
-            pSubMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new dijit.MenuItem({
                         label: "Save",
                         iconClass: "dijitEditorIcon dijitEditorIconSave",
                         onClick: function() {
@@ -259,7 +304,7 @@
                         }
                     }));
         <% } %>
-            pSubMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new dijit.MenuItem({
                         label: "Cancel",
                         iconClass: "dijitEditorIcon dijitEditorIconCancel",
                         onClick: function() {
@@ -267,13 +312,13 @@
                         }
                     }));
 
-            pMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "Actions",
-                        popup: pSubMenu
+                        popup: actionsMenu
                     }));
         }
-        pMenuBar.placeAt("TopMenu");
-        pMenuBar.startup();
+        topMenuBar.placeAt("TopMenu");
+        topMenuBar.startup();
     });
 </script>
 <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"

@@ -264,7 +264,7 @@ public class CommandServlet extends TopServlet {
         // populate the map with attribute values from the uiBean, which was populated through ldap.
         final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
         for (final FormConfiguration formConfiguration : updateFormFields) {
-            formValues.put(formConfiguration, uiBean.getAllUserAttributes().getProperty(formConfiguration.getAttributeName()));
+            formValues.put(formConfiguration, uiBean.getAllUserAttributes().get(formConfiguration.getAttributeName()));
         }
 
         try {

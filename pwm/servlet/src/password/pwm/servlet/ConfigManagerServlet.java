@@ -230,7 +230,7 @@ public class ConfigManagerServlet extends TopServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key,"-");
             st.nextToken();
-            final EDITABLE_LOCALE_BUNDLES bundleName = EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+            final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String,String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(),keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
@@ -323,7 +323,7 @@ public class ConfigManagerServlet extends TopServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key,"-");
             st.nextToken();
-            final EDITABLE_LOCALE_BUNDLES bundleName = EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+            final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
             }.getType());
@@ -418,7 +418,7 @@ public class ConfigManagerServlet extends TopServlet {
             if (key.startsWith("localeBundle")) {
                 final StringTokenizer st = new StringTokenizer(key,"-");
                 st.nextToken();
-                final EDITABLE_LOCALE_BUNDLES bundleName = EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+                final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
                 final String keyName = st.nextToken();
                 storedConfig.resetLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
             } else {
@@ -608,7 +608,7 @@ public class ConfigManagerServlet extends TopServlet {
             final String requestedLocaleBundle = Validator.readStringFromRequest(req, "localeBundle", 255);
             if (requestedLocaleBundle != null && requestedLocaleBundle.length() > 0) {
                 try {
-                    configManagerBean.setLocaleBundle(EDITABLE_LOCALE_BUNDLES.valueOf(requestedLocaleBundle));
+                    configManagerBean.setLocaleBundle(PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(requestedLocaleBundle));
                     LOGGER.trace("setting localeBundle to: " + configManagerBean.isShowDescr());
                     configManagerBean.setEditMode(EDIT_MODE.LOCALEBUNDLE);
                 } catch (Exception e) {
@@ -630,11 +630,6 @@ public class ConfigManagerServlet extends TopServlet {
                     LOGGER.error("error updating notesText: " + e.getMessage());
                 }
             }
-        }
-
-        final Set<PwmSetting.Category> availCategories = PwmSetting.valuesByCategory(configManagerBean.getLevel()).keySet();
-        if (!availCategories.contains(configManagerBean.getCategory())) {
-            configManagerBean.setCategory(PwmSetting.Category.GENERAL);
         }
     }
 
@@ -662,23 +657,6 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
 // -------------------------- ENUMERATIONS --------------------------
-
-    public static enum EDITABLE_LOCALE_BUNDLES {
-        DISPLAY(Display.class),
-        ERRORS(PwmError.class),
-        MESSAGE(Message.class),
-        ;
-
-        private Class theClass;
-
-        EDITABLE_LOCALE_BUNDLES(final Class theClass) {
-            this.theClass = theClass;
-        }
-
-        public Class getTheClass() {
-            return theClass;
-        }
-    }
 
     public static enum EDIT_MODE {
         SETTINGS,

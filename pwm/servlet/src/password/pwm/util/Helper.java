@@ -191,7 +191,7 @@ public class Helper {
                 // check if it is unique
                 final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
                 searchHelper.setFilter(GUIDattributeName, newGUID);
-                final Map<String, Properties> result = proxyChaiProvider.search(baseContext, searchHelper);
+                final Map<String, Map<String,String>> result = proxyChaiProvider.search(baseContext, searchHelper);
                 if (result.isEmpty()) {
                     try {
                         // write it to the directory
@@ -508,7 +508,7 @@ public class Helper {
         final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
         try {
-            final Map<String, Properties> results = provider.search(objectDN, queryString, new String[]{}, ChaiProvider.SEARCH_SCOPE.SUBTREE);
+            final Map<String, Map<String,String>> results = provider.search(objectDN, queryString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.SUBTREE);
 
             if (results == null || results.size() != 1) {
                 return false;
@@ -600,7 +600,7 @@ public class Helper {
     public static void writeMapToLdap(final PwmSession pwmSession, final ChaiUser theUser, final Map<String,String> valueMap)
             throws PwmOperationalException, ChaiUnavailableException
     {
-        final Properties currentValues;
+        final Map<String,String> currentValues;
         try {
             currentValues = theUser.readStringAttributes(valueMap.keySet());
         } catch (ChaiOperationException e) {
@@ -613,7 +613,7 @@ public class Helper {
 
         for (final String attrName : valueMap.keySet()) {
             final String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
-            if (!attrValue.equals(currentValues.getProperty(attrName,""))) {
+            if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {
                     try {
                         theUser.writeStringAttribute(attrName, attrValue);

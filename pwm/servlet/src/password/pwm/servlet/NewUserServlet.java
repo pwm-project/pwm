@@ -114,7 +114,7 @@ public class NewUserServlet extends TopServlet {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
             // set up the user creation attributes
-            final Properties createAttributes = new Properties();
+            final Map<String,String> createAttributes = new HashMap<String,String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
                 createAttributes.put(formConfiguration.getAttributeName(), formValues.get(formConfiguration));
             }

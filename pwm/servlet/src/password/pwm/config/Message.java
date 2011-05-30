@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.sun.istack.internal.Nullable;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
@@ -127,7 +126,7 @@ public enum Message {
         return null;
     }
 
-    public static String getLocalizedMessage(final Locale locale, final Message message, @Nullable final Configuration config, final String... fieldValue) {
+    public static String getLocalizedMessage(final Locale locale, final Message message, final Configuration config, final String... fieldValue) {
         String result = getRawString(config, message.getResourceKey(),locale);
         try {
             if (fieldValue != null && fieldValue.length > 0) {
@@ -150,7 +149,7 @@ public enum Message {
         return messagesBundle;
     }
 
-    private static String getRawString(@Nullable final Configuration config, final String key, final Locale locale) {
+    private static String getRawString(final Configuration config, final String key, final Locale locale) {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Message.class.getName(),key);
             if (configuredBundle != null) {

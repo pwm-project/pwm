@@ -121,7 +121,7 @@ public class SessionManager implements Serializable {
             debugLogText.append("opened new ldap connection for ");
         }
 
-        debugLogText.append(pwmSession.getUserInfoBean().getUserDN());
+        debugLogText.append(userDN);
         debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
         LOGGER.trace(pwmSession, debugLogText.toString());
 

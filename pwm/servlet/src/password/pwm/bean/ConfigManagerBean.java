@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -39,7 +40,7 @@ public class ConfigManagerBean implements Serializable {
     private boolean showDescr = true;
     private boolean showNotes = true;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
-    private ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES localeBundle;
+    private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
 
     public ConfigManagerBean() {
     }
@@ -108,11 +109,11 @@ public class ConfigManagerBean implements Serializable {
         this.showNotes = showNotes;
     }
 
-    public ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
+    public PwmConstants.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
         return localeBundle;
     }
 
-    public void setLocaleBundle(final ConfigManagerServlet.EDITABLE_LOCALE_BUNDLES localeBundle) {
+    public void setLocaleBundle(final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle) {
         this.localeBundle = localeBundle;
     }
 }

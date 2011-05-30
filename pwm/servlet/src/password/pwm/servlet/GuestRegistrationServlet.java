@@ -124,7 +124,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
             // set up the user creation attributes
-            final Properties createAttributes = new Properties();
+            final Map<String,String> createAttributes = new HashMap<String, String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
                 createAttributes.put(formConfiguration.getAttributeName(), formValues.get(formConfiguration));
             }
@@ -170,7 +170,7 @@ public class GuestRegistrationServlet extends TopServlet {
         }
     }
 
-    private static Properties handleDurationValue(
+    private static Map<String,String> handleDurationValue(
             final PwmSession pwmSession,
             final HttpServletRequest req
     )
@@ -193,8 +193,8 @@ public class GuestRegistrationServlet extends TopServlet {
         final Date futureDate = new Date(futureDateMs);
         final String zuluDate = EdirEntries.convertDateToZulu(futureDate);
 
-        final Properties props = new Properties();
-        props.setProperty(expirationAttribute, zuluDate);
+        final Map<String,String> props = new HashMap<String, String>();
+        props.put(expirationAttribute, zuluDate);
         LOGGER.debug(pwmSession,"figured expiration date for user attribute " + expirationAttribute + ", value=" + zuluDate);
         return props;
     }

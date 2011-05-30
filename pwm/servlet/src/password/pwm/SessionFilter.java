@@ -326,14 +326,8 @@ public class SessionFilter implements Filter {
         }
 
         // user's session is messed up.  send to error page.
-        final StringBuilder errorMsg = new StringBuilder();
-        errorMsg.append("if functionality without cookies is desired, then ");
-        errorMsg.append(PwmSetting.ALLOW_URL_SESSIONS.getCategory().getLabel(Locale.getDefault()));
-        errorMsg.append(" -> ");
-        errorMsg.append(PwmSetting.ALLOW_URL_SESSIONS.getLabel(Locale.getDefault()));
-        errorMsg.append(" must be set to true ");
-
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,errorMsg.toString());
+        final String errorMsg = "client unable to reply with session key";
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,errorMsg);
         LOGGER.error(pwmSession, errorInformation.toDebugStr());
         ssBean.setSessionError(errorInformation);
         ServletHelper.forwardToErrorPage(req, resp, servletContext);

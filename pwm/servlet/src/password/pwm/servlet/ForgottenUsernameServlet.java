@@ -53,7 +53,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 public class ForgottenUsernameServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenUsernameServlet.class);
@@ -171,7 +170,7 @@ public class ForgottenUsernameServlet extends TopServlet {
         LOGGER.debug(pwmSession, "performing ldap search for user, base=" + searchBase + " filter=" + searchFilter);
 
         try {
-            final Map<String, Properties> results = chaiProvider.search(searchBase, searchHelper);
+            final Map<String, Map<String,String>> results = chaiProvider.search(searchBase, searchHelper);
 
             if (results.isEmpty()) {
                 LOGGER.debug(pwmSession, "no users found in username search");

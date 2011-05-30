@@ -52,7 +52,8 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <% if (!hasBeenModified) { %>
-        <p><span style="font-weight: bold;">The configuration for this server is now finalized and locked.</span></p>
+        <p><span style="font-weight: bold;">The configuration for this server is now finalized and locked.</span>  Visit the <a href="<%=request.getContextPath()%>/<pwm:url url='admin'/>">administration module</a>
+        to view the configuration.</p>
         <p>If you wish to return this server to the previous live-edit configuration mode, edit the <span style="font-style: italic;">PwmConfiguration.xml</span> file by setting the
                 property "configIsEditable" to "true".   Otherwise, please choose from the following options:</p>
 

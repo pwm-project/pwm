@@ -55,7 +55,7 @@ public enum PwmSetting {
     PASSWORD_SYNC_MAX_WAIT_TIME(
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
+            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     SEEDLIST_FILENAME(
@@ -69,21 +69,21 @@ public enum PwmSetting {
     DISPLAY_SHOW_DETAILED_ERRORS(
             "display.showDetailedErrors", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_PASSWORD_GUIDE_TEXT(
-            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
+            "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
-            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CANCEL_BUTTON(
-            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_PASSWORD_HISTORY(
-            "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
-            "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.ADVANCED),
+            "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
 
 
     //ldap directory
@@ -186,21 +186,21 @@ public enum PwmSetting {
 
     // sms settings
     SMS_ENABLE(
-            "sms.enable", Syntax.BOOLEAN, Category.SMS, true, Level.ADVANCED),
+            "sms.enable", Syntax.BOOLEAN, Category.SMS, true, Level.BASIC),
     SMS_PRIORITY_PREFERENCE(
-            "sms.priority", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
+            "sms.priority", Syntax.SELECT, Category.SMS, true, Level.BASIC),
     SMS_USER_PHONE_ATTRIBUTE(
-            "sms.userSmsAttribute", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.userSmsAttribute", Syntax.STRING, Category.SMS, true, Level.BASIC),
     SMS_MAX_QUEUE_AGE(
             "sms.queueMaxAge", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_GATEWAY_URL(
-            "sms.gatewayURL", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.gatewayURL", Syntax.STRING, Category.SMS, true, Level.BASIC),
     SMS_GATEWAY_USER(
-            "sms.gatewayUser", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
+            "sms.gatewayUser", Syntax.STRING, Category.SMS, false, Level.BASIC),
     SMS_GATEWAY_PASSWORD(
-            "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, false, Level.ADVANCED),
+            "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, false, Level.BASIC),
     SMS_GATEWAY_METHOD(
-            "sms.gatewayMethod", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
+            "sms.gatewayMethod", Syntax.SELECT, Category.SMS, true, Level.BASIC),
     SMS_GATEWAY_AUTHMETHOD(
             "sms.gatewayAuthMethod", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_REQUEST_DATA(
@@ -216,7 +216,7 @@ public enum PwmSetting {
     SMS_RESPONSE_OK_REGEX(
             "sms.responseOkRegex", Syntax.STRING_ARRAY, Category.SMS, false, Level.ADVANCED),
     SMS_SENDER_ID(
-            "sms.senderID", Syntax.STRING, Category.SMS, false, Level.ADVANCED),
+            "sms.senderID", Syntax.STRING, Category.SMS, false, Level.BASIC),
     SMS_PHONE_NUMBER_FORMAT(
             "sms.phoneNumberFormat", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_DEFAULT_COUNTRY_CODE(
@@ -301,20 +301,20 @@ public enum PwmSetting {
 
     // intruder settings
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
     INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC ),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
     INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.ADVANCED),
+            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
     // captcha
     RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
+            "captcha.recaptcha.publicKey", Syntax.STRING, Category.INTRUDER, false, Level.BASIC),
     RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.INTRUDER, false, Level.ADVANCED),
+            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.INTRUDER, false, Level.BASIC),
     CAPTCHA_SKIP_PARAM(
             "captcha.skip.param", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
     CAPTCHA_SKIP_COOKIE(
@@ -333,23 +333,23 @@ public enum PwmSetting {
     EVENTS_PWMDB_MAX_AGE(
             "events.pwmDB.maxAge", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_PWMDB_LOG_LEVEL(
-            "events.pwmDB.logLevel", Syntax.SELECT, Category.LOGGING, true, Level.ADVANCED),
+            "events.pwmDB.logLevel", Syntax.SELECT, Category.LOGGING, true, Level.BASIC),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", Syntax.STRING, Category.LOGGING, false, Level.ADVANCED),
     EVENTS_LDAP_MAX_EVENTS(
             "events.ldap.maxEvents", Syntax.NUMERIC, Category.LOGGING, true, Level.ADVANCED),
     EVENTS_ALERT_STARTUP(
-            "events.alert.startup.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.startup.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
     EVENTS_ALERT_SHUTDOWN(
-            "events.alert.shutdown.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.shutdown.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
     EVENTS_ALERT_INTRUDER_LOCKOUT(
-            "events.alert.intruder.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.intruder.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
     EVENTS_ALERT_FATAL_EVENT(
-            "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.fatalEvent.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
     EVENTS_ALERT_CONFIG_MODIFY(
-            "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.configModify.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
     EVENTS_ALERT_DAILY_SUMMARY(
-            "events.alert.dailySummary.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.ADVANCED),
+            "events.alert.dailySummary.enable", Syntax.BOOLEAN, Category.LOGGING, true, Level.BASIC),
 
 
     // challenge policy
@@ -408,35 +408,34 @@ public enum PwmSetting {
 
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
-            "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+            "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_FORM(
-            "forgottenUsername.form", Syntax.LOCALIZED_STRING_ARRAY, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+            "forgottenUsername.form", Syntax.LOCALIZED_STRING_ARRAY, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
-            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+            "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
-            "forgottenUsername.usernameAttribute", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.ADVANCED),
+            "forgottenUsername.usernameAttribute", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
 
 
     // new user settings
     NEWUSER_ENABLE(
-            "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true, Level.ADVANCED),
+            "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_CONTEXT(
-            "newUser.createContext", Syntax.STRING, Category.NEWUSER, true, Level.ADVANCED),
+            "newUser.createContext", Syntax.STRING, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_FORM(
-            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.ADVANCED),
+            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_UNIQUE_ATTRIBUES(
-            "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
+            "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_WRITE_ATTRIBUTES(
-            "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
-
+            "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
 
     // guest settings
     GUEST_ENABLE(
-            "guest.enable", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+            "guest.enable", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
     GUEST_HIDDEN(
-            "guest.hidden", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+            "guest.hidden", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
     GUEST_CONTEXT(
-            "guest.createContext", Syntax.STRING, Category.GUEST, true, Level.ADVANCED),
+            "guest.createContext", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_ADMIN_GROUP(
             "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.ADVANCED),
     GUEST_FORM(
@@ -456,40 +455,55 @@ public enum PwmSetting {
 
     // activation settings
     ACTIVATE_USER_ENABLE(
-            "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.ADVANCED),
+            "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_FORM(
-            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.ADVANCED),
+            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
+            "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true, Level.ADVANCED),
+            "activateUser.queryMatch", Syntax.STRING, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
-            "activateUser.writePreAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
+            "activateUser.writePreAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
-            "activateUser.writePostAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.ADVANCED),
+            "activateUser.writePostAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.BASIC),
 
     // update profile
     UPDATE_PROFILE_ENABLE(
-            "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.ADVANCED),
+            "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_QUERY_MATCH(
-            "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.ADVANCED),
+            "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.ADVANCED),
+            "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.BASIC),
     UPDATE_PROFILE_FORM(
-            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.ADVANCED),
+            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.BASIC),
 
     // shortcut settings
     SHORTCUT_ENABLE(
-            "shortcut.enable", Syntax.BOOLEAN, Category.SHORTCUT, false, Level.ADVANCED),
+            "shortcut.enable", Syntax.BOOLEAN, Category.SHORTCUT, false, Level.BASIC),
     SHORTCUT_ITEMS(
-            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false, Level.ADVANCED),
+            "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false, Level.BASIC),
     SHORTCUT_HEADER_NAMES(
             "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false, Level.ADVANCED),
 
+    // peoplesearch settings
+    PEOPLE_SEARCH_ENABLE(
+            "peopleSearch.enable", Syntax.BOOLEAN, Category.PEOPLE_SEARCH, false, Level.BASIC),
+    PEOPLE_SEARCH_QUERY_MATCH(
+            "peopleSearch.queryMatch", Syntax.STRING, Category.PEOPLE_SEARCH, true, Level.BASIC),
+    PEOPLE_SEARCH_SEARCH_FILTER(
+            "peopleSearch.searchFilter", Syntax.STRING, Category.PEOPLE_SEARCH, true, Level.BASIC),
+    PEOPLE_SEARCH_SEARCH_BASE(
+            "peopleSearch.searchBase", Syntax.STRING, Category.PEOPLE_SEARCH, false, Level.BASIC),
+    PEOPLE_SEARCH_RESULT_FORM(
+            "peopleSearch.result.form", Syntax.LOCALIZED_STRING_ARRAY, Category.PEOPLE_SEARCH, true, Level.BASIC),
+    PEOPLE_SEARCH_RESULT_LIMIT(
+            "peopleSearch.result.limit", Syntax.NUMERIC, Category.PEOPLE_SEARCH, true, Level.BASIC),
+    PEOPLE_SEARCH_USE_PROXY(
+            "peopleSearch.useProxy", Syntax.BOOLEAN, Category.PEOPLE_SEARCH, true, Level.ADVANCED),
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
+            "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_STORE_NMAS_RESPONSES(
             "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_READ_CHALLENGE_SET(
@@ -535,14 +549,15 @@ public enum PwmSetting {
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+
     DATABASE_CLASS(
-            "db.classname", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+            "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_URL(
-            "db.url", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+            "db.url", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_USERNAME(
-            "db.username", Syntax.STRING, Category.DATABASE, false, Level.ADVANCED),
+            "db.username", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_PASSWORD(
-            "db.password", Syntax.PASSWORD, Category.DATABASE, false, Level.ADVANCED),
+            "db.password", Syntax.PASSWORD, Category.DATABASE, false, Level.BASIC),
 
     ;
 
@@ -697,26 +712,33 @@ public enum PwmSetting {
     }
 
     public enum Category {
-        GENERAL,
-        USER_INTERFACE,
-        LDAP,
-        PASSWORD_POLICY,
-        CHALLENGE,
-        EMAIL,
-        SMS,
-        INTRUDER,
-        LOGGING,
-        RECOVERY,
-        FORGOTTEN_USERNAME,
-        NEWUSER,
-        GUEST,
-        ACTIVATION,
-        UPDATE,
-        SHORTCUT,
-        EDIRECTORY,
-        DATABASE,
-        ADVANCED
+        GENERAL(0),
+        USER_INTERFACE(0),
+        LDAP(0),
+        PASSWORD_POLICY(0),
+        CHALLENGE(0),
+        EMAIL(0),
+        SMS(0),
+        INTRUDER(0),
+        LOGGING(0),
+        RECOVERY(1),
+        FORGOTTEN_USERNAME(1),
+        NEWUSER(1),
+        GUEST(1),
+        ACTIVATION(1),
+        UPDATE(1),
+        SHORTCUT(1),
+        PEOPLE_SEARCH(1),
+        EDIRECTORY(0),
+        DATABASE(0),
+        ADVANCED(0),
         ;
+
+        private final int group;
+
+        private Category(final int group) {
+            this.group = group;
+        }
 
         public String getLabel(final Locale locale) {
             return readProps("CATEGORY_LABEL_" + this.name(), locale);
@@ -724,6 +746,20 @@ public enum PwmSetting {
 
         public String getDescription(final Locale locale) {
             return readProps("CATEGORY_DESCR_" + this.name(), locale);
+        }
+
+        public int getGroup() {
+            return group;
+        }
+
+        public static Category[] valuesByGroup(final int group) {
+            final List<Category> returnCategories = new ArrayList<Category>();
+            for (final Category category : values()) {
+                if (category.getGroup() == group) {
+                    returnCategories.add(category);
+                }
+            }
+            return returnCategories.toArray(new Category[returnCategories.size()]);
         }
     }
 
@@ -763,11 +799,11 @@ public enum PwmSetting {
                 }
             }
             if (!loopList.isEmpty()) {
-                returnMap.put(category, loopList);
+                returnMap.put(category, Collections.unmodifiableList(loopList));
             }
         }
 
-        return returnMap;
+        return Collections.unmodifiableMap(returnMap);
     }
 
     public static PwmSetting forKey(final String key) {

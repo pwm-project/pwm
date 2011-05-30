@@ -61,7 +61,7 @@
                     <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, request.getLocale())).format(new Date(record.getTimestamp())) %>
                 </td>
                 <td>
-                    <%= Message.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(), record.getEventCode().getMessage()) %>
+                    <%= Message.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(), record.getEventCode().getMessage(), PwmSession.getPwmSession(session).getConfig()) %>
                 </td>
             </tr>
             <% } %>
