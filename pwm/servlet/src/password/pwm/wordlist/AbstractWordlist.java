@@ -279,7 +279,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
             if (pwmSession != null) {
                 LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + TimeDuration.asCompactString(totalTime));
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_WORDLIST_CHECK_TIME, totalTime);
             }
 
             return result;

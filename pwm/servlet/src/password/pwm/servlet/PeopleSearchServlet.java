@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -135,7 +136,12 @@ public class PeopleSearchServlet extends TopServlet {
                 provider = pwmSession.getSessionManager().getChaiProvider();
             }
             final Map<String,Map<String,String>> ldapResults = provider.search(searchBase,searchHelper);
+
             LOGGER.trace(pwmSession,"search results: " + ldapResults.size());
+            if (pwmSession.getContextManager().getStatisticsManager() != null) {
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
+            }
+
             if (!ldapResults.isEmpty()) {
                 final Map<String,Map<String,String>> outputMap = new TreeMap<String, Map<String, String>>(ldapResults);
                 return new PeopleSearchResults(headers,attributes,outputMap);

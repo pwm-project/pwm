@@ -59,9 +59,12 @@ public enum Statistic {
     GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
     RECOVERY_TOKENS_SENT(Type.INCREMENTOR, "RecoveryTokensSent"),
     RECOVERY_TOKENS_PASSED(Type.INCREMENTOR, "RecoveryTokensPassed"),
+    PEOPLESEARCH_SEARCHES(Type.INCREMENTOR, "PeopleSearchSearches"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
-    AVG_WORDLIST_CHECK_TIME(Type.AVERAGE, "AvgWordlistCheckTime");
+    AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),
+
+    ;
 
     private final Type type;
     private final String key;

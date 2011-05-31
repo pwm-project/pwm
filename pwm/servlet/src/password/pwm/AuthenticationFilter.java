@@ -265,6 +265,11 @@ public class AuthenticationFilter implements Filter {
         //notify the intruder manager with a successfull login
         intruderManager.addGoodAddressAttempt(pwmSession);
         intruderManager.addGoodUserAttempt(userDN, pwmSession);
+
+        if (pwmSession.getContextManager().getStatisticsManager() != null) {
+            pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME, TimeDuration.fromCurrent(methodStartTime).getTotalMilliseconds());
+        }
+
     }
 
     public static void testCredentials(

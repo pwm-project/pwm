@@ -23,6 +23,7 @@
 package password.pwm.util.stats;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.util.PwmLogger;
 
@@ -53,9 +54,21 @@ public class StatisticsBundle {
     }
 
     public static StatisticsBundle input(final String inputString) {
-        final Gson gson = new Gson();
-        final Map<Statistic, String> srcMap = gson.fromJson(inputString, new TypeToken<Map<Statistic, String>>() {
-        }.getType());
+        final Map<Statistic, String> srcMap = new HashMap<Statistic,String>();
+        try {
+            final Gson gson = new Gson();
+            final HashMap<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {
+            }.getType());
+            for (final String key : loadedMap.keySet()) {
+                try {
+                    srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
+                }
+            }
+        } catch (JsonParseException e) {
+            LOGGER.error("unable to load statistics bundle: " + e.getMessage());
+        }
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {
@@ -70,7 +83,7 @@ public class StatisticsBundle {
 
     public synchronized void incrementValue(final Statistic statistic) {
         if (Statistic.Type.INCREMENTOR != statistic.getType()) {
-            LOGGER.error("attempt to increment non-counter/incrementor stat " + statistic);
+            LOGGER.error("attempt to increment non-counter/incremental stat " + statistic);
             return;
         }
 
@@ -82,7 +95,7 @@ public class StatisticsBundle {
                 currentValue = BigInteger.ZERO;
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("error reading counter/incrementor stat " + statistic);
+            LOGGER.error("error reading counter/incremental stat " + statistic);
         }
         final BigInteger newValue = currentValue.add(BigInteger.ONE);
         valueMap.put(statistic, newValue.toString());
