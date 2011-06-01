@@ -38,6 +38,7 @@
         userHistory = UserHistory.readUserHistory(PwmSession.getPwmSession(session));
     } catch (Exception e) {
     }
+    final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
 %>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/header-body.jsp">
@@ -58,10 +59,10 @@
             <% for (final UserHistory.Record record : userHistory.getRecords()) { %>
             <tr>
                 <td class="key" style="width: 200px">
-                    <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, request.getLocale())).format(new Date(record.getTimestamp())) %>
+                    <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, userLocale)).format(new Date(record.getTimestamp())) %>
                 </td>
                 <td>
-                    <%= Message.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(), record.getEventCode().getMessage(), PwmSession.getPwmSession(session).getConfig()) %>
+                    <%= record.getEventCode().getLocalizedString(PwmSession.getPwmSession(session).getConfig(),userLocale) %>
                 </td>
             </tr>
             <% } %>
