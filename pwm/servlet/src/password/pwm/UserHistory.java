@@ -35,6 +35,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
@@ -255,6 +256,13 @@ public class UserHistory implements Serializable {
                 }
 
                 return UNKNOWN;
+            }
+
+            public String getLocalizedString(final Configuration config, final Locale locale) {
+                if (this.getMessage() == null) {
+                    return "[unknown event]";
+                }
+                return Message.getLocalizedMessage(locale,this.getMessage(),config);
             }
         }
 
