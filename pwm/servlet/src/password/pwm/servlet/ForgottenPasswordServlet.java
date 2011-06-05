@@ -533,13 +533,11 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         final String toSmsNumber;
-        if (config.readSettingAsBoolean(PwmSetting.SMS_ENABLE)) {
-            try {
-                toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-                forgottenPasswordBean.setTokenSmsNumber(toSmsNumber);
-            } catch (Exception e) {
-                LOGGER.debug("error reading SMS attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
-            }
+        try {
+            toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+            forgottenPasswordBean.setTokenSmsNumber(toSmsNumber);
+        } catch (Exception e) {
+            LOGGER.debug("error reading SMS attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
 
         sendToken(pwmSession, proxiedUser);
@@ -549,40 +547,35 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmSession.getConfig();
-        final SmsPriority pref = SmsPriority.valueOf(config.readSettingAsString(PwmSetting.SMS_PRIORITY_PREFERENCE));
-        if (config.readSettingAsBoolean(PwmSetting.SMS_ENABLE)) {
-            final boolean success;
-            switch (pref) {
-                case BOTH:
-                    // Send both email and SMS, success if one of both succeeds
-                    final boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
-                    final boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
-                    success = suc1 || suc2;
-                    break;
-                case EMAILFIRST:
-                    // Send email first, try SMS if email is not available
-                    success = sendEmailToken(pwmSession, proxiedUser) || sendSmsToken(pwmSession, proxiedUser);
-                    break;
-                case SMSFIRST:
-                    // Send SMS first, try email if SMS is not available
-                    success = sendSmsToken(pwmSession, proxiedUser) || sendEmailToken(pwmSession, proxiedUser);
-                    break;
-                case SMSONLY:
-                    // Only try SMS
-                    success = sendSmsToken(pwmSession, proxiedUser);
-                    break;
-                default:
-                    // Only try email
-                    success = sendEmailToken(pwmSession, proxiedUser);
-                    break;
-            }
-            if (!success) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
-            }
-        } else {
-            if (!sendEmailToken(pwmSession, proxiedUser)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
-            }
+        final SmsPriority pref = SmsPriority.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final boolean success;
+        switch (pref) {
+            case BOTH:
+                // Send both email and SMS, success if one of both succeeds
+                final boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
+                final boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
+                success = suc1 || suc2;
+                break;
+            case EMAILFIRST:
+                // Send email first, try SMS if email is not available
+                success = sendEmailToken(pwmSession, proxiedUser) || sendSmsToken(pwmSession, proxiedUser);
+                break;
+            case SMSFIRST:
+                // Send SMS first, try email if SMS is not available
+                success = sendSmsToken(pwmSession, proxiedUser) || sendEmailToken(pwmSession, proxiedUser);
+                break;
+            case SMSONLY:
+                // Only try SMS
+                success = sendSmsToken(pwmSession, proxiedUser);
+                break;
+            case EMAILONLY:
+            default:
+                // Only try email
+                success = sendEmailToken(pwmSession, proxiedUser);
+                break;
+        }
+        if (!success) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
         }
     }
 
@@ -700,6 +693,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     }
 
     public enum SmsPriority {
+        EMAILONLY,
         BOTH,
         EMAILFIRST,
         SMSFIRST,

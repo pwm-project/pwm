@@ -28,9 +28,11 @@
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% if (PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) { %>
+<% if (!request.getRequestURI().contains("configmanager")) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a>
     to modify or finalize the configuration.
 </div>
+<% } %>
 <% } %>
 <div id="header">
     <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>

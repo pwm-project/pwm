@@ -185,10 +185,6 @@ public enum PwmSetting {
             "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
 
     // sms settings
-    SMS_ENABLE(
-            "sms.enable", Syntax.BOOLEAN, Category.SMS, true, Level.BASIC),
-    SMS_PRIORITY_PREFERENCE(
-            "sms.priority", Syntax.SELECT, Category.SMS, true, Level.BASIC),
     SMS_USER_PHONE_ATTRIBUTE(
             "sms.userSmsAttribute", Syntax.STRING, Category.SMS, true, Level.BASIC),
     SMS_MAX_QUEUE_AGE(
@@ -400,11 +396,12 @@ public enum PwmSetting {
             "challenge.requireResponses", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_TOKEN_ENABLE(
             "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
+    CHALLENGE_TOKEN_SEND_METHOD(
+            "challenge.token.sendMethod", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_TOKEN_CHARACTERS(
             "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_TOKEN_LENGTH(
             "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
-
 
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(

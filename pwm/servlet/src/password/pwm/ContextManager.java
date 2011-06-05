@@ -364,6 +364,12 @@ public class ContextManager implements Serializable {
         }
 
         AlertHandler.alertStartup(this);
+
+        if (configReader.getConfigMode() != ConfigurationReader.MODE.RUNNING) {
+        taskMaster.schedule(new TimerTask(){ public void run() {
+                        getHealthMonitor().getHealthRecords(true);
+                    }},100);
+        }
     }
 
     public void reinitialize() {

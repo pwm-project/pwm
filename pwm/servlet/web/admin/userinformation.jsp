@@ -125,7 +125,7 @@
             Given Name
         </td>
         <td>
-            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty("givenName", "")) %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().get("givenName")) %>
         </td>
     </tr>
     <tr>
@@ -133,7 +133,7 @@
             Surname
         </td>
         <td>
-            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty("sn", "")) %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().get("sn")) %>
         </td>
     </tr>
     <tr>
@@ -141,7 +141,7 @@
             <%= pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
         </td>
         <td>
-            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().getProperty(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE), "")) %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().get(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE))) %>
         </td>
     </tr>
     <tr>
@@ -315,7 +315,7 @@
         <td>
             <ul>
                 <%
-                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager(), request.getLocale()); %>
+                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager().getConfig(), request.getLocale()); %>
                 <% for (final String requirementLine : requirementLines) { %>
                 <li><%=requirementLine%>
                 </li>
