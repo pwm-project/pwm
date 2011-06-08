@@ -126,8 +126,10 @@
                 <input type="submit" name="change" class="btn"
                        id="password_button"
                        value="    <pwm:Display key="Button_ChangePassword"/>    "/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
+                <% } %>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Show"/>    "
                        onclick="toggleMaskPasswords()" id="hide_button"/>

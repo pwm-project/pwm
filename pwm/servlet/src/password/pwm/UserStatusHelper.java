@@ -325,8 +325,10 @@ public class UserStatusHelper {
         {   //if supplied user name starts with username attr assume its the full dn and skip the search
             final String usernameAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
-                LOGGER.trace(pwmSession, "username appears to be a DN; skipping username search");
+                LOGGER.trace(pwmSession, "username appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
                 return username;
+            } else {
+                LOGGER.trace(pwmSession, "username does not appear to be a DN (does not start with configured ldap naming attribute'" + usernameAttribute + "')");
             }
         }
 

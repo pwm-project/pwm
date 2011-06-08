@@ -71,9 +71,11 @@
                 <input type="submit" name="verify" class="btn"
                        id="verify_button"
                        value="    <pwm:Display key="Button_Verify"/>    "/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <% } %>
                 <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">

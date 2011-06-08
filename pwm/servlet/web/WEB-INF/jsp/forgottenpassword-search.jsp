@@ -68,9 +68,11 @@
                        name="search"
                        value="     <pwm:Display key="Button_Search"/>     "
                        id="submitBtn"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" class="btn"
                        name="reset" onclick="clearForm('searchForm');return false;"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
+                <% } %>
                 <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">

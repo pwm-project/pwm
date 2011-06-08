@@ -89,8 +89,10 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="submit" name="checkResponses" class="btn"
                        value="     <pwm:Display key="Button_RecoverPassword"/>     "
                        id="submitBtn"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
+                <% } %>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>

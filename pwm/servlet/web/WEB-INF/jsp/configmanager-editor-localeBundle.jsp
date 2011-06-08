@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.TreeSet" %>
@@ -30,6 +29,9 @@
 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <h1 style="text-align:center;"><%=bundleName.getTheClass().getSimpleName()%></h1>
+<p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
+ value of the current pwm defaults.</p>
+
 <script type="text/javascript">
     showError('');
     LOAD_TRACKER = new Array();

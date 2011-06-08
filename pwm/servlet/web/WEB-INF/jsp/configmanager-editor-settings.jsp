@@ -29,6 +29,9 @@
 <h1 style="text-align:center;"><%=category.getLabel(request.getLocale())%>
 </h1>
 <% if (showDesc) { %><span><%= category.getDescription(request.getLocale())%></span><% } %>
+<% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
+<p><span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Show Advanced Options" from the View menu to show additional settings.</p>
+<% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
 <% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
 <script type="text/javascript">showError('');</script>

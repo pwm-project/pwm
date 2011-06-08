@@ -62,6 +62,8 @@ public enum PwmSetting {
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
+    PWM_INSTANCE_NAME(
+            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
 
     // user interface
     APPLICATION_TILE(
@@ -80,6 +82,8 @@ public enum PwmSetting {
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
+    DISPLAY_RESET_BUTTON(
+            "display.showResetButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_PASSWORD_HISTORY(
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
@@ -513,39 +517,37 @@ public enum PwmSetting {
 
     // advanced
     USE_X_FORWARDED_FOR_HEADER(
-            "useXForwardedForHeader", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "useXForwardedForHeader", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     ALLOW_URL_SESSIONS(
-            "allowUrlSessions", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "allowUrlSessions", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     ENABLE_SESSION_VERIFICATION(
-            "enableSessionVerification", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "enableSessionVerification", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     FORCE_BASIC_AUTH(
-            "forceBasicAuth", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "forceBasicAuth", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     EXTERNAL_CHANGE_METHODS(
-            "externalChangeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     EXTERNAL_JUDGE_METHODS(
-            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     EXTERNAL_RULE_METHODS(
-            "externalRuleMethod", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     DISALLOWED_HTTP_INPUTS(
-            "disallowedInputs", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "disallowedInputs", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.ADVANCED, true, Level.ADVANCED),
+            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.MISC, true, Level.BASIC),
     PWMDB_LOCATION(
-            "pwmDb.location", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
+            "pwmDb.location", Syntax.STRING, Category.MISC, true, Level.BASIC),
     PWMDB_IMPLEMENTATION(
-            "pwmDb.implementation", Syntax.STRING, Category.ADVANCED, true, Level.ADVANCED),
+            "pwmDb.implementation", Syntax.STRING, Category.MISC, true, Level.ADVANCED),
     PWMDB_INIT_STRING(
-            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
-    PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.ADVANCED, false, Level.ADVANCED),
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     HTTP_PROXY_URL(
-            "http.proxy.url", Syntax.STRING, Category.ADVANCED, false, Level.ADVANCED),
+            "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
 
     DATABASE_CLASS(
             "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
@@ -575,7 +577,7 @@ public enum PwmSetting {
         for (final Category category : Category.values())
             returnMap.put(category, Collections.unmodifiableList(returnMap.get(category)));
 
-        //assign unmodifable list
+        //assign unmodifiable list
         VALUES_BY_CATEGORY = Collections.unmodifiableMap(returnMap);
     }
 
@@ -657,7 +659,7 @@ public enum PwmSetting {
         final String inputValue = readProps(keyName, Locale.getDefault());
         final Gson gson = new Gson();
         final Map<String,String> valueList = gson.fromJson(inputValue, new TypeToken<Map<String,String>>(){}.getType());
-        return valueList;
+        return Collections.unmodifiableMap(valueList);
 
     }
 
@@ -728,7 +730,7 @@ public enum PwmSetting {
         PEOPLE_SEARCH(1),
         EDIRECTORY(0),
         DATABASE(0),
-        ADVANCED(0),
+        MISC(0),
         ;
 
         private final int group;
@@ -747,6 +749,18 @@ public enum PwmSetting {
 
         public int getGroup() {
             return group;
+        }
+
+        public Set<PwmSetting> settingsForCategory(final Level level) {
+            final HashSet<PwmSetting> returnSettings = new HashSet<PwmSetting>();
+            for (final PwmSetting loopSetting : PwmSetting.values()) {
+                if (this.equals(loopSetting.getCategory())) {
+                    if (level == null || level.equals(loopSetting.getLevel())) {
+                        returnSettings.add(loopSetting);
+                    }
+                }
+            }
+            return returnSettings;
         }
 
         public static Category[] valuesByGroup(final int group) {

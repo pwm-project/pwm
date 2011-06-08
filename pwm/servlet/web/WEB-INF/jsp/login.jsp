@@ -71,9 +71,11 @@
                        name="button"
                        value="    <pwm:Display key="Button_Login"/>    "
                        id="submitBtn"/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" class="btn"
                        name="reset"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
+                <% } %>
                 <input type="hidden" name="processAction" value="login">
                 <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"

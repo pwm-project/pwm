@@ -157,8 +157,10 @@
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <input type="submit" name="setResponses" class="btn" id="setresponses_button"
                        value="    <pwm:Display key="Button_SetResponses"/>    "/>
+                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
+                <% } %>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
