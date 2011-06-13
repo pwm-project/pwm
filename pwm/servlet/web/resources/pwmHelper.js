@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2010 The PWM Project
+ * Copyright (c) 2009-2011 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -330,6 +330,7 @@ function pollActivity() {
     if (idleSeconds < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
             PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+            PWM_GLOBAL['idle_suspendTimeout'] = true;
             window.location = PWM_GLOBAL['url-logout'];
         }
     }

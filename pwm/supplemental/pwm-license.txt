@@ -1,3 +1,14 @@
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2011 The PWM Project
+ *
+ * The PWM Project is defined as the project owners and individual contributors of the PWM open source project
+ *
+
+
+
 The GNU General Public License (GPL)
 Version 2, June 1991
 

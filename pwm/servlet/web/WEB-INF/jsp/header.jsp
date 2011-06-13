@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2010 The PWM Project
+  ~ Copyright (c) 2009-2011 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -76,7 +76,5 @@
         PWM_GLOBAL['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";
         PWM_GLOBAL['url-command'] = "<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>";
         PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%>/resources";
-        var imageCache = new Image();
-        imageCache.src = PWM_GLOBAL['url-resources'] + "/wait.gif"
     </script>
 </head>

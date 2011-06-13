@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2010 The PWM Project
+  ~ Copyright (c) 2009-2011 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -46,16 +46,25 @@
 <script type="text/javascript"><% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
 } %></script>
 <div id="wrapper" style="border:1px; background-color: black">
-<jsp:include page="header-body.jsp">
-    <jsp:param name="pwm.PageName" value="PWM Configuration Editor"/>
-</jsp:include>
+<div id="header">
+    <div id="header-page">
+        <pwm:Display key="PWM Configuration Editor" displayIfMissing="true"/>
+    </div>
+    <div id="header-title">
+        <% if (password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) { %>
+        <pwm:Display key="Editing Live Configuration" displayIfMissing="true"/>
+        <% } else { %>
+        <pwm:Display key="Editing In Memory Configuration" displayIfMissing="true"/>
+        <% } %>
+    </div>
+</div>
 <div id="TopMenu" style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;">
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
 <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
-<span style="width:600px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+<span style="width:580px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
 <% } else { %>
-<span style="visibility:hidden; width:600px;" id="error_msg" class="msg-success"> </span>
+<span style="visibility:hidden; width:580px;" id="error_msg" class="msg-success"> </span>
 <% } %>
 <script type="text/javascript">
 function buildMenuBar() {
