@@ -30,9 +30,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBFactory;
-import password.pwm.util.db.PwmDBStoredQueue;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBFactory;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.File;
 import java.io.FileOutputStream;

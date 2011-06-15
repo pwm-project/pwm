@@ -25,8 +25,8 @@ package password.pwm.util.stats;
 import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

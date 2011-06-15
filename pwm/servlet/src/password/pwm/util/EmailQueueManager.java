@@ -34,9 +34,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
-import password.pwm.util.db.PwmDBStoredQueue;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 

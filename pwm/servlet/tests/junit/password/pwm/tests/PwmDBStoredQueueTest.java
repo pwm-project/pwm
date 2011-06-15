@@ -23,9 +23,9 @@
 package password.pwm.tests;
 
 import junit.framework.TestCase;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBFactory;
-import password.pwm.util.db.PwmDBStoredQueue;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBFactory;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.File;
 

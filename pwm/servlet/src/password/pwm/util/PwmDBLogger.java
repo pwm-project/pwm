@@ -23,9 +23,9 @@
 package password.pwm.util;
 
 import password.pwm.PwmSession;
-import password.pwm.util.db.PwmDBStoredQueue;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 
 import java.io.Serializable;
 import java.text.NumberFormat;

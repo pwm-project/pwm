@@ -25,7 +25,7 @@
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="password.pwm.util.db.PwmDB" %>
+<%@ page import="password.pwm.util.pwmdb.PwmDB" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"

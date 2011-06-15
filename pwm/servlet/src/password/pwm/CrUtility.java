@@ -36,8 +36,8 @@ import password.pwm.util.DatabaseAccessor;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
 import javax.xml.rpc.Stub;

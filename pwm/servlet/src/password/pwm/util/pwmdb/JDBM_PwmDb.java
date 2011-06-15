@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.util.pwmdb;
 
 import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.pwmdb.PwmDB.DB;
 
 /**
  * @author Jason D. Rivard

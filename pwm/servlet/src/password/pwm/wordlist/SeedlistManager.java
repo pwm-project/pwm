@@ -24,7 +24,7 @@ package password.pwm.wordlist;
 
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.db.PwmDB;
+import password.pwm.util.pwmdb.PwmDB;
 
 import java.util.Collections;
 import java.util.Map;

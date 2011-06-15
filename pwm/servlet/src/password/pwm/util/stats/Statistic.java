@@ -56,6 +56,8 @@ public enum Statistic {
     SHORTCUTS_SELECTED(Type.INCREMENTOR, "ShortcutsSelected"),
     PWMDB_READS(Type.INCREMENTOR, "PwmDB_Reads"),
     PWMDB_WRITES(Type.INCREMENTOR, "PwmDB_Writes"),
+    DB_READS(Type.INCREMENTOR, "DB_Reads"),
+    DB_WRITES(Type.INCREMENTOR, "DB_Writes"),
     GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
     RECOVERY_TOKENS_SENT(Type.INCREMENTOR, "RecoveryTokensSent"),
     RECOVERY_TOKENS_PASSED(Type.INCREMENTOR, "RecoveryTokensPassed"),

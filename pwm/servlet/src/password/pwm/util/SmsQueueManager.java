@@ -39,9 +39,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
-import password.pwm.util.db.PwmDBStoredQueue;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.IOException;
 import java.io.Serializable;

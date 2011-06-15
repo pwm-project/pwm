@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 
-import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.pwmdb.PwmDB.DB;
 
 /**
  * @author Jason D. Rivard

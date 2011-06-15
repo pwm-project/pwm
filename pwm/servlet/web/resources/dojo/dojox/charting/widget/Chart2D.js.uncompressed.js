@@ -6444,7 +6444,7 @@ dojo.provide("dojox.color.Palette");
 	});
 
 /*=====
-dojox.color.Palette.__transformArgs = function(use, dr, dg, db, da, dc, dm, dy, dk, dh, ds, dv, dl){
+dojox.color.Palette.__transformArgs = function(use, dr, dg, pwmdb, da, dc, dm, dy, dk, dh, ds, dv, dl){
 	//	summary:
 	//		The keywords argument to be passed to the dojox.color.Palette.transform function.  Note that
 	//		while all arguments are optional, *some* arguments must be passed.  The basic concept is that
@@ -6458,7 +6458,7 @@ dojox.color.Palette.__transformArgs = function(use, dr, dg, db, da, dc, dm, dy, 
 	//		The delta to be applied to the red aspect of the RGB/RGBA color model.
 	//	dg: Number?
 	//		The delta to be applied to the green aspect of the RGB/RGBA color model.
-	//	db: Number?
+	//	pwmdb: Number?
 	//		The delta to be applied to the blue aspect of the RGB/RGBA color model.
 	//	da: Number?
 	//		The delta to be applied to the alpha aspect of the RGBA color model.
@@ -6481,7 +6481,7 @@ dojox.color.Palette.__transformArgs = function(use, dr, dg, db, da, dc, dm, dy, 
 	this.use = use;
 	this.dr = dr;
 	this.dg = dg;
-	this.db = db;
+	this.pwmdb = pwmdb;
 	this.da = da;
 	this.dc = dc;
 	this.dm = dm;

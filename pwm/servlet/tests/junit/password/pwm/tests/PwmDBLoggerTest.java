@@ -24,20 +24,24 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.*;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBFactory;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int MAX_SIZE = 10 * 1000 * 1000 ;
+    private static final int MAX_SIZE = 1000 * 1000 * 1000 ;
     private static final long MAG_AGE_MS = 1000;
-    private static final int BULK_EVENT_SIZE = 1000 * 1000;
+    private static final int BULK_EVENT_SIZE = 100 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
@@ -48,7 +52,16 @@ public class PwmDBLoggerTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
+        final File configFileLocation = new File(TestHelper.getParameter("pwmConfigurationLocation"));
+        final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
+        final Map<String,String> initStrings = Configuration.convertStringListToNameValuePair(reader.getConfiguration().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING),"=");
+
+        pwmDB = PwmDBFactory.getInstance(
+                fileLocation,
+                reader.getConfiguration().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION),
+                initStrings,
+                false
+        );
         pwmDBLogger = new PwmDBLogger(pwmDB,  MAX_SIZE, MAG_AGE_MS);
 
     }
@@ -72,7 +85,7 @@ public class PwmDBLoggerTest extends TestCase {
                     sb.append("added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
                     sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
                     sb.append(", db sizedevents: ").append(pwmDBLogger.getStoredEventCount());
-                    sb.append(", free space: ").append(Helper.diskSpaceRemaining(pwmDB.getFileLocation()));
+                    sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
                     System.out.println(sb);
                 }
             }

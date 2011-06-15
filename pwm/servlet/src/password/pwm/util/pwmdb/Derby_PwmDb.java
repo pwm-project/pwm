@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.util.pwmdb;
 
 import password.pwm.util.PwmLogger;
 
@@ -33,10 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static password.pwm.util.db.PwmDB.DB;
+import static password.pwm.util.pwmdb.PwmDB.DB;
 
 /**
- * Apache Derby Wrapper for {@link password.pwm.util.db.PwmDB} interface.   Uses a single table per DB, with
+ * Apache Derby Wrapper for {@link password.pwm.util.pwmdb.PwmDB} interface.   Uses a single table per DB, with
  * two columns each.  This class would be easily adaptable for a generic JDBC implementation.
  *
  * @author Jason D. Rivard

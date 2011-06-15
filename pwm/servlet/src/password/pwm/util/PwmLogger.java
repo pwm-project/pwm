@@ -26,8 +26,8 @@ import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 
 import java.util.Date;
 

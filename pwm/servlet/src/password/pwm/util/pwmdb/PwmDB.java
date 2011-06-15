@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.db;
+package password.pwm.util.pwmdb;
 
 import java.io.File;
 import java.io.Serializable;
@@ -34,7 +34,7 @@ import java.util.Map;
  * A lightweight interface for DB interaction.  Implementations may be backed by an embedded database, an RDBMS or
  * even a simple hashmap in memory.
  * <p/>
- * Implementations are required to implement a simplistic locking policy, where any method marked with {@link password.pwm.util.db.PwmDB.WriteOperation}
+ * Implementations are required to implement a simplistic locking policy, where any method marked with {@link password.pwm.util.pwmdb.PwmDB.WriteOperation}
  * must block until any outstanding write or read methods are completed.  That is, concurrency is allowed for reads, but
  * writes are gaurenteed to be single threaded.
  *

@@ -24,9 +24,9 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
-import password.pwm.util.db.PwmDBFactory;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.pwmdb.PwmDBFactory;
 
 import java.io.File;
 

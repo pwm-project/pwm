@@ -26,7 +26,7 @@ import password.pwm.ContextManager;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmDBLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.db.PwmDB;
+import password.pwm.util.pwmdb.PwmDB;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;

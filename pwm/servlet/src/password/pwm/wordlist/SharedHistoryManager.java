@@ -30,8 +30,8 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

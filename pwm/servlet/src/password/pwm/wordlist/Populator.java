@@ -29,8 +29,8 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.db.PwmDB;
-import password.pwm.util.db.PwmDBException;
+import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 
 import java.io.File;
 import java.io.IOException;
@@ -292,7 +292,7 @@ class Populator {
         //add the elements
         pwmDB.putAll(wordlistDB, bufferedWords);
 
-        //update the src ZIP line counter in the db.
+        //update the src ZIP line counter in the pwmdb.
         pwmDB.put(wordlistMetaDB, WordlistManager.KEY_LASTLINE, String.valueOf(overallStats.getLines()));
 
         if (abortFlag) {
