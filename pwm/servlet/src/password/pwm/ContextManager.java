@@ -41,6 +41,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.*;
 import password.pwm.util.*;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBFactory;
@@ -163,6 +164,7 @@ public class ContextManager implements Serializable {
         pwmServices.add(this.smsQueue);
         pwmServices.add(this.wordlistManager);
         pwmServices.add(this.databaseAccessor);
+        pwmServices.remove(null);
         return Collections.unmodifiableSet(pwmServices);
     }
 
@@ -326,8 +328,10 @@ public class ContextManager implements Serializable {
         LOGGER.info(logDebugInfo(activeSessions.size()));
 
         emailQueue = new EmailQueueManager(this);
-        smsQueue = new SmsQueueManager(this);
         LOGGER.trace("email queue manager started");
+
+        smsQueue = new SmsQueueManager(this);
+        LOGGER.trace("sms queue manager started");
 
         taskMaster = new Timer("pwm-ContextManager timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
@@ -366,7 +370,7 @@ public class ContextManager implements Serializable {
         AlertHandler.alertStartup(this);
 
         if (configReader.getConfigMode() != ConfigurationReader.MODE.RUNNING) {
-        taskMaster.schedule(new TimerTask(){ public void run() {
+            taskMaster.schedule(new TimerTask(){ public void run() {
                         getHealthMonitor().getHealthRecords(true);
                     }},100);
         }
@@ -510,6 +514,11 @@ public class ContextManager implements Serializable {
     }
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem) {
+        if (emailQueue == null) {
+            LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
+            return;
+        }
+
         try {
             emailQueue.addMailToQueue(emailItem);
         } catch (PwmUnrecoverableException e) {

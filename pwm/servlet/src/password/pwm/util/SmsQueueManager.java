@@ -62,7 +62,7 @@ public class SmsQueueManager implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
 
-    private final PwmDBStoredQueue smsSendQueue;
+    private PwmDBStoredQueue smsSendQueue;
     private final ContextManager theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
@@ -96,6 +96,12 @@ public class SmsQueueManager implements PwmService {
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
 
         final PwmDB pwmDB = theManager.getPwmDB();
+
+        if (pwmDB == null) {
+            status = STATUS.CLOSED;
+            return;
+        }
+
         smsSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.SMS_QUEUE);
 
         status = PwmService.STATUS.OPEN;
@@ -216,6 +222,10 @@ public class SmsQueueManager implements PwmService {
     }
 
     public int queueSize() {
+        if (smsSendQueue == null || status != STATUS.OPEN) {
+            return 0;
+        }
+
         return this.smsSendQueue.size();
     }
 

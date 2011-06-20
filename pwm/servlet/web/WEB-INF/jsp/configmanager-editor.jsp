@@ -48,13 +48,13 @@
 <div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
     <div id="header-page">
-        <pwm:Display key="PWM Configuration Editor" displayIfMissing="true"/>
+        PWM Configuration Editor
     </div>
-    <div id="header-title">
-        <% if (password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURATION) { %>
-        <pwm:Display key="Editing Live Configuration" displayIfMissing="true"/>
+    <div id="header-title" style="text-align: right;">
+        <% if (password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) { %>
+        Editing Live Configuration
         <% } else { %>
-        <pwm:Display key="Editing In Memory Configuration" displayIfMissing="true"/>
+        Editing In Memory Configuration
         <% } %>
     </div>
 </div>
@@ -62,9 +62,9 @@
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
 <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
-<span style="width:580px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+<span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
 <% } else { %>
-<span style="visibility:hidden; width:580px;" id="error_msg" class="msg-success"> </span>
+<span style="visibility:hidden;" id="error_msg" class="msg-success"> </span>
 <% } %>
 <script type="text/javascript">
 function buildMenuBar() {

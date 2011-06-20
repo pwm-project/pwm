@@ -49,6 +49,7 @@ public enum Message {
     SUCCESS_RESPONSES_MEET_RULES("Success_ResponsesMeetRules"),
     SUCCESS_UNLOCK_ACCOUNT("Success_UnlockAccount"),
     SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
+    SUCCESS_CONFIG_UPLOAD("Success_ConfigFileUpload"),
 
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),

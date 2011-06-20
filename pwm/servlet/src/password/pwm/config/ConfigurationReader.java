@@ -58,7 +58,7 @@ public class ConfigurationReader {
 
     public enum MODE {
         NEW,
-        CONFIGURATION,
+        CONFIGURING,
         RUNNING,
         ERROR
     }
@@ -136,7 +136,7 @@ public class ConfigurationReader {
 
         final String configIsEditable = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
         if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
-            this.configMode = MODE.CONFIGURATION;
+            this.configMode = MODE.CONFIGURING;
         } else {
             this.configMode = MODE.RUNNING;
         }

@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -31,14 +32,20 @@
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
-    </jsp:include>
+    <div id="header">
+        <div id="header-page">
+            PWM Configuration Editor
+        </div>
+        <div id="header-title">
+            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+        </div>
+    </div>
     <div id="centerbody">
         <p>Welcome to PWM.  We hope you enjoy using this software.</p>
         <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project Page</a></p>
         <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting one of the
             options below.</p>
+        <p>Begin by setting the LDAP configuration options, and then saving the configuration.</p>
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
@@ -62,7 +69,7 @@
             <input type="submit" class="btn" name="uploadSubmit" value="Upload"
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>
-        <p>Upload a previously saved configuration file. The uploaded file will be saved as the PWM configuration.</p>
+        <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the PWM configuration.</p>
     </div>
 </div>
 <%@ include file="footer.jsp" %>

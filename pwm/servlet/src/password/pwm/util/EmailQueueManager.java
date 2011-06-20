@@ -64,7 +64,7 @@ public class EmailQueueManager implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
-    private final PwmDBStoredQueue mailSendQueue;
+    private PwmDBStoredQueue mailSendQueue;
     private final ContextManager theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
@@ -81,6 +81,12 @@ public class EmailQueueManager implements PwmService {
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
 
         final PwmDB pwmDB = theManager.getPwmDB();
+
+        if (pwmDB == null) {
+            status = STATUS.CLOSED;
+            return;
+        }
+
         mailSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EMAIL_QUEUE);
 
         status = PwmService.STATUS.OPEN;
@@ -202,6 +208,10 @@ public class EmailQueueManager implements PwmService {
 
 
     public int queueSize() {
+        if (mailSendQueue == null || status != STATUS.OPEN) {
+            return 0;
+        }
+
         return this.mailSendQueue.size();
     }
 

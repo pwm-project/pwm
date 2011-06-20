@@ -133,6 +133,7 @@ public enum PwmError {
     ERROR_NEW_USER_FAILURE("Error_NewUser_Failure",5049),
     ERROR_ACTIVATION("Error_Activation",5050),
     ERROR_DB_UNAVAILABLE("Error_DB_Unavailable",5051),
+    ERROR_PWMDB_UNAVAILABLE("Error_PwmDB_Unavailable",5052),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

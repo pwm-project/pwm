@@ -23,7 +23,7 @@
 
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <!--
-   NOTICE: PWM DOES NOT USE THIS CONFIGURATION FILE BY DEFAULT!
+   NOTICE: PWM DOES NOT USE THIS CONFIGURING FILE BY DEFAULT!
    You must edit the PWM Configuration to specify this file for the log4j configuration if you
    would like to use this file to control the LOG4J system.
 -->

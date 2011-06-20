@@ -47,6 +47,10 @@ public class ConfigurationChecker implements HealthChecker {
         final Configuration config = contextManager.getConfig();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
+        if (config.readSettingAsBoolean(PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS)) {
+            return records;
+        }
+
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(Locale.getDefault()));

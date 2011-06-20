@@ -268,6 +268,20 @@
     </tr>
     <tr>
         <td class="key">
+            SMS Queue Status
+        </td>
+        <td>
+            <%= contextManager.getSmsQueue().status() %>
+        </td>
+        <td class="key">
+            SMS Queue Size
+        </td>
+        <td>
+            <%= contextManager.getSmsQueue().queueSize() %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
             Log Events in Write Queue
         </td>
         <td>

@@ -143,7 +143,7 @@ public class ConfigManagerServlet extends TopServlet {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
                     break;
 
-                case CONFIGURATION:
+                case CONFIGURING:
                     try {
                         final StoredConfiguration runningConfig = pwmSession.getContextManager().getConfigReader().getStoredConfiguration();
                         final StoredConfiguration clonedConfiguration = (StoredConfiguration) runningConfig.clone();
@@ -461,6 +461,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         try {
             saveConfiguration(pwmSession);
+            configManagerBean.setConfiguration(null);
         } catch (PwmUnrecoverableException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
@@ -648,7 +649,7 @@ public class ConfigManagerServlet extends TopServlet {
             final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getContextManager().getConfigReader().getConfigMode();
             if (config == null || configMode == ConfigurationReader.MODE.NEW) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
-            } else if (configMode == ConfigurationReader.MODE.CONFIGURATION) {
+            } else if (configMode == ConfigurationReader.MODE.CONFIGURING) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
             } else {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);

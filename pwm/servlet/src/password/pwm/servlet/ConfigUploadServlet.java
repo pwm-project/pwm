@@ -29,11 +29,13 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmSession;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.ConfigurationReader;
+import password.pwm.config.Message;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -72,20 +74,27 @@ public class ConfigUploadServlet extends TopServlet {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", "unable to read config file"));
             }
         }
+
         if (!success) {
             if (pwmSession.getSessionStateBean().getSessionError() == null) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", "unknown error"));
             }
             LOGGER.info(pwmSession, "unable to read uploaded file");
-        } else {
-            if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_SUCCESS,"successfully imported config file"));
-                configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
-            } else {
-                ConfigManagerServlet.saveConfiguration(pwmSession);
-            }
+            ConfigManagerServlet.forwardToJSP(req,resp);
+            return;
         }
-        ConfigManagerServlet.forwardToJSP(req,resp);
+
+        pwmSession.getSessionStateBean().setSessionError(null);
+        pwmSession.getSessionStateBean().setForwardURL(req.getContextPath() + "/config/ConfigManager");
+        if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
+            configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"");
+        } else {
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"Please wait a moment for PWM to restart.");
+            ConfigManagerServlet.saveConfiguration(pwmSession);
+        }
+
+        ServletHelper.forwardToSuccessPage(req,resp,req.getSession().getServletContext());
     }
 
     private String getUploadedFile(

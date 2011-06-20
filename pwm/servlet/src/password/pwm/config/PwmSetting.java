@@ -548,6 +548,8 @@ public enum PwmSetting {
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+    HIDE_CONFIGURATION_HEALTH_WARNINGS(
+            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.MISC, false, Level.ADVANCED),
 
     DATABASE_CLASS(
             "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),

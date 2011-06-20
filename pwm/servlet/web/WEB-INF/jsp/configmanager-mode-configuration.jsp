@@ -22,9 +22,6 @@
 
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.util.ServletHelper" %>
-<%@ page import="java.io.File" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -40,14 +37,19 @@
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
-    </jsp:include>
+    <div id="header">
+        <div id="header-page">
+            PWM Configuration Editor
+        </div>
+        <div id="header-title">
+            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+        </div>
+    </div>
     <div id="centerbody">
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
-        <span style="width:680px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
-        <span style="visibility:hidden; width:680px" id="error_msg" class="msg-success"> </span>
+        <span style="visibility:hidden" id="error_msg" class="msg-success"> </span>
         <% } %>
         <p>Welcome to the PWM ConfigManager. PWM is in configuration mode, which means you can make changes to the
             running configuration

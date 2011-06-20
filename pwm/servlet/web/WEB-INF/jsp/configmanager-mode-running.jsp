@@ -1,5 +1,6 @@
-<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -36,14 +37,19 @@
 %>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="PWM Configuration Manager"/>
-    </jsp:include>
+    <div id="header">
+        <div id="header-page">
+            PWM Configuration Editor
+        </div>
+        <div id="header-title">
+            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+        </div>
+    </div>
     <div id="centerbody">
         <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
-        <span style="width:600px" id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
-        <span style="visibility:hidden; width:600px" id="error_msg" class="msg-success"> </span>
+        <span style="visibility:hidden" id="error_msg" class="msg-success"> </span>
         <% } %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">

@@ -32,7 +32,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.DatabaseAccessor;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -176,6 +176,13 @@ public class CrUtility {
             }
 
             final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+
+            if (pwmDB == null) {
+                final String errorMsg = "pwmDB is not available, unable to search for user responses";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
             try {
                 final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
                 if (responseStringBlob != null && responseStringBlob.length() > 0) {
@@ -318,6 +325,11 @@ public class CrUtility {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
             }
 
+            if (pwmDB == null) {
+                final String errorMsg = "pwmDB is not available, unable to write user responses";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
 
             try {
                 pwmDB.put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());

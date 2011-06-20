@@ -84,6 +84,7 @@ public class SharedHistoryManager implements Wordlist {
 
         if (pwmDB == null) {
             LOGGER.info("pwmDB is not available, will remain closed");
+            status = STATUS.CLOSED;
             return;
         }
 
