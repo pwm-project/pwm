@@ -41,6 +41,7 @@
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
+<% final ConfigurationReader.MODE configMode = password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript"><% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
@@ -51,7 +52,7 @@
         PWM Configuration Editor
     </div>
     <div id="header-title" style="text-align: right;">
-        <% if (password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) { %>
+        <% if (configMode == ConfigurationReader.MODE.CONFIGURING || configMode == ConfigurationReader.MODE.NEW) { %>
         Editing Live Configuration
         <% } else { %>
         Editing In Memory Configuration

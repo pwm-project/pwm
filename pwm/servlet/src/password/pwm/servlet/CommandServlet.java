@@ -73,7 +73,7 @@ public class CommandServlet extends TopServlet {
             processCheckResponses(req, resp);
         } else if (action.equalsIgnoreCase("checkExpire")) {
             processCheckExpire(req, resp);
-        } else if (action.equalsIgnoreCase("checkProfile")) {
+        } else if (action.equalsIgnoreCase("checkProfile") || action.equalsIgnoreCase("checkAttributes")) {
             processCheckProfile(req, resp);
         } else if (action.equalsIgnoreCase("checkAll")) {
             processCheckAll(req, resp);
@@ -240,14 +240,14 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!checkAttributes(pwmSession)) {
+        if (!checkProfile(pwmSession)) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_PROFILE, req, resp));
         } else {
             processContinue(req, resp);
         }
     }
 
-    private static boolean checkAttributes(
+    private static boolean checkProfile(
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -255,26 +255,39 @@ public class CommandServlet extends TopServlet {
         final String userDN = uiBean.getUserDN();
 
         if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
-            LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkAttributes due to query match");
+            LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkProfile due to query match");
             return true;
         }
 
-        final List<FormConfiguration> updateFormFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
+        final String checkProfileQueryMatch = pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
+        boolean checkProfileRequired = false;
 
-        // populate the map with attribute values from the uiBean, which was populated through ldap.
-        final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
-        for (final FormConfiguration formConfiguration : updateFormFields) {
-            formValues.put(formConfiguration, uiBean.getAllUserAttributes().get(formConfiguration.getAttributeName()));
-        }
+        if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
+            if (Helper.testUserMatchQueryString(pwmSession, userDN, checkProfileQueryMatch)) {
+                LOGGER.info(pwmSession, "checkProfiles: " + userDN + " matches 'checkProfiles query match', update profile will be required by user");
+                checkProfileRequired = true;
+            } else {
+                LOGGER.info(pwmSession, "checkProfiles: " + userDN + " does not match 'checkProfiles query match', update profile not required by user");
+            }
+        } else {
+            LOGGER.trace("no checkProfiles query match configured, will check to see if form attributes have values");
+            final List<FormConfiguration> updateFormFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
 
-        try {
-            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
-            LOGGER.info(pwmSession, "checkAttributes: " + userDN + " has good attributes");
-            return true;
-        } catch (PwmDataValidationException e) {
-            LOGGER.info(pwmSession, "checkAttributes: " + userDN + " does not have good attributes (" + e.getMessage() + ")");
-            return false;
+            // populate the map with attribute values from the uiBean, which was populated through ldap.
+            final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
+            for (final FormConfiguration formConfiguration : updateFormFields) {
+                formValues.put(formConfiguration, uiBean.getAllUserAttributes().get(formConfiguration.getAttributeName()));
+            }
+
+            try {
+                Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+                LOGGER.info(pwmSession, "checkProfile: " + userDN + " has value for attributes, update profile will not be required");
+            } catch (PwmDataValidationException e) {
+                LOGGER.info(pwmSession, "checkProfile: " + userDN + " does not have good attributes (" + e.getMessage() + "), update profile will br required");
+                checkProfileRequired = true;
+            }
         }
+        return !checkProfileRequired;
     }
 
     private static void processCheckAll(
@@ -292,7 +305,7 @@ public class CommandServlet extends TopServlet {
             processCheckExpire(req, resp);
         } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkAttributes(pwmSession)) {
+        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession)) {
             processCheckProfile(req, resp);
         } else {
             processContinue(req, resp);

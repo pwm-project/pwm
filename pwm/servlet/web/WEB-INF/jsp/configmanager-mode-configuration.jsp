@@ -61,10 +61,6 @@
             <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>.
             (Epoch <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationEpoch()%>)
         </p>
-        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <br class="clear"/>
-        <% } %>
         <table class="tablemain">
             <tr>
                 <td class="title" colspan="10">

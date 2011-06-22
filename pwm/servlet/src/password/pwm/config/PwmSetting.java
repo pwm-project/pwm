@@ -477,6 +477,8 @@ public enum PwmSetting {
             "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.BASIC),
     UPDATE_PROFILE_FORM(
             "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.BASIC),
+    UPDATE_PROFILE_CHECK_QUERY_MATCH(
+            "updateAttributes.check.queryMatch", Syntax.STRING, Category.UPDATE, false, Level.BASIC),
 
     // shortcut settings
     SHORTCUT_ENABLE(
