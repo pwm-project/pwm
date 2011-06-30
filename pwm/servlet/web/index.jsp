@@ -130,7 +130,7 @@
 
         <p><pwm:Display key="Long_Title_Admin"/></p>
 
-        <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
+        <% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
         <hr/>
         <h2><a href="<pwm:url url='public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a></h2>
 

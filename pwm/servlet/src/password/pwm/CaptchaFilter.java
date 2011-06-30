@@ -23,7 +23,6 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
@@ -42,11 +41,9 @@ public class CaptchaFilter implements Filter {
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
-
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final Configuration config = pwmSession.getConfig();
         final String captchaServletURL = ((HttpServletRequest) servletRequest).getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
 
         checkIfCaptchaEnabled(pwmSession,ssBean);

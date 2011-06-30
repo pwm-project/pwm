@@ -41,7 +41,7 @@
         <p><pwm:Display key="Display_ConfirmResponses"/></p>
         <% // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
             // the error block if javascript is available (for ajax use).
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
         %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/>&nbsp;</span>
         <% } %>

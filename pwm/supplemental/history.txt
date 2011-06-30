@@ -9,13 +9,21 @@
 v1.5.4
 ---
 + Storage of responses in RDBM database
++ Added guest account registration and management
 + Added "selectable" type configuration syntax, and applied as appropriate
 + Added SMS token integration to provide for text messaging (sms) of tokens during forgotten password
-+ Added Jasig CAS authentication server integration
 + Improved new installation configuration experience
+* Can now use configuration gui to set all user-displayable text strings
++ Configurable form "reset" button (issue #71)
++ Localization updates
 
+- Update Profile now correctly deletes values when blanked by user (issue #59)
 - Renamed Update Attributes servlet to UpdateProfile and changed checkAttributes parameter to checkProfile
 - General refactoring to improve error messages, reporting and handling
+
+~ Basic "PeopleSearch" module added
+
+! Security issue
 
 v1.5.3 (April 2, 2011) build 1026
 ---

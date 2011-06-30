@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <meta http-equiv="refresh"
-      content="0;url='<pwm:url url="<%=PwmSession.getSessionStateBean(session).getPostWaitURL()%>"/>'">
+      content="0;url='<pwm:url url="<%=PwmSession.getPwmSession(session).getSessionStateBean().getPostWaitURL()%>"/>'">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
@@ -36,7 +36,7 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_PleaseWaitBody"/></p>
         <% //check to see if there is an error
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
         %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>

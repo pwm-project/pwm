@@ -91,8 +91,8 @@ public class DisplayTag extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final Locale locale = PwmSession.getSessionStateBean(req.getSession()).getLocale();
-            final ContextManager contextManager = PwmSession.getPwmSession(req).getContextManager();
+            final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
+            final ContextManager contextManager = ContextManager.getContextManager(req);
 
             String displayMessage = PwmConstants.PWM_DEFAULT_APPLICATION_NAME;
 

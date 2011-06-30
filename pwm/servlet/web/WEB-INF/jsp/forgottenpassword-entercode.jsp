@@ -53,7 +53,7 @@
               enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <% //check to see if there is an error
-                if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
             %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>

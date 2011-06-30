@@ -214,7 +214,7 @@ public class SessionFilter implements Filter {
         }
 
         if (Validator.readBooleanFromRequest(req, "passwordExpired")) {
-            PwmSession.getUserInfoBean(req.getSession()).getPasswordState().setExpired(true);
+            pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
         }
 
         if (!resp.isCommitted()) {

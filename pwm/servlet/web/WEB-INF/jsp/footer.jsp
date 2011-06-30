@@ -33,12 +33,12 @@
         &nbsp;
     </span>
     <br/>
-    <% if (PwmSession.getSessionStateBean(session).isAuthenticated()) { %>
-    <%= PwmSession.getUserInfoBean(session).getUserID()%>
+    <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
+    <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
     |
     <% } %>
     <%
-        final password.pwm.bean.SessionStateBean sessionStateBean = PwmSession.getSessionStateBean(session);
+        final password.pwm.bean.SessionStateBean sessionStateBean = PwmSession.getPwmSession(session).getSessionStateBean();
         final String userIP = sessionStateBean.getSrcAddress();
         if (userIP != null) {
             out.write(userIP);

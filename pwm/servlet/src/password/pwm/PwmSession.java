@@ -64,10 +64,6 @@ public class PwmSession implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static ForgottenPasswordBean getForgottenPasswordBean(final HttpServletRequest req) {
-        return PwmSession.getPwmSession(req).getForgottenPasswordBean();
-    }
-
     public static PwmSession getPwmSession(final HttpSession httpSession) {
         if (httpSession == null) {
             final RuntimeException e = new NullPointerException("cannot fetch a pwmSession using a null httpSession");
@@ -96,18 +92,9 @@ public class PwmSession implements Serializable {
         return PwmSession.getPwmSession(httpRequest.getSession());
     }
 
-    public static SessionStateBean getSessionStateBean(final HttpSession session) {
-        return PwmSession.getPwmSession(session).getSessionStateBean();
-    }
-
-    public static UserInfoBean getUserInfoBean(final HttpSession session) {
-        return PwmSession.getPwmSession(session).getUserInfoBean();
-    }
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmSession() {
-        //should not be used, only made for the servlet listener.
+    private PwmSession() {
     }
 
     private PwmSession(final HttpSession httpSession) {
@@ -142,6 +129,10 @@ public class PwmSession implements Serializable {
 
     public ForgottenPasswordBean getForgottenPasswordBean() {
         return forgottenPasswordBean;
+    }
+
+    public void clearForgottenPasswordBean() {
+        forgottenPasswordBean = new ForgottenPasswordBean();
     }
 
     public ConfigManagerBean getConfigManagerBean() {

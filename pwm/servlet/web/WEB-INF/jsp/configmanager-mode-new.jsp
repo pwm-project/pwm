@@ -46,7 +46,7 @@
         <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting one of the
             options below.</p>
         <p>Begin by setting the LDAP configuration options, and then saving the configuration.</p>
-        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } %>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>

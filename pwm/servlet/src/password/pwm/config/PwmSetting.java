@@ -552,8 +552,10 @@ public enum PwmSetting {
             "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.MISC, false, Level.ADVANCED),
+    /*
     CAS_CLEAR_PASSS_URL(
             "cas.clearPassUrl", Syntax.STRING, Category.MISC, false, Level.BASIC),
+    */
 
     DATABASE_CLASS(
             "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),

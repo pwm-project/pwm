@@ -30,9 +30,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession()); %>
-<% final ForgottenPasswordBean recoverBean = PwmSession.getForgottenPasswordBean(request); %>
-<% final List<FormConfiguration> requiredAttrParams = PwmSession.getPwmSession(request).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
+<% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
+<% final ForgottenPasswordBean recoverBean = PwmSession.getPwmSession(session).getForgottenPasswordBean(); %>
+<% final List<FormConfiguration> requiredAttrParams = PwmSession.getPwmSession(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <%--
@@ -53,7 +53,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
               enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <% //check to see if there is an error
-                if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
             %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>

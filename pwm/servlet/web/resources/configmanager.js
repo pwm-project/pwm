@@ -30,7 +30,7 @@ var selectedCategory = "";
 function showError(errorMsg) {
     var errorMsgObj = getObject("error_msg");
 
-    if (errorMsgObj == null) {
+    if (errorMsgObj == null || errorMsg.firstChild == null || errorMsg.firstChild.nodeValue == null) {
         return;
     }
 

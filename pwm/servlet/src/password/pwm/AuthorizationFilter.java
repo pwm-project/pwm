@@ -56,11 +56,10 @@ public class AuthorizationFilter implements Filter {
             throws IOException, ServletException {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
-
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        // if the user is not authenticted as a PWM Admin, redirect to error page.
+        // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try {
             hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);

@@ -127,7 +127,7 @@ public class ServletHelper {
             final ServletContext theContext
     )
             throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
+        final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
 
         if (ssBean.getSessionSuccess() == null) {
             ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
@@ -209,7 +209,7 @@ public class ServletHelper {
             final String nextURL
     )
             throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getSessionStateBean(req.getSession());
+        final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
         ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
 
         final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);

@@ -30,7 +30,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
-<% final Map<String, ShortcutItem> shortcutItems = PwmSession.getSessionStateBean(session).getVisibleShortcutItems(); %>
+<% final Map<String, ShortcutItem> shortcutItems = PwmSession.getPwmSession(session).getSessionStateBean().getVisibleShortcutItems(); %>
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Shortcuts"/>
@@ -38,7 +38,7 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_Shortcuts"/></p>
         <% //check to see if there is an error
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
         %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>

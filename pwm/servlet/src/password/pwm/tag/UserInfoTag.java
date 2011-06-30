@@ -54,7 +54,7 @@ public class UserInfoTag extends TagSupport {
     {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final UserInfoBean uiBean = PwmSession.getUserInfoBean(req.getSession());
+            final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
             final String attributeValue = uiBean.getAllUserAttributes().get(attribute);
             pageContext.getOut().write(attributeValue == null ? "" : attributeValue);
         } catch (Exception e) {

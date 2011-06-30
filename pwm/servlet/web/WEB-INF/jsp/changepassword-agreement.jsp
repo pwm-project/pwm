@@ -47,14 +47,14 @@
     </jsp:include>
     <div id="centerbody">
         <% //check to see if there is an error
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
         %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>
             </span>
         <% } %>
 
-        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getSessionStateBean(session).getLocale())%></span>
+        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
 
         <div id="buttonbar">
             <form action="<pwm:url url='ChangePassword'/>" method="post"

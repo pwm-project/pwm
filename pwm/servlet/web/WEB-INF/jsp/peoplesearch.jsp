@@ -37,7 +37,7 @@
         <form action="<pwm:url url='PeopleSearch'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <% //check to see if there is an error
-                if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
             %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>
@@ -53,6 +53,7 @@
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
+            <p><pwm:Display key="Display_PeopleSearch"/></p>
             <input tabindex="1" type="search" id="username" name="username" class="inputfield"
                    value="<pwm:ParamValue name='username'/>"/>
             <input tabindex="3" type="submit" class="btn"

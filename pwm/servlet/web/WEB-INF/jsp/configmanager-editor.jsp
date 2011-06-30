@@ -62,7 +62,7 @@
 <div id="TopMenu" style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;">
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
-<% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+<% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
 <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
 <% } else { %>
 <span style="visibility:hidden;" id="error_msg" class="msg-success"> </span>
@@ -167,7 +167,7 @@ function buildMenuBar() {
 
         <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
         <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
-            modulesMenu.addChild(new dijit.CheckedMenuItem({
+            displayMenu.addChild(new dijit.CheckedMenuItem({
                         label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                         checked: true,
                         onClick: function() {
@@ -206,9 +206,9 @@ function buildMenuBar() {
                         popup: displayMenu
                     }));
         }
-        { // Edit
-            var editMenu = new dijit.Menu({});
-            editMenu.addChild(new dijit.CheckedMenuItem({
+        { // view
+            var viewMenu = new dijit.Menu({});
+            viewMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Show Advanced Settings",
                         checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                         onClick: function() {
@@ -221,7 +221,7 @@ function buildMenuBar() {
                                     });
                         }
                     }));
-            editMenu.addChild(new dijit.CheckedMenuItem({
+            viewMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Display Help Text",
                         checked: <%=showDesc ? "true" : "false"%>,
                         onClick: function() {
@@ -234,7 +234,7 @@ function buildMenuBar() {
                                     });
                         }
                     }));
-            editMenu.addChild(new dijit.CheckedMenuItem({
+            viewMenu.addChild(new dijit.CheckedMenuItem({
                         label: "Show Configuration Notes",
                         checked: <%=showNotes ? "true" : "false"%>,
                         onClick: function() {
@@ -250,7 +250,7 @@ function buildMenuBar() {
                     }));
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "View",
-                        popup: editMenu
+                        popup: viewMenu
                     }));
         }
         { // Templates
@@ -278,7 +278,7 @@ function buildMenuBar() {
                         }
                     }));
         <% } %>
-            templateMenu.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
                         label: "Template",
                         popup: templateMenu
                     }));
@@ -404,4 +404,9 @@ function buildMenuBar() {
     }
 </script>
 </body>
+<script type="text/javascript">
+    if(dojo.isIE <= 8){ // only IE6 and below
+        alert('Internet Explorer 8 and below is not supported for editing the configuration.  Please use a newer version of IE or a different browser.');
+    }
+</script>
 </html>

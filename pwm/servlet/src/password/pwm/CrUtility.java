@@ -120,7 +120,7 @@ public class CrUtility {
 
         final String readRawValue = pwmSession.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
         final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
-        for (final String rawValue : readRawValue.split(",")) {
+        for (final String rawValue : readRawValue.split("-")) {
             readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
         }
 

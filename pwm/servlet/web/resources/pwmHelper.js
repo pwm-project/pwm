@@ -288,6 +288,7 @@ function initCountDownTimer(secondsRemaining) {
     PWM_GLOBAL['idle_Timeout'] = secondsRemaining;
     PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (secondsRemaining * 1000));
     PWM_GLOBAL['idle_lastPingTime'] = new Date().getTime();
+    PWM_GLOBAL['real-window-title'] = document.title;
     resetIdleCounter();
     setInterval("pollActivity()", SETTING_LOOP_FREQUENCY); //poll scrolling
     document.onclick = resetIdleCounter;
@@ -337,6 +338,11 @@ function pollActivity() {
 
     if (idleSeconds < SETTING_WARN_SECONDS) {
         showIdleWarning();
+        if (idleSeconds % 2 == 0) {
+            document.title = PWM_GLOBAL['real-window-title'];
+        } else {
+            document.title = idleDisplayString;
+        }
     }
 }
 
@@ -430,12 +436,12 @@ function makeIdleDisplayString(amount) {
 }
 
 function showIdleWarning() {
-    dojo.require("dijit.Dialog");
     if (!PWM_GLOBAL['idle_warningDisplayed']) {
         PWM_GLOBAL['idle_warningDisplayed'] = true;
 
         var dialogBody = PWM_STRINGS['Display_IdleWarningMessage'] + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
 
+        dojo.require("dijit.Dialog");
         var theDialog = new dijit.Dialog({
             title: PWM_STRINGS['Display_IdleWarningTitle'],
             style: "width: 260px; border: 2px solid #D4D4D4;",
@@ -456,4 +462,5 @@ function closeIdleWarning() {
         dialog.hide();
         dialog.destroyRecursive();
     }
+    document.title = PWM_GLOBAL['real-window-title'];
 }

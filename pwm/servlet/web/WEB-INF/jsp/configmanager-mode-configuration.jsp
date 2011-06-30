@@ -46,7 +46,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
         <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
         <% } else { %>
         <span style="visibility:hidden" id="error_msg" class="msg-success"> </span>

@@ -24,7 +24,7 @@
 <head>
     <title><pwm:Display key="APPLICATION-TITLE"/>
         <% // can't use <jsp:UseBean> because it will cause duplicate useBean error.
-            final String userField = password.pwm.PwmSession.getUserInfoBean(request.getSession()).getUserID();
+            final String userField = password.pwm.PwmSession.getPwmSession(request).getUserInfoBean().getUserID();
             if (userField != null && userField.length() > 0) {
                 out.write(" - ");
                 out.write(userField);

@@ -27,8 +27,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final UserInfoBean uiBean = PwmSession.getUserInfoBean(request.getSession()); %>
-<% final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession()); %>
+<% final UserInfoBean uiBean = PwmSession.getPwmSession(session).getUserInfoBean(); %>
+<% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>

@@ -31,7 +31,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final SessionStateBean ssBean = PwmSession.getSessionStateBean(request.getSession());
+    final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean();
     final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
 %>
@@ -51,7 +51,7 @@
               onkeypress="checkForCapsLock(event);"
               enctype="application/x-www-form-urlencoded"
               onreset="handleFormClear();showSuccess('<pwm:Display key="Display_ResponsesPrompt"/>');return false">
-            <% if (PwmSession.getSessionStateBean(session).getSessionError() != null) { %>
+            <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
             <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
             <% } else { %>
             <span id="error_msg" class="msg-success"><pwm:Display key="Display_ResponsesPrompt"/></span>

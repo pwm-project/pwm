@@ -48,7 +48,7 @@
         <% final String timeZone = (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName(); %>
         <p><pwm:Display key="Display_UserEventHistory" value1="<%= timeZone %>"/></p>
         <% //check to see if there is an error
-            if (PwmSession.getSessionStateBean(session).getSessionError() != null) {
+            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
         %>
             <span id="error_msg" class="msg-error">
                 <pwm:ErrorMessage/>
