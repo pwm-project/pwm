@@ -96,17 +96,30 @@ public class NewUserServlet extends TopServlet {
         final Configuration config = pwmSession.getConfig();
 
         final List<FormConfiguration> newUserForm = config.readSettingAsForm(PwmSetting.NEWUSER_FORM, ssBean.getLocale());
-
+        final Map<FormConfiguration, String> formValues;
         try {
             //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, newUserForm);
+            formValues = Validator.readFormValuesFromRequest(req, newUserForm);
 
             // see if the values meet form requirements.
             Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
 
             // check unique fields against ldap
             Validator.validateAttributeUniqueness(pwmSession, formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES));
+        } catch (ChaiOperationException e) {
+            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
+            ssBean.setSessionError(info);
+            LOGGER.debug(pwmSession, info);
+            this.forwardToJSP(req, resp);
+            return;
+        } catch (PwmOperationalException e) {
+            LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
+            ssBean.setSessionError(e.getErrorInformation());
+            this.forwardToJSP(req, resp);
+            return;
+        }
 
+        try {
             // get new user DN
             final String newUserDN = determineUserDN(formValues, config);
 

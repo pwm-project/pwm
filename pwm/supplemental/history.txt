@@ -6,15 +6,17 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.5.4
+v1.5.4 (July 5, 2011) build 1054
 ---
-+ Storage of responses in RDBM database
++ Storage of responses in RDBM database (useful for AD, or otherwise un-extensible ldap directories)
 + Added guest account registration and management
 + Added "selectable" type configuration syntax, and applied as appropriate
 + Added SMS token integration to provide for text messaging (sms) of tokens during forgotten password
++ Added Jasig CAS authentication server integration (http://www.jasig.org/cas) (issue #54)
 + Improved new installation configuration experience
 * Can now use configuration gui to set all user-displayable text strings
 + Configurable form "reset" button (issue #71)
++ More control over pushing users to update profile (issue #72)
 + Localization updates
 
 - Update Profile now correctly deletes values when blanked by user (issue #59)
@@ -23,7 +25,7 @@ v1.5.4
 
 ~ Basic "PeopleSearch" module added
 
-! Security issue
+! Security issue (issue #73)
 
 v1.5.3 (April 2, 2011) build 1026
 ---

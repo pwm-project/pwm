@@ -172,13 +172,13 @@ public class AuthenticationFilter implements Filter {
         }
 
         // try to authenticate user with CAS
-        /*
         try {
-            final String clearPassUrl = pwmSession.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASSS_URL);
+            final String clearPassUrl = pwmSession.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
             if (clearPassUrl != null && clearPassUrl.length() > 0) {
                 LOGGER.trace(pwmSession, "checking for authentication via CAS");
                 if (CASAuthenticationHelper.authUserUsingCASClearPass(req,clearPassUrl)) {
                     LOGGER.debug(pwmSession, "login via CAS successful");
+                    chain.doFilter(req,resp);
                     return;
                 }
             }
@@ -193,7 +193,6 @@ public class AuthenticationFilter implements Filter {
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
         }
-        */
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {

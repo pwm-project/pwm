@@ -80,7 +80,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/updateguest.jsp";
     public static final String URL_JSP_GUEST_UPDATE_SEARCH = "WEB-INF/jsp/updateguest-search.jsp";
     public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";
-    public static final String URL_JSP_PASSWORD_WARN = "WEB-INF/jsp/passwordwarn.jsp";
+    public static final String URL_JSP_PASSWORD_WARN = "private/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
     public static final String URL_JSP_PEOPLE_SEARCH = "WEB-INF/jsp/peoplesearch.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";

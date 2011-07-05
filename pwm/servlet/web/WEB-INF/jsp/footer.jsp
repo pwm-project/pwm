@@ -46,7 +46,7 @@
     %>
     |
     <span id="localeSelectionMenu" onclick="pMenu.setAttribute('isShowingNow',true)">
-    <%= sessionStateBean.getLocale().getDisplayName() %>
+    <%= sessionStateBean.getLocale() != null ? sessionStateBean.getLocale().getDisplayName() : request.getLocale().getDisplayName() %>
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};

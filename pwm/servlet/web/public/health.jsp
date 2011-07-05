@@ -36,6 +36,7 @@
                 <td class="title" colspan="10">
                     <pwm:Display key="APPLICATION-TITLE"/> Health
                 </td>
+            </tr>
             <tr>
                 <td colspan="10" style="border:0; margin:0; padding:0">
                     <div id="healthBody" style="border:0; margin:0; padding:0"></div>

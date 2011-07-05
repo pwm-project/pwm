@@ -189,7 +189,7 @@ public class CommandServlet extends TopServlet {
         if (checkIfPasswordExpired(pwmSession) || pwmSession.getUserInfoBean().isRequiresNewPassword()) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         } else if (checkPasswordWarn(pwmSession)) {
-            final String passwordWarnURL = req.getContextPath() + "/private/" + PwmConstants.URL_JSP_PASSWORD_WARN;
+            final String passwordWarnURL = req.getContextPath() + "/" + PwmConstants.URL_JSP_PASSWORD_WARN;
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(passwordWarnURL, req, resp));
         } else {
             processContinue(req, resp);
