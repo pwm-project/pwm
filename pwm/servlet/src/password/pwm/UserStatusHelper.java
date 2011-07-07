@@ -366,7 +366,7 @@ public class UserStatusHelper {
         } catch (ChaiOperationException e) {
             LOGGER.warn(pwmSession, "error during username search: " + e.getMessage());
             final String errorDetail = "error during contextless login username search, setting 'LDAP Directory-LDAP Contextless Login Root' value does not appear to be correct: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_USER_MISMATCH,errorDetail));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorDetail));
         }
     }
 

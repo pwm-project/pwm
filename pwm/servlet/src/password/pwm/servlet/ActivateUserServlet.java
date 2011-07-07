@@ -308,12 +308,12 @@ public class ActivateUserServlet extends TopServlet {
                 final String value = formValues.get(formConfiguration);
                 try {
                     if (!theUser.compareStringAttribute(attrName, value)) {
-                        throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
+                        throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
                     }
                     LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_NEW_USER_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
+                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
                 }
 
 

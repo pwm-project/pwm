@@ -626,15 +626,17 @@ public class Helper {
                         throw newException;
                     }
                 } else {
-                    try {
-                        theUser.deleteAttribute(attrName, null);
-                        LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
-                    } catch (ChaiOperationException e) {
-                        final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-                        newException.initCause(e);
-                        throw newException;
+                    if (currentValues.get(attrName) != null && currentValues.get(attrName).length() > 0) {
+                        try {
+                            theUser.deleteAttribute(attrName, null);
+                            LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                        } catch (ChaiOperationException e) {
+                            final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                            newException.initCause(e);
+                            throw newException;
+                        }
                     }
                 }
             } else {

@@ -186,7 +186,7 @@ function showWaitDialog(title, body) {
     var idName = 'waitDialogID';
     clearDigitWidget(idName);
     if (body == null || body.length < 1) {
-        body = '<div style="text-align: center"><img alt="altText" src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
+        body = '<div style="text-align: center"><img alt="' + title + '" src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
     }
     dojo.require("dijit.Dialog");
     var theDialog = new dijit.Dialog({

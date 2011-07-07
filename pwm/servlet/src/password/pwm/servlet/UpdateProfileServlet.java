@@ -152,7 +152,7 @@ public class UpdateProfileServlet extends TopServlet {
 
         } catch (PwmOperationalException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
-            LOGGER.error(pwmSession, info);
+            LOGGER.error(pwmSession, info.toDebugStr());
             ssBean.setSessionError(info);
             this.forwardToJSP(req,resp);
         }

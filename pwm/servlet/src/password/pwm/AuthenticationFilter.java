@@ -444,9 +444,9 @@ public class AuthenticationFilter implements Filter {
             }
         } catch (Exception e) {
             if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS) && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                LOGGER.error(pwmSession, "error retrieving user password from directory; " + e.getMessage());
+                LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
             } else {
-                LOGGER.trace(pwmSession, "error retrieving user password from directory; " + e.getMessage());
+                LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
             }
         }
 

@@ -6,6 +6,12 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.5.5 (July 7, 2011) build 1056
+---
+- Update profile error removing attribute on blank value (issue #74)
+- Responses required when not configured to be (issue #80)
+
+
 v1.5.4 (July 5, 2011) build 1054
 ---
 + Storage of responses in RDBM database (useful for AD, or otherwise un-extensible ldap directories)

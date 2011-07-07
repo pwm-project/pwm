@@ -76,6 +76,12 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
         if (forgottenPasswordBean.getProxiedUser() != null) {
             theManager.getIntruderManager().checkUser(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         }
@@ -335,9 +341,9 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // if responses aren't required, but attributes are, send to response screen anyway
         {
-            final Collection<String> requiredAttributes = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
+            final List<FormConfiguration> requiredAttributesForm = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
 
-            if (!requiredAttributes.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
+            if (!requiredAttributesForm.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
                 this.forwardToResponsesJSP(req, resp);
                 return;
             }
