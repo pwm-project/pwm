@@ -24,6 +24,7 @@ package password.pwm.config;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import password.pwm.PwmConstants;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -653,16 +654,16 @@ public enum PwmSetting {
             }
         }
 
-        String returnValue = readProps(keyName, Locale.getDefault());
+        String returnValue = readProps(keyName, PwmConstants.DEFAULT_LOCALE);
         if (returnValue.equals(Static.RESOURCE_MISSING)) {
-            returnValue = readProps(DEFAULT_KEY_NAME, Locale.getDefault());
+            returnValue = readProps(DEFAULT_KEY_NAME, PwmConstants.DEFAULT_LOCALE);
         }
         return returnValue;
     }
 
     public Map<String,String> getOptions() {
         final String keyName = "OPTS_" + this.getKey();
-        final String inputValue = readProps(keyName, Locale.getDefault());
+        final String inputValue = readProps(keyName, PwmConstants.DEFAULT_LOCALE);
         final Gson gson = new Gson();
         final Map<String,String> valueList = gson.fromJson(inputValue, new TypeToken<Map<String,String>>(){}.getType());
         return Collections.unmodifiableMap(valueList);
@@ -686,7 +687,7 @@ public enum PwmSetting {
     }
 
     public Pattern getRegExPattern() {
-        final String value = readProps("REGEX_" + this.getKey(), Locale.getDefault());
+        final String value = readProps("REGEX_" + this.getKey(), PwmConstants.DEFAULT_LOCALE);
 
         if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value)) {
             return Pattern.compile(".*");

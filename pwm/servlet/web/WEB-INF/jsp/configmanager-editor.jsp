@@ -35,7 +35,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="../jsp/header.jsp" %>
 <% final Collection<Locale> localeList = ContextManager.getContextManager(session).getKnownLocales(); %>
-<% localeList.remove(Helper.localeResolver(Locale.getDefault(), localeList)); %>
+<% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>

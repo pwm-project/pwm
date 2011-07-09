@@ -24,6 +24,7 @@ package password.pwm.util.stats;
 
 import password.pwm.AlertHandler;
 import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
@@ -249,7 +250,7 @@ public class StatisticsManager {
     private void resetDailyStats() {
         final Map<String,String> emailValues = new LinkedHashMap<String,String>();
         for (final Statistic statistic : Statistic.values()) {
-            final String key = statistic.getLabel(Locale.getDefault());
+            final String key = statistic.getLabel(PwmConstants.DEFAULT_LOCALE);
             final String value = statsDaily.getStatistic(statistic);
             emailValues.put(key,value);
         }

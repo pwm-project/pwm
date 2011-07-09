@@ -304,7 +304,7 @@ public class ContextManager implements Serializable {
         // log the loaded configuration
         LOGGER.info(logContextParams());
         LOGGER.info("loaded configuration: " + configuration.toString());
-        LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy(Locale.getDefault()));
+        LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));
 
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(pwmDB, this);

@@ -288,9 +288,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
             final StringBuilder errorString = new StringBuilder();
-            errorString.append(loopSetting.getCategory().getLabel(Locale.getDefault()));
+            errorString.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorString.append("-");
-            errorString.append(loopSetting.getLabel(Locale.getDefault()));
+            errorString.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorString.append(" ");
 
             final Pattern loopPattern = loopSetting.getRegExPattern();
@@ -563,7 +563,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
                 {
                     final Element labelElement = new Element("label");
-                    labelElement.addContent(setting.getLabel(Locale.getDefault()));
+                    labelElement.addContent(setting.getLabel(PwmConstants.DEFAULT_LOCALE));
                     settingElement.addContent(labelElement);
                 }
 

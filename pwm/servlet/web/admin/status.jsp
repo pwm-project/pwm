@@ -103,7 +103,7 @@
             Server Locale
         </td>
         <td>
-            <% final java.util.Locale theLocale = java.util.Locale.getDefault();
+            <% final java.util.Locale theLocale = PwmConstants.DEFAULT_LOCALE;
                 out.print(theLocale.toString());
                 out.print(" [" + theLocale.getDisplayName() + "]");
             %>

@@ -22,6 +22,8 @@
 
 package password.pwm.bean;
 
+import password.pwm.PwmConstants;
+
 import java.io.Serializable;
 import java.util.Locale;
 
@@ -47,7 +49,7 @@ public class SmsItemBean implements Serializable {
         this.from = from;
         this.message = message;
         this.partlength = partlength;
-        this.locale = Locale.getDefault();
+        this.locale = PwmConstants.DEFAULT_LOCALE;
     }
 
     public SmsItemBean(

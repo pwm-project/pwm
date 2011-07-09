@@ -199,7 +199,7 @@ public class GuestUpdateServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final GuestUpdateServletBean guBean = pwmSession.getGuestUpdateServletBean();
-        final Locale locale = Locale.getDefault();
+        final Locale locale = PwmConstants.DEFAULT_LOCALE;
         String durationString = null;
         final Properties notifyAttrs = new Properties();
         final IntruderManager intruderMgr = pwmSession.getContextManager().getIntruderManager();

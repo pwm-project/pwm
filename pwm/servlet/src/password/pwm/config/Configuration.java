@@ -82,13 +82,13 @@ public class Configuration implements Serializable {
     public Set<String> getAllUsedLdapAttributes() {
         final Set<String> returnSet = new HashSet<String>();
         for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
-            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting, Locale.getDefault())) {
+            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting, PwmConstants.DEFAULT_LOCALE)) {
                 returnSet.add(formConfiguration.getAttributeName());
             }
         }
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
-        returnSet.addAll(this.getGlobalPasswordPolicy(Locale.getDefault()).getRuleHelper().getDisallowedAttributes());
+        returnSet.addAll(this.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE).getRuleHelper().getDisallowedAttributes());
         returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));

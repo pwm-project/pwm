@@ -117,7 +117,7 @@ public class DisplayTag extends PwmAbstractTag {
 
     private String figureDisplayMessage(Locale locale, final Configuration config) {
         if (locale == null) {
-            locale = Locale.getDefault();
+            locale = PwmConstants.DEFAULT_LOCALE;
         }
         try {
             String displayMessage = Display.getLocalizedMessage(locale, key, config);

@@ -26,6 +26,7 @@ import password.pwm.config.Display;
 import password.pwm.config.Message;
 import password.pwm.error.PwmError;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
@@ -47,6 +48,8 @@ public abstract class PwmConstants {
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int MAX_SMS_QUEUE_SIZE = 100;
+
+    public static final Locale DEFAULT_LOCALE = new Locale("pp");
 
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";

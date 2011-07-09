@@ -30,6 +30,7 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.ContextManager;
+import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -99,11 +100,11 @@ public class LDAPStatusChecker implements HealthChecker {
 
         if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting is the same value as the ");
-            errorMsg.append(PwmSetting.LDAP_PROXY_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_PROXY_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting");
 
             return new HealthRecord(HealthStatus.WARN, TOPIC, errorMsg.toString());
@@ -145,7 +146,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             if (userPassword == null) {
                 try {
-                    final Locale locale = Locale.getDefault();
+                    final Locale locale = PwmConstants.DEFAULT_LOCALE;
                     final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(config, locale, theUser, null);
                     final SeedlistManager seedlistManager = contextManager.getSeedlistManager();
                     final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, contextManager);

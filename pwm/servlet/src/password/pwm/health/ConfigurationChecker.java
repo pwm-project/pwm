@@ -24,6 +24,7 @@ package password.pwm.health;
 
 import password.pwm.ContextManager;
 import password.pwm.PasswordUtility;
+import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
@@ -32,7 +33,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class ConfigurationChecker implements HealthChecker {
     private static final String TOPIC = "Configuration";
@@ -53,9 +57,9 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.REQUIRE_HTTPS.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to true for proper security");
 
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
@@ -63,9 +67,9 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to false for proper security");
 
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
@@ -73,9 +77,9 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to false for proper security");
 
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
@@ -83,9 +87,9 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN) == null || config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN).length() < 1 ) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(Locale.getDefault()));
+            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to verify proper operation");
 
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
@@ -100,18 +104,18 @@ public class ConfigurationChecker implements HealthChecker {
                         final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
                         if (!secure) {
                             final StringBuilder errorMsg = new StringBuilder();
-                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(Locale.getDefault()));
+                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
                             errorMsg.append(" -> ");
-                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(Locale.getDefault()));
+                            errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE));
                             errorMsg.append(" url is configured for non-secure connection: ").append(urlStringValue);
 
                             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
                         }
                     } catch (URISyntaxException  e) {
                         final StringBuilder errorMsg = new StringBuilder();
-                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(Locale.getDefault()));
+                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
                         errorMsg.append(" -> ");
-                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(Locale.getDefault()));
+                        errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE));
                         errorMsg.append(" error parsing urls: ").append(e.getMessage());
 
                         records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
@@ -126,9 +130,9 @@ public class ConfigurationChecker implements HealthChecker {
                 final int strength = PasswordUtility.checkPasswordStrength(config, null, passwordValue);
                 if (strength < 50) {
                     final StringBuilder errorMsg = new StringBuilder();
-                    errorMsg.append(setting.getCategory().getLabel(Locale.getDefault()));
+                    errorMsg.append(setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
                     errorMsg.append(" -> ");
-                    errorMsg.append(setting.getLabel(Locale.getDefault()));
+                    errorMsg.append(setting.getLabel(PwmConstants.DEFAULT_LOCALE));
                     errorMsg.append(" strength of password is weak (").append(strength).append("/100); increase password length/complexity for proper security");
 
                     records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));

@@ -401,6 +401,7 @@ public class CrUtility {
         private final String userDN;
         private final ChallengeSet challengeSet;
         private final PwmSession pwmSession;
+        private final Locale locale;
 
         public NovellWSResponseSet(
                 final PasswordManagement service,
@@ -422,7 +423,8 @@ public class CrUtility {
                 );
                 challenges.add(loopChallenge);
             }
-            challengeSet = CrFactory.newChallengeSet(challenges, Locale.getDefault(), 0, "NovellWSResponseSet derived ChallengeSet");
+            locale = PwmConstants.DEFAULT_LOCALE;
+            challengeSet = CrFactory.newChallengeSet(challenges, locale, 0, "NovellWSResponseSet derived ChallengeSet");
         }
 
         public ChallengeSet getChallengeSet() {
@@ -488,7 +490,7 @@ public class CrUtility {
         }
 
         public Locale getLocale() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
-            return Locale.getDefault();
+            return locale;
         }
 
         public Date getTimestamp() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
