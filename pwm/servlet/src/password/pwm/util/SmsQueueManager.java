@@ -247,8 +247,10 @@ public class SmsQueueManager implements PwmService {
 
                     final boolean success = sendSms(smsItem);
                     if (!success) {
+                        LOGGER.error("Error sending SMS");
                         return false;
                     }
+                    LOGGER.info("SMS sent");
                     smsSendQueue.pollFirst();
                 }
             }
@@ -337,7 +339,7 @@ public class SmsQueueManager implements PwmService {
             final String responseBody = EntityUtils.toString(httpResponse.getEntity());
 
             final List<String> okMessages = config.readSettingAsStringArray(PwmSetting.SMS_RESPONSE_OK_REGEX);
-            if (matchExpressions(responseBody, okMessages)) {
+            if (okMessages == null || okMessages.size() == 0 || matchExpressions(responseBody, okMessages)) {
                 return true;
             }
         } catch (IOException e) {
