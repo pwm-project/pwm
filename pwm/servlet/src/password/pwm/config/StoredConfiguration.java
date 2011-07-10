@@ -110,6 +110,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
         clonedConfig.settingMap.putAll(this.settingMap);
         clonedConfig.propertyMap = new HashMap<String, String>();
         clonedConfig.propertyMap.putAll(this.propertyMap);
+        clonedConfig.localizationMap = new HashMap<String, Map<String,Map<String, String>>>();
+        clonedConfig.localizationMap.putAll(this.localizationMap);
         clonedConfig.locked = false;
         return clonedConfig;
     }

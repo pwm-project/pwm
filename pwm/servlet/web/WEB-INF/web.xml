@@ -45,7 +45,7 @@
     </context-param>
     <context-param>
         <param-name>knownLocales</param-name>
-        <param-value>en;;;cs;;;de;;;es;;;fr;;;it;;;nl;;;pl;;;pt</param-value>
+        <param-value>;;;cs;;;de;;;es;;;fr;;;it;;;nl;;;pl;;;pt</param-value>
     </context-param>
     <filter>
         <filter-name>SessionFilter</filter-name>
