@@ -74,7 +74,7 @@ public class Configuration implements Serializable {
 // ------------------------ CANONICAL METHODS ------------------------
 
     public String toString() {
-        return storedConfiguration.toString();
+        return storedConfiguration.toString(true);
     }
 
 // -------------------------- OTHER METHODS --------------------------

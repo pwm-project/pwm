@@ -176,9 +176,10 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
     };
 
     for (var localeKey in localeData) {
-        var localeDisplayName = localeData[localeKey];
-        var localeIconClass = "flagLang_"+localeKey;
-        loopFunction(pMenu, localeKey, localeDisplayName, localeIconClass);
+        var loopDisplayName = localeKey == '' ? 'English' : localeData[localeKey];
+        var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
+        var loopKey = localeKey == '' ? 'default' : localeKey;
+        loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
     }
 }
 

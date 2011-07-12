@@ -46,11 +46,12 @@
     %>
     |
     <span id="localeSelectionMenu" onclick="pMenu.setAttribute('isShowingNow',true)">
-    <%= sessionStateBean.getLocale() != null ? sessionStateBean.getLocale().getDisplayName() : request.getLocale().getDisplayName() %>
+    <%= sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName() %>
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};
-    <% for (final Locale loopLocale : password.pwm.ContextManager.getContextManager(request).getKnownLocales()) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
+    <% for (final Locale loopLocale : password.pwm.ContextManager.getContextManager(request).getKnownLocales()) { %>
+    localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
     <% } %>
     dojo.addOnLoad(function() {
         startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');

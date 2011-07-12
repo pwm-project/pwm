@@ -135,23 +135,38 @@ public class SessionFilter implements Filter {
         // mark the user's hostname in the session bean
         ssBean.setSrcHostname(readUserHostname(req, pwmSession));
 
+        // debug the http session headers
+        if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(req));
+            pwmSession.getSessionStateBean().setDebugInitialized(true);
+        }
+
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
 
         //set the session's locale
+        if (ssBean.getLocale() == null) {
+            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
+            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
+            ssBean.setLocale(userLocale);
+            if (knownLocales.contains(req.getLocale())) {
+                LOGGER.trace(pwmSession, "session locale set to: " + userLocale.getDisplayName());
+            } else {
+                LOGGER.debug(pwmSession, "unknown locale '" + req.getLocale() + "' requested by browser, session locale set to: " + (userLocale.getDisplayName().equals("") ? "Default" : userLocale.getDisplayName()));
+            }
+        }
+
+        //override session locale due to parameter
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
         if (langReqParamter != null && langReqParamter.length() > 0) {
             final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
             final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
-            if (knownLocales.contains(requestedLocale)) {
+            if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
-                ssBean.setLocale(new Locale(langReqParamter));
+                ssBean.setLocale(new Locale(langReqParamter.equalsIgnoreCase("default") ? "" : langReqParamter));
             } else {
                 LOGGER.error(pwmSession, "ignoring unknown value for 'pwmLocale' request parameter: " + langReqParamter);
             }
-        } else if (ssBean.getLocale() == null) {
-            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
-            ssBean.setLocale(Helper.localeResolver(req.getLocale(),knownLocales));
         }
 
         // check for valid config

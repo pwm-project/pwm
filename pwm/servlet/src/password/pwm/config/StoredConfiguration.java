@@ -261,20 +261,12 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
         final Set<PwmSetting> unmodifiedSettings = new HashSet<PwmSetting>(Arrays.asList(PwmSetting.values()));
 
-        outputString.append("modified=[");
         for (final Iterator<PwmSetting> settingIter = this.settingMap.keySet().iterator(); settingIter.hasNext();) {
             final PwmSetting setting = settingIter.next();
             outputString.append(toString(setting));
             outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");
             unmodifiedSettings.remove(setting);
         }
-        outputString.append("] default=[");
-        for (final Iterator<PwmSetting> settingIter = unmodifiedSettings.iterator(); settingIter.hasNext();) {
-            final PwmSetting setting = settingIter.next();
-            outputString.append(toString(setting));
-            outputString.append(settingIter.hasNext() ? linebreaks ? "\n" : ", " : "");
-        }
-        outputString.append("]");
 
         return outputString.toString();
     }

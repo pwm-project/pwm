@@ -85,6 +85,8 @@ public class SessionStateBean implements Serializable {
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
+    private boolean debugInitialized;
+
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public FINISH_ACTION getFinishAction() {
@@ -280,7 +282,15 @@ public class SessionStateBean implements Serializable {
         this.visibleShortcutItems = visibleShortcutItems;
     }
 
-// -------------------------- ENUMERATIONS --------------------------
+    public boolean isDebugInitialized() {
+        return debugInitialized;
+    }
+
+    public void setDebugInitialized(final boolean debugInitialized) {
+        this.debugInitialized = debugInitialized;
+    }
+
+    // -------------------------- ENUMERATIONS --------------------------
 
     public enum FINISH_ACTION {
         LOGOUT, FORWARD

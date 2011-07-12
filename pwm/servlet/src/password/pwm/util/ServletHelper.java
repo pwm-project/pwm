@@ -137,9 +137,27 @@ public class ServletHelper {
         theContext.getRequestDispatcher(url).forward(req, resp);
     }
 
+    public static String debugHttpHeaders(final HttpServletRequest req) {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("http session headers: ");
+        sb.append("\n");
+
+        for (Enumeration enumeration = req.getHeaderNames(); enumeration.hasMoreElements();) {
+            final String headerName = (enumeration.nextElement()).toString();
+            sb.append(headerName);
+            sb.append("=");
+            sb.append(req.getHeader(headerName));
+            sb.append(enumeration.hasMoreElements() ? "\n" : "");
+        }
+
+        return sb.toString();
+    }
+
     public static String debugHttpRequest(final HttpServletRequest req) {
         return debugHttpRequest(req, "");
     }
+
     public static String debugHttpRequest(final HttpServletRequest req, final String extraText) {
         final StringBuilder sb = new StringBuilder();
 
