@@ -438,17 +438,21 @@
             Chai API Version
         </td>
         <td>
-            <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %>
+            <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %> (<%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>)
         </td>
     </tr>
     <tr>
         <td class="key">
-            Chai API Build Number
+            Dojo API Version
         </td>
         <td>
-            <%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>
+            <span id="dojoVersionSpan"></span>
+            <script type="text/javascript">
+                dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
+            </script>
         </td>
     </tr>
+
 </table>
 <br class="clear"/>
 <table class="tablemain">
