@@ -37,7 +37,7 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInfoBean uiBean = pwmSession.getUserInfoBean(); %>
 <% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, request.getLocale()); %>
+<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">

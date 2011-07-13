@@ -32,8 +32,8 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(request.getLocale()); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
+<% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body class="tundra" onload="pwmPageLoadHandler();">
@@ -96,17 +96,6 @@
         </td>
         <td>
             <%= dateFormat.getTimeZone().getDisplayName() %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            Server Locale
-        </td>
-        <td>
-            <% final java.util.Locale theLocale = PwmConstants.DEFAULT_LOCALE;
-                out.print(theLocale.toString());
-                out.print(" [" + theLocale.getDisplayName() + "]");
-            %>
         </td>
     </tr>
     <tr>

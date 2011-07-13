@@ -50,7 +50,7 @@
         <% } %>
         <ol>
             <% for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) { %>
-            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(request.getLocale())%>
+            <li><a href="#<%=loopCategory%>"><%=loopCategory.getLabel(pwmSession.getSessionStateBean().getLocale())%>
             </a></li>
             <% } %>
         </ol>
@@ -61,14 +61,14 @@
         <table>
             <tr>
                 <td class="title" colspan="10">
-                    <a name="<%=loopCategory%>"><%= loopCategory.getLabel(request.getLocale()) %>
+                    <a name="<%=loopCategory%>"><%= loopCategory.getLabel(pwmSession.getSessionStateBean().getLocale()) %>
                     </a>
                 </td>
             </tr>
             <% for (final PwmSetting loopSetting : loopSettings) { %>
             <tr>
                 <td class="key" style="width:100px; text-align:center;">
-                    <%= loopSetting.getLabel(request.getLocale()) %>
+                    <%= loopSetting.getLabel(pwmSession.getSessionStateBean().getLocale()) %>
                 </td>
                 <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
                 <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>

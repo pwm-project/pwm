@@ -39,6 +39,7 @@
 <%@ include file="../jsp/header.jsp" %>
 <% final Collection<Locale> localeList = ContextManager.getContextManager(session).getKnownLocales(); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
+<% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
@@ -85,7 +86,7 @@ function buildMenuBar() {
     <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
     <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
         settingsMenu.addChild(new dijit.CheckedMenuItem({
-            label: '<%=loopCategory.getLabel(request.getLocale())%>',
+            label: '<%=loopCategory.getLabel(locale)%>',
             checked: true,
             onClick: function() {
                 dojo.xhrGet({
@@ -102,7 +103,7 @@ function buildMenuBar() {
         }));
     <% } else { %>
         settingsMenu.addChild(new dijit.MenuItem({
-            label: '<%=loopCategory.getLabel(request.getLocale())%>',
+            label: '<%=loopCategory.getLabel(locale)%>',
             onClick: function() {
                 dojo.xhrGet({
                     url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
@@ -128,7 +129,7 @@ function buildMenuBar() {
     <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
     <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
         modulesMenu.addChild(new dijit.CheckedMenuItem({
-            label: '<%=loopCategory.getLabel(request.getLocale())%>',
+            label: '<%=loopCategory.getLabel(locale)%>',
             checked: true,
             onClick: function() {
                 dojo.xhrGet({
@@ -145,7 +146,7 @@ function buildMenuBar() {
         }));
     <% } else { %>
         modulesMenu.addChild(new dijit.MenuItem({
-            label: '<%=loopCategory.getLabel(request.getLocale())%>',
+            label: '<%=loopCategory.getLabel(locale)%>',
             onClick: function() {
                 dojo.xhrGet({
                     url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",

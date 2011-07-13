@@ -21,14 +21,16 @@
   --%>
 
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
+<% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
-<h1 style="text-align:center;"><%=category.getLabel(request.getLocale())%>
+<h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
-<% if (showDesc) { %><span><%= category.getDescription(request.getLocale())%></span><% } %>
+<% if (showDesc) { %><span><%= category.getDescription(locale)%></span><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p><span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Show Advanced Options" from the View menu to show additional settings.</p>
 <% } %>
@@ -36,9 +38,9 @@
 <% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
 <script type="text/javascript">showError('');</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
-    <h2><label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(request.getLocale())%></label></h2>
+    <h2><label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%></label></h2>
     <% if (showDesc) { %>
-    <%= loopSetting.getDescription(request.getLocale()) %>
+    <%= loopSetting.getDescription(locale) %>
     <br/>
     <% } %>
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>

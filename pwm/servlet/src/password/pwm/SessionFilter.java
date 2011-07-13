@@ -148,12 +148,8 @@ public class SessionFilter implements Filter {
         if (ssBean.getLocale() == null) {
             final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
             final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
-            ssBean.setLocale(userLocale);
-            if (knownLocales.contains(req.getLocale())) {
-                LOGGER.trace(pwmSession, "session locale set to: " + userLocale.getDisplayName());
-            } else {
-                LOGGER.debug(pwmSession, "unknown locale '" + req.getLocale() + "' requested by browser, session locale set to: " + (userLocale.getDisplayName().equals("") ? "Default" : userLocale.getDisplayName()));
-            }
+            ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
+            LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
         }
 
         //override session locale due to parameter

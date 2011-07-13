@@ -41,7 +41,8 @@
 <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
 <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, request.getLocale()); %>
+<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
@@ -102,7 +103,7 @@
                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                 since startup - <%= dateFormat.format(contextManager.getStartupTime()) %>
                             </option>
-                            <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(request.getLocale()); %>
+                            <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
                             <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %>
                                 GMT
@@ -114,11 +115,11 @@
                         </noscript>
                     </td>
                 </tr>
-                <% for (Iterator<Statistic> iter = Statistic.sortedValues(request.getLocale()).iterator(); iter.hasNext();) { %>
+                <% for (Iterator<Statistic> iter = Statistic.sortedValues(locale).iterator(); iter.hasNext();) { %>
                 <tr>
                     <% Statistic leftStat = iter.next(); %>
                     <td class="key">
-                        <%= leftStat.getLabel(request.getLocale()) %>
+                        <%= leftStat.getLabel(locale) %>
                     </td>
                     <td>
                         <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
@@ -126,7 +127,7 @@
                     <% if (iter.hasNext()) { %>
                     <% Statistic rightStat = iter.next(); %>
                     <td class="key">
-                        <%= rightStat.getLabel(request.getLocale()) %>
+                        <%= rightStat.getLabel(locale) %>
                     </td>
                     <td>
                         <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
@@ -150,9 +151,9 @@
                     <td colspan="10" style="text-align: center">
                         <select name="statsChartSelect" id="statsChartSelect"
                                 onchange="getObject('googleChartImage').src=getObject('statsChartSelect').options[getObject('statsChartSelect').selectedIndex].title;">
-                            <% for (final Statistic loopStat : Statistic.sortedValues(request.getLocale())) { %>
+                            <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                             <option value="<%=loopStat %>" <%= loopStat.toString().equals(statsChartSelect) ? "selected=\"selected\"" : "" %>
-                                    title="<%=makeGoogleChartImageUrl(loopStat,statsManager)%>"><%=loopStat.getLabel(request.getLocale())%>
+                                    title="<%=makeGoogleChartImageUrl(loopStat,statsManager)%>"><%=loopStat.getLabel(locale)%>
                             </option>
                             <% } %>
                         </select>

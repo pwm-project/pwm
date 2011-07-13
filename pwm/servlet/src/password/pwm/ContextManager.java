@@ -647,6 +647,9 @@ public class ContextManager implements Serializable {
                 }
             }
         }
+        if (!returnList.contains(new Locale(""))) {
+            returnList.add(0, new Locale(""));
+        }
         return returnList;
     }
 

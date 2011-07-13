@@ -44,9 +44,9 @@
         <br/>
         <span id="error_msg" class="msg-error">
             <% if (404 == statusCode) { %>
-            <%=PwmError.getLocalizedMessage(request.getLocale(),PwmError.ERROR_HTTP_404,null)%>
+            <%=PwmError.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(),PwmError.ERROR_HTTP_404,null)%>
             <% } else { %>
-            <%=PwmError.getLocalizedMessage(request.getLocale(),PwmError.ERROR_UNKNOWN,null)%>
+            <%=PwmError.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(),PwmError.ERROR_UNKNOWN,null)%>
             <% } %>
         </span>
         <br/>

@@ -21,11 +21,9 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.bean.UserInformationServletBean" %>
-<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
@@ -38,7 +36,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, request.getLocale()); %>
+<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
@@ -315,7 +313,7 @@
         <td>
             <ul>
                 <%
-                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager().getConfig(), request.getLocale()); %>
+                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager().getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
                 <% for (final String requirementLine : requirementLines) { %>
                 <li><%=requirementLine%>
                 </li>

@@ -526,7 +526,7 @@ public class ConfigManagerServlet extends TopServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
         }
 
-        configManagerBean.setConfigurationLoadTime(null);
+        resetInMemoryBean(pwmSession);
     }
 
     private void doCancelEditing(
@@ -534,10 +534,8 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        configManagerBean.setConfigurationLoadTime(null);
-        configManagerBean.setEditMode(EDIT_MODE.NONE);
+        resetInMemoryBean(pwmSession);
         LOGGER.debug(pwmSession, "cancelled edit actions");
     }
 
@@ -655,6 +653,12 @@ public class ConfigManagerServlet extends TopServlet {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);
             }
         }
+    }
+
+    private static void resetInMemoryBean(final PwmSession pwmSession) {
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        configManagerBean.setConfigurationLoadTime(null);
+        configManagerBean.setEditMode(EDIT_MODE.NONE);
     }
 
 // -------------------------- ENUMERATIONS --------------------------
