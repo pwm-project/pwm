@@ -29,7 +29,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body onload="pwmPageLoadHandler();" class="tundra">

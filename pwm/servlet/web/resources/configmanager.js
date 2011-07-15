@@ -30,7 +30,7 @@ var selectedCategory = "";
 function showError(errorMsg) {
     var errorMsgObj = getObject("error_msg");
 
-    if (errorMsgObj == null || errorMsg.firstChild == null || errorMsg.firstChild.nodeValue == null) {
+    if (errorMsgObj == null || errorMsgObj.firstChild == null || errorMsgObj.firstChild.nodeValue == null) {
         return;
     }
 
@@ -650,22 +650,22 @@ function waitForRestart(startTime, oldEpoch) {
             }
             var epoch = data['configEpoch'];
             if (epoch != oldEpoch) {
-                window.location = "ConfigManager?new_epoch_detected"; //refresh page
+                window.location = "ConfigManager"; //refresh page
             } else if (currentTime - startTime > 90 * 1000) { // timeout
                 alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
-                window.location = "ConfigManager?no_restart_detected"; //refresh page
+                showError('PWM Server has not restarted (timeout)');
             } else {
                 showError('Waiting for server restart, server has not yet restarted');
                 setTimeout(function() {
                     waitForRestart(startTime, oldEpoch)
-                }, 2000);
+                }, 1000);
             }
         },
         error: function(error) {
             showError('Waiting for server restart, unable to contact server: ' + error);
             setTimeout(function() {
                 waitForRestart(startTime, oldEpoch)
-            }, 2000);
+            }, 1000);
         }
     });
 }

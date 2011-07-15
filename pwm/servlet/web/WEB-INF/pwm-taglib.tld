@@ -171,6 +171,12 @@
         <body-content>empty</body-content>
         <description>Displays the proper pwmFormID value for the session</description>
     </tag>
+    <tag>
+        <name>LocaleOrientation</name>
+        <tag-class>password.pwm.tag.LocaleOrientationTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Output text "rtl" or "ltr" depending on session locale</description>
+    </tag>
 </taglib>
 
 

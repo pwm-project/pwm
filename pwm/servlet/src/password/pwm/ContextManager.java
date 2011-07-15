@@ -377,27 +377,28 @@ public class ContextManager implements Serializable {
     }
 
     public void reinitialize() {
-        final Thread t = new Thread() {
-            public void run() {
-                Helper.pause(2000);
-                try {
-                    LOGGER.warn("attempting to reinitialize context by touching web.xml");
-                    final String filename = "web.xml";
-                    final String filepath = "WEB-INF";
-                    final File theFile = ServletHelper.figureFilepath(filename, filepath, servletContext);
-                    if (!theFile.setLastModified(System.currentTimeMillis())) {
-                        LOGGER.error("unable to modify the last modified time of web.xml");
-                    }
-                } catch (Exception e) {
-                    try {
-                        LOGGER.error("unexpected error while trying to reinitialize context by touching web.xml");
-                    } catch (Exception e2) { /* ok */ }
-                }
-            }
-        };
-        t.setName("pwm-reinitialize-context thread");
-        t.setDaemon(true);
-        t.start();
+        LOGGER.info("restarting PWM application");
+
+        final ServletContext servletContext = this.getServletContext();
+
+        try {
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, null);
+            this.shutdown();
+        } catch (Throwable e) {
+            LOGGER.fatal("error trying to shutdown ContextManager during restart");
+        }
+
+        try {
+            final ContextManager newContextManager = new ContextManager();
+            newContextManager.initialize(servletContext);
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
+        } catch (OutOfMemoryError e) {
+            LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.fatal("error initializing pwm context: " + e, e);
+            System.err.println("error initializing pwm context: " + e);
+        }
     }
 
     public String getParameter(final PwmConstants.CONTEXT_PARAM param) {

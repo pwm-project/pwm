@@ -24,7 +24,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
 <div id="wrapper">

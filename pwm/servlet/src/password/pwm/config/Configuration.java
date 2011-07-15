@@ -74,7 +74,10 @@ public class Configuration implements Serializable {
 // ------------------------ CANONICAL METHODS ------------------------
 
     public String toString() {
-        return storedConfiguration.toString(true);
+        final StringBuilder outputText = new StringBuilder();
+        outputText.append("  ");
+        outputText.append(storedConfiguration.toString(true));
+        return outputText.toString().replaceAll("\n","\n  ");
     }
 
 // -------------------------- OTHER METHODS --------------------------

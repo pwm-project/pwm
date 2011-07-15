@@ -46,25 +46,25 @@ public enum PwmSetting {
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
+            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
+            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     EXPIRE_CHECK_DURING_AUTH(
             "expireCheckDuringAuth", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_SYNC_MIN_WAIT_TIME(
             "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     WORDLIST_FILENAME(
-            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
+            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     SEEDLIST_FILENAME(
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     GOOGLE_ANAYLTICS_TRACKER(
-            "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
+            "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
+            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
 
     // user interface
     APPLICATION_TILE(
