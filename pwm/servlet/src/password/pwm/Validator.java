@@ -153,8 +153,7 @@ public class Validator {
             final HttpServletRequest req,
             final Collection<FormConfiguration> formConfigurations
     )
-            throws PwmDataValidationException
-    {
+            throws PwmDataValidationException, PwmUnrecoverableException {
         if (formConfigurations == null || formConfigurations.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -199,7 +198,7 @@ public class Validator {
     public static String readStringFromRequest(
             final HttpServletRequest req,
             final String value
-    ) {
+    ) throws PwmUnrecoverableException {
         final Set<String> results = readStringsFromRequest(req, value, DEFAULT_PARAM_READ_LENGTH);
         if (results == null || results.isEmpty()) {
             return "";
@@ -231,7 +230,7 @@ public class Validator {
             final String value,
             final int maxLength,
             final String defaultValue
-    ) {
+    ) throws PwmUnrecoverableException {
 
         final String result = readStringFromRequest(req, value, maxLength);
         if (result == null || result.length() < 1) {
@@ -245,7 +244,7 @@ public class Validator {
             final HttpServletRequest req,
             final String value,
             final int maxLength
-    ) {
+    ) throws PwmUnrecoverableException {
         final Set<String> results = readStringsFromRequest(req, value, maxLength);
         if (results == null || results.isEmpty()) {
             return "";
@@ -258,7 +257,7 @@ public class Validator {
             final HttpServletRequest req,
             final String value,
             final int maxLength
-    ) {
+    ) throws PwmUnrecoverableException {
         if (req == null) {
             return Collections.emptySet();
         }
@@ -833,7 +832,7 @@ public class Validator {
             final Map<FormConfiguration,String> formValues,
             final List<String> uniqueAttributes
     )
-            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException {
+            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {

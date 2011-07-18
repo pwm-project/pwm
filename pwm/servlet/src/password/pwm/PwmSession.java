@@ -27,6 +27,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -64,7 +65,7 @@ public class PwmSession implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PwmSession getPwmSession(final HttpSession httpSession) {
+    public static PwmSession getPwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
         if (httpSession == null) {
             final RuntimeException e = new NullPointerException("cannot fetch a pwmSession using a null httpSession");
             LOGGER.warn("attempt to fetch a pwmSession with a null session", e);
@@ -88,7 +89,7 @@ public class PwmSession implements Serializable {
         return returnSession;
     }
 
-    public static PwmSession getPwmSession(final HttpServletRequest httpRequest) {
+    public static PwmSession getPwmSession(final HttpServletRequest httpRequest) throws PwmUnrecoverableException {
         return PwmSession.getPwmSession(httpRequest.getSession());
     }
 
@@ -97,7 +98,7 @@ public class PwmSession implements Serializable {
     private PwmSession() {
     }
 
-    private PwmSession(final HttpSession httpSession) {
+    private PwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
         this.creationTime = System.currentTimeMillis();
         this.httpSession = httpSession;
         this.getSessionStateBean().setSessionID("");
@@ -139,7 +140,7 @@ public class PwmSession implements Serializable {
         return configManagerBean;
     }
 
-    public GuestUpdateServletBean getGuestUpdateServletBean() {
+    public GuestUpdateServletBean getGuestUpdateServletBean() throws PwmUnrecoverableException {
         if (guestUpdateServletBean == null) {
             guestUpdateServletBean = new GuestUpdateServletBean();
             final List<FormConfiguration> formMap = getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
@@ -203,11 +204,11 @@ public class PwmSession implements Serializable {
         sessionManager = new SessionManager(this);
     }
 
-    public Configuration getConfig() {
+    public Configuration getConfig() throws PwmUnrecoverableException {
         return getContextManager().getConfig();
     }
 
-    public ContextManager getContextManager() {
+    public ContextManager getContextManager() throws PwmUnrecoverableException {
         return ContextManager.getContextManager(httpSession);
     }
 

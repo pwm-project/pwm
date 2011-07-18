@@ -24,6 +24,7 @@ package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -56,6 +57,17 @@ public class AuthorizationFilter implements Filter {
             throws IOException, ServletException {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        try {
+            processFilter(req,resp,filterChain);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.fatal("unexpected error processing authorization filter: " + e.getMessage(), e );
+        }
+    }
+
+    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -69,7 +81,7 @@ public class AuthorizationFilter implements Filter {
 
         try {
             if (hasPermission) {
-                filterChain.doFilter(servletRequest, servletResponse);
+                filterChain.doFilter(req, resp);
                 return;
             }
         } catch (Exception e) {

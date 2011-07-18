@@ -90,7 +90,7 @@ public class IntruderManager implements Serializable {
      *
      * @param pwmSession Session state
      */
-    public void addBadAddressAttempt(final PwmSession pwmSession) {
+    public void addBadAddressAttempt(final PwmSession pwmSession) throws PwmUnrecoverableException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.incrementIncorrectLogins();
 
@@ -167,7 +167,7 @@ public class IntruderManager implements Serializable {
         }
     }
 
-    public void addBadUserAttempt(final String username, final PwmSession pwmSession) {
+    public void addBadUserAttempt(final String username, final PwmSession pwmSession) throws PwmUnrecoverableException {
         final Configuration config = pwmSession.getConfig();
         final long resetTime = config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME) * 1000;
 

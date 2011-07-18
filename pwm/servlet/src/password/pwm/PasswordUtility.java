@@ -340,7 +340,7 @@ public class PasswordUtility {
     }
 
 
-    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession) {
+    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession) throws PwmUnrecoverableException {
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 

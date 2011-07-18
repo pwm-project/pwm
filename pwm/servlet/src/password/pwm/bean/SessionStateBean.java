@@ -22,19 +22,16 @@
 
 package password.pwm.bean;
 
-import password.pwm.util.BasicAuthInfo;
-import password.pwm.Validator;
 import password.pwm.config.Message;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
+import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * Only information that is particular to the http session is stored in the
@@ -246,16 +243,10 @@ public class SessionStateBean implements Serializable {
         this.incorrectLogins = 0;
     }
 
-    public void setLastParameterValues(final HttpServletRequest req) {
-        final Set keyNames = req.getParameterMap().keySet();
-        final Properties newParamProperty = new Properties();
-
-        for (final Object name : keyNames) {
-            final String value = Validator.readStringFromRequest(req, (String) name, 4096);
-            newParamProperty.setProperty((String) name, value);
-        }
-
-        this.lastParameterValues = newParamProperty;
+    public void setLastParameterValues(final Properties props) {
+        final Properties newProps = new Properties();
+        newProps.putAll(props);
+        this.lastParameterValues = newProps;
     }
 
     public String getSessionVerificationKey() {

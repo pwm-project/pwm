@@ -59,10 +59,19 @@
         </form>
         <% if (!hasBeenModified) { %>
         <p><span style="font-weight: bold;">The configuration for this server is now finalized and locked.</span>  Visit the <a href="<%=request.getContextPath()%>/<pwm:url url='admin'/>">administration module</a>
-        to view the configuration.</p>
-        <p>If you wish to return this server to the previous live-edit configuration mode, edit the <span style="font-style: italic;">PwmConfiguration.xml</span> file by setting the
-                property "configIsEditable" to "true".   Otherwise, please choose from the following options:</p>
+        to view the running configuration.</p>
+        <p>If you wish to return this server to the previous live-edit configuration mode, edit the <span style="font-style: italic;">PwmConfiguration.xml</span> file and set the
+                property "configIsEditable" to "true".</p>
+        <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
+            Edit or create a <i>PwmConfiguration.xml</i> file
+        </div>
 
+        <h2>Edit a New Configuration</h2>
+        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+        <h3><a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')"><%=template.getDescription()%></a></h3>
+        <% } %>
+        <p>Edit a new, default configuration in memory by selecting a new configuration template.  After editing the configuration, you can download
+        the <span style="font-style: italic;">PwmConfiguration.xml</span> file.</p>
         <h2>Upload Configuration File</h2>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
@@ -73,15 +82,11 @@
         </form>
         <p>Upload a previously saved (or current <span style="font-style: italic;">PwmConfiguration.xml</span>) configuration file into memory. The uploaded file will be available for editing during this
             browser session, and can then be downloaded to update/replace the current running configuration.</p>
-        <h2>Edit a New Configuration</h2>
-        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <h3><a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')"><%=template.getDescription()%></a></h3>
-        <% } %>
-        <p>Edit a new, default configuration in memory by selecting a new configuration template.  After editing the configuration, you can download
-        the <span style="font-style: italic;">PwmConfiguration.xml</span> file.</p>
-
-
         <% } else { %>
+        <p>
+            A modified configuration is currently in memory.  Please download the <i>PwmConfiguration.xml</i> file or return
+            to the editor.  To clear the in-memory configuration, open a new browser session.
+        </p>
 
         <h2><a href="#" onclick="document.forms['editMode'].submit();">Return to Editor</a></h2>
         <p>Continue editing the in memory configuration.</p>

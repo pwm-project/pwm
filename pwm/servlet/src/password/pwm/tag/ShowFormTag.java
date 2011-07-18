@@ -28,6 +28,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.Display;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 
@@ -57,8 +58,7 @@ public class ShowFormTag extends TagSupport {
     private static String getForm(
             final List<FormConfiguration> formFields,
             final Properties values,
-            final PwmSession pwmSession)
-    {
+            final PwmSession pwmSession) throws PwmUnrecoverableException {
         if (formFields == null) {
             return "";
         }
@@ -79,7 +79,7 @@ public class ShowFormTag extends TagSupport {
             final String value,
             final boolean confirm,
             final PwmSession pwmSession
-    ) {
+    ) throws PwmUnrecoverableException {
         final StringBuilder sb = new StringBuilder();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -170,7 +170,7 @@ public class ShowFormTag extends TagSupport {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private List<FormConfiguration> getForm(final PwmSession pwmSession) {
+    private List<FormConfiguration> getForm(final PwmSession pwmSession) throws PwmUnrecoverableException {
         if (formName.equalsIgnoreCase("newuser")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("activateuser")) {

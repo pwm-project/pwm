@@ -22,11 +22,15 @@
 
 package password.pwm.util;
 
-import password.pwm.*;
+import password.pwm.PwmConstants;
+import password.pwm.PwmSession;
+import password.pwm.SessionFilter;
+import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Message;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -36,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ServletHelper {
@@ -80,19 +85,23 @@ public class ServletHelper {
             final boolean forceLogout
     )
             throws IOException, ServletException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (ssBean.getSessionError() == null) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN));
+            if (ssBean.getSessionError() == null) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN));
+            }
+
+            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
+            theContext.getRequestDispatcher(url).forward(req, resp);
+            if (forceLogout) {
+                pwmSession.unauthenticateUser();
+            }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to error page: " + e.toString());
         }
 
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
-
-        if (forceLogout) {
-            pwmSession.unauthenticateUser();
-        }
     }
 
     public static void forwardToLoginPage(
@@ -101,7 +110,11 @@ public class ServletHelper {
     )
             throws IOException {
         final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
+        try{
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to error page: " + e.toString());
+        }
     }
 
     public static void forwardToOriginalRequestURL(
@@ -109,16 +122,22 @@ public class ServletHelper {
             final HttpServletResponse resp
     )
             throws IOException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        String destURL = ssBean.getOriginalRequestURL();
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
-            destURL = req.getContextPath();
+            String destURL = ssBean.getOriginalRequestURL();
+
+            if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
+                destURL = req.getContextPath();
+            }
+
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error forwarding user to original request url: " + e.toString());
         }
 
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
     }
 
     public static void forwardToSuccessPage(
@@ -127,14 +146,18 @@ public class ServletHelper {
             final ServletContext theContext
     )
             throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
+        try {
+            final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
 
-        if (ssBean.getSessionSuccess() == null) {
-            ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
+            if (ssBean.getSessionSuccess() == null) {
+                ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
+            }
+
+            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
+            theContext.getRequestDispatcher(url).forward(req, resp);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
-
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
     }
 
     public static String debugHttpHeaders(final HttpServletRequest req) {
@@ -180,7 +203,12 @@ public class ServletHelper {
 
             for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
                 final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = Validator.readStringsFromRequest(req, paramName, 1024);
+                final Set<String> paramValues = new HashSet<String>();
+                try {
+                    paramValues.addAll(Validator.readStringsFromRequest(req, paramName, 1024));
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error("unexpected error debugging http request: " + e.toString());
+                }
 
                 for (final String paramValue : paramValues) {
                     sb.append("  ").append(paramName).append("=");
@@ -227,11 +255,16 @@ public class ServletHelper {
             final String nextURL
     )
             throws IOException, ServletException {
-        final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
-        ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
+        try {
+            final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
+            ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
 
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);
-        theContext.getRequestDispatcher(url).forward(req, resp);
+            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);
+            theContext.getRequestDispatcher(url).forward(req, resp);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
+        }
+
     }
 
     public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {

@@ -492,7 +492,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     }
 
     private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
-            throws ChaiUnavailableException, PwmDataValidationException {
+            throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException {
         final List<FormConfiguration> requiredAttributesForm = pwmSession.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
 
         if (requiredAttributesForm.isEmpty()) {
@@ -582,7 +582,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
     }
 
-    private boolean sendEmailToken(final PwmSession pwmSession, final ChaiUser proxiedUser) {
+    private boolean sendEmailToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
@@ -610,7 +610,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         return true;
     }
 
-    private boolean sendSmsToken(final PwmSession pwmSession, final ChaiUser proxiedUser) {
+    private boolean sendSmsToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();

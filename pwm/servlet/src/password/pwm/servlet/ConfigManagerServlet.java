@@ -123,7 +123,7 @@ public class ConfigManagerServlet extends TopServlet {
         forwardToJSP(req, resp);
     }
 
-    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean, final Date configurationLoadTime) {
+    private void initialize(final PwmSession pwmSession, final ConfigurationReader.MODE configMode, final ConfigManagerBean configManagerBean, final Date configurationLoadTime) throws PwmUnrecoverableException {
         if (configMode != ConfigurationReader.MODE.RUNNING) {
             if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
                 LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configMode);
@@ -636,7 +636,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 

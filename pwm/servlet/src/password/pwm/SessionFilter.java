@@ -61,7 +61,7 @@ public class SessionFilter implements Filter {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) {
+    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
         if (pwmSession.getConfig() != null && !pwmSession.getConfig().readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
             return "";
         }
@@ -83,7 +83,7 @@ public class SessionFilter implements Filter {
      * @param pwmSession pwmSession used for config lookup
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
      */
-    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) {
+    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
         final boolean useXForwardedFor = pwmSession.getConfig() != null && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
 
         String userIP = "";
@@ -123,6 +123,16 @@ public class SessionFilter implements Filter {
 
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        try {
+            processFilter(req,resp,filterChain);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.fatal("unexpected error processing session filter: " + e.getMessage(), e );
+        }
+
+    }
+
+    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain) throws PwmUnrecoverableException, IOException, ServletException {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final ServletContext servletContext = pwmSession.getContextManager().getServletContext();
@@ -259,7 +269,7 @@ public class SessionFilter implements Filter {
         //servletContext = null;
     }
 
-    public static String rewriteURL(final String url, final ServletRequest request, final ServletResponse response) {
+    public static String rewriteURL(final String url, final ServletRequest request, final ServletResponse response) throws PwmUnrecoverableException {
         if (urlSessionsAllowed(request) && url != null) {
             final HttpServletResponse resp = (HttpServletResponse) response;
             final String newURL = resp.encodeURL(resp.encodeURL(url));
@@ -273,7 +283,7 @@ public class SessionFilter implements Filter {
         }
     }
 
-    public static String rewriteRedirectURL(final String url, final ServletRequest request, final ServletResponse response) {
+    public static String rewriteRedirectURL(final String url, final ServletRequest request, final ServletResponse response) throws PwmUnrecoverableException {
         if (urlSessionsAllowed(request) && url != null) {
             final HttpServletResponse resp = (HttpServletResponse) response;
             final String newURL = resp.encodeRedirectURL(resp.encodeURL(url));
@@ -287,7 +297,7 @@ public class SessionFilter implements Filter {
         }
     }
 
-    private static boolean urlSessionsAllowed(final ServletRequest request) {
+    private static boolean urlSessionsAllowed(final ServletRequest request) throws PwmUnrecoverableException {
         final HttpServletRequest req = (HttpServletRequest) request;
         final ContextManager theManager = ContextManager.getContextManager(req);
         return theManager != null && theManager.getConfig() != null && theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
@@ -307,7 +317,7 @@ public class SessionFilter implements Filter {
             final HttpServletResponse resp,
             final ServletContext servletContext
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -380,7 +390,7 @@ public class SessionFilter implements Filter {
         return sb.toString();
     }
 
-    private static String readUrlParameterFromRequest(final HttpServletRequest req, final String paramName, final PwmSession pwmSession) {
+    private static String readUrlParameterFromRequest(final HttpServletRequest req, final String paramName, final PwmSession pwmSession) throws PwmUnrecoverableException {
         final String paramValue = Validator.readStringFromRequest(req, paramName, 4096);
         if (paramValue == null || paramValue.length() < 1) {
             return null;
@@ -397,7 +407,7 @@ public class SessionFilter implements Filter {
         return paramValue;
     }
 
-    private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException {
+    private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = ContextManager.getContextManager(req.getSession());

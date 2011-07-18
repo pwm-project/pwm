@@ -24,6 +24,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmSession;
+import password.pwm.Validator;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.ServletHelper;
@@ -37,6 +38,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * An abstract parent of all PWM servlets.  This is the parent class of most, if not all, PWM
@@ -66,40 +69,63 @@ public abstract class TopServlet extends HttpServlet {
             final HttpServletResponse resp
     )
             throws ServletException, IOException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        ssBean.setLastParameterValues(req);
 
+        PwmSession pwmSession = null;
+        SessionStateBean ssBean = null;
         try {
+            pwmSession = PwmSession.getPwmSession(req);
+            ssBean = pwmSession.getSessionStateBean();
+            setLastParameters(req,ssBean);
             this.processRequest(req, resp);
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            try {
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            } catch (Throwable e1) {
+                // oh well
+            }
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmUnrecoverableException e) {
             if (PwmError.ERROR_UNKNOWN.equals(e.getErrorInformation().getError())) {
                 LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                try { // try to update stats
+                    if (pwmSession != null) {
+                        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                    }
+                } catch (Throwable e1) {
+                    // oh well
+                }
             } else {
                 LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
             }
-            if (e.getMessage() == null) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
-            } else {
+
+            if (ssBean != null) {
                 ssBean.setSessionError(e.getErrorInformation());
             }
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
-            if (pwmSession.getContextManager().getStatisticsManager() != null) {
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
-                LOGGER.warn(pwmSession, "unexpected exception during page generation: " + e.getMessage(), e);
+            LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
+            if (ssBean != null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
-                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             }
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
+
+    private void setLastParameters(final HttpServletRequest req, final SessionStateBean ssBean) throws PwmUnrecoverableException {
+        final Set keyNames = req.getParameterMap().keySet();
+        final Properties newParamProperty = new Properties();
+
+        for (final Object name : keyNames) {
+            final String value = Validator.readStringFromRequest(req, (String) name, 4096);
+            newParamProperty.setProperty((String) name, value);
+        }
+
+        ssBean.setLastParameterValues(newParamProperty);
+    }
+
 
     protected abstract void processRequest(
             HttpServletRequest req,

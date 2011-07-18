@@ -182,7 +182,7 @@ public class NewUserServlet extends TopServlet {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
     }
 
-    private void sendNewUserEmailConfirmation(final PwmSession pwmSession) {
+    private void sendNewUserEmailConfirmation(final PwmSession pwmSession) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();

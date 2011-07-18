@@ -276,11 +276,11 @@ public class PasswordRequirementsTag extends TagSupport {
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {
-        final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final Configuration config = pwmSession.getConfig();
-        final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
         try {
+            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final Configuration config = pwmSession.getConfig();
+            final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
             final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
             final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
             final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());
@@ -294,7 +294,7 @@ public class PasswordRequirementsTag extends TagSupport {
 
             pageContext.getOut().write(requirementsText.toString());
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "unexpected error during password requirements generation: " + e.getMessage(), e);
+            LOGGER.error("unexpected error during password requirements generation: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());
         }
         return EVAL_PAGE;

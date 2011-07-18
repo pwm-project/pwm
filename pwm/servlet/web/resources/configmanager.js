@@ -165,13 +165,6 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     addButton.innerHTML = 'Add Locale';
     td1.appendChild(addButton);
 
-    var resetImage = document.createElement("img");
-    resetImage.setAttribute('src', '../resources/reset.gif');
-    resetImage.setAttribute('id', 'resetButton-' + keyName);
-    resetImage.setAttribute("style", "visibility:hidden; vertical-align:middle");
-    resetImage.setAttribute("onclick", "handleResetClick('" + keyName + "')");
-    td1.appendChild(resetImage);
-
     newTableRow.appendChild(td1);
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
@@ -331,13 +324,6 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
             addItemButton.setAttribute("dojoType", "dijit.form.Button");
             addItemButton.innerHTML = "Add Value";
             newTableData.appendChild(addItemButton);
-
-            var resetImage = document.createElement("img");
-            resetImage.setAttribute('src', '../resources/reset.gif');
-            resetImage.setAttribute('id', 'resetButton-' + keyName);
-            resetImage.setAttribute("style", "visibility:hidden; vertical-align:middle");
-            resetImage.setAttribute("onclick", "handleResetClick('" + keyName + "')");
-            newTableData.appendChild(resetImage);
 
             newTableRow.appendChild(newTableData);
             var parentDivElement = getObject(parentDiv);
@@ -597,7 +583,7 @@ function saveConfiguration() {
             showError('Waiting for server restart');
             setTimeout(function() {
                 waitForRestart(currentTime, oldEpoch);
-            }, 10 * 1000);
+            }, 2 * 1000);
         },
         error: function(error) {
             alert(error);
@@ -624,7 +610,7 @@ function finalizeConfiguration() {
             showError('Waiting for server restart');
             setTimeout(function() {
                 waitForRestart(currentTime, oldEpoch);
-            }, 5 * 1000);
+            }, 1000);
         },
         error: function(error) {
             alert(error);

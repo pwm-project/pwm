@@ -65,7 +65,7 @@ public class SessionManager implements Serializable {
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public ChaiProvider getChaiProvider(final String userDN, final String userPassword)
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         try {
             providerLock.lock();
             closeConnectionImpl();
@@ -98,7 +98,7 @@ public class SessionManager implements Serializable {
     }
 
     private static ChaiProvider makeChaiProvider(final PwmSession pwmSession, final String userDN, final String userPassword)
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final long startTime = System.currentTimeMillis();
         final StringBuilder debugLogText = new StringBuilder();
         final Configuration config = pwmSession.getConfig();

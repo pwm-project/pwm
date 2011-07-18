@@ -174,8 +174,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final PwmSession pwmSession,
             final HttpServletRequest req
     )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException
-    {
+            throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
         final Configuration config = PwmSession.getPwmSession(req).getConfig();
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
@@ -214,7 +213,7 @@ public class GuestRegistrationServlet extends TopServlet {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
     }
 
-    private void sendGuestUserEmailConfirmation(final PwmSession pwmSession) {
+    private void sendGuestUserEmailConfirmation(final PwmSession pwmSession) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();

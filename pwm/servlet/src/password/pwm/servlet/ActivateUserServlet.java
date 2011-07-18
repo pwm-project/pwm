@@ -246,8 +246,7 @@ public class ActivateUserServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         String searchFilter = pwmSession.getConfig().readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
@@ -259,7 +258,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private static ChaiUser performUserSearch(final PwmSession pwmSession, final String searchFilter, final String searchBase)
-            throws ChaiUnavailableException, PwmOperationalException {
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(2);
         searchHelper.setFilter(searchFilter);
@@ -330,7 +329,7 @@ public class ActivateUserServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER).forward(req, resp);
     }
 
-    private void sendActivationEmail(final PwmSession pwmSession) {
+    private void sendActivationEmail(final PwmSession pwmSession) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();

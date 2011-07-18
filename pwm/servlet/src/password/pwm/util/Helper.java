@@ -132,8 +132,7 @@ public class Helper {
             final PwmSession pwmSession,
             final String userDN
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         {
             final String guidValue = pwmSession.getUserInfoBean().getUserGuid();
             if (guidValue != null && guidValue.length() > 1) {
@@ -223,7 +222,7 @@ public class Helper {
             final String userDN,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
@@ -324,7 +323,7 @@ public class Helper {
      * @throws ChaiUnavailableException if the directory is unavailble
      */
     public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final ChaiUser theUser)
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         boolean success = false;
 
         final String updateAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
@@ -367,7 +366,7 @@ public class Helper {
     public static void invokeExternalChangeMethods(
             final PwmSession pwmSession,
             final String oldPassword,
-            final String newPassword) {
+            final String newPassword) throws PwmUnrecoverableException {
         final List<String> externalMethods = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
 
         // process any configured external change password methods configured.
@@ -403,7 +402,7 @@ public class Helper {
     public static List<Integer> invokeExternalJudgeMethods(
             final Configuration config,
             final PwmSession pwmSession,
-            final String password) {
+            final String password) throws PwmUnrecoverableException {
         final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_JUDGE_METHODS);
         final List<Integer> returnList = new ArrayList<Integer>();
 

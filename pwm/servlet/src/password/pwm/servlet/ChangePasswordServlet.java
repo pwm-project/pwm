@@ -441,7 +441,7 @@ public class ChangePasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final String agreementMsg = pwmSession.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, userLocale);

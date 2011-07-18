@@ -292,7 +292,7 @@ public class GuestUpdateServlet extends TopServlet {
         return;
     }
 
-    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) {
+    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) throws PwmUnrecoverableException {
         final ContextManager theManager = pwmSession.getContextManager();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();

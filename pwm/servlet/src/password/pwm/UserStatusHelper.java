@@ -68,7 +68,7 @@ public class UserStatusHelper {
             final ChaiUser theUser,
             final PwmPasswordPolicy passwordPolicy
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final PasswordStatus returnState = new PasswordStatus();
         final Configuration config = pwmSession.getConfig();
         final String userDN = theUser.getEntryDN();

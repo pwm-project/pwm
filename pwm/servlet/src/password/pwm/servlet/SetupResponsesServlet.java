@@ -364,7 +364,7 @@ public class SetupResponsesServlet extends TopServlet {
             final ChallengeSet challengeSet,
             final Map<Challenge, String> responseMap
     )
-            throws PwmDataValidationException {
+            throws PwmDataValidationException, PwmUnrecoverableException {
 
         final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
 
@@ -481,7 +481,9 @@ public class SetupResponsesServlet extends TopServlet {
         }
     }
 
-    private void populateBean(final PwmSession pwmSession, final ChallengeSet challengeSet) {
+    private void populateBean(final PwmSession pwmSession, final ChallengeSet challengeSet)
+            throws PwmUnrecoverableException
+    {
         int minRandomSetup;
         boolean useSimple = true;
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<String, Challenge>();

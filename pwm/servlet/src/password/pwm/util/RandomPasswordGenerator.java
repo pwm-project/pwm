@@ -29,6 +29,7 @@ import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;
@@ -64,7 +65,7 @@ public class RandomPasswordGenerator {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String createRandomPassword(
-            final PwmSession pwmSession) {
+            final PwmSession pwmSession) throws PwmUnrecoverableException {
         final ContextManager contextManager = pwmSession.getContextManager();
         final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
         final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();

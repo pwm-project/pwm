@@ -71,6 +71,7 @@ public class AuthenticationFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
+        try {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -79,6 +80,10 @@ public class AuthenticationFilter implements Filter {
             this.processAuthenticatedSession(req, resp, chain);
         } else {
             this.processUnAuthenticatedSession(req, resp, chain);
+        }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error(e.toString());
+            throw new ServletException(e.toString());
         }
     }
 
@@ -95,7 +100,7 @@ public class AuthenticationFilter implements Filter {
             final HttpServletResponse resp,
             final FilterChain chain
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -133,7 +138,7 @@ public class AuthenticationFilter implements Filter {
             final HttpServletResponse resp,
             final FilterChain chain
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 

@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
@@ -54,29 +55,38 @@ public class EventManager implements ServletContextListener, HttpSessionListener
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
-        final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
-        final ContextManager contextManager = pwmSession.getContextManager();
 
-        if (contextManager != null) {
-            if (contextManager.getStatisticsManager() != null) {
-                contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
+            final ContextManager contextManager = pwmSession.getContextManager();
+
+            if (contextManager != null) {
+                if (contextManager.getStatisticsManager() != null) {
+                    contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
+                }
+                contextManager.addPwmSession(pwmSession);
             }
-            contextManager.addPwmSession(pwmSession);
+
+            LOGGER.trace(pwmSession, "http session created");
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to establish pwm session: " + e.getMessage());
         }
 
         // add a few grace seconds to the idle interval
         if (httpSession.getMaxInactiveInterval() % 60 == 0) {
             httpSession.setMaxInactiveInterval(httpSession.getMaxInactiveInterval() + 2);
         }
-
-        LOGGER.trace(pwmSession, "http session created");
     }
 
     public void sessionDestroyed(final HttpSessionEvent httpSessionEvent)
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-        LOGGER.trace(pwmSession, "http session destroyed");
-        pwmSession.getSessionManager().closeConnections();
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
+            LOGGER.trace(pwmSession, "http session destroyed");
+            pwmSession.getSessionManager().closeConnections();
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to destroy pwm session: " + e.getMessage());
+        }
     }
 
 // --------------------- Interface ServletContextListener ---------------------
@@ -103,8 +113,12 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
     public void contextDestroyed(final ServletContextEvent servletContextEvent)
     {
-        final ContextManager contextManager = ContextManager.getContextManager(servletContextEvent.getServletContext());
-        contextManager.shutdown();
+        try {
+            final ContextManager contextManager = ContextManager.getContextManager(servletContextEvent.getServletContext());
+            contextManager.shutdown();
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to destroy pwm context: " + e.getMessage());
+        }
     }
 
 
@@ -112,15 +126,23 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
     public void sessionWillPassivate(final HttpSessionEvent event)
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
-        LOGGER.trace(pwmSession,"passivating session");
-        pwmSession.getSessionManager().closeConnections();
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
+            LOGGER.trace(pwmSession,"passivating session");
+            pwmSession.getSessionManager().closeConnections();
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to passivate pwm context: " + e.getMessage());
+        }
     }
 
     public void sessionDidActivate(final HttpSessionEvent event)
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
-        LOGGER.trace(pwmSession,"activating (de-passivating) session");
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
+            LOGGER.trace(pwmSession,"activating (de-passivating) session");
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to activate  pwm context: " + e.getMessage());
+        }
     }
 }
 

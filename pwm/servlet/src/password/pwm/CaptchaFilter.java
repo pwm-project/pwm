@@ -24,6 +24,7 @@ package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.*;
@@ -38,19 +39,31 @@ public class CaptchaFilter implements Filter {
     public void init(final FilterConfig filterConfig) throws ServletException {
     }
 
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
+            throws IOException, ServletException
+    {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        try {
+            processFilter(req,resp,filterChain);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.fatal("unexpected error processing captcha filter: " + e.getMessage(), e );
+        }
+    }
+
+    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
+            throws PwmUnrecoverableException, IOException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String captchaServletURL = ((HttpServletRequest) servletRequest).getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
+        final String captchaServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
 
         checkIfCaptchaEnabled(pwmSession,ssBean);
 
         try {
             if (ssBean.isPassedCaptcha()) {
-                filterChain.doFilter(servletRequest, servletResponse);
+                filterChain.doFilter(req, resp);
                 return;
             }
 
@@ -75,7 +88,7 @@ public class CaptchaFilter implements Filter {
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(SessionFilter.rewriteRedirectURL(captchaServletURL,req,resp), req, resp));
     }
 
-    private void checkIfCaptchaEnabled(final PwmSession pwmSession, final SessionStateBean ssBean) {
+    private void checkIfCaptchaEnabled(final PwmSession pwmSession, final SessionStateBean ssBean) throws PwmUnrecoverableException {
         if (ssBean.isPassedCaptcha()) {
             return;
         }

@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordCharCounter;
 
 public class PwmPasswordJudge implements ExternalJudgeMethod {
@@ -31,8 +32,7 @@ public class PwmPasswordJudge implements ExternalJudgeMethod {
      * @param password password to check
      * @return 0-100, 0 being a very week password, 100 being a strong password.
      */
-    public int judgePassword(final PwmSession pwmSession, final String password)
-    {
+    public int judgePassword(final PwmSession pwmSession, final String password) throws PwmUnrecoverableException {
         if (password == null || password.length() < 1) {
             return 0;
         }

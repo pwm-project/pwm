@@ -31,6 +31,7 @@ import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
@@ -57,11 +58,11 @@ public class Configuration implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static Configuration getConfig(final HttpSession session) {
+    public static Configuration getConfig(final HttpSession session) throws PwmUnrecoverableException {
         return ContextManager.getContextManager(session).getConfig();
     }
 
-    public static Configuration getConfig(final HttpServletRequest request) {
+    public static Configuration getConfig(final HttpServletRequest request) throws PwmUnrecoverableException {
         return ContextManager.getContextManager(request).getConfig();
     }
 

@@ -62,7 +62,7 @@ public class CrUtility {
             final ChaiUser theUser,
             final PwmPasswordPolicy policy,
             final Locale locale
-    ) {
+    ) throws PwmUnrecoverableException {
         final long methodStartTime = System.currentTimeMillis();
 
         ChallengeSet returnSet = null;
@@ -477,7 +477,11 @@ public class CrUtility {
                 LOGGER.error("NovellWSResponseSet: error processing web service response: " + e.getMessage());
             }
 
-            pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+            try {
+                pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+            } catch (PwmUnrecoverableException e) {
+                // nothing to be done
+            }
             return false;  //To change body of implemented methods use File | Settings | File Templates.
         }
 

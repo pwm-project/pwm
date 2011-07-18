@@ -37,6 +37,7 @@ package password.pwm.servlet;
 
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
@@ -111,9 +112,17 @@ public class ResourceFileServlet extends HttpServlet {
 
         final File file = resolveRequestedFile(request);
 
+        PwmSession pwmSession = null;
+        try {
+            pwmSession = PwmSession.getPwmSession(request);
+        } catch (PwmUnrecoverableException e) {
+            // ignore
+        }
+
+
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
             return;
         }
 
@@ -162,10 +171,10 @@ public class ResourceFileServlet extends HttpServlet {
 
         try {
             handleCachedResponse(response, file, includeBody, acceptsGzip);
-            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request,"(from cache)"));
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(from cache)"));
         } catch (UncacheableResourceException e) {
             handleUncachedResponse(response, file, includeBody, acceptsGzip);
-            LOGGER.trace(PwmSession.getPwmSession(request), ServletHelper.debugHttpRequest(request));
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
         }
     }
 
@@ -326,10 +335,18 @@ public class ResourceFileServlet extends HttpServlet {
 
     private static String makeETag(final HttpServletRequest req, final File file) {
         final StringBuilder sb = new StringBuilder();
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        String startupTime = null;
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            startupTime = String.valueOf(pwmSession.getContextManager().getStartupTime().getTime());
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to load context startup time: " + e.getMessage());
+        }
+
         sb.append(PwmConstants.BUILD_NUMBER);
         sb.append("-");
-        sb.append(pwmSession.getContextManager().getStartupTime().getTime());
+        sb.append(startupTime);
         sb.append("-");
         sb.append(file.length());
         sb.append("-");

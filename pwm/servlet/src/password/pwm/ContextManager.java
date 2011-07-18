@@ -108,17 +108,23 @@ public class ContextManager implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static ContextManager getContextManager(final HttpServletRequest request) {
+    public static ContextManager getContextManager(final HttpServletRequest request) throws PwmUnrecoverableException {
         return getContextManager(request.getSession());
     }
 
-    public static ContextManager getContextManager(final HttpSession session) {
+    public static ContextManager getContextManager(final HttpSession session) throws PwmUnrecoverableException {
         return getContextManager(session.getServletContext());
     }
 
-    public static ContextManager getContextManager(final ServletContext theContext) {
+    public static ContextManager getContextManager(final ServletContext theContext) throws PwmUnrecoverableException {
         // context manager is initialized at servlet context startup.
         final Object theManager = theContext.getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER);
+        if (theManager == null) {
+            final String errorMsg = "unable to load the context manager from servlet context";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
         return (ContextManager) theManager;
     }
 
@@ -383,6 +389,7 @@ public class ContextManager implements Serializable {
 
         try {
             servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, null);
+            Helper.pause(5000);
             this.shutdown();
         } catch (Throwable e) {
             LOGGER.fatal("error trying to shutdown ContextManager during restart");

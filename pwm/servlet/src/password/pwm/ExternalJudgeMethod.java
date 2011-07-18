@@ -22,6 +22,8 @@
 
 package password.pwm;
 
+import password.pwm.error.PwmUnrecoverableException;
+
 public interface ExternalJudgeMethod {
     /**
      * Return a "judge" value for a supplied password.  Implementations of this method may be invoked
@@ -30,5 +32,5 @@ public interface ExternalJudgeMethod {
      * @param password password string to evaluate
      * @return an integer between 0 and 100, inclusive.  Values outside this range will be ignored.
      */
-    int judgePassword(PwmSession pwmSession, String password);
+    int judgePassword(PwmSession pwmSession, String password) throws PwmUnrecoverableException;
 }

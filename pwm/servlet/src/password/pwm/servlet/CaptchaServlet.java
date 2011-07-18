@@ -210,7 +210,7 @@ public class CaptchaServlet extends TopServlet {
         ServletHelper.forwardToOriginalRequestURL(req, resp);
     }
 
-    private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletResponse resp) {
+    private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletResponse resp) throws PwmUnrecoverableException {
         final String cookieValue = figureSkipCookieValue(pwmSession);
         if (cookieValue != null) {
             final Cookie skipCookie = new Cookie(SKIP_COOKIE_NAME, cookieValue);
@@ -220,7 +220,7 @@ public class CaptchaServlet extends TopServlet {
         }
     }
 
-    private static String figureSkipCookieValue(final PwmSession pwmSession) {
+    private static String figureSkipCookieValue(final PwmSession pwmSession) throws PwmUnrecoverableException {
         String cookieValue = pwmSession.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_COOKIE);
         if (cookieValue == null || cookieValue.trim().length() < 1) {
             return null;
@@ -234,7 +234,7 @@ public class CaptchaServlet extends TopServlet {
         return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;
     }
 
-    private static boolean checkRequestForCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletRequest req) {
+    private static boolean checkRequestForCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletRequest req) throws PwmUnrecoverableException {
         final String cookieValue = figureSkipCookieValue(pwmSession);
         if (cookieValue != null) {
             final Cookie[] cookies = req.getCookies();
