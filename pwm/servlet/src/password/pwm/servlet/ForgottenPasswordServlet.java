@@ -453,7 +453,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     public static Map<Challenge, String> readResponsesFromHttpRequest(
             final HttpServletRequest req,
             final ChallengeSet challengeSet)
-            throws ChaiValidationException, ChaiUnavailableException {
+            throws ChaiValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final Map<Challenge, String> responses = new LinkedHashMap<Challenge, String>();
 
         int counter = 0;

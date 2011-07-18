@@ -22,15 +22,15 @@
 
 package password.pwm;
 
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.config.Configuration;
 
 public interface ExternalJudgeMethod {
     /**
      * Return a "judge" value for a supplied password.  Implementations of this method may be invoked
      * as frequently as individual keystrokes of users 
-     * @param pwmSession The user's current pwmSession.  In some cases this may be null.
+     * @param configuration The user's current pwmSession.  In some cases this may be null.
      * @param password password string to evaluate
      * @return an integer between 0 and 100, inclusive.  Values outside this range will be ignored.
      */
-    int judgePassword(PwmSession pwmSession, String password) throws PwmUnrecoverableException;
+    int judgePassword(Configuration configuration, String password);
 }

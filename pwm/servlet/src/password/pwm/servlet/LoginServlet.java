@@ -124,7 +124,7 @@ public class
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }

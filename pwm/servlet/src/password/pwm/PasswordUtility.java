@@ -314,7 +314,7 @@ public class PasswordUtility {
             final Configuration config,
             final PwmSession pwmSession,
             final String password
-    ) {
+    )  {
         final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(config, pwmSession, password);
 
         // strip invalid values

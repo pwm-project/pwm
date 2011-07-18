@@ -157,7 +157,7 @@ public class PeopleSearchServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PEOPLE_SEARCH, req, resp);
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }

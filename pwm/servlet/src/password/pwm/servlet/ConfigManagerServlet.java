@@ -25,12 +25,12 @@ package password.pwm.servlet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.ContextManager;
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -518,7 +518,7 @@ public class ConfigManagerServlet extends TopServlet {
                 final ContextManager contextManager = pwmSession.getContextManager();
                 contextManager.getConfigReader().saveConfiguration(storedConfiguration);
                 contextManager.setLastLdapFailure(null);
-                contextManager.reinitialize();
+                EventManager.reinitializeContext(pwmSession.getContextManager().getServletContext());
             }
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();

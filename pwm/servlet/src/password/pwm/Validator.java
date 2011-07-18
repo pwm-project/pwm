@@ -385,7 +385,7 @@ public class Validator {
             final boolean testOldPassword,
             final PwmPasswordPolicy policy,
             final ContextManager contextManager
-    ) {
+    ) throws PwmUnrecoverableException {
         final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
         if (contextManager != null) {
             final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
@@ -401,7 +401,7 @@ public class Validator {
             final boolean testOldPassword,
             final PwmPasswordPolicy policy,
             final ContextManager contextManager
-    ) {
+    ) throws PwmUnrecoverableException {
         // null check
         if (password == null) {
             return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN, "empty (null) new password"));

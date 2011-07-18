@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import password.pwm.config.Configuration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordCharCounter;
 
@@ -32,7 +33,7 @@ public class PwmPasswordJudge implements ExternalJudgeMethod {
      * @param password password to check
      * @return 0-100, 0 being a very week password, 100 being a strong password.
      */
-    public int judgePassword(final PwmSession pwmSession, final String password) throws PwmUnrecoverableException {
+    public int judgePassword(final Configuration config, final String password) {
         if (password == null || password.length() < 1) {
             return 0;
         }
@@ -74,13 +75,6 @@ public class PwmPasswordJudge implements ExternalJudgeMethod {
         // sequential chars
         if (charCounter.getSequentialRepeatedChars() > 1) {
             score = score - (charCounter.getSequentialRepeatedChars()) * 5;
-        }
-
-        // in wordlist.
-        if (pwmSession != null && pwmSession.getContextManager() != null && pwmSession.getContextManager().getWordlistManager() != null ) {
-            if (pwmSession.getContextManager().getWordlistManager().containsWord(pwmSession,password)) {
-                score = (int)(score * 0.50f);
-            }
         }
 
         return score > 100 ? 100 : score < 0 ? 0 : score;

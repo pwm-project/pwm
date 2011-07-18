@@ -26,6 +26,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.*;
@@ -142,6 +143,31 @@ public class EventManager implements ServletContextListener, HttpSessionListener
             LOGGER.trace(pwmSession,"activating (de-passivating) session");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to activate  pwm context: " + e.getMessage());
+        }
+    }
+
+    public static void reinitializeContext(final ServletContext servletContext) {
+        LOGGER.info("restarting PWM application");
+
+
+        try {
+            final ContextManager currentManager = ContextManager.getContextManager(servletContext);
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, null);
+            currentManager.shutdown();
+        } catch (Throwable e) {
+            LOGGER.fatal("error trying to shutdown ContextManager during restart");
+        }
+
+        try {
+            final ContextManager newContextManager = new ContextManager();
+            newContextManager.initialize(servletContext);
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
+        } catch (OutOfMemoryError e) {
+            LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.fatal("error initializing pwm context: " + e, e);
+            System.err.println("error initializing pwm context: " + e);
         }
     }
 }

@@ -402,7 +402,7 @@ public class Helper {
     public static List<Integer> invokeExternalJudgeMethods(
             final Configuration config,
             final PwmSession pwmSession,
-            final String password) throws PwmUnrecoverableException {
+            final String password)  {
         final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_JUDGE_METHODS);
         final List<Integer> returnList = new ArrayList<Integer>();
 
@@ -415,7 +415,7 @@ public class Helper {
                     final ExternalJudgeMethod externalClass = (ExternalJudgeMethod) theClass.newInstance();
 
                     // invoke the passwordChange method;
-                    final int result = externalClass.judgePassword(pwmSession, password);
+                    final int result = externalClass.judgePassword(config, password);
                     LOGGER.trace(pwmSession, "externalJudgeMethod '" + classNameString + "' returned a value of " + result);
                     returnList.add(result);
                 } catch (ClassCastException e) {

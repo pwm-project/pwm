@@ -37,6 +37,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -156,6 +157,8 @@ public class LDAPStatusChecker implements HealthChecker {
                     return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected policy error while writing test user temporary random password: " + e.getMessage());
                 } catch (ChaiException e) {
                     return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected ldap error while writing test user temporary random password: " + e.getMessage());
+                } catch (PwmUnrecoverableException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
             }
         }

@@ -77,7 +77,7 @@ public class RandomPasswordGenerator {
             final PwmPasswordPolicy passwordPolicy,
             final SeedlistManager seedlistManagr,
             final ContextManager contextManager
-    ) {
+    ) throws PwmUnrecoverableException {
         Set<String> seeds = DEFAULT_SEED_PHRASES;
 
         if (seedlistManagr != null && seedlistManagr.status() == PwmService.STATUS.OPEN && seedlistManagr.size() > 0) {
@@ -125,7 +125,7 @@ public class RandomPasswordGenerator {
             final PwmSession pwmSession,
             final RandomGeneratorConfig randomGeneratorConfig,
             final ContextManager contextManager
-    ) {
+    ) throws PwmUnrecoverableException {
         final long startTimeMS = System.currentTimeMillis();
 
         final SeedMachine seedMachine = new SeedMachine(normalizeSeeds(randomGeneratorConfig.getSeedlistPhrases()));
