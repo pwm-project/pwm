@@ -59,7 +59,7 @@
                 <pwm:ErrorMessage/>
             </span>
             <% } %>
-            <h2><label for="code">Code</label></h2>
+            <h2><label for="code"><pwm:Display key="Field_Code"/></label></h2>
             <input type="text" id="code" name="code" class="inputfield"/>
 
             <div id="buttonbar">

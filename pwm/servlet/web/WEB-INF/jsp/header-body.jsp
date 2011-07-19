@@ -53,7 +53,7 @@
         <pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/>
     </div>
     <div id="header-title">
-        <pwm:Display key="APPLICATION-TITLE"/>
+        <pwm:Display key="Title_Application"/>
     </div>
 </div>
 

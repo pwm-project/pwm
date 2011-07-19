@@ -21,16 +21,12 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.util.Helper" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -41,7 +37,7 @@
 <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
 <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
-<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/header.jsp" %>

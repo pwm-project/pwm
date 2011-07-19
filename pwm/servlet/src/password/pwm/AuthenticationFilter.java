@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Display;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.*;
@@ -201,10 +202,7 @@ public class AuthenticationFilter implements Filter {
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
-            String displayMessage = PwmSession.getPwmSession(req).getContextManager().getConfig().readSettingAsLocalizedString(PwmSetting.APPLICATION_TILE, ssBean.getLocale());
-            if (displayMessage == null) {
-                displayMessage = "Password Self Service";
-            }
+            final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmSession.getConfig());
 
             resp.setHeader("WWW-Authenticate", "Basic realm=\"" + displayMessage + "\"");
             resp.setStatus(401);

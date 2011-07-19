@@ -44,7 +44,7 @@ public class MainClass {
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
-        out("PWM Command Line - " + PwmConstants.PWM_DEFAULT_APPLICATION_NAME + " " + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
+        out("PWM Command Line - " + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
         if (args == null || args.length < 1) {
             out("");
             out(" [command] option option");

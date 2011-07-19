@@ -27,7 +27,6 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.Display;
-import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -94,18 +93,7 @@ public class DisplayTag extends PwmAbstractTag {
             final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
             final ContextManager contextManager = ContextManager.getContextManager(req);
 
-            String displayMessage = PwmConstants.PWM_DEFAULT_APPLICATION_NAME;
-
-            if ("APPLICATION-TITLE".equals(key)) { // special case, this one value is set via configuration, net .properties files setting
-                if (contextManager != null && contextManager.getConfig() != null) {
-                    final String pwmSettingValue = contextManager.getConfig().readSettingAsLocalizedString(PwmSetting.APPLICATION_TILE, locale);
-                    if (pwmSettingValue != null && pwmSettingValue.length() > 0) {
-                        displayMessage = pwmSettingValue;
-                    }
-                }
-            } else {
-                displayMessage = figureDisplayMessage(locale, contextManager.getConfig());
-            }
+            final String displayMessage = figureDisplayMessage(locale, contextManager.getConfig());
 
             pageContext.getOut().write(displayMessage);
         } catch (Exception e) {
