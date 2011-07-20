@@ -63,7 +63,7 @@
         <p>If you wish to return this server to the previous live-edit configuration mode, edit the <span style="font-style: italic;">PwmConfiguration.xml</span> file and set the
                 property "configIsEditable" to "true".</p>
         <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
-            Edit or create a <i>PwmConfiguration.xml</i> file
+            Edit or create a <span style="font-style: italic;">PwmConfiguration.xml</span> file:
         </div>
 
         <h2>Edit a New Configuration</h2>

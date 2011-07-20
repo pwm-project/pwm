@@ -22,7 +22,7 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <head>
-    <title><pwm:Display key="APPLICATION-TITLE"/>
+    <title><pwm:Display key="Title_Application"/>
         <% // can't use <jsp:UseBean> because it will cause duplicate useBean error.
             final String userField = password.pwm.PwmSession.getPwmSession(request).getUserInfoBean().getUserID();
             if (userField != null && userField.length() > 0) {
@@ -36,7 +36,7 @@
     <meta name="X-Pwm-Instance"
           content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
     <meta name="X-Pwm-Version"
-          content="<%=password.pwm.PwmConstants.PWM_VERSION%>"/>
+          content="<%=password.pwm.PwmConstants.PWM_VERSION%> (<%=password.pwm.PwmConstants.BUILD_TYPE%>)"/>
     <meta name="X-Pwm-Build"
           content="<%=password.pwm.PwmConstants.BUILD_NUMBER%>"/>
     <meta name="viewport" content="width=320, user-scalable=no"/>

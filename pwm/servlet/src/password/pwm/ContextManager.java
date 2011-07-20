@@ -346,7 +346,8 @@ public class ContextManager implements Serializable {
         taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
-        LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " (" + PwmConstants.BUILD_NUMBER + ") open for bidness! (" + totalTime.asCompactString() + ")");
+        LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", pwmDefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
         // detect if config has been modified since previous startup
         try {

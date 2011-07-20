@@ -38,11 +38,13 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_NUMBER = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.number");
-    public static final String PWM_VERSION = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.version");
-    public static final String PWM_WEBSITE = ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.website");
+    public static final String BUILD_TIME =     ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.time");
+    public static final String BUILD_NUMBER =   ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.number");
+    public static final String BUILD_TYPE =     ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.type");
+    public static final String PWM_VERSION =    ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.version");
+    public static final String PWM_WEBSITE =    ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.website");
 
-    public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER;
+    public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER + " (" + BUILD_TYPE + ")";
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int MAX_SMS_QUEUE_SIZE = 100;

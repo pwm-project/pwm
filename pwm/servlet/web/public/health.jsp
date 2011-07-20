@@ -34,7 +34,7 @@
         <table class="tablemain">
             <tr>
                 <td class="title" colspan="10">
-                    <pwm:Display key="APPLICATION-TITLE"/> Health
+                    <pwm:Display key="Title_Application"/> Health
                 </td>
             </tr>
             <tr>

@@ -6,6 +6,17 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.5.6
+---
++ Added turkish locale, thanks erdem.bayer! (issue #86)
++ Added slovak locale, thanks svacko! (issue #87)
++ Added hebrew locale, thanks dordorqwerty! (issue #92)
+* More better configmanager process
+- Fixed bug where unsupported browser locale results in blank page/null pointer (issue #83)
+- Fixed bug where non-english server locale results in configuration manager issues (issue #84)
+
+
+
 v1.5.5 (July 7, 2011) build 1056
 ---
 - Update profile error removing attribute on blank value (issue #74)

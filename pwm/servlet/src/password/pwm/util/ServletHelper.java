@@ -101,7 +101,6 @@ public class ServletHelper {
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());
         }
-
     }
 
     public static void forwardToLoginPage(

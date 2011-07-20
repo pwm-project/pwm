@@ -29,7 +29,10 @@ import password.pwm.util.stats.Statistic;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionActivationListener;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 
 /**
  * Servlet event listener, defined in web.xml
@@ -148,7 +151,6 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
     public static void reinitializeContext(final ServletContext servletContext) {
         LOGGER.info("restarting PWM application");
-
 
         try {
             final ContextManager currentManager = ContextManager.getContextManager(servletContext);

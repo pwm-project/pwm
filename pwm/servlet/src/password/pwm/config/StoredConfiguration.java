@@ -606,6 +606,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
             pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
             pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
+            pwmConfigElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
             pwmConfigElement.setAttribute("createTime", STORED_DATE_FORMAT.format(storedConfiguration.createTime));
             pwmConfigElement.setAttribute("modifyTime", STORED_DATE_FORMAT.format(storedConfiguration.modifyTime));
             pwmConfigElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
