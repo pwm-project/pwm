@@ -52,7 +52,7 @@ import java.util.*;
 public class CrUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrUtility.class);
 
-    private enum STORAGE_METHOD { DB, LDAP, PWMDB }
+    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
 
     private CrUtility() {
     }

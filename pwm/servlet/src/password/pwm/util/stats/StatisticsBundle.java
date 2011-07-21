@@ -29,13 +29,14 @@ import password.pwm.util.PwmLogger;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class StatisticsBundle {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsBundle.class);
 
-    private static final int MAX_AVG_HISTORY_SIZE = 10;
     final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
     static {
@@ -107,21 +108,20 @@ public class StatisticsBundle {
             return;
         }
 
-        final List<BigInteger> workingList = parseAverageValue(valueMap.get(statistic));
+        final Gson gson = new Gson();
+        final String avgStrValue = valueMap.get(statistic);
 
-        workingList.add(BigInteger.valueOf(timeDuration));
-
-        while (workingList.size() > MAX_AVG_HISTORY_SIZE) {
-            workingList.remove(0);
+        AverageBean avgBean = new AverageBean();
+        if (avgStrValue != null && avgStrValue.length() > 0) {
+            try {
+                avgBean = gson.fromJson(avgStrValue, AverageBean.class);
+            } catch (Exception e) {
+                LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
+            }
         }
 
-        final StringBuilder newValue = new StringBuilder();
-        for (final BigInteger loopValue : workingList) {
-            newValue.append(loopValue);
-            newValue.append(",");
-        }
-
-        valueMap.put(statistic, newValue.toString());
+        avgBean.appendValue(timeDuration);
+        valueMap.put(statistic, gson.toJson(avgBean));
     }
 
     public String getStatistic(final Statistic statistic) {
@@ -130,30 +130,42 @@ public class StatisticsBundle {
                 return valueMap.containsKey(statistic) ? valueMap.get(statistic) : "0";
 
             case AVERAGE:
-                final List<BigInteger> averageValues = parseAverageValue(valueMap.get(statistic));
-                if (averageValues == null || averageValues.isEmpty()) {
-                    return "0";
-                } else {
-                    BigInteger totalTime = BigInteger.ZERO;
-                    for (final BigInteger loopInt : averageValues) {
-                        totalTime = totalTime.add(loopInt);
+                final Gson gson = new Gson();
+                final String avgStrValue = valueMap.get(statistic);
+
+                AverageBean avgBean = new AverageBean();
+                if (avgStrValue != null && avgStrValue.length() > 0) {
+                    try {
+                        avgBean = gson.fromJson(avgStrValue, AverageBean.class);
+                    } catch (Exception e) {
+                        LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
                     }
-                    return totalTime.divide(BigInteger.valueOf(valueMap.size())).toString();
                 }
+                return avgBean.getAverage().toString();
 
             default:
                 return "";
         }
     }
 
-    private static List<BigInteger> parseAverageValue(final String currentValue) {
-        final List<BigInteger> workingList = new ArrayList<BigInteger>();
-        if (currentValue != null) {
-            for (final String splitValue : currentValue.split(",")) {
-                final BigInteger loopValue = new BigInteger(splitValue);
-                workingList.add(loopValue);
-            }
+    private static class AverageBean {
+        BigInteger total = BigInteger.ZERO;
+        BigInteger count = BigInteger.ZERO;
+
+        public AverageBean() {
         }
-        return workingList;
+
+        BigInteger getAverage() {
+            if (BigInteger.ZERO.equals(count)) {
+                return BigInteger.ZERO;
+            }
+
+            return total.divide(count);
+        }
+
+        void appendValue(final long value) {
+            count = count.add(BigInteger.ONE);
+            total = total.add(BigInteger.valueOf(value));
+        }
     }
 }

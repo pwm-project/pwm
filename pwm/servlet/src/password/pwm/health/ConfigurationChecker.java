@@ -23,6 +23,7 @@
 package password.pwm.health;
 
 import password.pwm.ContextManager;
+import password.pwm.CrUtility;
 import password.pwm.PasswordUtility;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -171,9 +172,48 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
         }
 
+        boolean hasDbConfiguration = true;
+        {
+            if (config.readSettingAsString(PwmSetting.DATABASE_CLASS) == null || config.readSettingAsString(PwmSetting.DATABASE_CLASS).length() < 1) {
+                hasDbConfiguration = false;
+            }
+            if (config.readSettingAsString(PwmSetting.DATABASE_URL) == null || config.readSettingAsString(PwmSetting.DATABASE_URL).length() < 1) {
+                hasDbConfiguration = false;
+            }
+            if (config.readSettingAsString(PwmSetting.DATABASE_USERNAME) == null || config.readSettingAsString(PwmSetting.DATABASE_USERNAME).length() < 1) {
+                hasDbConfiguration = false;
+            }
+            if (config.readSettingAsString(PwmSetting.DATABASE_PASSWORD) == null || config.readSettingAsString(PwmSetting.DATABASE_PASSWORD).length() < 1) {
+                hasDbConfiguration = false;
+            }
+        }
 
-        if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "No configuration issues detected"));
+        if (!hasDbConfiguration) {
+            if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
+                final StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append(PwmSetting.RESPONSE_STORAGE_DB.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(" -> ");
+                errorMsg.append(PwmSetting.RESPONSE_STORAGE_DB.getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(" is enabled, but database connection settings are not set");
+                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            }
+
+            {
+                final String readRawValue = config.readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+                final List<CrUtility.STORAGE_METHOD> readPreferences = new ArrayList<CrUtility.STORAGE_METHOD>();
+                for (final String rawValue : readRawValue.split("-")) {
+                    readPreferences.add(CrUtility.STORAGE_METHOD.valueOf(rawValue));
+                }
+
+                if (readPreferences.contains(CrUtility.STORAGE_METHOD.DB)) {
+                final StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(" -> ");
+                errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(" includes database storage, but database connection settings are not set");
+                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            }
+            }
         }
 
         return records;

@@ -31,28 +31,18 @@
 <h1 style="text-align:center;"><%=bundleName.getTheClass().getSimpleName()%></h1>
 <p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
     value of the current pwm defaults.</p>
-
 <script type="text/javascript">
-    showError('');
-    LOAD_TRACKER = new Array();
-    function doLazyLoad(key) {
-        if (LOAD_TRACKER[key]) {
-            return;
-        }
-        var settingKey = 'localeBundle-' + '<%=bundleName%>' + '-' + key;
-        initLocaleTable('table_' + key, settingKey, '.*', 'LOCALIZED_TEXT_AREA');
-        LOAD_TRACKER[key] = true;
-    }
+    showError('Loading page...');
+    var LOAD_TRACKER = new Array();
 </script>
-<% int delayTimer = 1000; %>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
-<div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0" on="doLazyLoad('<%=key%>')">
+<div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
     <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
         <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
              id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
              style="visibility:hidden; vertical-align:bottom; float: right"
-             onclick="handleResetClick('<%=key%>')"/>
+             onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>
     </div>
     <div class="msg-info" style="width: 580px; background: white;">
         <table id="table_<%=key%>" style="border-width:0" width="500">
@@ -66,8 +56,25 @@
 </div>
 <br/>
 <script type="text/javascript">
-    setTimeout(function(){
-        doLazyLoad('<%=key%>');
-    },<%=delayTimer += 200 %>);
+    LOAD_TRACKER.push('<%=key%>');
 </script>
 <% } %>
+<script type="text/javascript">
+    function doLazyLoad(key) {
+        var errorMsgObj = getObject("error_msg");
+        errorMsgObj.firstChild.nodeValue = 'Loading display elements.... ' + LOAD_TRACKER.length;
+
+        var settingKey = 'localeBundle-' + '<%=bundleName%>' + '-' + key;
+        initLocaleTable('table_' + key, settingKey, '.*', 'LOCALIZED_TEXT_AREA');
+        if (LOAD_TRACKER.length > 0) {
+            setTimeout(function(){
+                doLazyLoad(LOAD_TRACKER.pop());
+            },100);
+        } else {
+            clearError();
+        }
+    }
+    LOAD_TRACKER.reverse();
+    doLazyLoad(LOAD_TRACKER.pop());
+</script>
+
