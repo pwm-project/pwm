@@ -654,6 +654,7 @@ public class ConfigManagerServlet extends TopServlet {
 
     private static void resetInMemoryBean(final PwmSession pwmSession) {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        configManagerBean.setConfiguration(null);
         configManagerBean.setConfigurationLoadTime(null);
         configManagerBean.setEditMode(EDIT_MODE.NONE);
     }

@@ -43,6 +43,7 @@ public class ConfigurationReader {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigurationReader.class.getName());
     private static final int MAX_FILE_CHARS = 100 * 1024;
+    private static final String CONFIG_FILE_CHARSET = "UTF-8";
 
     private final File configFile;
     private final String configFileChecksum;
@@ -106,7 +107,7 @@ public class ConfigurationReader {
 
         final String theFileData;
         try {
-            theFileData = Helper.readFileAsString(configFile, MAX_FILE_CHARS);
+            theFileData = Helper.readFileAsString(configFile, MAX_FILE_CHARS, CONFIG_FILE_CHARSET);
         } catch (Exception e) {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
@@ -161,11 +162,7 @@ public class ConfigurationReader {
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
         }
 
-        final String xmlBlob = storedConfiguration.toXml();
-        final OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(configFile, false), "UTF-8");
-        osw.write(xmlBlob);
-        osw.flush();
-        osw.close();
+        Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
         LOGGER.info("saved configuration " + storedConfiguration.toString());
     }
 

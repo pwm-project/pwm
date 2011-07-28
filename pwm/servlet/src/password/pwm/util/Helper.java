@@ -802,11 +802,15 @@ public class Helper {
         throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
     }
 
-    public static String readFileAsString(final File filePath, final long maxLength)
+    public static String readFileAsString(final File filePath, final long maxLength, final String charset)
             throws IOException {
-        final StringBuffer fileData = new StringBuffer(1000);
+        final StringBuilder fileData = new StringBuilder();
+
         final BufferedReader reader = new BufferedReader(
-                new FileReader(filePath));
+                charset == null ?
+                        new InputStreamReader(new FileInputStream(filePath)) :
+                        new InputStreamReader(new FileInputStream(filePath), "UTF8"));
+
         char[] buf = new char[1024];
         int numRead;
         int charsRead = 0;
@@ -818,6 +822,18 @@ public class Helper {
         }
         reader.close();
         return fileData.toString();
+    }
+
+    public static void writeFileAsString(final File filePath, final String output, final String charset)
+            throws IOException {
+        final OutputStreamWriter osw =
+                charset == null ?
+                        new OutputStreamWriter(new FileOutputStream(filePath, false)) :
+                        new OutputStreamWriter(new FileOutputStream(filePath, false), charset);
+
+        osw.write(output);
+        osw.flush();
+        osw.close();
     }
 
     public static String replaceAllPatterns(final String input, final Properties fields) {

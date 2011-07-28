@@ -42,6 +42,9 @@ import java.io.Writer;
 import java.util.*;
 
 public class MainClass {
+
+    private static final String RESPONSE_FILE_ENCODING = "UTF-8";
+
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
@@ -173,15 +176,7 @@ public class MainClass {
             final String value = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, key);
             final File outputFile = new File(outputDirectory.getAbsolutePath() + File.separator + key + ".xml");
 
-            Writer outputWriter = null;
-            try {
-                outputWriter = new OutputStreamWriter(new FileOutputStream(outputFile));
-                outputWriter.write(value);
-            } finally {
-                if (outputWriter != null) {
-                    outputWriter.close();
-                }
-            }
+            Helper.writeFileAsString(outputFile, value, RESPONSE_FILE_ENCODING);
         }
 
         out("output complete");
@@ -207,7 +202,7 @@ public class MainClass {
 
         int counter = 0;
         for (final File loopFile : outputDirectory.listFiles()) {
-            final String fileContents = Helper.readFileAsString(loopFile, PwmDB.MAX_VALUE_LENGTH);
+            final String fileContents = Helper.readFileAsString(loopFile, PwmDB.MAX_VALUE_LENGTH, RESPONSE_FILE_ENCODING);
             boolean validResponses = false;
 
             try {
