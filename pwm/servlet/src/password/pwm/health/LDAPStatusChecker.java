@@ -117,8 +117,7 @@ public class LDAPStatusChecker implements HealthChecker {
             final ChaiProvider chaiProvider = Helper.createChaiProvider(
                     config,
                     proxyUserDN,
-                    proxyUserPW,
-                    config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+                    proxyUserPW);
 
             theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
 
@@ -222,8 +221,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final ChaiProvider chaiProvider = Helper.createChaiProvider(
                 config,
                 config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT));
+                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
 
         chaiProvider.getDirectoryVendor();
 

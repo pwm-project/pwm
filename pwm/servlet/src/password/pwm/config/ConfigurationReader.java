@@ -28,9 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -164,9 +162,10 @@ public class ConfigurationReader {
         }
 
         final String xmlBlob = storedConfiguration.toXml();
-        final FileWriter fileWriter = new FileWriter(configFile, false);
-        fileWriter.write(xmlBlob);
-        fileWriter.close();
+        final OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(configFile, false), "UTF-8");
+        osw.write(xmlBlob);
+        osw.flush();
+        osw.close();
         LOGGER.info("saved configuration " + storedConfiguration.toString());
     }
 

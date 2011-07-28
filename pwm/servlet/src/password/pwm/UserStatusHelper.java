@@ -246,8 +246,12 @@ public class UserStatusHelper {
         final String ldapNamingAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         uiBean.setUserID(uiBean.getAllUserAttributes().get(ldapNamingAttribute));
 
-        // set guid
-        uiBean.setUserGuid(Helper.readLdapGuidValue(pwmSession, userDN));
+
+        { // set guid
+            final String userGuid = Helper.readLdapGuidValue(theUser.getChaiProvider(), pwmSession.getConfig(), userDN);
+            uiBean.setUserGuid(userGuid);
+        }
+
 
         // set email address
         final String ldapEmailAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);

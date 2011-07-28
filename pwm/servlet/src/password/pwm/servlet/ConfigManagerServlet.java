@@ -61,9 +61,6 @@ public class ConfigManagerServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        //clear any errors in the session's state bean
-        pwmSession.getSessionStateBean().setSessionError(null);
-
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
 

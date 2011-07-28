@@ -126,7 +126,7 @@ public class CrUtility {
 
         final String userGUID;
         if (readPreferences.contains(STORAGE_METHOD.DB) || readPreferences.contains(STORAGE_METHOD.PWMDB)) {
-            userGUID = Helper.readLdapGuidValue(pwmSession, theUser.getEntryDN());
+            userGUID = Helper.readLdapGuidValue(theUser.getChaiProvider(), pwmSession.getConfig(), theUser.getEntryDN());
         } else {
             userGUID = null;
         }

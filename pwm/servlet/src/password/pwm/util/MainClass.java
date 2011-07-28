@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiResponseSet;
+import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
@@ -53,6 +54,7 @@ public class MainClass {
             out("  | ExportResponses [location]    Export all saved responses in the PwmDB");
             out("  | ImportResponses [location]    Import responses from files into the PwmDB");
             out("  | ClearResponses                Clear all responses from the PwmDB");
+            out("  | UserReport      [outputFile]  Dump a user report to the output file (csv format)");
         } else {
             if ("PwmDbInfo".equalsIgnoreCase(args[0])) {
                 handlePwmDbInfo();
@@ -64,12 +66,34 @@ public class MainClass {
                 handleImportResponses(args);
             } else if ("ClearResponses".equalsIgnoreCase(args[0])) {
                 handleClearResponses();
+            } else if ("UserReport".equalsIgnoreCase(args[0])) {
+                handleUserReport();
             } else {
                 out("unknown command");
             }
         }
+    }
+
+    static void handleUserReport() throws Exception {
+        final Configuration config = loadConfiguration();
+        final ChaiProvider provider;
+        {
+            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            provider = Helper.createChaiProvider(config,proxyDN,proxyPW);
+        }
+        final UserReport userReport = new UserReport(config,provider);
 
 
+        //@todo output to file..
+        System.out.println("log file output:");
+
+        for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(); resultIterator.hasNext(); ) {
+            final UserReport.UserInformation userInformation = resultIterator.next();
+            System.out.println(userInformation.toCsvLine());
+        }
+
+        System.out.println("report complete.");
     }
 
     static void handlePwmDbInfo() throws Exception {

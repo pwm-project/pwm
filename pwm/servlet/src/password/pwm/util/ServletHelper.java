@@ -36,9 +36,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -266,6 +264,7 @@ public class ServletHelper {
 
     }
 
+    /*
     public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
         final StringBuilder inputData = new StringBuilder();
         String line;
@@ -278,5 +277,35 @@ public class ServletHelper {
             LOGGER.error("error reading request body stream: " + e.getMessage());
         }
         return inputData.toString();
+    }
+    */
+
+    public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
+        final StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = null;
+        try {
+            final InputStream inputStream = request.getInputStream();
+            if (inputStream != null) {
+                bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"utf8"));
+                final char[] charBuffer = new char[1024];
+                int bytesRead = -1;
+                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+                    stringBuilder.append(charBuffer, 0, bytesRead);
+                }
+            } else {
+                stringBuilder.append("");
+            }
+        } catch (IOException ex) {
+            throw ex;
+        } finally {
+            if (bufferedReader != null) {
+                try {
+                    bufferedReader.close();
+                } catch (IOException ex) {
+                    throw ex;
+                }
+            }
+        }
+        return stringBuilder.toString();
     }
 }

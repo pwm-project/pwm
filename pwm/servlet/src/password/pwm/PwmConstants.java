@@ -26,8 +26,11 @@ import password.pwm.config.Display;
 import password.pwm.config.Message;
 import password.pwm.error.PwmError;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 /**
  * Constant values used throughout the servlet.
@@ -51,6 +54,7 @@ public abstract class PwmConstants {
 
     public static final Locale DEFAULT_LOCALE = new Locale("");
 
+    public static final DateFormat PWM_STANDARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
     public static final String HTTP_BASIC_AUTH_PREFIX = "Basic ";
@@ -151,6 +155,11 @@ public abstract class PwmConstants {
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY = 1000 * 2;  //milliseconds
     public static final int PASSWORD_UPDATE_INITIAL_DELAY = 1000; //milliseconds
+
+    static {
+        PWM_STANDARD_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+    }
+
 
 // -------------------------- ENUMERATIONS --------------------------
 

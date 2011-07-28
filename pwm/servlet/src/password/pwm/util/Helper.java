@@ -77,11 +77,10 @@ public class Helper {
     public static ChaiProvider createChaiProvider(
             final Configuration config,
             final String userDN,
-            final String userPassword,
-            final long idleTimeoutMs
+            final String userPassword
     )
             throws ChaiUnavailableException {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword, idleTimeoutMs);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -89,8 +88,7 @@ public class Helper {
     private static ChaiConfiguration createChaiConfiguration(
             final Configuration config,
             final String userDN,
-            final String userPassword,
-            final long idleTimeoutMs
+            final String userPassword
     )
             throws ChaiUnavailableException {
         final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
@@ -103,6 +101,8 @@ public class Helper {
         chaiConfig.setCrSetting(CrSetting.CHAI_ATTRIBUTE_NAME, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setCrSetting(CrSetting.ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
         chaiConfig.setCrSetting(CrSetting.CHAI_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
+
+        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT) * 1000;
 
         // if possible, set the ldap timeout.
         if (idleTimeoutMs > 0) {
@@ -129,48 +129,41 @@ public class Helper {
     }
 
     public static String readLdapGuidValue(
-            final PwmSession pwmSession,
+            final ChaiProvider proxyChaiProvider,
+            final Configuration config,
             final String userDN
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        {
-            final String guidValue = pwmSession.getUserInfoBean().getUserGuid();
-            if (guidValue != null && guidValue.length() > 1) {
-                LOGGER.trace(pwmSession, "read guid value for user from session cache " + userDN + ": " + guidValue );
-                return guidValue;
-            }
-        }
 
-        final String GUIDattributeName = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        final String GUIDattributeName = config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if ("DN".equalsIgnoreCase(GUIDattributeName)) {
             return userDN;
         }
 
-        final ChaiProvider proxyChaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
         if ("VENDORGUID".equals(GUIDattributeName)) {
             try {
                 final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, proxyChaiProvider);
                 final String guidValue = theUser.readGUID();
                 if (guidValue != null && guidValue.length() > 1) {
-                    LOGGER.trace(pwmSession, "read VENDORGUID value for user " + userDN + ": " + guidValue);
+                    LOGGER.trace("read VENDORGUID value for user " + userDN + ": " + guidValue);
                 } else {
-                    LOGGER.trace(pwmSession, "unable to find a VENDORGUID value for user " + userDN);
+                    LOGGER.trace("unable to find a VENDORGUID value for user " + userDN);
                 }
                 return guidValue;
             } catch (Exception e) {
-                LOGGER.warn(pwmSession, "unexpected error while reading vendor GUID value: " + e.getMessage());
+                LOGGER.warn("unexpected error while reading vendor GUID value for user " + userDN + ", error: " + e.getMessage());
                 return null;
             }
         }
 
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
-            LOGGER.warn(pwmSession, "user " + pwmSession.getUserInfoBean().getUserDN() + " does not have a valid GUID");
+        if (!config.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+            LOGGER.warn("user " + userDN + " does not have a valid GUID");
             return null;
         }
 
-        LOGGER.trace(pwmSession, "assigning new GUID to user " + pwmSession.getUserInfoBean().getUserDN());
+        LOGGER.trace("assigning new GUID to user " + userDN);
 
-        final String baseContext = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+        final String baseContext = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         int attempts = 0;
         while (attempts < 10) {
             // generate a guid
@@ -194,16 +187,16 @@ public class Helper {
                 if (result.isEmpty()) {
                     try {
                         // write it to the directory
-                        pwmSession.getContextManager().getProxyChaiUserActor(pwmSession).writeStringAttribute(GUIDattributeName, newGUID);
-                        LOGGER.info(pwmSession, "added GUID value '" + newGUID + "' to user " + pwmSession.getUserInfoBean().getUserDN());
+                        proxyChaiProvider.writeStringAttribute(userDN, GUIDattributeName, Collections.singleton(newGUID), false);
+                        LOGGER.info("added GUID value '" + newGUID + "' to user " + userDN);
                         return newGUID;
-                    } catch (PwmUnrecoverableException e) {
-                        LOGGER.warn(pwmSession, "error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user");
+                    } catch (ChaiOperationException e) {
+                        LOGGER.warn("error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userDN);
                         return null;
                     }
                 }
             } catch (ChaiOperationException e) {
-                LOGGER.warn(pwmSession, "unexpected error while searching GUID attribute " + GUIDattributeName + " for uniqueness: " + e.getMessage() + ", cannot write GUID value to user");
+                LOGGER.warn("unexpected error while searching GUID attribute " + GUIDattributeName + " for uniqueness: " + e.getMessage() + ", cannot write GUID value to user " + userDN);
             }
             attempts++;
         }
@@ -874,5 +867,26 @@ public class Helper {
         }
 
         return httpClient;
+    }
+
+    public static String toCsvLine(final String... strings) {
+        if (strings == null || strings.length < 1) {
+            return "";
+        }
+
+        final StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < strings.length; i++) {
+            sb.append("\"");
+            sb.append(strings[i]);
+            sb.append("\"");
+
+            if (i != strings.length) {
+                sb.append(",");
+            }
+        }
+
+
+        return sb.toString();
     }
 }

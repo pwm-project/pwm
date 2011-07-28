@@ -30,6 +30,7 @@
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="java.util.ArrayList" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -37,7 +38,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <%@ include file="../jsp/header.jsp" %>
-<% final Collection<Locale> localeList = ContextManager.getContextManager(session).getKnownLocales(); %>
+<% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getContextManager(session).getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>

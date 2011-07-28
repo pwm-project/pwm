@@ -105,6 +105,8 @@ public class ContextManager implements Serializable {
     private Date installTime = new Date();
     private ErrorInformation lastLdapFailure = null;
 
+    private List<Locale> knownLocales;
+
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -183,10 +185,8 @@ public class ContextManager implements Serializable {
             final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-            final int idleSeconds = (int) this.getConfig().readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT);
-
             try {
-                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleSeconds * 1000);
+                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW);
             } catch (ChaiUnavailableException e) {
                 getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());
@@ -276,6 +276,9 @@ public class ContextManager implements Serializable {
         // default log4j logging
         PwmInitializer.initializeLogger(null, "TRACE", servletContext);
 
+        // initialize known locales.
+        PwmInitializer.initializeKnownLocales(this);
+
         // initialize configuration
         try {
             final File configFile = ServletHelper.figureFilepath(getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", servletContext);
@@ -315,6 +318,8 @@ public class ContextManager implements Serializable {
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(pwmDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for this pwm instance's ID (instanceID)");
+
+
 
         // read the lastLoginTime
         lastLastLdapFailure(pwmDB, this);
@@ -515,7 +520,7 @@ public class ContextManager implements Serializable {
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add sms to queue: " + e.getMessage());
         }
-    }
+}
 
     public void shutdown() {
         LOGGER.warn("shutting down");
@@ -619,21 +624,7 @@ public class ContextManager implements Serializable {
     }
 
     public List<Locale> getKnownLocales() {
-        final List<Locale> returnList = new ArrayList<Locale>();
-        final String localeList = this.getParameter(PwmConstants.CONTEXT_PARAM.KNOWN_LOCALES);
-        if (localeList != null) {
-            final String[] splitLocales = localeList.split(";;;");
-            for (final String localeString : splitLocales) {
-                final Locale theLocale = Helper.parseLocaleString(localeString);
-                if (theLocale != null && !returnList.contains(theLocale)) {
-                    returnList.add(theLocale);
-                }
-            }
-        }
-        if (!returnList.contains(new Locale(""))) {
-            returnList.add(0, new Locale(""));
-        }
-        return returnList;
+        return knownLocales;
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -839,6 +830,25 @@ public class ContextManager implements Serializable {
             }
 
             contextManager.statisticsManager = statisticsManager;
+        }
+
+        public static void initializeKnownLocales(final ContextManager contextManager) {
+            final List<Locale> returnList = new ArrayList<Locale>();
+            final String localeList = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.KNOWN_LOCALES);
+            if (localeList != null) {
+                final String[] splitLocales = localeList.split(";;;");
+                for (final String localeString : splitLocales) {
+                    final Locale theLocale = Helper.parseLocaleString(localeString);
+                    if (theLocale != null && !returnList.contains(theLocale)) {
+                        returnList.add(theLocale);
+                    }
+                }
+            }
+            if (!returnList.contains(new Locale(""))) {
+                returnList.add(0, new Locale(""));
+            }
+
+            contextManager.knownLocales = Collections.unmodifiableList(returnList);
         }
     }
 

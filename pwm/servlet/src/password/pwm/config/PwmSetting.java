@@ -646,6 +646,10 @@ public enum PwmSetting {
                     keyName = "DEFLT-AD_" + this.getKey();
                     break;
 
+                case ADDB:
+                    keyName = "DEFLT-ADDB_" + this.getKey();
+                    break;
+
                 default:
                     keyName = "DEFLT_" + this.getKey();
                     break;
@@ -785,8 +789,9 @@ public enum PwmSetting {
     }
 
     public enum Template {
-        DEFAULT("Default (Novell, OpenLDAP, DirectoryServer389, Others)"),
-        AD("Active Directory")
+        DEFAULT("Novell, OpenLDAP, DirectoryServer389, Others"),
+        ADDB("Active Directory - Store responses in a database"),
+        AD("Active Directory - Store responses in Active Directory"),
         ;
 
         private final String description;

@@ -82,6 +82,7 @@ function writeSetting(keyName, valueData) {
         url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
         postData: jsonString,
         contentType: "application/json;charset=utf-8",
+        encoding: "utf-8",
         dataType: "json",
         handleAs: "json",
         sync: true,

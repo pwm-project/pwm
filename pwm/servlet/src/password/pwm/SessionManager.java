@@ -102,7 +102,6 @@ public class SessionManager implements Serializable {
         final long startTime = System.currentTimeMillis();
         final StringBuilder debugLogText = new StringBuilder();
         final Configuration config = pwmSession.getConfig();
-        final int ldapIdleTimeoutMs = pwmSession.getMaxInactiveInterval() + 60 * 1000;
 
         final ChaiProvider returnProvider;
         final String username;
@@ -125,7 +124,7 @@ public class SessionManager implements Serializable {
         debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
         LOGGER.trace(pwmSession, debugLogText.toString());
 
-        returnProvider = Helper.createChaiProvider(pwmSession.getConfig(), username, password, ldapIdleTimeoutMs);
+        returnProvider = Helper.createChaiProvider(pwmSession.getConfig(), username, password);
         return returnProvider;
     }
 
