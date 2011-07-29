@@ -33,7 +33,7 @@
 <body class="tundra">
 <%
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
-    final boolean hasBeenModified = configManagerBean.getConfiguration().hasBeenModified();
+    final boolean hasBeenModified = configManagerBean.getConfiguration() != null && configManagerBean.getConfiguration().hasBeenModified();
 %>
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
