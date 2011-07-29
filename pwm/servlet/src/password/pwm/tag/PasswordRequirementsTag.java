@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
@@ -288,7 +289,7 @@ public class PasswordRequirementsTag extends TagSupport {
             final StringBuilder requirementsText = new StringBuilder();
             for (final String requirementStatement : requirementsList) {
                 requirementsText.append(pre);
-                requirementsText.append(requirementStatement);
+                requirementsText.append(StringEscapeUtils.escapeHtml(requirementStatement));
                 requirementsText.append(sep);
             }
 

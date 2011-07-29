@@ -142,7 +142,7 @@ public class ConfigUploadServlet extends TopServlet {
     public String streamToString(final InputStream stream)
             throws IOException
     {
-        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
         final StringBuilder sb = new StringBuilder();
         int charCounter = 0;
         int nextChar = bufferedReader.read();

@@ -131,7 +131,7 @@ public enum Message {
         String result = getRawString(config, message.getResourceKey(),locale);
         try {
             if (fieldValue != null && fieldValue.length > 0) {
-                result = result.replaceAll(FIELD_REPLACE_VALUE, fieldValue[0]);
+                result = result.replace(FIELD_REPLACE_VALUE, fieldValue[0]);
             }
         } catch (Exception e) {
             LOGGER.trace("error fetching localized key for '" + message + "', error: " + e.getMessage());
