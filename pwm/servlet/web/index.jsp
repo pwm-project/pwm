@@ -124,11 +124,15 @@
 
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_ADMIN_LINK_ENABLE)) { %>
+
         <hr/>
 
         <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>
 
         <p><pwm:Display key="Long_Title_Admin"/></p>
+
+        <% } %>
 
         <% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
         <hr/>

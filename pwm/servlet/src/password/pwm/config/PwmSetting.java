@@ -87,6 +87,8 @@ public enum PwmSetting {
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
+    DISPLAY_ADMIN_LINK_ENABLE(
+            "display.adminIndexLink", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
 
 
     //ldap directory
