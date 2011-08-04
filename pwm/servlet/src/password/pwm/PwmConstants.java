@@ -100,7 +100,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_HELPDESK = "WEB-INF/jsp/helpdesk.jsp";
 
 
-    public static final String URL_JSP_USER_INFORMATION = "admin/userinformation.jsp";
+    public static final String URL_JSP_USER_INFORMATION = "private/admin/userinformation.jsp";
 
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_LOGOUT = "Logout";
