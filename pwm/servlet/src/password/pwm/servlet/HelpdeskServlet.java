@@ -9,7 +9,6 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.UserHistory.Record;
@@ -28,7 +27,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 /**
  *
  *  Admin interaction servlet for reset user passwords.
@@ -212,7 +210,7 @@ public class HelpdeskServlet extends TopServlet {
             {
                 final ChaiProvider proxyProvider = theManager.getProxyChaiProvider();
                 final ChaiUser proxiedChaiUser = ChaiFactory.createChaiUser(userDN, proxyProvider);
-                final String message = "(by " + pwmSession.getUserInfoBean().getUserID() + ")";
+                final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
                 UserHistory.updateUserHistory(pwmSession, proxiedChaiUser, Record.Event.HELPDESK_SET_PASSWORD, message);
                 Helper.updateLastUpdateAttribute(pwmSession, chaiUser);
             }
@@ -313,6 +311,4 @@ public class HelpdeskServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher(
                 '/' + PwmConstants.URL_JSP_HELPDESK).forward(req, resp);
     }
-
-
 }

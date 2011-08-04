@@ -70,22 +70,17 @@
             <% } %>
 
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="search" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
 
-            <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
+                <input type="search" id="username" name="username" class="inputfield"
+                       value="<pwm:ParamValue name='username'/>"/>
                 <input type="submit" class="btn"
                        name="search"
                        value="     <pwm:Display key="Button_Search"/>     "
                        id="submitBtn"/>
-                <input type="reset" class="btn"
-                       name="reset"
-                       value="     <pwm:Display key="Button_Reset"/>     "/>
+                <input type="hidden"
+                       name="processAction"
+                       value="search"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
         </form>
         <br class="clear"/>
         <% if (helpdeskBean.isUserExists()) { %>
@@ -256,7 +251,7 @@
                 </td>
                 <td>
                     <%= record.getEventCode().getLocalizedString(PwmSession.getPwmSession(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                    <%= record.getMessage() == null ? "" : " - " + record.getMessage() %>
+                    <%= record.getMessage() != null && record.getMessage().length() > 0 ? " - " + record.getMessage() : "" %>
                 </td>
             </tr>
             <% } %>
@@ -265,6 +260,7 @@
         <br class="clear"/>
         <% } %>
     </div>
-    <jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+</div>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

@@ -434,8 +434,6 @@ public enum PwmSetting {
     // guest settings
     GUEST_ENABLE(
             "guest.enable", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
-    GUEST_HIDDEN(
-            "guest.hidden", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
     GUEST_CONTEXT(
             "guest.createContext", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_ADMIN_GROUP(
