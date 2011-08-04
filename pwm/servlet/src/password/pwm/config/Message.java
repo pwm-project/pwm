@@ -50,6 +50,7 @@ public enum Message {
     SUCCESS_UNLOCK_ACCOUNT("Success_UnlockAccount"),
     SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
     SUCCESS_CONFIG_UPLOAD("Success_ConfigFileUpload"),
+    SUCCESS_PASSWORDRESET("Success_PasswordReset"),
 
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
@@ -57,6 +58,8 @@ public enum Message {
     EVENT_LOG_ACTIVATE_USER("EventLog_ActivateUser"),
     EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
+    EVENT_LOG_HELPDESK_SET_PASSWORD("EventLog_HelpdeskSetPassword"),
+    EVENT_LOG_HELPDESK_UNLOCK_PASSWORD("EventLog_HelpdeskUnlockPassword"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),
     REQUIREMENT_MINLENGTHPLURAL("Requirement_MinLengthPlural"),

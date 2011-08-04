@@ -90,6 +90,8 @@ public class Configuration implements Serializable {
                 returnSet.add(formConfiguration.getAttributeName());
             }
         }
+        returnSet.add(this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+        returnSet.add(this.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
         returnSet.addAll(this.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE).getRuleHelper().getDisallowedAttributes());
@@ -277,6 +279,17 @@ public class Configuration implements Serializable {
             if (loopString == null || loopString.toString().length() < 1) {
                 iter.remove();
             }
+        }
+        return results;
+    }
+
+    public Map<String,String> readSettingAsStringMap(final PwmSetting setting) {
+        List<String> configs = readSettingAsStringArray(setting);
+        //LinkedHashMap so that the order of the settings are maintained
+        Map<String, String> results = new LinkedHashMap<String, String>();
+        for (String config : configs) {
+            String[] tokens = config.split(":");
+            results.put(tokens[0], tokens.length > 1 ? tokens[1] : tokens[0]);
         }
         return results;
     }

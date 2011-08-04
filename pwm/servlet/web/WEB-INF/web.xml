@@ -12,7 +12,7 @@
   ~ (at your option) any later version.
   ~
   ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ but WITHOUT ANY WARRANTY;  without even the implied warranty of
   ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU General Public License for more details.
   ~
@@ -308,6 +308,15 @@
         <servlet-name>ResourceFileServlet</servlet-name>
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>HelpdeskServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
+    </servlet>    
+    <servlet-mapping>
+        <servlet-name>HelpdeskServlet</servlet-name>
+        <url-pattern>/private/Helpdesk</url-pattern>
+    </servlet-mapping>
+
     <error-page>
         <error-code>404</error-code>
         <location>/WEB-INF/jsp/error-http.jsp</location>

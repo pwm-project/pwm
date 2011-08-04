@@ -230,6 +230,7 @@ public class UserStatusHelper {
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
             interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
             interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
+            interestingUserAttributes.addAll(pwmSession.getContextManager().getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES).keySet());
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 interestingUserAttributes.add("sAMAccountName");
                 interestingUserAttributes.add("displayName");
@@ -332,7 +333,7 @@ public class UserStatusHelper {
                 LOGGER.trace(pwmSession, "username appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
                 return username;
             } else {
-                LOGGER.trace(pwmSession, "username does not appear to be a DN (does not start with configured ldap naming attribute'" + usernameAttribute + "')");
+                LOGGER.trace(pwmSession, "username does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
             }
         }
 

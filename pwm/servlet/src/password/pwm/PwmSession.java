@@ -60,6 +60,7 @@ public class PwmSession implements Serializable {
     private GuestUpdateServletBean guestUpdateServletBean;
 
     private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
+    private HelpdeskBean helpdeskBean = new HelpdeskBean();
 
     private transient HttpSession httpSession;
 
@@ -181,6 +182,12 @@ public class PwmSession implements Serializable {
         return userInfoBean;
     }
 
+    public HelpdeskBean getHelpdeskBean() {
+        if (helpdeskBean == null) {
+            helpdeskBean = new HelpdeskBean();
+        }
+        return helpdeskBean;
+    }
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -197,6 +204,7 @@ public class PwmSession implements Serializable {
         configManagerBean = new ConfigManagerBean();
 
         userInformationServletBean = new UserInformationServletBean();
+        helpdeskBean = new HelpdeskBean();
 
         if (sessionManager != null) {
             sessionManager.closeConnections();

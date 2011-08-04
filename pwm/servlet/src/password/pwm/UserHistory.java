@@ -145,20 +145,26 @@ public class UserHistory implements Serializable {
     }
 
     public static UserHistory readUserHistory(final PwmSession pwmSession)
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+        return readUserHistory(pwmSession, chaiUser);
+    }
+
+    public static UserHistory readUserHistory(final PwmSession pwmSession, final ChaiUser chaiUser)
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = "0001";
         final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
         final int maxUserEvents = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
 
         if (corAttribute == null || corAttribute.length() < 1) {
-            LOGGER.trace(pwmSession, "no user event log attribute configured, skipping write of log data");
+            LOGGER.trace(pwmSession, "no user event log attribute configured, skipping read of log data");
             return new UserHistory(maxUserEvents);
         }
 
         try {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-            final List corList = ConfigObjectRecord.readRecordFromLDAP(actor, corAttribute, corRecordIdentifer, null, null);
+            final List corList = ConfigObjectRecord.readRecordFromLDAP(chaiUser, corAttribute, corRecordIdentifer, null, null);
 
             if (!corList.isEmpty()) {
                 final ConfigObjectRecord theCor = (ConfigObjectRecord) corList.get(0);
@@ -232,6 +238,8 @@ public class UserHistory implements Serializable {
             ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
             UPDATE_PROFILE(Message.EVENT_LOG_UPDATE_PROFILE),
             INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
+            HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD),
+            HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD),
             UNKNOWN(null);
 
             final private Message message;

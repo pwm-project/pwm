@@ -110,6 +110,13 @@
         <p><pwm:Display key="Long_Title_UserInformation"/></p>
         <% } %>
 
+        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
+        <h2><a href="<pwm:url url='private/Helpdesk'/>" class="tablekey"><pwm:Display
+                key="Title_Helpdesk"/></a></h2>
+
+        <p><pwm:Display key="Long_Title_Helpdesk"/></p>
+        <% } %>
+
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.GUEST_ENABLE) &&
                                                          (!Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.GUEST_HIDDEN))) { %>
         <hr/>
