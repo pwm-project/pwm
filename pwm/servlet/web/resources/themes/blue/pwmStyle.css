@@ -1,0 +1,24 @@
+#header {
+    width: 100%;
+    height: 70px;
+    margin: 0;
+    background-image: url('header-gradient.gif')
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url(logo.png);
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#centerbody {
+    background-color: #eeeeee;
+    padding: 10px 10px 40px 10px;
+    border: solid 3px #000088;
+    border-radius: 5px;
+}

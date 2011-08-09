@@ -1,0 +1,24 @@
+/*
+ * PWM example custom style
+ *
+ * Any style defined in pwm/resources/pwmStyle.css can be copied
+ * here and modified according to your needs.
+ */
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url(logo.png);
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#centerbody {
+    background-color: #eeeeee;
+    padding: 10px 10px 40px 10px;
+    border: solid 3px #000000;
+    border-radius: 5px;
+}

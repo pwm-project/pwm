@@ -44,9 +44,27 @@
           href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>
+    <%
+      final String theme = password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.INTERFACE_THEME);
+      if (theme != null) {
+    %>
+    <link href="<%=request.getContextPath()%>/resources/themes/<%=theme%>/<pwm:url url='pwmStyle.css'/>"
+          rel="stylesheet" type="text/css" media="screen"/>
+    <%
+      }
+    %>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css"
           rel="stylesheet"/>
+    <%
+      if (theme != null) {
+    %>
+    <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
+          href="<%=request.getContextPath()%>/resources/themes/<%=theme%>/<pwm:url url='pwmMobileStyle.css'/>" type="text/css"
+          rel="stylesheet"/>
+    <%
+      }
+    %>
     <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
           type="text/css"/>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"></script>

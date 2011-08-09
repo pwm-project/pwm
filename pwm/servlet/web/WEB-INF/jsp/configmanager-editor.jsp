@@ -54,6 +54,7 @@
 } %></script>
 <div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
+    <div id="header-company-logo"></div>
     <div id="header-page">
         PWM Configuration Editor
     </div>

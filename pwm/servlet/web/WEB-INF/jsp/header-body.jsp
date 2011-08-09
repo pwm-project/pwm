@@ -35,6 +35,7 @@
 <% } %>
 <% } %>
 <div id="header">
+    <div id="header-company-logo"></div>
     <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
     <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px">
         <a style="border-width:0" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"

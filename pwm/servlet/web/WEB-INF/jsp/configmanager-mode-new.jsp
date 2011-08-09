@@ -33,6 +33,7 @@
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
     <div id="header">
+        <div id="header-company-logo"></div>
         <div id="header-page">
             PWM Configuration Editor
         </div>

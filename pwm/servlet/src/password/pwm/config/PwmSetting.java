@@ -67,6 +67,8 @@ public enum PwmSetting {
             "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
 
     // user interface
+    INTERFACE_THEME(
+            "interface.theme", Syntax.SELECT, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_SHOW_DETAILED_ERRORS(
             "display.showDetailedErrors", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_AUTOGEN(
