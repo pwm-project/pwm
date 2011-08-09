@@ -33,6 +33,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import java.util.Collection;
 
 /**
  * Servlet event listener, defined in web.xml
@@ -155,7 +156,9 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         try {
             final ContextManager currentManager = ContextManager.getContextManager(servletContext);
             servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, null);
+            final Collection<PwmSession> allSessions = currentManager.getPwmSessions();
             currentManager.shutdown();
+            invalidateAllUserSessions(allSessions);
         } catch (Throwable e) {
             LOGGER.fatal("error trying to shutdown ContextManager during restart");
         }
@@ -170,6 +173,16 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         } catch (Exception e) {
             LOGGER.fatal("error initializing pwm context: " + e, e);
             System.err.println("error initializing pwm context: " + e);
+        }
+    }
+
+    private static void invalidateAllUserSessions(final Collection<PwmSession> sessions) {
+        if (sessions == null || sessions.isEmpty()) {
+            return;
+        }
+
+        for (final PwmSession pwmSession : sessions) {
+            pwmSession.invalidate();
         }
     }
 }

@@ -517,7 +517,7 @@ public enum PwmSetting {
     EDIRECTORY_ALWAYS_USE_PROXY(
             "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
 
-    // password reset settings
+    // helpdesk
     HELPDESK_ENABLE(
             "helpdesk.enable", Syntax.BOOLEAN, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_ENFORCE_PASSWORD_POLICY(
@@ -527,9 +527,9 @@ public enum PwmSetting {
     HELPDESK_DISPLAY_ATTRIBUTES(
             "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_ENABLE_UNLOCK(
-            "helpdesk.enableUnlock", Syntax.STRING, Category.HELPDESK, true, Level.BASIC),
+            "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
 
-    // advanced
+    // misc
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     ALLOW_URL_SESSIONS(

@@ -291,4 +291,16 @@ public class PwmSession implements Serializable {
     public HttpSession getHttpSession() {
         return httpSession;
     }
+
+    public void invalidate() {
+        if (httpSession != null) {
+            httpSession.invalidate();
+        }
+
+        try {
+            this.unauthenticateUser();
+        } catch (Exception e) {
+            //ignore
+        }
+    }
 }

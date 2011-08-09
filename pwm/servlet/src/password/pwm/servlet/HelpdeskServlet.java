@@ -72,6 +72,8 @@ public class HelpdeskServlet extends TopServlet {
                 return;
             } else if (processAction.equalsIgnoreCase("search")) {
                 processUserSearch(req);
+            } else {
+                pwmSession.getHelpdeskBean().setUserExists(false);
             }
         }
 
@@ -89,8 +91,7 @@ public class HelpdeskServlet extends TopServlet {
     private void processUserSearch(
             final HttpServletRequest req
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
@@ -240,7 +241,6 @@ public class HelpdeskServlet extends TopServlet {
     }
 
 
-
     /**
      * Performs the actual password reset.
      * @param req
@@ -263,6 +263,14 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "password unlock request, but no user result in search";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            this.forwardToJSP(req, resp);
+            return;
+        }
+
+        if (!theManager.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) {
+            final String errorMsg = "password unlock request, but no helpdesk unlock is not enabled";
+            LOGGER.error(pwmSession, errorMsg);
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
             this.forwardToJSP(req, resp);
             return;
         }

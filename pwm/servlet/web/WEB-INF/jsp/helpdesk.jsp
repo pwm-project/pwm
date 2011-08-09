@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
@@ -212,11 +213,13 @@
                 <td>
                     <%= helpdeskBean.isIntruderLocked() ? "True" :"False" %>
                     <% if (helpdeskBean.isIntruderLocked()) { %>
+                    <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                     <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="doUnlock"/>
                         <input type="submit" name="change" class="btn" id="password_unlock" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
+                    <% } %>
                     <% } %>
                 </td>
             </tr>
@@ -227,11 +230,13 @@
                 <td>
                     <%= helpdeskBean.isPwmIntruder() ? "True" :"False" %>
                     <% if (helpdeskBean.isPwmIntruder()) { %>
+                    <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                     <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="doUnlock"/>
                         <input type="submit" name="change" class="btn" id="password_unlock2" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
+                    <% } %>
                     <% } %>
                 </td>
             </tr>
@@ -251,7 +256,7 @@
                 </td>
                 <td>
                     <%= record.getEventCode().getLocalizedString(PwmSession.getPwmSession(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                    <%= record.getMessage() != null && record.getMessage().length() > 0 ? " - " + record.getMessage() : "" %>
+                    <%= record.getMessage() != null ? record.getMessage() : "" %>
                 </td>
             </tr>
             <% } %>

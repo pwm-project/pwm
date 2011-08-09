@@ -174,7 +174,7 @@ public class PasswordRequirementsTag extends TagSupport {
             final StringBuilder fieldValue = new StringBuilder();
             for (final String loopValue : setValue) {
                 fieldValue.append(" ");
-                fieldValue.append(loopValue);
+                fieldValue.append(StringEscapeUtils.escapeHtml(loopValue));
             }
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale, config));
         }
@@ -289,7 +289,7 @@ public class PasswordRequirementsTag extends TagSupport {
             final StringBuilder requirementsText = new StringBuilder();
             for (final String requirementStatement : requirementsList) {
                 requirementsText.append(pre);
-                requirementsText.append(StringEscapeUtils.escapeHtml(requirementStatement));
+                requirementsText.append(requirementStatement);
                 requirementsText.append(sep);
             }
 

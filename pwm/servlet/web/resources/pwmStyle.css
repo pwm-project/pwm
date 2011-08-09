@@ -250,3 +250,45 @@ div.progress-container > div {
 #waitDialog_underlay {
     background-color: #444444;
 }
+
+/*
+ * Flags for language selector
+ */
+
+.flagLang_cs {
+    background-image: url(flags/languages/cs.png);
+}
+.flagLang_de {
+    background-image: url(flags/languages/de.png);
+}
+.flagLang_en {
+    background-image: url(flags/languages/en.png);
+}
+.flagLang_es {
+    background-image: url(flags/languages/es.png);
+}
+.flagLang_fr {
+    background-image: url(flags/languages/fr.png);
+}
+.flagLang_it {
+    background-image: url(flags/languages/it.png);
+}
+.flagLang_iw {
+    background-image: url(flags/languages/iw.png);
+}
+.flagLang_nl {
+    background-image: url(flags/languages/nl.png);
+}
+.flagLang_pl {
+    background-image: url(flags/languages/pl.png);
+}
+.flagLang_pt {
+    background-image: url(flags/languages/pt.png);
+}
+.flagLang_sk {
+    background-image: url(flags/languages/sk.png);
+}
+.flagLang_tr {
+    background-image: url(flags/languages/tr.png);
+}
+

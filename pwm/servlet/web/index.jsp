@@ -35,10 +35,15 @@
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Long_Title_Main_Menu"/></p>
+        <p></p>
 
-        <h2><a href="<pwm:url url='private'/>"><pwm:Display key="Title_Login"/></a></h2>
+        <% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
+        <h2><a href="<pwm:url url='private/'/>"><pwm:Display key="Title_MainPage"/></a></h2>
+        <p></p>
+        <% } else { %>
+        <h2><a href="<pwm:url url='private/'/>"><pwm:Display key="Title_Login"/></a></h2>
         <p><pwm:Display key="Display_Login"/></p>
+        <% } %>
 
         <br class="clear"/>
         <br class="clear"/>
@@ -56,9 +61,9 @@
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a></h2>
         <p><pwm:Display key="Long_Title_ActivateUser"/><p>
-        <% } %>
+            <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
+            <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
         <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey"><pwm:Display key="Title_NewUser"/></a></h2>
         <p><pwm:Display key="Long_Title_NewUser"/></p>
         <% } %>
