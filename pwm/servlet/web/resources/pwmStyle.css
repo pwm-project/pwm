@@ -251,6 +251,15 @@ div.progress-container > div {
     background-color: #444444;
 }
 
+#TopMenu {
+    width:620px;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    clear: both;
+}
+
 /*
  * Flags for language selector
  */

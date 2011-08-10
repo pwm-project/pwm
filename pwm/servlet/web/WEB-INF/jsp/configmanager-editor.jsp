@@ -66,7 +66,7 @@
         <% } %>
     </div>
 </div>
-<div id="TopMenu" style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;">
+<div id="TopMenu"><!-- style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;" -->
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
