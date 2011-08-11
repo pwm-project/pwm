@@ -45,7 +45,7 @@ function validateResponses() {
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showWorking(); }},500);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingResponses']); }},500);
 
     validationInProgress = true;
     dojo.xhrPost({
@@ -56,7 +56,8 @@ function validateResponses() {
         handleAs: "json",
         error: function(errorObj) {
             validationInProgress = false;
-            clearError(PWM_STRINGS['Display_CommunicationError']);
+            getObject("setresponses_button").disabled = false;
+            showSuccess(PWM_STRINGS['Display_CommunicationError']);
             console.log('error: ' + errorObj);
         },
         load: function(data){
@@ -65,7 +66,7 @@ function validateResponses() {
             if (parameterData.cacheKey != makeValidationKey().cacheKey) {
                 setTimeout(function() {validateResponses();}, 1);
             } else {
-                updateDisplay(data);                
+                updateDisplay(data);
             }
         }
     });
@@ -92,60 +93,16 @@ function makeValidationKey() {
 
 function updateDisplay(resultInfo)
 {
-
     var result = resultInfo["message"];
 
     if (resultInfo["success"] == "true") {
+        getObject("setresponses_button").disabled = false;
         showSuccess(result);
     } else {
+        getObject("setresponses_button").disabled = true;
         showError(result);
     }
 }
-
-function clearError(message)
-{
-    getObject("setresponses_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = message;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#FFFFFF' }
-    }).play();
-}
-
-function showWorking()
-{
-    getObject("setresponses_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_CheckingResponses'];
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#DDDDDD' }
-    }).play();
-}
-
-function showError(errorMsg)
-{
-    getObject("setresponses_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = errorMsg;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#FFCD59' }
-    }).play();
-}
-
-function showSuccess(successMsg)
-{
-    getObject("setresponses_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = successMsg;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#EFEFEF' }
-    }).play();
-}
-
 
 
 function toggleHideResponses()

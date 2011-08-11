@@ -465,3 +465,68 @@ function closeIdleWarning() {
     }
     document.title = PWM_GLOBAL['real-window-title'];
 }
+
+/*
+function getCssRuleStyle(className) {
+    var classes = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+    for(var x=0;x<classes.length;x++) {
+        if(classes[x].selectorText==className) {
+            return classes[x];
+            //    (classes[x].cssText) ? alert(classes[x].cssText) : alert(classes[x].style.cssText);
+        }
+    }
+}
+
+function tempTest() {
+    var jason = getCssRuleStyle('.msg-error');
+    var thingy = jason.style;
+    var thing2 = thingy.background;
+    var thing3 = thing2.color;
+    alert(thing2);
+    var t = 3 + 2;
+    //alert(t);
+    //alert(style);
+}
+
+tempTest();
+*/
+
+function clearError()
+{
+    dojo.fadeOut({ node: "error_msg",duration: 400 }).play();
+    getObject("error_msg").firstChild.nodeValue = '';
+}
+
+function showInfo(infoMsg)
+{
+    doShow('msg-info',infoMsg)
+}
+
+function showError(errorMsg)
+{
+    doShow('msg-error',errorMsg);
+}
+
+function showSuccess(successMsg)
+{
+    doShow('msg-success',successMsg);
+}
+
+function doShow(destClass, message) {
+    var errorObject = getObject("error_msg");
+    if (errorObject == null || errorObject.firstChild == null || errorObject.firstChild.nodeValue == null) {
+        return;
+    }
+    if (errorObject.className != destClass || errorObject.firstChild.nodeValue != message) {
+        dojo.fadeOut({ node: "error_msg",duration: 400 }).play();
+
+        setTimeout(function() {
+            errorObject.firstChild.nodeValue = message;
+            errorObject.className = destClass;
+            dojo.fadeIn({ node: "error_msg",duration: 400 }).play();
+        },400);
+    } else {
+        errorObject.firstChild.nodeValue = message;
+        errorObject.className = destClass;
+    }
+}

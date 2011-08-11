@@ -22,3 +22,31 @@
     border: solid 3px #000088;
     border-radius: 5px;
 }
+
+.msg-info {
+    display: block;
+    padding: 6px;
+    background-color: #b6ccdb;
+    width: 560px;
+    border-radius: 3px;
+    -moz-border-radius: 3px
+}
+
+.msg-error {
+    display: block;
+    padding: 6px;
+    background-color: #ffcccc;
+    width: 560px;
+    border-radius: 3px;
+    -moz-border-radius: 3px
+}
+
+.msg-success {
+    color: white;
+    display: block;
+    padding: 6px;
+    background-color: #0000ff;
+    width: 560px;
+    border-radius: 3px;
+    -moz-border-radius: 3px
+}

@@ -63,7 +63,7 @@ function validatePasswords()
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showWorking(); } },500);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },500);
 
     validationInProgress = true;
     dojo.xhrPost({
@@ -109,6 +109,7 @@ function makeValidationKey() {
 
 function updateDisplay(resultInfo) {
     if (resultInfo == null) {
+        getObject("password_button").disabled = false;
         showSuccess(PWM_STRINGS['Display_PasswordPrompt']);
         markStrength(0);
         markConfirmationCheck(null);
@@ -123,12 +124,10 @@ function updateDisplay(resultInfo) {
     }
 
     if (resultInfo["passed"] == "true") {
-        if (resultInfo["match"] == "MATCH") {
-            showSuccess(message);
-        } else {
-            showConfirm(message);
-        }
+        getObject("password_button").disabled = false;
+        showSuccess(message);
     } else {
+        getObject("password_button").disabled = true;
         showError(message);
     }
 
@@ -193,60 +192,6 @@ function markStrength(strength) { //strength meter
     }
 }
 
-function clearError(message)
-{
-    getObject("password_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = message;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#FFFFFF' }
-    }).play();
-}
-
-function showWorking()
-{
-    getObject("password_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_CheckingPassword'];
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#DDDDDD' }
-    }).play();
-}
-
-function showError(errorMsg)
-{
-    getObject("password_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = errorMsg;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#FFCD59' }
-    }).play();
-}
-
-function showConfirm(successMsg)
-{
-    getObject("password_button").disabled = true;
-    getObject("error_msg").firstChild.nodeValue = successMsg;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#DDDDDD' }
-    }).play();
-}
-
-function showSuccess(successMsg)
-{
-    getObject("password_button").disabled = false;
-    getObject("error_msg").firstChild.nodeValue = successMsg;
-    dojo.animateProperty({
-        node:"error_msg",
-        duration: 500,
-        properties: { backgroundColor:'#EFEFEF' }
-    }).play();
-}
 
 function copyToPasswordFields(elementID)  // used to copy auto-generated passwords to password field
 {
@@ -390,11 +335,11 @@ function fetchRandoms() {
         var name = fetchList.splice(0,1);
         outstandingFetches++;
         fetchRandom(function(results) {
-            handleRandomResponse(results, name);
-            outstandingFetches--;
-        },
-                function(errorObj) {outstandingFetches--;}
-                );
+                handleRandomResponse(results, name);
+                outstandingFetches--;
+            },
+            function(errorObj) {outstandingFetches--;}
+        );
         setTimeout(function(){fetchRandoms();},100);
     }
 }

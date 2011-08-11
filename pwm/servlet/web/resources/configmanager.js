@@ -27,32 +27,6 @@ var availableLocales = new Array();
 var menuItems = new Array();
 var selectedCategory = "";
 
-function showError(errorMsg) {
-    var errorMsgObj = getObject("error_msg");
-
-    if (errorMsgObj == null || errorMsgObj.firstChild == null || errorMsgObj.firstChild.nodeValue == null) {
-        return;
-    }
-
-    if (errorMsg != null && errorMsg != "") {
-        errorMsgObj.firstChild.nodeValue = errorMsg;
-        errorMsgObj.className = "msg-error";
-        errorMsgObj.style.visibility = 'visible';
-        errorMsgObj.style.marginBottom = '15px';
-        window.scrollTo(errorMsgObj.offsetLeft, errorMsgObj.offsetTop);
-    } else {
-        errorMsgObj.style.visibility = 'hidden';
-    }
-}
-
-function clearError()
-{
-    var errorMsgObj = getObject("error_msg");
-    errorMsgObj.firstChild.nodeValue = '';
-    errorMsgObj.style.visibility = 'hidden';
-}
-
-
 function readSetting(keyName, valueWriter) {
     dojo.xhrGet({
         url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
