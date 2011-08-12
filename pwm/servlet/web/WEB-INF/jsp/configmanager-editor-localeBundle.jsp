@@ -61,9 +61,10 @@
 <% } %>
 <script type="text/javascript">
     function doLazyLoad(key) {
-        var errorMsgObj = getObject("error_msg");
-        errorMsgObj.className = "msg-success";
-        errorMsgObj.firstChild.nodeValue = 'Loading display values.... ' + LOAD_TRACKER.length + " remaining.";
+        //var errorMsgObj = getObject("error_msg");
+        //errorMsgObj.className = "msg-success";
+        //errorMsgObj.firstChild.nodeValue = 'Loading display values.... ' + LOAD_TRACKER.length + " remaining.";
+        showInfo('Loading display values.... ' + LOAD_TRACKER.length + " remaining.");
 
         var settingKey = 'localeBundle-' + '<%=bundleName%>' + '-' + key;
         initLocaleTable('table_' + key, settingKey, '.*', 'LOCALIZED_TEXT_AREA');
@@ -72,7 +73,9 @@
                 doLazyLoad(LOAD_TRACKER.pop());
             },100);
         } else {
-            clearError();
+            setTimeout(function(){
+                clearError();
+            },1000);
         }
     }
     LOAD_TRACKER.reverse();

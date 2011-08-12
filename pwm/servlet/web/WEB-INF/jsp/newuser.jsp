@@ -1,24 +1,27 @@
+<%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="java.util.List" %>
+<%@ page import="password.pwm.bean.SessionStateBean" %>
 <%--
-  ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
-  ~
-  ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2011 The PWM Project
-  ~
-  ~ This program is free software; you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation; either version 2 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  --%>
+~ Password Management Servlets (PWM)
+~ http://code.google.com/p/pwm/
+~
+~ Copyright (c) 2006-2009 Novell, Inc.
+~ Copyright (c) 2009-2011 The PWM Project
+~
+~ This program is free software; you can redistribute it and/or modify
+~ it under the terms of the GNU General Public License as published by
+~ the Free Software Foundation; either version 2 of the License, or
+~ (at your option) any later version.
+~
+~ This program is distributed in the hope that it will be useful,
+~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~ GNU General Public License for more details.
+~
+~ You should have received a copy of the GNU General Public License
+~ along with this program; if not, write to the Free Software
+~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+--%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -28,26 +31,86 @@
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="tundra">
+<script type="text/javascript"
+        src="<%=request.getContextPath()%>/resources/<pwm:url url='newuser.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
+        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
+        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
+        <% } else { %>
+        <span id="error_msg">&nbsp;</span>
+        <% } %>
         <p><pwm:Display key="Display_NewUser"/></p>
 
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
+              id="newUserForm"
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
+              onkeyup="validateNewUserForm();" onkeypress="checkForCapsLock(event);"
+              >
 
-            <pwm:ShowForm formName="newuser"/>
+            <table style="border-radius: 3px; -moz-border-radius: 3px; border-collapse: separate;">
+                <%
+                    final PwmSession pwmSession = PwmSession.getPwmSession(session);
+                    final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+                    List<FormConfiguration> formConfigurationList = pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM,pwmSession.getSessionStateBean().getLocale());
+                    for (FormConfiguration loopConfiguration : formConfigurationList) {
+                    %>
+                <tr>
+                    <td class="key">
+                        <%= loopConfiguration.getLabel() %>
+                    </td>
+                    <td>
+                        <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
+                               name="<%=loopConfiguration.getAttributeName()%>"
+                               value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
+                                />
+                    </td>
+                </tr>
+                <% if (loopConfiguration.isConfirmationRequired()) { %>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %>
+                    </td>
+                    <td>
+                        <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm" type="<%=loopConfiguration.getType()%>"
+                               name="<%=loopConfiguration.getAttributeName()%>_confirm"
+                               value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"/>
+                    </td>
+                </tr>
+                <% } %>
+                <% } %>
+                <tr>
+                    <td colspan="2">
+                        <pwm:DisplayPasswordRequirements/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_NewPassword"/>
+                    </td>
+                    <td>
+                        <input style="border:0" type="password" name="password1" id="password1"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ConfirmPassword"/>
+                    </td>
+                    <td>
+                        <input style="border:0" type="password" name="password2" id="password2"/>
+                    </td>
+                </tr>
+            </table>
+
 
             <div id="buttonbar">
+                <span>
+                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+                </span>
+
                 <input type="hidden" name="processAction" value="create"/>
                 <input type="submit" name="Create" class="btn"
                        value="     <pwm:Display key="Button_Create"/>     "

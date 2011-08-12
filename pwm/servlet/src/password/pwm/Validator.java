@@ -62,7 +62,6 @@ public class Validator {
 
     public static final String PARAM_CONFIRM_SUFFIX = "_confirm";
 
-    public static final int DEFAULT_PARAM_READ_LENGTH = 255;
 
 
 // -------------------------- STATIC METHODS --------------------------
@@ -91,7 +90,7 @@ public class Validator {
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmPasswordPolicy policy = pwmSession.getUserInfoBean().getPasswordPolicy();
-        return testPasswordAgainstPolicy(password, pwmSession, testOldPassword, policy);
+        return testPasswordAgainstPolicy(password, pwmSession, testOldPassword, policy, true);
     }
 
     /**
@@ -113,7 +112,8 @@ public class Validator {
             final String password,
             final PwmSession pwmSession,
             final boolean testOldPassword,
-            final PwmPasswordPolicy policy
+            final PwmPasswordPolicy policy,
+            final boolean testAgainstLdap
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getContextManager());
@@ -122,24 +122,26 @@ public class Validator {
             throw new PwmDataValidationException(errorResults.iterator().next());
         }
 
-        try {
-            LOGGER.trace(pwmSession, "calling chai directory password validation checker");
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-            actor.testPasswordPolicy(password);
-        } catch (UnsupportedOperationException e) {
-            LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
-        } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-            LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
-            throw e;
-        } catch (ChaiPasswordPolicyException e) {
-            final ChaiError passwordError = e.getErrorCode();
-            final PwmError pwmError = PwmError.forChaiError(passwordError);
-            final ErrorInformation info = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
-            LOGGER.trace(pwmSession, "ChaiPasswordPolicyException was thrown while validating password: " + e.toString());
-            errorResults.add(info);
+        if (testAgainstLdap) {
+            try {
+                LOGGER.trace(pwmSession, "calling chai directory password validation checker");
+                final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+                final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+                actor.testPasswordPolicy(password);
+            } catch (UnsupportedOperationException e) {
+                LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
+            } catch (ChaiUnavailableException e) {
+                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
+                throw e;
+            } catch (ChaiPasswordPolicyException e) {
+                final ChaiError passwordError = e.getErrorCode();
+                final PwmError pwmError = PwmError.forChaiError(passwordError);
+                final ErrorInformation info = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
+                LOGGER.trace(pwmSession, "ChaiPasswordPolicyException was thrown while validating password: " + e.toString());
+                errorResults.add(info);
+            }
         }
 
         if (!errorResults.isEmpty()) {
@@ -153,23 +155,39 @@ public class Validator {
             final HttpServletRequest req,
             final Collection<FormConfiguration> formConfigurations
     )
+            throws PwmDataValidationException, PwmUnrecoverableException
+    {
+        final Map<String,String> tempMap = new HashMap<String,String>();
+        for (Enumeration keyEnum = req.getParameterNames(); keyEnum.hasMoreElements();) {
+            final String keyName = keyEnum.nextElement().toString();
+            final String value = readStringFromRequest(req,keyName);
+            tempMap.put(keyName,value);
+        }
+        return readFormValuesFromMap(tempMap, formConfigurations);
+    }
+
+
+    public static Map<FormConfiguration, String> readFormValuesFromMap(
+            final Map<String,String> inputMap,
+            final Collection<FormConfiguration> formConfigurations
+    )
             throws PwmDataValidationException, PwmUnrecoverableException {
         if (formConfigurations == null || formConfigurations.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        final Map<FormConfiguration, String> returnMap = new HashMap<FormConfiguration,String>();
+        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<FormConfiguration,String>();
         for (final FormConfiguration formConfiguration : formConfigurations) {
             returnMap.put(formConfiguration,"");
         }
 
-        if (req == null) {
+        if (inputMap == null) {
             return returnMap;
         }
 
         for (final FormConfiguration formConfiguration : formConfigurations) {
             final String keyName = formConfiguration.getAttributeName();
-            final String value = Validator.readStringFromRequest(req, keyName);
+            final String value = inputMap.get(keyName);
 
             if (formConfiguration.isRequired()) {
                 if (value == null || value.length() < 0) {
@@ -180,7 +198,7 @@ public class Validator {
             }
 
             if (formConfiguration.isConfirmationRequired()) {
-                final String confirmValue = readStringFromRequest(req,keyName + PARAM_CONFIRM_SUFFIX);
+                final String confirmValue = inputMap.get(keyName + PARAM_CONFIRM_SUFFIX);
                 if (!confirmValue.equals(value)) {
                     final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getAttributeName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, formConfiguration.getLabel());
@@ -199,7 +217,7 @@ public class Validator {
             final HttpServletRequest req,
             final String value
     ) throws PwmUnrecoverableException {
-        final Set<String> results = readStringsFromRequest(req, value, DEFAULT_PARAM_READ_LENGTH);
+        final Set<String> results = readStringsFromRequest(req, value, PwmConstants.HTTP_PARAMETER_READ_LENGTH);
         if (results == null || results.isEmpty()) {
             return "";
         }

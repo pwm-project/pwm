@@ -171,9 +171,7 @@ public class ShowFormTag extends TagSupport {
 // -------------------------- OTHER METHODS --------------------------
 
     private List<FormConfiguration> getForm(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        if (formName.equalsIgnoreCase("newuser")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, pwmSession.getSessionStateBean().getLocale());
-        } else if (formName.equalsIgnoreCase("activateuser")) {
+        if (formName.equalsIgnoreCase("activateuser")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("updateprofile")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());

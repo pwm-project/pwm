@@ -146,29 +146,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
 </div>
-<%-- fields used by changepassword.js javascript display fields for i18n --%>
-<script type="text/javascript">
-    PWM_STRINGS['Tooltip_PasswordStrength'] = "<pwm:Display key="Tooltip_PasswordStrength"/>";
-    PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
-    PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
-    PWM_STRINGS['Display_PasswordGeneration'] = "<pwm:Display key="Display_PasswordGeneration"/>";
-    PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
-    PWM_STRINGS['Display_LeaveDirtyPasswordPage'] = "<pwm:Display key="Display_LeaveDirtyPasswordPage"/>";
-    PWM_STRINGS['Strength_Low'] = "<pwm:Display key="Display_PasswordStrengthLow"/>";
-    PWM_STRINGS['Strength_Medium'] = "<pwm:Display key="Display_PasswordStrengthMedium"/>";
-    PWM_STRINGS['Strength_High'] = "<pwm:Display key="Display_PasswordStrengthHigh"/>";
-    PWM_STRINGS['Button_Hide'] = "<pwm:Display key="Button_Hide"/>";
-    PWM_STRINGS['Button_Show'] = "<pwm:Display key="Button_Show"/>";
-    PWM_STRINGS['Button_Cancel'] = "<pwm:Display key="Button_Cancel"/>";
-    PWM_STRINGS['Button_More'] = "<pwm:Display key="Button_More"/>";
-    PWM_STRINGS['Title_RandomPasswords'] = "<pwm:Display key="Title_RandomPasswords"/>";
-    PWM_STRINGS['Title_PasswordGuide'] = "<pwm:Display key="Title_PasswordGuide"/>";
-    PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-    PWM_STRINGS['passwordGuideText'] = '<%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%>';
-</script>
-<%-- end hidden fields --%>
 <%@ include file="footer.jsp" %>
 </body>
 </html>

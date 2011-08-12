@@ -36,7 +36,6 @@
 <% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
 <% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
-<script type="text/javascript">showError('');</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
     <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
         <label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%></label>

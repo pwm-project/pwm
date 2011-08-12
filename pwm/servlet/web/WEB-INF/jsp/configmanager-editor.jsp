@@ -72,7 +72,7 @@
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
 <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
 <% } else { %>
-<span style="visibility:hidden;" id="error_msg" class="msg-success"> </span>
+<span id="error_msg">&nbsp;</span>
 <% } %>
 <script type="text/javascript">
 function buildMenuBar() {

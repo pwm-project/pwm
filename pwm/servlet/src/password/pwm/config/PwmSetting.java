@@ -432,6 +432,16 @@ public enum PwmSetting {
             "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
+    NEWUSER_DELETE_ON_FAIL(
+            "newUser.deleteOnFail", Syntax.BOOLEAN, Category.NEWUSER, false, Level.ADVANCED),
+    NEWUSER_USERNAME_CHARS(
+            "newUser.username.characters", Syntax.STRING, Category.NEWUSER, false, Level.ADVANCED),
+    NEWUSER_USERNAME_LENGTH(
+            "newUser.username.length", Syntax.NUMERIC, Category.NEWUSER, false, Level.ADVANCED),
+
+
+
+
 
     // guest settings
     GUEST_ENABLE(

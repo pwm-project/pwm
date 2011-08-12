@@ -81,7 +81,7 @@ public class UserStatusHelper {
             final String password = pwmSession.getUserInfoBean().getUserCurrentPassword();
             if (password != null && password.length() > 0) {
                 try {
-                    Validator.testPasswordAgainstPolicy(password, pwmSession, false, passwordPolicy);
+                    Validator.testPasswordAgainstPolicy(password, pwmSession, false, passwordPolicy, true);
                 } catch (PwmDataValidationException e) {
                     LOGGER.info(pwmSession, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     returnState.setViolatesPolicy(true);

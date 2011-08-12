@@ -245,7 +245,7 @@ public class FormConfiguration implements Serializable {
                 break;
 
             case PASSWORD:
-                Validator.testPasswordAgainstPolicy(value, null, false, passwordPolicy);
+                Validator.testPasswordAgainstPolicy(value, null, false, passwordPolicy, false);
                 break;
         }
 

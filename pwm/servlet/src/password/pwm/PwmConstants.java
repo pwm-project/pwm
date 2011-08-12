@@ -56,6 +56,8 @@ public abstract class PwmConstants {
 
     public static final DateFormat PWM_STANDARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
+    public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
+
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
     public static final String HTTP_BASIC_AUTH_PREFIX = "Basic ";
     public static final String HTTP_HEADER_X_FORWARDED_FOR = "X-Forwarded-For";

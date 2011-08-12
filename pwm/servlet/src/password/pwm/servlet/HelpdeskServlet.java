@@ -195,7 +195,7 @@ public class HelpdeskServlet extends TopServlet {
 
         if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENFORCE_PASSWORD_POLICY)) {
             try {
-                Validator.testPasswordAgainstPolicy(password1, pwmSession, false, helpdeskBean.getUserInfoBean().getPasswordPolicy());
+                Validator.testPasswordAgainstPolicy(password1, pwmSession, false, helpdeskBean.getUserInfoBean().getPasswordPolicy(), false);
             } catch (PwmDataValidationException e) {
                 ssBean.setSessionError(new ErrorInformation(e.getErrorInformation().getError()));
                 this.forwardToJSP(req, resp);

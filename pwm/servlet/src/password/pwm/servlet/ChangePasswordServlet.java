@@ -60,7 +60,6 @@ public class ChangePasswordServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChangePasswordServlet.class);
 
     public static final int MAX_CACHE_SIZE = 50;
-    private static final int DEFAULT_INPUT_LENGTH = 1024;
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -73,7 +72,7 @@ public class ChangePasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
-        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if (!ssBean.isAuthenticated()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
@@ -315,9 +314,9 @@ public class ChangePasswordServlet extends TopServlet {
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         Validator.validatePwmFormID(req);
-        final String currentPassword = Validator.readStringFromRequest(req, "currentPassword", DEFAULT_INPUT_LENGTH);
-        final String password1 = Validator.readStringFromRequest(req, "password1", DEFAULT_INPUT_LENGTH);
-        final String password2 = Validator.readStringFromRequest(req, "password2", DEFAULT_INPUT_LENGTH);
+        final String currentPassword = Validator.readStringFromRequest(req, "currentPassword");
+        final String password1 = Validator.readStringFromRequest(req, "password1");
+        final String password2 = Validator.readStringFromRequest(req, "password2");
 
         // check the current password
         if (cpb.isCurrentPasswordRequired() && pwmSession.getUserInfoBean().getUserCurrentPassword() != null) {

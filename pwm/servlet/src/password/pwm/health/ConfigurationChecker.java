@@ -28,6 +28,7 @@ import password.pwm.PasswordUtility;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.PwmLogger;
 
 import java.net.MalformedURLException;
@@ -213,6 +214,13 @@ public class ConfigurationChecker implements HealthChecker {
                 errorMsg.append(" includes database storage, but database connection settings are not set");
                 records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
             }
+            }
+        }
+
+        {
+            final List<HealthRecord> healthRecords = NewUserServlet.checkConfiguration(config,PwmConstants.DEFAULT_LOCALE);
+            if (healthRecords != null && !healthRecords.isEmpty()) {
+                records.addAll(healthRecords);
             }
         }
 
