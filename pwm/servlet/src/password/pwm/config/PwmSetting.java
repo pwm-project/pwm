@@ -134,6 +134,10 @@ public enum PwmSetting {
     // email settings
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_USERNAME(
+            "email.smtp.username", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_PASSWORD(
+            "email.smtp.password", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_MAX_QUEUE_AGE(

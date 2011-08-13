@@ -256,8 +256,38 @@ public class EmailQueueManager implements PwmService {
         // createSharedHistoryManager a new MimeMessage object (using the Session created above)
         try {
             final Message message = convertEmailItemToMessage(emailItemBean, this.theManager.getConfig());
+            final String mailhost = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+            final String mailuser = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
+            final String mailpassword = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_PASSWORD);
 
-            Transport.send(message);
+            // Login to SMTP server first if both username and password is given
+            if (mailuser == null || mailuser.length() < 1 || mailpassword == null || mailpassword.length() < 1) {
+                // Login is not necessary, use old method
+                LOGGER.debug("not using smtp auth (no username or password)");
+                Transport.send(message);
+            } else {
+                //Create a properties item to start setting up the mail
+                final Properties props = new Properties();
+
+                // createSharedHistoryManager a new Session object for the message
+                final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
+
+                //Specify the desired SMTP server
+                props.put("mail.smtp.host", this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
+
+                //Specify configured advanced settings.
+                final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(this.theManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
+                for (final String key : advancedSettingValues.keySet()) {
+                    props.put(key, advancedSettingValues.get(key));
+                }
+
+                Transport tr = session.getTransport("smtp");
+                tr.connect(mailhost, mailuser, mailpassword);
+                message.saveChanges();
+                tr.sendMessage(message, message.getAllRecipients());
+                tr.close();
+            }
+
             LOGGER.debug("successfully sent email: " + emailItemBean.toString());
             statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
 
