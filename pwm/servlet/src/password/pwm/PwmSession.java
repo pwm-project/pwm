@@ -61,6 +61,7 @@ public class PwmSession implements Serializable {
 
     private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
     private HelpdeskBean helpdeskBean = new HelpdeskBean();
+    private NewUserBean newUserBean = new NewUserBean();
 
     private transient HttpSession httpSession;
 
@@ -205,6 +206,7 @@ public class PwmSession implements Serializable {
 
         userInformationServletBean = new UserInformationServletBean();
         helpdeskBean = new HelpdeskBean();
+        newUserBean = new NewUserBean();
 
         if (sessionManager != null) {
             sessionManager.closeConnections();
@@ -288,8 +290,8 @@ public class PwmSession implements Serializable {
         return httpSession == null ? -1 : httpSession.getMaxInactiveInterval();
     }
 
-    public HttpSession getHttpSession() {
-        return httpSession;
+    public NewUserBean getNewUserBean() {
+        return newUserBean;
     }
 
     public void invalidate() {

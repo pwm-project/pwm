@@ -29,22 +29,23 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="tundra">
 <script type="text/javascript"
         src="<%=request.getContextPath()%>/resources/<pwm:url url='newuser.js'/>"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <% } else { %>
-        <span id="error_msg">&nbsp;</span>
-        <% } %>
         <p><pwm:Display key="Display_NewUser"/></p>
-
+        <div id="PasswordRequirements">
+            <ul>
+                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
+            </ul>
+        </div>
+        <%@ include file="fragment/message.jsp" %>
+        <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
               id="newUserForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
@@ -83,16 +84,11 @@
                 <% } %>
                 <% } %>
                 <tr>
-                    <td colspan="2">
-                        <pwm:DisplayPasswordRequirements/>
-                    </td>
-                </tr>
-                <tr>
                     <td class="key">
                         <pwm:Display key="Field_NewPassword"/>
                     </td>
                     <td>
-                        <input style="border:0" type="password" name="password1" id="password1"/>
+                        <input style="border:0; width: 100%" type="password" name="password1" id="password1"/>
                     </td>
                 </tr>
                 <tr>
@@ -100,7 +96,7 @@
                         <pwm:Display key="Field_ConfirmPassword"/>
                     </td>
                     <td>
-                        <input style="border:0" type="password" name="password2" id="password2"/>
+                        <input style="border:0; width: 100%" type="password" name="password2" id="password2"/>
                     </td>
                 </tr>
             </table>
@@ -132,6 +128,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

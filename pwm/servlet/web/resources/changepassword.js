@@ -75,7 +75,7 @@ function validatePasswords()
         timeout: 15000,
         error: function(errorObj) {
             validationInProgress = false;
-            clearError(PWM_STRINGS['Display_CommunicationError']);
+            showInfo(PWM_STRINGS['Display_CommunicationError']);
             markStrength(0);
             markConfirmationCheck(null);
             console.log('error: ' + errorObj);
@@ -279,7 +279,7 @@ function toggleMaskPasswords()
 
 function handleChangePasswordSubmit()
 {
-    getObject("error_msg").firstChild.nodeValue = PWM_STRINGS['Display_PleaseWait'];
+    showInfo(PWM_STRINGS['Display_PleaseWait']);
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 }
 
@@ -399,12 +399,6 @@ function startupChangePasswordPage()
         if ( passwordGuideText != null && passwordGuideText.length > 0) {
             passwordGuideElement.style.visibility = 'visible';
         }
-    }
-
-    // show the error panel
-    var errorObj = getObject("error_msg");
-    if (errorObj != null) {
-        errorObj.style.visibility = 'visible';
     }
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown

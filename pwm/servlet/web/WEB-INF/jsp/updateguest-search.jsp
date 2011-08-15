@@ -20,60 +20,51 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.Configuration" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
+<%@ include file="fragment/header.jsp" %>
+<body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_GuestUpdate"/>
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_NewUserRegistration"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_GuestUpdate"/></p>
+        <% 
+           final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+           final String destMail = fpb.getTokenEmailAddress();
+           final String destSms = fpb.getTokenSmsNumber();
+           String destination = "";
+           if (fpb.getEmailUsed()) {
+             destination += destMail;
+           }
+           if (fpb.getSmsUsed()) {
+             if (destination.length() > 0) {
+               destination += " / ";
+             }
+             destination += destSms;
+           }
+        %>
+        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
 
-        <form action="<pwm:url url='GuestUpdate'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="searchForm"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false;"
-              id="searchForm">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
-
-            <% //check to see if any locations are configured.
-                if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
-            %>
-            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context">
-                <pwm:DisplayLocationOptions name="context"/>
-            </select>
-            <% } %>
-
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="text" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
+        <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
+              enctype="application/x-www-form-urlencoded" name="search"
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+            <%@ include file="fragment/message.jsp" %>
+            <h2><label for="code"><pwm:Display key="Field_Code"/></label></h2>
+            <input type="text" id="code" name="code" class="inputfield"/>
 
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
                 <input type="submit" class="btn"
                        name="search"
-                       value="     <pwm:Display key="Button_Search"/>     "
+                       value="     <pwm:Display key="Button_CheckCode"/>     "
                        id="submitBtn"/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-
                 <input type="reset" class="btn"
-                       name="reset" onclick="clearForm('searchForm');return false;"
+                       name="reset"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
-                <% } %>
+                <input type="hidden" id="processAction" name="processAction" value="forgottenCode"/>
                 <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
@@ -81,13 +72,13 @@
                 </button>
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
 

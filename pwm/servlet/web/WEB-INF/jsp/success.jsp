@@ -26,25 +26,16 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Success"/>
     </jsp:include>
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
               enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
-
-            <p><pwm:SuccessMessage/></p>
-
+            <%@ include file="fragment/message.jsp" %>
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"
@@ -57,6 +48,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

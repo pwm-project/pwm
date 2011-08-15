@@ -188,6 +188,7 @@ public class SessionFilter implements Filter {
 
         //clear any errors in the session's state bean
         ssBean.setSessionError(null);
+        ssBean.setSessionSuccess(null,null);
 
         //check for session verification failure
         if (!ssBean.isSessionVerified()) {

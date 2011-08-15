@@ -23,8 +23,6 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmPasswordPolicy;
-import password.pwm.Validator;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -216,7 +214,7 @@ public class FormConfiguration implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void checkValue(final String value, final PwmPasswordPolicy passwordPolicy)
+    public void checkValue(final String value)
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
@@ -242,10 +240,6 @@ public class FormConfiguration implements Serializable {
                         throw new PwmDataValidationException(error);
                     }
                 }
-                break;
-
-            case PASSWORD:
-                Validator.testPasswordAgainstPolicy(value, null, false, passwordPolicy, false);
                 break;
         }
 

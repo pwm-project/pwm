@@ -28,10 +28,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ErrorInformation errorInfo = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Error"/>
     </jsp:include>
     <div id="centerbody">
@@ -39,9 +39,7 @@
         <h2>PWM <%=errorInfo == null ? "" : errorInfo.getError().getErrorCode()%></h2>
         <br/>
         <br/>
-        <span id="error_msg" class="msg-error">
-            <pwm:ErrorMessage/>
-        </span>
+        <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
         <br/>
         <br/>
         <div id="buttonbar">
@@ -58,6 +56,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

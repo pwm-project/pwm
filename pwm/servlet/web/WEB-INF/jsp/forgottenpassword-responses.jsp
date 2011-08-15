@@ -34,7 +34,7 @@
 <% final ForgottenPasswordBean recoverBean = PwmSession.getPwmSession(session).getForgottenPasswordBean(); %>
 <% final List<FormConfiguration> requiredAttrParams = PwmSession.getPwmSession(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <%--
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
@@ -42,7 +42,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <body onload="pwmPageLoadHandler(); startupResponsesPage(); document.forms.responseForm.elements[0].focus();"
       class="tundra">
 <div id="wrapper">
-<jsp:include page="header-body.jsp">
+<jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
@@ -52,13 +52,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
+            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
                 for (final FormConfiguration paramConfig : requiredAttrParams) {
@@ -113,6 +107,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
     PWM_STRINGS['Button_Hide_Responses'] = '<pwm:Display key="Button_Hide_Responses"/>';
     PWM_STRINGS['Button_Show_Responses'] = '<pwm:Display key="Button_Show_Responses"/>';
 </script>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

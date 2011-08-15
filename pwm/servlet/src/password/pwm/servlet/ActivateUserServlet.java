@@ -66,16 +66,27 @@ public class ActivateUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
-        final Configuration config = PwmSession.getPwmSession(req).getConfig();
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
+        //Fetch the session state bean.
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+        final Configuration config = PwmSession.getPwmSession(req).getConfig();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         if (!config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
+            ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
+
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            ssBean.setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
 
         if (actionParam != null && actionParam.equalsIgnoreCase("activate")) {
             handleActivationRequest(req, resp);
@@ -104,7 +115,7 @@ public class ActivateUserServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfiguration);
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues);
 
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");

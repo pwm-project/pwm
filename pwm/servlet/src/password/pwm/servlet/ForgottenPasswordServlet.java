@@ -168,7 +168,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
-        final String recoverCode = Validator.readStringFromRequest(req, "code", 10 * 1024);
+        final String recoverCode = Validator.readStringFromRequest(req, "code");
 
         final boolean codeIsCorrect = (recoverCode != null) && recoverCode.equalsIgnoreCase(forgottenPasswordBean.getToken());
 
@@ -522,7 +522,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String token;
         if (forgottenPasswordBean.getToken() == null) {
-            token = generateRecoverCode(config);
+            token = Helper.generateRecoverCode(config);
             LOGGER.debug(pwmSession, "generated token code for session: " + token);
             forgottenPasswordBean.setToken(token);
         }
@@ -635,19 +635,6 @@ public class ForgottenPasswordServlet extends TopServlet {
         LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         forgottenPasswordBean.setSmsUsed(true);
         return true;
-    }
-
-    public static String generateRecoverCode(final Configuration config) {
-        final String RANDOM_CHARS = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
-        final int CODE_LENGTH = (int) config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH);
-        final PwmRandom RANDOM = PwmRandom.getInstance();
-
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < CODE_LENGTH; i++) {
-            sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-        }
-
-        return sb.toString();
     }
 
     private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)

@@ -194,31 +194,25 @@ div.progress-container > div {
     clear: both;
 }
 
-.msg-info {
+.message {
     display: block;
     padding: 6px;
+    width: 580px;
+    background-color: white;
+    border-radius: 3px;
+    -moz-border-radius: 3px
+}
+
+.message-info {
     background-color: #DDDDDD;
-    width: 560px;
-    border-radius: 3px;
-    -moz-border-radius: 3px
 }
 
-.msg-error {
-    display: block;
-    padding: 6px;
+.message-error {
     background-color: #FFCD59;
-    width: 560px;
-    border-radius: 3px;
-    -moz-border-radius: 3px
 }
 
-.msg-success {
-    display: block;
-    padding: 6px;
+.message-success {
     background-color: #EFEFEF;
-    width: 560px;
-    border-radius: 3px;
-    -moz-border-radius: 3px
 }
 
 #footer {

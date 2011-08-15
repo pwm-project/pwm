@@ -28,7 +28,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
@@ -47,9 +47,7 @@
         <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting a default
             template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
         <p>After selecting a default template below configure PWM by setting the LDAP configuration options, and then saving the configuration.</p>
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <% } %>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
         <h3><a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')"> <%=template.getDescription()%></a></h3>
         <% } %>
@@ -73,6 +71,6 @@
         <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the PWM configuration.</p>
     </div>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

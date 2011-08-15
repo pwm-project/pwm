@@ -30,11 +30,11 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Error"/>
     </jsp:include>
     <div id="centerbody">
@@ -42,7 +42,7 @@
         <h2>HTTP <%=statusCode%></h2>
         <br/>
         <br/>
-        <span id="error_msg" class="msg-error">
+        <span id="message" class="message message-error">
             <% if (404 == statusCode) { %>
             <%=PwmError.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(),PwmError.ERROR_HTTP_404,null)%>
             <% } else { %>
@@ -75,6 +75,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

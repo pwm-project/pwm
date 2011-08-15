@@ -29,7 +29,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body class="tundra">
 <%
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
@@ -47,11 +47,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <% } else { %>
-        <span style="visibility:hidden" id="error_msg" class="msg-success"> </span>
-        <% } %>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="editMode"/>
@@ -103,6 +99,6 @@
         <% } %>
     </div>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

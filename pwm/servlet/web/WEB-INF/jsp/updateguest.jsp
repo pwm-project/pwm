@@ -26,10 +26,10 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.updateGuest.elements[0].focus();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_GuestUpdate"/>
     </jsp:include>
     <div id="centerbody">
@@ -37,13 +37,7 @@
 
         <form action="<pwm:url url='GuestUpdate'/>" method="post" name="updateGuest" enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
+            <%@ include file="fragment/message.jsp" %>
 
             <pwm:ShowForm formName="updateguest"/>
 
@@ -69,6 +63,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

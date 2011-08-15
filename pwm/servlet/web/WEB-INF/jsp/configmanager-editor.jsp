@@ -37,7 +37,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getContextManager(session).getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
@@ -69,11 +69,7 @@
 <div id="TopMenu"><!-- style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;" -->
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
-<% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-<span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-<% } else { %>
-<span id="error_msg">&nbsp;</span>
-<% } %>
+<%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
     dojo.require("dijit.MenuBar");
@@ -401,7 +397,7 @@ function buildMenuBar() {
 </div>
 <br/>
 <br/>
-<div style="background:  black; color: white;"><%@ include file="footer.jsp" %></div>
+<div style="background:  black; color: white;"><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript">
     function loadMainPageBody() {
         window.location = "ConfigManager";

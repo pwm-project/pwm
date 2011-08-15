@@ -31,10 +31,10 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final password.pwm.config.Configuration pwmConfig = pwmSession.getConfig(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="/WEB-INF/jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
-    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Configuration Settings"/>
     </jsp:include>
     <div id="centerbody">
@@ -128,6 +128,6 @@
     </div>
 </div>
 <br class="clear"/>
-<%@ include file="/WEB-INF/jsp/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

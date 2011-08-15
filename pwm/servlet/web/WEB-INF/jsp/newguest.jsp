@@ -26,10 +26,10 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.newGuest.elements[0].focus();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_GuestRegistration"/>
     </jsp:include>
     <div id="centerbody">
@@ -37,14 +37,7 @@
 
         <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
-
+            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:ShowForm formName="newguest"/>
             <h2>Account Validity Duration (Days)</h2>
             <input type="number" required="true" name="__accountDuration__" class="inputfield" maxlength="5" value="10"/>
@@ -70,6 +63,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

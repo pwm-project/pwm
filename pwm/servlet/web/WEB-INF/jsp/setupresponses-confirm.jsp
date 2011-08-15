@@ -30,21 +30,16 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();"
       class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ConfirmResponses"/></p>
-        <% // if there is an error, then always show the error block if javascript is enabled.  Otherwise, only show
-            // the error block if javascript is available (for ajax use).
-            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-        %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/>&nbsp;</span>
-        <% } %>
+        <%@ include file="fragment/message.jsp" %>
         <br/>
         <%
             for (final Challenge loopChallenge : responseBean.getResponseMap().keySet()) {
@@ -87,6 +82,6 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

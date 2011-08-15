@@ -39,10 +39,10 @@
 <% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="/WEB-INF/jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper" class="tundra">
-<jsp:include page="/WEB-INF/jsp/header-body.jsp">
+<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>
 <div id="centerbody">
@@ -256,6 +256,6 @@
 </div>
 <br class="clear"/>
 </div>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>                   

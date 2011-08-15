@@ -36,12 +36,12 @@
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body class="tundra"
-      onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();">
+      onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();showInfo('<pwm:Display key="Display_ResponsesPrompt"/>')">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>
     </jsp:include>
     <div id="centerbody">
@@ -51,11 +51,7 @@
               onkeypress="checkForCapsLock(event);"
               enctype="application/x-www-form-urlencoded"
               onreset="handleFormClear();showSuccess('<pwm:Display key="Display_ResponsesPrompt"/>');return false">
-            <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-            <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-            <% } else { %>
-            <span id="error_msg" class="msg-success"><pwm:Display key="Display_ResponsesPrompt"/></span>
-            <% } %>
+            <%@ include file="fragment/message.jsp" %>
             <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {
             %>
@@ -184,6 +180,6 @@
     PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
     PWM_STRINGS['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
 </script>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -478,7 +478,7 @@ public class Helper {
     }
 
     public static boolean testEmailAddress(final String address) {
-        final Pattern pattern = Pattern.compile("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*$");
+        final Pattern pattern = Pattern.compile("^[_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*$");
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
     }
@@ -902,6 +902,19 @@ public class Helper {
             }
         }
 
+
+        return sb.toString();
+    }
+
+    public static String generateRecoverCode(final Configuration config) {
+        final String RANDOM_CHARS = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
+        final int CODE_LENGTH = (int) config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH);
+        final PwmRandom RANDOM = PwmRandom.getInstance();
+
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+        }
 
         return sb.toString();
     }

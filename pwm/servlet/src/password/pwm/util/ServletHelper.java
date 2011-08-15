@@ -37,9 +37,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ServletHelper {
 
@@ -243,25 +241,6 @@ public class ServletHelper {
             throws Exception {
         final String relativePath = servletContext.getRealPath(suggestedPath);
         return Helper.figureFilepath(filename, suggestedPath, relativePath);
-    }
-
-    public static void forwardToWaitPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext,
-            final String nextURL
-    )
-            throws IOException, ServletException {
-        try {
-            final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
-            ssBean.setPostWaitURL(SessionFilter.rewriteURL(nextURL, req, resp));
-
-            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_WAIT, req, resp);
-            theContext.getRequestDispatcher(url).forward(req, resp);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
-        }
-
     }
 
     /*

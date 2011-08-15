@@ -37,30 +37,16 @@
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="/WEB-INF/jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="/WEB-INF/jsp/header-body.jsp">
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody">
         <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-            %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-            <% } %>
-            <% //check to see if there is an error
-                if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) {
-            %>
-            <span id="success_msg" class="msg-success">
-                <pwm:SuccessMessage/>
-            </span>
-            <% } %>
-
+            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
                 if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
             %>
@@ -266,6 +252,6 @@
         <% } %>
     </div>
 </div>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

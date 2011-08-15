@@ -162,6 +162,14 @@ public enum PwmSetting {
             "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_NEWUSER_BODY_HTML(
             "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_NEWUSER_VERIFICATION_SUBJECT(
+            "email.newUser.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_NEWUSER_VERIFICATION_FROM(
+            "email.newUser.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_NEWUSER_VERIFICATION_BODY(
+            "email.newUser.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_NEWUSER_VERIFICATION_BODY_HTML(
+            "email.newUser.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_GUEST_SUBJECT(
             "email.guest.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_GUEST_FROM(
@@ -442,7 +450,8 @@ public enum PwmSetting {
             "newUser.username.characters", Syntax.STRING, Category.NEWUSER, false, Level.ADVANCED),
     NEWUSER_USERNAME_LENGTH(
             "newUser.username.length", Syntax.NUMERIC, Category.NEWUSER, false, Level.ADVANCED),
-
+    NEWUSER_EMAIL_VERIFICATION(
+            "newUser.email.verification", Syntax.BOOLEAN, Category.NEWUSER, false, Level.BASIC),
 
 
 

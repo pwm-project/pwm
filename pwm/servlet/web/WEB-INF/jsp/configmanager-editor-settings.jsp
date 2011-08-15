@@ -37,14 +37,14 @@
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
 <% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
-    <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
+    <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
         <label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%></label>
         <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
              id="resetButton-<%=loopSetting.getKey()%>"
              style="visibility:hidden; vertical-align:bottom; float: right"
              onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     </div>
-    <div class="msg-info" style="width: 580px; background: white;">
+    <div class="message message-info" style="width: 580px; background: white;">
         <% if (showDesc) { %>
         <%= loopSetting.getDescription(locale) %>
         <br/>

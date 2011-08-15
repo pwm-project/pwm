@@ -38,23 +38,17 @@
 <% final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="/WEB-INF/jsp/header.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/header-body.jsp">
+<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="User Information"/>
 </jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <form action="<pwm:url url='UserInformation'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
       onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
-    <% //check to see if there is an error
-        if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-    %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-    <% } %>
+    <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
     <p>Use this page to check user information. The data on this page is gathered using the privileges of the logged in
         user. If you do not have the appropriate directory privileges, this information may not be accurate.</p>
 
@@ -334,6 +328,6 @@
 </table>
 <% } %>
 </div>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

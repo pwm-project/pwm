@@ -40,6 +40,7 @@ import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -368,11 +369,7 @@ public class ChangePasswordServlet extends TopServlet {
             cpb.setNewPassword(password1);
             LOGGER.trace(pwmSession, "wrote password to changePasswordBean");
 
-            final StringBuilder returnURL = new StringBuilder();
-            returnURL.append(req.getContextPath());
-            returnURL.append(req.getServletPath());
-            returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
-            ServletHelper.forwardToWaitPage(req, resp, this.getServletContext(), returnURL.toString());
+            forwardToWaitPage(req, resp, this.getServletContext());
         }
     }
 
@@ -396,6 +393,8 @@ public class ChangePasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = pwmSession.getContextManager();
+
+        Validator.validatePwmFormID(req);
 
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
         final String newPassword = cpb.getNewPassword();
@@ -451,6 +450,31 @@ public class ChangePasswordServlet extends TopServlet {
         } else {
             this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
         }
+    }
+
+    public static void forwardToWaitPage(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final ServletContext theContext
+    )
+            throws IOException, ServletException, PwmUnrecoverableException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        final StringBuilder returnURL = new StringBuilder();
+        returnURL.append(req.getContextPath());
+        returnURL.append(req.getServletPath());
+        returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
+        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+        final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
+        req.setAttribute("nextURL",rewrittenURL );
+
+        try {
+            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE_WAIT, req, resp);
+            theContext.getRequestDispatcher(url).forward(req, resp);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
+        }
+
     }
 
     private enum MATCH_STATUS {

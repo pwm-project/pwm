@@ -157,12 +157,7 @@ public class Validator {
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final Map<String,String> tempMap = new HashMap<String,String>();
-        for (Enumeration keyEnum = req.getParameterNames(); keyEnum.hasMoreElements();) {
-            final String keyName = keyEnum.nextElement().toString();
-            final String value = readStringFromRequest(req,keyName);
-            tempMap.put(keyName,value);
-        }
+        final Map<String,String> tempMap = readRequestParametersAsMap(req);
         return readFormValuesFromMap(tempMap, formConfigurations);
     }
 
@@ -230,7 +225,7 @@ public class Validator {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
         if (pwmFormID != null) {
-            final String submittedpwmFormID = req.getParameter("pwmFormID");
+            final String submittedpwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
             if (submittedpwmFormID == null || submittedpwmFormID.length() < 1) {
                 LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
                 throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
@@ -340,7 +335,6 @@ public class Validator {
      * and checks to make sure the ParamConfig value meets the requiremetns of the ParamConfig itself.
      *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
-     * @param pwmSession       bean helper
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *                             if ldap server becomes unavailable
@@ -348,15 +342,13 @@ public class Validator {
      *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
-            final PwmSession pwmSession,
             final Map<FormConfiguration, String> formValues
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
     {
-        final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String value = formValues.get(formConfiguration);
-            formConfiguration.checkValue(value, passwordPolicy);
+            formConfiguration.checkValue(value);
         }
     }
 
@@ -846,12 +838,12 @@ public class Validator {
     }
 
     public static void validateAttributeUniqueness(
-            final PwmSession pwmSession,
+            final ChaiProvider chaiProvider,
+            final Configuration config,
             final Map<FormConfiguration,String> formValues,
             final List<String> uniqueAttributes
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
-        final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             if (uniqueAttributes.contains(formConfiguration.getAttributeName())) {
@@ -862,7 +854,7 @@ public class Validator {
                 filterClauses.put(formConfiguration.getAttributeName(), value);
                 final SearchHelper searchHelper = new SearchHelper();
                 searchHelper.setFilterAnd(filterClauses);
-                final Set<String> resultDNs = new HashSet<String>(provider.search(pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), searchHelper).keySet());
+                final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), searchHelper).keySet());
 
                 if (resultDNs.size() > 0) {
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, formConfiguration.getLabel());
@@ -870,6 +862,22 @@ public class Validator {
                 }
             }
         }
+    }
+
+    public static Map<String,String> readRequestParametersAsMap(final HttpServletRequest req)
+            throws PwmUnrecoverableException
+    {
+        if (req == null) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String,String> tempMap = new LinkedHashMap<String,String>();
+        for (Enumeration keyEnum = req.getParameterNames(); keyEnum.hasMoreElements();) {
+            final String keyName = keyEnum.nextElement().toString();
+            final String value = readStringFromRequest(req,keyName);
+            tempMap.put(keyName,value);
+        }
+        return tempMap;
     }
 
 }

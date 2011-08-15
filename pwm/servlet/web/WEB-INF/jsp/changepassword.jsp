@@ -28,12 +28,12 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
-<body onload="pwmPageLoadHandler(); startupChangePasswordPage();" class="tundra">
+<%@ include file="fragment/header.jsp" %>
+<body onload="pwmPageLoadHandler(); startupChangePasswordPage();setTimeout(function(){showInfo('<pwm:Display key="Display_PasswordPrompt"/>')},1000)" class="tundra">
 <script type="text/javascript"
         src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
     <div id="centerbody">
@@ -62,11 +62,7 @@
         </p>
         <% } %>
         <br/>
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <% } else { %>
-        <span id="error_msg" class="msg-success"><pwm:Display key="Display_PasswordPrompt"/></span>
-        <% } %>
+        <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);"
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
@@ -147,7 +143,7 @@
         </form>
     </div>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
 

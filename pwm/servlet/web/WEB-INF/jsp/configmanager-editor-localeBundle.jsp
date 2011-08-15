@@ -37,14 +37,14 @@
 </script>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
 <div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
-    <div class="msg-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
+    <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
         <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
              id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
              style="visibility:hidden; vertical-align:bottom; float: right"
              onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>
     </div>
-    <div class="msg-info" style="width: 580px; background: white;">
+    <div class="message message-info" style="width: 580px; background: white;">
         <table id="table_<%=key%>" style="border-width:0" width="500">
             <tr style="border-width:0">
                 <td style="border-width:0">
@@ -61,9 +61,6 @@
 <% } %>
 <script type="text/javascript">
     function doLazyLoad(key) {
-        //var errorMsgObj = getObject("error_msg");
-        //errorMsgObj.className = "msg-success";
-        //errorMsgObj.firstChild.nodeValue = 'Loading display values.... ' + LOAD_TRACKER.length + " remaining.";
         showInfo('Loading display values.... ' + LOAD_TRACKER.length + " remaining.");
 
         var settingKey = 'localeBundle-' + '<%=bundleName%>' + '-' + key;
@@ -71,11 +68,11 @@
         if (LOAD_TRACKER.length > 0) {
             setTimeout(function(){
                 doLazyLoad(LOAD_TRACKER.pop());
-            },100);
+            },100); // time between element reads
         } else {
             setTimeout(function(){
                 clearError();
-            },1000);
+            },3000); // time after element reads completed.
         }
     }
     LOAD_TRACKER.reverse();

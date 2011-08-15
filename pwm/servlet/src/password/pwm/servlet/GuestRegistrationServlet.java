@@ -112,10 +112,10 @@ public class GuestRegistrationServlet extends TopServlet {
             final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, guestUserForm);
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues);
 
             // check unique fields against ldap
-            Validator.validateAttributeUniqueness(pwmSession, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));
+            Validator.validateAttributeUniqueness(pwmSession.getContextManager().getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);

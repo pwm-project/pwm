@@ -33,7 +33,7 @@
     try { configFilePath = ServletHelper.figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", request.getSession().getServletContext()).getAbsolutePath(); } catch (Exception e) { /* */ }
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<%@ include file="../jsp/header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
@@ -47,11 +47,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-        <span id="error_msg" class="msg-error"><pwm:ErrorMessage/></span>
-        <% } else { %>
-        <span style="visibility:hidden" id="error_msg" class="msg-success"> </span>
-        <% } %>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>Welcome to the PWM ConfigManager. PWM is in configuration mode, which means you can make changes to the
             running configuration
             directly through this page. Changes made in the configuration editor will be saved immediately, and PWM will
@@ -135,6 +131,6 @@
         <p>Return to the main menu to test the configuration.</p>
     </div>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

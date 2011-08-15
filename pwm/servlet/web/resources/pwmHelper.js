@@ -468,44 +468,66 @@ function closeIdleWarning() {
 
 function clearError()
 {
-    var errorObject = getObject("error_msg");
+    var errorObject = getObject("message");
     if (errorObject == null) {
         return;
     }
-    dojo.fadeOut({ node: "error_msg",duration: 400 }).play();
-    errorObject.firstChild.nodeValue = '';
+    errorObject.firstChild.nodeValue = '\u00a0';
+
+    var destStyle = errorObject.parentNode.style;
+    var destBackground = destStyle.backgroundColor;
+
+    dojo.animateProperty({
+        node:"message",
+        duration: 500,
+        properties: {
+            backgroundColor: destBackground
+        }
+    }).play();
 }
 
 function showInfo(infoMsg)
 {
-    doShow('msg-info',infoMsg)
+    doShow('message-info',infoMsg)
 }
 
 function showError(errorMsg)
 {
-    doShow('msg-error',errorMsg);
+    doShow('message-error',errorMsg);
 }
 
 function showSuccess(successMsg)
 {
-    doShow('msg-success',successMsg);
+    doShow('message-success',successMsg);
 }
 
 function doShow(destClass, message) {
-    var errorObject = getObject("error_msg");
+    var errorObject = getObject("message");
     if (errorObject == null || errorObject.firstChild == null || errorObject.firstChild.nodeValue == null) {
         return;
     }
-    if (errorObject.className != destClass || errorObject.firstChild.nodeValue != message) {
-        dojo.fadeOut({ node: "error_msg",duration: 400 }).play();
+    errorObject.firstChild.nodeValue = message;
 
-        setTimeout(function() {
-            errorObject.firstChild.nodeValue = message;
-            errorObject.className = destClass;
-            dojo.fadeIn({ node: "error_msg",duration: 400 }).play();
-        },400);
-    } else {
-        errorObject.firstChild.nodeValue = message;
-        errorObject.className = destClass;
-    }
+    var destStyle = getRule('.' + destClass);
+    var destBackground = destStyle.style.backgroundColor;
+
+    dojo.animateProperty({
+        node:"message",
+        duration: 500,
+        properties: {
+            backgroundColor: destBackground
+        }
+    }).play();
 }
+
+function getRule(ruleName) {
+    var mysheet=document.styleSheets[0];
+    var myrules=mysheet.cssRules? mysheet.cssRules: mysheet.rules;
+    for (var i=0; i<myrules.length; i++) {
+        if(myrules[i].selectorText.toLowerCase()==ruleName) {
+            return myrules[i];
+        }
+    }
+    throw 'no such rule';
+}
+

@@ -215,7 +215,7 @@ public class GuestUpdateServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations);
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues);
             if (expirationAttribute != null && expirationAttribute.length() > 0) {
                 durationString = Validator.readStringFromRequest(req,"__accountDuration__");
                 final Integer maxDuration = Integer.parseInt(config.readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
@@ -224,7 +224,7 @@ public class GuestUpdateServlet extends TopServlet {
 
             // check unique fields against ldap
             final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmSession, formValues, uniqueAttributes);
+            Validator.validateAttributeUniqueness(pwmSession.getContextManager().getProxyChaiProvider(), config, formValues, uniqueAttributes);
 
             //update user
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();

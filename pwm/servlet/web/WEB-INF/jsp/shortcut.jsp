@@ -28,23 +28,16 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="header.jsp" %>
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <% final Map<String, ShortcutItem> shortcutItems = PwmSession.getPwmSession(session).getSessionStateBean().getVisibleShortcutItems(); %>
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Shortcuts"/>
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_Shortcuts"/></p>
-        <% //check to see if there is an error
-            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-        %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-        <% } %>
-
+        <%@ include file="fragment/message.jsp" %>
         <% if (shortcutItems.isEmpty()) { %>
         <p>No shortcuts</p>
         <% } else { %>
@@ -61,7 +54,7 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
 

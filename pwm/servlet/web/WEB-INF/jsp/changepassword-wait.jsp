@@ -25,29 +25,28 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<%--
+    response.setStatus(302);
+    response.setHeader( "Location", request.getAttribute("nextURL").toString() );
+    response.setHeader( "Connection", "close" );
+--%>
 <meta http-equiv="refresh"
-      content="0;url='<pwm:url url="<%=PwmSession.getPwmSession(session).getSessionStateBean().getPostWaitURL()%>"/>'">
-<%@ include file="header.jsp" %>
+      content="0;url='<pwm:url url="<%=request.getAttribute("nextURL").toString()%>"/>'">
+<%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="header-body.jsp">
+    <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_PleaseWaitBody"/></p>
-        <% //check to see if there is an error
-            if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) {
-        %>
-            <span id="error_msg" class="msg-error">
-                <pwm:ErrorMessage/>
-            </span>
-        <% } %>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <p><pwm:Display key="Display_PleaseWaitPassword"/></p>
         <div id="buttonbar">
             <img src="<%=request.getContextPath()%>/resources/<pwm:url url='wait.gif'/>"
                  alt="<pwm:Display key="Title_PleaseWait"/>"/></div>
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

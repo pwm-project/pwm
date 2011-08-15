@@ -72,8 +72,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
     public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
-    public static final String URL_JSP_WAIT = "WEB-INF/jsp/wait.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
+    public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";
     public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
     public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
     public static final String URL_JSP_CONFIRM_RESPONSES = "WEB-INF/jsp/setupresponses-confirm.jsp";
@@ -85,6 +85,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
     public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateprofile.jsp";
     public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
+    public static final String URL_JSP_NEW_USER_ENTER_CODE = "WEB-INF/jsp/newuser-entercode.jsp";
+    public static final String URL_JSP_NEW_USER_WAIT = "WEB-INF/jsp/newuser-wait.jsp";
     public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/newguest.jsp";
     public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/updateguest.jsp";
     public static final String URL_JSP_GUEST_UPDATE_SEARCH = "WEB-INF/jsp/updateguest-search.jsp";
@@ -121,6 +123,7 @@ public abstract class PwmConstants {
     public static final String PARAM_VERIFICATION_KEY = "session_verificiation_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
+    public static final String PARAM_FORM_ID = "pwmFormID";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 

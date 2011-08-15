@@ -20,24 +20,27 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmSession" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<meta http-equiv="refresh" content="0;url='<pwm:url url="<%=request.getAttribute("nextURL").toString()%>"/>'">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_Logout"/>
+        <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
     <div id="centerbody">
+        <p><pwm:Display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <p><pwm:Display key="Display_Logout"/></p>
+        <div id="buttonbar">
+            <img src="<%=request.getContextPath()%>/resources/<pwm:url url='wait.gif'/>"
+                 alt="<pwm:Display key="Title_PleaseWait"/>"/></div>
     </div>
     <br class="clear"/>
 </div>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -28,10 +28,10 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
-<%@ include file="WEB-INF/jsp/header.jsp" %>
+<%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
-    <jsp:include page="WEB-INF/jsp/header-body.jsp">
+    <jsp:include page="WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
@@ -69,6 +69,6 @@
         <% } %>
     </div>
 </div>
-<%@ include file="WEB-INF/jsp/footer.jsp" %>
+<%@ include file="WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

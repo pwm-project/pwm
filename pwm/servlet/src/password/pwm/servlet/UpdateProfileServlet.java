@@ -123,7 +123,7 @@ public class UpdateProfileServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields);
 
             // see if the values meet requirements.
-            Validator.validateParmValuesMeetRequirements(pwmSession, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues);
 
             // write values.
             LOGGER.info("updating profile for " + uiBean.getUserDN());
