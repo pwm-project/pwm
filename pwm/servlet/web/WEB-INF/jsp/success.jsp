@@ -35,7 +35,7 @@
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
               enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false">
-            <%@ include file="fragment/message.jsp" %>
+            <p><pwm:SuccessMessage/></p>
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"

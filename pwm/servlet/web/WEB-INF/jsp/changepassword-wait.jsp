@@ -31,7 +31,7 @@
     response.setHeader( "Connection", "close" );
 --%>
 <meta http-equiv="refresh"
-      content="0;url='<pwm:url url="<%=request.getAttribute("nextURL").toString()%>"/>'">
+      content="0;url='<%=request.getAttribute("nextURL").toString()%>'">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
 <div id="wrapper">
