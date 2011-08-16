@@ -230,7 +230,7 @@ public class SetupResponsesServlet extends TopServlet {
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                this.forwardToJSP(req, resp);
+                this.forwardToConfirmJSP(req, resp);
                 return;
             }
         }

@@ -29,7 +29,7 @@
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler(); startupChangePasswordPage();setTimeout(function(){showInfo('<pwm:Display key="Display_PasswordPrompt"/>')},1000)" class="tundra">
+<body onload="pwmPageLoadHandler(); startupChangePasswordPage('<pwm:Display key="Display_PasswordPrompt"/>');" class="tundra">
 <script type="text/javascript"
         src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">

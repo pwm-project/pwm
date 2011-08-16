@@ -226,24 +226,9 @@ function showPwmHealth(parentDivID, refreshNow) {
             var htmlBody = '<table width="100%" style="width=100%; border=0">';
             for (var i = 0; i < healthRecords.length; i++) {
                 var healthData = healthRecords[i];
-                var backgroundColor;
-                switch (healthData['status']) {
-                    case "GOOD":
-                        backgroundColor = "#8ced3f";
-                        break;
-                    case "CAUTION":
-                        backgroundColor = "#FFCD59";
-                        break;
-                    case "WARN":
-                        backgroundColor = "#d20734";
-                        break;
-                    default:
-                        backgroundColor = "white";
-                }
-
                 htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
                 htmlBody += healthData['topic'];
-                htmlBody += '</td><td style="width: 1px; white-space:nowrap; background-color: ' + backgroundColor + '">';
+                htmlBody += '</td><td class="health-' + healthData['status'] + '">';
                 htmlBody += healthData['status'];
                 htmlBody += "</td><td>";
                 htmlBody += healthData['detail'];
@@ -502,32 +487,37 @@ function showSuccess(successMsg)
 }
 
 function doShow(destClass, message) {
-    var errorObject = getObject("message");
-    if (errorObject == null || errorObject.firstChild == null || errorObject.firstChild.nodeValue == null) {
+    var messageElement = getObject("message");
+    if (messageElement == null || messageElement.firstChild == null || messageElement.firstChild.nodeValue == null) {
         return;
     }
-    errorObject.firstChild.nodeValue = message;
+    messageElement.firstChild.nodeValue = message;
 
-    var destStyle = getRule('.' + destClass);
-    var destBackground = destStyle.style.backgroundColor;
+    if(dojo.isIE <= 8){ // only IE7 and below
+        messageElement.className = "message " + destClass;
+    } else {
+        try {
+            // create a temp element and place it on the page to figure out what the destination color should be
+            var tempDivElement = document.createElement('div');
+            tempDivElement.className = "message " + destClass;
+            tempDivElement.style.visibility = "hidden";
+            tempDivElement.id = "tempDivElement";
+            messageElement.appendChild(tempDivElement);
+            var destStyle = window.getComputedStyle(tempDivElement, null);
+            var destBackground = destStyle.backgroundColor;
 
-    dojo.animateProperty({
-        node:"message",
-        duration: 500,
-        properties: {
-            backgroundColor: destBackground
-        }
-    }).play();
-}
+            dojo.animateProperty({
+                node:"message",
+                duration: 500,
+                properties: {
+                    backgroundColor: destBackground
+                }
+            }).play();
 
-function getRule(ruleName) {
-    var mysheet=document.styleSheets[0];
-    var myrules=mysheet.cssRules? mysheet.cssRules: mysheet.rules;
-    for (var i=0; i<myrules.length; i++) {
-        if(myrules[i].selectorText.toLowerCase()==ruleName) {
-            return myrules[i];
+            dojo.query('#tempDivElement').orphan();
+        } catch (e) {
+            messageElement.className = "message " + destClass;
         }
     }
-    throw 'no such rule';
-}
 
+}

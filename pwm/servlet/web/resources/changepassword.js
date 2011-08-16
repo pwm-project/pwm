@@ -124,8 +124,13 @@ function updateDisplay(resultInfo) {
     }
 
     if (resultInfo["passed"] == "true") {
-        getObject("password_button").disabled = false;
-        showSuccess(message);
+        if (resultInfo["match"] == "MATCH") {
+            getObject("password_button").disabled = false;
+            showSuccess(message);
+        } else {
+            getObject("password_button").disabled = true;
+            showInfo(message);
+        }
     } else {
         getObject("password_button").disabled = true;
         showError(message);
@@ -372,7 +377,7 @@ function handleRandomResponse(resultInfo, elementID)
     }
 }
 
-function startupChangePasswordPage()
+function startupChangePasswordPage(initialPrompt)
 {
     /* enable the hide button only if the toggle works */
     if (PWM_GLOBAL['setting-showHidePasswordFields']) {
@@ -421,7 +426,10 @@ function startupChangePasswordPage()
         strengthTooltip.setAttribute('style','width: 30em');
     });
 
-    dojo.require("dijit.Dialog");
+    var messageElement = getObject("message");
+    if (messageElement.firstChild.nodeValue.length < 2) {
+        showInfo(initialPrompt);
+    }
 
     setInputFocus();
 }

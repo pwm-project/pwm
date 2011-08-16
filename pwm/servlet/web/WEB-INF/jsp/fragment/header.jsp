@@ -40,7 +40,7 @@
     <meta name="X-Pwm-Build"
           content="<%=password.pwm.PwmConstants.BUILD_NUMBER%>"/>
     <meta name="viewport" content="width=320, user-scalable=no"/>
-    <link rel="icon" type="image/vnd.microsoft.icon"
+    <link rel="icon" type="image/x-icon"
           href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>

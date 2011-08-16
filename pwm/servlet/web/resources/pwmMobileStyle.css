@@ -26,7 +26,7 @@ html, body {
     font-size: 14px;
     height: 100%;
     margin: 0;
-    width: 320px
+    width: 100%;
 }
 
 a {
@@ -37,7 +37,7 @@ a {
 }
 
 p {
-    max-width: 300px;
+    max-width: 95%;
     color: #2D2D2D;
     position: relative;
     margin-left: auto;
@@ -46,7 +46,6 @@ p {
 
 hr {
     float: none;
-    width: 100px;
     position: relative;
     margin-left: 5px;
     margin-top: 30px;
@@ -75,7 +74,7 @@ select {
 table {
     border-collapse: collapse;
     border: 2px solid #D4D4D4;
-    width: 100%;
+    width: 98%;
     margin-left: auto;
     margin-right: auto
 }
@@ -100,7 +99,7 @@ table td.key {
 }
 
 .inputfield {
-    width: 180px;
+    width: 100%;
     margin: 5px;
     font-size: 16px
 }
@@ -116,8 +115,7 @@ table td.key {
 
 /* main content section, all content should be inside a centerbody div */
 #centerbody {
-    width: 320px;
-    min-width: 320px;
+    width: 98%;
     padding: 0;
     position: relative;;
     margin-left: auto;
@@ -130,7 +128,7 @@ table td.key {
 /* all forms use a buttonbar div containing the action buttons */
 #buttonbar {
     margin-top: 30px;
-    width: 320px;
+    width: 96%;
     margin-bottom: 15px;
     text-align: center
 }
@@ -195,29 +193,6 @@ div.progress-container > div {
     clear: both;
 }
 
-.msg-info {
-    display: block;
-    padding: 5px;
-    background-color: #DDDDDD;
-    border: 1px solid #D4D4D4;
-    width: 305px;
-}
-
-.msg-error {
-    display: block;
-    padding: 5px;
-    background-color: #FFCD59;
-    border: 1px solid #D4D4D4;
-    width: 305px;
-}
-
-.msg-success {
-    display: block;
-    padding: 5px;
-    background-color: #EFEFEF;
-    border: 1px solid #D4D4D4;
-    width: 305px;
-}
 
 #footer {
     position: relative;;
@@ -245,4 +220,8 @@ div.progress-container > div {
 
 #waitDialog_underlay {
     background-color: #444444;
+}
+
+.message {
+    width: 98%
 }

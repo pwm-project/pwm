@@ -136,14 +136,16 @@
             PWM Health
         </td>
     </tr>
-    <td colspan="10" style="border:0; margin:0; padding:0">
-        <div id="healthBody" style="border:0; margin:0; padding:0"></div>
-        <script type="text/javascript">
-            dojo.addOnLoad(function() {
-                showPwmHealth('healthBody', false);
-            });
-        </script>
-    </td>
+    <tr>
+        <td colspan="10" style="margin:0; padding:0">
+            <div id="healthBody" style="border:0; margin:0; padding:0"></div>
+            <script type="text/javascript">
+                dojo.addOnLoad(function() {
+                    showPwmHealth('healthBody', false);
+                });
+            </script>
+        </td>
+    </tr>
 </table>
 <p style="text-align:center; width:100%">Public PWM Health Page is at <a
         href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a></p>

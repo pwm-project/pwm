@@ -30,43 +30,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
+<%
+    final String redirectURL = request.getContextPath() + "/private";
+    response.sendRedirect(redirectURL);
+%>
 <div id="wrapper">
     <jsp:include page="WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
-        <p></p>
-
-        <% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
-        <h2><a href="<pwm:url url='private/'/>"><pwm:Display key="Title_MainPage"/></a></h2>
-        <p></p>
-        <% } else { %>
-        <h2><a href="<pwm:url url='private/'/>"><pwm:Display key="Title_Login"/></a></h2>
-        <p><pwm:Display key="Display_Login"/></p>
-        <% } %>
-
-        <br class="clear"/>
-        <br class="clear"/>
-
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a></h2>
-        <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
-        <% } %>
-
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a></h2>
-        <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
-        <% } %>
-
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a></h2>
-        <p><pwm:Display key="Long_Title_ActivateUser"/><p>
-            <% } %>
-
-            <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-        <h2><a href="<pwm:url url='public/NewUser'/>" class="tablekey"><pwm:Display key="Title_NewUser"/></a></h2>
-        <p><pwm:Display key="Long_Title_NewUser"/></p>
-        <% } %>
+        <p>
+            <a href="<%=redirectURL%>">Continue</a>
+        </p>
     </div>
 </div>
 <%@ include file="WEB-INF/jsp/fragment/footer.jsp" %>

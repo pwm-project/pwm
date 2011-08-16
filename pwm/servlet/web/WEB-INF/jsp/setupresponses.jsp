@@ -38,7 +38,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="tundra"
-      onload="pwmPageLoadHandler();startupResponsesPage(false); document.forms.setupResponses.elements[0].focus();showInfo('<pwm:Display key="Display_ResponsesPrompt"/>')">
+      onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms.setupResponses.elements[0].focus();">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

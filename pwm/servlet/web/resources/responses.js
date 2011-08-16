@@ -185,7 +185,7 @@ function makeSelectOptionsDistinct() {
     }
 }
 
-function startupResponsesPage()
+function startupResponsesPage(initialPrompt)
 {
     if (PWM_GLOBAL['setting-showHidePasswordFields']) {
         try {
@@ -194,6 +194,13 @@ function startupResponsesPage()
             changeInputTypeField(getObject("hide_responses_button"),"button");
         } catch (e) {
             //alert("can't show hide button: " + e)
+        }
+    }
+
+    if (initialPrompt != null && initialPrompt.length > 1) {
+        var messageElement = getObject("message");
+        if (messageElement.firstChild.nodeValue.length < 2) {
+            showInfo(initialPrompt);
         }
     }
 }

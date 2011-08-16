@@ -96,6 +96,25 @@ table td.key {
     width: 200px;
 }
 
+table td.health-GOOD {
+    width: 1px;
+    white-space:nowrap;
+    background-color: #8ced3f;
+    filter: none;
+    opacity: 100;
+}
+
+table td.health-CAUTION {
+    width: 1px;
+    white-space:nowrap;
+    background-color: #ffcd59;
+}
+table td.health-WARN {
+    width: 1px;
+    white-space:nowrap;
+    background-color: #d20734;
+}
+
 .inputfield {
     width: 400px;
     margin: 5px;
@@ -197,10 +216,9 @@ div.progress-container > div {
 .message {
     display: block;
     padding: 6px;
-    width: 580px;
-    background-color: white;
+    width: 90%;
+    background-color: inherit;
     border-radius: 3px;
-    -moz-border-radius: 3px
 }
 
 .message-info {
