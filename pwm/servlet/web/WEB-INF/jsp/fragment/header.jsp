@@ -46,7 +46,7 @@
           rel="stylesheet" type="text/css" media="screen"/>
     <%
       final String theme = password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.INTERFACE_THEME);
-      if (theme != null) {
+      if (theme != null && !request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) {
     %>
     <link href="<%=request.getContextPath()%>/resources/themes/<%=theme%>/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>

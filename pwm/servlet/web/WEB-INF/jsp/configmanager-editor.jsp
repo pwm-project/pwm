@@ -52,7 +52,7 @@
 <script type="text/javascript">
     <% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
 } %></script>
-<div id="wrapper" style="background:black">
+<div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
     <div id="header-company-logo"></div>
     <div id="header-page">
@@ -68,8 +68,7 @@
 </div>
 <div id="TopMenu"><!-- style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;" -->
 </div>
-<div id="centerbody" style="background: white">
-this is in centerbody
+<div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
@@ -340,15 +339,15 @@ function buildMenuBar() {
 </form>
 <% if (showNotes) { %>
 <br/>
-<div>
-    <div style="text-align:center;"><label for="notesTextarea"><h2>Configuration Notes</h2></label></div>
+<div style="width:600px;">
+    <div style="width:600px; text-align:center;"><label for="notesTextarea"><h2>Configuration Notes</h2></label></div>
     <textarea style="height:10px" cols="40" rows="1" id="notesTextarea"></textarea>
 </div>
 <script type="text/javascript">
     dojo.require("dijit.form.Textarea");
     var notesTextarea = new dijit.form.Textarea({
         disabled: false,
-
+        style: "width: 600px",
         onChange: function() {
             dojo.xhrPost({
                 url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
@@ -378,7 +377,7 @@ function buildMenuBar() {
 </script>
 <br/>
 <% } %>
-<div id="mainContentPane">
+<div id="mainContentPane" style="width: 600px">
 </div>
 <script type="text/javascript">
     var mainPane = dojo.addOnLoad(function() {

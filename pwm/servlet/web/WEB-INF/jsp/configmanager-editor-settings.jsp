@@ -30,7 +30,7 @@
 <% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
-<% if (showDesc) { %><p><%= category.getDescription(locale)%></p><% } %>
+<% if (showDesc) { %><span><%= category.getDescription(locale)%></span><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p><span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Show Advanced Options" from the View menu to show additional settings.</p>
 <% } %>
@@ -44,9 +44,10 @@
              style="visibility:hidden; vertical-align:bottom; float: right"
              onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     </div>
-    <div>
+    <div class="message message-info" style="width: 580px; background: white;">
         <% if (showDesc) { %>
-        <p><%= loopSetting.getDescription(locale) %></p>
+        <%= loopSetting.getDescription(locale) %>
+        <br/>
         <% } %>
         <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
         <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
