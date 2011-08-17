@@ -1,0 +1,115 @@
+html {
+    background-image: url('tulips-bg.jpg');
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-color: black;
+}
+
+p {
+    color: black;
+}
+
+#header-warning {
+    width: 100%;
+    background-color: white;
+    color: #0a0a0a;
+    text-align: center;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-decoration: none;
+}
+
+#header-page {
+    color: black;
+}
+
+#header-title {
+    color: black;
+}
+
+#header {
+    width: 100%;
+    height: 70px;
+    margin: 0;
+    background-image: none;
+    background-color: white;
+    color: black;
+    filter:alpha(opacity=50);
+    opacity: 0.5;
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#centerbody {
+    background-color: white;
+    color: black;
+    padding: 10px 10px 40px 10px;
+    border: 0;
+    border-radius: 5px;
+    filter:alpha(opacity=80);
+    opacity: 0.8;
+}
+
+#footer {
+    background-color: white;
+    color: #0a0a0a;
+}
+
+a {
+    color: #330033;
+    text-decoration: underline;
+    font-weight: bold
+}
+
+
+.message {
+    background-color: inherit;
+}
+
+.message-info {
+    background-color: #ffcccc;
+}
+
+.message-error {
+    background-color: #00cccc;
+}
+
+.message-success {
+    background-color: #ff9933;
+}
+
+table {
+    border-collapse: collapse;
+    border: 2px solid #ffcccc;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto
+}
+
+table td {
+    border: 2px solid #ffcccc;
+    padding-left: 5px;
+}
+
+table td.title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 150%;
+    padding-right: 10px;
+    background-color: white;
+}
+
+table td.key {
+    text-align: right;
+    font-weight: bold;
+    padding-right: 10px;
+    width: 200px;
+}
