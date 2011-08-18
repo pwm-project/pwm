@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * synchronized.  This class actually implements all the {@code Deque} methods, but implements {@code Queue} instead
  * to retain compatability with JDK 1.5.
  */
-public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
+public class PwmDBStoredQueue implements Queue<String>, Deque<String>
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -47,8 +47,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
     private final static String VALUE_VERSION = "7";
 
     private final InternalQueue internalQueue;
-
-    private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
     private static final boolean developerDebug = false;
 
@@ -66,12 +64,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public void removeLast(final int removalCount) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.removeLast(removalCount);
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -82,39 +77,24 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
 
     public boolean isEmpty() {
-        try {
-            LOCK.readLock().lock();
-            return internalQueue.size() == 0;
-        } finally {
-            LOCK.readLock().unlock();
-        }
+        return internalQueue.size() == 0;
     }
 
     public Object[] toArray() {
-        try {
-            LOCK.readLock().lock();
-            final List<Object> returnList = new ArrayList<Object>();
-            for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext();) {
-                returnList.add(innerIter.next());
-            }
-            return returnList.toArray();
-        } finally {
-            LOCK.readLock().unlock();
+        final List<Object> returnList = new ArrayList<Object>();
+        for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext();) {
+            returnList.add(innerIter.next());
         }
+        return returnList.toArray();
     }
 
     public <T> T[] toArray(final T[] a) {
-        try {
-            LOCK.readLock().lock();
-            int i = 0;
-            for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext();) {
-                a[i] = (T) innerIter.next();
-                i++;
-            }
-            return a;
-        } finally {
-            LOCK.readLock().unlock();
+        int i = 0;
+        for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext();) {
+            a[i] = (T) innerIter.next();
+            i++;
         }
+        return a;
     }
 
     public boolean containsAll(final Collection<?> c) {
@@ -123,7 +103,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public boolean addAll(final Collection<? extends String> c) {
         try {
-            LOCK.writeLock().lock();
             final Collection<String> stringCollection = new ArrayList<String>();
             for (final Object loopObj : c) {
                 if (loopObj != null) {
@@ -134,8 +113,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             return true;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -145,13 +122,10 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public boolean add(final String s) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.addFirst(Collections.singletonList(s));
             return true;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -161,12 +135,9 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public void clear() {
         try {
-            LOCK.writeLock().lock();
             internalQueue.clear();
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -179,12 +150,7 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
     }
 
     public int size() {
-        try {
-            LOCK.readLock().lock();
-            return internalQueue.size();
-        } finally {
-            LOCK.readLock().unlock();
-        }
+        return internalQueue.size();
     }
 
 // --------------------- Interface Deque ---------------------
@@ -192,47 +158,35 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public void addFirst(final String s) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.addFirst(Collections.singletonList(s));
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
     public void addLast(final String s) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.addLast(Collections.singletonList(s));
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
     public boolean offerFirst(final String s) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.addFirst(Collections.singletonList(s));
             return true;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
     public boolean offerLast(final String s) {
         try {
-            LOCK.writeLock().lock();
             internalQueue.addLast(Collections.singletonList(s));
             return true;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -254,7 +208,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public String pollFirst() {
         try {
-            LOCK.writeLock().lock();
             if (internalQueue.size() == 0) {
                 return null;
             }
@@ -263,14 +216,11 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             return value;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
     public String pollLast() {
         try {
-            LOCK.writeLock().lock();
             if (internalQueue.size() == 0) {
                 return null;
             }
@@ -279,8 +229,6 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             return value;
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.writeLock().unlock();
         }
     }
 
@@ -302,29 +250,23 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
     public String peekFirst() {
         try {
-            LOCK.readLock().lock();
             if (internalQueue.size() == 0) {
                 return null;
             }
             return internalQueue.getFirst(1).get(0);
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.readLock().unlock();
         }
     }
 
     public String peekLast() {
         try {
-            LOCK.readLock().lock();
             if (internalQueue.size() == 0) {
                 return null;
             }
             return internalQueue.getLast(1).get(0);
         } catch (PwmDBException e) {
             throw new IllegalStateException("unexpected pwmDB error while modifying queue: " + e.getMessage(), e);
-        } finally {
-            LOCK.readLock().unlock();
         }
     }
 
@@ -371,11 +313,11 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
     }
 
     public String poll() {
-        final String value = this.removeFirst();
-        if (value == null) {
-            throw new NoSuchElementException();
+        try {
+            return this.removeFirst();
+        } catch (NoSuchElementException e) {
+            return null;
         }
-        return value;
     }
 
     public String element() {
@@ -513,25 +455,32 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
         private volatile Position headPosition;
         private volatile Position tailPosition;
         private boolean empty;
-        private int modCount;
+        private volatile int modCount;
+
+        private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
         private InternalQueue(final PwmDB pwmDB, final PwmDB.DB DB)
                 throws PwmDBException {
-            if (pwmDB == null) {
-                throw new NullPointerException("PwmDB cannot be null");
-            }
+            try {
+                LOCK.writeLock().lock();
+                if (pwmDB == null) {
+                    throw new NullPointerException("PwmDB cannot be null");
+                }
 
-            if (pwmDB.getStatus() != PwmDB.Status.OPEN) {
-                throw new IllegalStateException("PwmDB must hae a status of " + PwmDB.Status.OPEN);
-            }
+                if (pwmDB.getStatus() != PwmDB.Status.OPEN) {
+                    throw new IllegalStateException("PwmDB must hae a status of " + PwmDB.Status.OPEN);
+                }
 
-            if (DB == null) {
-                throw new NullPointerException("DB cannot be null");
-            }
+                if (DB == null) {
+                    throw new NullPointerException("DB cannot be null");
+                }
 
-            this.pwmDB = pwmDB;
-            this.DB = DB;
-            init();
+                this.pwmDB = pwmDB;
+                this.DB = DB;
+                init();
+            } finally {
+                LOCK.writeLock().unlock();
+            }
         }
 
         private void init()
@@ -546,9 +495,11 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             headPosition = headPositionStr != null && headPositionStr.length() > 0 ? new Position(headPositionStr) : new Position("0");
             tailPosition = tailPositionStr != null && tailPositionStr.length() > 0 ? new Position(tailPositionStr) : new Position("0");
 
-            empty = pwmDB.get(DB, headPosition.toString()) == null;
+            empty = headPosition.equals(tailPosition) && pwmDB.get(DB, headPosition.toString()) == null;
 
             LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
+
+            repair();
 
             if (developerDebug) {
                 LOGGER.trace("debug INIT\n" + debugOutput());
@@ -566,20 +517,25 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
 
         public void clear()
                 throws PwmDBException {
-            pwmDB.truncate(DB);
+            try {
+                LOCK.writeLock().lock();
+                pwmDB.truncate(DB);
 
-            headPosition = new Position("0");
-            tailPosition = new Position("0");
-            pwmDB.put(DB, KEY_HEAD_POSITION, headPosition.toString());
-            pwmDB.put(DB, KEY_TAIL_POSITION, tailPosition.toString());
+                headPosition = new Position("0");
+                tailPosition = new Position("0");
+                pwmDB.put(DB, KEY_HEAD_POSITION, headPosition.toString());
+                pwmDB.put(DB, KEY_TAIL_POSITION, tailPosition.toString());
 
-            pwmDB.put(DB, KEY_VERSION, VALUE_VERSION);
+                pwmDB.put(DB, KEY_VERSION, VALUE_VERSION);
 
-            empty = true;
-            modCount++;
+                empty = true;
+                modCount++;
 
-            if (developerDebug) {
-                LOGGER.trace("debug CLEAR\n" + debugOutput());
+                if (developerDebug) {
+                    LOGGER.trace("debug CLEAR\n" + debugOutput());
+                }
+            } finally {
+                LOCK.writeLock().unlock();
             }
         }
 
@@ -588,185 +544,226 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
         }
 
         public int size() {
+            try {
+                LOCK.readLock().lock();
+                return internalSize();
+            } finally {
+                LOCK.readLock().unlock();
+            }
+        }
+
+        private int internalSize() {
             return empty ? 0 : tailPosition.distanceToHead(headPosition).intValue() + 1;
         }
 
         public void removeFirst(final int removalCount) throws PwmDBException {
-            if (removalCount < 1 || empty) {
-                return;
-            }
+            try {
+                LOCK.writeLock().lock();
+                if (removalCount < 1 || empty) {
+                    return;
+                }
 
-            if (removalCount >= size()) {
-                clear();
-                return;
-            }
+                if (removalCount >= internalSize()) {
+                    clear();
+                    return;
+                }
 
-            final List<String> removalKeys = new ArrayList<String>();
-            Position nextHead = headPosition;
-            while (removalKeys.size() < removalCount && nextHead != tailPosition) {
-                removalKeys.add(nextHead.toString());
-                nextHead = nextHead.previous();
-            }
-            pwmDB.removeAll(DB, removalKeys);
-            pwmDB.put(DB, KEY_TAIL_POSITION, nextHead.toString());
-            headPosition = nextHead;
-            modCount++;
+                final List<String> removalKeys = new ArrayList<String>();
+                Position nextHead = headPosition;
+                while (removalKeys.size() < removalCount && nextHead != tailPosition) {
+                    removalKeys.add(nextHead.toString());
+                    nextHead = nextHead.previous();
+                }
+                pwmDB.removeAll(DB, removalKeys);
+                pwmDB.put(DB, KEY_TAIL_POSITION, nextHead.toString());
+                headPosition = nextHead;
+                modCount++;
 
-            if (developerDebug) {
-                LOGGER.trace("debug removeFIRST\n" + debugOutput());
+                if (developerDebug) {
+                    LOGGER.trace("debug removeFIRST\n" + debugOutput());
+                }
+            } finally {
+                LOCK.writeLock().unlock();
             }
         }
 
         public void removeLast(final int removalCount) throws PwmDBException {
-            if (removalCount < 1 || empty) {
-                return;
-            }
+            try {
+                LOCK.writeLock().lock();
+                if (removalCount < 1 || empty) {
+                    return;
+                }
 
-            if (removalCount >= size()) {
-                clear();
-                return;
-            }
+                if (removalCount >= internalSize()) {
+                    clear();
+                    return;
+                }
 
-            final List<String> removalKeys = new ArrayList<String>();
-            Position nextTail = tailPosition;
-            while (removalKeys.size() < removalCount && nextTail != headPosition) {
-                removalKeys.add(nextTail.toString());
-                nextTail = nextTail.next();
-            }
-            pwmDB.removeAll(DB, removalKeys);
-            pwmDB.put(DB, KEY_TAIL_POSITION, nextTail.toString());
-            tailPosition = nextTail;
-            modCount++;
+                final List<String> removalKeys = new ArrayList<String>();
+                Position nextTail = tailPosition;
+                while (removalKeys.size() < removalCount && nextTail != headPosition) {
+                    removalKeys.add(nextTail.toString());
+                    nextTail = nextTail.next();
+                }
+                pwmDB.removeAll(DB, removalKeys);
+                pwmDB.put(DB, KEY_TAIL_POSITION, nextTail.toString());
+                tailPosition = nextTail;
+                modCount++;
 
-            if (developerDebug) {
-                LOGGER.trace("debug removeLAST\n" + debugOutput());
+                if (developerDebug) {
+                    LOGGER.trace("debug removeLAST\n" + debugOutput());
+                }
+            } finally {
+                LOCK.writeLock().unlock();
             }
         }
 
         public void addFirst(final Collection<String> values)
-                throws PwmDBException {
-            if (values == null || values.isEmpty()) {
-                return;
-            }
+                throws PwmDBException
+        {
+            try {
+                LOCK.writeLock().lock();
+                if (values == null || values.isEmpty()) {
+                    return;
+                }
 
-            if (size() + values.size() > MAX_SIZE) {
-                throw new IllegalStateException("queue overflow");
-            }
+                if (internalSize() + values.size() > MAX_SIZE) {
+                    throw new IllegalStateException("queue overflow");
+                }
 
-            final Iterator<String> valueIterator = values.iterator();
+                final Iterator<String> valueIterator = values.iterator();
 
-            final Map<String, String> keyValueMap = new HashMap<String, String>();
-            Position nextHead = headPosition;
+                final Map<String, String> keyValueMap = new HashMap<String, String>();
+                Position nextHead = headPosition;
 
-            if (empty) {
-                keyValueMap.put(nextHead.toString(), valueIterator.next());
-            }
+                if (empty) {
+                    keyValueMap.put(nextHead.toString(), valueIterator.next());
+                }
 
-            while (valueIterator.hasNext()) {
-                nextHead = nextHead.next();
-                keyValueMap.put(nextHead.toString(), valueIterator.next());
-            }
+                while (valueIterator.hasNext()) {
+                    nextHead = nextHead.next();
+                    keyValueMap.put(nextHead.toString(), valueIterator.next());
+                }
 
-            pwmDB.putAll(DB, keyValueMap);
-            pwmDB.put(DB, KEY_HEAD_POSITION, String.valueOf(nextHead));
-            headPosition = nextHead;
-            modCount++;
-            empty = false;
+                pwmDB.putAll(DB, keyValueMap);
+                pwmDB.put(DB, KEY_HEAD_POSITION, String.valueOf(nextHead));
+                headPosition = nextHead;
+                modCount++;
+                empty = false;
 
-            if (developerDebug) {
-                LOGGER.trace("debug addFirst\n" + debugOutput());
+                if (developerDebug) {
+                    LOGGER.trace("debug addFirst\n" + debugOutput());
+                }
+            } finally {
+                LOCK.writeLock().unlock();
             }
         }
 
         public void addLast(final Collection<String> values) throws PwmDBException {
-            if (values == null || values.isEmpty()) {
-                return;
-            }
+            try {
+                LOCK.writeLock().lock();
+                if (values == null || values.isEmpty()) {
+                    return;
+                }
 
-            if (size() + values.size() > MAX_SIZE) {
-                throw new IllegalStateException("queue overflow");
-            }
+                if (internalSize() + values.size() > MAX_SIZE) {
+                    throw new IllegalStateException("queue overflow");
+                }
 
-            final Iterator<String> valueIterator = values.iterator();
+                final Iterator<String> valueIterator = values.iterator();
 
-            final Map<String, String> keyValueMap = new HashMap<String, String>();
-            Position nextTail = tailPosition;
+                final Map<String, String> keyValueMap = new HashMap<String, String>();
+                Position nextTail = tailPosition;
 
-            if (empty) {
-                keyValueMap.put(nextTail.toString(), valueIterator.next());
-            }
+                if (empty) {
+                    keyValueMap.put(nextTail.toString(), valueIterator.next());
+                }
 
-            while (valueIterator.hasNext()) {
-                nextTail = nextTail.previous();
-                keyValueMap.put(nextTail.toString(), valueIterator.next());
-            }
+                while (valueIterator.hasNext()) {
+                    nextTail = nextTail.previous();
+                    keyValueMap.put(nextTail.toString(), valueIterator.next());
+                }
 
-            pwmDB.putAll(DB, keyValueMap);
-            pwmDB.put(DB, KEY_TAIL_POSITION, String.valueOf(nextTail));
-            tailPosition = nextTail;
-            modCount++;
-            empty = false;
+                pwmDB.putAll(DB, keyValueMap);
+                pwmDB.put(DB, KEY_TAIL_POSITION, String.valueOf(nextTail));
+                tailPosition = nextTail;
+                modCount++;
+                empty = false;
 
-            if (developerDebug) {
-                LOGGER.trace("debug addLast\n" + debugOutput());
+                if (developerDebug) {
+                    LOGGER.trace("debug addLast\n" + debugOutput());
+                }
+            } finally {
+                LOCK.writeLock().unlock();
             }
         }
 
         public List<String> getFirst(int getCount)
                 throws PwmDBException {
-            if (getCount < 1 || empty) {
-                return Collections.emptyList();
+            try {
+                LOCK.readLock().lock();
+                if (getCount < 1 || empty) {
+                    return Collections.emptyList();
+                }
+
+                if (getCount > internalSize()) {
+                    getCount = internalSize();
+                }
+
+                final List<String> returnList = new ArrayList<String>();
+
+                Position nextHead = headPosition;
+                while (returnList.size() < getCount) {
+                    returnList.add(pwmDB.get(DB, nextHead.toString()));
+                    nextHead = nextHead.previous();
+                }
+
+                if (developerDebug) {
+                    LOGGER.trace("debug getFirst\n" + debugOutput());
+                }
+
+                return returnList;
+            } finally {
+                LOCK.readLock().unlock();
             }
-
-            if (getCount > size()) {
-                getCount = size();
-            }
-
-            final List<String> returnList = new ArrayList<String>();
-
-            Position nextHead = headPosition;
-            while (returnList.size() < getCount) {
-                returnList.add(pwmDB.get(DB, nextHead.toString()));
-                nextHead = nextHead.previous();
-            }
-
-            if (developerDebug) {
-                LOGGER.trace("debug getFirst\n" + debugOutput());
-            }
-
-            return returnList;
         }
 
         public List<String> getLast(int getCount)
                 throws PwmDBException {
-            if (getCount < 1 || empty) {
-                return Collections.emptyList();
+            try {
+                LOCK.readLock().lock();
+
+                if (getCount < 1 || empty) {
+                    return Collections.emptyList();
+                }
+
+                if (getCount > internalSize()) {
+                    getCount = internalSize();
+                }
+
+                final List<String> returnList = new ArrayList<String>();
+
+                Position nextTail = tailPosition;
+                while (returnList.size() < getCount) {
+                    returnList.add(pwmDB.get(DB, nextTail.toString()));
+                    nextTail = nextTail.next();
+                }
+
+                if (developerDebug) {
+                    LOGGER.trace("debug getLast\n" + debugOutput());
+                }
+
+                return returnList;
+            } finally {
+                LOCK.readLock().unlock();
             }
-
-            if (getCount > size()) {
-                getCount = size();
-            }
-
-            final List<String> returnList = new ArrayList<String>();
-
-            Position nextTail = tailPosition;
-            while (returnList.size() < getCount) {
-                returnList.add(pwmDB.get(DB, nextTail.toString()));
-                nextTail = nextTail.next();
-            }
-
-            if (developerDebug) {
-                LOGGER.trace("debug getLast\n" + debugOutput());
-            }
-
-            return returnList;
         }
 
         public String debugOutput() {
             final StringBuilder sb = new StringBuilder();
             try {
                 sb.append("tailPosition=").append(tailPosition).append(", headPosition=").append(headPosition).append(", modCount=").append(modCount).append(", db=").append(DB);
-                sb.append(", size=").append(size());
+                sb.append(", size=").append(internalSize());
 
                 Position pos = new Position("ZZZZZS");
                 for (int i = 0; i < 20; i++) {
@@ -778,6 +775,41 @@ public class PwmDBStoredQueue implements Queue<String> //, Deque<String>
             }
 
             return sb.toString();
+        }
+
+        private void repair() throws PwmDBException {
+            int headTrim = 0, tailTrim = 0;
+
+            if (developerDebug) {
+                LOGGER.trace("pre-repair:\n" + debugOutput());
+            }
+
+            // trim the top.
+            while (!headPosition.equals(tailPosition) && pwmDB.get(DB,headPosition.toString()) == null) {
+                headPosition = headPosition.previous();
+                pwmDB.put(DB, KEY_HEAD_POSITION, headPosition.toString());
+                headTrim++;
+            }
+
+            // trim the bottom.
+            while (!headPosition.equals(tailPosition) && pwmDB.get(DB,tailPosition.toString()) == null) {
+                tailPosition = tailPosition.next();
+                pwmDB.put(DB, KEY_TAIL_POSITION, tailPosition.toString());
+                tailTrim++;
+            }
+
+            if (tailTrim == 0 && headTrim == 0) {
+                LOGGER.debug("repair unnecessary for " + DB);
+            } else {
+                if (headTrim > 0) {
+                    LOGGER.warn("trimmed " + headTrim + " from head position against database " + DB);
+                }
+
+                if (tailTrim > 0) {
+                    LOGGER.warn("trimmed " + tailTrim + " from tail position against database " + DB);
+                }
+            }
+
         }
     }
 }

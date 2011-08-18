@@ -31,7 +31,7 @@ import java.io.File;
 
 public class PwmDBStoredQueueTest extends TestCase {
 
-    private static final int SIZE = 1000;
+    private static final int SIZE = 5;
 
     private PwmDBStoredQueue storedQueue;
     private PwmDB pwmDB;
@@ -140,10 +140,10 @@ public class PwmDBStoredQueueTest extends TestCase {
         assertTrue(storedQueue.isEmpty());
 
         populatedQueue(SIZE, storedQueue);
-        for (int i = 0; i < SIZE; ++i) {
-            assertEquals(i, Integer.parseInt(storedQueue.peek()));
-        }
-        assertNull(storedQueue.poll());
+
+        int initialSize = storedQueue.size();
+        assertNotNull(storedQueue.peek());
+        assertEquals(initialSize, storedQueue.size());
     }
 
     @Override
