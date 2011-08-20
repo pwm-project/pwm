@@ -1,3 +1,36 @@
-/*
- * Placeholder stylesheet
- */
+html {
+    background-image: url('tulips-bg-mobile.jpg');
+    //background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-color: black;
+    width: 480px;
+}
+
+.inputfield {
+    width: 300px;
+}
+
+/* main body wrapper, all elements (except footer) should be within wrapper */
+#wrapper {
+    width: 100%;
+    min-height: 80%;
+    height: auto !important;
+    height: 100%;
+    margin: 0;
+}
+
+#header {
+    width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#centerbody {
+    width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#buttonbar {
+    width: 480px;
+}
