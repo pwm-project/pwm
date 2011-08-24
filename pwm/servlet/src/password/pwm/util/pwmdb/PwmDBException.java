@@ -22,22 +22,19 @@
 
 package password.pwm.util.pwmdb;
 
-public class PwmDBException extends Exception {
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+
+public class PwmDBException extends PwmOperationalException {
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmDBException() {
-        super();
+
+    public PwmDBException(ErrorInformation error) {
+        super(error);
     }
 
-    public PwmDBException(final String message) {
-        super(message);
-    }
-
-    public PwmDBException(final Throwable cause) {
-        super(cause);
-    }
-
-    public PwmDBException(final String message, final Throwable cause) {
-        super(message, cause);
+    public PwmDBException(PwmError error) {
+        super(error);
     }
 }

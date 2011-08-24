@@ -22,6 +22,8 @@
 
 package password.pwm.util.pwmdb;
 
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
 
 import java.io.File;
@@ -50,7 +52,7 @@ public class Memory_PwmDb implements PwmDBProvider {
             Helper.pause(100);
             System.gc();
             if (currentFreeMem < MIN_FREE_MEMORY) {
-                throw new PwmDBException("out of memory, unable to add new records");
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"out of memory, unable to add new records"));
             }
         }
     }

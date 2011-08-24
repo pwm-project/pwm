@@ -88,7 +88,7 @@ public class DatabaseAccessor implements PwmService {
 
         try {
             put(TABLE.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, (new java.util.Date()).toString());
-        } catch (PwmOperationalException e) {
+        } catch (DatabaseException e) {
             final String errorMsg = "error writing engine start time value: " + e.getMessage();
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
         }
@@ -240,7 +240,7 @@ public class DatabaseAccessor implements PwmService {
             try {
                 statement.close();
             } catch (SQLException e) {
-                LOGGER.error("unexected error during close statement object " + e.getMessage(), e);
+                LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
             }
         }
     }
@@ -311,8 +311,7 @@ public class DatabaseAccessor implements PwmService {
 // -------------------------- OTHER METHODS --------------------------
 
     public boolean put(final TABLE table, final String key, final String value)
-            throws PwmOperationalException, PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException, DatabaseException {
         LOGGER.trace("attempting put operation for table=" + table + ", key=" + key);
         preOperationCheck();
         if (!contains(table, key)) {
@@ -327,7 +326,7 @@ public class DatabaseAccessor implements PwmService {
             } catch (SQLException e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"put operation failed: " + e.getMessage());
                 lastError = errorInformation;
-                throw new PwmOperationalException(errorInformation);
+                throw new DatabaseException(errorInformation);
             } finally {
                 close(statement);
             }
@@ -345,7 +344,7 @@ public class DatabaseAccessor implements PwmService {
         } catch (SQLException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"put operation failed: " + e.getMessage());
             lastError = errorInformation;
-            throw new PwmOperationalException(errorInformation);
+            throw new DatabaseException(errorInformation);
         } finally {
             close(statement);
         }
@@ -355,13 +354,13 @@ public class DatabaseAccessor implements PwmService {
     }
 
     public boolean contains(final TABLE table, final String key)
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws DatabaseException, PwmUnrecoverableException
     {
         return get(table, key) != null;
     }
 
     public String get(final TABLE table, final String key)
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws DatabaseException, PwmUnrecoverableException
     {
         LOGGER.trace("attempting get operation for table=" + table + ", key=" + key);
         preOperationCheck();
@@ -383,7 +382,7 @@ public class DatabaseAccessor implements PwmService {
         } catch (SQLException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get operation failed: " + e.getMessage());
             lastError = errorInformation;
-            throw new PwmOperationalException(errorInformation);
+            throw new DatabaseException(errorInformation);
         } finally {
             close(statement);
             close(resultSet);
@@ -391,8 +390,32 @@ public class DatabaseAccessor implements PwmService {
         return null;
     }
 
+    public Iterator<String> iterator(final TABLE table)
+            throws DatabaseException, PwmUnrecoverableException
+    {
+        LOGGER.trace("attempting to create iterator for table=" + table);
+        preOperationCheck();
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SELECT " + KEY_COLUMN + " FROM ").append(table.toString());
+
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement(sb.toString());
+            resultSet = statement.executeQuery();
+            return new ResultIterator<String>(resultSet);
+        } catch (SQLException e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get iterator failed: " + e.getMessage());
+            lastError = errorInformation;
+            throw new DatabaseException(errorInformation);
+        } finally {
+            close(statement);
+            close(resultSet);
+        }
+    }
+
     public boolean remove(final TABLE table, final String key)
-            throws PwmOperationalException, PwmUnrecoverableException {
+            throws DatabaseException, PwmUnrecoverableException {
         LOGGER.trace("attempting remove operation for table=" + table + ", key=" + key);
         if (!contains(table, key)) { // pre-operation check is called by contains
             return false;
@@ -410,7 +433,7 @@ public class DatabaseAccessor implements PwmService {
         } catch (SQLException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"remove operation failed: " + e.getMessage());
             lastError = errorInformation;
-            throw new PwmOperationalException(errorInformation);
+            throw new DatabaseException(errorInformation);
         } finally {
             close(statement);
         }
@@ -419,7 +442,7 @@ public class DatabaseAccessor implements PwmService {
     }
 
     public int size(final DB db) throws
-            PwmOperationalException, PwmUnrecoverableException {
+            DatabaseException, PwmUnrecoverableException {
         preOperationCheck();
 
         final StringBuilder sb = new StringBuilder();
@@ -436,7 +459,7 @@ public class DatabaseAccessor implements PwmService {
         } catch (SQLException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"size operation failed: " + e.getMessage());
             lastError = errorInformation;
-            throw new PwmOperationalException(errorInformation);
+            throw new DatabaseException(errorInformation);
         } finally {
             close(statement);
             close(resultSet);
@@ -448,51 +471,93 @@ public class DatabaseAccessor implements PwmService {
 // -------------------------- ENUMERATIONS --------------------------
 
     public enum TABLE {
-        PWM_META, PWM_RESPONSES
+        PWM_META, PWM_RESPONSES, TOKENS
     }
 
 // -------------------------- INNER CLASSES --------------------------
 
-public static class DBConfiguration implements Serializable {
-    private final String driverClassname;
-    private final String connectionString;
-    private final String username;
-    private final String password;
+    public static class ResultIterator<E> implements Iterator<String> {
 
-    public DBConfiguration(final String driverClassname, final String connectionString, final String username, final String password) {
-        this.driverClassname = driverClassname;
-        this.connectionString = connectionString;
-        this.username = username;
-        this.password = password;
+        private ResultSet resultSet;
+        private java.lang.String nextValue;
+        private boolean finished;
+
+        public ResultIterator(ResultSet resultSet) {
+            this.resultSet = resultSet;
+            getNextItem();
+        }
+
+        public boolean hasNext() {
+            return !finished;
+        }
+
+        public java.lang.String next() {
+            if (finished) {
+                throw new IllegalStateException("iterator completed");
+            }
+            final String returnValue = nextValue;
+            getNextItem();
+            return returnValue;
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException("remove not supported");
+        }
+
+        private void getNextItem() {
+            try {
+                if (resultSet.next()) {
+                    nextValue = resultSet.getString(KEY_COLUMN);
+                } else {
+                    finished = true;
+                }
+            } catch (SQLException e) {
+                finished = true;
+                LOGGER.warn("unexpected error during result set iteration: " + e.getMessage());
+            }
+        }
     }
 
-    public String getDriverClassname() {
-        return driverClassname;
-    }
+    public static class DBConfiguration implements Serializable {
+        private final String driverClassname;
+        private final String connectionString;
+        private final String username;
+        private final String password;
 
-    public String getConnectionString() {
-        return connectionString;
-    }
+        public DBConfiguration(final String driverClassname, final String connectionString, final String username, final String password) {
+            this.driverClassname = driverClassname;
+            this.connectionString = connectionString;
+            this.username = username;
+            this.password = password;
+        }
 
-    public String getUsername() {
-        return username;
-    }
+        public String getDriverClassname() {
+            return driverClassname;
+        }
 
-    public String getPassword() {
-        return password;
-    }
+        public String getConnectionString() {
+            return connectionString;
+        }
 
-    public boolean isEmpty() {
-        if (driverClassname == null || driverClassname.length() < 1) {
-            if (connectionString == null || connectionString.length() < 1) {
-                if (username == null || username.length() < 1) {
-                    if (password == null || password.length() < 1) {
-                        return true;
+        public String getUsername() {
+            return username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public boolean isEmpty() {
+            if (driverClassname == null || driverClassname.length() < 1) {
+                if (connectionString == null || connectionString.length() < 1) {
+                    if (username == null || username.length() < 1) {
+                        if (password == null || password.length() < 1) {
+                            return true;
+                        }
                     }
                 }
             }
+            return false;
         }
-        return false;
     }
-}
 }

@@ -22,6 +22,8 @@
 
 package password.pwm.util.pwmdb;
 
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 
 import java.io.File;
@@ -124,7 +126,8 @@ public class Derby_PwmDb implements PwmDBProvider {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sb.toString());
         } catch (SQLException e) {
-            throw new PwmDBException("table doesn't exist or some other error: " + e.getCause());
+            final String errorMsg = "table doesn't exist or some other error: " + e.getCause();
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,errorMsg));
         } finally {
             close(statement);
             close(resultSet);
@@ -136,7 +139,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             try {
                 statement.close();
             } catch (SQLException e) {
-                LOGGER.error("unexected error during close statement object " + e.getMessage(), e);
+                LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
             }
         }
     }
@@ -176,7 +179,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                         try {
                             DriverManager.getConnection(connectionURL);
                         } catch (Throwable e) {
-                            throw new PwmDBException(e.getMessage());
+                            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
                         }
                     } catch (Exception e) {
                         LOGGER.debug("error while closing DB: " + e.getMessage());
@@ -216,7 +219,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 return resultSet.getString(VALUE_COLUMN);
             }
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.readLock().unlock();
             close(statement);
@@ -253,7 +256,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         }
     }
 
@@ -285,7 +288,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             insertStatement.executeBatch();
             connection.commit();
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(removeStatement);
@@ -309,7 +312,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 statement.executeUpdate();
                 connection.commit();
             } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
             } finally {
                 LOCK.writeLock().unlock();
                 close(statement);
@@ -329,7 +332,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             statement.executeUpdate();
             connection.commit();
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -357,7 +360,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             statement.executeUpdate();
             connection.commit();
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -373,7 +376,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             try {
                 dbIterator.close();
             } catch (Exception e) {
-                throw new PwmDBException("error while closing dbIterator: " + e.getMessage());
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
             }
         }
     }
@@ -394,7 +397,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 return resultSet.getInt(1);
             }
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.readLock().unlock();
             close(statement);
@@ -418,7 +421,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             connection.commit();
             initTable(connection, db);
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -441,7 +444,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             statement.executeBatch();
             connection.commit();
         } catch (SQLException ex) {
-            throw new PwmDBException(ex.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -461,8 +464,9 @@ public class Derby_PwmDb implements PwmDBProvider {
             connection.setAutoCommit(false);
             return connection;
         } catch (Throwable e) {
-            LOGGER.error("error opening DB: " + e.getMessage(), e);
-            throw new PwmDBException(e.getCause());
+            final String errorMsg = "error opening DB: " + e.getMessage();
+            LOGGER.error(errorMsg, e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,errorMsg));
         }
     }
 
@@ -490,7 +494,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 final PreparedStatement statement = connection.prepareStatement(sb.toString());
                 resultSet = statement.executeQuery();
             } catch (SQLException ex) {
-                throw new PwmDBException(ex.getCause());
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
             }
         }
 

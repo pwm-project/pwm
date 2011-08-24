@@ -25,6 +25,8 @@ package password.pwm.util.pwmdb;
 import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -86,7 +88,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             LOGGER.info("pwmDB closed in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } catch (Exception e) {
             LOGGER.error("error while closing pwmDB: " + e.getMessage(), e);
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -114,7 +116,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             final Object value = tree.get(key);
             return value == null ? null : value.toString();
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.readLock().unlock();
         }
@@ -141,7 +143,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             status = PwmDB.Status.OPEN;
         } catch (Exception e) {
             LOGGER.error("error while opening pwmDB: " + e.getMessage(), e);
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -158,7 +160,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         }
     }
 
@@ -173,7 +175,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             try {
                 recman.rollback();
             } catch (IOException e2) {
-                throw new PwmDBException(e2);
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e2.getMessage()));
             }
         } finally {
             LOCK.writeLock().unlock();
@@ -190,7 +192,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             tree.put(key, value);
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -208,7 +210,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             recman.commit();
             return removedValue != null;
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -224,7 +226,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             LOCK.readLock().lock();
             return getHTree(db).size();
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.readLock().unlock();
         }
@@ -244,7 +246,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             tree.keySet().clear();
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -264,7 +266,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             tree.keySet().removeAll(keys);
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }

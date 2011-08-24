@@ -94,6 +94,7 @@ public class ContextManager implements Serializable {
     private transient WordlistManager wordlistManager;
     private transient SharedHistoryManager sharedHistoryManager;
     private transient SeedlistManager seedlistManager;
+    private transient TokenManager tokenManager;
     private transient Timer taskMaster;
     private transient PwmDB pwmDB;
     private transient PwmDBLogger pwmDBLogger;
@@ -239,6 +240,11 @@ public class ContextManager implements Serializable {
     }
 
     // -------------------------- OTHER METHODS --------------------------
+
+
+    public TokenManager getTokenManager() {
+        return tokenManager;
+    }
 
     public Configuration getConfig() {
         if (configuration == null) {
@@ -386,6 +392,9 @@ public class ContextManager implements Serializable {
                         getHealthMonitor().getHealthRecords(true);
                     }},100);
         }
+
+        // startup the stats engine;
+        PwmInitializer.initializeTokenManager(this);
     }
 
     public String getParameter(final PwmConstants.CONTEXT_PARAM param) {
@@ -548,6 +557,11 @@ public class ContextManager implements Serializable {
         if (sharedHistoryManager != null) {
             sharedHistoryManager.close();
             sharedHistoryManager = null;
+        }
+
+        if (tokenManager != null) {
+            tokenManager.close();
+            tokenManager = null;
         }
 
         if (emailQueue != null) {
@@ -744,7 +758,6 @@ public class ContextManager implements Serializable {
         }
 
         public static void initializeHealthMonitor(final ContextManager contextManager) {
-            // initialize the pwmDBLogger
             try {
                 contextManager.healthMonitor = new HealthMonitor(contextManager);
                 contextManager.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
@@ -753,6 +766,18 @@ public class ContextManager implements Serializable {
                 contextManager.healthMonitor.registerHealthCheck(new PwmDBHealthChecker());
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize password.pwm.health.HealthMonitor: " + e.getMessage());
+            }
+        }
+
+        public static void initializeTokenManager(final ContextManager contextManager) {
+            try {
+                contextManager.tokenManager = new TokenManager(
+                        contextManager.getConfig(),
+                        contextManager.getPwmDB(),
+                        contextManager.getDatabaseAccessor()
+                );
+            } catch (Exception e) {
+                LOGGER.warn("unable to initialize the TokenManager: " + e.getMessage());
             }
         }
 

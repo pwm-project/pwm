@@ -122,8 +122,8 @@ public class ShowFormTag extends TagSupport {
                 sb.append(" maxlength=\"").append(param.getMaximumLength()).append('\"');
                 if ((FormConfiguration.Type.RANDOM == param.getType()) &&
                     (value == null || value.length() == 0)) {
-	                final String randomChars = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
-	                final int randomLength = (param.getMaximumLength()<=0)?(int)config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH):param.getMaximumLength();
+	                final String randomChars = config.readSettingAsString(PwmSetting.TOKEN_CHARACTERS);
+	                final int randomLength = (param.getMaximumLength()<=0)?(int)config.readSettingAsLong(PwmSetting.TOKEN_LENGTH):param.getMaximumLength();
     	        	final String randvalue = PwmRandom.getInstance().alphaNumericString(randomChars, randomLength);
 		            sb.append(" value=\"").append(randvalue).append('\"');
                 } else {

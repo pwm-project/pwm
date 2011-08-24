@@ -88,6 +88,7 @@
         PWM_STRINGS['Title_PasswordGuide'] = "<pwm:Display key="Title_PasswordGuide"/>";
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
         PWM_STRINGS['passwordGuideText'] = '<%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%>';
+        dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
     </script>
     <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);</script>
 </div>

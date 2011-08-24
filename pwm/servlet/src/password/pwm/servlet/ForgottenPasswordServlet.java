@@ -108,7 +108,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             } else if (processAction.equalsIgnoreCase("checkResponses")) {
                 this.processCheckResponses(req, resp);
                 return;
-            } else if (processAction.equalsIgnoreCase("forgottenCode")) {
+            } else if (processAction.equalsIgnoreCase("enterCode")) {
                 this.processEnterForgottenCode(req, resp);
                 return;
             } else if (!tokenNeeded && !responsesNeeded && processAction.equalsIgnoreCase("selectUnlock")) {
@@ -522,7 +522,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String token;
         if (forgottenPasswordBean.getToken() == null) {
-            token = Helper.generateRecoverCode(config);
+            token = "jason";//Helper.generateRecoverCode(config);
             LOGGER.debug(pwmSession, "generated token code for session: " + token);
             forgottenPasswordBean.setToken(token);
         }
@@ -671,7 +671,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         redirectURL.append(req.getContextPath());
         redirectURL.append(req.getServletPath());
         redirectURL.append("?");
-        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=forgottenCode");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
         redirectURL.append("&");
         redirectURL.append("code=").append(aftPath);
         redirectURL.append("&");

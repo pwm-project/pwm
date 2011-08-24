@@ -246,12 +246,16 @@ function showRandomPasswordsDialog(dialogBody) {
     dojo.require("dijit.Dialog");
     closeRandomPasswordsDialog();
 
+    var centerBodyElement = getObject('centerbody');
+
     var theDialog = new dijit.Dialog({
         title: PWM_STRINGS['Title_RandomPasswords'],
         style: "width: 300px; border: 2px solid #D4D4D4;",
         content: dialogBody,
         closable: false,
         draggable: true,
+        autofocus: false,
+        containerNode: centerBodyElement,
         id: "randomPasswordDialog"
 
     });

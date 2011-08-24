@@ -905,17 +905,4 @@ public class Helper {
 
         return sb.toString();
     }
-
-    public static String generateRecoverCode(final Configuration config) {
-        final String RANDOM_CHARS = config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_CHARACTERS);
-        final int CODE_LENGTH = (int) config.readSettingAsLong(PwmSetting.CHALLENGE_TOKEN_LENGTH);
-        final PwmRandom RANDOM = PwmRandom.getInstance();
-
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < CODE_LENGTH; i++) {
-            sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-        }
-
-        return sb.toString();
-    }
 }

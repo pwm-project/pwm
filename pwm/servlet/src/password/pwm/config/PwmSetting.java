@@ -64,7 +64,16 @@ public enum PwmSetting {
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
+            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
+    TOKEN_CHARACTERS(
+            "token.characters", Syntax.STRING, Category.GENERAL, true, Level.ADVANCED),
+    TOKEN_LENGTH(
+            "token.length", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
+    TOKEN_LIFETIME(
+            "token.lifetime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
+    TOKEN_STORAGEMETHOD(
+            "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.ADVANCED),
+
 
     // user interface
     INTERFACE_THEME(
@@ -417,10 +426,7 @@ public enum PwmSetting {
             "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
-    CHALLENGE_TOKEN_CHARACTERS(
-            "challenge.token.characters", Syntax.STRING, Category.RECOVERY, true, Level.ADVANCED),
-    CHALLENGE_TOKEN_LENGTH(
-            "challenge.token.length", Syntax.NUMERIC, Category.RECOVERY, true, Level.ADVANCED),
+
 
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
@@ -756,9 +762,9 @@ public enum PwmSetting {
     }
 
     public enum Category {
+        LDAP(0),
         GENERAL(0),
         USER_INTERFACE(0),
-        LDAP(0),
         PASSWORD_POLICY(0),
         CHALLENGE(0),
         EMAIL(0),

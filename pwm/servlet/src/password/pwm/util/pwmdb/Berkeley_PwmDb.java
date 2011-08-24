@@ -26,6 +26,8 @@ import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.*;
 import com.sleepycat.util.RuntimeExceptionWrapper;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -161,7 +163,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return cachedMaps.get(db).containsKey(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during contains check: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -172,7 +174,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return cachedMaps.get(db).get(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during contains check: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -191,7 +193,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                 LOGGER.trace("database '" + db.toString() + "' open");
             }
         } catch (DatabaseException e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
 
         status = PwmDB.Status.OPEN;
@@ -209,7 +211,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             dbIterators.put(db, iterator);
             return iterator;
         } catch (Exception e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -221,7 +223,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             cachedMaps.get(db).putAll(keyValueMap);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during multiple-put: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -234,9 +236,8 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return null != transactionDB.put(key, value);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during put: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
-
     }
 
     public boolean remove(final DB db, final String key)
@@ -246,7 +247,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return cachedMaps.get(db).keySet().remove(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during remove: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -258,7 +259,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             cachedMaps.get(db).keySet().removeAll(keys);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during removeAll: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -272,7 +273,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                 }
             }
         } catch (Exception e) {
-            throw new PwmDBException(e);
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -285,7 +286,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return dbMap.size();
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during size: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -303,7 +304,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             cachedMaps.put(db, openStoredMap(database));
         } catch (DatabaseException e) {
             LOGGER.error("error during truncate: " + e.toString());
-            throw new PwmDBException(e.getCause());
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
@@ -345,7 +346,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     private void preCheck(final boolean write) throws PwmDBException {
         if (status != PwmDB.Status.OPEN) {
-            throw new PwmDBException("pwmDB is not open, cannot begin a new transaction");
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
         }
     }
 }

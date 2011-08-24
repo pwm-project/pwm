@@ -30,7 +30,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.NewUserBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
@@ -71,7 +74,7 @@ public class NewUserServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final Configuration config = pwmSession.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
@@ -92,15 +95,22 @@ public class NewUserServlet extends TopServlet {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        if (actionParam != null && actionParam.length() > 1) {
+        // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
+        if (processAction == null || processAction.length() < 1) {
+            if (checkForURLcommand(req, resp, pwmSession)) {
+                return;
+            }
+        }
+
+        if (processAction != null && processAction.length() > 1) {
             Validator.validatePwmFormID(req);
-            if ("create".equalsIgnoreCase(actionParam)) {
+            if ("create".equalsIgnoreCase(processAction)) {
                 handleCreateRequest(req,resp);
-            } else if ("validate".equalsIgnoreCase(actionParam)) {
+            } else if ("validate".equalsIgnoreCase(processAction)) {
                 handleValidateForm(req, resp, pwmSession);
-            } else if ("enterCode".equalsIgnoreCase(actionParam)) {
+            } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterCodeRequest(req, resp, pwmSession);
-            } else if ("doCreate".equalsIgnoreCase(actionParam)) {
+            } else if ("doCreate".equalsIgnoreCase(processAction)) {
                 handleDoCreateRequest(req, resp, pwmSession);
             }
             return;
@@ -158,21 +168,24 @@ public class NewUserServlet extends TopServlet {
 
     private void handleEnterCodeRequest(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
-        final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
-        if (newUserBean == null || newUserBean.getToken() == null || newUserBean.getToken().length() < 1) {
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
-            pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
-            this.forwardToJSP(req, resp);
+        final String userSuppliedTokenKey = Validator.readStringFromRequest(req, "code");
+
+        final String tokenData;
+        try {
+            tokenData = pwmSession.getContextManager().getTokenManager().retrieveTokenData(userSuppliedTokenKey);
+        } catch (PwmOperationalException e) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            this.forwardToEnterCodeJSP(req, resp);
             return;
         }
 
-        final String recoverCode = Validator.readStringFromRequest(req, "code");
+        if (tokenData != null) {
+            final Gson gson = new Gson();
+            final Map<String,String> formData = gson.fromJson(tokenData, new TypeToken<Map<String,String>>(){}.getType());
+            pwmSession.getNewUserBean().setFormData(formData);
+            pwmSession.getNewUserBean().setTokenIssued(true);
 
-        final boolean codeIsCorrect = (recoverCode != null) && recoverCode.equalsIgnoreCase(newUserBean.getToken());
-
-        if (codeIsCorrect) {
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
 
@@ -195,17 +208,14 @@ public class NewUserServlet extends TopServlet {
         final Map<String, String> formValues = Validator.readRequestParametersAsMap(req);
 
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
-        newUserBean.setFormValues(formValues);
-        newUserBean.setTokenPassed(false);
-        newUserBean.setToken(null);
 
-        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) && !newUserBean.isTokenPassed()) {
+        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) && !newUserBean.isTokenIssued()) {
             initializeToken(pwmSession,formValues);
             this.forwardToEnterCodeJSP(req,resp);
-            return;
+        } else {
+            newUserBean.setFormData(formValues);
+            this.forwardToWaitJSP(req, resp);
         }
-
-        this.forwardToWaitJSP(req,resp);
     }
 
     private void handleDoCreateRequest(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
@@ -213,7 +223,9 @@ public class NewUserServlet extends TopServlet {
     {
         final Configuration config = pwmSession.getConfig();
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
-        final Map<String, String> formValues = newUserBean.getFormValues();
+
+        newUserBean.setTokenIssued(false);
+        final Map<String, String> formValues = newUserBean.getFormData();
         final ChaiProvider chaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
 
         // get new user DN
@@ -538,22 +550,25 @@ public class NewUserServlet extends TopServlet {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final Configuration config = pwmSession.getConfig();
 
-        final String token;
-        if (newUserBean.getToken() == null) {
-            token = Helper.generateRecoverCode(config);
-            LOGGER.debug(pwmSession, "generated new user token code for session: " + token);
-            newUserBean.setToken(token);
-        } else {
-            return;
+        final Gson gson = new Gson();
+        final String tokenKey;
+        try {
+            final String tokenPayload = gson.toJson(newUserForm);
+            tokenKey = pwmSession.getContextManager().getTokenManager().generateNewToken(tokenPayload);
+            LOGGER.debug(pwmSession, "generated new user tokenKey code for session: " + tokenKey);
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
         final String toAddress = newUserForm.get(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+
+        newUserBean.setTokenIssued(true);
         newUserBean.setTokenEmailAddress(toAddress);
 
-        sendEmailToken(pwmSession);
+        sendEmailToken(pwmSession, tokenKey);
     }
 
-    private void sendEmailToken(final PwmSession pwmSession)
+    private void sendEmailToken(final PwmSession pwmSession, final String tokenKey)
             throws PwmUnrecoverableException
     {
         final ContextManager theManager = pwmSession.getContextManager();
@@ -566,14 +581,13 @@ public class NewUserServlet extends TopServlet {
 
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final String toAddress = newUserBean.getTokenEmailAddress();
-        final String token = newUserBean.getToken();
 
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send new user token email; no email address available in form");
         }
 
-        plainBody = plainBody.replaceAll("%TOKEN%", token);
-        htmlBody = htmlBody.replaceAll("%TOKEN%", token);
+        plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
+        htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
 
         theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
@@ -588,6 +602,48 @@ public class NewUserServlet extends TopServlet {
         return config.getGlobalPasswordPolicy(userLocale);
     }
 
+    private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
+            throws IOException
+    {
+        final String uri = req.getRequestURI();
+        if (uri == null || uri.length() < 1) {
+            return false;
+        }
+        final String servletPath = req.getServletPath();
+        if (!uri.contains(servletPath)) {
+            LOGGER.error("unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'");
+            return false;
+        }
+
+        String aftPath = uri.substring(uri.indexOf(servletPath) + servletPath.length(),uri.length());
+        if (aftPath.startsWith("/")) {
+            aftPath = aftPath.substring(1,aftPath.length());
+        }
+
+        if (aftPath.contains("?")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.contains("&")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.length() <= 1) {
+            return false;
+        }
+
+        final StringBuilder redirectURL = new StringBuilder();
+        redirectURL.append(req.getContextPath());
+        redirectURL.append(req.getServletPath());
+        redirectURL.append("?");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
+        redirectURL.append("&");
+        redirectURL.append("code=").append(aftPath);
+        redirectURL.append("&");
+        redirectURL.append("pwmFormID=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+
+        LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
+        resp.sendRedirect(redirectURL.toString());
+        return true;
+    }
 }
-
-

@@ -435,7 +435,6 @@ function showIdleWarning() {
             closable: false,
             draggable: false,
             id: "idleDialog"
-
         });
         theDialog.setAttribute('class', 'tundra');
         theDialog.show();

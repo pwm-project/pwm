@@ -131,6 +131,7 @@ public interface PwmDB {
         EMAIL_QUEUE,
         SMS_QUEUE,
         RESPONSE_STORAGE,
+        TOKENS,
         TEMP // cleared on each initializtaion of the pwmDB.
     }
 
