@@ -142,6 +142,7 @@
             </div>
         </form>
     </div>
+    <audio id="randomgen-player" src="<%=request.getContextPath()%>/resources/<pwm:url url='fill.mp3'/>"></audio>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

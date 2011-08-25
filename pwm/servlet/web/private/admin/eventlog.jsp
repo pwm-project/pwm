@@ -39,6 +39,20 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
+<script type="text/javascript">
+    var advancedPanelVisible = false;
+    function toggleAdvancedPanel() {
+        advancedPanelVisible = !advancedPanelVisible;
+        if (advancedPanelVisible) {
+            getObject('advanced_panel').style.visibility = 'visible';
+            getObject('advanced_button').innerHTML = "Simple";
+        } else {
+            getObject('advanced_panel').style.visibility = 'hidden';
+            getObject('advanced_button').innerHTML = "Advanced";
+        }
+        return false;
+    }
+</script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="PWM Event Log"/>
@@ -49,7 +63,7 @@
     This page shows PWM debug log
     history. This history is stored in the pwmDB cache of the debug log. For a
     permanent log
-    record of events, configure the log4jconfig.xml file.
+    record of events, see the application server's log file.
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
     timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
@@ -74,7 +88,7 @@
             </td>
             <td style="border: 0">
                 <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "INFO");%>
-                <select id="level" name="level">
+                <select id="level" name="level" style="width: auto;">
                     <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
                     </option>
                     <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR
@@ -128,59 +142,65 @@
             </td>
             <td style="border: 0">
                 <input type="submit" name="submit" id="submit_button" value=" Search "/>
-            </td>
-        </tr>
-        <tr style="border: 0">
-            <td class="key" style="border: 0">
-                Maximum Count
-            </td>
-            <td style="border: 0">
-                <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count", 255);%>
-                <select name="count">
-                    <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
-                    <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
-                    <option value="2000" <%= "2000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>2000
-                    </option>
-                    <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000
-                    </option>
-                    <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000
-                    </option>
-                    <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000
-                    </option>
-                </select>
-            </td>
-        </tr>
-        <tr style="border: 0">
-            <td class="key" style="border: 0">
-                Maximum Search Time
-            </td>
-            <td style="border: 0">
-                <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime", 255);%>
-                <select name="maxTime">
-                    <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
-                    </option>
-                    <option value="30000" <%= "30000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>30 seconds
-                    </option>
-                    <option value="60000" <%= "60000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>1 minute
-                    </option>
-                    <option value="120000" <%= "120000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>2 minutes
-                    </option>
-                </select>
-            </td>
-        </tr>
-        <tr style="border: 0">
-            <td class="key" style="border: 0">
-                <label for="displayText">Display text</label>
-            </td>
-            <td style="border: 0">
-                <% final String displayText = password.pwm.Validator.readStringFromRequest(request, "displayText", 255, "Both");%>
-                <select id="displayText" name="displayText">
-                    <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>No</option>
-                    <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Yes</option>
-                </select>
+                &nbsp;&nbsp;
+                <button type="button" id="advanced_button" onclick="toggleAdvancedPanel()">Advanced</button>
             </td>
         </tr>
     </table>
+    <div id="advanced_panel" style="visibility: hidden;">
+        <table style="border: 0; max-width:600px; width:600px">
+            <tr style="border: 0" id="ad">
+                <td class="key" style="border: 0">
+                    Maximum Count
+                </td>
+                <td style="border: 0">
+                    <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count", 255);%>
+                    <select name="count">
+                        <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
+                        <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
+                        <option value="2000" <%= "2000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>2000
+                        </option>
+                        <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000
+                        </option>
+                        <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000
+                        </option>
+                        <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr style="border: 0">
+                <td class="key" style="border: 0">
+                    Maximum Search Time
+                </td>
+                <td style="border: 0">
+                    <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime", 255);%>
+                    <select name="maxTime">
+                        <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
+                        </option>
+                        <option value="30000" <%= "30000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>30 seconds
+                        </option>
+                        <option value="60000" <%= "60000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>1 minute
+                        </option>
+                        <option value="120000" <%= "120000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>2 minutes
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr style="border: 0">
+                <td class="key" style="border: 0">
+                    <label for="displayText">Display text</label>
+                </td>
+                <td style="border: 0">
+                    <% final String displayText = password.pwm.Validator.readStringFromRequest(request, "displayText", 255, "Both");%>
+                    <select id="displayText" name="displayText">
+                        <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>No</option>
+                        <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Yes</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
     <br/>
 </form>
 <%

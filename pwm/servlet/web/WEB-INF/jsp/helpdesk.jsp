@@ -211,7 +211,7 @@
             </tr>
             <tr>
                 <td class="key">
-                    LDAP Password Locked
+                    PWM Intruder Locked
                 </td>
                 <td>
                     <%= helpdeskBean.isPwmIntruder() ? "True" :"False" %>

@@ -35,7 +35,6 @@ public class ForgottenPasswordBean implements Serializable {
 
     private transient ChaiUser proxiedUser;
     private transient ResponseSet responseSet;
-    private String token;
     private String tokenEmailAddress;
     private String tokenSmsNumber;
 
@@ -70,14 +69,6 @@ public class ForgottenPasswordBean implements Serializable {
 
     public void setResponsesSatisfied(final boolean responsesSatisfied) {
         this.responsesSatisfied = responsesSatisfied;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(final String token) {
-        this.token = token;
     }
 
     public boolean isTokenSatisfied() {

@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * synchronized.  This class actually implements all the {@code Deque} methods, but implements {@code Queue} instead
  * to retain compatability with JDK 1.5.
  */
-public class PwmDBStoredQueue implements Queue<String>, Deque<String>
+public class PwmDBStoredQueue implements Queue<String>  //, Deque<String>
 {
 // ------------------------------ FIELDS ------------------------------
 

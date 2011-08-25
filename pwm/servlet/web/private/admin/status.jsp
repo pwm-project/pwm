@@ -189,8 +189,13 @@
                 <%= contextManager.getPwmSessions().size() %>
             </a>
         </td>
-        <td colspan="2">
-            &nbsp;
+        <td class="key">
+            <a href="<pwm:url url='activesessions.jsp'/>">
+                Stored Token Keys
+            </a>
+        </td>
+        <td>
+            <%= contextManager.getTokenManager().size() %>
         </td>
     </tr>
 </table>

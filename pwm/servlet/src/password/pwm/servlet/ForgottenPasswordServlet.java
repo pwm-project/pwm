@@ -159,21 +159,26 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final ContextManager contextManager = ContextManager.getContextManager(req);
 
-        if (forgottenPasswordBean.getProxiedUser() == null || forgottenPasswordBean.getToken() == null) {
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
-            pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
-            this.advancedToNextStage(req, resp);
+        final String userEnteredCode = Validator.readStringFromRequest(req, "code");
+
+        final String userDN;
+        try {
+            userDN = contextManager.getTokenManager().retrieveTokenData(userEnteredCode);
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "unexpected error attempting to read token from storage: " + e.getMessage();
+            LOGGER.error(errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(e.getError(),e.getMessage()));
+            this.forwardToEnterCodeJSP(req, resp);
             return;
         }
-
-        final String recoverCode = Validator.readStringFromRequest(req, "code");
-
-        final boolean codeIsCorrect = (recoverCode != null) && recoverCode.equalsIgnoreCase(forgottenPasswordBean.getToken());
-
-        if (codeIsCorrect) {
+        if (userDN != null) {
+            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN,contextManager.getProxyChaiProvider());
+            forgottenPasswordBean.setProxiedUser(proxiedUser);
             forgottenPasswordBean.setTokenSatisfied(true);
+            final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession,proxiedUser);
+            forgottenPasswordBean.setResponseSet(responseSet);
             pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             this.advancedToNextStage(req, resp);
@@ -182,8 +187,8 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
-        pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+        contextManager.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+        contextManager.getIntruderManager().addBadAddressAttempt(pwmSession);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         this.forwardToEnterCodeJSP(req, resp);
     }
@@ -521,11 +526,12 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Configuration config = pwmSession.getConfig();
 
         final String token;
-        if (forgottenPasswordBean.getToken() == null) {
-            token = "jason";//Helper.generateRecoverCode(config);
-            LOGGER.debug(pwmSession, "generated token code for session: " + token);
-            forgottenPasswordBean.setToken(token);
+        try {
+            token = pwmSession.getContextManager().getTokenManager().generateNewToken(proxiedUser.getEntryDN());
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
         }
+        LOGGER.debug(pwmSession, "generated token code for session: " + token);
 
         final String toAddress;
         try {
@@ -543,10 +549,10 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.debug("error reading SMS attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
 
-        sendToken(pwmSession, proxiedUser);
+        sendToken(pwmSession, proxiedUser, token);
     }
 
-    private void sendToken(final PwmSession pwmSession, final ChaiUser proxiedUser)
+    private void sendToken(final PwmSession pwmSession, final ChaiUser proxiedUser, final String tokenKey)
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmSession.getConfig();
@@ -555,26 +561,26 @@ public class ForgottenPasswordServlet extends TopServlet {
         switch (pref) {
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
-                final boolean suc1 = sendEmailToken(pwmSession, proxiedUser);
-                final boolean suc2 = sendSmsToken(pwmSession, proxiedUser);
+                final boolean suc1 = sendEmailToken(pwmSession, proxiedUser,tokenKey);
+                final boolean suc2 = sendSmsToken(pwmSession, proxiedUser,tokenKey);
                 success = suc1 || suc2;
                 break;
             case EMAILFIRST:
                 // Send email first, try SMS if email is not available
-                success = sendEmailToken(pwmSession, proxiedUser) || sendSmsToken(pwmSession, proxiedUser);
+                success = sendEmailToken(pwmSession, proxiedUser,tokenKey) || sendSmsToken(pwmSession, proxiedUser,tokenKey);
                 break;
             case SMSFIRST:
                 // Send SMS first, try email if SMS is not available
-                success = sendSmsToken(pwmSession, proxiedUser) || sendEmailToken(pwmSession, proxiedUser);
+                success = sendSmsToken(pwmSession, proxiedUser,tokenKey) || sendEmailToken(pwmSession, proxiedUser,tokenKey);
                 break;
             case SMSONLY:
                 // Only try SMS
-                success = sendSmsToken(pwmSession, proxiedUser);
+                success = sendSmsToken(pwmSession, proxiedUser, tokenKey);
                 break;
             case EMAILONLY:
             default:
                 // Only try email
-                success = sendEmailToken(pwmSession, proxiedUser);
+                success = sendEmailToken(pwmSession, proxiedUser, tokenKey);
                 break;
         }
         if (!success) {
@@ -582,7 +588,9 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
     }
 
-    private boolean sendEmailToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmUnrecoverableException {
+    private boolean sendEmailToken(final PwmSession pwmSession, final ChaiUser proxiedUser, final String tokenKey)
+            throws PwmUnrecoverableException
+    {
         final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
@@ -592,7 +600,6 @@ public class ForgottenPasswordServlet extends TopServlet {
         String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY_HTML, userLocale);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String toAddress = forgottenPasswordBean.getTokenEmailAddress();
-        final String token = forgottenPasswordBean.getToken();
 
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send token email for '" + proxiedUser.getEntryDN() + "' no email address available in ldap");
@@ -600,8 +607,8 @@ public class ForgottenPasswordServlet extends TopServlet {
             return false;
         }
 
-        plainBody = plainBody.replaceAll("%TOKEN%", token);
-        htmlBody = htmlBody.replaceAll("%TOKEN%", token);
+        plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
+        htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
 
         theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
@@ -610,7 +617,9 @@ public class ForgottenPasswordServlet extends TopServlet {
         return true;
     }
 
-    private boolean sendSmsToken(final PwmSession pwmSession, final ChaiUser proxiedUser) throws PwmUnrecoverableException {
+    private boolean sendSmsToken(final PwmSession pwmSession, final ChaiUser proxiedUser, final String token)
+            throws PwmUnrecoverableException
+    {
         final ContextManager theManager = pwmSession.getContextManager();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
@@ -619,7 +628,6 @@ public class ForgottenPasswordServlet extends TopServlet {
         String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String toSmsNumber = forgottenPasswordBean.getTokenSmsNumber();
-        final String token = forgottenPasswordBean.getToken();
 
         if (toSmsNumber == null || toSmsNumber.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send token sms for '" + proxiedUser.getEntryDN() + "' no SMS number available in ldap");

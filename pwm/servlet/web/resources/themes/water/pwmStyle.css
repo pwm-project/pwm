@@ -1,8 +1,8 @@
 html {
-    background-image: url('water-bg.png');
+    background-image: url('rain.jpg');
     background-size: 100%;
     background-repeat: no-repeat;
-    background-color: black;
+    background-color: #656565;
 }
 
 p {
@@ -45,7 +45,7 @@ p {
     color: white;
     padding: 10px 10px 40px 10px;
     border: 0;
-    border-radius: 5px;
+    border-radius: 9px;
     filter:alpha(opacity=70);
     opacity: 0.7;
 }
@@ -99,4 +99,16 @@ table td.key {
     font-weight: bold;
     padding-right: 10px;
     width: 200px;
+}
+
+#randomPasswordDialog_underlay {
+    background-color: black;
+}
+
+#waitDialogID_underlay {
+    background-color: black;
+}
+
+#idleDialog_underlay {
+    background-color: black;
 }
