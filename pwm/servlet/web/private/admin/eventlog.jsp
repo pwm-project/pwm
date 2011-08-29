@@ -244,7 +244,7 @@
 <% } else {%>
 <table>
     <tr>
-        <td class="title" width="5">
+        <td class="title" style="width: 1px">
             &nbsp;
         </td>
         <td class="title">
@@ -268,7 +268,7 @@
     <% int counter = 0;
         for (final PwmLogEvent event : searchResults.getEvents()) { %>
     <tr>
-        <td class="key" style="font-family: Courier, sans-serif" width="5">
+        <td class="key" style="font-family: Courier, sans-serif; width: 1px">
             <%= ++counter %>
         </td>
         <td>

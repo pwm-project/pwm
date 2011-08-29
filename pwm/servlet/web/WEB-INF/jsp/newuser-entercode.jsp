@@ -31,8 +31,7 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <% final String destination = PwmSession.getPwmSession(session).getNewUserBean().getTokenEmailAddress(); %>
-        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <p><pwm:Display key="Display_RecoverEnterCode"/></p>
 
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"

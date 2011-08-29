@@ -98,8 +98,6 @@ public enum PwmSetting {
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
-    DISPLAY_ADMIN_LINK_ENABLE(
-            "display.adminIndexLink", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
 
 
     //ldap directory
@@ -458,6 +456,8 @@ public enum PwmSetting {
             "newUser.username.length", Syntax.NUMERIC, Category.NEWUSER, false, Level.ADVANCED),
     NEWUSER_EMAIL_VERIFICATION(
             "newUser.email.verification", Syntax.BOOLEAN, Category.NEWUSER, false, Level.BASIC),
+    NEWUSER_PASSWORD_POLICY_USER(
+            "newUser.passwordPolicy.user", Syntax.STRING, Category.NEWUSER, false, Level.BASIC),
 
 
 

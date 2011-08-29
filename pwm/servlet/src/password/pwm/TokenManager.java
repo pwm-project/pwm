@@ -57,7 +57,7 @@ public class TokenManager implements PwmService {
 
         timer = new Timer("pwm-TokenManager",true);
         final TimerTask cleanerTask = new CleanerTask();
-        timer.schedule(cleanerTask,3 * 1000,60 * 60 * 1000); // run in 3 seconds, then every hour
+        timer.schedule(cleanerTask,23 * 1000,60 * 60 * 1000); // run in 3 seconds, then every hour
         status = STATUS.OPEN;
         LOGGER.debug("open");
     }
@@ -194,13 +194,20 @@ public class TokenManager implements PwmService {
     private void cleanupOutdatedTokens() throws
             PwmUnrecoverableException, PwmOperationalException
     {
+        //LOGGER.trace("beginning cleanup of outdated tokens (tokens older than " + maxTokenAgeMS + "ms)");
+        final long startTime = System.currentTimeMillis();
+        int cleanedTokens = 0;
         List<String> tempKeyList = new ArrayList<String>();
         tempKeyList.addAll(discoverOutdatedTokenKeys(100));
         while (!tempKeyList.isEmpty()) {
             for (final String loopKey : tempKeyList) {
                 removeTokenFormStorage(loopKey);
             }
+            cleanedTokens = cleanedTokens + tempKeyList.size();
             tempKeyList.clear();
+        }
+        if (cleanedTokens > 0) {
+            LOGGER.trace("cleaner thread removed " + cleanedTokens + " tokens in " + TimeDuration.fromCurrent(startTime).asCompactString());
         }
     }
 
@@ -225,6 +232,7 @@ public class TokenManager implements PwmService {
 
         Iterator<String> keyIterator = null;
 
+        try {
         switch (storageMethod) {
             case STORE_PWMDB:
                 keyIterator = pwmDB.iterator(PwmDB.DB.TOKENS);
@@ -243,6 +251,11 @@ public class TokenManager implements PwmService {
                 if (testIfTokenIsExpired(loopInfo)) {
                     returnList.add(loopKey);
                 }
+            }
+        }
+        } finally {
+            if (keyIterator != null && storageMethod == StorageMethod.STORE_PWMDB) {
+                try {pwmDB.returnIterator(PwmDB.DB.TOKENS); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + pwmDB);}
             }
         }
 

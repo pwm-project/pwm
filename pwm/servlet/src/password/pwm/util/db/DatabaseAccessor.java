@@ -509,12 +509,23 @@ public class DatabaseAccessor implements PwmService {
                 if (resultSet.next()) {
                     nextValue = resultSet.getString(KEY_COLUMN);
                 } else {
-                    finished = true;
+                    close();
                 }
             } catch (SQLException e) {
                 finished = true;
                 LOGGER.warn("unexpected error during result set iteration: " + e.getMessage());
             }
+        }
+
+        public void close() {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    LOGGER.error("error closing inner resultset in iterator: " + e.getMessage());
+                }
+            }
+            finished = true;
         }
     }
 

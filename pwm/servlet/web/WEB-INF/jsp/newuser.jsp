@@ -41,7 +41,7 @@
         <p><pwm:Display key="Display_NewUser"/></p>
         <div id="PasswordRequirements">
             <ul>
-                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
+                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>" form="newuser"/>
             </ul>
         </div>
         <%@ include file="fragment/message.jsp" %>

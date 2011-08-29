@@ -47,6 +47,7 @@ public class PasswordRequirementsTag extends TagSupport {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordRequirementsTag.class);
     private String separator;
     private String prepend;
+    private String form;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -270,6 +271,14 @@ public class PasswordRequirementsTag extends TagSupport {
         this.prepend = prepend;
     }
 
+    public String getForm() {
+        return form;
+    }
+
+    public void setForm(String form) {
+        this.form = form;
+    }
+
     // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -281,7 +290,12 @@ public class PasswordRequirementsTag extends TagSupport {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final Configuration config = pwmSession.getConfig();
-            final PwmPasswordPolicy passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+            final PwmPasswordPolicy passwordPolicy;
+            if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
+                passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();
+            } else {
+                passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+            }
             final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
             final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
             final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());

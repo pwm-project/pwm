@@ -95,11 +95,18 @@ public class NewUserServlet extends TopServlet {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
+        // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
             if (checkForURLcommand(req, resp, pwmSession)) {
                 return;
             }
+        }
+
+        // populate the newuser bean with the new user password policy.
+        final NewUserBean newUserBean = pwmSession.getNewUserBean();
+        if (newUserBean.getPasswordPolicy() == null) {
+            final PwmPasswordPolicy pwmPasswordPolicy = getNewUserPasswordPolicy(config,pwmSession);
+            newUserBean.setPasswordPolicy(pwmPasswordPolicy);
         }
 
         if (processAction != null && processAction.length() > 1) {
@@ -283,7 +290,7 @@ public class NewUserServlet extends TopServlet {
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmSession.getContextManager().getProxyChaiProvider());
         final String temporaryPassword = RandomPasswordGenerator.createRandomPassword(
                 pwmSession,
-                getNewUserPasswordPolicy(pwmSession),
+                pwmSession.getNewUserBean().getPasswordPolicy(),
                 pwmSession.getContextManager().getSeedlistManager(),
                 pwmSession.getContextManager()
         );
@@ -351,7 +358,7 @@ public class NewUserServlet extends TopServlet {
             throw new PwmOperationalException(PwmError.PASSWORD_MISSING);
         }
 
-        final PwmPasswordPolicy passwordPolicy = getNewUserPasswordPolicy(pwmSession);
+        final PwmPasswordPolicy passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();
 
         Validator.testPasswordAgainstPolicy(password ,pwmSession, false, passwordPolicy, false);
 
@@ -594,12 +601,28 @@ public class NewUserServlet extends TopServlet {
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
     }
 
-    private static PwmPasswordPolicy getNewUserPasswordPolicy(final PwmSession pwmSession)
-            throws PwmUnrecoverableException
-    {
-        final Configuration config = pwmSession.getConfig();
-        final Locale userLocale= pwmSession.getSessionStateBean().getLocale();
-        return config.getGlobalPasswordPolicy(userLocale);
+    public static PwmPasswordPolicy getNewUserPasswordPolicy(final Configuration configuration, final PwmSession pwmSession)
+            throws PwmUnrecoverableException, ChaiUnavailableException {
+        final String configuredNewUserPasswordDN = configuration.readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+
+        if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
+            return configuration.getGlobalPasswordPolicy(userLocale);
+        }
+
+        final String lookupDN;
+        if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
+            lookupDN = configuration.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+        } else {
+            lookupDN = configuredNewUserPasswordDN;
+        }
+
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmSession.getContextManager().getProxyChaiProvider());
+        return PwmPasswordPolicy.createPwmPasswordPolicy(
+                configuration,
+                userLocale,
+                chaiUser,
+                pwmSession);
     }
 
     private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)

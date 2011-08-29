@@ -29,14 +29,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body onload="pwmPageLoadHandler();">
-<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>"/>
+<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Administration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/admin/status.jsp"/>">PWM Status</a>
+            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>">PWM Status</a>
         </div>
     </div>
     <br class="clear"/>

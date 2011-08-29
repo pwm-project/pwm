@@ -92,11 +92,9 @@
         <% } %>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_ADMIN_LINK_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request))) { %>
         <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>
         <p><pwm:Display key="Long_Title_Admin"/></p>
-        <% } %>
         <% } %>
 
         <h2><a href="<pwm:url url='../public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a></h2>

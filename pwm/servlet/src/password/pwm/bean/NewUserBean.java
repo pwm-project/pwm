@@ -1,5 +1,7 @@
 package password.pwm.bean;
 
+import password.pwm.PwmPasswordPolicy;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -7,6 +9,7 @@ public class NewUserBean implements Serializable {
     private boolean tokenIssued;
     private String tokenEmailAddress;
     private Map<String,String> formData;
+    private PwmPasswordPolicy passwordPolicy;
 
     public NewUserBean() {
     }
@@ -33,5 +36,13 @@ public class NewUserBean implements Serializable {
 
     public void setFormData(Map<String, String> formData) {
         this.formData = formData;
+    }
+
+    public PwmPasswordPolicy getPasswordPolicy() {
+        return passwordPolicy;
+    }
+
+    public void setPasswordPolicy(PwmPasswordPolicy passwordPolicy) {
+        this.passwordPolicy = passwordPolicy;
     }
 }

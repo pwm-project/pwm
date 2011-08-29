@@ -435,7 +435,9 @@ function startupChangePasswordPage(initialPrompt)
 
     var messageElement = getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
-        showInfo(initialPrompt);
+        setTimeout(function(){
+                showInfo(initialPrompt);
+        },2500);
     }
 
     setInputFocus();
