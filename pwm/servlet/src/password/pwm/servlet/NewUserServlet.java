@@ -260,7 +260,10 @@ public class NewUserServlet extends TopServlet {
             final String newUserDN,
             final PwmSession pwmSession
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        final long startTime = System.currentTimeMillis();
+
         // re-perform verification before proceeding
         verifyFormAttributes(formValues, provider, pwmSession);
 
@@ -323,6 +326,15 @@ public class NewUserServlet extends TopServlet {
 
         // increment the new user creation statistics
         pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
+
+        // be sure minimum wait time has passed
+        final long minWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
+        if ((System.currentTimeMillis() - startTime) < minWaitTime) {
+            LOGGER.trace(pwmSession, "waiting for minimum new user create time (" + minWaitTime + "ms)...");
+            while ((System.currentTimeMillis() - startTime) < minWaitTime) {
+                Helper.pause(500);
+            }
+        }
     }
 
     private static void verifyFormAttributes(

@@ -446,11 +446,11 @@ public class PwmDBLogger {
 
         private void doLoop() throws PwmDBException {
             while (open) {
-                boolean workDone = false;
+                boolean writeWorkDone = false;
 
                 if (!eventQueue.isEmpty()) {
                     flushQueue(MAX_WRITES_PER_CYCLE);
-                    workDone = true;
+                    writeWorkDone = true;
                 }
 
                 final int purgeCount = determineTailRemovalCount();
@@ -458,13 +458,12 @@ public class PwmDBLogger {
                     final int removalCount = purgeCount > MAX_REMOVALS_PER_CYCLE ? MAX_REMOVALS_PER_CYCLE : purgeCount;
                     pwmDBListQueue.removeLast(removalCount);
                     tailTimestampMs = readTailTimestamp();
-                    workDone = true;
                 }
 
-                if (!workDone) {
+                if (!writeWorkDone) {
                     final long startSleepTime = System.currentTimeMillis();
                     while (open && ((System.currentTimeMillis() - startSleepTime) < CYCLE_INTERVAL_MS) && (eventQueue.size() < (MAX_QUEUE_SIZE / 50))) {
-                        Helper.pause(101);
+                        Helper.pause(201);
                     }
                 }
             }

@@ -11,10 +11,18 @@ v1.5.6
 + Added turkish locale, thanks erdem.bayer! (issue #86)
 + Added slovak locale, thanks svacko! (issue #87)
 + Added hebrew locale, thanks dordorqwerty! (issue #92)
-+ Password field is now on initial new user password field
 + Added helpdesk module for password resets (issue #99)
 + Support for customizable CSS themes, and several default themes included (issue #103)
 + Support for SMTP authentication (issue #104)
++ Overhaul of the NewUser registration module,
+   + Password field is now on initial new user password field
+   + Form UI supports more fields in less space
+   + Randomized DN generation
+   + While-you-type form validation
+   + Configurable password policy template user
+   + Configurable minimum wait time on new user creation
++ Added stored token database (to PwmDB or RDBMS) for forgotten password and new user password
+
 
 * Moved public menu options (ForgottenPassword, NewUser, Activate) to login page
 * Moved private menu options to /pwm/private url, and made visibility based on permission
@@ -22,7 +30,7 @@ v1.5.6
 
 - Fixed bug where unsupported browser locale results in blank page/null pointer (issue #83)
 - Fixed bug where non-english server locale results in configuration manager issues (issue #84)
-- Double-byte charachters not stored properly in PwmConfiguration.xml (issue #100)
+- Double-byte characters not stored properly in PwmConfiguration.xml (issue #100)
 - Issue where SMS Servlet Gateway URL couldn't be configured with a port number (issue #97)
 
 

@@ -18,6 +18,9 @@ public class TokenManager implements PwmService {
 
     private static PwmLogger LOGGER = PwmLogger.getLogger(TokenManager.class);
 
+    private static long MAX_CLEANER_INTERVAL_MS = 24 * 60 * 60 * 1000; // one day
+    private static long MIN_CLEANER_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
     private enum StorageMethod {
         STORE_PWMDB,
         STORE_DB,
@@ -57,7 +60,9 @@ public class TokenManager implements PwmService {
 
         timer = new Timer("pwm-TokenManager",true);
         final TimerTask cleanerTask = new CleanerTask();
-        timer.schedule(cleanerTask,23 * 1000,60 * 60 * 1000); // run in 3 seconds, then every hour
+
+        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
+        timer.schedule(cleanerTask, 1000, cleanerFrequency);
         status = STATUS.OPEN;
         LOGGER.debug("open");
     }

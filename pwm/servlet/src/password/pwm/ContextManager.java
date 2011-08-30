@@ -53,6 +53,7 @@ import password.pwm.wordlist.WordlistConfiguration;
 import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -299,8 +300,9 @@ public class ContextManager implements Serializable {
                     return;
             }
         } catch (Exception e) {
-            LOGGER.fatal("unable to initialize pwm due to missing or malformed configuration: " + e.getMessage());
-            return;
+            final String errorMsg = "unable to initialize pwm due to configuration related error: " + e.getMessage();
+            try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
+            throw new ServletException(errorMsg);
         }
 
         // initialize log4j

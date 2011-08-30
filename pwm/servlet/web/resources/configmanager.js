@@ -620,7 +620,7 @@ function waitForRestart(startTime, oldEpoch) {
             var epoch = data['configEpoch'];
             if (epoch != oldEpoch) {
                 window.location = "ConfigManager"; //refresh page
-            } else if (currentTime - startTime > 90 * 1000) { // timeout
+            } else if (currentTime - startTime > 4 * 60 * 1000) { // timeout
                 alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
                 showError('PWM Server has not restarted (timeout)');
             } else {

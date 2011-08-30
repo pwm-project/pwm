@@ -25,6 +25,7 @@ package password.pwm.config;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
+import password.pwm.util.PwmLogger;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -458,6 +459,8 @@ public enum PwmSetting {
             "newUser.email.verification", Syntax.BOOLEAN, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_PASSWORD_POLICY_USER(
             "newUser.passwordPolicy.user", Syntax.STRING, Category.NEWUSER, false, Level.BASIC),
+    NEWUSER_MINIMUM_WAIT_TIME(
+            "newUser.minimumWaitTime", Syntax.NUMERIC, Category.NEWUSER, false, Level.BASIC),
 
 
 
@@ -610,6 +613,7 @@ public enum PwmSetting {
 // ------------------------------ STATICS ------------------------------
 
     private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmSetting.class);
 
     static {
         final Map<Category, List<PwmSetting>> returnMap = new LinkedHashMap<Category, List<PwmSetting>>();
@@ -702,6 +706,13 @@ public enum PwmSetting {
         if (returnValue.equals(Static.RESOURCE_MISSING)) {
             returnValue = readProps(DEFAULT_KEY_NAME, PwmConstants.DEFAULT_LOCALE);
         }
+
+        if (returnValue.equals(Static.RESOURCE_MISSING)) {
+            final String errorMsg = "unable to find default resource value for setting key: " + this.getKey() + ", template: " + template + " in " + PwmSetting.class.getName() + " resource bundle";
+            LOGGER.fatal(errorMsg);
+            throw new IllegalStateException(errorMsg);
+        }
+
         return returnValue;
     }
 
