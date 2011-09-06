@@ -148,7 +148,7 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final boolean responseConfigNeeded = UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
+        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
 
         if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
@@ -301,9 +301,9 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (checkIfPasswordExpired(pwmSession)) {
+        if (checkIfPasswordExpired(pwmSession) || checkPasswordWarn(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!UserStatusHelper.checkIfResponseConfigNeeded(pwmSession, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
+        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
         } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession)) {
             processCheckProfile(req, resp);

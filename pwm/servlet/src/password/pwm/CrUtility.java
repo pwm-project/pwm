@@ -59,6 +59,7 @@ public class CrUtility {
 
     public static ChallengeSet readUserChallengeSet(
             final PwmSession pwmSession,
+            final Configuration config,
             final ChaiUser theUser,
             final PwmPasswordPolicy policy,
             final Locale locale
@@ -67,9 +68,9 @@ public class CrUtility {
 
         ChallengeSet returnSet = null;
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_CHALLENGE_SET)) {
+        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_CHALLENGE_SET)) {
             try {
-                if (pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     if (policy != null && policy.getChaiPasswordPolicy() != null) {
                         returnSet = CrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
                     }
@@ -91,7 +92,7 @@ public class CrUtility {
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
         if (returnSet == null) {
-            returnSet = pwmSession.getContextManager().getConfig().getGlobalChallengeSet(pwmSession.getSessionStateBean().getLocale());
+            returnSet = config.getGlobalChallengeSet(pwmSession.getSessionStateBean().getLocale());
             if (returnSet != null) {
                 LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
             }
@@ -501,4 +502,47 @@ public class CrUtility {
             return new Date();
         }
     }
+
+    public static boolean checkIfResponseConfigNeeded(
+            final PwmSession pwmSession,
+            final Configuration config,
+            final ChaiUser theUser,
+            final ChallengeSet challengeSet)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
+
+        final String userDN = theUser.getEntryDN();
+
+        if (!Helper.testUserMatchQueryString(pwmSession, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
+            return false;
+        }
+
+        // check to be sure there are actually challenges in the challenge set
+        if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userDN);
+            return false;
+        }
+
+        // read the user's response
+        final ResponseSet usersResponses = readUserResponseSet(pwmSession, theUser);
+
+        try {
+            // check if responses exist
+            if (usersResponses == null) {
+                throw new Exception("no responses configured");
+            }
+
+            // check if responses meet the challenge set policy for the user
+            usersResponses.meetsChallengeSetRequirements(challengeSet);
+
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " has good responses");
+            return false;
+        } catch (Exception e) {
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " does not have good responses: " + e.getMessage());
+            return true;
+        }
+    }
+
 }

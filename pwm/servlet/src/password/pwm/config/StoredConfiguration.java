@@ -68,9 +68,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
-    private Map<PwmSetting, StoredValue> settingMap = new HashMap<PwmSetting, StoredValue>();
-    private Map<String, String> propertyMap = new HashMap<String, String>();
-    private Map<String, Map<String,Map<String,String>>> localizationMap = new HashMap<String, Map<String,Map<String, String>>>();
+    private Map<PwmSetting, StoredValue> settingMap = new LinkedHashMap<PwmSetting, StoredValue>();
+    private Map<String, String> propertyMap = new LinkedHashMap<String, String>();
+    private Map<String, Map<String,Map<String,String>>> localizationMap = new LinkedHashMap<String, Map<String,Map<String, String>>>();
 
     private boolean locked = false;
 
@@ -99,15 +99,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
         final StoredConfiguration clonedConfig = (StoredConfiguration) super.clone();
         clonedConfig.createTime = this.createTime;
         clonedConfig.modifyTime = this.modifyTime;
-        clonedConfig.settingMap = new HashMap<PwmSetting, StoredValue>();
+        clonedConfig.settingMap = new LinkedHashMap<PwmSetting, StoredValue>();
         clonedConfig.settingMap.putAll(this.settingMap);
-        clonedConfig.propertyMap = new HashMap<String, String>();
+        clonedConfig.propertyMap = new LinkedHashMap<String, String>();
         clonedConfig.propertyMap.putAll(this.propertyMap);
-        clonedConfig.localizationMap = new HashMap<String, Map<String,Map<String, String>>>();
+        clonedConfig.localizationMap = new LinkedHashMap<String, Map<String,Map<String, String>>>();
         for (final String middleKey : this.localizationMap.keySet()) { //deep copy of nested map, oy vey
-            final HashMap<String,Map<String,String>> newMiddleMap = new HashMap<String,Map<String,String>>();
+            final Map<String,Map<String,String>> newMiddleMap = new LinkedHashMap<String,Map<String,String>>();
             for (final String bottomKey : this.localizationMap.get(middleKey).keySet()) {
-                final HashMap<String,String> newBottomMap = new HashMap<String,String>();
+                final Map<String,String> newBottomMap = new LinkedHashMap<String,String>();
                 newBottomMap.putAll(this.localizationMap.get(middleKey).get(bottomKey));
                 newMiddleMap.put(bottomKey,newBottomMap);
             }
@@ -461,7 +461,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
         Map<String, Map<String,String>> keyMap = localizationMap.get(bundleName);
         if (keyMap == null) {
-            keyMap = new HashMap<String, Map<String, String>>();
+            keyMap = new LinkedHashMap<String, Map<String, String>>();
             localizationMap.put(bundleName,keyMap);
         }
         keyMap.put(keyName,new LinkedHashMap<String, String>(localeMap));

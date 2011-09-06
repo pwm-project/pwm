@@ -147,7 +147,7 @@ public class LDAPStatusChecker implements HealthChecker {
             if (userPassword == null) {
                 try {
                     final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                    final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(config, locale, theUser, null);
+                    final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, config, locale, theUser);
                     final SeedlistManager seedlistManager = contextManager.getSeedlistManager();
                     final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, contextManager);
                     theUser.setPassword(newPassword);

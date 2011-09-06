@@ -82,20 +82,20 @@
             </div>
         </form>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
-        <h2><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a></h2>
-        <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
+        <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
+        <pwm:Display key="Long_Title_ForgottenPassword"/></p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
-        <h2><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a></h2>
-        <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
+        <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
+        <pwm:Display key="Long_Title_ForgottenUsername"/></p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-        <h2><a href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a></h2>
-        <p><pwm:Display key="Long_Title_ActivateUser"/></p>
+        <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
+        <pwm:Display key="Long_Title_ActivateUser"/></p>
         <% } %>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-        <h2><a href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a></h2>
-        <p><pwm:Display key="Long_Title_NewUser"/></p>
+        <p><a href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
+        <pwm:Display key="Long_Title_NewUser"/></p>
         <% } %>
 
     </div>

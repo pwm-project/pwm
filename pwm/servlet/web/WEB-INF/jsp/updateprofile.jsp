@@ -35,11 +35,13 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_UpdateProfile"/></p>
 
+        <%@ include file="fragment/message.jsp" %>
+        <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <%@ include file="fragment/message.jsp" %>
 
-            <pwm:ShowForm formName="updateprofile"/>
+            <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
+            <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">
                 <input id="submitBtn" type="submit" class="btn" name="button" value="    <pwm:Display key="Button_Update"/>    "/>

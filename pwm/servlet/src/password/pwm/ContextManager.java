@@ -308,7 +308,16 @@ public class ContextManager implements Serializable {
         // initialize log4j
         {
             final String log4jFile = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
-            final String logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+            final String logLevel;
+            switch (configReader.getConfigMode()) {
+                case RUNNING:
+                    logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+                    break;
+
+                default:
+                    LOGGER.trace("setting log level to TRACE because PWM is not in RUNNING mode.");
+                    logLevel = PwmLogLevel.TRACE.toString();
+            }
             PwmInitializer.initializeLogger(log4jFile, logLevel, servletContext);
         }
 
@@ -326,7 +335,6 @@ public class ContextManager implements Serializable {
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(pwmDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for this pwm instance's ID (instanceID)");
-
 
 
         // read the lastLoginTime

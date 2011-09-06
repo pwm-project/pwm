@@ -171,18 +171,12 @@ public class ShowFormTag extends TagSupport {
 // -------------------------- OTHER METHODS --------------------------
 
     private List<FormConfiguration> getForm(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        if (formName.equalsIgnoreCase("activateuser")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM, pwmSession.getSessionStateBean().getLocale());
-        } else if (formName.equalsIgnoreCase("updateprofile")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
-        } else if (formName.equalsIgnoreCase("forgottenusername")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM, pwmSession.getSessionStateBean().getLocale());
-        } else if (formName.equalsIgnoreCase("newguest")) {
+        if (formName.equalsIgnoreCase("newguest")) {
             return pwmSession.getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("updateguest")) {
             return pwmSession.getGuestUpdateServletBean().getUpdateParams();
         } else {
-            LOGGER.warn("unknown form '" + formName + "' while generating ParamterFormTag");
+            LOGGER.warn("unknown form '" + formName + "' while generating ParameterFormTag");
         }
         return null;
     }

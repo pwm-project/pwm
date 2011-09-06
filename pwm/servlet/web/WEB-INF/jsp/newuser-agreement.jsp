@@ -48,10 +48,10 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
 
-        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
+        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
 
         <div id="buttonbar">
-            <form action="<pwm:url url='ChangePassword'/>" method="post"
+            <form action="<pwm:url url='NewUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()"

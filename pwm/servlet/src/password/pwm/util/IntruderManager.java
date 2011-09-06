@@ -146,17 +146,6 @@ public class IntruderManager implements Serializable {
             throws PwmUnrecoverableException {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String addressString = ssBean.getSrcAddress();
-        final Configuration config = pwmSession.getConfig();
-
-
-        final int sessionMaxAttempts = (int) config.readSettingAsLong(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS);
-        if (sessionMaxAttempts > 0 && ssBean.getIncorrectLogins() > sessionMaxAttempts) {
-            LOGGER.warn(pwmSession, "session intruder limit exceeded for " + addressString);
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_SESSION);
-            ssBean.setSessionError(error);
-            throw new PwmUnrecoverableException(error);
-        }
-
 
         final IntruderRecord record = addressLockTable.get(addressString);
         if (record != null && record.isLocked()) {

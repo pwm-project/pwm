@@ -33,11 +33,12 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_ForgottenUsername"/></p>
 
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <br/>
         <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
               id="searchForm">
-            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
                 if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
             %>
@@ -46,7 +47,9 @@
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>
-            <pwm:ShowForm formName="forgottenusername"/>
+            <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
+            <jsp:include page="fragment/form.jsp"/>
+
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"

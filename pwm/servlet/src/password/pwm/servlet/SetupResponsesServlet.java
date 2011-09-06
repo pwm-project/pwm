@@ -200,6 +200,7 @@ public class SetupResponsesServlet extends TopServlet {
         } else {
             try {
                 CrUtility.writeResponses(pwmSession, responses);
+                //yypwmSession.getUserInfoBean().setRequiresResponseConfig(false);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());

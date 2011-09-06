@@ -25,10 +25,12 @@ package password.pwm.servlet;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserInformationServletBean;
+import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -39,6 +41,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Locale;
 
 
 /**
@@ -108,7 +111,12 @@ public class UserInformationServlet extends TopServlet {
 
         uisBean.setUserExists(true);
         final UserInfoBean uiBean = new UserInfoBean();
-        UserStatusHelper.populateUserInfoBean(uiBean, pwmSession, userDN, null, pwmSession.getSessionManager().getChaiProvider());
+        {
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+            final Configuration config = pwmSession.getConfig();
+            UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, config, userLocale, userDN, null, provider);
+        }
         uisBean.setUserInfoBean(uiBean);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());

@@ -34,8 +34,8 @@ a:hover {
 }
 
 #footer {
-    margin: -30px 0 0 100px;
-    padding: 0 0 0 10px;
+    padding-top: 40px;
+    margin-left: 30px;
     text-align: left;
 }
 
@@ -47,3 +47,19 @@ a:hover {
     margin-top: 0;
     clear: both;
 }
+
+.message-info {
+    background-color: #ffffff;
+    color: black;
+}
+
+.message-error {
+    background-color: #ff0000;
+    color: white
+}
+
+.message-success {
+    background-color: #0000ff;
+    color: white;
+}
+

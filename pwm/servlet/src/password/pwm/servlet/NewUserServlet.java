@@ -30,10 +30,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.NewUserBean;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
@@ -109,6 +106,13 @@ public class NewUserServlet extends TopServlet {
             newUserBean.setPasswordPolicy(pwmPasswordPolicy);
         }
 
+        if (!newUserBean.isAgreementPassed() && config.readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, ssBean.getLocale()).length() > 0 ) {
+            if (!"agree".equalsIgnoreCase(processAction)) {
+                this.forwardToAgreementJSP(req,resp);
+                return;
+            }
+        }
+
         if (processAction != null && processAction.length() > 1) {
             Validator.validatePwmFormID(req);
             if ("create".equalsIgnoreCase(processAction)) {
@@ -119,6 +123,10 @@ public class NewUserServlet extends TopServlet {
                 handleEnterCodeRequest(req, resp, pwmSession);
             } else if ("doCreate".equalsIgnoreCase(processAction)) {
                 handleDoCreateRequest(req, resp, pwmSession);
+            } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
+                LOGGER.debug(pwmSession, "user accepted newuser agreement");
+                newUserBean.setAgreementPassed(true);
+                this.forwardToJSP(req,resp);
             }
             return;
         }
@@ -315,6 +323,8 @@ public class NewUserServlet extends TopServlet {
             Helper.writeMapToLdap(pwmSession, theUser, configNameValuePairs);
         }
 
+        LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user to PWM using temporary password");
+
         //authenticate the user to pwm
         AuthenticationFilter.authenticateUser(theUser.getEntryDN(), temporaryPassword, null, pwmSession, true);
 
@@ -453,8 +463,16 @@ public class NewUserServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
+            throws IOException, ServletException, PwmUnrecoverableException {
+            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
+    }
+
+    private void forwardToAgreementJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
             throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_AGREEMENT).forward(req, resp);
     }
 
     private void forwardToEnterCodeJSP(
@@ -631,10 +649,10 @@ public class NewUserServlet extends TopServlet {
 
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmSession.getContextManager().getProxyChaiProvider());
         return PwmPasswordPolicy.createPwmPasswordPolicy(
-                configuration,
+                pwmSession, configuration,
                 userLocale,
-                chaiUser,
-                pwmSession);
+                chaiUser
+        );
     }
 
     private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)

@@ -51,57 +51,9 @@
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
               onkeyup="validateNewUserForm();" onkeypress="checkForCapsLock(event);"
               >
-
-            <table style="border-radius: 3px; -moz-border-radius: 3px; border-collapse: separate;">
-                <%
-                    final PwmSession pwmSession = PwmSession.getPwmSession(session);
-                    final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-                    List<FormConfiguration> formConfigurationList = pwmSession.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM,pwmSession.getSessionStateBean().getLocale());
-                    for (FormConfiguration loopConfiguration : formConfigurationList) {
-                    %>
-                <tr>
-                    <td class="key">
-                        <%= loopConfiguration.getLabel() %>
-                    </td>
-                    <td>
-                        <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
-                               name="<%=loopConfiguration.getAttributeName()%>"
-                               value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                                />
-                    </td>
-                </tr>
-                <% if (loopConfiguration.isConfirmationRequired()) { %>
-                <tr>
-                    <td class="key">
-                        <pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %>
-                    </td>
-                    <td>
-                        <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm" type="<%=loopConfiguration.getType()%>"
-                               name="<%=loopConfiguration.getAttributeName()%>_confirm"
-                               value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"/>
-                    </td>
-                </tr>
-                <% } %>
-                <% } %>
-                <tr>
-                    <td class="key">
-                        <pwm:Display key="Field_NewPassword"/>
-                    </td>
-                    <td>
-                        <input style="border:0; width: 100%" type="password" name="password1" id="password1"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="key">
-                        <pwm:Display key="Field_ConfirmPassword"/>
-                    </td>
-                    <td>
-                        <input style="border:0; width: 100%" type="password" name="password2" id="password2"/>
-                    </td>
-                </tr>
-            </table>
-
-
+            <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
+            <% request.setAttribute("form_showPasswordFields","true"); %>
+            <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
                 <span>
                     <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>

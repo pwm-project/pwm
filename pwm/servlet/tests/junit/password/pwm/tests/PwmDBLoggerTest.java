@@ -39,9 +39,9 @@ import java.util.Map;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int MAX_SIZE = 1000 * 1000 * 1000 ;
+    private static final int MAX_SIZE = 20 * 1000 * 1000 ;
     private static final long MAG_AGE_MS = 1000;
-    private static final int BULK_EVENT_SIZE = 100 * 1000 * 1000;
+    private static final int BULK_EVENT_SIZE = 20 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
@@ -84,7 +84,7 @@ public class PwmDBLoggerTest extends TestCase {
                     final StringBuilder sb = new StringBuilder();
                     sb.append("added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
                     sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
-                    sb.append(", db sizedevents: ").append(pwmDBLogger.getStoredEventCount());
+                    sb.append(", stored event count: ").append(pwmDBLogger.getStoredEventCount());
                     sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
                     System.out.println(sb);
                 }

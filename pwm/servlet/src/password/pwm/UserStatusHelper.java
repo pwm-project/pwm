@@ -25,8 +25,6 @@ package password.pwm;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
@@ -53,6 +51,19 @@ public class UserStatusHelper {
     }
 
 
+    public static PasswordStatus readPasswordStatus(
+            final PwmSession pwmSession,
+            final ChaiUser theUser
+    ) throws PwmUnrecoverableException, ChaiUnavailableException {
+        return readPasswordStatus(
+                pwmSession,
+                pwmSession.getUserInfoBean().getUserCurrentPassword(),
+                pwmSession.getConfig(),
+                theUser,
+                pwmSession.getUserInfoBean().getPasswordPolicy()
+        );
+    }
+
     /**
      * Read password status values from directory
      *
@@ -65,12 +76,13 @@ public class UserStatusHelper {
      */
     public static PasswordStatus readPasswordStatus(
             final PwmSession pwmSession,
+            final String currentPassword,
+            final Configuration config,
             final ChaiUser theUser,
             final PwmPasswordPolicy passwordPolicy
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final PasswordStatus returnState = new PasswordStatus();
-        final Configuration config = pwmSession.getConfig();
         final String userDN = theUser.getEntryDN();
 
         final long startTime = System.currentTimeMillis();
@@ -78,10 +90,9 @@ public class UserStatusHelper {
 
         // check if password meets existing policy.
         if (passwordPolicy.getRuleHelper().readBooleanValue(PwmPasswordRule.EnforceAtLogin)) {
-            final String password = pwmSession.getUserInfoBean().getUserCurrentPassword();
-            if (password != null && password.length() > 0) {
+            if (currentPassword != null && currentPassword.length() > 0) {
                 try {
-                    Validator.testPasswordAgainstPolicy(password, pwmSession, false, passwordPolicy, true);
+                    Validator.testPasswordAgainstPolicy(currentPassword, pwmSession, false, passwordPolicy, true);
                 } catch (PwmDataValidationException e) {
                     LOGGER.info(pwmSession, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     returnState.setViolatesPolicy(true);
@@ -134,47 +145,6 @@ public class UserStatusHelper {
         return returnState;
     }
 
-    public static boolean checkIfResponseConfigNeeded(final PwmSession pwmSession, final ChaiUser theUser, final ChallengeSet challengeSet)
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED, "user must be authenticated to check if response configuration is needed"));
-        }
-
-        LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
-
-        final String userDN = theUser.getEntryDN();
-
-        if (!Helper.testUserMatchQueryString(pwmSession, userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
-            return false;
-        }
-
-        // check to be sure there are actually challenges in the challenge set
-        if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userDN);
-            return false;
-        }
-
-        // read the user's response
-        final ResponseSet usersResponses = CrUtility.readUserResponseSet(pwmSession, theUser);
-
-        try {
-            // check if responses exist
-            if (usersResponses == null) {
-                throw new Exception("no responses configured");
-            }
-
-            // check if responses meet the challenge set policy for the user
-            usersResponses.meetsChallengeSetRequirements(challengeSet);
-
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " has good responses");
-            return false;
-        } catch (Exception e) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " does not have good responses: " + e.getMessage());
-            return true;
-        }
-    }
-
 
     public static void populateActorUserInfoBean(
             final PwmSession pwmSession,
@@ -184,13 +154,15 @@ public class UserStatusHelper {
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        populateUserInfoBean(uiBean, pwmSession, userDN, userCurrentPassword, provider);
+        populateUserInfoBean(pwmSession, uiBean, pwmSession.getConfig(), pwmSession.getSessionStateBean().getLocale(), userDN, userCurrentPassword, provider);
     }
 
 
     public static void populateUserInfoBean(
+           final PwmSession pwmSession,
             final UserInfoBean uiBean,
-            final PwmSession pwmSession,
+            final Configuration config,
+            final Locale userLocale,
             final String userDN,
             final String userCurrentPassword,
             final ChaiProvider provider
@@ -200,10 +172,6 @@ public class UserStatusHelper {
 
         if (userDN != null && userDN.length() < 1) {
             throw new NullPointerException("userDN can not be null");
-        }
-
-        if (userCurrentPassword != null && userCurrentPassword.length() < 1) {
-            throw new NullPointerException("userCurrentPassword can not be null");
         }
 
         uiBean.setUserCurrentPassword(userCurrentPassword);
@@ -218,19 +186,19 @@ public class UserStatusHelper {
         }
 
         //populate password policy
-        uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser));
+        uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, config, userLocale, theUser));
 
         //populate c/r challenge set. 
-        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, theUser, uiBean.getPasswordPolicy(), pwmSession.getSessionStateBean().getLocale()));
+        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, config, theUser, uiBean.getPasswordPolicy(), userLocale));
 
         //populate all user attributes.
         try {
-            final Set<String> interestingUserAttributes = new HashSet<String>(pwmSession.getConfig().getAllUsedLdapAttributes());
+            final Set<String> interestingUserAttributes = new HashSet<String>(config.getAllUsedLdapAttributes());
             interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
             interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-            interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
-            interestingUserAttributes.add(pwmSession.getContextManager().getConfig().readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
-            interestingUserAttributes.addAll(pwmSession.getContextManager().getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES).keySet());
+            interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+            interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
+            interestingUserAttributes.addAll(config.readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES).keySet());
             if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
                 interestingUserAttributes.add("sAMAccountName");
                 interestingUserAttributes.add("displayName");
@@ -244,22 +212,22 @@ public class UserStatusHelper {
         }
 
         // set userID
-        final String ldapNamingAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        final String ldapNamingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         uiBean.setUserID(uiBean.getAllUserAttributes().get(ldapNamingAttribute));
 
 
         { // set guid
-            final String userGuid = Helper.readLdapGuidValue(theUser.getChaiProvider(), pwmSession.getConfig(), userDN);
+            final String userGuid = Helper.readLdapGuidValue(theUser.getChaiProvider(), config, userDN);
             uiBean.setUserGuid(userGuid);
         }
 
 
         // set email address
-        final String ldapEmailAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+        final String ldapEmailAttribute = config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
         uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().get(ldapEmailAttribute));
 
-        // write password state
-        uiBean.setPasswordState(readPasswordStatus(pwmSession, theUser, uiBean.getPasswordPolicy()));
+        // read  password state
+        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, config, theUser, uiBean.getPasswordPolicy()));
 
         final String userPasswordExpireTime = uiBean.getAllUserAttributes().get(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
         if (userPasswordExpireTime != null && userPasswordExpireTime.length() > 0) {
@@ -268,11 +236,11 @@ public class UserStatusHelper {
             uiBean.setPasswordExpirationTime(null);
         }
 
-        // write response state
-        uiBean.setRequiresResponseConfig(checkIfResponseConfigNeeded(pwmSession, theUser, pwmSession.getUserInfoBean().getChallengeSet()));
+        // read response state
+        uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, config, theUser, uiBean.getChallengeSet()));
 
         // fetch last password modification time;
-        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
+        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         if (pwdLastModifiedStr != null && pwdLastModifiedStr.length() > 0) {
             try {
                 uiBean.setPasswordLastModifiedTime(EdirEntries.convertZuluToDate(pwdLastModifiedStr));

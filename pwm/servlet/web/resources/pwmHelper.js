@@ -504,12 +504,14 @@ function doShow(destClass, message) {
             messageElement.appendChild(tempDivElement);
             var destStyle = window.getComputedStyle(tempDivElement, null);
             var destBackground = destStyle.backgroundColor;
+            var destColor = destStyle.color;
 
             dojo.animateProperty({
                 node:"message",
                 duration: 500,
                 properties: {
-                    backgroundColor: destBackground
+                    backgroundColor: destBackground,
+                    color: destColor
                 }
             }).play();
 
@@ -518,5 +520,4 @@ function doShow(destClass, message) {
             messageElement.className = "message " + destClass;
         }
     }
-
 }

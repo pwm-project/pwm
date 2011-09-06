@@ -232,14 +232,14 @@ public class PwmPasswordPolicy implements Serializable {
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
-        return createPwmPasswordPolicy(config, locale, theUser, pwmSession);
+        return createPwmPasswordPolicy(pwmSession, config, locale, theUser);
     }
 
     public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final PwmSession pwmSession,
             final Configuration config,
             final Locale locale,
-            final ChaiUser theUser,
-            final PwmSession pwmSession
+            final ChaiUser theUser
     )
             throws ChaiUnavailableException
     {

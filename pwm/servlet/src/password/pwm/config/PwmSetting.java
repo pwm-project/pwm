@@ -89,6 +89,8 @@ public enum PwmSetting {
             "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    NEWUSER_AGREEMENT_MESSAGE(
+            "display.newuser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CANCEL_BUTTON(
@@ -138,6 +140,8 @@ public enum PwmSetting {
             "ldap.guidAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_GUID_AUTO_ADD(
             "ldap.guid.autoAddValue", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
+    LDAP_ENABLE_WIRE_TRACE(
+            "ldap.wireTrace.enable", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -331,8 +335,7 @@ public enum PwmSetting {
             "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
             "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
-    INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
+
     // captcha
     RECAPTCHA_KEY_PUBLIC(
             "captcha.recaptcha.publicKey", Syntax.STRING, Category.INTRUDER, false, Level.BASIC),

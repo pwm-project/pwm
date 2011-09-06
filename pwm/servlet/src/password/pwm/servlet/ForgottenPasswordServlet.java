@@ -210,7 +210,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
 
             // read the user's assigned response set.
-            final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(pwmSession, theUser, null, responseSetLocale);
+            final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(pwmSession, pwmSession.getConfig(), theUser, null, responseSetLocale);
 
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
@@ -372,7 +372,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
             final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, forgottenPasswordBean.getProxiedUser());
-            final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, forgottenPasswordBean.getProxiedUser(), passwordPolicy);
+            final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, null, config, forgottenPasswordBean.getProxiedUser(), passwordPolicy);
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {

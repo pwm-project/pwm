@@ -153,7 +153,7 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
 
         //update the current last password update field in ldap
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmSession.getContextManager().getProxyChaiProvider());

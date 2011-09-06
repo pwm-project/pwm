@@ -68,6 +68,12 @@ select {
     width: 500px
 }
 
+#form {
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-collapse: separate;
+}
+
 table {
     border-collapse: collapse;
     border: 2px solid #D4D4D4;

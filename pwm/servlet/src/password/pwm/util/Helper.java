@@ -125,6 +125,11 @@ public class Helper {
             }
         }
 
+        // enable wire trace;
+        if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
+            chaiConfig.setSetting(ChaiSetting.WIRETRACE_ENABLE, "true");
+        }
+
         return chaiConfig;
     }
 

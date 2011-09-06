@@ -10,6 +10,8 @@ public class NewUserBean implements Serializable {
     private String tokenEmailAddress;
     private Map<String,String> formData;
     private PwmPasswordPolicy passwordPolicy;
+    private boolean agreementPassed;
+
 
     public NewUserBean() {
     }
@@ -44,5 +46,13 @@ public class NewUserBean implements Serializable {
 
     public void setPasswordPolicy(PwmPasswordPolicy passwordPolicy) {
         this.passwordPolicy = passwordPolicy;
+    }
+
+    public boolean isAgreementPassed() {
+        return agreementPassed;
+    }
+
+    public void setAgreementPassed(boolean agreementPassed) {
+        this.agreementPassed = agreementPassed;
     }
 }

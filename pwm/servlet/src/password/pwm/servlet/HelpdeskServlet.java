@@ -15,6 +15,7 @@ import password.pwm.UserHistory.Record;
 import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
@@ -27,6 +28,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Locale;
+
 /**
  *
  *  Admin interaction servlet for reset user passwords.
@@ -91,9 +94,11 @@ public class HelpdeskServlet extends TopServlet {
     private void processUserSearch(
             final HttpServletRequest req
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
+        final Configuration config = pwmSession.getConfig();
 
         helpdeskBean.setUserExists(false);
         final String username = Validator.readStringFromRequest(req, "username", 255);
@@ -116,7 +121,8 @@ public class HelpdeskServlet extends TopServlet {
 
         helpdeskBean.setUserExists(true);
         final UserInfoBean uiBean = new UserInfoBean();
-        UserStatusHelper.populateUserInfoBean(uiBean, pwmSession, userDN, null, pwmSession.getSessionManager().getChaiProvider());
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, config, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider());
         helpdeskBean.setUserInfoBean(uiBean);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());

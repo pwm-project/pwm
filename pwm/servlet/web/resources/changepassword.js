@@ -296,9 +296,12 @@ function doRandomGeneration() {
     var dialogBody = PWM_STRINGS['Display_PasswordGeneration'] + "<br/><br/>";
     dialogBody += '<table style="border: 0">';
     for (var i = 0; i < 20; i++) {
-        dialogBody += '<tr style="border: 0"><td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td>';
-        i++;
-        dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td></tr>';
+        dialogBody += '<tr style="border: 0">';
+        for (var j = 0; j < 2; j++) {
+            i = i + j;
+            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td>';
+        }
+        dialogBody += '</tr>';
     }
     dialogBody += "</table><br/><br/>";
 
@@ -358,7 +361,7 @@ function fetchRandoms() {
 
 function fetchRandom(successFunction, errorFunction) {
     dojo.xhrGet({
-        url: PWM_STRINGS['r-changepassword'] + "?processAction=getrandom&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        url: "ChangePassword?processAction=getrandom&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         contentType: "application/json;charset=utf-8",
         dataType: "json",
         timeout: 15000,
@@ -436,7 +439,7 @@ function startupChangePasswordPage(initialPrompt)
     var messageElement = getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){
-                showInfo(initialPrompt);
+            showInfo(initialPrompt);
         },2500);
     }
 

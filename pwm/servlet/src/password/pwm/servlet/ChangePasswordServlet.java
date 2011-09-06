@@ -93,7 +93,8 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        if (processRequestParam != null) {
+        if (processRequestParam != null && processRequestParam.length() > 0) {
+            Validator.validatePwmFormID(req);
             if (processRequestParam.equalsIgnoreCase("validate")) {
                 handleValidatePasswords(req, resp);
                 return;
@@ -137,7 +138,6 @@ public class ChangePasswordServlet extends TopServlet {
     protected static void handleValidatePasswords(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
-        Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
@@ -268,7 +268,6 @@ public class ChangePasswordServlet extends TopServlet {
     protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, ServletException, PwmUnrecoverableException {
         final long startTime = System.currentTimeMillis();
-        Validator.validatePwmFormID(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession);
 
@@ -314,7 +313,6 @@ public class ChangePasswordServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
-        Validator.validatePwmFormID(req);
         final String currentPassword = Validator.readStringFromRequest(req, "currentPassword");
         final String password1 = Validator.readStringFromRequest(req, "password1");
         final String password2 = Validator.readStringFromRequest(req, "password2");
@@ -393,8 +391,6 @@ public class ChangePasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ContextManager theManager = pwmSession.getContextManager();
-
-        Validator.validatePwmFormID(req);
 
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
         final String newPassword = cpb.getNewPassword();

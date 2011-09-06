@@ -22,13 +22,20 @@
 
 package password.pwm.util;
 
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
+import password.pwm.CrUtility;
 import password.pwm.PwmConstants;
+import password.pwm.UserStatusHelper;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.*;
 
@@ -65,18 +72,26 @@ public class UserReport {
         return searchResults.keySet();
     }
 
-    private UserInformation readUserInformation(final String userDN) {
+    private UserInformation readUserInformation(final String userDN) throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInformation userInformation = new UserInformation();
         userInformation.setUserDN(userDN);
 
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN,provider);
+        final UserInfoBean uiBean = new UserInfoBean();
+        UserStatusHelper.populateUserInfoBean(null, uiBean, config, PwmConstants.DEFAULT_LOCALE ,userDN, null, provider);
+
+        userInformation.setGuid(uiBean.getUserGuid());
+        userInformation.setHasValidResponses(!uiBean.isRequiresResponseConfig());
+        userInformation.setPasswordChangeTime(uiBean.getPasswordLastModifiedTime());
+        userInformation.setPasswordExpirationTime(uiBean.getPasswordExpirationTime());
+        userInformation.setUserDN(uiBean.getUserDN());
+        userInformation.setPasswordStatus(uiBean.getPasswordState());
         try {
-            final String userGUID = Helper.readLdapGuidValue(provider, config, userDN);
-            userInformation.setGuid(userGUID);
-        } catch (Exception e) {
-            LOGGER.error("error reading GUID for user " + userDN + ", error: " + e.getMessage());
+            userInformation.setResponseSetTime(CrUtility.readUserResponseSet(null,theUser).getTimestamp());
+        } catch (ChaiOperationException e) {
+            LOGGER.debug("error reading response set for " + userDN + " : " + e.getMessage());
         }
 
-        //@todo add rest of stuff
 
         return userInformation;
     }
@@ -94,7 +109,13 @@ public class UserReport {
 
         public UserInformation next() {
             final String userDN = userDNs.next();
-            return readUserInformation(userDN);
+            try {
+                return readUserInformation(userDN);
+            } catch (ChaiUnavailableException e) {
+                throw new IllegalStateException("the ldap directory is unavailable: " + e.getMessage());
+            } catch (PwmUnrecoverableException e) {
+                throw new IllegalStateException("the pwm application is unavailable: " + e.getMessage());
+            }
         }
 
         public void remove() {
@@ -106,14 +127,14 @@ public class UserReport {
         private String userDN;
         private String guid;
 
+        private PasswordStatus passwordStatus;
+
         private Date passwordChangeTime;
         private Date passwordExpirationTime;
+        private Date responseSetTime;
 
         private boolean hasValidResponses;
 
-        private Date pwmDbResponseSetTime;
-        private Date dbResponseSetTime;
-        private Date ldapResponseSetTime;
 
         public String getUserDN() {
             return userDN;
@@ -155,44 +176,39 @@ public class UserReport {
             this.hasValidResponses = hasValidResponses;
         }
 
-        public Date getPwmDbResponseSetTime() {
-            return pwmDbResponseSetTime;
+
+        public Date getResponseSetTime() {
+            return responseSetTime;
         }
 
-        public void setPwmDbResponseSetTime(final Date pwmDbResponseSetTime) {
-            this.pwmDbResponseSetTime = pwmDbResponseSetTime;
+        public void setResponseSetTime(Date responseSetTime) {
+            this.responseSetTime = responseSetTime;
         }
 
-        public Date getDbResponseSetTime() {
-            return dbResponseSetTime;
+        public PasswordStatus getPasswordStatus() {
+            return passwordStatus;
         }
 
-        public void setDbResponseSetTime(final Date dbResponseSetTime) {
-            this.dbResponseSetTime = dbResponseSetTime;
-        }
-
-        public Date getLdapResponseSetTime() {
-            return ldapResponseSetTime;
-        }
-
-        public void setLdapResponseSetTime(final Date ldapResponseSetTime) {
-            this.ldapResponseSetTime = ldapResponseSetTime;
+        public void setPasswordStatus(PasswordStatus passwordStatus) {
+            this.passwordStatus = passwordStatus;
         }
 
         public String toCsvLine() {
             return Helper.toCsvLine(
-                    userDN,
-                    guid,
+                    getUserDN(),
+                    getGuid(),
 
-                    passwordChangeTime == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(passwordChangeTime),
-                    passwordExpirationTime == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(passwordExpirationTime),
+                    getPasswordExpirationTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getPasswordExpirationTime()),
+                    getPasswordChangeTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getPasswordChangeTime()),
+                    getResponseSetTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getResponseSetTime()),
 
-                    Boolean.toString(hasValidResponses),
+                    Boolean.toString(isHasValidResponses()),
 
-                    pwmDbResponseSetTime == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(pwmDbResponseSetTime),
-                    dbResponseSetTime == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(dbResponseSetTime),
-                    ldapResponseSetTime == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(ldapResponseSetTime)
+                    Boolean.toString(getPasswordStatus().isExpired()),
+                    Boolean.toString(getPasswordStatus().isPreExpired()),
+                    Boolean.toString(getPasswordStatus().isViolatesPolicy()),
+                    Boolean.toString(getPasswordStatus().isWarnPeriod())
             );
-       }
+        }
     }
 }
