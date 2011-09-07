@@ -164,7 +164,7 @@ public class GuestRegistrationServlet extends TopServlet {
             	notifyAttrs.put(key, configNameValuePairs.get(key));
             }
 
-            final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(config, locale, theUser, null);
+            final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, config, locale, theUser);
             final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, seedlistManager, pwmSession.getContextManager());
             theUser.setPassword(newPassword);
