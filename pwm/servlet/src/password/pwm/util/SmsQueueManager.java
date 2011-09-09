@@ -165,11 +165,20 @@ public class SmsQueueManager implements PwmService {
 
 // -------------------------- OTHER METHODS --------------------------
 
+    public void shortenMessageIfNeeded(final SmsItemBean smsItem) {
+        final Boolean shorten = theManager.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
+        if (shorten) {
+            final String message = smsItem.getMessage();
+            smsItem.setMessage(theManager.getUrlShortener().shortenUrlInText(message));
+        }
+    }
+
     public void addSmsToQueue(final SmsItemBean smsItem) throws PwmUnrecoverableException {
         if (status != PwmService.STATUS.OPEN) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
+        shortenMessageIfNeeded(smsItem);
         if (!determineIfSmsCanBeDelivered(smsItem)) {
             return;
         }
@@ -316,16 +325,16 @@ public class SmsQueueManager implements PwmService {
             }
 
             if (extraHeaders != null) {
-               	final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
+                   final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
                 for (final String header : extraHeaders) {
                     final Matcher matcher = pattern.matcher(header);
                     if (matcher.matches()) {
-                    	final String hname = matcher.group(1);
-                    	final String hvalue = matcher.group(2);
-                    	LOGGER.debug("Adding HTTP header \"" + hname + "\" with value \"" + hvalue + "\"");
-                    	httpRequest.addHeader(hname, hvalue);
+                        final String hname = matcher.group(1);
+                        final String hvalue = matcher.group(2);
+                        LOGGER.debug("Adding HTTP header \"" + hname + "\" with value \"" + hvalue + "\"");
+                        httpRequest.addHeader(hname, hvalue);
                     } else {
-                    	LOGGER.warn("Cannot parse HTTP header: " + header);
+                        LOGGER.warn("Cannot parse HTTP header: " + header);
                     }
                 }
             }

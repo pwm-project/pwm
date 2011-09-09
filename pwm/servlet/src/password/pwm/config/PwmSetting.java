@@ -254,6 +254,8 @@ public enum PwmSetting {
             "sms.requestId.length", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_CHALLENGE_TOKEN_TEXT(
             "sms.challenge.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.ADVANCED),
+    SMS_USE_URL_SHORTENER(
+            "sms.useUrlShortener", Syntax.BOOLEAN, Category.SMS, false, Level.ADVANCED),
 
     //global password policy settings
     PASSWORD_POLICY_MINIMUM_LENGTH(
@@ -602,6 +604,12 @@ public enum PwmSetting {
     CAS_CLEAR_PASS_URL(
             "cas.clearPassUrl", Syntax.STRING, Category.MISC, false, Level.BASIC),
 
+    URL_SHORTENER_CLASS(
+            "urlshortener.classname", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+    URL_SHORTENER_PARAMETERS(
+            "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+
+    // Database
     DATABASE_CLASS(
             "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_URL(

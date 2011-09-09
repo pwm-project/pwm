@@ -89,6 +89,7 @@ public class PwmApplication implements Serializable {
     private transient ConfigurationReader configReader;
     private transient EmailQueueManager emailQueue;
     private transient SmsQueueManager smsQueue;
+    private transient UrlShortenerService urlShort;
 
     private transient HealthMonitor healthMonitor;
     private transient StatisticsManager statisticsManager;
@@ -174,6 +175,7 @@ public class PwmApplication implements Serializable {
         pwmServices.add(this.smsQueue);
         pwmServices.add(this.wordlistManager);
         pwmServices.add(this.databaseAccessor);
+        pwmServices.add(this.urlShort);
         pwmServices.remove(null);
         return Collections.unmodifiableSet(pwmServices);
     }
@@ -217,6 +219,10 @@ public class PwmApplication implements Serializable {
 
     public SmsQueueManager getSmsQueue() {
         return smsQueue;
+    }
+
+    public UrlShortenerService getUrlShortener() {
+        return urlShort;
     }
 
     public ErrorInformation getLastLdapFailure() {
@@ -359,6 +365,9 @@ public class PwmApplication implements Serializable {
 
         smsQueue = new SmsQueueManager(this);
         LOGGER.trace("sms queue manager started");
+
+        urlShort = new UrlShortenerService(this);
+        LOGGER.trace("url shortener service started");
 
         taskMaster = new Timer("pwm-PwmApplication timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
