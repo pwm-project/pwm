@@ -237,7 +237,7 @@ public class UserStatusHelper {
         }
 
         // read response state
-        uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, config, theUser, uiBean.getChallengeSet()));
+        uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, provider, config, theUser, uiBean.getChallengeSet()));
 
         // fetch last password modification time;
         final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));

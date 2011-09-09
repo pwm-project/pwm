@@ -32,10 +32,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.ws.client.novell.pwdmgt.*;
@@ -107,10 +107,25 @@ public class CrUtility {
         return returnSet;
     }
 
-    public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser theUser)
+    public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser proxiedUser)
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+        final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
+        final Configuration config = pwmSession.getConfig();
+        return readUserResponseSet(pwmSession, pwmDB, databaseAccessor, config, proxiedUser);
+    }
+
+    public static ResponseSet readUserResponseSet(
+            final PwmSession pwmSession,
+            final PwmDB pwmDB,
+            final DatabaseAccessor databaseAccessor,
+            final Configuration config,
+            final ChaiUser theUser
+    )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final String novellUserAppWebServiceURL = pwmSession.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
+        final String novellUserAppWebServiceURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
         if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
             final ResponseSet responseSet = ResponseReaders.readResponsesFromNovellUA(novellUserAppWebServiceURL,pwmSession,theUser);
             if (responseSet != null) {
@@ -119,7 +134,7 @@ public class CrUtility {
             }
         }
 
-        final String readRawValue = pwmSession.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+        final String readRawValue = config.readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
         final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
         for (final String rawValue : readRawValue.split("-")) {
             readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
@@ -127,7 +142,7 @@ public class CrUtility {
 
         final String userGUID;
         if (readPreferences.contains(STORAGE_METHOD.DB) || readPreferences.contains(STORAGE_METHOD.PWMDB)) {
-            userGUID = Helper.readLdapGuidValue(theUser.getChaiProvider(), pwmSession.getConfig(), theUser.getEntryDN());
+            userGUID = Helper.readLdapGuidValue(theUser.getChaiProvider(), config, theUser.getEntryDN());
         } else {
             userGUID = null;
         }
@@ -137,11 +152,11 @@ public class CrUtility {
 
             switch (storageMethod) {
                 case DB:
-                    readResponses = ResponseReaders.readResponsesFromDatabase(pwmSession, theUser, userGUID);
+                    readResponses = ResponseReaders.readResponsesFromDatabase(pwmSession, databaseAccessor, theUser, userGUID);
                     break;
 
                 case PWMDB:
-                    readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, theUser, userGUID);
+                    readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, pwmDB, theUser, userGUID);
                     break;
 
                 case LDAP:
@@ -165,6 +180,7 @@ public class CrUtility {
 
         private static ResponseSet readResponsesFromPwmDB(
                 final PwmSession pwmSession,
+                final PwmDB pwmDB,
                 final ChaiUser theUser,
                 final String userGUID
         )
@@ -175,8 +191,6 @@ public class CrUtility {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
             }
-
-            final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
 
             if (pwmDB == null) {
                 final String errorMsg = "pwmDB is not available, unable to search for user responses";
@@ -205,6 +219,7 @@ public class CrUtility {
 
         private static ResponseSet readResponsesFromDatabase(
                 final PwmSession pwmSession,
+                final DatabaseAccessor databaseAccessor,
                 final ChaiUser theUser,
                 final String userGUID
         )
@@ -216,7 +231,6 @@ public class CrUtility {
                 throw new PwmUnrecoverableException(errorInformation);
             }
 
-            final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
             try {
                 final String responseStringBlob = databaseAccessor.get(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
                 if (responseStringBlob != null && responseStringBlob.length() > 0) {
@@ -505,6 +519,7 @@ public class CrUtility {
 
     public static boolean checkIfResponseConfigNeeded(
             final PwmSession pwmSession,
+            final ChaiProvider provider,
             final Configuration config,
             final ChaiUser theUser,
             final ChallengeSet challengeSet)
@@ -514,7 +529,7 @@ public class CrUtility {
 
         final String userDN = theUser.getEntryDN();
 
-        if (!Helper.testUserMatchQueryString(pwmSession, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
+        if (!Helper.testUserMatchQueryString(provider, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
             return false;
         }

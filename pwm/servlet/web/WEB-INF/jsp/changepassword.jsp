@@ -115,9 +115,6 @@
             </table>
 
             <div id="buttonbar" style="width:100%">
-                <span>
-                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
-                </span>
                 <input type="hidden" name="processAction" value="change"/>
                 <input type="submit" name="change" class="btn"
                        id="password_button"

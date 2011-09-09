@@ -36,6 +36,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.pwmdb.PwmDB;
 
 import java.util.*;
 
@@ -44,10 +46,14 @@ public class UserReport {
 
     private final Configuration config;
     private final ChaiProvider provider;
+    private final PwmDB pwmDB;
+    private final DatabaseAccessor databaseAccessor;
 
-    public UserReport(final Configuration config, final ChaiProvider provider) {
+    public UserReport(Configuration config, ChaiProvider provider, PwmDB pwmDB, DatabaseAccessor databaseAccessor) {
         this.config = config;
         this.provider = provider;
+        this.pwmDB = pwmDB;
+        this.databaseAccessor = databaseAccessor;
     }
 
     public Iterator<UserInformation> resultIterator()
@@ -87,7 +93,7 @@ public class UserReport {
         userInformation.setUserDN(uiBean.getUserDN());
         userInformation.setPasswordStatus(uiBean.getPasswordState());
         try {
-            userInformation.setResponseSetTime(CrUtility.readUserResponseSet(null,theUser).getTimestamp());
+            userInformation.setResponseSetTime(CrUtility.readUserResponseSet(null, pwmDB, databaseAccessor, config, theUser).getTimestamp());
         } catch (ChaiOperationException e) {
             LOGGER.debug("error reading response set for " + userDN + " : " + e.getMessage());
         }

@@ -38,14 +38,42 @@ function checkForCapsLock(e) {
         return;
     }
 
-    var kc = e.keyCode ? e.keyCode : e.which;
-    var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
-    if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
-        if ((e.target != null && e.target.type == 'password') || (e.srcElement != null && e.srcElement.type == 'password')) {
-            capsLockWarningElement.style.visibility = 'visible';
+    var capsLockKeyDetected = false;
+    var elementTarget = null;
+    if (e.target != null) {
+        elementTarget = e.target;
+    } else if (e.srcElement != null) {
+        elementTarget = e.srcElement;
+    }
+    if (elementTarget != null) {
+        if (elementTarget.nodeName == 'input' || elementTarget.nodeName == 'INPUT') {
+            var kc = e.keyCode ? e.keyCode : e.which;
+            var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
+            if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
+                capsLockKeyDetected = true;
+            }
         }
+    }
+
+    var displayDuration = 5 * 1000;
+    var fadeOutArgs = { node: "capslockwarning", duration: 3 * 1000 };
+    var fadeInArgs = { node: "capslockwarning", duration: 200 };
+    if (capsLockKeyDetected) {
+        capsLockWarningElement.style.display = null;
+        dojo.fadeIn(fadeInArgs).play();
+        PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
+        setTimeout(function(){
+            if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                dojo.fadeOut(fadeOutArgs).play();
+                setTimeout(function(){
+                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                        capsLockWarningElement.style.display = 'none';
+                    }
+                },5 * 1000);
+            }
+        },displayDuration + 500);
     } else {
-        capsLockWarningElement.style.visibility = 'hidden';
+        dojo.fadeOut(fadeOutArgs).play();
     }
 }
 

@@ -32,3 +32,5 @@
 <% } else { %>
 <span id="message" class="message">&nbsp;</span>
 <% } %>
+<div id="capslockwarning" style="display:none;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+

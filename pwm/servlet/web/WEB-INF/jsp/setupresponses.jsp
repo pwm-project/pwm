@@ -147,9 +147,6 @@
             <% } %>
 
             <div id="buttonbar">
-                <span>
-                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
-                </span>
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <input type="submit" name="setResponses" class="btn" id="setresponses_button"
                        value="    <pwm:Display key="Button_SetResponses"/>    "/>

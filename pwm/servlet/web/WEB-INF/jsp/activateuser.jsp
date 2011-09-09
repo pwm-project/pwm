@@ -40,8 +40,9 @@
 
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
               enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false"
-              onreset="handleFormClear();return false">
+              onreset="handleFormClear();return false" onkeypress="checkForCapsLock(event)">
             <%@ include file="fragment/message.jsp" %>
+            <br/>
             <% //check to see if any locations are configured.
                 if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
             %>

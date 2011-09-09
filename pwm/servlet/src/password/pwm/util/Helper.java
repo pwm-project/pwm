@@ -489,7 +489,7 @@ public class Helper {
     }
 
     public static boolean testUserMatchQueryString(
-            final PwmSession pwmSession,
+            final ChaiProvider provider,
             final String objectDN,
             final String queryString
     )
@@ -501,8 +501,6 @@ public class Helper {
         if (queryString == null || queryString.length() < 1) {
             return true;
         }
-
-        final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
 
         try {
             final Map<String, Map<String,String>> results = provider.search(objectDN, queryString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.SUBTREE);
@@ -517,7 +515,7 @@ public class Helper {
                 return true;
             }
         } catch (ChaiOperationException e) {
-            LOGGER.debug(pwmSession, "error testing match query string: " + queryString, e);
+            LOGGER.error("error testing match query string: " + queryString, e);
         }
 
         return false;

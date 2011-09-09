@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBFactory;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
@@ -85,7 +86,11 @@ public class MainClass {
             final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             provider = Helper.createChaiProvider(config,proxyDN,proxyPW);
         }
-        final UserReport userReport = new UserReport(config,provider);
+        final PwmDB pwmDB = loadPwmDB(config, true);
+        final DatabaseAccessor databaseAccessor = loadDBAccessor(config, true);
+
+
+        final UserReport userReport = new UserReport(config, provider, pwmDB, databaseAccessor);
 
 
         //@todo output to file..
@@ -272,6 +277,16 @@ public class MainClass {
         final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
         final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
         return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly);
+    }
+
+    static DatabaseAccessor loadDBAccessor(final Configuration config, final boolean readonly) throws Exception {
+            final DatabaseAccessor.DBConfiguration dbConfiguration = new DatabaseAccessor.DBConfiguration(
+                    config.readSettingAsString(PwmSetting.DATABASE_CLASS),
+                    config.readSettingAsString(PwmSetting.DATABASE_URL),
+                    config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
+                    config.readSettingAsString(PwmSetting.DATABASE_PASSWORD));
+
+            return new DatabaseAccessor(dbConfiguration, "MainClass");
     }
 
     static Configuration loadConfiguration() throws Exception {

@@ -256,14 +256,21 @@ div.progress-container > div {
 }
 
 #capslockwarning {
-    font-family: Trebuchet MS, sans-serif;
+    width: 60%;
+    padding: 0;
+    position: relative;;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
     color: #ffffff;
     font-weight: bold;
     font-variant: small-caps;
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     background-color: #d20734;
-    border-radius: 3px
+    border-radius: 3px;
 }
+
 
 #waitDialog_underlay {
     background-color: #444444;

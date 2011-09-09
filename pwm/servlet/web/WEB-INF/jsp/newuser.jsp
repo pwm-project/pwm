@@ -55,10 +55,6 @@
             <% request.setAttribute("form_showPasswordFields","true"); %>
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
-                <span>
-                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
-                </span>
-
                 <input type="hidden" name="processAction" value="create"/>
                 <input type="submit" name="Create" class="btn"
                        value="     <pwm:Display key="Button_Create"/>     "

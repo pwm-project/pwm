@@ -39,7 +39,7 @@
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
-              onkeypress="checkForCapsLock(event);">
+              onkeypress="checkForCapsLock(event)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
                 if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
@@ -54,13 +54,9 @@
                    value="<pwm:ParamValue name='username'/>"/>
 
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield"
-                   onkeypress="checkForCapsLock(event)"/>
+            <input type="password" name="password" id="password" class="inputfield"/>
 
             <div id="buttonbar">
-                <span>
-                    <div id="capslockwarning" style="visibility:hidden;"><pwm:Display key="Display_CapsLockIsOn"/></div>
-                </span>
                 <input type="submit" class="btn"
                        name="button"
                        value="    <pwm:Display key="Button_Login"/>    "
@@ -81,6 +77,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
+        <br/>
         <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
         <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
         <pwm:Display key="Long_Title_ForgottenPassword"/></p>
