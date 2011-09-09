@@ -49,7 +49,7 @@
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};
-    <% for (final Locale loopLocale : password.pwm.ContextManager.getContextManager(request).getKnownLocales()) { %>
+    <% for (final Locale loopLocale : password.pwm.PwmApplication.getPwmApplication(request).getKnownLocales()) { %>
     localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
     <% } %>
     dojo.addOnLoad(function() {

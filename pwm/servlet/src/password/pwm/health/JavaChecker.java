@@ -22,7 +22,7 @@
 
 package password.pwm.health;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.List;
 public class JavaChecker implements HealthChecker {
     private static final String TOPIC = "Java Platform";
 
-    public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
         if (Thread.activeCount() > 1000) {

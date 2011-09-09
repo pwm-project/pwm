@@ -136,7 +136,7 @@ public class UpdateProfileServlet extends TopServlet {
             // write configured values
             final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
             final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmSession.getContextManager().getProxyChaiProvider());
+            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmSession.getPwmApplication().getProxyChaiProvider());
             Helper.writeMapToLdap(pwmSession, proxiedUser, writeAttributesSettings);
 
             // mark the event log
@@ -146,7 +146,7 @@ public class UpdateProfileServlet extends TopServlet {
             UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
 
             // success, so forward to success page
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
 

@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
@@ -72,7 +72,7 @@
             </tr>
 
             <%
-                final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
+                final PwmApplication theManager = PwmApplication.getPwmApplication(request.getSession().getServletContext());
                 final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
                 for (final PwmSession loopSession : activeSessions) {
                     try {

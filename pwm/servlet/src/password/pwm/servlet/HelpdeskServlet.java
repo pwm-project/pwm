@@ -141,8 +141,8 @@ public class HelpdeskServlet extends TopServlet {
 
         helpdeskBean.setPwmIntruder(false);
         try {
-            pwmSession.getContextManager().getIntruderManager().checkUser(userDN,pwmSession);
-            pwmSession.getContextManager().getIntruderManager().checkUser(uiBean.getUserID(),pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().checkUser(userDN,pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().checkUser(uiBean.getUserID(),pwmSession);
         } catch (Exception e) {
             helpdeskBean.setPwmIntruder(true);
         }
@@ -174,7 +174,7 @@ public class HelpdeskServlet extends TopServlet {
             IOException,
             ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
@@ -222,8 +222,8 @@ public class HelpdeskServlet extends TopServlet {
                 Helper.updateLastUpdateAttribute(pwmSession, chaiUser);
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while resetting password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
@@ -260,7 +260,7 @@ public class HelpdeskServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
@@ -297,8 +297,8 @@ public class HelpdeskServlet extends TopServlet {
                 UserHistory.updateUserHistory(pwmSession, proxiedChaiUser, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while resetting password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {

@@ -63,13 +63,13 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
-            final ContextManager contextManager = pwmSession.getContextManager();
+            final PwmApplication pwmApplication = pwmSession.getPwmApplication();
 
-            if (contextManager != null) {
-                if (contextManager.getStatisticsManager() != null) {
-                    contextManager.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
+            if (pwmApplication != null) {
+                if (pwmApplication.getStatisticsManager() != null) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
                 }
-                contextManager.addPwmSession(pwmSession);
+                pwmApplication.addPwmSession(pwmSession);
             }
 
             LOGGER.trace(pwmSession, "http session created");
@@ -99,14 +99,14 @@ public class EventManager implements ServletContextListener, HttpSessionListener
     public void contextInitialized(final ServletContextEvent servletContextEvent)
     {
         if (null != servletContextEvent.getServletContext().getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER)) {
-            LOGGER.warn("notice, previous servlet ContextManager exists");
+            LOGGER.warn("notice, previous servlet PwmApplication exists");
         }
 
 
         try {
-            final ContextManager newContextManager = new ContextManager();
-            newContextManager.initialize(servletContextEvent.getServletContext());
-            servletContextEvent.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
+            final PwmApplication newPwmApplication = new PwmApplication();
+            newPwmApplication.initialize(servletContextEvent.getServletContext());
+            servletContextEvent.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newPwmApplication);
         } catch (OutOfMemoryError e) {
             LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
             throw e;
@@ -119,8 +119,8 @@ public class EventManager implements ServletContextListener, HttpSessionListener
     public void contextDestroyed(final ServletContextEvent servletContextEvent)
     {
         try {
-            final ContextManager contextManager = ContextManager.getContextManager(servletContextEvent.getServletContext());
-            contextManager.shutdown();
+            final PwmApplication pwmApplication = PwmApplication.getPwmApplication(servletContextEvent.getServletContext());
+            pwmApplication.shutdown();
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to destroy pwm context: " + e.getMessage());
         }
@@ -154,19 +154,19 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         LOGGER.info("restarting PWM application");
 
         try {
-            final ContextManager currentManager = ContextManager.getContextManager(servletContext);
+            final PwmApplication currentManager = PwmApplication.getPwmApplication(servletContext);
             servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, null);
             final Collection<PwmSession> allSessions = currentManager.getPwmSessions();
             currentManager.shutdown();
             invalidateAllUserSessions(allSessions);
         } catch (Throwable e) {
-            LOGGER.fatal("error trying to shutdown ContextManager during restart");
+            LOGGER.fatal("error trying to shutdown PwmApplication during restart");
         }
 
         try {
-            final ContextManager newContextManager = new ContextManager();
-            newContextManager.initialize(servletContext);
-            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager);
+            final PwmApplication newPwmApplication = new PwmApplication();
+            newPwmApplication.initialize(servletContext);
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newPwmApplication);
         } catch (OutOfMemoryError e) {
             LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
             throw e;

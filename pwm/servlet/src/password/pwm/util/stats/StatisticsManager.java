@@ -23,7 +23,7 @@
 package password.pwm.util.stats;
 
 import password.pwm.AlertHandler;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.pwmdb.PwmDB;
@@ -60,7 +60,7 @@ public class StatisticsManager {
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
 
-    final private ContextManager contextManager;
+    final private PwmApplication pwmApplication;
 
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
         @Override
@@ -69,9 +69,9 @@ public class StatisticsManager {
         }
     };
 
-    public StatisticsManager(final PwmDB pwmDB, final ContextManager contextManager) {
+    public StatisticsManager(final PwmDB pwmDB, final PwmApplication pwmApplication) {
         this.pwmDB = pwmDB;
-        this.contextManager = contextManager;
+        this.pwmApplication = pwmApplication;
 
         try {
             initialize(pwmDB);
@@ -255,7 +255,7 @@ public class StatisticsManager {
             emailValues.put(key,value);
         }
 
-        AlertHandler.alertDailyStats(contextManager, emailValues);
+        AlertHandler.alertDailyStats(pwmApplication, emailValues);
 
         currentDailyKey = new DailyKey(new Date());
         statsDaily = new StatisticsBundle();

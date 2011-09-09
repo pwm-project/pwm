@@ -173,7 +173,7 @@ public class ChangePasswordServlet extends TopServlet {
             LOGGER.trace(pwmSession, sb.toString());
         }
 
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
+        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
 
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
@@ -284,7 +284,7 @@ public class ChangePasswordServlet extends TopServlet {
             sb.append("real-time random password generator called");
             sb.append(" (").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append(")");
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
             LOGGER.trace(pwmSession, sb.toString());
         }
     }
@@ -336,7 +336,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             if (!passed) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmSession.getContextManager().getIntruderManager().addBadUserAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                pwmSession.getPwmApplication().getIntruderManager().addBadUserAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
                 this.forwardToJSP(req, resp);
                 return;
@@ -390,7 +390,7 @@ public class ChangePasswordServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
 
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
         final String newPassword = cpb.getNewPassword();

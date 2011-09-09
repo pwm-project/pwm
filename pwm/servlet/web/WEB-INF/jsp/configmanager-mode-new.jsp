@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -38,7 +38,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+            Configuration Mode: <%=PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode()%>
         </div>
     </div>
     <div id="centerbody">

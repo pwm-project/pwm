@@ -24,7 +24,7 @@ package password.pwm.tests;
 
 import com.novell.ldapchai.ChaiUser;
 import org.apache.log4j.*;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 
 import java.util.ResourceBundle;
 
@@ -36,7 +36,7 @@ public class TestHelper {
     }
 
     public static void setupLogging() {
-        final String pwmPackageName = ContextManager.class.getPackage().getName();
+        final String pwmPackageName = PwmApplication.class.getPackage().getName();
         final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
         final String chaiPackageName = ChaiUser.class.getPackage().getName();
         final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);

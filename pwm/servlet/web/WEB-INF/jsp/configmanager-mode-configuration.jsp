@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.ServletHelper" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -28,9 +28,9 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext());
+    final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext());
     String configFilePath = "PwmConfiguration.xml";
-    try { configFilePath = ServletHelper.figureFilepath(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", request.getSession().getServletContext()).getAbsolutePath(); } catch (Exception e) { /* */ }
+    try { configFilePath = ServletHelper.figureFilepath(pwmApplication.getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", request.getSession().getServletContext()).getAbsolutePath(); } catch (Exception e) { /* */ }
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="fragment/header.jsp" %>
@@ -43,7 +43,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+            Configuration Mode: <%=PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode()%>
         </div>
     </div>
     <div id="centerbody">
@@ -55,8 +55,8 @@
             take effect.</p>
 
         <p>The current PWM configuration was loaded at
-            <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>.
-            (Epoch <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationEpoch()%>)
+            <%=PwmSession.getPwmSession(session).getPwmApplication().getConfigReader().getConfigurationReadTime()%>.
+            (Epoch <%=PwmSession.getPwmSession(session).getPwmApplication().getConfigReader().getConfigurationEpoch()%>)
         </p>
         <table class="tablemain">
             <tr>

@@ -37,7 +37,7 @@
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
+<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <script type="text/javascript">
     var advancedPanelVisible = false;
@@ -67,7 +67,7 @@
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
     timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
-    <%= SimpleDateFormat.getInstance().format(new Date(PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger().getTailTimestamp())) %>
+    <%= SimpleDateFormat.getInstance().format(new Date(PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger().getTailTimestamp())) %>
     .
 </p>
 

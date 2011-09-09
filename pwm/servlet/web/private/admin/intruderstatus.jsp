@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.IntruderManager" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -40,7 +40,7 @@
     </jsp:include>
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
-        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getContextManager(session).getIntruderManager().getUserLockTable(); %>
+        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = PwmApplication.getPwmApplication(session).getIntruderManager().getUserLockTable(); %>
         <% if (userLockTable.isEmpty()) { %>
         <br/>
         <br/>
@@ -109,7 +109,7 @@
         </table>
         <% } %>
         <br class="clear"/>
-        <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getContextManager(session).getIntruderManager().getAddressLockTable(); %>
+        <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = PwmApplication.getPwmApplication(session).getIntruderManager().getAddressLockTable(); %>
         <% if (addressLockTable.isEmpty()) { %>
         <div style="font-weight: bold; text-align:center; width:100%">No network addresses are currently locked.</div>
         <br/>

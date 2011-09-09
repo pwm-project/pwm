@@ -23,7 +23,7 @@
 package password.pwm.util;
 
 import com.google.gson.Gson;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
@@ -65,7 +65,7 @@ public class EmailQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
     private PwmDBStoredQueue mailSendQueue;
-    private final ContextManager theManager;
+    private final PwmApplication theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
@@ -75,7 +75,7 @@ public class EmailQueueManager implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public EmailQueueManager(final ContextManager theManager)
+    public EmailQueueManager(final PwmApplication theManager)
             throws PwmDBException {
         this.theManager = theManager;
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
@@ -105,7 +105,7 @@ public class EmailQueueManager implements PwmService {
 
 // --------------------- Interface PwmService ---------------------
 
-    public void init(final ContextManager contextManager) throws PwmUnrecoverableException {
+    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {

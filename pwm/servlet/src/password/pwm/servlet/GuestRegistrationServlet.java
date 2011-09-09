@@ -120,7 +120,7 @@ public class GuestRegistrationServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formValues);
 
             // check unique fields against ldap
-            Validator.validateAttributeUniqueness(pwmSession.getContextManager().getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));
+            Validator.validateAttributeUniqueness(pwmSession.getPwmApplication().getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);
@@ -165,8 +165,8 @@ public class GuestRegistrationServlet extends TopServlet {
             }
 
             final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, config, locale, theUser);
-            final SeedlistManager seedlistManager = pwmSession.getContextManager().getSeedlistManager();
-            final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, seedlistManager, pwmSession.getContextManager());
+            final SeedlistManager seedlistManager = pwmSession.getPwmApplication().getSeedlistManager();
+            final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, seedlistManager, pwmSession.getPwmApplication());
             theUser.setPassword(newPassword);
             notifyAttrs.put("password", newPassword);
 
@@ -174,7 +174,7 @@ public class GuestRegistrationServlet extends TopServlet {
             this.sendGuestUserEmailConfirmation(pwmSession, notifyAttrs);
             ssBean.setSessionSuccess(Message.SUCCESS_CREATE_GUEST, null);
 
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
             ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
         } catch (ChaiOperationException e) {
@@ -258,7 +258,7 @@ public class GuestRegistrationServlet extends TopServlet {
     }
 
     private void sendGuestUserEmailConfirmation(final PwmSession pwmSession, final Properties attrs) throws PwmUnrecoverableException {
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();

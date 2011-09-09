@@ -65,7 +65,7 @@ public class CaptchaServlet extends TopServlet {
 
         //check intruder detection, if it is tripped, send user to error page
         try {
-            pwmSession.getContextManager().getIntruderManager().checkAddress(pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().checkAddress(pwmSession);
         } catch (PwmUnrecoverableException e) {
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext(), false);
             return;
@@ -107,19 +107,19 @@ public class CaptchaServlet extends TopServlet {
 
         if (verified) { // passed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
             LOGGER.debug(pwmSession, "captcha passcode verified");
-            pwmSession.getContextManager().getIntruderManager().addGoodAddressAttempt(pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().addGoodAddressAttempt(pwmSession);
             writeCaptchaSkipCookie(pwmSession, resp);
             forwardToOriginalLocation(req, resp);
         } else { //failed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(false);
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE));
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
-            pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().addBadAddressAttempt(pwmSession);
             forwardToJSP(req, resp);
         }
     }
@@ -227,7 +227,7 @@ public class CaptchaServlet extends TopServlet {
         }
 
         if (cookieValue.equals(COOKIE_SKIP_INSTANCE_VALUE)) {
-            cookieValue = pwmSession.getContextManager().getInstanceID();
+            cookieValue = pwmSession.getPwmApplication().getInstanceID();
 
         }
 

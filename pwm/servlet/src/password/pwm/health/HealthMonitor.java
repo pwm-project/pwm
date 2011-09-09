@@ -22,7 +22,7 @@
 
 package password.pwm.health;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
@@ -35,7 +35,7 @@ public class HealthMonitor implements Serializable {
     private static final int MIN_INTERVAL_SECONDS = 30;
     private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
-    private final ContextManager contextManager;
+    private final PwmApplication pwmApplication;
     private final Set<HealthRecord> healthRecords = new TreeSet<HealthRecord>();
     private final List<HealthChecker> healthCheckers = new ArrayList<HealthChecker>();
 
@@ -44,9 +44,9 @@ public class HealthMonitor implements Serializable {
 
     private boolean open = true;
 
-    public HealthMonitor(final ContextManager contextManager) {
-        this.contextManager = contextManager;
-        this.intervalSeconds = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
+    public HealthMonitor(final PwmApplication pwmApplication) {
+        this.pwmApplication = pwmApplication;
+        this.intervalSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
 
         if (intervalSeconds < MIN_INTERVAL_SECONDS) {
             intervalSeconds = MIN_INTERVAL_SECONDS;
@@ -100,7 +100,7 @@ public class HealthMonitor implements Serializable {
         final List<HealthRecord> newResults = new ArrayList<HealthRecord>();
         for (final HealthChecker loopChecker : healthCheckers) {
             try {
-                final List<HealthRecord> loopResults = loopChecker.doHealthCheck(contextManager);
+                final List<HealthRecord> loopResults = loopChecker.doHealthCheck(pwmApplication);
                 if (loopResults != null) {
                     newResults.addAll(loopResults);
                 }
@@ -108,7 +108,7 @@ public class HealthMonitor implements Serializable {
                 LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
             }
         }
-        for (final PwmService service : contextManager.getPwmServices()) {
+        for (final PwmService service : pwmApplication.getPwmServices()) {
             final List<HealthRecord> loopResults = service.healthCheck();
             if (loopResults != null) {
                 newResults.addAll(loopResults);

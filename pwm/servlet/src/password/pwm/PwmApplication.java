@@ -66,11 +66,11 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ContextManager implements Serializable {
+public class PwmApplication implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     // ----------------------------- CONSTANTS ----------------------------
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ContextManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmApplication.class);
     private static final String DB_KEY_INSTANCE_ID = "context_instanceID";
     private static final String DB_KEY_CONFIG_SETTING_HASH = "configurationSettingHash";
     private static final String DB_KEY_INSTALL_DATE = "DB_KEY_INSTALL_DATE";
@@ -112,15 +112,15 @@ public class ContextManager implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static ContextManager getContextManager(final HttpServletRequest request) throws PwmUnrecoverableException {
-        return getContextManager(request.getSession());
+    public static PwmApplication getPwmApplication(final HttpServletRequest request) throws PwmUnrecoverableException {
+        return getPwmApplication(request.getSession());
     }
 
-    public static ContextManager getContextManager(final HttpSession session) throws PwmUnrecoverableException {
-        return getContextManager(session.getServletContext());
+    public static PwmApplication getPwmApplication(final HttpSession session) throws PwmUnrecoverableException {
+        return getPwmApplication(session.getServletContext());
     }
 
-    public static ContextManager getContextManager(final ServletContext theContext) throws PwmUnrecoverableException {
+    public static PwmApplication getPwmApplication(final ServletContext theContext) throws PwmUnrecoverableException {
         // context manager is initialized at servlet context startup.
         final Object theManager = theContext.getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER);
         if (theManager == null) {
@@ -129,12 +129,12 @@ public class ContextManager implements Serializable {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        return (ContextManager) theManager;
+        return (PwmApplication) theManager;
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    ContextManager() {
+    PwmApplication() {
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -295,7 +295,7 @@ public class ContextManager implements Serializable {
             switch (configReader.getConfigMode()) {
                 case ERROR:
                 case NEW:
-                    taskMaster = new Timer("pwm-ContextManager timer", true);
+                    taskMaster = new Timer("pwm-PwmApplication timer", true);
                     taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
                     return;
             }
@@ -360,7 +360,7 @@ public class ContextManager implements Serializable {
         smsQueue = new SmsQueueManager(this);
         LOGGER.trace("sms queue manager started");
 
-        taskMaster = new Timer("pwm-ContextManager timer", true);
+        taskMaster = new Timer("pwm-PwmApplication timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
         taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
         taskMaster.scheduleAtFixedRate(new DebugLogOutputter(), 60 * 60 * 1000, 60 * 60 * 1000); //once every hour
@@ -427,8 +427,8 @@ public class ContextManager implements Serializable {
         return new Date();
     }
 
-    private static String fetchInstanceID(final PwmDB pwmDB, final ContextManager contextManager) {
-        String newInstanceID = contextManager.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
+    private static String fetchInstanceID(final PwmDB pwmDB, final PwmApplication pwmApplication) {
+        String newInstanceID = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {
             return newInstanceID;
@@ -464,13 +464,13 @@ public class ContextManager implements Serializable {
         return newInstanceID;
     }
 
-    private static void lastLastLdapFailure(final PwmDB pwmDB, final ContextManager contextManager) {
+    private static void lastLastLdapFailure(final PwmDB pwmDB, final PwmApplication pwmApplication) {
         if (pwmDB != null) {
             try {
                 final String lastLdapFailureStr = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
                     final Gson gson = new Gson();
-                    contextManager.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
+                    pwmApplication.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
                 }
             } catch (Exception e) {
                 LOGGER.error("error reading lastLdapFailure from pwmDB: " + e.getMessage(), e);
@@ -684,7 +684,7 @@ public class ContextManager implements Serializable {
     private static class PwmInitializer {
         private static void initializeLogger(final String log4jFilename, final String logLevel, final ServletContext servletContext) {
             // clear all existing package loggers
-            final String pwmPackageName = ContextManager.class.getPackage().getName();
+            final String pwmPackageName = PwmApplication.class.getPackage().getName();
             final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
             final String chaiPackageName = ChaiUser.class.getPackage().getName();
             final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
@@ -731,12 +731,12 @@ public class ContextManager implements Serializable {
             }
         }
 
-        public static void initializePwmDB(final ContextManager contextManager) {
+        public static void initializePwmDB(final PwmApplication pwmApplication) {
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                final String pwmDBLocationSetting = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
-                databaseDirectory = ServletHelper.figureFilepath(pwmDBLocationSetting, "WEB-INF", contextManager.getServletContext());
+                final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                databaseDirectory = ServletHelper.figureFilepath(pwmDBLocationSetting, "WEB-INF", pwmApplication.getServletContext());
             } catch (Exception e) {
                 LOGGER.warn("error locating configured pwmDB directory: " + e.getMessage());
                 return;
@@ -746,104 +746,104 @@ public class ContextManager implements Serializable {
 
             // initialize the pwmDB
             try {
-                final String classname = contextManager.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-                final List<String> initStrings = contextManager.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
+                final String classname = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
+                final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-                contextManager.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, false);
+                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, false);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }
         }
 
-        public static void initializePwmDBLogger(final ContextManager contextManager) {
+        public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
             // initialize the pwmDBLogger
             try {
-                final int maxEvents = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-                final long maxAgeMS = 1000 * contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
-                final PwmLogLevel localLogLevel = contextManager.getConfig().getEventLogLocalLevel();
-                contextManager.pwmDBLogger = PwmLogger.initContextManager(contextManager.pwmDB, maxEvents, maxAgeMS, localLogLevel, contextManager);
+                final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+                final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
+                final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalLevel();
+                pwmApplication.pwmDBLogger = PwmLogger.initPwmApplication(pwmApplication.pwmDB, maxEvents, maxAgeMS, localLogLevel, pwmApplication);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
             }
         }
 
-        public static void initializeHealthMonitor(final ContextManager contextManager) {
+        public static void initializeHealthMonitor(final PwmApplication pwmApplication) {
             try {
-                contextManager.healthMonitor = new HealthMonitor(contextManager);
-                contextManager.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
-                contextManager.healthMonitor.registerHealthCheck(new JavaChecker());
-                contextManager.healthMonitor.registerHealthCheck(new ConfigurationChecker());
-                contextManager.healthMonitor.registerHealthCheck(new PwmDBHealthChecker());
+                pwmApplication.healthMonitor = new HealthMonitor(pwmApplication);
+                pwmApplication.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
+                pwmApplication.healthMonitor.registerHealthCheck(new JavaChecker());
+                pwmApplication.healthMonitor.registerHealthCheck(new ConfigurationChecker());
+                pwmApplication.healthMonitor.registerHealthCheck(new PwmDBHealthChecker());
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize password.pwm.health.HealthMonitor: " + e.getMessage());
             }
         }
 
-        public static void initializeTokenManager(final ContextManager contextManager) {
+        public static void initializeTokenManager(final PwmApplication pwmApplication) {
             try {
-                contextManager.tokenManager = new TokenManager(
-                        contextManager.getConfig(),
-                        contextManager.getPwmDB(),
-                        contextManager.getDatabaseAccessor()
+                pwmApplication.tokenManager = new TokenManager(
+                        pwmApplication.getConfig(),
+                        pwmApplication.getPwmDB(),
+                        pwmApplication.getDatabaseAccessor()
                 );
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize the TokenManager: " + e.getMessage());
             }
         }
 
-        public static void initializeWordlist(final ContextManager contextManager) {
+        public static void initializeWordlist(final PwmApplication pwmApplication) {
 
             try {
                 LOGGER.trace("opening wordlist");
 
-                final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
-                final File wordlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", contextManager.servletContext);
-                final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-                final int loadFactor = Integer.parseInt(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
+                final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
+                final File wordlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", pwmApplication.servletContext);
+                final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
+                final int loadFactor = Integer.parseInt(pwmApplication.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
                 final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive);
 
-                contextManager.wordlistManager = WordlistManager.createWordlistManager(
+                pwmApplication.wordlistManager = WordlistManager.createWordlistManager(
                         wordlistConfiguration,
-                        contextManager.pwmDB
+                        pwmApplication.pwmDB
                 );
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize wordlist-db: " + e.getMessage());
             }
         }
 
-        public static void initializeSeedlist(final ContextManager contextManager) {
+        public static void initializeSeedlist(final PwmApplication pwmApplication) {
             try {
                 LOGGER.trace("opening seedlist");
 
-                final String setting = contextManager.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
-                final File seedlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", contextManager.servletContext);
-                final int loadFactor = Integer.parseInt(contextManager.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
+                final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
+                final File seedlistFile = setting == null || setting.length() < 1 ? null : ServletHelper.figureFilepath(setting, "WEB-INF", pwmApplication.servletContext);
+                final int loadFactor = Integer.parseInt(pwmApplication.getParameter(PwmConstants.CONTEXT_PARAM.WORDLIST_LOAD_FACTOR));
                 final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true);
 
-                contextManager.seedlistManager = SeedlistManager.createSeedlistManager(
+                pwmApplication.seedlistManager = SeedlistManager.createSeedlistManager(
                         wordlistConfiguration,
-                        contextManager.pwmDB
+                        pwmApplication.pwmDB
                 );
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize seedlist-db: " + e.getMessage());
             }
         }
 
-        public static void initializeSharedHistory(final ContextManager contextManager) {
+        public static void initializeSharedHistory(final PwmApplication pwmApplication) {
 
             try {
-                final long maxAgeSeconds = contextManager.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
+                final long maxAgeSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
                 final long maxAgeMS = maxAgeSeconds * 1000;  // convert to MS;
-                final boolean caseSensitive = contextManager.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
+                final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
 
-                contextManager.sharedHistoryManager = SharedHistoryManager.createSharedHistoryManager(contextManager.pwmDB, maxAgeMS, caseSensitive);
+                pwmApplication.sharedHistoryManager = SharedHistoryManager.createSharedHistoryManager(pwmApplication.pwmDB, maxAgeMS, caseSensitive);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize sharedhistory-db: " + e.getMessage());
             }
         }
 
-        public static void initializeStatisticsManager(final ContextManager contextManager) {
-            final StatisticsManager statisticsManager = new StatisticsManager(contextManager.pwmDB, contextManager);
+        public static void initializeStatisticsManager(final PwmApplication pwmApplication) {
+            final StatisticsManager statisticsManager = new StatisticsManager(pwmApplication.pwmDB, pwmApplication);
             statisticsManager.incrementValue(Statistic.PWM_STARTUPS);
 
             final PwmDB.PwmDBEventListener statsEventListener = new PwmDB.PwmDBEventListener() {
@@ -860,16 +860,16 @@ public class ContextManager implements Serializable {
                 }
             };
 
-            if (contextManager.pwmDB != null) {
-                contextManager.pwmDB.addEventListener(statsEventListener);
+            if (pwmApplication.pwmDB != null) {
+                pwmApplication.pwmDB.addEventListener(statsEventListener);
             }
 
-            contextManager.statisticsManager = statisticsManager;
+            pwmApplication.statisticsManager = statisticsManager;
         }
 
-        public static void initializeKnownLocales(final ContextManager contextManager) {
+        public static void initializeKnownLocales(final PwmApplication pwmApplication) {
             final List<Locale> returnList = new ArrayList<Locale>();
-            final String localeList = contextManager.getParameter(PwmConstants.CONTEXT_PARAM.KNOWN_LOCALES);
+            final String localeList = pwmApplication.getParameter(PwmConstants.CONTEXT_PARAM.KNOWN_LOCALES);
             if (localeList != null) {
                 final String[] splitLocales = localeList.split(";;;");
                 for (final String localeString : splitLocales) {
@@ -883,7 +883,7 @@ public class ContextManager implements Serializable {
                 returnList.add(0, new Locale(""));
             }
 
-            contextManager.knownLocales = Collections.unmodifiableList(returnList);
+            pwmApplication.knownLocales = Collections.unmodifiableList(returnList);
         }
     }
 

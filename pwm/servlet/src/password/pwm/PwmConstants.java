@@ -63,7 +63,7 @@ public abstract class PwmConstants {
     public static final String HTTP_HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
 
 
-    public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
+    public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "PwmApplication";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";

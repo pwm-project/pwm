@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * IntruderManager watches for login errors by users and from IP addresses.  When to many bad attempts
  * occur, IntruderManager denies further login attempts.
  * <p/>
- * An singleton instance of IntruderManager is held by the ContextManager singlenton.
+ * An singleton instance of IntruderManager is held by the PwmApplication singlenton.
  * <p/>
  * IntruderManager itself does not restrict/test logins, it relies on servlets or servlet filters
  * to call it appropriately.
@@ -59,7 +59,7 @@ public class IntruderManager implements Serializable {
     private final Map<String, IntruderRecord> addressLockTable = new ConcurrentHashMap<String, IntruderRecord>();
     private final Map<String, IntruderRecord> userLockTable = new ConcurrentHashMap<String, IntruderRecord>();
 
-    private final ContextManager theManager;
+    private final PwmApplication theManager;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -79,8 +79,8 @@ public class IntruderManager implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public IntruderManager(final ContextManager contextManager) {
-        this.theManager = contextManager;
+    public IntruderManager(final PwmApplication pwmApplication) {
+        this.theManager = pwmApplication;
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -204,7 +204,7 @@ public class IntruderManager implements Serializable {
 
         try {
             final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
-            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
+            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider());
             UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
             LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
         } catch (ChaiUnavailableException e) {

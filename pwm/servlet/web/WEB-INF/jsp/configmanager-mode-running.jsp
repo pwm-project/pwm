@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%--
@@ -43,7 +43,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=ContextManager.getContextManager(session).getConfigReader().getConfigMode()%>
+            Configuration Mode: <%=PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode()%>
         </div>
     </div>
     <div id="centerbody">

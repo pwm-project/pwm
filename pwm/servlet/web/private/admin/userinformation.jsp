@@ -307,7 +307,7 @@
         <td>
             <ul>
                 <%
-                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getContextManager().getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
+                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getPwmApplication().getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
                 <% for (final String requirementLine : requirementLines) { %>
                 <li><%=requirementLine%>
                 </li>

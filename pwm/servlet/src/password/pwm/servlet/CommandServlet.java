@@ -104,13 +104,13 @@ public class CommandServlet extends TopServlet {
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final HealthMonitor healthMonitor = pwmSession.getContextManager().getHealthMonitor();
+        final HealthMonitor healthMonitor = pwmSession.getPwmApplication().getHealthMonitor();
 
         boolean refreshImmediate = false;
         {
             final String refreshImmediateParam = Validator.readStringFromRequest(req, "refreshImmediate");
             if (refreshImmediateParam != null && refreshImmediateParam.equalsIgnoreCase("true")) {
-                if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) {
+                if (pwmSession.getPwmApplication().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) {
                     LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURING)");
                     refreshImmediate = true;
                 } else {
@@ -148,7 +148,7 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getContextManager().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
+        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getPwmApplication().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
 
         if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
@@ -254,7 +254,7 @@ public class CommandServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
-        if (!Helper.testUserMatchQueryString(pwmSession.getContextManager().getProxyChaiProvider(), userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
+        if (!Helper.testUserMatchQueryString(pwmSession.getPwmApplication().getProxyChaiProvider(), userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
             LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkProfile due to query match");
             return true;
         }
@@ -263,7 +263,7 @@ public class CommandServlet extends TopServlet {
         boolean checkProfileRequired = false;
 
         if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
-            if (Helper.testUserMatchQueryString(pwmSession.getContextManager().getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
+            if (Helper.testUserMatchQueryString(pwmSession.getPwmApplication().getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
                 LOGGER.info(pwmSession, "checkProfiles: " + userDN + " matches 'checkProfiles query match', update profile will be required by user");
                 checkProfileRequired = true;
             } else {
@@ -303,7 +303,7 @@ public class CommandServlet extends TopServlet {
 
         if (checkIfPasswordExpired(pwmSession) || checkPasswordWarn(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getContextManager().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
+        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getPwmApplication().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
         } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession)) {
             processCheckProfile(req, resp);
@@ -320,7 +320,7 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
 
         //check if user has expired password, and expirecheck during auth is turned on.
         if (ssBean.isAuthenticated()) {

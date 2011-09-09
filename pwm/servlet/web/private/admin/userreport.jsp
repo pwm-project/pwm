@@ -37,7 +37,7 @@
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getContextManager().getPwmDBLogger(); %>
+<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -58,7 +58,7 @@
 <% if (request.getParameter("doReport").equals("1")) { %>
 <%
     final PwmSession pwmSession = PwmSession.getPwmSession(session);
-    final UserReport userReport = new UserReport(pwmSession.getConfig(),pwmSession.getContextManager().getProxyChaiProvider());
+    final UserReport userReport = new UserReport(pwmSession.getConfig(),pwmSession.getPwmApplication().getProxyChaiProvider());
     final Iterator<UserReport.UserInformation> reportIterator = userReport.resultIterator();
 %>
 <br class="clear"/>

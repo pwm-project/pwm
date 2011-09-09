@@ -29,7 +29,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
@@ -51,10 +51,10 @@ public class LDAPStatusChecker implements HealthChecker {
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LDAPStatusChecker.class);
     final private static String TOPIC = "LDAP";
 
-    public List<HealthRecord> doHealthCheck(final ContextManager contextManager)
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
-        final StoredConfiguration storedConfig = contextManager.getConfigReader().getStoredConfiguration();
+        final StoredConfiguration storedConfig = pwmApplication.getConfigReader().getStoredConfiguration();
 
         { // check ldap server
             final ErrorInformation result = doLdapStatusCheck(storedConfig);
@@ -62,13 +62,13 @@ public class LDAPStatusChecker implements HealthChecker {
                 returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
             } else {
                 returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, result.toDebugStr()));
-                contextManager.setLastLdapFailure(result);
+                pwmApplication.setLastLdapFailure(result);
                 return returnRecords;
             }
         }
 
         { // check recent ldap status
-            final ErrorInformation errorInfo = contextManager.getLastLdapFailure();
+            final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
             if (errorInfo != null) {
                 final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
@@ -79,7 +79,7 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         { // check test user
-            final HealthRecord hr = doLdapTestUserCheck(storedConfig, contextManager);
+            final HealthRecord hr = doLdapTestUserCheck(storedConfig, pwmApplication);
             if (hr != null) {
                 returnRecords.add(hr);
             }
@@ -88,7 +88,7 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration, final ContextManager contextManager)
+    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration, final PwmApplication pwmApplication)
     {
         final Configuration config = new Configuration(storedconfiguration);
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
@@ -148,8 +148,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 try {
                     final Locale locale = PwmConstants.DEFAULT_LOCALE;
                     final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, config, locale, theUser);
-                    final SeedlistManager seedlistManager = contextManager.getSeedlistManager();
-                    final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, contextManager);
+                    final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
+                    final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, pwmApplication);
                     theUser.setPassword(newPassword);
                     userPassword = newPassword;
                 } catch (ChaiPasswordPolicyException e) {

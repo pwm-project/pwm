@@ -29,7 +29,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.bean.SmsItemBean;
@@ -63,7 +63,7 @@ public class SmsQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
 
     private PwmDBStoredQueue smsSendQueue;
-    private final ContextManager theManager;
+    private final PwmApplication theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
@@ -90,7 +90,7 @@ public class SmsQueueManager implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SmsQueueManager(final ContextManager theManager)
+    public SmsQueueManager(final PwmApplication theManager)
             throws PwmDBException {
         this.theManager = theManager;
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
@@ -118,7 +118,7 @@ public class SmsQueueManager implements PwmService {
 
 // --------------------- Interface PwmService ---------------------
 
-    public void init(final ContextManager contextManager) throws PwmUnrecoverableException {
+    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {

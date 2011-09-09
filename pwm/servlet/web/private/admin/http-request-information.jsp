@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>

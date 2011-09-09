@@ -339,7 +339,7 @@ public class ResourceFileServlet extends HttpServlet {
         String startupTime = null;
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            startupTime = String.valueOf(pwmSession.getContextManager().getStartupTime().getTime());
+            startupTime = String.valueOf(pwmSession.getPwmApplication().getStartupTime().getTime());
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to load context startup time: " + e.getMessage());
         }

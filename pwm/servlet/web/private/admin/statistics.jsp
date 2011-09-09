@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
@@ -32,8 +32,8 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
-<% final StatisticsManager statsManager = ContextManager.getContextManager(session).getStatisticsManager(); %>
+<% final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext()); %>
+<% final StatisticsManager statsManager = PwmApplication.getPwmApplication(session).getStatisticsManager(); %>
 <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
 <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
@@ -94,10 +94,10 @@
                     <td colspan="10" style="text-align: center">
                         <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                since installation - <%= dateFormat.format(contextManager.getInstallTime()) %>
+                                since installation - <%= dateFormat.format(pwmApplication.getInstallTime()) %>
                             </option>
                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                since startup - <%= dateFormat.format(contextManager.getStartupTime()) %>
+                                since startup - <%= dateFormat.format(pwmApplication.getStartupTime()) %>
                             </option>
                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>

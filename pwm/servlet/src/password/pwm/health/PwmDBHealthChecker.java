@@ -22,7 +22,7 @@
 
 package password.pwm.health;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmDBLogger;
 import password.pwm.util.TimeDuration;
@@ -33,14 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PwmDBHealthChecker implements HealthChecker {
-    public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
-        if (contextManager == null) {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
+        if (pwmApplication == null) {
             return null;
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
 
-        final PwmDB pwmDB = contextManager.getPwmDB();
+        final PwmDB pwmDB = pwmApplication.getPwmDB();
 
         if (pwmDB == null) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot"));
@@ -57,16 +57,16 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (contextManager.getConfig() != null) {
-            final PwmDBLogger pwmDBLogger = contextManager.getPwmDBLogger();
+        if (pwmApplication.getConfig() != null) {
+            final PwmDBLogger pwmDBLogger = pwmApplication.getPwmDBLogger();
             if (pwmDBLogger != null) {
                 final int eventCount = pwmDBLogger.getStoredEventCount();
-                final int maxEventCount = (int) contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+                final int maxEventCount = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 if (eventCount > maxEventCount + 5000) {
                     healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
                 }
 
-                final long maxTailMs = contextManager.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
+                final long maxTailMs = pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
                 final long tailDate = pwmDBLogger.getTailTimestamp();
                 final long maxTailDate = System.currentTimeMillis() - maxTailMs;
                 if (tailDate < maxTailDate - (60 * 60 * 1000)) { // older than an hour past tail date

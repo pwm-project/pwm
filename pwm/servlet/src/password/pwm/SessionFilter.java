@@ -134,8 +134,8 @@ public class SessionFilter implements Filter {
     private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain) throws PwmUnrecoverableException, IOException, ServletException {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-        final ServletContext servletContext = pwmSession.getContextManager().getServletContext();
-        final ContextManager theManager = ContextManager.getContextManager(req.getSession());
+        final ServletContext servletContext = pwmSession.getPwmApplication().getServletContext();
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // mark the user's IP address in the session bean
@@ -155,7 +155,7 @@ public class SessionFilter implements Filter {
 
         //set the session's locale
         if (ssBean.getLocale() == null) {
-            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
+            final List<Locale> knownLocales = pwmSession.getPwmApplication().getKnownLocales();
             final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
             ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
@@ -164,7 +164,7 @@ public class SessionFilter implements Filter {
         //override session locale due to parameter
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
         if (langReqParamter != null && langReqParamter.length() > 0) {
-            final List<Locale> knownLocales = pwmSession.getContextManager().getKnownLocales();
+            final List<Locale> knownLocales = pwmSession.getPwmApplication().getKnownLocales();
             final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
@@ -299,7 +299,7 @@ public class SessionFilter implements Filter {
 
     private static boolean urlSessionsAllowed(final ServletRequest request) throws PwmUnrecoverableException {
         final HttpServletRequest req = (HttpServletRequest) request;
-        final ContextManager theManager = ContextManager.getContextManager(req);
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
         return theManager != null && theManager.getConfig() != null && theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
     }
 
@@ -410,7 +410,7 @@ public class SessionFilter implements Filter {
     private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final ContextManager theManager = ContextManager.getContextManager(req.getSession());
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req.getSession());
 
         ConfigurationReader.MODE mode = ConfigurationReader.MODE.NEW;
         if (theManager != null && theManager.getConfigReader() != null) {
@@ -429,7 +429,7 @@ public class SessionFilter implements Filter {
                 return true;
             }
         } else if (mode == ConfigurationReader.MODE.ERROR) {
-            final ServletContext servletContext = pwmSession.getContextManager().getServletContext();
+            final ServletContext servletContext = pwmSession.getPwmApplication().getServletContext();
             final ErrorInformation rootError = theManager.getConfigReader().getConfigFileError();
             final ErrorInformation displayError = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,rootError.getDetailedErrorMsg(),rootError.getFieldValues());
             ssBean.setSessionError(displayError);

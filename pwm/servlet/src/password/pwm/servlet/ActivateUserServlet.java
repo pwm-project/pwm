@@ -98,7 +98,7 @@ public class ActivateUserServlet extends TopServlet {
 
     public void handleActivationRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
-        final ContextManager theManager = ContextManager.getContextManager(req);
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         //final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
         final Configuration config = theManager.getConfig();
@@ -209,7 +209,7 @@ public class ActivateUserServlet extends TopServlet {
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_ACTIVATE_USER, null);
 
             // update the stats bean
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
 
             // send email
             sendActivationEmail(pwmSession);
@@ -224,7 +224,7 @@ public class ActivateUserServlet extends TopServlet {
                 public boolean doAction(final PwmSession pwmSession, final String newPassword)
                         throws PwmUnrecoverableException {
                     try {
-                        final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
+                        final ChaiUser theUser = pwmSession.getPwmApplication().getProxyChaiUserActor(pwmSession);
                         LOGGER.debug(pwmSession, "writing post-activate user attribute write values to user " + theUser.getEntryDN());
                         final Collection<String> configValues = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
@@ -275,7 +275,7 @@ public class ActivateUserServlet extends TopServlet {
         searchHelper.setFilter(searchFilter);
         searchHelper.setAttributes("");
 
-        final ChaiProvider chaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
+        final ChaiProvider chaiProvider = pwmSession.getPwmApplication().getProxyChaiProvider();
 
         LOGGER.debug(pwmSession, "performing ldap search for user activation, base=" + searchBase + " filter=" + searchFilter);
 
@@ -341,7 +341,7 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private void sendActivationEmail(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();

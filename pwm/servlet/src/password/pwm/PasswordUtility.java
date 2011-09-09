@@ -156,7 +156,7 @@ public class PasswordUtility {
         uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
 
         //update the current last password update field in ldap
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmSession.getContextManager().getProxyChaiProvider());
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmSession.getPwmApplication().getProxyChaiProvider());
         final long delayStartTime = System.currentTimeMillis();
         final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
 
@@ -182,7 +182,7 @@ public class PasswordUtility {
                     LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
                 }
                 final long totalTime = System.currentTimeMillis() - delayStartTime;
-                pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
+                pwmSession.getPwmApplication().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
             }
         }
 
@@ -199,11 +199,11 @@ public class PasswordUtility {
         sendChangePasswordEmailNotice(pwmSession);
 
         // update the status bean
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
+        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
 
         // add the old password to the global history list (if the old password is known)
         if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
-            pwmSession.getContextManager().getSharedHistoryManager().addWord(pwmSession, oldPassword);
+            pwmSession.getPwmApplication().getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 
         // invoke post password change actions
@@ -355,7 +355,7 @@ public class PasswordUtility {
             return;
         }
 
-        pwmSession.getContextManager().sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmSession.getPwmApplication().sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
     }
 
 

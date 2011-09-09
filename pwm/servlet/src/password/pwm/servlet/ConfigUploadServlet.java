@@ -86,7 +86,7 @@ public class ConfigUploadServlet extends TopServlet {
 
         pwmSession.getSessionStateBean().setSessionError(null);
         pwmSession.getSessionStateBean().setForwardURL(req.getContextPath() + "/config/ConfigManager");
-        if (pwmSession.getContextManager().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
+        if (pwmSession.getPwmApplication().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
             configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"");
         } else {

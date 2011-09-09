@@ -143,7 +143,7 @@ public class ShortcutServlet extends TopServlet {
         if (link != null && visibleItems.keySet().contains(link)) {
             final ShortcutItem item = visibleItems.get(link);
 
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SHORTCUTS_SELECTED);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.SHORTCUTS_SELECTED);
             LOGGER.trace(pwmSession, "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI());
             pwmSession.getSessionStateBean().setForwardURL(item.getShortcutURI().toString());
 

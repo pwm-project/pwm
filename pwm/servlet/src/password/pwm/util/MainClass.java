@@ -26,7 +26,8 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
@@ -295,7 +296,7 @@ public class MainClass {
 
     static void initLog4j() {
         // clear all existing package loggers
-        final String pwmPackageName = ContextManager.class.getPackage().getName();
+        final String pwmPackageName = PwmApplication.class.getPackage().getName();
         final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
         final String chaiPackageName = ChaiUser.class.getPackage().getName();
         final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);

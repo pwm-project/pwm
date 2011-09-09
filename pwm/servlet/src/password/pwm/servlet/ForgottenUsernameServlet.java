@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
@@ -84,7 +84,7 @@ public class ForgottenUsernameServlet extends TopServlet {
 
     public void handleSearchRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
-        final ContextManager theManager = ContextManager.getContextManager(req);
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -165,7 +165,7 @@ public class ForgottenUsernameServlet extends TopServlet {
         searchHelper.setAttributes("");
 
         final String searchBase = pwmSession.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        final ChaiProvider chaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
+        final ChaiProvider chaiProvider = pwmSession.getPwmApplication().getProxyChaiProvider();
 
         LOGGER.debug(pwmSession, "performing ldap search for user, base=" + searchBase + " filter=" + searchFilter);
 

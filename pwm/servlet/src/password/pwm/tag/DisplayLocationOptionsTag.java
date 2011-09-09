@@ -22,7 +22,7 @@
 
 package password.pwm.tag;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,9 +42,9 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
 // -------------------------- STATIC METHODS --------------------------
 
     private static String buildOptionListHTML(final HttpServletRequest request, final String selectedValue) throws PwmUnrecoverableException {
-        final ContextManager contextManager = ContextManager.getContextManager(request.getSession().getServletContext());
+        final PwmApplication pwmApplication = PwmApplication.getPwmApplication(request.getSession().getServletContext());
 
-        final Map<String,String> locationsMap = contextManager.getConfig().getLoginContexts();
+        final Map<String,String> locationsMap = pwmApplication.getConfig().getLoginContexts();
 
         if (locationsMap == null || locationsMap.isEmpty()) {
             return "";

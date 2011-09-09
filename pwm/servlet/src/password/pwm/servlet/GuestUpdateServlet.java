@@ -111,7 +111,7 @@ public class GuestUpdateServlet extends TopServlet {
     ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Configuration config = pwmSession.getConfig();
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
         final String searchContext = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
@@ -202,7 +202,7 @@ public class GuestUpdateServlet extends TopServlet {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         String durationString = null;
         final Properties notifyAttrs = new Properties();
-        final IntruderManager intruderMgr = pwmSession.getContextManager().getIntruderManager();
+        final IntruderManager intruderMgr = pwmSession.getPwmApplication().getIntruderManager();
         final Configuration config = pwmSession.getConfig();
 
         final List<FormConfiguration> formConfigurations = guBean.getUpdateParams();
@@ -224,7 +224,7 @@ public class GuestUpdateServlet extends TopServlet {
 
             // check unique fields against ldap
             final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmSession.getContextManager().getProxyChaiProvider(), config, formValues, uniqueAttributes);
+            Validator.validateAttributeUniqueness(pwmSession.getPwmApplication().getProxyChaiProvider(), config, formValues, uniqueAttributes);
 
             //update user
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
@@ -287,13 +287,13 @@ public class GuestUpdateServlet extends TopServlet {
         this.sendUpdateGuestEmailConfirmation(pwmSession, notifyAttrs);
         ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
 
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
+        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
         ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
         return;
     }
 
     private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) throws PwmUnrecoverableException {
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();

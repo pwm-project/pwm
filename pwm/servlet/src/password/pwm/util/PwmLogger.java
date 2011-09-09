@@ -23,7 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.AlertHandler;
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.pwmdb.PwmDB;
@@ -39,7 +39,7 @@ public class PwmLogger {
 
     private static PwmDBLogger pwmDBLogger;
     private static PwmLogLevel minimumDbLogLevel;
-    private static ContextManager contextManager;
+    private static PwmApplication pwmApplication;
 
     private final String name;
     private final org.apache.log4j.Logger log4jLogger;
@@ -64,12 +64,12 @@ public class PwmLogger {
     }
 
 
-    public static PwmDBLogger initContextManager(
+    public static PwmDBLogger initPwmApplication(
             final PwmDB pwmDB,
             final int maxEvents,
             final long maxAgeMS,
             final PwmLogLevel minimumDbLogLevel,
-            final ContextManager contextManager
+            final PwmApplication pwmApplication
     ) {
         try {
             PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAgeMS);
@@ -78,7 +78,7 @@ public class PwmLogger {
         }
 
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
-        PwmLogger.contextManager = contextManager;
+        PwmLogger.pwmApplication = pwmApplication;
         return PwmLogger.pwmDBLogger;
     }
 
@@ -216,7 +216,7 @@ public class PwmLogger {
             }
 
             if (level == PwmLogLevel.FATAL) {
-                AlertHandler.alertFatalEvent(contextManager, logEvent);
+                AlertHandler.alertFatalEvent(pwmApplication, logEvent);
             }
         } catch (Exception e2) {
             //nothing can be done about it now;

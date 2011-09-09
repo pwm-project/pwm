@@ -116,7 +116,7 @@ public class Validator {
             final boolean testAgainstLdap
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
-        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getContextManager());
+        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getPwmApplication());
 
         if (!errorResults.isEmpty()) {
             throw new PwmDataValidationException(errorResults.iterator().next());
@@ -131,8 +131,8 @@ public class Validator {
             } catch (UnsupportedOperationException e) {
                 LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
             } catch (ChaiUnavailableException e) {
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
                 throw e;
             } catch (ChaiPasswordPolicyException e) {
@@ -279,7 +279,7 @@ public class Validator {
             return Collections.emptySet();
         }
 
-        final ContextManager theManager = ContextManager.getContextManager(req);
+        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
 
         final String theStrings[] = req.getParameterValues(value);
         final Set<String> resultSet = new HashSet<String>();
@@ -386,7 +386,7 @@ public class Validator {
      * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
      * @param pwmSession      current pwmSession of user being tested.
      * @param policy          to be used during the test
-     * @param contextManager  PWM ContextManager (needed for access to seedlist/wordlists when pwmSession is null)
+     * @param pwmApplication  PWM PwmApplication (needed for access to seedlist/wordlists when pwmSession is null)
      * @return true if the password is okay, never returns false.
      */
     public static List<ErrorInformation> pwmPasswordPolicyValidator(
@@ -394,11 +394,11 @@ public class Validator {
             final PwmSession pwmSession,
             final boolean testOldPassword,
             final PwmPasswordPolicy policy,
-            final ContextManager contextManager
+            final PwmApplication pwmApplication
     ) throws PwmUnrecoverableException {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, contextManager);
-        if (contextManager != null) {
-            final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(contextManager.getConfig(), pwmSession, policy, password);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, pwmApplication);
+        if (pwmApplication != null) {
+            final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmApplication.getConfig(), pwmSession, policy, password);
             internalResults.addAll(externalResults);
         }
         return internalResults;
@@ -410,7 +410,7 @@ public class Validator {
             final PwmSession pwmSession,
             final boolean testOldPassword,
             final PwmPasswordPolicy policy,
-            final ContextManager contextManager
+            final PwmApplication pwmApplication
     ) throws PwmUnrecoverableException {
         // null check
         if (password == null) {
@@ -644,8 +644,8 @@ public class Validator {
         {   // check password strength
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
-                if (contextManager != null) {
-                    final int passwordStrength = PasswordUtility.checkPasswordStrength(contextManager.getConfig(), pwmSession, password);
+                if (pwmApplication != null) {
+                    final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, password);
                     if (passwordStrength < requiredPasswordStrength) {
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
                         LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
@@ -672,9 +672,9 @@ public class Validator {
 
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
-            if (contextManager != null) {
-                if (contextManager.getWordlistManager().status() == PwmService.STATUS.OPEN) {
-                    final boolean found = contextManager.getWordlistManager().containsWord(pwmSession, password);
+            if (pwmApplication != null) {
+                if (pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
+                    final boolean found = pwmApplication.getWordlistManager().containsWord(pwmSession, password);
 
                     if (found) {
                         LOGGER.trace(pwmSession, "password rejected, in wordlist file");
@@ -687,9 +687,9 @@ public class Validator {
         }
 
         // check for shared (global) password history
-        if (contextManager != null) {
-            if (contextManager.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && contextManager.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
-                final boolean found = contextManager.getSharedHistoryManager().containsWord(pwmSession, password);
+        if (pwmApplication != null) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
+                final boolean found = pwmApplication.getSharedHistoryManager().containsWord(pwmSession, password);
 
                 if (found) {
                     LOGGER.trace(pwmSession, "password rejected, in global shared history");

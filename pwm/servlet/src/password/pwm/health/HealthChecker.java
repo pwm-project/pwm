@@ -22,10 +22,10 @@
 
 package password.pwm.health;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 
 import java.util.List;
 
 public interface HealthChecker {
-    List<HealthRecord> doHealthCheck(ContextManager contextManager);
+    List<HealthRecord> doHealthCheck(PwmApplication pwmApplication);
 }

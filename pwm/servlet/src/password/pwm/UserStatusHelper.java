@@ -276,7 +276,7 @@ public class UserStatusHelper {
             final String context
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
-        final ChaiProvider provider = pwmSession.getContextManager().getProxyChaiProvider();
+        final ChaiProvider provider = pwmSession.getPwmApplication().getProxyChaiProvider();
         final Configuration config = pwmSession.getConfig();
         return convertUsernameFieldtoDN(username, pwmSession, context, provider, config);
     }

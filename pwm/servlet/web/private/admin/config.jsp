@@ -41,7 +41,7 @@
         <%@ include file="admin-nav.jsp" %>
         <p>
             This screen shows the current running configuration. The configuration was loaded at
-            <%=PwmSession.getPwmSession(session).getContextManager().getConfigReader().getConfigurationReadTime()%>. You
+            <%=PwmSession.getPwmSession(session).getPwmApplication().getConfigReader().getConfigurationReadTime()%>. You
             can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
             to modify the configuration.
         </p>

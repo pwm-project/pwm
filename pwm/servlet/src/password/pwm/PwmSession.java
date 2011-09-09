@@ -81,7 +81,7 @@ public class PwmSession implements Serializable {
             returnSession = newPwmSession;
         } else if (returnSession.httpSession == null) { // stale session (was previously passivated)
             returnSession.httpSession = httpSession;
-            ContextManager.getContextManager(httpSession).addPwmSession(returnSession);
+            PwmApplication.getPwmApplication(httpSession).addPwmSession(returnSession);
             final String oldSessionID = returnSession.getSessionStateBean().getSessionID();
             if (!oldSessionID.contains("~")) {
                 returnSession.getSessionStateBean().setSessionID(oldSessionID + "~");
@@ -105,11 +105,11 @@ public class PwmSession implements Serializable {
         this.httpSession = httpSession;
         this.getSessionStateBean().setSessionID("");
 
-        final ContextManager contextManager = getContextManager();
-        if (contextManager != null) {
-            final StatisticsManager statisticsManager = contextManager.getStatisticsManager();
+        final PwmApplication pwmApplication = getPwmApplication();
+        if (pwmApplication != null) {
+            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if (statisticsManager != null) {
-                String sessionID = getContextManager().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
+                String sessionID = getPwmApplication().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
                 try {
                     sessionID = new BigInteger(sessionID).toString(Character.MAX_RADIX);
                 } catch (Exception e) { /* ignore */ }
@@ -215,11 +215,11 @@ public class PwmSession implements Serializable {
     }
 
     public Configuration getConfig() throws PwmUnrecoverableException {
-        return getContextManager().getConfig();
+        return getPwmApplication().getConfig();
     }
 
-    public ContextManager getContextManager() throws PwmUnrecoverableException {
-        return ContextManager.getContextManager(httpSession);
+    public PwmApplication getPwmApplication() throws PwmUnrecoverableException {
+        return PwmApplication.getPwmApplication(httpSession);
     }
 
     public boolean isValid() {

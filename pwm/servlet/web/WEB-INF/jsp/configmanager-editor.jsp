@@ -20,9 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
@@ -31,6 +29,7 @@
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="password.pwm.*" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -38,7 +37,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <%@ include file="fragment/header.jsp" %>
-<% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getContextManager(session).getKnownLocales()); %>
+<% final Collection<Locale> localeList = new ArrayList<Locale>(PwmApplication.getPwmApplication(session).getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
@@ -46,7 +45,7 @@
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final ConfigurationReader.MODE configMode = password.pwm.ContextManager.getContextManager(session).getConfigReader().getConfigMode(); %>
+<% final ConfigurationReader.MODE configMode = password.pwm.PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript">
@@ -289,7 +288,7 @@ function buildMenuBar() {
     { // Actions
         var actionsMenu = new dijit.Menu({});
 
-    <% if (ContextManager.getContextManager(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
+    <% if (PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
         actionsMenu.addChild(new dijit.MenuItem({
             label: "Finish Editing",
             onClick: function() {

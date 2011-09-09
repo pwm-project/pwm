@@ -239,7 +239,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
+        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
         UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
@@ -390,8 +390,8 @@ public class SetupResponsesServlet extends TopServlet {
             throw new PwmDataValidationException(errorInfo);
         }
 
-        final boolean applyWordlist = pwmSession.getContextManager().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
-        final WordlistManager wordlistManager = pwmSession.getContextManager().getWordlistManager();
+        final boolean applyWordlist = pwmSession.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
+        final WordlistManager wordlistManager = pwmSession.getPwmApplication().getWordlistManager();
 
         if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
             for (final Challenge loopChallenge : responseMap.keySet()) {

@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -31,7 +31,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ContextManager contextManager = ContextManager.getContextManager(this.getServletConfig().getServletContext()); %>
+<% final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext()); %>
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -70,7 +70,7 @@
             Start Time
         </td>
         <td>
-            <%= dateFormat.format(contextManager.getStartupTime()) %>
+            <%= dateFormat.format(pwmApplication.getStartupTime()) %>
         </td>
     </tr>
     <tr>
@@ -78,7 +78,7 @@
             Install Time
         </td>
         <td>
-            <%= dateFormat.format(contextManager.getInstallTime()) %>
+            <%= dateFormat.format(pwmApplication.getInstallTime()) %>
         </td>
     </tr>
     <tr>
@@ -86,8 +86,8 @@
             Configuration Time
         </td>
         <td>
-            <%= dateFormat.format(contextManager.getConfig().getModifyTime()) %>
-            (epoch <%= contextManager.getConfigReader().getConfigurationEpoch() %>)
+            <%= dateFormat.format(pwmApplication.getConfig().getModifyTime()) %>
+            (epoch <%= pwmApplication.getConfigReader().getConfigurationEpoch() %>)
         </td>
     </tr>
     <tr>
@@ -103,7 +103,7 @@
             Instance ID
         </td>
         <td>
-            <%= contextManager.getInstanceID() %>
+            <%= pwmApplication.getInstanceID() %>
         </td>
     </tr>
     <tr>
@@ -111,7 +111,7 @@
             Last LDAP Unavailable Time
         </td>
         <td>
-            <%= contextManager.getLastLdapFailure() != null ? dateFormat.format(contextManager.getLastLdapFailure().getDate()) : "n/a" %>
+            <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : "n/a" %>
         </td>
     </tr>
     <tr>
@@ -122,7 +122,7 @@
             <%
                 String vendor = "[detection error]";
                 try {
-                    vendor = contextManager.getProxyChaiProvider().getDirectoryVendor().toString();
+                    vendor = pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString();
                 } catch (Exception e) { /* nothing */ }
             %>
             <%= vendor %>
@@ -164,7 +164,7 @@
         </td>
         <td>
             <a href="<pwm:url url='intruderstatus.jsp'/>">
-                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedUsers()) %>
+                <%= numberFormat.format(pwmApplication.getIntruderManager().currentLockedUsers()) %>
             </a>
         </td>
         <td class="key">
@@ -174,7 +174,7 @@
         </td>
         <td>
             <a href="<pwm:url url='intruderstatus.jsp'/>">
-                <%= numberFormat.format(contextManager.getIntruderManager().currentLockedAddresses()) %>
+                <%= numberFormat.format(pwmApplication.getIntruderManager().currentLockedAddresses()) %>
             </a>
         </td>
     </tr>
@@ -186,7 +186,7 @@
         </td>
         <td>
             <a href="<pwm:url url='activesessions.jsp'/>">
-                <%= contextManager.getPwmSessions().size() %>
+                <%= pwmApplication.getPwmSessions().size() %>
             </a>
         </td>
         <td class="key">
@@ -195,7 +195,7 @@
             </a>
         </td>
         <td>
-            <%= contextManager.getTokenManager().size() %>
+            <%= pwmApplication.getTokenManager().size() %>
         </td>
     </tr>
 </table>
@@ -211,13 +211,13 @@
             Wordlist Dictionary Status
         </td>
         <td style="white-space:nowrap;">
-            <%= contextManager.getWordlistManager().getDebugStatus() %>
+            <%= pwmApplication.getWordlistManager().getDebugStatus() %>
         </td>
         <td class="key">
             Wordlist Dictionary Size
         </td>
         <td>
-            <%= numberFormat.format(contextManager.getWordlistManager().size()) %>
+            <%= numberFormat.format(pwmApplication.getWordlistManager().size()) %>
         </td>
     </tr>
     <tr>
@@ -225,13 +225,13 @@
             Seedlist Status
         </td>
         <td style="white-space:nowrap;">
-            <%= contextManager.getSeedlistManager().getDebugStatus() %>
+            <%= pwmApplication.getSeedlistManager().getDebugStatus() %>
         </td>
         <td class="key">
             Seedlist Size
         </td>
         <td>
-            <%= numberFormat.format(contextManager.getSeedlistManager().size()) %>
+            <%= numberFormat.format(pwmApplication.getSeedlistManager().size()) %>
         </td>
     </tr>
     <tr>
@@ -239,13 +239,13 @@
             Shared Password History Status
         </td>
         <td>
-            <%= contextManager.getSharedHistoryManager().status() %>
+            <%= pwmApplication.getSharedHistoryManager().status() %>
         </td>
         <td class="key">
             Shared Password History Size
         </td>
         <td>
-            <%= numberFormat.format(contextManager.getSharedHistoryManager().size()) %>
+            <%= numberFormat.format(pwmApplication.getSharedHistoryManager().size()) %>
         </td>
     </tr>
     <tr>
@@ -253,13 +253,13 @@
             Email Queue Status
         </td>
         <td>
-            <%= contextManager.getEmailQueue().status() %>
+            <%= pwmApplication.getEmailQueue().status() %>
         </td>
         <td class="key">
             Email Queue Size
         </td>
         <td>
-            <%= contextManager.getEmailQueue().queueSize() %>
+            <%= pwmApplication.getEmailQueue().queueSize() %>
         </td>
     </tr>
     <tr>
@@ -267,13 +267,13 @@
             SMS Queue Status
         </td>
         <td>
-            <%= contextManager.getSmsQueue().status() %>
+            <%= pwmApplication.getSmsQueue().status() %>
         </td>
         <td class="key">
             SMS Queue Size
         </td>
         <td>
-            <%= contextManager.getSmsQueue().queueSize() %>
+            <%= pwmApplication.getSmsQueue().queueSize() %>
         </td>
     </tr>
     <tr>
@@ -281,7 +281,7 @@
             Log Events in Write Queue
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getPendingEventCount()) : "n/a" %>
+            <%= pwmApplication.getPwmDBLogger() != null ? numberFormat.format(pwmApplication.getPwmDBLogger().getPendingEventCount()) : "n/a" %>
         </td>
         <td class="key">
             <a href="<pwm:url url='eventlog.jsp'/>">
@@ -290,7 +290,7 @@
         </td>
         <td>
             <a href="<pwm:url url='eventlog.jsp'/>">
-                <%= contextManager.getPwmDBLogger() != null ? numberFormat.format(contextManager.getPwmDBLogger().getStoredEventCount()) : "n/a" %>
+                <%= pwmApplication.getPwmDBLogger() != null ? numberFormat.format(pwmApplication.getPwmDBLogger().getStoredEventCount()) : "n/a" %>
             </a>
         </td>
     </tr>
@@ -299,13 +299,13 @@
             Oldest Log Event in Write Queue
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger() != null ? contextManager.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
+            <%= pwmApplication.getPwmDBLogger() != null ? pwmApplication.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
         </td>
         <td class="key">
             Oldest Log Event
         </td>
         <td>
-            <%= contextManager.getPwmDBLogger() != null ? TimeDuration.fromCurrent(contextManager.getPwmDBLogger().getTailTimestamp()).asCompactString() : "n/a" %>
+            <%= pwmApplication.getPwmDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getPwmDBLogger().getTailTimestamp()).asCompactString() : "n/a" %>
         </td>
     </tr>
     <tr>
@@ -313,14 +313,14 @@
             Oldest Shared Password Entry
         </td>
         <td>
-            <% final long oldestEntryAge = contextManager.getSharedHistoryManager().getOldestEntryAge(); %>
+            <% final long oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryAge(); %>
             <%= oldestEntryAge == 0 ? "n/a" : TimeDuration.asCompactString(oldestEntryAge) %>
         </td>
         <td class="key">
             PwmDB Size On Disk
         </td>
         <td>
-            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(contextManager.getPwmDB().getFileLocation())) %>
+            <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getPwmDB().getFileLocation())) %>
         </td>
     </tr>
     <tr>
@@ -331,7 +331,7 @@
             <%
                 String responseCount = "n/a";
                 try {
-                    responseCount = String.valueOf(contextManager.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE));
+                    responseCount = String.valueOf(pwmApplication.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE));
                 } catch (Exception e) { /* na */ }
             %>
             <%= responseCount %>
@@ -340,7 +340,7 @@
             PwmDB Free Space
         </td>
         <td>
-            <%= contextManager.getPwmDB() == null ? "n/a" : contextManager.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(contextManager.getPwmDB().getFileLocation())) %>
+            <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getPwmDB().getFileLocation())) %>
         </td>
     </tr>
 </table>

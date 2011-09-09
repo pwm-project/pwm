@@ -79,8 +79,8 @@ public abstract class TopServlet extends HttpServlet {
             this.processRequest(req, resp);
         } catch (ChaiUnavailableException e) {
             try {
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             } catch (Throwable e1) {
                 // oh well
@@ -92,7 +92,7 @@ public abstract class TopServlet extends HttpServlet {
                 LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
                 try { // try to update stats
                     if (pwmSession != null) {
-                        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
                     }
                 } catch (Throwable e1) {
                     // oh well

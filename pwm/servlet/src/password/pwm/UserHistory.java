@@ -72,7 +72,7 @@ public class UserHistory implements Serializable {
             final String message
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final ChaiUser theUser = pwmSession.getContextManager().getProxyChaiUserActor(pwmSession);
+        final ChaiUser theUser = pwmSession.getPwmApplication().getProxyChaiUserActor(pwmSession);
         updateUserHistory(pwmSession, theUser, eventCode, message);
     }
 

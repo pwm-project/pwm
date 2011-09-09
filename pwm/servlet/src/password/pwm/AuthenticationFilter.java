@@ -165,8 +165,8 @@ public class AuthenticationFilter implements Filter {
                 chain.doFilter(req, resp);
                 return;
             } catch (ChaiUnavailableException e) {
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
                 ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
                 return;
@@ -189,8 +189,8 @@ public class AuthenticationFilter implements Filter {
                 }
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getContextManager().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
@@ -229,7 +229,7 @@ public class AuthenticationFilter implements Filter {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         final long methodStartTime = System.currentTimeMillis();
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final StatisticsManager statisticsManager = theManager.getStatisticsManager();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final IntruderManager intruderManager = theManager.getIntruderManager();
@@ -292,8 +292,8 @@ public class AuthenticationFilter implements Filter {
         intruderManager.addGoodAddressAttempt(pwmSession);
         intruderManager.addGoodUserAttempt(userDN, pwmSession);
 
-        if (pwmSession.getContextManager().getStatisticsManager() != null) {
-            pwmSession.getContextManager().getStatisticsManager().updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME, TimeDuration.fromCurrent(methodStartTime).getTotalMilliseconds());
+        if (pwmSession.getPwmApplication().getStatisticsManager() != null) {
+            pwmSession.getPwmApplication().getStatisticsManager().updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME, TimeDuration.fromCurrent(methodStartTime).getTotalMilliseconds());
         }
 
     }
@@ -302,7 +302,7 @@ public class AuthenticationFilter implements Filter {
             final String userDN,
             final String password,
             final PwmSession pwmSession,
-            final ContextManager theManager
+            final PwmApplication theManager
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         LOGGER.trace(pwmSession, "beginning testCredentials process");

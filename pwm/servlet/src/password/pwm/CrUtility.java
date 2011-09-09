@@ -110,8 +110,8 @@ public class CrUtility {
     public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser proxiedUser)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
-        final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
+        final PwmDB pwmDB = pwmSession.getPwmApplication().getPwmDB();
+        final DatabaseAccessor databaseAccessor = pwmSession.getPwmApplication().getDatabaseAccessor();
         final Configuration config = pwmSession.getConfig();
         return readUserResponseSet(pwmSession, pwmDB, databaseAccessor, config, proxiedUser);
     }
@@ -295,7 +295,7 @@ public class CrUtility {
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmDB pwmDB = pwmSession.getContextManager().getPwmDB();
+        final PwmDB pwmDB = pwmSession.getPwmApplication().getPwmDB();
         final Configuration config = pwmSession.getConfig();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor();
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
@@ -322,7 +322,7 @@ public class CrUtility {
             }
 
             try {
-                final DatabaseAccessor databaseAccessor = pwmSession.getContextManager().getDatabaseAccessor();
+                final DatabaseAccessor databaseAccessor = pwmSession.getPwmApplication().getDatabaseAccessor();
                 databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responses.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in remote database");
                 successes++;
@@ -493,7 +493,7 @@ public class CrUtility {
             }
 
             try {
-                pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+                pwmSession.getPwmApplication().getIntruderManager().addBadAddressAttempt(pwmSession);
             } catch (PwmUnrecoverableException e) {
                 // nothing to be done
             }

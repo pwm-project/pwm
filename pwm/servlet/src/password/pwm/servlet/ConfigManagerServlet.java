@@ -62,9 +62,9 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigReader().getConfigMode();
 
-        initialize(pwmSession, configMode, configManagerBean, pwmSession.getContextManager().getConfigReader().getConfigurationReadTime());
+        initialize(pwmSession, configMode, configManagerBean, pwmSession.getPwmApplication().getConfigReader().getConfigurationReadTime());
 
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
@@ -142,7 +142,7 @@ public class ConfigManagerServlet extends TopServlet {
 
                 case CONFIGURING:
                     try {
-                        final StoredConfiguration runningConfig = pwmSession.getContextManager().getConfigReader().getStoredConfiguration();
+                        final StoredConfiguration runningConfig = pwmSession.getPwmApplication().getConfigReader().getStoredConfiguration();
                         final StoredConfiguration clonedConfiguration = (StoredConfiguration) runningConfig.clone();
                         clonedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
                         configManagerBean.setConfiguration(clonedConfiguration);
@@ -201,7 +201,7 @@ public class ConfigManagerServlet extends TopServlet {
             throws PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigReader().getConfigMode();
 
         if (configMode == ConfigurationReader.MODE.RUNNING) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
@@ -232,7 +232,7 @@ public class ConfigManagerServlet extends TopServlet {
             final Map<String,String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(),keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
                 final Map<String,String> defaultValueMap = new LinkedHashMap<String, String>();
-                for (final Locale locale : PwmSession.getPwmSession(req).getContextManager().getKnownLocales()) {
+                for (final Locale locale : PwmSession.getPwmSession(req).getPwmApplication().getKnownLocales()) {
                     final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
                     final String localeStr = locale.toString().equalsIgnoreCase("en") ? "" : locale.toString();
                     defaultValueMap.put(localeStr,localeBundle.getString(keyName));
@@ -471,7 +471,7 @@ public class ConfigManagerServlet extends TopServlet {
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final ConfigurationReader.MODE configMode = pwmSession.getContextManager().getConfigReader().getConfigMode();
+        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigReader().getConfigMode();
 
         if (configMode != ConfigurationReader.MODE.RUNNING) {
             configManagerBean.setErrorInformation(null);
@@ -511,11 +511,11 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            if (pwmSession.getContextManager().getConfigReader().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
-                final ContextManager contextManager = pwmSession.getContextManager();
-                contextManager.getConfigReader().saveConfiguration(storedConfiguration);
-                contextManager.setLastLdapFailure(null);
-                EventManager.reinitializeContext(pwmSession.getContextManager().getServletContext());
+            if (pwmSession.getPwmApplication().getConfigReader().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
+                final PwmApplication pwmApplication = pwmSession.getPwmApplication();
+                pwmApplication.getConfigReader().saveConfiguration(storedConfiguration);
+                pwmApplication.setLastLdapFailure(null);
+                EventManager.reinitializeContext(pwmSession.getPwmApplication().getServletContext());
             }
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
@@ -641,7 +641,7 @@ public class ConfigManagerServlet extends TopServlet {
             servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
         } else {
             final Configuration config = PwmSession.getPwmSession(req).getConfig();
-            final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getContextManager().getConfigReader().getConfigMode();
+            final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getPwmApplication().getConfigReader().getConfigMode();
             if (config == null || configMode == ConfigurationReader.MODE.NEW) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
             } else if (configMode == ConfigurationReader.MODE.CONFIGURING) {

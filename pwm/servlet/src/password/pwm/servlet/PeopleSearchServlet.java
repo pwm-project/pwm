@@ -131,15 +131,15 @@ public class PeopleSearchServlet extends TopServlet {
         try {
             final ChaiProvider provider;
             if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
-                provider = pwmSession.getContextManager().getProxyChaiProvider();
+                provider = pwmSession.getPwmApplication().getProxyChaiProvider();
             } else {
                 provider = pwmSession.getSessionManager().getChaiProvider();
             }
             final Map<String,Map<String,String>> ldapResults = provider.search(searchBase,searchHelper);
 
             LOGGER.trace(pwmSession,"search results: " + ldapResults.size());
-            if (pwmSession.getContextManager().getStatisticsManager() != null) {
-                pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
+            if (pwmSession.getPwmApplication().getStatisticsManager() != null) {
+                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
             }
 
             if (!ldapResults.isEmpty()) {

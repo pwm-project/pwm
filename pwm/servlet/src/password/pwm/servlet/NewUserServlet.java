@@ -161,7 +161,7 @@ public class NewUserServlet extends TopServlet {
         final Map<String,String> userValues = readResponsesFromJsonRequest(req);
 
         try {
-            verifyFormAttributes(userValues, pwmSession.getContextManager().getProxyChaiProvider(), pwmSession);
+            verifyFormAttributes(userValues, pwmSession.getPwmApplication().getProxyChaiProvider(), pwmSession);
         } catch (PwmOperationalException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession);
@@ -188,7 +188,7 @@ public class NewUserServlet extends TopServlet {
 
         final String tokenData;
         try {
-            tokenData = pwmSession.getContextManager().getTokenManager().retrieveTokenData(userSuppliedTokenKey);
+            tokenData = pwmSession.getPwmApplication().getTokenManager().retrieveTokenData(userSuppliedTokenKey);
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
             this.forwardToEnterCodeJSP(req, resp);
@@ -201,7 +201,7 @@ public class NewUserServlet extends TopServlet {
             pwmSession.getNewUserBean().setFormData(formData);
             pwmSession.getNewUserBean().setTokenIssued(true);
 
-            pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
+            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
 
             this.forwardToWaitJSP(req,resp);
@@ -210,7 +210,7 @@ public class NewUserServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmSession.getContextManager().getIntruderManager().addBadAddressAttempt(pwmSession);
+        pwmSession.getPwmApplication().getIntruderManager().addBadAddressAttempt(pwmSession);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         this.forwardToEnterCodeJSP(req, resp);
     }
@@ -241,7 +241,7 @@ public class NewUserServlet extends TopServlet {
 
         newUserBean.setTokenIssued(false);
         final Map<String, String> formValues = newUserBean.getFormData();
-        final ChaiProvider chaiProvider = pwmSession.getContextManager().getProxyChaiProvider();
+        final ChaiProvider chaiProvider = pwmSession.getPwmApplication().getProxyChaiProvider();
 
         // get new user DN
         final String newUserDN = determineUserDN(formValues, config);
@@ -249,7 +249,7 @@ public class NewUserServlet extends TopServlet {
         try {
             createUser(formValues, chaiProvider, config, newUserDN, pwmSession);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
-            ServletHelper.forwardToSuccessPage(req,resp,pwmSession.getContextManager().getServletContext());
+            ServletHelper.forwardToSuccessPage(req,resp,pwmSession.getPwmApplication().getServletContext());
         } catch (PwmOperationalException e) {
             if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
                 deleteUserAccount(newUserDN,pwmSession);
@@ -298,12 +298,12 @@ public class NewUserServlet extends TopServlet {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmSession.getContextManager().getProxyChaiProvider());
+        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmSession.getPwmApplication().getProxyChaiProvider());
         final String temporaryPassword = RandomPasswordGenerator.createRandomPassword(
                 pwmSession,
                 pwmSession.getNewUserBean().getPasswordPolicy(),
-                pwmSession.getContextManager().getSeedlistManager(),
-                pwmSession.getContextManager()
+                pwmSession.getPwmApplication().getSeedlistManager(),
+                pwmSession.getPwmApplication()
         );
 
         try { //set password
@@ -335,7 +335,7 @@ public class NewUserServlet extends TopServlet {
         sendNewUserEmailConfirmation(pwmSession);
 
         // increment the new user creation statistics
-        pwmSession.getContextManager().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
+        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
         // be sure minimum wait time has passed
         final long minWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
@@ -398,7 +398,7 @@ public class NewUserServlet extends TopServlet {
     {
         try {
             LOGGER.warn("deleting ldap user account " + userDN);
-            pwmSession.getContextManager().getProxyChaiProvider().deleteEntry(userDN);
+            pwmSession.getPwmApplication().getProxyChaiProvider().deleteEntry(userDN);
             LOGGER.warn("ldap user account " + userDN + " has been deleted");
         } catch (ChaiUnavailableException e) {
             LOGGER.error("error deleting ldap user account " + userDN + ", " + e.getMessage());
@@ -439,7 +439,7 @@ public class NewUserServlet extends TopServlet {
     }
 
     private static void sendNewUserEmailConfirmation(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmSession.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -591,7 +591,7 @@ public class NewUserServlet extends TopServlet {
         final String tokenKey;
         try {
             final String tokenPayload = gson.toJson(newUserForm);
-            tokenKey = pwmSession.getContextManager().getTokenManager().generateNewToken(tokenPayload);
+            tokenKey = pwmSession.getPwmApplication().getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated new user tokenKey code for session: " + tokenKey);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -608,7 +608,7 @@ public class NewUserServlet extends TopServlet {
     private void sendEmailToken(final PwmSession pwmSession, final String tokenKey)
             throws PwmUnrecoverableException
     {
-        final ContextManager theManager = pwmSession.getContextManager();
+        final PwmApplication theManager = pwmSession.getPwmApplication();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmSession.getConfig();
         final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_VERIFICATION_FROM, userLocale);
@@ -647,7 +647,7 @@ public class NewUserServlet extends TopServlet {
             lookupDN = configuredNewUserPasswordDN;
         }
 
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmSession.getContextManager().getProxyChaiProvider());
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmSession.getPwmApplication().getProxyChaiProvider());
         return PwmPasswordPolicy.createPwmPasswordPolicy(
                 pwmSession, configuration,
                 userLocale,

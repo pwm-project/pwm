@@ -225,7 +225,7 @@ public class Helper {
         if (newObjClasses.isEmpty()) {
             return;
         }
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider());
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider());
         addUserObjectClass(theUser, newObjClasses, pwmSession);
     }
 
@@ -791,9 +791,9 @@ public class Helper {
         }
 
         // for containers which do not retrieve the real path, try to use the classloader to find the path.
-        final String cManagerName = ContextManager.class.getCanonicalName();
+        final String cManagerName = PwmApplication.class.getCanonicalName();
         final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
-        final URL fileURL = ContextManager.class.getResource(resourcePathname);
+        final URL fileURL = PwmApplication.class.getResource(resourcePathname);
         if (fileURL != null) {
             final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
             final File finalDirectory = new File(new URL(newString + suggestedPath).toURI());

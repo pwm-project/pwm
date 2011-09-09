@@ -22,7 +22,7 @@
 
 package password.pwm.health;
 
-import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.CrUtility;
 import password.pwm.PasswordUtility;
 import password.pwm.PwmConstants;
@@ -44,13 +44,13 @@ public class ConfigurationChecker implements HealthChecker {
     private static final String TOPIC = "Configuration";
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthChecker.class);
 
-    public List<HealthRecord> doHealthCheck(final ContextManager contextManager) {
-        if (contextManager.getConfig() == null) {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
+        if (pwmApplication.getConfig() == null) {
             final HealthRecord hr = new HealthRecord(HealthStatus.WARN, TOPIC, "Unable to read configuration");
             return Collections.singletonList(hr);
         }
 
-        final Configuration config = contextManager.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
         if (config.readSettingAsBoolean(PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS)) {
@@ -169,7 +169,7 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        if (contextManager.getConfigReader().modifiedSincePWMSave()) {
+        if (pwmApplication.getConfigReader().modifiedSincePWMSave()) {
             records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
         }
 

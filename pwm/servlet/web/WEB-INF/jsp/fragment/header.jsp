@@ -34,7 +34,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="Description" content="PWM Password Self Service"/>
     <meta name="X-Pwm-Instance"
-          content="<%=password.pwm.PwmSession.getPwmSession(request).getContextManager().getInstanceID()%>>"/>
+          content="<%=password.pwm.PwmSession.getPwmSession(request).getPwmApplication().getInstanceID()%>>"/>
     <meta name="X-Pwm-Version"
           content="<%=password.pwm.PwmConstants.PWM_VERSION%> (<%=password.pwm.PwmConstants.BUILD_TYPE%>)"/>
     <meta name="X-Pwm-Build"
@@ -45,7 +45,7 @@
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>
     <%
-      final String theme = password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.INTERFACE_THEME);
+      final String theme = password.pwm.PwmSession.getPwmSession(request).getPwmApplication().getConfig().readSettingAsString(password.pwm.config.PwmSetting.INTERFACE_THEME);
       if (theme != null && !request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) {
     %>
     <link href="<%=request.getContextPath()%>/resources/themes/<%=theme%>/<pwm:url url='pwmStyle.css'/>"
@@ -70,8 +70,8 @@
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
-    <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
-    <% final String googleTrackingCode = password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
+    <% if (password.pwm.PwmSession.getPwmSession(request).getPwmApplication().getConfig() != null) { %>
+    <% final String googleTrackingCode = password.pwm.PwmSession.getPwmSession(request).getPwmApplication().getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
     <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
     <script type="text/javascript">
         var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -88,7 +88,7 @@
     <% } %>
     <script type="text/javascript">
         PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
-        <% if (password.pwm.PwmSession.getPwmSession(request).getContextManager().getConfig() != null) { %>
+        <% if (password.pwm.PwmSession.getPwmSession(request).getPwmApplication().getConfig() != null) { %>
         PWM_GLOBAL['setting-showHidePasswordFields'] =<%=password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS)%>;
         <% } %>
         PWM_GLOBAL['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";

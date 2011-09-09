@@ -109,7 +109,7 @@ public class SessionManager implements Serializable {
 
         if (
                 config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) &&
-                        pwmSession.getContextManager().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY
+                        pwmSession.getPwmApplication().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY
                 ) {
             username = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             password = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);

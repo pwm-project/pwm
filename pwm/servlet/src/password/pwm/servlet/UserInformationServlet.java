@@ -141,7 +141,7 @@ public class UserInformationServlet extends TopServlet {
 
         uisBean.setPwmIntruder(false);
         try {
-            pwmSession.getContextManager().getIntruderManager().checkUser(userDN,pwmSession);
+            pwmSession.getPwmApplication().getIntruderManager().checkUser(userDN,pwmSession);
         } catch (Exception e) {
             uisBean.setPwmIntruder(true);
         }
@@ -161,7 +161,7 @@ public class UserInformationServlet extends TopServlet {
         {
             uisBean.setPasswordRetrievable(false);
             try {
-                final String usersPassword = ChaiFactory.createChaiUser(userDN, pwmSession.getContextManager().getProxyChaiProvider()).readPassword();
+                final String usersPassword = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider()).readPassword();
                 if (usersPassword != null && usersPassword.length() > 0 ) {
                     uisBean.setPasswordRetrievable(true);
                 }
