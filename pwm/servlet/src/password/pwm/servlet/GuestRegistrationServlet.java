@@ -176,7 +176,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
             ssBean.setSessionError(info);

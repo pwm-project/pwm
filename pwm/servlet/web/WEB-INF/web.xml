@@ -36,21 +36,6 @@
         <param-name>pwmConfigPath</param-name>
         <param-value>PwmConfiguration.xml</param-value>
     </context-param>
-    <context-param>
-        <description>Percentage of time the wordlist populator should sleep every second. Settings less than one will
-            cause much cpu and disk access during load. Lower settings cause faster populating, but more system load.
-        </description>
-        <param-name>wordlistLoadFactor</param-name>
-        <param-value>50</param-value>
-    </context-param>
-    <context-param>
-        <description>List of known locales of PWM.  Seperated by a 3 semi-colons, these values should match the locale extensions
-            used on the property files for the various resource bundles
-        </description>
-        <param-name>knownLocales</param-name>
-        <param-value>cs;;;de;;;es;;;fr;;;iw;;;it;;;nl;;;pl;;;pt;;;sk;;;tr</param-value>
-    </context-param>
-
 
     <!-- uncomment and set parameters for CAS integration
     <filter>

@@ -799,7 +799,7 @@ public class PwmDBStoredQueue implements Queue<String>  //, Deque<String>
             }
 
             if (tailTrim == 0 && headTrim == 0) {
-                LOGGER.debug("repair unnecessary for " + DB);
+                LOGGER.trace("repair unnecessary for " + DB);
             } else {
                 if (headTrim > 0) {
                     LOGGER.warn("trimmed " + headTrim + " from head position against database " + DB);

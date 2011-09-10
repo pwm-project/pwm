@@ -208,7 +208,7 @@ public class SetupResponsesServlet extends TopServlet {
                 return;
             }
 
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
         }
     }
 
@@ -244,7 +244,7 @@ public class SetupResponsesServlet extends TopServlet {
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
         UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
 
-        ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+        ServletHelper.forwardToSuccessPage(req, resp);
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

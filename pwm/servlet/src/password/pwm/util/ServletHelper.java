@@ -22,10 +22,7 @@
 
 package password.pwm.util;
 
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
-import password.pwm.SessionFilter;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Message;
 import password.pwm.error.ErrorInformation;
@@ -37,6 +34,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 public class ServletHelper {
@@ -44,7 +42,7 @@ public class ServletHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ServletHelper.class);
 
     /**
-     * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.ServletContext, boolean)} )}
+     * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, boolean)} )}
      * with forceLogout=true;
      *
      * @param req        Users http request
@@ -59,7 +57,7 @@ public class ServletHelper {
             final ServletContext theContext
     )
             throws IOException, ServletException {
-        forwardToErrorPage(req, resp, theContext, true);
+        forwardToErrorPage(req, resp, true);
     }
 
     /**
@@ -67,9 +65,9 @@ public class ServletHelper {
      * session error state.  If the session error state is null, then this method will populate it
      * with a generic unknown error.
      *
+     *
      * @param req         Users http request
      * @param resp        Users http response
-     * @param theContext  The Servlet context
      * @param forceLogout if the user should be unauthenticed after showing the error
      * @throws java.io.IOException            if there is an error writing to the response
      * @throws javax.servlet.ServletException if there is a problem accessing the http objects
@@ -77,7 +75,6 @@ public class ServletHelper {
     public static void forwardToErrorPage(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final ServletContext theContext,
             final boolean forceLogout
     )
             throws IOException, ServletException {
@@ -90,7 +87,7 @@ public class ServletHelper {
             }
 
             final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
-            theContext.getRequestDispatcher(url).forward(req, resp);
+            req.getSession().getServletContext().getRequestDispatcher(url).forward(req, resp);
             if (forceLogout) {
                 pwmSession.unauthenticateUser();
             }
@@ -137,8 +134,7 @@ public class ServletHelper {
 
     public static void forwardToSuccessPage(
             final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
+            final HttpServletResponse resp
     )
             throws IOException, ServletException {
         try {
@@ -149,7 +145,7 @@ public class ServletHelper {
             }
 
             final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
-            theContext.getRequestDispatcher(url).forward(req, resp);
+            req.getSession().getServletContext().getRequestDispatcher(url).forward(req, resp);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -231,19 +227,35 @@ public class ServletHelper {
      * have different symantics.  In principal, servlets are not supposed
      *
      * @param filename       A filename that will be appended to the end of the verified directory
-     * @param suggestedPath  The desired path of the file, either relative to the servlet directory or an absolute path
+     * @param relativePath  The desired path of the file, either relative to the servlet directory or an absolute path
      *                       on the file system
      * @param servletContext The HttpServletContext to be used to retrieve a path.
      * @return a File referencing the desired suggestedPath and filename.
      * @throws Exception if unabble to discover a path.
      */
-    public static File figureFilepath(final String filename, final String suggestedPath, final ServletContext servletContext)
+    public static File figureFilepath(final String filename, final String relativePath, final ServletContext servletContext)
             throws Exception {
-        final String relativePath = servletContext.getRealPath(suggestedPath);
-        return Helper.figureFilepath(filename, suggestedPath, relativePath);
+        final File servletPath = new File(servletContext.getRealPath(relativePath));
+
+        if (!servletPath.isAbsolute()) {
+            // for containers which do not retrieve the real path, try to use the classloader to find the path.
+            final String cManagerName = PwmApplication.class.getCanonicalName();
+            final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
+            final URL fileURL = PwmApplication.class.getResource(resourcePathname);
+            if (fileURL != null) {
+                final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
+                final File finalDirectory = new File(new URL(newString + relativePath).toURI());
+                if (finalDirectory.exists()) {
+                    return Helper.figureFilepath(filename, finalDirectory);
+                }
+            }
+        } else {
+            return Helper.figureFilepath(filename, servletPath);
+        }
+
+        throw new Exception("unable to locate resource file path=" + relativePath + ", name=" + filename);
     }
 
-    /*
     public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
         final StringBuilder inputData = new StringBuilder();
         String line;
@@ -256,35 +268,5 @@ public class ServletHelper {
             LOGGER.error("error reading request body stream: " + e.getMessage());
         }
         return inputData.toString();
-    }
-    */
-
-    public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
-        final StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = null;
-        try {
-            final InputStream inputStream = request.getInputStream();
-            if (inputStream != null) {
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"utf8"));
-                final char[] charBuffer = new char[1024];
-                int bytesRead = -1;
-                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-                    stringBuilder.append(charBuffer, 0, bytesRead);
-                }
-            } else {
-                stringBuilder.append("");
-            }
-        } catch (IOException ex) {
-            throw ex;
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException ex) {
-                    throw ex;
-                }
-            }
-        }
-        return stringBuilder.toString();
     }
 }

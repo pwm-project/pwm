@@ -209,6 +209,10 @@ public class ConfigurationReader {
     public ErrorInformation getConfigFileError() {
         return configFileError;
     }
+
+    public File getConfigFile() {
+        return configFile;
+    }
 }
 
 

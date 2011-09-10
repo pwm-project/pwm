@@ -31,7 +31,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext()); %>
+<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -87,7 +87,7 @@
         </td>
         <td>
             <%= dateFormat.format(pwmApplication.getConfig().getModifyTime()) %>
-            (epoch <%= pwmApplication.getConfigReader().getConfigurationEpoch() %>)
+            (epoch <%= ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch() %>)
         </td>
     </tr>
     <tr>
@@ -186,7 +186,7 @@
         </td>
         <td>
             <a href="<pwm:url url='activesessions.jsp'/>">
-                <%= pwmApplication.getPwmSessions().size() %>
+                <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
             </a>
         </td>
         <td class="key">

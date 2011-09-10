@@ -86,15 +86,15 @@ public class ConfigUploadServlet extends TopServlet {
 
         pwmSession.getSessionStateBean().setSessionError(null);
         pwmSession.getSessionStateBean().setForwardURL(req.getContextPath() + "/config/ConfigManager");
-        if (pwmSession.getPwmApplication().getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
+        if (pwmSession.getPwmApplication().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
             configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"");
         } else {
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"Please wait a moment for PWM to restart.");
-            ConfigManagerServlet.saveConfiguration(pwmSession);
+            ConfigManagerServlet.saveConfiguration(pwmSession,req.getSession().getServletContext());
         }
 
-        ServletHelper.forwardToSuccessPage(req,resp,req.getSession().getServletContext());
+        ServletHelper.forwardToSuccessPage(req,resp);
     }
 
     private String getUploadedFile(

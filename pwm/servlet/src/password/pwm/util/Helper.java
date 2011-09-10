@@ -76,22 +76,35 @@ public class Helper {
 
     public static ChaiProvider createChaiProvider(
             final Configuration config,
+            final List<String> ldapURLs,
             final String userDN,
             final String userPassword
     )
             throws ChaiUnavailableException {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, userDN, userPassword);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
 
-    private static ChaiConfiguration createChaiConfiguration(
+    public static ChaiProvider createChaiProvider(
             final Configuration config,
             final String userDN,
             final String userPassword
     )
             throws ChaiUnavailableException {
         final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
+        LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
+        return ChaiProviderFactory.createProvider(chaiConfig);
+    }
+
+    private static ChaiConfiguration createChaiConfiguration(
+            final Configuration config,
+            final List<String> ldapURLs,
+            final String userDN,
+            final String userPassword
+    )
+            throws ChaiUnavailableException {
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
@@ -767,42 +780,17 @@ public class Helper {
     }
 
 
-    public static File figureFilepath(final String filename, final String suggestedPath, final String relativePath)
-            throws Exception {
-        if (filename == null || filename.trim().length() < 1) {
-            throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
+    public static File figureFilepath(final String filename, final File suggestedPath)
+    {
+        if (filename == null || filename.length() < 1) {
+            return null;
         }
 
         if ((new File(filename)).isAbsolute()) {
             return new File(filename);
         }
 
-        if ((new File(suggestedPath).isAbsolute())) {
-            return new File(suggestedPath + File.separator + filename);
-        }
-
-        { // tomcat, and some other containers will correctly return the "real path", so try that first.
-            if (relativePath != null) {
-                final File finalDirectory = new File(relativePath);
-                if (finalDirectory.exists()) {
-                    return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
-                }
-            }
-        }
-
-        // for containers which do not retrieve the real path, try to use the classloader to find the path.
-        final String cManagerName = PwmApplication.class.getCanonicalName();
-        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
-        final URL fileURL = PwmApplication.class.getResource(resourcePathname);
-        if (fileURL != null) {
-            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
-            final File finalDirectory = new File(new URL(newString + suggestedPath).toURI());
-            if (finalDirectory.exists()) {
-                return new File(finalDirectory.getAbsolutePath() + File.separator + filename);
-            }
-        }
-
-        throw new Exception("unable to locate resource file path=" + suggestedPath + ", name=" + filename);
+        return new File(suggestedPath + File.separator + filename);
     }
 
     public static String readFileAsString(final File filePath, final long maxLength, final String charset)

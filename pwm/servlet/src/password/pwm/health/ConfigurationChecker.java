@@ -169,9 +169,9 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        if (pwmApplication.getConfigReader().modifiedSincePWMSave()) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
-        }
+        //if (pwmApplication.getConfigReader().modifiedSincePWMSave()) {
+        //    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
+        //}
 
         boolean hasDbConfiguration = true;
         {

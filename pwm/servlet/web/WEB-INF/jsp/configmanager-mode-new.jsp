@@ -38,7 +38,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode()%>
+            Configuration Mode: <%=ContextManager.getPwmApplication(session).getConfigMode()%>
         </div>
     </div>
     <div id="centerbody">

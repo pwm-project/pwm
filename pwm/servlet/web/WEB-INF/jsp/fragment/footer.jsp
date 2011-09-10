@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.ContextManager" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
@@ -49,7 +50,7 @@
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};
-    <% for (final Locale loopLocale : password.pwm.PwmApplication.getPwmApplication(request).getKnownLocales()) { %>
+    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
     localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
     <% } %>
     dojo.addOnLoad(function() {

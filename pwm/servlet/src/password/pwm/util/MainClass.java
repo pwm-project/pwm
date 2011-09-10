@@ -27,7 +27,6 @@ import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
@@ -41,7 +40,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 public class MainClass {
 
@@ -272,7 +274,7 @@ public class MainClass {
     static PwmDB loadPwmDB(final Configuration config, final boolean readonly) throws Exception {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
-        databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, "WEB-INF", new File(".").toString());
+        databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
 
         final String classname = config.readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
         final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);

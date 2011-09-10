@@ -32,8 +32,8 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext()); %>
-<% final StatisticsManager statsManager = PwmApplication.getPwmApplication(session).getStatisticsManager(); %>
+<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
+<% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
 <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
 <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>

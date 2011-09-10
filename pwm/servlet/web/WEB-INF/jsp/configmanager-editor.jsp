@@ -37,7 +37,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <%@ include file="fragment/header.jsp" %>
-<% final Collection<Locale> localeList = new ArrayList<Locale>(PwmApplication.getPwmApplication(session).getKnownLocales()); %>
+<% final Collection<Locale> localeList = new ArrayList<Locale>(PwmConstants.KNOWN_LOCALES); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
@@ -45,7 +45,7 @@
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final ConfigurationReader.MODE configMode = password.pwm.PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode(); %>
+<% final ConfigurationReader.MODE configMode = ContextManager.getPwmApplication(session).getConfigMode(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript">
@@ -288,7 +288,7 @@ function buildMenuBar() {
     { // Actions
         var actionsMenu = new dijit.Menu({});
 
-    <% if (PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
+    <% if (ContextManager.getPwmApplication(session).getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
         actionsMenu.addChild(new dijit.MenuItem({
             label: "Finish Editing",
             onClick: function() {

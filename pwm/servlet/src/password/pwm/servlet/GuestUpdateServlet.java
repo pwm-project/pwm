@@ -288,8 +288,7 @@ public class GuestUpdateServlet extends TopServlet {
         ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
 
         pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
-        ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
-        return;
+        ServletHelper.forwardToSuccessPage(req, resp);
     }
 
     private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) throws PwmUnrecoverableException {

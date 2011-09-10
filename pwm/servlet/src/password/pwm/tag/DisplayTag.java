@@ -22,6 +22,7 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
@@ -91,7 +92,7 @@ public class DisplayTag extends PwmAbstractTag {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
-            final PwmApplication pwmApplication = PwmApplication.getPwmApplication(req);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
             final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig());
 

@@ -27,7 +27,7 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmApplication;
+import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.error.PwmOperationalException;
@@ -59,11 +59,11 @@ public class Configuration implements Serializable {
 // -------------------------- STATIC METHODS --------------------------
 
     public static Configuration getConfig(final HttpSession session) throws PwmUnrecoverableException {
-        return PwmApplication.getPwmApplication(session).getConfig();
+        return ContextManager.getPwmApplication(session).getConfig();
     }
 
     public static Configuration getConfig(final HttpServletRequest request) throws PwmUnrecoverableException {
-        return PwmApplication.getPwmApplication(request).getConfig();
+        return ContextManager.getPwmApplication(request).getConfig();
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------

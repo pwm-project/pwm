@@ -28,10 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -84,7 +81,7 @@ public class ForgottenUsernameServlet extends TopServlet {
 
     public void handleSearchRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
+        final PwmApplication theManager = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -125,7 +122,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
             theManager.getIntruderManager().addGoodAddressAttempt(pwmSession);
             theManager.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
             return;
         } catch (Exception e) {
             LOGGER.error("error reading username value for " + theUser.getEntryDN() + ", " + e.getMessage());

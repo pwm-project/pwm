@@ -98,7 +98,7 @@ public class ActivateUserServlet extends TopServlet {
 
     public void handleActivationRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
+        final PwmApplication theManager = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         //final ActivateUserServletBean activateBean = pwmSession.getActivateUserServletBean();
         final Configuration config = theManager.getConfig();
@@ -149,7 +149,7 @@ public class ActivateUserServlet extends TopServlet {
             activateUser(pwmSession, theUser, req.isSecure());
 
             // redirect user to change password screen.
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
 
             return;
         } catch (PwmDataValidationException e) {

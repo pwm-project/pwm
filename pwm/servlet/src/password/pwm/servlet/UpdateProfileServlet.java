@@ -148,7 +148,7 @@ public class UpdateProfileServlet extends TopServlet {
             // success, so forward to success page
             pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
 
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());

@@ -249,7 +249,7 @@ public class NewUserServlet extends TopServlet {
         try {
             createUser(formValues, chaiProvider, config, newUserDN, pwmSession);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
-            ServletHelper.forwardToSuccessPage(req,resp,pwmSession.getPwmApplication().getServletContext());
+            ServletHelper.forwardToSuccessPage(req,resp);
         } catch (PwmOperationalException e) {
             if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
                 deleteUserAccount(newUserDN,pwmSession);

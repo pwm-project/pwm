@@ -159,7 +159,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final PwmApplication pwmApplication = PwmApplication.getPwmApplication(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
         final String userEnteredCode = Validator.readStringFromRequest(req, "code");
 
@@ -400,7 +400,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 theUser.unlock();
                 pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UNLOCK_ACCOUNT, null);
-                ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+                ServletHelper.forwardToSuccessPage(req, resp);
                 return;
             } catch (ChaiOperationException e) {
                 final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();

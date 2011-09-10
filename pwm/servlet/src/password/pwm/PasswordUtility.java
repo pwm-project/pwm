@@ -167,7 +167,7 @@ public class PasswordUtility {
 
             if (successfullyWrotePwdUpdateAttr && maxWaitTime > 0) {
                 LOGGER.trace(pwmSession, "beginning password replication checking");
-                // if the last password update worked, test that it is replicated accross all ldap servers.
+                // if the last password update worked, test that it is replicated across all ldap servers.
                 boolean isReplicated = false;
                 Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY);
                 try {

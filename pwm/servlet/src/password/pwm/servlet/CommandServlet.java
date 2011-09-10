@@ -110,7 +110,7 @@ public class CommandServlet extends TopServlet {
         {
             final String refreshImmediateParam = Validator.readStringFromRequest(req, "refreshImmediate");
             if (refreshImmediateParam != null && refreshImmediateParam.equalsIgnoreCase("true")) {
-                if (pwmSession.getPwmApplication().getConfigReader().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) {
+                if (pwmSession.getPwmApplication().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) {
                     LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURING)");
                     refreshImmediate = true;
                 } else {

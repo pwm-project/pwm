@@ -67,7 +67,7 @@ public class CaptchaServlet extends TopServlet {
         try {
             pwmSession.getPwmApplication().getIntruderManager().checkAddress(pwmSession);
         } catch (PwmUnrecoverableException e) {
-            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext(), false);
+            ServletHelper.forwardToErrorPage(req, resp, false);
             return;
         }
 

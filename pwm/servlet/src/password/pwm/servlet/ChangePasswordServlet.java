@@ -414,7 +414,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.CHANGE_PASSWORD, null);
 
-            ServletHelper.forwardToSuccessPage(req, resp, this.getServletContext());
+            ServletHelper.forwardToSuccessPage(req, resp);
         } else {
             final ErrorInformation errorMsg = ssBean.getSessionError();
             if (errorMsg != null) { // add the bad password to the history cache

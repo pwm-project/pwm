@@ -34,10 +34,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -54,18 +51,27 @@ public class LDAPStatusChecker implements HealthChecker {
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
-        final StoredConfiguration storedConfig = pwmApplication.getConfigReader().getStoredConfiguration();
+        final Configuration config = pwmApplication.getConfig();
 
         { // check ldap server
-            final ErrorInformation result = doLdapStatusCheck(storedConfig);
-            if (result.getError().equals(PwmError.CONFIG_LDAP_SUCCESS)) {
+            returnRecords.addAll(checkBasicLdapConnectivity(config));
+
+            if (returnRecords.isEmpty()) { // check test user
+                final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
+                if (hr != null) {
+                    returnRecords.add(hr);
+                }
+            }
+
+            if (returnRecords.isEmpty()) {
                 returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
-            } else {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, result.toDebugStr()));
-                pwmApplication.setLastLdapFailure(result);
-                return returnRecords;
+            }
+
+            if (returnRecords.isEmpty()) {
+                returnRecords.addAll(checkLdapServerUrls(config));
             }
         }
+
 
         { // check recent ldap status
             final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
@@ -78,19 +84,11 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        { // check test user
-            final HealthRecord hr = doLdapTestUserCheck(storedConfig, pwmApplication);
-            if (hr != null) {
-                returnRecords.add(hr);
-            }
-        }
-
         return returnRecords;
     }
 
-    private static HealthRecord doLdapTestUserCheck(final StoredConfiguration storedconfiguration, final PwmApplication pwmApplication)
+    private static HealthRecord doLdapTestUserCheck(final Configuration config, final PwmApplication pwmApplication)
     {
-        final Configuration config = new Configuration(storedconfiguration);
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
         final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -112,137 +110,134 @@ public class LDAPStatusChecker implements HealthChecker {
 
         }
 
-        final ChaiUser theUser;
+        ChaiUser theUser = null;
         try {
-            final ChaiProvider chaiProvider = Helper.createChaiProvider(
-                    config,
-                    proxyUserDN,
-                    proxyUserPW);
-
-            theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
-
-        } catch (ChaiUnavailableException e) {
-            return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
-        } catch (Throwable e) {
-            return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
-        }
-
-        try {
-            theUser.readObjectClass();
-        } catch (ChaiException e) {
-            return new HealthRecord(HealthStatus.WARN, TOPIC, "error verifying test user account: " + e.getMessage());
-        }
-
-        String userPassword = null;
-        {
             try {
-                final String passwordFromLdap = theUser.readPassword();
-                if (passwordFromLdap != null && passwordFromLdap.length() > 0) {
-                    userPassword = passwordFromLdap;
+                final ChaiProvider chaiProvider = Helper.createChaiProvider(
+                        config,
+                        proxyUserDN,
+                        proxyUserPW);
+
+                theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
+
+            } catch (ChaiUnavailableException e) {
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
+            } catch (Throwable e) {
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
+            }
+
+            try {
+                theUser.readObjectClass();
+            } catch (ChaiException e) {
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "error verifying test user account: " + e.getMessage());
+            }
+
+            String userPassword = null;
+            {
+                try {
+                    final String passwordFromLdap = theUser.readPassword();
+                    if (passwordFromLdap != null && passwordFromLdap.length() > 0) {
+                        userPassword = passwordFromLdap;
+                    }
+                } catch (Exception e) {
+                    LOGGER.trace("error retrieving user password from directory, this is probably okay; " + e.getMessage());
                 }
-            } catch (Exception e) {
-                LOGGER.trace("error retrieving user password from directory, this is probably okay; " + e.getMessage());
+
+                if (userPassword == null) {
+                    try {
+                        final Locale locale = PwmConstants.DEFAULT_LOCALE;
+                        final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, config, locale, theUser);
+                        final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
+                        final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, pwmApplication);
+                        theUser.setPassword(newPassword);
+                        userPassword = newPassword;
+                    } catch (ChaiPasswordPolicyException e) {
+                        return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected policy error while writing test user temporary random password: " + e.getMessage());
+                    } catch (Exception e) {
+                        return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected ldap error while writing test user temporary random password: " + e.getMessage());
+                    }
+                }
             }
 
             if (userPassword == null) {
-                try {
-                    final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                    final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, config, locale, theUser);
-                    final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
-                    final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, pwmApplication);
-                    theUser.setPassword(newPassword);
-                    userPassword = newPassword;
-                } catch (ChaiPasswordPolicyException e) {
-                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected policy error while writing test user temporary random password: " + e.getMessage());
-                } catch (ChaiException e) {
-                    return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected ldap error while writing test user temporary random password: " + e.getMessage());
-                } catch (PwmUnrecoverableException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
+            }
+        } finally {
+            if (theUser != null) {
+                try { theUser.getChaiProvider().close(); } catch (Exception e) { /* ignore */ }
             }
         }
 
-        if (userPassword == null) {
-            return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
-        }
 
         return new HealthRecord(HealthStatus.GOOD, TOPIC, "LDAP test user account is functioning normally");
     }
 
 
-    private static ErrorInformation doLdapStatusCheck(final StoredConfiguration storedconfiguration)
+    private static List<HealthRecord> checkLdapServerUrls(final Configuration config)
     {
-        final List<Configuration> configs = generateConfigPerLdapURL(storedconfiguration);
-        ChaiProvider chaiProvider = null;
-        try {
-            String loopUrl = "";
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<String> serverURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        for (final String loopURL : serverURLs) {
+            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            ChaiProvider chaiProvider = null;
             try {
-                for (final Configuration config : configs) {
-                    loopUrl = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).get(0);
-                    chaiProvider = getChaiProviderForTesting(config);
-                    final String proxyDN = storedconfiguration.readSetting(PwmSetting.LDAP_PROXY_USER_DN);
-                    final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
-                    proxyUser.isValid();
-                }
+                chaiProvider = Helper.createChaiProvider(
+                        config,
+                        Collections.singletonList(loopURL),
+                        proxyDN,
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
+                final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
+                proxyUser.isValid();
             } catch (Exception e) {
-                final String errorString = "error connecting to ldap server '" + loopUrl + "': " + e.getMessage();
-                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+                final String errorString = "error connecting to ldap server '" + loopURL + "': " + e.getMessage();
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+            } finally {
+                if (chaiProvider != null) {
+                    try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
+                }
+            }
+        }
+        return returnRecords;
+    }
+
+    private static List<HealthRecord> checkBasicLdapConnectivity(final Configuration config) {
+
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        ChaiProvider chaiProvider = null;
+        try{
+            try {
+                chaiProvider = Helper.createChaiProvider(
+                        config,
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
+
+                chaiProvider.getDirectoryVendor();
+            } catch (Exception e) {
+                final String errorString = "error connecting to ldap directory: " + e.getMessage();
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                return returnRecords;
             }
 
 
             try {
-                final String usernameContext = storedconfiguration.readSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+                final String usernameContext = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
                 final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(usernameContext,chaiProvider);
                 final Set<String> objectClasses = contextEntry.readObjectClass();
+
                 if (objectClasses == null || objectClasses.isEmpty()) {
                     final String errorString = "ldap root context setting is not valid";
-                    return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+                    returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
                 }
             } catch (Exception e) {
-                final String errorString = "error validating root ldap context setting: " + e.getMessage();
-                return new ErrorInformation(PwmError.CONFIG_LDAP_FAILURE, errorString);
+                final String errorString = "ldap root context setting is not valid: " + e.getMessage();
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
             }
         } finally {
             if (chaiProvider != null) {
-                try {
-                    chaiProvider.close();
-                } catch (Exception e) {
-                    // don't care.
-                }
+                try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
             }
         }
 
-        return new ErrorInformation(PwmError.CONFIG_LDAP_SUCCESS);
+        return returnRecords;
     }
-
-
-    private static ChaiProvider getChaiProviderForTesting(final Configuration config)
-            throws ChaiUnavailableException {
-        final ChaiProvider chaiProvider = Helper.createChaiProvider(
-                config,
-                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
-
-        chaiProvider.getDirectoryVendor();
-
-        return chaiProvider;
-    }
-
-    private static List<Configuration> generateConfigPerLdapURL(final StoredConfiguration storedconfiguration)
-    {
-        final List<String> serverURLs = storedconfiguration.readStringArraySetting(PwmSetting.LDAP_SERVER_URLS);
-        final List<Configuration> configs = new ArrayList<Configuration>();
-        for (final String loopURL : serverURLs) {
-
-            try {
-                final StoredConfiguration loopConfig = (StoredConfiguration)storedconfiguration.clone();
-                loopConfig.writeStringArraySetting(PwmSetting.LDAP_SERVER_URLS, Collections.singletonList(loopURL));
-                configs.add(new Configuration(loopConfig));
-            } catch (CloneNotSupportedException e) {
-                LOGGER.error("unexpected internal error: " + e.getMessage(),e);
-            }
-        }
-        return configs;
-    }
-
 }

@@ -40,7 +40,7 @@
     </jsp:include>
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
-        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = PwmApplication.getPwmApplication(session).getIntruderManager().getUserLockTable(); %>
+        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = ContextManager.getPwmApplication(session).getIntruderManager().getUserLockTable(); %>
         <% if (userLockTable.isEmpty()) { %>
         <br/>
         <br/>
@@ -109,7 +109,7 @@
         </table>
         <% } %>
         <br class="clear"/>
-        <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = PwmApplication.getPwmApplication(session).getIntruderManager().getAddressLockTable(); %>
+        <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getPwmApplication(session).getIntruderManager().getAddressLockTable(); %>
         <% if (addressLockTable.isEmpty()) { %>
         <div style="font-weight: bold; text-align:center; width:100%">No network addresses are currently locked.</div>
         <br/>

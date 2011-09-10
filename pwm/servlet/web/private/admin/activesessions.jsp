@@ -72,7 +72,7 @@
             </tr>
 
             <%
-                final PwmApplication theManager = PwmApplication.getPwmApplication(request.getSession().getServletContext());
+                final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
                 final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
                 for (final PwmSession loopSession : activeSessions) {
                     try {

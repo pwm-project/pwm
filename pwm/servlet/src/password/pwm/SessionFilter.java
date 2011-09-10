@@ -134,8 +134,8 @@ public class SessionFilter implements Filter {
     private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain) throws PwmUnrecoverableException, IOException, ServletException {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-        final ServletContext servletContext = pwmSession.getPwmApplication().getServletContext();
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req.getSession());
+        final ServletContext servletContext = req.getSession().getServletContext();
+        final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // mark the user's IP address in the session bean
@@ -155,7 +155,7 @@ public class SessionFilter implements Filter {
 
         //set the session's locale
         if (ssBean.getLocale() == null) {
-            final List<Locale> knownLocales = pwmSession.getPwmApplication().getKnownLocales();
+            final List<Locale> knownLocales = PwmConstants.KNOWN_LOCALES;
             final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
             ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
@@ -164,7 +164,7 @@ public class SessionFilter implements Filter {
         //override session locale due to parameter
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
         if (langReqParamter != null && langReqParamter.length() > 0) {
-            final List<Locale> knownLocales = pwmSession.getPwmApplication().getKnownLocales();
+            final List<Locale> knownLocales = PwmConstants.KNOWN_LOCALES;
             final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
@@ -182,7 +182,7 @@ public class SessionFilter implements Filter {
         // make sure connection is secure.
         if (theManager.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SECURE_REQUEST_REQUIRED));
-            ServletHelper.forwardToErrorPage(req,resp,servletContext,true);
+            ServletHelper.forwardToErrorPage(req,resp, true);
             return;
         }
 
@@ -206,7 +206,7 @@ public class SessionFilter implements Filter {
             try {
                 theManager.getIntruderManager().checkAddress(pwmSession);
             } catch (PwmUnrecoverableException e) {
-                ServletHelper.forwardToErrorPage(req, resp, servletContext, false);
+                ServletHelper.forwardToErrorPage(req, resp, false);
                 return;
             }
         }
@@ -299,7 +299,7 @@ public class SessionFilter implements Filter {
 
     private static boolean urlSessionsAllowed(final ServletRequest request) throws PwmUnrecoverableException {
         final HttpServletRequest req = (HttpServletRequest) request;
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
+        final PwmApplication theManager = ContextManager.getPwmApplication(req);
         return theManager != null && theManager.getConfig() != null && theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
     }
 
@@ -410,11 +410,11 @@ public class SessionFilter implements Filter {
     private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req.getSession());
+        final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
 
         ConfigurationReader.MODE mode = ConfigurationReader.MODE.NEW;
-        if (theManager != null && theManager.getConfigReader() != null) {
-            mode = theManager.getConfigReader().getConfigMode();
+        if (theManager != null) {
+            mode = theManager.getConfigMode();
         }
 
         if (mode == ConfigurationReader.MODE.NEW) {
@@ -429,11 +429,10 @@ public class SessionFilter implements Filter {
                 return true;
             }
         } else if (mode == ConfigurationReader.MODE.ERROR) {
-            final ServletContext servletContext = pwmSession.getPwmApplication().getServletContext();
-            final ErrorInformation rootError = theManager.getConfigReader().getConfigFileError();
+            final ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getConfigReader().getConfigFileError();
             final ErrorInformation displayError = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,rootError.getDetailedErrorMsg(),rootError.getFieldValues());
             ssBean.setSessionError(displayError);
-            ServletHelper.forwardToErrorPage(req,resp,servletContext,true);
+            ServletHelper.forwardToErrorPage(req,resp, true);
             return true;
         }
 

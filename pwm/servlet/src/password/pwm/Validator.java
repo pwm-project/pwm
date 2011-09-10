@@ -279,7 +279,7 @@ public class Validator {
             return Collections.emptySet();
         }
 
-        final PwmApplication theManager = PwmApplication.getPwmApplication(req);
+        final PwmApplication theManager = ContextManager.getPwmApplication(req);
 
         final String theStrings[] = req.getParameterValues(value);
         final Set<String> resultSet = new HashSet<String>();

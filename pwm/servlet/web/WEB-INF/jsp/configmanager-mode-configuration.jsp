@@ -28,9 +28,9 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmApplication pwmApplication = PwmApplication.getPwmApplication(this.getServletConfig().getServletContext());
+    final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
     String configFilePath = "PwmConfiguration.xml";
-    try { configFilePath = ServletHelper.figureFilepath(pwmApplication.getParameter(PwmConstants.CONTEXT_PARAM.CONFIG_FILE), "WEB-INF", request.getSession().getServletContext()).getAbsolutePath(); } catch (Exception e) { /* */ }
+    try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="fragment/header.jsp" %>
@@ -43,7 +43,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=PwmApplication.getPwmApplication(session).getConfigReader().getConfigMode()%>
+            Configuration Mode: <%=ContextManager.getPwmApplication(session).getConfigMode()%>
         </div>
     </div>
     <div id="centerbody">
@@ -55,8 +55,8 @@
             take effect.</p>
 
         <p>The current PWM configuration was loaded at
-            <%=PwmSession.getPwmSession(session).getPwmApplication().getConfigReader().getConfigurationReadTime()%>.
-            (Epoch <%=PwmSession.getPwmSession(session).getPwmApplication().getConfigReader().getConfigurationEpoch()%>)
+            <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime()%>.
+            (Epoch <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()%>)
         </p>
         <table class="tablemain">
             <tr>

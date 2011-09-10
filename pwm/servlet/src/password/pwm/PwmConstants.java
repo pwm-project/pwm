@@ -25,12 +25,11 @@ package password.pwm;
 import password.pwm.config.Display;
 import password.pwm.config.Message;
 import password.pwm.error.PwmError;
+import password.pwm.util.Helper;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Constant values used throughout the servlet.
@@ -41,21 +40,25 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_TIME =     ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.time");
-    public static final String BUILD_NUMBER =   ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.number");
-    public static final String BUILD_TYPE =     ResourceBundle.getBundle("password.pwm.BuildInformation").getString("build.type");
-    public static final String PWM_VERSION =    ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.version");
-    public static final String PWM_WEBSITE =    ResourceBundle.getBundle("password.pwm.BuildInformation").getString("pwm.website");
+    public static final String BUILD_TIME =     readBuildInfoBundle("build.time");
+    public static final String BUILD_NUMBER =   readBuildInfoBundle("build.number");
+    public static final String BUILD_TYPE =     readBuildInfoBundle("build.type");
+    public static final String PWM_VERSION =    readBuildInfoBundle("pwm.version");
+    public static final String PWM_WEBSITE =    readBuildInfoBundle("pwm.website");
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER + " (" + BUILD_TYPE + ")";
+
+    public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int MAX_SMS_QUEUE_SIZE = 100;
 
-    public static final Locale DEFAULT_LOCALE = new Locale("");
+    public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
+    public static final List<Locale> KNOWN_LOCALES;
 
-    public static final DateFormat PWM_STANDARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    public static final DateFormat PWM_STANDARD_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
 
+    public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
 
     public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
@@ -63,7 +66,7 @@ public abstract class PwmConstants {
     public static final String HTTP_HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
 
 
-    public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "PwmApplication";
+    public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
@@ -165,27 +168,19 @@ public abstract class PwmConstants {
 
     static {
         PWM_STANDARD_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+        KNOWN_LOCALES = calculateKnownLocales();
     }
 
+    private static String readPwmConstantsBundle(final String key) {
+        return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);
+    }
+
+    private static String readBuildInfoBundle(final String key) {
+        return  ResourceBundle.getBundle("password.pwm.BuildInformation").getString(key);
+    }
 
 // -------------------------- ENUMERATIONS --------------------------
 
-    public static enum CONTEXT_PARAM {
-        CONFIG_FILE("pwmConfigPath"),
-        WORDLIST_LOAD_FACTOR("wordlistLoadFactor"),
-        KNOWN_LOCALES("knownLocales");
-
-
-        private final String key;
-
-        public String getKey() {
-            return key;
-        }
-
-        CONTEXT_PARAM(final String key) {
-            this.key = key;
-        }
-    }
 
     public static enum EDITABLE_LOCALE_BUNDLES {
         DISPLAY(Display.class),
@@ -203,5 +198,25 @@ public abstract class PwmConstants {
             return theClass;
         }
     }
+
+    private static List<Locale> calculateKnownLocales() {
+        final List<Locale> returnList = new ArrayList<Locale>();
+        final String localeList = readPwmConstantsBundle("locale.knownLocales");
+        if (localeList != null) {
+            final String[] splitLocales = localeList.split(";;;");
+            for (final String localeString : splitLocales) {
+                final Locale theLocale = Helper.parseLocaleString(localeString);
+                if (theLocale != null && !returnList.contains(theLocale)) {
+                    returnList.add(theLocale);
+                }
+            }
+        }
+        if (!returnList.contains(new Locale(""))) {
+            returnList.add(0, new Locale(""));
+        }
+
+        return Collections.unmodifiableList(returnList);
+    }
+
 }
 
