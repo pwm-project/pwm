@@ -466,6 +466,11 @@ public class PwmApplication {
     }
 
     public void sendSmsUsingQueue(final SmsItemBean smsItem) {
+        if (smsQueue == null) {
+            LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
+            return;
+        }
+
         try {
             smsQueue.addSmsToQueue(smsItem);
         } catch (PwmUnrecoverableException e) {
