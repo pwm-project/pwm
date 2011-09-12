@@ -43,10 +43,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * User interaction servlet for updating user attributes
@@ -118,6 +115,15 @@ public class UpdateProfileServlet extends TopServlet {
 
         final List<FormConfiguration> formFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
 
+        // remove read-only fields
+        for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
+            FormConfiguration loopFormConfig = iterator.next();
+            if (loopFormConfig.getType() == FormConfiguration.Type.READONLY) {
+                iterator.remove();
+            }
+        }
+
+
         try {
             //read the values from the request
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields);
@@ -127,6 +133,7 @@ public class UpdateProfileServlet extends TopServlet {
 
             // write values.
             LOGGER.info("updating profile for " + uiBean.getUserDN());
+
 
             // write the form values
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();

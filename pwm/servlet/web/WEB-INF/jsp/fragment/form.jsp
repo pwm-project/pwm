@@ -40,7 +40,7 @@
             <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
                    name="<%=loopConfiguration.getAttributeName()%>"
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true"<%}%>
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true" <%}%>
                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
                     />
         </td>
@@ -53,8 +53,10 @@
         <td>
             <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm" type="<%=loopConfiguration.getType()%>"
                    name="<%=loopConfiguration.getAttributeName()%>_confirm"
-                   value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"/>
-        </td>
+                   value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true" <%}%>
+                   <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+         </td>
     </tr>
     <% } %>
     <% } %>
