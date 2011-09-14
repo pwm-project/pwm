@@ -606,6 +606,8 @@ public enum PwmSetting {
 
     URL_SHORTENER_CLASS(
             "urlshortener.classname", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+    URL_SHORTENER_REGEX(
+            "urlshortener.regex", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
     URL_SHORTENER_PARAMETERS(
             "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
 

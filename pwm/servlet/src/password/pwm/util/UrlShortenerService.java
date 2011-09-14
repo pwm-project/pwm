@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * @author Menno Pieters
@@ -52,7 +53,6 @@ public class UrlShortenerService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UrlShortenerService.class);
 
-	private final String urlRegex = "(https?://([^:@]+(:[^@]+)?@)?([a-zA-Z0-9\\.]+|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|\\[[0-9a-fA-F:]+\\])(:\\d{1,5})?/*[a-zA-Z0-9/\\\\%_.]*\\?*[a-zA-Z0-9/\\\\%_.=&#]*)";
     private final PwmApplication theManager;
     private BasicUrlShortener theShortener = null;
     private HealthRecord lastRequestFailure;
@@ -67,24 +67,24 @@ public class UrlShortenerService implements PwmService {
             List<String> sConfigList = config.readSettingAsStringArray(PwmSetting.URL_SHORTENER_PARAMETERS);
             // Parse configuration
             if (sConfigList != null) {
-            	for (Iterator<String> sci = sConfigList.iterator(); sci.hasNext();) {
-            		String p = sci.next();
-            		List<String> pl = Arrays.asList(p.split("=",2));
-            		if (pl.size()==2) {
-            			sConfig.put(pl.get(0), pl.get(1));
-            		}
-            	}
+                for (Iterator<String> sci = sConfigList.iterator(); sci.hasNext();) {
+                    String p = sci.next();
+                    List<String> pl = Arrays.asList(p.split("=",2));
+                    if (pl.size()==2) {
+                        sConfig.put(pl.get(0), pl.get(1));
+                    }
+                }
             }
             try {
                 final Class<?> theClass = Class.forName(classNameString);
                 theShortener = (BasicUrlShortener) theClass.newInstance();
-	            theShortener.setConfiguration(sConfig);
+                theShortener.setConfiguration(sConfig);
             } catch (java.lang.IllegalAccessException e) {
-            	LOGGER.error("Illegal access to class "+classNameString+": "+e.toString());
+                LOGGER.error("Illegal access to class "+classNameString+": "+e.toString());
             } catch (java.lang.InstantiationException e) {
-            	LOGGER.error("Cannot instantiate class "+classNameString+": "+e.toString());
+                LOGGER.error("Cannot instantiate class "+classNameString+": "+e.toString());
             } catch (java.lang.ClassNotFoundException e) {
-            	LOGGER.error("Class "+classNameString+" not found: "+e.getMessage());
+                LOGGER.error("Class "+classNameString+" not found: "+e.getMessage());
             }
         }
         status = PwmService.STATUS.OPEN;
@@ -114,39 +114,44 @@ public class UrlShortenerService implements PwmService {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-	public String shortenUrl(String text) {
-		if (theShortener != null) {
-			return theShortener.shorten(text, theManager);
-		}
-		return text;
-	}
-	
-	public String shortenUrlInText(String text) {
-		final Pattern p = Pattern.compile(urlRegex);
-		final Matcher m = p.matcher(text);
-		String result = "";
-		int position = 0;
-		Boolean found = m.find();
-		if (found) {
-			int start = 0;
-			int end = m.start();
-			result += text.substring(start,end);
-			start = end;
-			end = m.end();
-			while (found) {
-				result += shortenUrl(text.substring(start,end));
-				start = end;
-				found = m.find();
-				if (found) {
-					end = m.start();
-					result += text.substring(start,end);
-					start = end;
-					end = m.end();
-				}
-			}
-			result += text.substring(end);
-			return result;
-		} 
-		return text;
-	}
+    public String shortenUrl(String text) {
+        if (theShortener != null) {
+            return theShortener.shorten(text, theManager);
+        }
+        return text;
+    }
+    
+    public String shortenUrlInText(String text) {
+        final String urlRegex = theManager.getConfig().readSettingAsString(PwmSetting.URL_SHORTENER_REGEX);
+        try {
+            final Pattern p = Pattern.compile(urlRegex);
+            final Matcher m = p.matcher(text);
+            String result = "";
+            int position = 0;
+            Boolean found = m.find();
+            if (found) {
+                int start = 0;
+                int end = m.start();
+                result += text.substring(start,end);
+                start = end;
+                end = m.end();
+                while (found) {
+                    result += shortenUrl(text.substring(start,end));
+                    start = end;
+                    found = m.find();
+                    if (found) {
+                        end = m.start();
+                        result += text.substring(start,end);
+                        start = end;
+                        end = m.end();
+                    }
+                }
+                result += text.substring(end);
+                return result;
+            }
+        } catch (PatternSyntaxException e) {
+            LOGGER.error("Error compiling pattern: "+e.getMessage());
+        }
+        return text;
+    }
 }
