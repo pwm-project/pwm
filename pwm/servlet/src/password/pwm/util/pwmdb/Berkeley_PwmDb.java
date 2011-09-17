@@ -140,7 +140,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                     database.close();
                 }
                 environment.close();
-                Helper.pause(200); // safety time
+                Helper.pause(1000); // safety time
                 closed = true;
             } catch (Exception e) {
                 LOGGER.error("error while attempting to close berkeley pwmDB environment (will retry): " + e.getMessage());

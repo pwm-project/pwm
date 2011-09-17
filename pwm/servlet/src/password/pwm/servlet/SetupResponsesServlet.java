@@ -199,8 +199,7 @@ public class SetupResponsesServlet extends TopServlet {
             this.forwardToConfirmJSP(req, resp);
         } else {
             try {
-                CrUtility.writeResponses(pwmSession, responses);
-                //yypwmSession.getUserInfoBean().setRequiresResponseConfig(false);
+                saveResponses(pwmSession, responses);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
@@ -227,7 +226,7 @@ public class SetupResponsesServlet extends TopServlet {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
                 validateResponses(pwmSession, challengeSet, responseMap);
                 final ResponseSet responses = generateResponseSet(pwmSession, challengeSet, responseMap);
-                CrUtility.writeResponses(pwmSession, responses);
+                saveResponses(pwmSession, responses);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
@@ -236,15 +235,19 @@ public class SetupResponsesServlet extends TopServlet {
             }
         }
 
+        ServletHelper.forwardToSuccessPage(req, resp);
+    }
 
+    private void saveResponses(final PwmSession pwmSession, final ResponseSet responses)
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        CrUtility.writeResponses(pwmSession, responses);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
         pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
         UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
-
-        ServletHelper.forwardToSuccessPage(req, resp);
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(
