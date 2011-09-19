@@ -3,6 +3,7 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.ContextManager" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,7 +30,7 @@
     <%
         final PwmSession pwmSession = PwmSession.getPwmSession(session);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        List<FormConfiguration> formConfigurationList = pwmSession.getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
+        List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
         for (FormConfiguration loopConfiguration : formConfigurationList) {
         %>
     <tr>

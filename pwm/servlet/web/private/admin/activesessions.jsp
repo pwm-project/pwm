@@ -105,7 +105,7 @@
                 </td>
                 <td>
                     <% final ErrorInformation lastError = loopSsBean.getSessionError(); %>
-                    <%= lastError != null ? lastError.toUserStr(loopSession) : "&nbsp;" %>
+                    <%= lastError != null ? lastError.toUserStr(loopSession, ContextManager.getPwmApplication(session)) : "&nbsp;" %>
                 </td>
             </tr>
             <%

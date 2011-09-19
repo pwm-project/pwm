@@ -31,7 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger(); %>
+<% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <div style="width: 100%; text-align:center;">
 <a href="<pwm:url url='ConfigManager'/>?processAction=viewLog">refresh</a>

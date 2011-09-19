@@ -32,7 +32,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = PwmSession.getPwmSession(session).getForgottenPasswordBean(); %>
-<% final List<FormConfiguration> requiredAttrParams = PwmSession.getPwmSession(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
+<% final List<FormConfiguration> requiredAttrParams = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
@@ -64,7 +64,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                    value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getAttributeName(),"") %>"/>
             <% } %>
 
-            <% if (Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>
             <% // loop through challenges
                 int counter = 0;
                 for (final Challenge loopChallenge : recoverBean.getResponseSet().getChallengeSet().getChallenges()) {
@@ -83,14 +83,14 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="submit" name="checkResponses" class="btn"
                        value="     <pwm:Display key="Button_RecoverPassword"/>     "
                        id="submitBtn"/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
                 <% } %>
                 <input type="hidden" name="hideButton" class="btn"
                        value="    <pwm:Display key="Button_Hide_Responses"/>    "
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;

@@ -60,6 +60,7 @@ public class
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
 
@@ -76,7 +77,7 @@ public class
             }
 
             try {
-                AuthenticationFilter.authenticateUser(username, password, context, pwmSession, req.isSecure());
+                AuthenticationFilter.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
             } catch (PwmOperationalException e) {
                 ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);

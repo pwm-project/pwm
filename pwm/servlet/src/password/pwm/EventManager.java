@@ -32,7 +32,6 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
-import java.util.Collection;
 
 /**
  * Servlet event listener, defined in web.xml
@@ -62,7 +61,7 @@ public class EventManager implements ServletContextListener, HttpSessionListener
 
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
-            final PwmApplication pwmApplication = pwmSession.getPwmApplication();
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
 
             if (pwmApplication != null) {
                 if (pwmApplication.getStatisticsManager() != null) {
@@ -148,17 +147,5 @@ public class EventManager implements ServletContextListener, HttpSessionListener
             LOGGER.error("unable to activate  pwm context: " + e.getMessage());
         }
     }
-
-    private static void invalidateAllUserSessions(final Collection<PwmSession> sessions) {
-        if (sessions == null || sessions.isEmpty()) {
-            return;
-        }
-
-        for (final PwmSession pwmSession : sessions) {
-            pwmSession.invalidate();
-        }
-    }
-
-
 }
 

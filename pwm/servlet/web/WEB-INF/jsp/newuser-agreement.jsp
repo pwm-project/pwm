@@ -48,7 +48,7 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
 
-        <span><%=PwmSession.getPwmSession(session).getConfig().readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
+        <span><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
 
         <div id="buttonbar">
             <form action="<pwm:url url='NewUser'/>" method="post"

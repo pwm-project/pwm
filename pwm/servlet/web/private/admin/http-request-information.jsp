@@ -106,10 +106,10 @@
             <% for (final Cookie cookie : request.getCookies()) { %>
             <tr>
                 <td class="key">
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), cookie.getName(), 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getName(), 1024) %>
                 </td>
                 <td>
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), cookie.getValue(), 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getValue(), 1024) %>
                 </td>
             </tr>
             <% } %>
@@ -129,10 +129,10 @@
             <% final String loopValue = (String) valueEnum.nextElement(); %>
             <tr>
                 <td class="key">
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), loopHeader, 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopHeader, 1024) %>
                 </td>
                 <td>
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), loopValue, 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
                 </td>
             </tr>
             <% } %>
@@ -152,10 +152,10 @@
             <% for (final String loopValue : Validator.readStringsFromRequest(request, loopParameter, 1024)) { %>
             <tr>
                 <td class="key">
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), loopParameter, 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopParameter, 1024) %>
                 </td>
                 <td>
-                    <%= Validator.sanatizeInputValue(PwmSession.getPwmSession(session).getConfig(), loopValue, 1024) %>
+                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
                 </td>
             </tr>
             <% } %>

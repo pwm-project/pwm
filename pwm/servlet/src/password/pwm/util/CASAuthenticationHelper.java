@@ -6,6 +6,8 @@ import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
 import password.pwm.AuthenticationFilter;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
@@ -26,8 +28,10 @@ public class CASAuthenticationHelper {
             final HttpServletRequest req,
             final String clearPassUrl
     )
-            throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
+            throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HttpSession session = req.getSession();
 
@@ -69,7 +73,7 @@ public class CASAuthenticationHelper {
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user '" + username + "' using CAS assertion and password");
-        AuthenticationFilter.authenticateUser(username, password, null,  pwmSession, req.isSecure());
+        AuthenticationFilter.authenticateUser(username, password, null,  pwmSession, pwmApplication, req.isSecure());
         return true;
     }
 }

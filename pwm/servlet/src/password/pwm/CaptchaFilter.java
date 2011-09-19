@@ -23,6 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -55,11 +56,12 @@ public class CaptchaFilter implements Filter {
     private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
             throws PwmUnrecoverableException, IOException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String captchaServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
 
-        checkIfCaptchaEnabled(pwmSession,ssBean);
+        checkIfCaptchaEnabled(pwmApplication,pwmSession);
 
         try {
             if (ssBean.isPassedCaptcha()) {
@@ -88,17 +90,18 @@ public class CaptchaFilter implements Filter {
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(SessionFilter.rewriteRedirectURL(captchaServletURL,req,resp), req, resp));
     }
 
-    private void checkIfCaptchaEnabled(final PwmSession pwmSession, final SessionStateBean ssBean) throws PwmUnrecoverableException {
-        if (ssBean.isPassedCaptcha()) {
+    private void checkIfCaptchaEnabled(final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException {
+        if (pwmSession.getSessionStateBean().isPassedCaptcha()) {
             return;
         }
 
-        final String privateKey = pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE);
-        final String publicKey = pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
+        final Configuration config = pwmApplication.getConfig();
+        final String privateKey = config.readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE);
+        final String publicKey = config.readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
 
         if ((privateKey == null || privateKey.length() < 1) && (publicKey == null || publicKey.length() < 1)) {
             LOGGER.debug(pwmSession,"reCaptcha private or public key not configured, skipping captcha check");
-            ssBean.setPassedCaptcha(true);
+            pwmSession.getSessionStateBean().setPassedCaptcha(true);
         }
     }
 

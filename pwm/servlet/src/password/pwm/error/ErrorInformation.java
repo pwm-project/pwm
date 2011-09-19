@@ -22,6 +22,7 @@
 
 package password.pwm.error;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 
@@ -103,22 +104,24 @@ public class ErrorInformation implements Serializable {
         return sb.toString();
     }
 
-    public String toUserStr(final PwmSession pwmSession) {
+    public String toUserStr(final PwmSession pwmSession, final PwmApplication pwmApplication) {
 
         Configuration config = null;
         Locale userLocale = null;
 
-        try {
-            if (pwmSession != null && pwmSession.getConfig() != null) {
-                config = pwmSession.getConfig();
-            }
-        } catch (PwmUnrecoverableException e) {
-            // ignore
+        if (pwmSession != null && pwmApplication.getConfig() != null) {
+            config = pwmApplication.getConfig();
         }
 
         if (pwmSession != null) {
             userLocale = pwmSession.getSessionStateBean().getLocale();
         }
+
+        return toUserStr(userLocale, config);
+    }
+
+    public String toUserStr(final Locale userLocale , final Configuration config) {
+
 
         if (fieldValues != null && fieldValues.length > 0) {
             return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]);

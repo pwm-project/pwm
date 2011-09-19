@@ -66,7 +66,7 @@
                     <pwm:Display key="Display_RecoverChoiceReset"/>
                 </td>
             </tr>
-            <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <tr style="border: 0">
                 <td class="key" style="border: 0">
                         <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"

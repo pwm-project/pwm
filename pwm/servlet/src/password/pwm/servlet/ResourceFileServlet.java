@@ -35,6 +35,8 @@
 
 package password.pwm.servlet;
 
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.error.PwmUnrecoverableException;
@@ -338,8 +340,8 @@ public class ResourceFileServlet extends HttpServlet {
 
         String startupTime = null;
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            startupTime = String.valueOf(pwmSession.getPwmApplication().getStartupTime().getTime());
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            startupTime = String.valueOf(pwmApplication.getStartupTime().getTime());
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to load context startup time: " + e.getMessage());
         }

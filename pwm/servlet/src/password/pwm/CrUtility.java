@@ -92,7 +92,7 @@ public class CrUtility {
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
         if (returnSet == null) {
-            returnSet = config.getGlobalChallengeSet(pwmSession.getSessionStateBean().getLocale());
+            returnSet = config.getGlobalChallengeSet(locale);
             if (returnSet != null) {
                 LOGGER.debug(pwmSession, "using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
             }
@@ -107,27 +107,18 @@ public class CrUtility {
         return returnSet;
     }
 
-    public static ResponseSet readUserResponseSet(final PwmSession pwmSession, final ChaiUser proxiedUser)
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        final PwmDB pwmDB = pwmSession.getPwmApplication().getPwmDB();
-        final DatabaseAccessor databaseAccessor = pwmSession.getPwmApplication().getDatabaseAccessor();
-        final Configuration config = pwmSession.getConfig();
-        return readUserResponseSet(pwmSession, pwmDB, databaseAccessor, config, proxiedUser);
-    }
-
     public static ResponseSet readUserResponseSet(
             final PwmSession pwmSession,
-            final PwmDB pwmDB,
-            final DatabaseAccessor databaseAccessor,
-            final Configuration config,
+            final PwmApplication pwmApplication,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final Configuration config = pwmApplication.getConfig();
+
         final String novellUserAppWebServiceURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
         if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
-            final ResponseSet responseSet = ResponseReaders.readResponsesFromNovellUA(novellUserAppWebServiceURL,pwmSession,theUser);
+            final ResponseSet responseSet = ResponseReaders.readResponsesFromNovellUA(pwmSession,pwmApplication,theUser);
             if (responseSet != null) {
                 LOGGER.debug(pwmSession,"returning responses read via Novell UserApp SOAP Service");
                 return responseSet;
@@ -152,10 +143,12 @@ public class CrUtility {
 
             switch (storageMethod) {
                 case DB:
+                    final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
                     readResponses = ResponseReaders.readResponsesFromDatabase(pwmSession, databaseAccessor, theUser, userGUID);
                     break;
 
                 case PWMDB:
+                    final PwmDB pwmDB = pwmApplication.getPwmDB();
                     readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, pwmDB, theUser, userGUID);
                     break;
 
@@ -251,9 +244,13 @@ public class CrUtility {
         }
 
         private static ResponseSet readResponsesFromNovellUA(
-                final String novellUserAppWebServiceURL,
                 final PwmSession pwmSession,
-                final ChaiUser theUser) throws PwmUnrecoverableException {
+                final PwmApplication pwmApplication,
+                final ChaiUser theUser
+        )
+                throws PwmUnrecoverableException
+        {
+            final String novellUserAppWebServiceURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
 
             try {
                 LOGGER.trace(pwmSession, "establishing connection to web service at " + novellUserAppWebServiceURL);
@@ -266,7 +263,7 @@ public class CrUtility {
                     throw new Exception( "novell web service reports " + (processUserResponse.isTimeout() ? "timeout" : "error") + ": " + processUserResponse.getMessage());
                 }
                 if (processUserResponse.getChallengeQuestions() != null) {
-                    return new NovellWSResponseSet(service, processUserResponse, pwmSession);
+                    return new NovellWSResponseSet(service, processUserResponse, pwmSession, pwmApplication);
                 }
             } catch (Throwable e) {
                 final String errorMsg = "error retrieving novell user responses from web service: " + e.getMessage();
@@ -291,29 +288,17 @@ public class CrUtility {
 
     public static void writeResponses(
             final PwmSession pwmSession,
-            final ResponseSet responses
-    )
-            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final PwmDB pwmDB = pwmSession.getPwmApplication().getPwmDB();
-        final Configuration config = pwmSession.getConfig();
-        final ChaiUser theUser = pwmSession.getSessionManager().getActor();
-        final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
-        writeResponses(theUser, userGUID, config, pwmDB, responses, pwmSession);
-    }
-
-    public static void writeResponses(
+            final PwmApplication pwmApplication,
             final ChaiUser theUser,
             final String userGUID,
-            final Configuration config,
-            final PwmDB pwmDB,
-            final ResponseSet responses,
-            final PwmSession pwmSession
+            final ResponseSet responses
 
     )
             throws PwmOperationalException, ChaiUnavailableException
     {
         int attempts = 0, successes = 0;
+
+        final Configuration config = pwmApplication.getConfig();
 
         if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
             attempts++;
@@ -322,7 +307,7 @@ public class CrUtility {
             }
 
             try {
-                final DatabaseAccessor databaseAccessor = pwmSession.getPwmApplication().getDatabaseAccessor();
+                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
                 databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responses.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in remote database");
                 successes++;
@@ -340,14 +325,14 @@ public class CrUtility {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
             }
 
-            if (pwmDB == null) {
+            if (pwmApplication.getPwmDB() == null) {
                 final String errorMsg = "pwmDB is not available, unable to write user responses";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }
 
             try {
-                pwmDB.put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());
+                pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
                 successes++;
             } catch (PwmDBException e) {
@@ -417,16 +402,20 @@ public class CrUtility {
         private final ChallengeSet challengeSet;
         private final PwmSession pwmSession;
         private final Locale locale;
+        private final PwmApplication pwmApplication;
 
         public NovellWSResponseSet(
                 final PasswordManagement service,
                 final ForgotPasswordWSBean wsBean,
-                final PwmSession pwmSession
+                final PwmSession pwmSession,
+                final PwmApplication pwmApplication
         )
                 throws ChaiValidationException {
             this.userDN = wsBean.getUserDN();
             this.service = service;
             this.pwmSession = pwmSession;
+            this.pwmApplication = pwmApplication;
+
             final List<Challenge> challenges = new ArrayList<Challenge>();
             for (final String loopQuestion : wsBean.getChallengeQuestions()) {
                 final Challenge loopChallenge = CrFactory.newChallenge(
@@ -493,7 +482,7 @@ public class CrUtility {
             }
 
             try {
-                pwmSession.getPwmApplication().getIntruderManager().addBadAddressAttempt(pwmSession);
+                pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
             } catch (PwmUnrecoverableException e) {
                 // nothing to be done
             }
@@ -519,8 +508,7 @@ public class CrUtility {
 
     public static boolean checkIfResponseConfigNeeded(
             final PwmSession pwmSession,
-            final ChaiProvider provider,
-            final Configuration config,
+            final PwmApplication pwmApplication,
             final ChaiUser theUser,
             final ChallengeSet challengeSet)
             throws ChaiUnavailableException, PwmUnrecoverableException
@@ -528,6 +516,9 @@ public class CrUtility {
         LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
 
         final String userDN = theUser.getEntryDN();
+
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
+        final Configuration config = pwmApplication.getConfig();
 
         if (!Helper.testUserMatchQueryString(provider, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
@@ -541,7 +532,7 @@ public class CrUtility {
         }
 
         // read the user's response
-        final ResponseSet usersResponses = readUserResponseSet(pwmSession, theUser);
+        final ResponseSet usersResponses = readUserResponseSet(pwmSession, pwmApplication, theUser);
 
         try {
             // check if responses exist

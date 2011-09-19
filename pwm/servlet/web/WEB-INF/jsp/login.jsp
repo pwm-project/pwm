@@ -42,7 +42,7 @@
               onkeypress="checkForCapsLock(event)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
-                if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
+                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
             %>
             <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
             <select name="context" id="context">
@@ -61,13 +61,13 @@
                        name="button"
                        value="    <pwm:Display key="Button_Login"/>    "
                        id="submitBtn"/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" class="btn"
                        name="reset"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <% } %>
                 <input type="hidden" name="processAction" value="login">
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
@@ -78,19 +78,19 @@
             </div>
         </form>
         <br/>
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
         <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
         <pwm:Display key="Long_Title_ForgottenPassword"/></p>
         <% } %>
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
         <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
         <pwm:Display key="Long_Title_ForgottenUsername"/></p>
         <% } %>
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
         <p><a href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
         <pwm:Display key="Long_Title_ActivateUser"/></p>
         <% } %>
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
         <p><a href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
         <pwm:Display key="Long_Title_NewUser"/></p>
         <% } %>

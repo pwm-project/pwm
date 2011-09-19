@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.ConfigurationReader;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -62,7 +62,8 @@ public class SessionFilter implements Filter {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        if (pwmSession.getConfig() != null && !pwmSession.getConfig().readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
+        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
+        if (config != null && !config.readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
             return "";
         }
 
@@ -84,7 +85,8 @@ public class SessionFilter implements Filter {
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
      */
     public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final boolean useXForwardedFor = pwmSession.getConfig() != null && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
+        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
+        final boolean useXForwardedFor = config != null && config.readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
 
         String userIP = "";
 
@@ -412,12 +414,12 @@ public class SessionFilter implements Filter {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
 
-        ConfigurationReader.MODE mode = ConfigurationReader.MODE.NEW;
+        PwmApplication.MODE mode = PwmApplication.MODE.NEW;
         if (theManager != null) {
             mode = theManager.getConfigMode();
         }
 
-        if (mode == ConfigurationReader.MODE.NEW) {
+        if (mode == PwmApplication.MODE.NEW) {
             final String configServletPathPrefix = req.getContextPath() + "/config/";
             final String requestedURL = req.getRequestURI();
 
@@ -428,7 +430,7 @@ public class SessionFilter implements Filter {
                 resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
                 return true;
             }
-        } else if (mode == ConfigurationReader.MODE.ERROR) {
+        } else if (mode == PwmApplication.MODE.ERROR) {
             final ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getConfigReader().getConfigFileError();
             final ErrorInformation displayError = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,rootError.getDetailedErrorMsg(),rootError.getFieldValues());
             ssBean.setSessionError(displayError);

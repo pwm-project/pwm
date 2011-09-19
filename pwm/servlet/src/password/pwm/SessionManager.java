@@ -32,7 +32,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;
 import java.util.concurrent.locks.Lock;
@@ -53,13 +52,15 @@ public class SessionManager implements Serializable {
     private transient volatile ChaiProvider chaiProvider;
 
     final private PwmSession pwmSession;
+    final private Configuration config;
 
     final Lock providerLock = new ReentrantLock();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SessionManager(final PwmSession pwmSession) {
+    public SessionManager(final PwmSession pwmSession, final Configuration config) {
         this.pwmSession = pwmSession;
+        this.config = config;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -69,7 +70,7 @@ public class SessionManager implements Serializable {
         try {
             providerLock.lock();
             closeConnectionImpl();
-            chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword);
+            chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             return chaiProvider;
         } finally {
             providerLock.unlock();
@@ -88,7 +89,7 @@ public class SessionManager implements Serializable {
             if (chaiProvider == null) {
                 final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
                 final String userDN = pwmSession.getUserInfoBean().getUserDN();
-                chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword);
+                chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             }
 
             return chaiProvider;
@@ -97,35 +98,23 @@ public class SessionManager implements Serializable {
         }
     }
 
-    private static ChaiProvider makeChaiProvider(final PwmSession pwmSession, final String userDN, final String userPassword)
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        final long startTime = System.currentTimeMillis();
-        final StringBuilder debugLogText = new StringBuilder();
-        final Configuration config = pwmSession.getConfig();
+    private static ChaiProvider makeChaiProvider(
+            final PwmSession pwmSession,
+            final String userDN,
+            final String userPassword,
+            final Configuration config
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        LOGGER.trace(pwmSession, "attempting to open new ldap connection for " + userDN);
 
-        final ChaiProvider returnProvider;
-        final String username;
-        final String password;
-
-        if (
-                config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY) &&
-                        pwmSession.getPwmApplication().getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY
-                ) {
-            username = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            password = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            debugLogText.append("opened new proxy ldap connection for ");
-        } else {
-            username = userDN;
-            password = userPassword;
-            debugLogText.append("opened new ldap connection for ");
+        if (config.readSettingAsBoolean(PwmSetting.LDAP_ALWAYS_USE_PROXY)) {
+            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            return Helper.createChaiProvider(config, proxyDN, proxyPassword);
         }
 
-        debugLogText.append(userDN);
-        debugLogText.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
-        LOGGER.trace(pwmSession, debugLogText.toString());
-
-        returnProvider = Helper.createChaiProvider(pwmSession.getConfig(), username, password);
-        return returnProvider;
+        return Helper.createChaiProvider(config, userDN, userPassword);
     }
 
 // ------------------------ CANONICAL METHODS ------------------------

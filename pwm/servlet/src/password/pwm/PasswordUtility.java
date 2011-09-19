@@ -88,13 +88,14 @@ public class PasswordUtility {
      */
     public static boolean setUserPassword(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final String newPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession)) {
+        if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
             ssBean.setSessionError(PwmError.ERROR_UNAUTHORIZED.toInfo());
             LOGGER.debug(pwmSession, "attempt to setUserPassword, but user does not have password change permission");
             return false;
@@ -104,7 +105,7 @@ public class PasswordUtility {
         // have been done before setUserPassword() is invoked, so it should be redundant
         // but we do it just in case.
         try {
-            Validator.testPasswordAgainstPolicy(newPassword, pwmSession, false);
+            Validator.testPasswordAgainstPolicy(newPassword, pwmSession, pwmApplication);
         } catch (PwmDataValidationException e) {
             ssBean.setSessionError(new ErrorInformation(e.getErrorInformation().getError()));
             LOGGER.debug(pwmSession, "attempt to setUserPassword, but password does not pass PWM validator");
@@ -153,17 +154,17 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
 
         //update the current last password update field in ldap
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmSession.getPwmApplication().getProxyChaiProvider());
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmApplication.getProxyChaiProvider());
         final long delayStartTime = System.currentTimeMillis();
-        final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, proxiedUser);
+        final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedUser);
 
-        if (pwmSession.getConfig().readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
+        if (pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
         } else {
-            final long maxWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
+            final long maxWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
 
             if (successfullyWrotePwdUpdateAttr && maxWaitTime > 0) {
                 LOGGER.trace(pwmSession, "beginning password replication checking");
@@ -174,7 +175,7 @@ public class PasswordUtility {
                     long timeSpentTrying = 0;
                     while (!isReplicated && timeSpentTrying < (maxWaitTime)) {
                         timeSpentTrying = System.currentTimeMillis() - delayStartTime;
-                        isReplicated = ChaiUtility.testAttributeReplication(proxiedUser, pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
+                        isReplicated = ChaiUtility.testAttributeReplication(proxiedUser, pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
                         Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY);
                     }
                 } catch (ChaiOperationException e) {
@@ -182,12 +183,12 @@ public class PasswordUtility {
                     LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
                 }
                 final long totalTime = System.currentTimeMillis() - delayStartTime;
-                pwmSession.getPwmApplication().getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
+                pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
             }
         }
 
         // be sure minimum wait time has passed
-        final long minWaitTime = pwmSession.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
+        final long minWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
         if ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {
             LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
             while ((System.currentTimeMillis() - delayStartTime) < minWaitTime) {
@@ -196,21 +197,21 @@ public class PasswordUtility {
         }
 
         // send user an email confirmation
-        sendChangePasswordEmailNotice(pwmSession);
+        sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 
         // update the status bean
-        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
 
         // add the old password to the global history list (if the old password is known)
-        if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmSession.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
-            pwmSession.getPwmApplication().getSharedHistoryManager().addWord(pwmSession, oldPassword);
+        if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
+            pwmApplication.getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 
         // invoke post password change actions
         invokePostChangePasswordActions(pwmSession, newPassword);
 
         // call out to external methods.
-        Helper.invokeExternalChangeMethods(pwmSession, oldPassword, newPassword);
+        Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, oldPassword, newPassword);
 
         return true;
     }
@@ -340,8 +341,8 @@ public class PasswordUtility {
     }
 
 
-    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final Configuration config = pwmSession.getConfig();
+    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+        final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
@@ -355,7 +356,7 @@ public class PasswordUtility {
             return;
         }
 
-        pwmSession.getPwmApplication().sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
     }
 
 

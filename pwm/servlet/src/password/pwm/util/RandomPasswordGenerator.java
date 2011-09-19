@@ -65,9 +65,12 @@ public class RandomPasswordGenerator {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String createRandomPassword(
-            final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final PwmApplication pwmApplication = pwmSession.getPwmApplication();
-        final SeedlistManager seedlistManager = pwmSession.getPwmApplication().getSeedlistManager();
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException
+    {
+        final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
         final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
         return createRandomPassword(pwmSession, userPasswordPolicy, seedlistManager, pwmApplication);
     }
@@ -158,7 +161,7 @@ public class RandomPasswordGenerator {
         while (!validPassword && tryCount < randomGeneratorConfig.getMaximumTryCount()) {
             tryCount++;
             validPassword = true;
-            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), pwmSession, false, randomGenPolicy, pwmApplication);
+            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), null, pwmSession, randomGenPolicy, pwmApplication);
             if (errors != null && !errors.isEmpty()) {
                 validPassword = false;
                 modifyPasswordBasedOnErrors(password, errors, seedMachine);
@@ -176,7 +179,7 @@ public class RandomPasswordGenerator {
             if (validPassword) {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
-                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), pwmSession, false, pwmSession.getUserInfoBean().getPasswordPolicy(), pwmApplication);
+                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), null, pwmSession, randomGenPolicy, pwmApplication);
                 final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");

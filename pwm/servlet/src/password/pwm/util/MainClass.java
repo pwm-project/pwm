@@ -24,7 +24,6 @@ package password.pwm.util;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiResponseSet;
-import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -33,17 +32,12 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBFactory;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
 public class MainClass {
 
@@ -74,37 +68,72 @@ public class MainClass {
             } else if ("ClearResponses".equalsIgnoreCase(args[0])) {
                 handleClearResponses();
             } else if ("UserReport".equalsIgnoreCase(args[0])) {
-                handleUserReport();
+                handleUserReport(args);
             } else {
-                out("unknown command");
+                out("unknown command '" + args[0] + "'");
             }
         }
     }
 
-    static void handleUserReport() throws Exception {
-        final Configuration config = loadConfiguration();
-        final ChaiProvider provider;
-        {
-            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            provider = Helper.createChaiProvider(config,proxyDN,proxyPW);
+    static void handleUserReport(final String[] args) throws Exception {
+        if (args.length < 2) {
+            out("output filename required");
+            System.exit(-1);
         }
-        final PwmDB pwmDB = loadPwmDB(config, true);
-        final DatabaseAccessor databaseAccessor = loadDBAccessor(config, true);
 
+        final Writer outputWriter;
+        try {
+            final File outputFile = new File(args[1]).getCanonicalFile();
+            outputWriter = new BufferedWriter(new FileWriter(outputFile));
+        } catch (Exception e) {
+            out("unable to open file '" + args[1] + "' for writing");
+            System.exit(-1);
+            throw new Exception();
+        }
 
-        final UserReport userReport = new UserReport(config, provider, pwmDB, databaseAccessor);
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+        final UserReport userReport = new UserReport(pwmApplication);
 
-
-        //@todo output to file..
-        System.out.println("log file output:");
+        {
+            final List<String> headerRow = new ArrayList<String>();
+            headerRow.add("UserDN");
+            headerRow.add("UserGuid");
+            headerRow.add("Password Expiration Time");
+            headerRow.add("Password Change Time");
+            headerRow.add("Response Save Time");
+            headerRow.add("Has Valid Responses");
+            headerRow.add("Password Expired");
+            headerRow.add("Password Pre-Expired");
+            headerRow.add("Password Violates Policy");
+            headerRow.add("Password In Warn Period");
+            outputWriter.append(Helper.toCsvLine(headerRow.toArray(new String[headerRow.size()])));
+            outputWriter.append("\n");
+        }
 
         for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(); resultIterator.hasNext(); ) {
             final UserReport.UserInformation userInformation = resultIterator.next();
-            System.out.println(userInformation.toCsvLine());
+            final List<String> csvRow = new ArrayList<String>();
+
+            csvRow.add(userInformation.getUserDN());
+            csvRow.add(userInformation.getGuid());
+            csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(userInformation.getPasswordExpirationTime()));
+            csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(userInformation.getPasswordChangeTime()));
+            csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(userInformation.getResponseSetTime()));
+            csvRow.add(Boolean.toString(userInformation.isHasValidResponses()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isExpired()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isPreExpired()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isViolatesPolicy()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isWarnPeriod()));
+
+            outputWriter.append(Helper.toCsvLine(csvRow.toArray(new String[csvRow.size()])));
+            outputWriter.append("\n");
         }
 
-        System.out.println("report complete.");
+        try { outputWriter.close(); } catch (Exception e) { /* nothing */ }
+
+        out("report complete.");
     }
 
     static void handlePwmDbInfo() throws Exception {
@@ -309,6 +338,13 @@ public class MainClass {
         pwmPackageLogger.setLevel(level);
         chaiPackageLogger.addAppender(consoleAppender);
         chaiPackageLogger.setLevel(level);
+    }
+
+    static PwmApplication loadPwmApplication(final Configuration config, final File workingDirectory, final boolean readonly)
+            throws PwmDBException
+    {
+        final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
+        return new PwmApplication(config, mode, workingDirectory);
     }
 }
 

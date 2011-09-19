@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.ConfigurationReader" %>
 <%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,7 +29,7 @@
   - which by default is a blue-gray gradieted and rounded block.       cd ..
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% if (ContextManager.getPwmApplication(session).getConfigMode() == ConfigurationReader.MODE.CONFIGURING) { %>
+<% if (ContextManager.getPwmApplication(session).getConfigMode() == PwmApplication.MODE.CONFIGURING) { %>
 <% if (!request.getRequestURI().contains("configmanager")) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a>
     to modify or finalize the configuration.

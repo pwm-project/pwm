@@ -231,14 +231,15 @@ public class Helper {
      */
     public static void addConfiguredUserObjectClass(
             final String userDN,
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final Set<String> newObjClasses = new HashSet<String>(pwmSession.getConfig().readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
+        final Set<String> newObjClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
         }
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider());
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
         addUserObjectClass(theUser, newObjClasses, pwmSession);
     }
 
@@ -333,16 +334,16 @@ public class Helper {
      * @return true if successful;
      * @throws ChaiUnavailableException if the directory is unavailble
      */
-    public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final ChaiUser theUser)
+    public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser)
             throws ChaiUnavailableException, PwmUnrecoverableException {
         boolean success = false;
 
-        final String updateAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        final String updateAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
 
         if (updateAttribute != null && updateAttribute.length() > 0) {
             final String currentTimestamp = EdirEntries.convertDateToZulu(new Date(System.currentTimeMillis()));
             try {
-                final String pwdLastModifiedAttr = pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+                final String pwdLastModifiedAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
                 theUser.writeStringAttribute(pwdLastModifiedAttr, currentTimestamp);
                 LOGGER.debug(pwmSession, "wrote pwdLastModified update attribute for " + theUser.getEntryDN());
                 success = true;
@@ -376,9 +377,10 @@ public class Helper {
 
     public static void invokeExternalChangeMethods(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final String oldPassword,
             final String newPassword) throws PwmUnrecoverableException {
-        final List<String> externalMethods = pwmSession.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
+        final List<String> externalMethods = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {

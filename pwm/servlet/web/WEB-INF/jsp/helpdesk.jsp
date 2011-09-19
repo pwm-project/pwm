@@ -48,7 +48,7 @@
               onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
-                if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
+                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
             %>
             <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
             <select name="context">
@@ -94,7 +94,7 @@
                     <%= searchedUserInfo.getUserDN() %>
                 </td>
             </tr>
-            <%  Map<String, String> attrMap = pwmSession.getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES);
+            <%  Map<String, String> attrMap = ContextManager.getPwmApplication(session).getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES);
                 for (Map.Entry<String, String> me : attrMap.entrySet()) {
             %>
             <tr>
@@ -199,7 +199,7 @@
                 <td>
                     <%= helpdeskBean.isIntruderLocked() ? "True" :"False" %>
                     <% if (helpdeskBean.isIntruderLocked()) { %>
-                    <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+                    <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                     <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="doUnlock"/>
                         <input type="submit" name="change" class="btn" id="password_unlock" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
@@ -216,7 +216,7 @@
                 <td>
                     <%= helpdeskBean.isPwmIntruder() ? "True" :"False" %>
                     <% if (helpdeskBean.isPwmIntruder()) { %>
-                    <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+                    <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                     <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="doUnlock"/>
                         <input type="submit" name="change" class="btn" id="password_unlock2" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
@@ -241,7 +241,7 @@
                     <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(new java.util.Date(record.getTimestamp())) %>
                 </td>
                 <td>
-                    <%= record.getEventCode().getLocalizedString(PwmSession.getPwmSession(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
+                    <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
                     <%= record.getMessage() != null ? record.getMessage() : "" %>
                 </td>
             </tr>

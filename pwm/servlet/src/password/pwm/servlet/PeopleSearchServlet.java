@@ -57,15 +57,16 @@ public class PeopleSearchServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
-        if (!Permission.checkPermission(Permission.PEOPLE_SEARCH, pwmSession)) {
+        if (!Permission.checkPermission(Permission.PEOPLE_SEARCH, pwmSession, pwmApplication)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -84,7 +85,7 @@ public class PeopleSearchServlet extends TopServlet {
                 return;
             }
 
-            processUserSearch(req, pwmSession, username, context);
+            processUserSearch(req, pwmSession, pwmApplication, username, context);
         }
 
         this.forwardToJSP(req,resp);
@@ -93,22 +94,25 @@ public class PeopleSearchServlet extends TopServlet {
     private void processUserSearch(
             final HttpServletRequest request,
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final String username,
             final String context
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final PeopleSearchResults searchResults = doSearch(pwmSession,username,context);
+        final PeopleSearchResults searchResults = doSearch(pwmSession, pwmApplication, username,context);
+
         request.setAttribute("searchResults",searchResults);
     }
 
     private PeopleSearchResults doSearch(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final String username,
             final String context
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final String filter = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER).replaceAll("%USERNAME%", username);
         final String configuredBase = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE);
         final List<FormConfiguration> configuredForm = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM, pwmSession.getSessionStateBean().getLocale());
@@ -131,15 +135,15 @@ public class PeopleSearchServlet extends TopServlet {
         try {
             final ChaiProvider provider;
             if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
-                provider = pwmSession.getPwmApplication().getProxyChaiProvider();
+                provider = pwmApplication.getProxyChaiProvider();
             } else {
                 provider = pwmSession.getSessionManager().getChaiProvider();
             }
             final Map<String,Map<String,String>> ldapResults = provider.search(searchBase,searchHelper);
 
             LOGGER.trace(pwmSession,"search results: " + ldapResults.size());
-            if (pwmSession.getPwmApplication().getStatisticsManager() != null) {
-                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
+            if (pwmApplication.getStatisticsManager() != null) {
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
             }
 
             if (!ldapResults.isEmpty()) {

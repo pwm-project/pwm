@@ -56,22 +56,21 @@ public class LDAPStatusChecker implements HealthChecker {
         { // check ldap server
             returnRecords.addAll(checkBasicLdapConnectivity(config));
 
-            if (returnRecords.isEmpty()) { // check test user
-                final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
-                if (hr != null) {
-                    returnRecords.add(hr);
-                }
+            if (returnRecords.isEmpty()) {
+                returnRecords.addAll(checkLdapServerUrls(config));
             }
 
             if (returnRecords.isEmpty()) {
                 returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
             }
 
-            if (returnRecords.isEmpty()) {
-                returnRecords.addAll(checkLdapServerUrls(config));
+            if (returnRecords.isEmpty()) { // check test user
+                final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
+                if (hr != null) {
+                    returnRecords.add(hr);
+                }
             }
         }
-
 
         { // check recent ldap status
             final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
@@ -146,7 +145,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (userPassword == null) {
                     try {
                         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                        final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, config, locale, theUser);
+                        final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, pwmApplication, locale, theUser);
                         final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
                         final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, pwmApplication);
                         theUser.setPassword(newPassword);

@@ -68,16 +68,18 @@ public class UserHistory implements Serializable {
 
     public static void updateUserHistory(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final Record.Event eventCode,
             final String message
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final ChaiUser theUser = pwmSession.getPwmApplication().getProxyChaiUserActor(pwmSession);
-        updateUserHistory(pwmSession, theUser, eventCode, message);
+        final ChaiUser theUser = pwmApplication.getProxyChaiUserActor(pwmSession);
+        updateUserHistory(pwmSession, pwmApplication, theUser, eventCode, message);
     }
 
     public static void updateUserHistory(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final ChaiUser theUser,
             final Record.Event eventCode,
             final String message
@@ -85,7 +87,7 @@ public class UserHistory implements Serializable {
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = "0001";
         final Record record = new Record(eventCode, message);
-        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final String corAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
         if (corAttribute == null || corAttribute.length() < 1) {
             LOGGER.debug(pwmSession, "no user event log attribute configured, skipping write of log data");
@@ -100,7 +102,7 @@ public class UserHistory implements Serializable {
             } else {
                 theCor = ConfigObjectRecord.createNew(theUser, corAttribute, corRecordIdentifer, null, null);
             }
-            final UserHistory history = new UserHistory((int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS), theCor.getPayload());
+            final UserHistory history = new UserHistory((int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS), theCor.getPayload());
             history.addEvent(record);
             theCor.updatePayload(history.getCurrentPayload());
             LOGGER.info(pwmSession, "user log event " + eventCode + " written to user " + theUser.getEntryDN());
@@ -144,19 +146,23 @@ public class UserHistory implements Serializable {
         return outputter.outputString(doc);
     }
 
-    public static UserHistory readUserHistory(final PwmSession pwmSession)
+    public static UserHistory readUserHistory(final PwmSession pwmSession, final PwmApplication pwmApplication)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-        return readUserHistory(pwmSession, chaiUser);
+        return readUserHistory(pwmSession, pwmApplication, chaiUser);
     }
 
-    public static UserHistory readUserHistory(final PwmSession pwmSession, final ChaiUser chaiUser)
+    public static UserHistory readUserHistory(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser chaiUser
+    )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = "0001";
-        final String corAttribute = pwmSession.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
-        final int maxUserEvents = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
+        final String corAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final int maxUserEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_LDAP_MAX_EVENTS);
 
         if (corAttribute == null || corAttribute.length() < 1) {
             LOGGER.trace(pwmSession, "no user event log attribute configured, skipping read of log data");

@@ -33,7 +33,6 @@ import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -75,7 +74,7 @@ public class PwmApplication {
 
     private String instanceID = DEFAULT_INSTANCE_ID;
     private final IntruderManager intruderManager = new IntruderManager(this);
-    private Configuration configuration;
+    private final Configuration configuration;
     private EmailQueueManager emailQueue;
     private SmsQueueManager smsQueue;
     private UrlShortenerService urlShort;
@@ -97,14 +96,14 @@ public class PwmApplication {
     private ErrorInformation lastLdapFailure = null;
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
-    private ConfigurationReader.MODE configReaderMode;
+    private MODE configReaderMode;
 
 
 // -------------------------- STATIC METHODS --------------------------
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmApplication(final Configuration config, final ConfigurationReader.MODE configReaderMode, final File pwmApplicationPath)
+    public PwmApplication(final Configuration config, final MODE configReaderMode, final File pwmApplicationPath)
             throws PwmDBException
     {
         this.configuration = config;
@@ -231,7 +230,7 @@ public class PwmApplication {
         return configuration;
     }
 
-    public ConfigurationReader.MODE getConfigMode() {
+    public MODE getConfigMode() {
         return configReaderMode;
     }
 
@@ -346,7 +345,7 @@ public class PwmApplication {
 
         AlertHandler.alertStartup(this);
 
-        if (getConfigMode() != ConfigurationReader.MODE.RUNNING) {
+        if (getConfigMode() != MODE.RUNNING) {
             final Thread t = new Thread(new Runnable(){
                 public void run() {getHealthMonitor().getHealthRecords(true);}
             },"pwm-Startup-Healthchecker");
@@ -646,13 +645,19 @@ public class PwmApplication {
                 final String classname = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
                 final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, false);
+                final boolean readOnly = pwmApplication.getConfigMode() == MODE.READ_ONLY;
+                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }
         }
 
         public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
+            if (pwmApplication.getConfigMode() == MODE.READ_ONLY) {
+                LOGGER.trace("skipping pwmDBLogger due to read-only mode");
+                return;
+            }
+
             // initialize the pwmDBLogger
             try {
                 final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
@@ -762,6 +767,14 @@ public class PwmApplication {
 
             pwmApplication.statisticsManager = statisticsManager;
         }
+    }
+
+    public enum MODE {
+        NEW,
+        CONFIGURING,
+        RUNNING,
+        READ_ONLY,
+        ERROR
     }
 }
 

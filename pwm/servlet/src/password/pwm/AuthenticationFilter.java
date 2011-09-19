@@ -141,6 +141,7 @@ public class AuthenticationFilter implements Filter {
     )
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
@@ -165,8 +166,8 @@ public class AuthenticationFilter implements Filter {
                 chain.doFilter(req, resp);
                 return;
             } catch (ChaiUnavailableException e) {
-                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
                 ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
                 ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
                 return;
@@ -179,7 +180,7 @@ public class AuthenticationFilter implements Filter {
 
         // try to authenticate user with CAS
         try {
-            final String clearPassUrl = pwmSession.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+            final String clearPassUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
             if (clearPassUrl != null && clearPassUrl.length() > 0) {
                 LOGGER.trace(pwmSession, "checking for authentication via CAS");
                 if (CASAuthenticationHelper.authUserUsingCASClearPass(req,clearPassUrl)) {
@@ -189,8 +190,8 @@ public class AuthenticationFilter implements Filter {
                 }
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
             ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
@@ -201,8 +202,8 @@ public class AuthenticationFilter implements Filter {
         }
 
         // user is not logged in, and should be (otherwise this filter would not be invoked).
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
-            final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmSession.getConfig());
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
+            final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmApplication.getConfig());
 
             resp.setHeader("WWW-Authenticate", "Basic realm=\"" + displayMessage + "\"");
             resp.setStatus(401);
@@ -225,19 +226,19 @@ public class AuthenticationFilter implements Filter {
             final String password,
             final String context,
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final boolean secure
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         final long methodStartTime = System.currentTimeMillis();
-        final PwmApplication theManager = pwmSession.getPwmApplication();
-        final StatisticsManager statisticsManager = theManager.getStatisticsManager();
+        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final IntruderManager intruderManager = theManager.getIntruderManager();
+        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
 
         //see if we need to a contextless search.
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, context);
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
         } catch (PwmOperationalException e) {
             intruderManager.addBadAddressAttempt(pwmSession);
             intruderManager.addBadUserAttempt(username, pwmSession);
@@ -251,7 +252,7 @@ public class AuthenticationFilter implements Filter {
         intruderManager.checkAddress(pwmSession);
 
         try {
-            testCredentials(userDN, password, pwmSession, theManager);
+            testCredentials(userDN, password, pwmSession, pwmApplication);
         } catch (PwmOperationalException e) {
             // auth failed, presumably due to wrong password.
             ssBean.setAuthenticated(false);
@@ -275,10 +276,10 @@ public class AuthenticationFilter implements Filter {
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
 
         //attempt to add the object class to the user
-        Helper.addConfiguredUserObjectClass(userDN, pwmSession);
+        Helper.addConfiguredUserObjectClass(userDN, pwmSession, pwmApplication);
 
         // update the actor user info bean
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, userDN, password);
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);
 
         if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
@@ -292,8 +293,8 @@ public class AuthenticationFilter implements Filter {
         intruderManager.addGoodAddressAttempt(pwmSession);
         intruderManager.addGoodUserAttempt(userDN, pwmSession);
 
-        if (pwmSession.getPwmApplication().getStatisticsManager() != null) {
-            pwmSession.getPwmApplication().getStatisticsManager().updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME, TimeDuration.fromCurrent(methodStartTime).getTotalMilliseconds());
+        if (pwmApplication.getStatisticsManager() != null) {
+            pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_AUTHENTICATION_TIME, TimeDuration.fromCurrent(methodStartTime).getTotalMilliseconds());
         }
 
     }
@@ -302,13 +303,13 @@ public class AuthenticationFilter implements Filter {
             final String userDN,
             final String password,
             final PwmSession pwmSession,
-            final PwmApplication theManager
+            final PwmApplication pwmApplication
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         LOGGER.trace(pwmSession, "beginning testCredentials process");
 
-        final boolean alwaysUseProxy = pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ALWAYS_USE_PROXY);
-        final boolean ldapIsEdirectory = theManager.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
+        final boolean alwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LDAP_ALWAYS_USE_PROXY);
+        final boolean ldapIsEdirectory = pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
 
         if (userDN == null || userDN.length() < 1) {
             final String errorMsg = "attempt to authenticate with null userDN";
@@ -324,7 +325,7 @@ public class AuthenticationFilter implements Filter {
 
         if (alwaysUseProxy && ldapIsEdirectory) { //try authenticating user by binding as admin proxy, and using ldap COMPARE operation.
             LOGGER.trace(pwmSession, "attempting authentication using ldap compare operation");
-            final ChaiProvider provider = theManager.getProxyChaiProvider();
+            final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
             final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);
 
             try {
@@ -348,7 +349,7 @@ public class AuthenticationFilter implements Filter {
                     final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                     LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                    theManager.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
+                    pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
                     pwmSession.getSessionStateBean().setSessionError(errorInformation);
                     throw new PwmUnrecoverableException(errorInformation);
                 }
@@ -371,7 +372,7 @@ public class AuthenticationFilter implements Filter {
                 final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                 LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                theManager.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
+                pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
             }
@@ -385,8 +386,10 @@ public class AuthenticationFilter implements Filter {
             final HttpServletRequest req,
             final BasicAuthInfo basicAuthInfo
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         //make sure user session isn't already authenticated
@@ -400,7 +403,7 @@ public class AuthenticationFilter implements Filter {
 
         //user isn't already authed and has an auth header, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header");
-        authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, pwmSession, req.isSecure());
+        authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, pwmSession, pwmApplication, req.isSecure());
 
         pwmSession.getSessionStateBean().setOriginalBasicAuthInfo(basicAuthInfo);
     }
@@ -428,9 +431,11 @@ public class AuthenticationFilter implements Filter {
     public static void authUserWithUnknownPassword(
             final ChaiUser theUser,
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final boolean secure
     )
-            throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException
+    {
         LOGGER.trace(pwmSession, "beginning auth processes for user with unknown password");
         if (theUser == null || theUser.getEntryDN() == null) {
             throw new NullPointerException("invalid user (null)");
@@ -446,7 +451,7 @@ public class AuthenticationFilter implements Filter {
                 LOGGER.debug(pwmSession, "successfully retrieved password from directory");
             }
         } catch (Exception e) {
-            if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS) && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS) && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                 LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
             } else {
                 LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
@@ -457,11 +462,11 @@ public class AuthenticationFilter implements Filter {
         if (currentPass == null || currentPass.length() <= 0) {
             LOGGER.debug(pwmSession, "attempting to set temporary random password");
             try {
-                final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, theUser);
+                final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, pwmSession.getSessionStateBean().getLocale(), theUser);
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user
-                currentPass = RandomPasswordGenerator.createRandomPassword(pwmSession);
+                currentPass = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
 
                 // write the random password for the user.
                 try {
@@ -489,7 +494,7 @@ public class AuthenticationFilter implements Filter {
 
         // mark the session as being authenticated
         try {
-            authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, secure);
+            authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
         } catch (PwmOperationalException e) {
             final String errorStr = "unable to authenticate user with temporary or retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
             LOGGER.error(errorStr);
@@ -497,7 +502,7 @@ public class AuthenticationFilter implements Filter {
         }
 
         // repopulate the uib, including setting the currentPass as the current password.
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, theUser.getEntryDN(), currentPass);
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, theUser.getEntryDN(), currentPass);
 
         // get the uib out of the session again (it may have been replaced) and mark
         // the password as expired to force a user password change.

@@ -53,7 +53,7 @@
         user. If you do not have the appropriate directory privileges, this information may not be accurate.</p>
 
     <% //check to see if any locations are configured.
-        if (!PwmSession.getPwmSession(session).getConfig().getLoginContexts().isEmpty()) {
+        if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
     %>
     <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
     <select name="context">
@@ -130,10 +130,10 @@
     </tr>
     <tr>
         <td class="key">
-            <%= pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
+            <%= ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE)%>
         </td>
         <td>
-            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().get(pwmSession.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE))) %>
+            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getAllUserAttributes().get(ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE))) %>
         </td>
     </tr>
     <tr>
@@ -307,7 +307,7 @@
         <td>
             <ul>
                 <%
-                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), pwmSession.getPwmApplication().getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
+                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
                 <% for (final String requirementLine : requirementLines) { %>
                 <li><%=requirementLine%>
                 </li>

@@ -27,17 +27,13 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.CrFactory;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.ContextManager;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.*;
 
@@ -55,16 +51,6 @@ public class Configuration implements Serializable {
     private final StoredConfiguration storedConfiguration;
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
-
-// -------------------------- STATIC METHODS --------------------------
-
-    public static Configuration getConfig(final HttpSession session) throws PwmUnrecoverableException {
-        return ContextManager.getPwmApplication(session).getConfig();
-    }
-
-    public static Configuration getConfig(final HttpServletRequest request) throws PwmUnrecoverableException {
-        return ContextManager.getPwmApplication(request).getConfig();
-    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

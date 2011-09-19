@@ -86,11 +86,12 @@ public class Validator {
     public static boolean testPasswordAgainstPolicy(
             final String password,
             final PwmSession pwmSession,
-            final boolean testOldPassword
+            final PwmApplication pwmApplication
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmPasswordPolicy policy = pwmSession.getUserInfoBean().getPasswordPolicy();
-        return testPasswordAgainstPolicy(password, pwmSession, testOldPassword, policy, true);
+        final String oldPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+        return testPasswordAgainstPolicy(password, oldPassword, pwmSession, pwmApplication, policy, true);
     }
 
     /**
@@ -98,7 +99,6 @@ public class Validator {
      * are performed here.
      *
      * @param password        desired new password
-     * @param testOldPassword if the old password should be tested, the old password will be retrieved from the pwmSession
      * @param pwmSession      current pwmSesssion of user being tested.
      * @param policy          to be used during the test
      * @return true if the password is okay, never returns false.
@@ -110,13 +110,14 @@ public class Validator {
      */
     public static boolean testPasswordAgainstPolicy(
             final String password,
+            final String oldPassword,
             final PwmSession pwmSession,
-            final boolean testOldPassword,
+            final PwmApplication pwmApplication,
             final PwmPasswordPolicy policy,
             final boolean testAgainstLdap
     )
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
-        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, pwmSession, testOldPassword, policy, pwmSession.getPwmApplication());
+        final List<ErrorInformation> errorResults = pwmPasswordPolicyValidator(password, oldPassword, pwmSession, policy, pwmApplication);
 
         if (!errorResults.isEmpty()) {
             throw new PwmDataValidationException(errorResults.iterator().next());
@@ -131,8 +132,8 @@ public class Validator {
             } catch (UnsupportedOperationException e) {
                 LOGGER.trace(pwmSession, "Unsupported operation was thrown while validating password: " + e.toString());
             } catch (ChaiUnavailableException e) {
-                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while validating password: " + e.toString());
                 throw e;
             } catch (ChaiPasswordPolicyException e) {
@@ -383,7 +384,6 @@ public class Validator {
      * are performed here.
      *
      * @param password        desired new password
-     * @param testOldPassword if the old password should be tested, the old password will be retreived from the pwmSession
      * @param pwmSession      current pwmSession of user being tested.
      * @param policy          to be used during the test
      * @param pwmApplication  PWM PwmApplication (needed for access to seedlist/wordlists when pwmSession is null)
@@ -391,12 +391,12 @@ public class Validator {
      */
     public static List<ErrorInformation> pwmPasswordPolicyValidator(
             final String password,
+            final String oldPassword,
             final PwmSession pwmSession,
-            final boolean testOldPassword,
             final PwmPasswordPolicy policy,
             final PwmApplication pwmApplication
     ) throws PwmUnrecoverableException {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, pwmSession, testOldPassword, policy, pwmApplication);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, pwmSession,  policy, pwmApplication);
         if (pwmApplication != null) {
             final List<ErrorInformation> externalResults = Helper.invokeExternalRuleMethods(pwmApplication.getConfig(), pwmSession, policy, password);
             internalResults.addAll(externalResults);
@@ -407,8 +407,8 @@ public class Validator {
 
     private static List<ErrorInformation> internalPwmPolicyValidator(
             final String password,
+            final String oldPassword,
             final PwmSession pwmSession,
-            final boolean testOldPassword,
             final PwmPasswordPolicy policy,
             final PwmApplication pwmApplication
     ) throws PwmUnrecoverableException {
@@ -422,8 +422,7 @@ public class Validator {
         final PasswordCharCounter charCounter = new PasswordCharCounter(password);
 
         //check against old password
-        if (testOldPassword) {
-            final String oldPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+        if (oldPassword != null && oldPassword.length() > 0) {
             if (oldPassword != null && oldPassword.length() > 0) {
                 if (oldPassword.equalsIgnoreCase(password)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASOLD));

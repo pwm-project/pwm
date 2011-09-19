@@ -45,7 +45,7 @@
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final ConfigurationReader.MODE configMode = ContextManager.getPwmApplication(session).getConfigMode(); %>
+<% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getConfigMode(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript">
@@ -58,7 +58,7 @@
         PWM Configuration Editor
     </div>
     <div id="header-title" style="text-align: right;">
-        <% if (configMode == ConfigurationReader.MODE.CONFIGURING || configMode == ConfigurationReader.MODE.NEW) { %>
+        <% if (configMode == PwmApplication.MODE.CONFIGURING || configMode == PwmApplication.MODE.NEW) { %>
         Editing Live Configuration
         <% } else { %>
         Editing In Memory Configuration
@@ -288,7 +288,7 @@ function buildMenuBar() {
     { // Actions
         var actionsMenu = new dijit.Menu({});
 
-    <% if (ContextManager.getPwmApplication(session).getConfigMode() == ConfigurationReader.MODE.RUNNING) { %>
+    <% if (ContextManager.getPwmApplication(session).getConfigMode() == PwmApplication.MODE.RUNNING) { %>
         actionsMenu.addChild(new dijit.MenuItem({
             label: "Finish Editing",
             onClick: function() {

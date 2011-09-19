@@ -26,9 +26,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.bean.ConfigManagerBean;
-import password.pwm.config.ConfigurationReader;
 import password.pwm.config.Message;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -53,6 +54,7 @@ public class ConfigUploadServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
         boolean success = false;
@@ -86,12 +88,12 @@ public class ConfigUploadServlet extends TopServlet {
 
         pwmSession.getSessionStateBean().setSessionError(null);
         pwmSession.getSessionStateBean().setForwardURL(req.getContextPath() + "/config/ConfigManager");
-        if (pwmSession.getPwmApplication().getConfigMode() == ConfigurationReader.MODE.RUNNING) {
+        if (pwmApplication.getConfigMode() == PwmApplication.MODE.RUNNING) {
             configManagerBean.setEditMode(ConfigManagerServlet.EDIT_MODE.SETTINGS);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"");
         } else {
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"Please wait a moment for PWM to restart.");
-            ConfigManagerServlet.saveConfiguration(pwmSession,req.getSession().getServletContext());
+            ConfigManagerServlet.saveConfiguration(pwmSession,pwmApplication,req.getSession().getServletContext());
         }
 
         ServletHelper.forwardToSuccessPage(req,resp);

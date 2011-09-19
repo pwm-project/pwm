@@ -23,10 +23,7 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
-import password.pwm.SessionFilter;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -50,6 +47,8 @@ public class LogoutServlet extends TopServlet {
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         LOGGER.debug(pwmSession,debugMsg);
         pwmSession.unauthenticateUser();
 
@@ -63,7 +62,7 @@ public class LogoutServlet extends TopServlet {
         }
 
         { // if the logout url hasn't been set then try seeing if one has been configured.
-            final String configuredLogoutURL = pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT);
+            final String configuredLogoutURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT);
             if (configuredLogoutURL != null && configuredLogoutURL.length() > 0) {
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + configuredLogoutURL );
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(configuredLogoutURL, req, resp));

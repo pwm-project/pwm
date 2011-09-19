@@ -37,7 +37,7 @@
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger(); %>
+<% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <script type="text/javascript">
     var advancedPanelVisible = false;
@@ -67,13 +67,13 @@
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
     timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
-    <%= SimpleDateFormat.getInstance().format(new Date(PwmSession.getPwmSession(session).getPwmApplication().getPwmDBLogger().getTailTimestamp())) %>
+    <%= SimpleDateFormat.getInstance().format(new Date(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailTimestamp())) %>
     .
 </p>
 
 <p>
     The pwmDB is configured to capture events of level
-    <b><%=PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
+    <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
     </b> and higher.
 </p>
 <br class="clear"/>

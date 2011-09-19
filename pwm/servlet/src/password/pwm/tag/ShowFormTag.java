@@ -23,6 +23,8 @@
 package password.pwm.tag;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.Display;
@@ -58,7 +60,10 @@ public class ShowFormTag extends TagSupport {
     private static String getForm(
             final List<FormConfiguration> formFields,
             final Properties values,
-            final PwmSession pwmSession) throws PwmUnrecoverableException {
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
         if (formFields == null) {
             return "";
         }
@@ -66,9 +71,9 @@ public class ShowFormTag extends TagSupport {
         final StringBuilder sb = new StringBuilder();
 
         for (final FormConfiguration formField : formFields) {
-            sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName(), ""), false, pwmSession));
+            sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName(), ""), false, pwmSession, pwmApplication));
             if (formField.isConfirmationRequired()) {
-                sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName() + "_confirm", ""), true, pwmSession));
+                sb.append(getFormLine(formField, values.getProperty(formField.getAttributeName() + "_confirm", ""), true, pwmSession, pwmApplication));
             }
         }
         return sb.toString();
@@ -78,10 +83,13 @@ public class ShowFormTag extends TagSupport {
             final FormConfiguration param,
             final String value,
             final boolean confirm,
-            final PwmSession pwmSession
-    ) throws PwmUnrecoverableException {
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException
+    {
         final StringBuilder sb = new StringBuilder();
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         {
@@ -157,9 +165,10 @@ public class ShowFormTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
             final Properties lastValues = pwmSession.getSessionStateBean().getLastParameterValues();
-            final String formText = getForm(this.getForm(pwmSession), lastValues, pwmSession);
+            final String formText = getForm(this.getForm(pwmSession, pwmApplication), lastValues, pwmSession, pwmApplication);
 
             pageContext.getOut().write(formText);
         } catch (Exception e) {
@@ -170,9 +179,9 @@ public class ShowFormTag extends TagSupport {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private List<FormConfiguration> getForm(final PwmSession pwmSession) throws PwmUnrecoverableException {
+    private List<FormConfiguration> getForm(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         if (formName.equalsIgnoreCase("newguest")) {
-            return pwmSession.getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, pwmSession.getSessionStateBean().getLocale());
+            return pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, pwmSession.getSessionStateBean().getLocale());
         } else if (formName.equalsIgnoreCase("updateguest")) {
             return pwmSession.getGuestUpdateServletBean().getUpdateParams();
         } else {

@@ -43,7 +43,7 @@
               name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false"
               onreset="handleFormClear();return false">
             <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
-            <% final String reCaptchaPublicKey = password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
+            <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
             <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
             <script type="text/javascript">
                 var RecaptchaOptions = { theme : 'clean' };
@@ -65,12 +65,12 @@
                 <input type="submit" name="verify" class="btn"
                        id="verify_button"
                        value="    <pwm:Display key="Button_Verify"/>    "/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="    <pwm:Display key="Button_Reset"/>    "/>
                 <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                <% if (password.pwm.PwmSession.getPwmSession(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;

@@ -75,7 +75,7 @@ public class StatisticsManager {
 
         try {
             initialize(pwmDB);
-        } catch (PwmDBException e) {
+        } catch (Exception e) {
             LOGGER.error("error loading db statistics values: " + e.getMessage());
         }
     }

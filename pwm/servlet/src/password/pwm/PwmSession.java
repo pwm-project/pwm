@@ -26,6 +26,8 @@ import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -50,18 +52,19 @@ public class PwmSession implements Serializable {
     private long creationTime;
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
-    private ConfigManagerBean configManagerBean = new ConfigManagerBean();
-    private ForgottenPasswordBean forgottenPasswordBean = new ForgottenPasswordBean();
-    private UserInfoBean userInfoBean = new UserInfoBean();
-    private ChangePasswordBean changePasswordBean = new ChangePasswordBean();
-    private SessionManager sessionManager = new SessionManager(this);
-    private SetupResponsesBean setupResponseBean = new SetupResponsesBean();
 
+    private ConfigManagerBean configManagerBean;
+    private ForgottenPasswordBean forgottenPasswordBean;
+    private UserInfoBean userInfoBean;
+    private ChangePasswordBean changePasswordBean;
+    private SetupResponsesBean setupResponseBean;
     private GuestUpdateServletBean guestUpdateServletBean;
+    private UserInformationServletBean userInformationServletBean;
+    private HelpdeskBean helpdeskBean;
+    private NewUserBean newUserBean;
 
-    private UserInformationServletBean userInformationServletBean = new UserInformationServletBean();
-    private HelpdeskBean helpdeskBean = new HelpdeskBean();
-    private NewUserBean newUserBean = new NewUserBean();
+    private Configuration config;
+    private SessionManager sessionManager;
 
     private transient HttpSession httpSession;
 
@@ -97,26 +100,28 @@ public class PwmSession implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private PwmSession() {
-    }
-
     private PwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
-        this.creationTime = System.currentTimeMillis();
         this.httpSession = httpSession;
-        this.getSessionStateBean().setSessionID("");
 
-        final PwmApplication pwmApplication = getPwmApplication();
-        if (pwmApplication != null) {
-            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            if (statisticsManager != null) {
-                String sessionID = getPwmApplication().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
-                try {
-                    sessionID = new BigInteger(sessionID).toString(Character.MAX_RADIX);
-                } catch (Exception e) { /* ignore */ }
-                this.getSessionStateBean().setSessionID(sessionID);
-            }
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
+
+        if (pwmApplication == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
         }
 
+        this.creationTime = System.currentTimeMillis();
+        this.getSessionStateBean().setSessionID("");
+        config = pwmApplication.getConfig();
+        clearAllUserBeans();
+
+        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+        if (statisticsManager != null) {
+            String sessionID = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
+            try {
+                sessionID = new BigInteger(sessionID).toString(Character.MAX_RADIX);
+            } catch (Exception e) { /* ignore */ }
+            this.getSessionStateBean().setSessionID(sessionID);
+        }
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -145,10 +150,12 @@ public class PwmSession implements Serializable {
     public GuestUpdateServletBean getGuestUpdateServletBean() throws PwmUnrecoverableException {
         if (guestUpdateServletBean == null) {
             guestUpdateServletBean = new GuestUpdateServletBean();
-            final List<FormConfiguration> formMap = getConfig().readSettingAsForm(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
-            final String expAttr = getConfig().readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
+            final Configuration config = ContextManager.getContextManager(httpSession).getPwmApplication().getConfig();
+
+            final List<FormConfiguration> formMap = config.readSettingAsForm(PwmSetting.GUEST_FORM, sessionStateBean.getLocale());
+            final String expAttr = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
             if (expAttr != null && expAttr.length() > 0) {
-            	final String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":number:1:5:true:false";
+                final String expConfig = "__accountDuration__:" + "Account Validity Duration (Days)" + ":number:1:5:true:false";
                 try {
                     formMap.add(FormConfiguration.parseConfigString(expConfig));
                 } catch (PwmOperationalException e) {
@@ -156,11 +163,11 @@ public class PwmSession implements Serializable {
                 }
             }
             guestUpdateServletBean.setUpdateParams(Collections.unmodifiableList(formMap));
-            final String namingAttribute = getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             guestUpdateServletBean.setNamingAttribute(namingAttribute);
             Integer dur = 30;
             try {
-	            dur = Integer.parseInt(getConfig().readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
+                dur = Integer.parseInt(config.readSettingAsString(PwmSetting.GUEST_MAX_VALID_DAYS));
             } catch (Exception e) {
             }
             guestUpdateServletBean.setMaximumDuration(dur);
@@ -203,7 +210,6 @@ public class PwmSession implements Serializable {
         changePasswordBean = new ChangePasswordBean();
         setupResponseBean = new SetupResponsesBean();
         configManagerBean = new ConfigManagerBean();
-
         userInformationServletBean = new UserInformationServletBean();
         helpdeskBean = new HelpdeskBean();
         newUserBean = new NewUserBean();
@@ -211,15 +217,7 @@ public class PwmSession implements Serializable {
         if (sessionManager != null) {
             sessionManager.closeConnections();
         }
-        sessionManager = new SessionManager(this);
-    }
-
-    public Configuration getConfig() throws PwmUnrecoverableException {
-        return getPwmApplication().getConfig();
-    }
-
-    public PwmApplication getPwmApplication() throws PwmUnrecoverableException {
-        return ContextManager.getPwmApplication(httpSession);
+        sessionManager = new SessionManager(this, config);
     }
 
     public boolean isValid() {
@@ -295,6 +293,8 @@ public class PwmSession implements Serializable {
     }
 
     public void invalidate() {
+        clearAllUserBeans();
+
         if (httpSession != null) {
             httpSession.invalidate();
         }

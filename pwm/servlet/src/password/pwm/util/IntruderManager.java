@@ -59,7 +59,7 @@ public class IntruderManager implements Serializable {
     private final Map<String, IntruderRecord> addressLockTable = new ConcurrentHashMap<String, IntruderRecord>();
     private final Map<String, IntruderRecord> userLockTable = new ConcurrentHashMap<String, IntruderRecord>();
 
-    private final PwmApplication theManager;
+    private final PwmApplication pwmApplication;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -80,7 +80,7 @@ public class IntruderManager implements Serializable {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public IntruderManager(final PwmApplication pwmApplication) {
-        this.theManager = pwmApplication;
+        this.pwmApplication = pwmApplication;
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -94,7 +94,7 @@ public class IntruderManager implements Serializable {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.incrementIncorrectLogins();
 
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final String addressString = ssBean.getSrcAddress();
         final long resetTime = config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_RESET_TIME) * 1000;
 
@@ -157,7 +157,7 @@ public class IntruderManager implements Serializable {
     }
 
     public void addBadUserAttempt(final String username, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final long resetTime = config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME) * 1000;
 
         if (resetTime <= 0) {
@@ -198,14 +198,14 @@ public class IntruderManager implements Serializable {
         values.put("username", username);
         values.put("attempts", String.valueOf(record.getAttemptCount()));
         values.put("duration", TimeDuration.asCompactString(record.timeRemaining()));
-        AlertHandler.alertIntruder(theManager, values);
+        AlertHandler.alertIntruder(pwmApplication, values);
 
-        theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
 
         try {
-            final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, null);
-            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider());
-            UserHistory.updateUserHistory(pwmSession, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
+            final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, null);
+            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
+            UserHistory.updateUserHistory(pwmSession, pwmApplication, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
             LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
         } catch (ChaiUnavailableException e) {
             LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
@@ -226,9 +226,9 @@ public class IntruderManager implements Serializable {
         values.put("address", addressString);
         values.put("attempts", String.valueOf(record.getAttemptCount()));
         values.put("duration", TimeDuration.asCompactString(record.timeRemaining()));
-        AlertHandler.alertIntruder(theManager, values);
+        AlertHandler.alertIntruder(pwmApplication, values);
 
-        theManager.getStatisticsManager().incrementValue(Statistic.LOCKED_ADDRESSES);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.LOCKED_ADDRESSES);
     }
 
     /**

@@ -29,9 +29,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
-import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -62,18 +60,20 @@ public class CaptchaServlet extends TopServlet {
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
 
         //check intruder detection, if it is tripped, send user to error page
         try {
-            pwmSession.getPwmApplication().getIntruderManager().checkAddress(pwmSession);
+            pwmApplication.getIntruderManager().checkAddress(pwmSession);
         } catch (PwmUnrecoverableException e) {
             ServletHelper.forwardToErrorPage(req, resp, false);
             return;
         }
 
-        if (checkRequestForCaptchaSkipCookie(pwmSession, req)) {
+        if (checkRequestForCaptchaSkipCookie(pwmApplication, req)) {
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
-            LOGGER.debug(pwmSession, "browser has a valid " + SKIP_COOKIE_NAME + " cookie value of " + figureSkipCookieValue(pwmSession) + ", skipping captcha check");
+            LOGGER.debug(pwmSession, "browser has a valid " + SKIP_COOKIE_NAME + " cookie value of " + figureSkipCookieValue(pwmApplication) + ", skipping captcha check");
             forwardToOriginalLocation(req, resp);
             return;
         }
@@ -91,8 +91,12 @@ public class CaptchaServlet extends TopServlet {
         }
     }
 
-    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
+    private void handleVerify(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         Validator.validatePwmFormID(req);
 
         final boolean verified;
@@ -107,19 +111,19 @@ public class CaptchaServlet extends TopServlet {
 
         if (verified) { // passed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
-            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
             LOGGER.debug(pwmSession, "captcha passcode verified");
-            pwmSession.getPwmApplication().getIntruderManager().addGoodAddressAttempt(pwmSession);
-            writeCaptchaSkipCookie(pwmSession, resp);
+            pwmApplication.getIntruderManager().addGoodAddressAttempt(pwmSession);
+            writeCaptchaSkipCookie(pwmSession, pwmApplication, resp);
             forwardToOriginalLocation(req, resp);
         } else { //failed captcha
             pwmSession.getSessionStateBean().setPassedCaptcha(false);
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE));
-            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
-            pwmSession.getPwmApplication().getIntruderManager().addBadAddressAttempt(pwmSession);
+            pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
             forwardToJSP(req, resp);
         }
     }
@@ -136,11 +140,13 @@ public class CaptchaServlet extends TopServlet {
     private boolean verifyReCaptcha(
             final HttpServletRequest req,
             final PwmSession pwmSession
-    ) throws
-            PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         final StringBuilder bodyText = new StringBuilder();
-        bodyText.append("privatekey=").append(pwmSession.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
+        bodyText.append("privatekey=").append(pwmApplication.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE));
         bodyText.append("&");
         bodyText.append("remoteip=").append(PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
         bodyText.append("&");
@@ -155,7 +161,7 @@ public class CaptchaServlet extends TopServlet {
             httpPost.setEntity(new StringEntity(bodyText.toString()));
             LOGGER.debug(pwmSession, "sending reCaptcha verification request: " + httpRequestToDebugString(httpPost));
 
-            final HttpResponse httpResponse = Helper.getHttpClient(pwmSession.getConfig()).execute(httpPost);
+            final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new PwmUnrecoverableException(new ErrorInformation(
                         PwmError.ERROR_CAPTCHA_API_ERROR,
@@ -210,8 +216,10 @@ public class CaptchaServlet extends TopServlet {
         ServletHelper.forwardToOriginalRequestURL(req, resp);
     }
 
-    private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletResponse resp) throws PwmUnrecoverableException {
-        final String cookieValue = figureSkipCookieValue(pwmSession);
+    private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final PwmApplication pwmApplication, final HttpServletResponse resp)
+            throws PwmUnrecoverableException
+    {
+        final String cookieValue = figureSkipCookieValue(pwmApplication);
         if (cookieValue != null) {
             final Cookie skipCookie = new Cookie(SKIP_COOKIE_NAME, cookieValue);
             skipCookie.setMaxAge(60 * 60 * 24 * 365);
@@ -220,22 +228,24 @@ public class CaptchaServlet extends TopServlet {
         }
     }
 
-    private static String figureSkipCookieValue(final PwmSession pwmSession) throws PwmUnrecoverableException {
-        String cookieValue = pwmSession.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_COOKIE);
+    private static String figureSkipCookieValue(final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
+        String cookieValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_COOKIE);
         if (cookieValue == null || cookieValue.trim().length() < 1) {
             return null;
         }
 
         if (cookieValue.equals(COOKIE_SKIP_INSTANCE_VALUE)) {
-            cookieValue = pwmSession.getPwmApplication().getInstanceID();
+            cookieValue = pwmApplication.getInstanceID();
 
         }
 
         return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;
     }
 
-    private static boolean checkRequestForCaptchaSkipCookie(final PwmSession pwmSession, final HttpServletRequest req) throws PwmUnrecoverableException {
-        final String cookieValue = figureSkipCookieValue(pwmSession);
+    private static boolean checkRequestForCaptchaSkipCookie(final PwmApplication pwmApplication, final HttpServletRequest req) throws PwmUnrecoverableException {
+        final String cookieValue = figureSkipCookieValue(pwmApplication);
         if (cookieValue != null) {
             final Cookie[] cookies = req.getCookies();
             if (cookies != null) {

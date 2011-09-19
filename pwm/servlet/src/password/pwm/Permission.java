@@ -55,15 +55,15 @@ public enum Permission {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static boolean checkPermission(final Permission permission, final PwmSession pwmSession)
+    public static boolean checkPermission(final Permission permission, final PwmSession pwmSession, final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
             final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
             final PwmSetting setting = permission.getPwmSetting();
-            final boolean result = testQueryMatch(actor, pwmSession.getConfig().readSettingAsString(setting), permission.toString(), pwmSession);
+            final boolean result = testQueryMatch(actor, pwmApplication.getConfig().readSettingAsString(setting), permission.toString(), pwmSession);
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
             pwmSession.getUserInfoBean().setPermission(permission, status);
         }

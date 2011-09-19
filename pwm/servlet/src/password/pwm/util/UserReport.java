@@ -24,36 +24,29 @@ package password.pwm.util;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.CrUtility;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.UserStatusHelper;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.pwmdb.PwmDB;
 
 import java.util.*;
 
 public class UserReport {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UserReport.class);
 
-    private final Configuration config;
-    private final ChaiProvider provider;
-    private final PwmDB pwmDB;
-    private final DatabaseAccessor databaseAccessor;
+    private final PwmApplication pwmApplication;
 
-    public UserReport(Configuration config, ChaiProvider provider, PwmDB pwmDB, DatabaseAccessor databaseAccessor) {
-        this.config = config;
-        this.provider = provider;
-        this.pwmDB = pwmDB;
-        this.databaseAccessor = databaseAccessor;
+    public UserReport(PwmApplication pwmApplication) {
+        this.pwmApplication = pwmApplication;
     }
 
     public Iterator<UserInformation> resultIterator()
@@ -66,7 +59,7 @@ public class UserReport {
     private Set<String> generateListOfUsers()
             throws ChaiUnavailableException, ChaiOperationException
     {
-        final String baseDN = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+        final String baseDN = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         final String usernameSearchFilter = "(objectClass=inetOrgPerson)";
 
         final SearchHelper searchHelper = new SearchHelper();
@@ -74,17 +67,20 @@ public class UserReport {
         searchHelper.setFilter(usernameSearchFilter);
         searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
 
-        final Map<String,Map<String,String>> searchResults = provider.search(baseDN, searchHelper);
+        final Map<String,Map<String,String>> searchResults = pwmApplication.getProxyChaiProvider().search(baseDN, searchHelper);
         return searchResults.keySet();
     }
 
-    private UserInformation readUserInformation(final String userDN) throws ChaiUnavailableException, PwmUnrecoverableException {
+    private UserInformation readUserInformation(final String userDN)
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInformation userInformation = new UserInformation();
         userInformation.setUserDN(userDN);
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN,provider);
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
         final UserInfoBean uiBean = new UserInfoBean();
-        UserStatusHelper.populateUserInfoBean(null, uiBean, config, PwmConstants.DEFAULT_LOCALE ,userDN, null, provider);
+
+        UserStatusHelper.populateUserInfoBean(null, uiBean, pwmApplication, PwmConstants.DEFAULT_LOCALE ,userDN, null, pwmApplication.getProxyChaiProvider());
+        userInformation.setUserInfoBean(uiBean);
 
         userInformation.setGuid(uiBean.getUserGuid());
         userInformation.setHasValidResponses(!uiBean.isRequiresResponseConfig());
@@ -92,12 +88,13 @@ public class UserReport {
         userInformation.setPasswordExpirationTime(uiBean.getPasswordExpirationTime());
         userInformation.setUserDN(uiBean.getUserDN());
         userInformation.setPasswordStatus(uiBean.getPasswordState());
+
         try {
-            userInformation.setResponseSetTime(CrUtility.readUserResponseSet(null, pwmDB, databaseAccessor, config, theUser).getTimestamp());
+            final ResponseSet responseSet = CrUtility.readUserResponseSet(null, pwmApplication, theUser);
+            userInformation.setResponseSetTime(responseSet == null ? null : responseSet.getTimestamp());
         } catch (ChaiOperationException e) {
             LOGGER.debug("error reading response set for " + userDN + " : " + e.getMessage());
         }
-
 
         return userInformation;
     }
@@ -141,6 +138,7 @@ public class UserReport {
 
         private boolean hasValidResponses;
 
+        private UserInfoBean userInfoBean;
 
         public String getUserDN() {
             return userDN;
@@ -199,22 +197,12 @@ public class UserReport {
             this.passwordStatus = passwordStatus;
         }
 
-        public String toCsvLine() {
-            return Helper.toCsvLine(
-                    getUserDN(),
-                    getGuid(),
+        public UserInfoBean getUserInfoBean() {
+            return userInfoBean;
+        }
 
-                    getPasswordExpirationTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getPasswordExpirationTime()),
-                    getPasswordChangeTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getPasswordChangeTime()),
-                    getResponseSetTime() == null ? "n/a" : PwmConstants.PWM_STANDARD_DATE_FORMAT.format(getResponseSetTime()),
-
-                    Boolean.toString(isHasValidResponses()),
-
-                    Boolean.toString(getPasswordStatus().isExpired()),
-                    Boolean.toString(getPasswordStatus().isPreExpired()),
-                    Boolean.toString(getPasswordStatus().isViolatesPolicy()),
-                    Boolean.toString(getPasswordStatus().isWarnPeriod())
-            );
+        public void setUserInfoBean(UserInfoBean userInfoBean) {
+            this.userInfoBean = userInfoBean;
         }
     }
 }

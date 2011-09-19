@@ -69,6 +69,7 @@ public class GuestUpdateServlet extends TopServlet {
     {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!ssBean.isAuthenticated()) {
@@ -77,14 +78,14 @@ public class GuestUpdateServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.GUEST_REGISTRATION, pwmSession)) {
+        if (!Permission.checkPermission(Permission.GUEST_REGISTRATION, pwmSession, pwmApplication)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) {
             ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
@@ -110,8 +111,8 @@ public class GuestUpdateServlet extends TopServlet {
             final HttpServletResponse resp
     ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final Configuration config = pwmSession.getConfig();
-        final PwmApplication theManager = pwmSession.getPwmApplication();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final Configuration config = pwmApplication.getConfig();
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
         final String searchContext = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
@@ -202,8 +203,9 @@ public class GuestUpdateServlet extends TopServlet {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         String durationString = null;
         final Properties notifyAttrs = new Properties();
-        final IntruderManager intruderMgr = pwmSession.getPwmApplication().getIntruderManager();
-        final Configuration config = pwmSession.getConfig();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final IntruderManager intruderMgr = pwmApplication.getIntruderManager();
+        final Configuration config = pwmApplication.getConfig();
 
         final List<FormConfiguration> formConfigurations = guBean.getUpdateParams();
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
@@ -224,7 +226,7 @@ public class GuestUpdateServlet extends TopServlet {
 
             // check unique fields against ldap
             final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmSession.getPwmApplication().getProxyChaiProvider(), config, formValues, uniqueAttributes);
+            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, uniqueAttributes);
 
             //update user
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
@@ -284,17 +286,18 @@ public class GuestUpdateServlet extends TopServlet {
         }
 
         //everything good so forward to confirmation page.
-        this.sendUpdateGuestEmailConfirmation(pwmSession, notifyAttrs);
+        this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, notifyAttrs);
         ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
 
-        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
-    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final Properties attrs) throws PwmUnrecoverableException {
-        final PwmApplication theManager = pwmSession.getPwmApplication();
+    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final Properties attrs)
+            throws PwmUnrecoverableException
+    {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_FROM, locale);
@@ -308,7 +311,7 @@ public class GuestUpdateServlet extends TopServlet {
             return;
         }
 
-        theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
     }
 
     private void forwardToJSP(

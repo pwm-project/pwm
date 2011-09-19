@@ -23,6 +23,8 @@
 package password.pwm.tag;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
@@ -289,7 +291,8 @@ public class PasswordRequirementsTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final Configuration config = pwmSession.getConfig();
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final Configuration config = pwmApplication.getConfig();
             final PwmPasswordPolicy passwordPolicy;
             if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
                 passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();

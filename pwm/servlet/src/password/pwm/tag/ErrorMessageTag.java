@@ -23,6 +23,8 @@
 package password.pwm.tag;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -52,15 +54,16 @@ public class ErrorMessageTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
-            final Configuration config = pwmSession.getConfig();
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final Configuration config = pwmApplication.getConfig();
 
             if (error != null) {
                 final String errorMsg;
                 if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
-                    errorMsg = error.toUserStr(pwmSession) + errorDetail;
+                    errorMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
                 }  else {
-                    errorMsg = error.toUserStr(pwmSession);
+                    errorMsg = error.toUserStr(pwmSession, pwmApplication);
                 }
                 final String escapedErrorMsg = StringEscapeUtils.escapeHtml(errorMsg);
                 pageContext.getOut().write(escapedErrorMsg);

@@ -23,6 +23,8 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.Validator;
 import password.pwm.error.ErrorInformation;
@@ -71,16 +73,18 @@ public abstract class TopServlet extends HttpServlet {
             throws ServletException, IOException {
 
         PwmSession pwmSession = null;
+        PwmApplication pwmApplication = null;
         SessionStateBean ssBean = null;
         try {
+            pwmApplication = ContextManager.getPwmApplication(req.getSession());
             pwmSession = PwmSession.getPwmSession(req);
             ssBean = pwmSession.getSessionStateBean();
             setLastParameters(req,ssBean);
             this.processRequest(req, resp);
         } catch (ChaiUnavailableException e) {
             try {
-                pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             } catch (Throwable e1) {
                 // oh well
@@ -92,7 +96,7 @@ public abstract class TopServlet extends HttpServlet {
                 LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
                 try { // try to update stats
                     if (pwmSession != null) {
-                        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                        pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
                     }
                 } catch (Throwable e1) {
                     // oh well

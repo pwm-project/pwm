@@ -35,7 +35,7 @@
 <%
     UserHistory userHistory = new UserHistory(0);
     try {
-        userHistory = UserHistory.readUserHistory(PwmSession.getPwmSession(session));
+        userHistory = UserHistory.readUserHistory(PwmSession.getPwmSession(session),ContextManager.getPwmApplication(session));
     } catch (Exception e) {
     }
     final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
@@ -56,7 +56,7 @@
                     <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, userLocale)).format(new Date(record.getTimestamp())) %>
                 </td>
                 <td>
-                    <%= record.getEventCode().getLocalizedString(PwmSession.getPwmSession(session).getConfig(),userLocale) %>
+                    <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(),userLocale) %>
                 </td>
             </tr>
             <% } %>

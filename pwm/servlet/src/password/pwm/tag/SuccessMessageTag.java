@@ -22,6 +22,8 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.config.Message;
 
@@ -42,10 +44,12 @@ public class SuccessMessageTag extends PwmAbstractTag {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
             final Message successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
             final String successField = pwmSession.getSessionStateBean().getSessionSuccessField();
 
-            final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), successField, pwmSession.getConfig());
+            final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), successField, pwmApplication.getConfig());
             pageContext.getOut().write(errorMsg);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

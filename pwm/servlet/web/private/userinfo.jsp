@@ -133,7 +133,7 @@
             <%
                 ResponseSet userResponses = null;
                 try {
-                    userResponses = CrUtility.readUserResponseSet(pwmSession, pwmSession.getSessionManager().getActor());
+                    userResponses = CrUtility.readUserResponseSet(pwmSession, ContextManager.getPwmApplication(session), pwmSession.getSessionManager().getActor());
                 } catch (ChaiUnavailableException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 } catch (PwmUnrecoverableException e) {
@@ -211,7 +211,7 @@
             Logout URL
         </td>
         <td>
-            <%= ssBean.getLogoutURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
+            <%= ssBean.getLogoutURL() == null ? ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
         </td>
     </tr>
     <tr>
@@ -219,7 +219,7 @@
             Forward URL
         </td>
         <td>
-            <%= ssBean.getForwardURL() == null ? pwmSession.getConfig().readSettingAsString(PwmSetting.URL_FORWARD) : ssBean.getForwardURL() %>
+            <%= ssBean.getForwardURL() == null ? ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.URL_FORWARD) : ssBean.getForwardURL() %>
         </td>
     </tr>
 </table>

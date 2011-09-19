@@ -104,18 +104,19 @@ public class CommandServlet extends TopServlet {
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final HealthMonitor healthMonitor = pwmSession.getPwmApplication().getHealthMonitor();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
 
         boolean refreshImmediate = false;
         {
             final String refreshImmediateParam = Validator.readStringFromRequest(req, "refreshImmediate");
             if (refreshImmediateParam != null && refreshImmediateParam.equalsIgnoreCase("true")) {
-                if (pwmSession.getPwmApplication().getConfigMode() == ConfigurationReader.MODE.CONFIGURING) {
+                if (pwmApplication.getConfigMode() == PwmApplication.MODE.CONFIGURING) {
                     LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURING)");
                     refreshImmediate = true;
                 } else {
                     try {
-                        refreshImmediate = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
+                        refreshImmediate = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
                     } catch (Exception e) {
                         LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
                     }
@@ -141,14 +142,17 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         if (!preCheckUser(req, resp)) {
             return;
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getPwmApplication().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
+        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
 
         if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
@@ -233,14 +237,17 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         if (!preCheckUser(req, resp)) {
             return;
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!checkProfile(pwmSession)) {
+        if (!checkProfile(pwmSession, pwmApplication)) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_PROFILE, req, resp));
         } else {
             processContinue(req, resp);
@@ -248,22 +255,23 @@ public class CommandServlet extends TopServlet {
     }
 
     private static boolean checkProfile(
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
-        if (!Helper.testUserMatchQueryString(pwmSession.getPwmApplication().getProxyChaiProvider(), userDN, pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
+        if (!Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
             LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkProfile due to query match");
             return true;
         }
 
-        final String checkProfileQueryMatch = pwmSession.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
+        final String checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
         boolean checkProfileRequired = false;
 
         if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
-            if (Helper.testUserMatchQueryString(pwmSession.getPwmApplication().getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
+            if (Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
                 LOGGER.info(pwmSession, "checkProfiles: " + userDN + " matches 'checkProfiles query match', update profile will be required by user");
                 checkProfileRequired = true;
             } else {
@@ -271,7 +279,7 @@ public class CommandServlet extends TopServlet {
             }
         } else {
             LOGGER.trace("no checkProfiles query match configured, will check to see if form attributes have values");
-            final List<FormConfiguration> updateFormFields = pwmSession.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
+            final List<FormConfiguration> updateFormFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
 
             // populate the map with attribute values from the uiBean, which was populated through ldap.
             final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
@@ -294,18 +302,20 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
         if (!preCheckUser(req, resp)) {
             return;
         }
 
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
         if (checkIfPasswordExpired(pwmSession) || checkPasswordWarn(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmSession.getPwmApplication().getProxyChaiProvider(), pwmSession.getConfig(), pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
+        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession)) {
+        } else if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession, pwmApplication)) {
             processCheckProfile(req, resp);
         } else {
             processContinue(req, resp);
@@ -320,11 +330,11 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final PwmApplication theManager = pwmSession.getPwmApplication();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
         //check if user has expired password, and expirecheck during auth is turned on.
         if (ssBean.isAuthenticated()) {
-            if (uiBean.isRequiresNewPassword() || (theManager.getConfig().readSettingAsBoolean(PwmSetting.EXPIRE_CHECK_DURING_AUTH) && checkIfPasswordExpired(pwmSession))) {
+            if (uiBean.isRequiresNewPassword() || (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EXPIRE_CHECK_DURING_AUTH) && checkIfPasswordExpired(pwmSession))) {
                 if (uiBean.isRequiresNewPassword()) {
                     LOGGER.trace(pwmSession, "user password has been marked as requiring a change");
                 } else {
@@ -337,7 +347,7 @@ public class CommandServlet extends TopServlet {
             }
 
             //check if we force response configuration, and user requires it.
-            if (uiBean.isRequiresResponseConfig() && (theManager.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
+            if (uiBean.isRequiresResponseConfig() && (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirecting to setupresponses page");
                 final String setupResponsesURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
 
@@ -355,7 +365,7 @@ public class CommandServlet extends TopServlet {
 
         String redirectURL = ssBean.getForwardURL();
         if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = theManager.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
+            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
         }
 
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);

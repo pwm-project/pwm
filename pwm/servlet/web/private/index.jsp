@@ -36,54 +36,53 @@
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
-        <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request))) { %>
+        <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a></h2>
         <p><pwm:Display key="Long_Title_ChangePassword"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
-        <% if (Permission.checkPermission(Permission.SETUP_RESPONSE, PwmSession.getPwmSession(request))) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
+        <% if (Permission.checkPermission(Permission.SETUP_RESPONSE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a></h2>
         <p><pwm:Display key="Long_Title_SetupResponses"/></p>
         <% } %>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
         <h2><a href="<pwm:url url='UpdateProfile'/>" class="tablekey"><pwm:Display key="Title_UpdateProfile"/></a></h2>
         <p><pwm:Display key="Long_Title_UpdateProfile"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
-        <h2><a href="<pwm:url url='history.jsp'/>" class="tablekey"><pwm:Display key="Title_UserEventHistory"/></a></h2>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>        <h2><a href="<pwm:url url='history.jsp'/>" class="tablekey"><pwm:Display key="Title_UserEventHistory"/></a></h2>
         <p><pwm:Display key="Long_Title_UserEventHistory"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
         <h2><a href="<pwm:url url='Shortcuts'/>" class="tablekey"><pwm:Display key="Title_Shortcuts"/></a></h2>
         <p><pwm:Display key="Long_Title_Shortcuts"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
-        <% if (Permission.checkPermission(Permission.PEOPLE_SEARCH, PwmSession.getPwmSession(request))) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
+        <% if (Permission.checkPermission(Permission.PEOPLE_SEARCH, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='PeopleSearch'/>" class="tablekey"><pwm:Display key="Title_PeopleSearch"/></a></h2>
         <p><pwm:Display key="Long_Title_PeopleSearch"/></p>
         <% } %>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
         <h2><a href="<pwm:url url='userinfo.jsp'/>" class="tablekey"><pwm:Display key="Title_UserInformation"/></a></h2>
         <p><pwm:Display key="Long_Title_UserInformation"/></p>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
-        <% if (Permission.checkPermission(Permission.HELPDESK, PwmSession.getPwmSession(request))) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
+        <% if (Permission.checkPermission(Permission.HELPDESK, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='Helpdesk'/>" class="tablekey"><pwm:Display key="Title_Helpdesk"/></a></h2>
         <p><pwm:Display key="Long_Title_Helpdesk"/></p>
         <% } %>
         <% } %>
 
-        <% if (Configuration.getConfig(session) != null && Configuration.getConfig(session).readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
-        <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request))) { %>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
+        <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/></a></h2>
         <p><pwm:Display key="Long_Title_GuestRegistration"/></p>
 
@@ -92,7 +91,7 @@
         <% } %>
         <% } %>
 
-        <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request))) { %>
+        <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>
         <p><pwm:Display key="Long_Title_Admin"/></p>
         <% } %>

@@ -43,11 +43,14 @@ public class HelpdeskServlet extends TopServlet {
     private static final int DEFAULT_INPUT_LENGTH = 1024;
 
     @Override
-    protected void processRequest(HttpServletRequest req,
-                                  HttpServletResponse resp) throws ServletException, IOException,
-            ChaiUnavailableException, PwmUnrecoverableException {
-
+    protected void processRequest(
+            HttpServletRequest req,
+            HttpServletResponse resp
+    )
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         ssBean.setSessionSuccess(null, null);
 
@@ -57,7 +60,7 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.HELPDESK, pwmSession)) {
+        if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -96,9 +99,10 @@ public class HelpdeskServlet extends TopServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
-        final Configuration config = pwmSession.getConfig();
+        final Configuration config = pwmApplication.getConfig();
 
         helpdeskBean.setUserExists(false);
         final String username = Validator.readStringFromRequest(req, "username", 255);
@@ -112,7 +116,7 @@ public class HelpdeskServlet extends TopServlet {
 
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, context);
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
         } catch (PwmOperationalException e) {
             LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
             helpdeskBean.setUserExists(false);
@@ -122,7 +126,7 @@ public class HelpdeskServlet extends TopServlet {
         helpdeskBean.setUserExists(true);
         final UserInfoBean uiBean = new UserInfoBean();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, config, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider());
+        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider());
         helpdeskBean.setUserInfoBean(uiBean);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());
@@ -141,8 +145,8 @@ public class HelpdeskServlet extends TopServlet {
 
         helpdeskBean.setPwmIntruder(false);
         try {
-            pwmSession.getPwmApplication().getIntruderManager().checkUser(userDN,pwmSession);
-            pwmSession.getPwmApplication().getIntruderManager().checkUser(uiBean.getUserID(),pwmSession);
+            pwmApplication.getIntruderManager().checkUser(userDN,pwmSession);
+            pwmApplication.getIntruderManager().checkUser(uiBean.getUserID(),pwmSession);
         } catch (Exception e) {
             helpdeskBean.setPwmIntruder(true);
         }
@@ -150,7 +154,7 @@ public class HelpdeskServlet extends TopServlet {
         {
             UserHistory userHistory = new UserHistory(0);
             try {
-                userHistory = UserHistory.readUserHistory(pwmSession, theUser);
+                userHistory = UserHistory.readUserHistory(pwmSession, pwmApplication, theUser);
             } catch (Exception e) {
                 LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
             }
@@ -167,18 +171,16 @@ public class HelpdeskServlet extends TopServlet {
      * @throws IOException
      * @throws ServletException
      */
-    private void processResetPassword(final HttpServletRequest req,
-                                      final HttpServletResponse resp)
-            throws PwmUnrecoverableException,
-            ChaiUnavailableException,
-            IOException,
-            ServletException {
+    private void processResetPassword(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication theManager = pwmSession.getPwmApplication();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
-
-
 
         if (!helpdeskBean.isUserExists()) {
             final String errorMsg = "password set request, but no user result in search";
@@ -199,9 +201,10 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENFORCE_PASSWORD_POLICY)) {
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENFORCE_PASSWORD_POLICY)) {
             try {
-                Validator.testPasswordAgainstPolicy(password1, pwmSession, false, helpdeskBean.getUserInfoBean().getPasswordPolicy(), false);
+                final PwmPasswordPolicy userPasswordPolicy = helpdeskBean.getUserInfoBean().getPasswordPolicy();
+                Validator.testPasswordAgainstPolicy(password1, null, pwmSession, pwmApplication, userPasswordPolicy, false);
             } catch (PwmDataValidationException e) {
                 ssBean.setSessionError(new ErrorInformation(e.getErrorInformation().getError()));
                 this.forwardToJSP(req, resp);
@@ -215,15 +218,15 @@ public class HelpdeskServlet extends TopServlet {
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
             chaiUser.setPassword(password1);
             {
-                final ChaiProvider proxyProvider = theManager.getProxyChaiProvider();
+                final ChaiProvider proxyProvider = pwmApplication.getProxyChaiProvider();
                 final ChaiUser proxiedChaiUser = ChaiFactory.createChaiUser(userDN, proxyProvider);
                 final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, proxiedChaiUser, Record.Event.HELPDESK_SET_PASSWORD, message);
-                Helper.updateLastUpdateAttribute(pwmSession, chaiUser);
+                UserHistory.updateUserHistory(pwmSession, pwmApplication, Record.Event.HELPDESK_SET_PASSWORD, message);
+                Helper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedChaiUser);
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while resetting password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {
@@ -260,7 +263,7 @@ public class HelpdeskServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication theManager = pwmSession.getPwmApplication();
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
@@ -273,7 +276,7 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        if (!theManager.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) {
             final String errorMsg = "password unlock request, but no helpdesk unlock is not enabled";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
@@ -282,8 +285,8 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        theManager.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserDN(),pwmSession);
-        theManager.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserID(),pwmSession);
+        pwmApplication.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserDN(),pwmSession);
+        pwmApplication.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserID(),pwmSession);
 
         try {
             final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
@@ -291,14 +294,12 @@ public class HelpdeskServlet extends TopServlet {
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
             chaiUser.unlock();
             {
-                final ChaiProvider proxyProvider = theManager.getProxyChaiProvider();
-                final ChaiUser proxiedChaiUser = ChaiFactory.createChaiUser(userDN, proxyProvider);
                 final String message = "(by " + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, proxiedChaiUser, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
+                UserHistory.updateUserHistory(pwmSession, pwmApplication, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
             }
         } catch (ChaiUnavailableException e) {
-            pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmSession.getPwmApplication().setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while resetting password: " + e.toString());
             throw e;
         } catch (ChaiPasswordPolicyException e) {

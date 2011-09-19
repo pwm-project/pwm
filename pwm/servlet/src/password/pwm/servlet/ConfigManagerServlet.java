@@ -60,9 +60,9 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigMode();
+        final PwmApplication.MODE configMode = pwmApplication.getConfigMode();
 
         initialize(pwmSession, ContextManager.getContextManager(req.getSession().getServletContext()).getConfigReader(), configManagerBean);
 
@@ -102,7 +102,7 @@ public class ConfigManagerServlet extends TopServlet {
                 if (doGenerateXml(req, resp)) {
                     return;
                 }
-            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != ConfigurationReader.MODE.RUNNING) {
+            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != PwmApplication.MODE.RUNNING) {
                 doLockConfiguration(req);
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
                 doFinishEditing(req);
@@ -127,7 +127,7 @@ public class ConfigManagerServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final Date configurationLoadTime = configReader.getConfigurationReadTime();
-        if (configReader.getConfigMode() != ConfigurationReader.MODE.RUNNING) {
+        if (configReader.getConfigMode() != PwmApplication.MODE.RUNNING) {
             if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {
                 LOGGER.debug(pwmSession, "initializing configuration bean with configMode=" + configReader.getConfigMode());
                 configManagerBean.setConfigurationLoadTime(configurationLoadTime);
@@ -205,11 +205,11 @@ public class ConfigManagerServlet extends TopServlet {
 
     static void doViewLog(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, IOException, ServletException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigMode();
+        final PwmApplication.MODE configMode = pwmApplication.getConfigMode();
 
-        if (configMode == ConfigurationReader.MODE.RUNNING) {
+        if (configMode == PwmApplication.MODE.RUNNING) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
         }
 
@@ -456,6 +456,7 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req
     )
             throws IOException, ServletException, PwmUnrecoverableException {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
@@ -463,7 +464,7 @@ public class ConfigManagerServlet extends TopServlet {
         storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
 
         try {
-            saveConfiguration(pwmSession,req.getSession().getServletContext());
+            saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
             configManagerBean.setConfiguration(null);
         } catch (PwmUnrecoverableException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
@@ -475,11 +476,12 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req
     )
             throws IOException, ServletException, PwmUnrecoverableException {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final ConfigurationReader.MODE configMode = pwmSession.getPwmApplication().getConfigMode();
+        final PwmApplication.MODE configMode = pwmApplication.getConfigMode();
 
-        if (configMode != ConfigurationReader.MODE.RUNNING) {
+        if (configMode != PwmApplication.MODE.RUNNING) {
             configManagerBean.setErrorInformation(null);
             if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
                 final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
@@ -489,7 +491,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
 
             try {
-                saveConfiguration(pwmSession,req.getSession().getServletContext());
+                saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
             } catch (PwmUnrecoverableException e) {
                 final ErrorInformation errorInfo = e.getErrorInformation();
                 pwmSession.getSessionStateBean().setSessionError(errorInfo);
@@ -503,7 +505,7 @@ public class ConfigManagerServlet extends TopServlet {
         LOGGER.debug(pwmSession, "save configuration operation completed");
     }
 
-    static void saveConfiguration(final PwmSession pwmSession, final ServletContext servletContext)
+    static void saveConfiguration(final PwmSession pwmSession, final PwmApplication pwmApplication, final ServletContext servletContext)
             throws PwmUnrecoverableException {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
@@ -517,8 +519,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            if (pwmSession.getPwmApplication().getConfigMode() != ConfigurationReader.MODE.RUNNING) {
-                final PwmApplication pwmApplication = pwmSession.getPwmApplication();
+            if (pwmApplication.getConfigMode() != PwmApplication.MODE.RUNNING) {
                 ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
                 pwmApplication.setLastLdapFailure(null);
                 ContextManager.getContextManager(servletContext).reinitialize();
@@ -640,17 +641,18 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, ServletException, PwmUnrecoverableException {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
         if (configManagerBean.getEditMode() != EDIT_MODE.NONE) {
             servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
         } else {
-            final Configuration config = PwmSession.getPwmSession(req).getConfig();
-            final ConfigurationReader.MODE configMode = PwmSession.getPwmSession(req).getPwmApplication().getConfigMode();
-            if (config == null || configMode == ConfigurationReader.MODE.NEW) {
+            final Configuration config = pwmApplication.getConfig();
+            final PwmApplication.MODE configMode = pwmApplication.getConfigMode();
+            if (config == null || configMode == PwmApplication.MODE.NEW) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
-            } else if (configMode == ConfigurationReader.MODE.CONFIGURING) {
+            } else if (configMode == PwmApplication.MODE.CONFIGURING) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
             } else {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);

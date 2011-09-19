@@ -30,7 +30,6 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserInformationServletBean;
-import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -62,6 +61,7 @@ public class UserInformationServlet extends TopServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInformationServletBean uisBean = pwmSession.getUserInformationServletBean();
 
@@ -81,7 +81,7 @@ public class UserInformationServlet extends TopServlet {
                 return;
             }
 
-            processUserSearch(pwmSession, username, context);
+            processUserSearch(pwmSession, pwmApplication, username, context);
 
             if (!uisBean.isUserExists()) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
@@ -93,6 +93,7 @@ public class UserInformationServlet extends TopServlet {
 
     private void processUserSearch(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final String username,
             final String context
     )
@@ -102,7 +103,7 @@ public class UserInformationServlet extends TopServlet {
 
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, context);
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
         } catch (PwmOperationalException e) {
             LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
             uisBean.setUserExists(false);
@@ -114,15 +115,14 @@ public class UserInformationServlet extends TopServlet {
         {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-            final Configuration config = pwmSession.getConfig();
-            UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, config, userLocale, userDN, null, provider);
+            UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale, userDN, null, provider);
         }
         uisBean.setUserInfoBean(uiBean);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());
 
         try {
-            uisBean.setResponseSet(CrUtility.readUserResponseSet(pwmSession, theUser));
+            uisBean.setResponseSet(CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading responses for user '" + userDN + "', " + e.getMessage());
         }
@@ -141,7 +141,7 @@ public class UserInformationServlet extends TopServlet {
 
         uisBean.setPwmIntruder(false);
         try {
-            pwmSession.getPwmApplication().getIntruderManager().checkUser(userDN,pwmSession);
+            pwmApplication.getIntruderManager().checkUser(userDN,pwmSession);
         } catch (Exception e) {
             uisBean.setPwmIntruder(true);
         }
@@ -161,7 +161,7 @@ public class UserInformationServlet extends TopServlet {
         {
             uisBean.setPasswordRetrievable(false);
             try {
-                final String usersPassword = ChaiFactory.createChaiUser(userDN, pwmSession.getPwmApplication().getProxyChaiProvider()).readPassword();
+                final String usersPassword = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider()).readPassword();
                 if (usersPassword != null && usersPassword.length() > 0 ) {
                     uisBean.setPasswordRetrievable(true);
                 }

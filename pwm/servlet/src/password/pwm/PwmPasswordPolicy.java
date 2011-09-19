@@ -32,7 +32,6 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -228,22 +227,15 @@ public class PwmPasswordPolicy implements Serializable {
 
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final PwmSession pwmSession,
-            final ChaiUser theUser
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final Configuration config = pwmSession.getConfig();
-        return createPwmPasswordPolicy(pwmSession, config, locale, theUser);
-    }
-
-    public static PwmPasswordPolicy createPwmPasswordPolicy(
-            final PwmSession pwmSession,
-            final Configuration config,
+            final PwmApplication pwmApplication,
             final Locale locale,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException
     {
         final long methodStartTime = System.currentTimeMillis();
+        final Configuration config = pwmApplication.getConfig();
+
 
         PwmPasswordPolicy returnPolicy = config.getGlobalPasswordPolicy(locale);
         PwmPasswordPolicy userPolicy = null;

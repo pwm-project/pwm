@@ -71,11 +71,12 @@ public class SetupResponsesServlet extends TopServlet {
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         // fetch the required beans / managers
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final ChallengeSet assignedCs = uiBean.getChallengeSet();
 
-        if (!pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -85,7 +86,7 @@ public class SetupResponsesServlet extends TopServlet {
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         // check to see if the user is permitted to setup responses
-        if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession)) {
+        if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -99,17 +100,17 @@ public class SetupResponsesServlet extends TopServlet {
             return;
         }
 
-        populateBean(pwmSession, assignedCs);
+        populateBean(pwmSession, pwmApplication, assignedCs);
 
         // handle the requested action.
         if ("validateResponses".equalsIgnoreCase(processRequestParam)) {
-            handleValidateResponses(req, resp, pwmSession, assignedCs);
+            handleValidateResponses(req, resp, assignedCs);
             return;
         } else if ("setResponses".equalsIgnoreCase(processRequestParam)) {
-            handleSetupResponses(req, resp, pwmSession, assignedCs);
+            handleSetupResponses(req, resp, assignedCs);
             return;
         } else if ("confirmResponses".equalsIgnoreCase(processRequestParam)) {
-            handleConfirmResponses(req, resp, pwmSession);
+            handleConfirmResponses(req, resp);
             return;
         } else if ("changeResponses".equalsIgnoreCase(processRequestParam)) {
             this.forwardToJSP(req, resp);
@@ -124,7 +125,6 @@ public class SetupResponsesServlet extends TopServlet {
      *
      * @param req          HttpRequest
      * @param resp         HttpResponse
-     * @param pwmSession   An instance of the pwm session
      * @param challengeSet Assigned challenges
      * @throws IOException              for an IO error
      * @throws ServletException         for an http servlet error
@@ -134,23 +134,26 @@ public class SetupResponsesServlet extends TopServlet {
     protected static void handleValidateResponses(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final PwmSession pwmSession,
             final ChallengeSet challengeSet
     )
-            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
         Validator.validatePwmFormID(req);
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES, pwmSession.getConfig());
+        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES, pwmApplication.getConfig());
 
         try {
             // read in the responses from the request
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
-            validateResponses(pwmSession, challengeSet, responseMap);
+            validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
             generateResponseSet(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             success = false;
-            userMessage = e.getErrorInformation().toUserStr(pwmSession);
+            userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
         }
 
         final Map<String, String> outputMap = new HashMap<String, String>();
@@ -170,10 +173,12 @@ public class SetupResponsesServlet extends TopServlet {
     private void handleSetupResponses(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final PwmSession pwmSession,
             final ChallengeSet challengeSet
     )
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         Validator.validatePwmFormID(req);
@@ -183,7 +188,7 @@ public class SetupResponsesServlet extends TopServlet {
         try {
             // build a response set based on the user's challenge set and the html form response.
             responseMap = readResponsesFromHttpRequest(req, pwmSession, challengeSet);
-            validateResponses(pwmSession, challengeSet, responseMap);
+            validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
             responses = generateResponseSet(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
@@ -194,12 +199,12 @@ public class SetupResponsesServlet extends TopServlet {
 
         LOGGER.trace(pwmSession, "user's supplied new responses appear to be acceptable");
 
-        if (pwmSession.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
             pwmSession.getSetupResponseBean().setResponseMap(responseMap);
             this.forwardToConfirmJSP(req, resp);
         } else {
             try {
-                saveResponses(pwmSession, responses);
+                saveResponses(pwmSession, pwmApplication, responses);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
@@ -213,10 +218,13 @@ public class SetupResponsesServlet extends TopServlet {
 
     private void handleConfirmResponses(
             final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmSession pwmSession
+            final HttpServletResponse resp
     )
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    {
+
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
         Validator.validatePwmFormID(req);
 
@@ -224,9 +232,9 @@ public class SetupResponsesServlet extends TopServlet {
         if (responseMap != null && !responseMap.isEmpty()) {
             try {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
-                validateResponses(pwmSession, challengeSet, responseMap);
+                validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
                 final ResponseSet responses = generateResponseSet(pwmSession, challengeSet, responseMap);
-                saveResponses(pwmSession, responses);
+                saveResponses(pwmSession, pwmApplication, responses);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
@@ -238,16 +246,18 @@ public class SetupResponsesServlet extends TopServlet {
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
-    private void saveResponses(final PwmSession pwmSession, final ResponseSet responses)
+    private void saveResponses(final PwmSession pwmSession, final PwmApplication pwmApplication, final ResponseSet responses)
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        CrUtility.writeResponses(pwmSession, responses);
+        final ChaiUser theUser = pwmSession.getSessionManager().getActor();
+        final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
+        CrUtility.writeResponses(pwmSession, pwmApplication, theUser, userGUID, responses);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
-        pwmSession.getPwmApplication().getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
-        UserHistory.updateUserHistory(pwmSession, UserHistory.Record.Event.SET_RESPONSES, null);
+        UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.SET_RESPONSES, null);
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(
@@ -365,6 +375,7 @@ public class SetupResponsesServlet extends TopServlet {
 
     private static void validateResponses(
             final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
             final ChallengeSet challengeSet,
             final Map<Challenge, String> responseMap
     )
@@ -393,8 +404,8 @@ public class SetupResponsesServlet extends TopServlet {
             throw new PwmDataValidationException(errorInfo);
         }
 
-        final boolean applyWordlist = pwmSession.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
-        final WordlistManager wordlistManager = pwmSession.getPwmApplication().getWordlistManager();
+        final boolean applyWordlist = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
+        final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
 
         if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
             for (final Challenge loopChallenge : responseMap.keySet()) {
@@ -485,7 +496,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
     }
 
-    private void populateBean(final PwmSession pwmSession, final ChallengeSet challengeSet)
+    private void populateBean(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChallengeSet challengeSet)
             throws PwmUnrecoverableException
     {
         int minRandomSetup;
@@ -493,7 +504,7 @@ public class SetupResponsesServlet extends TopServlet {
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<String, Challenge>();
 
         {
-            minRandomSetup = (int) pwmSession.getConfig().readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+            minRandomSetup = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
             if (minRandomSetup != 0 && minRandomSetup < challengeSet.getMinRandomRequired()) {
                 minRandomSetup = challengeSet.getMinRandomRequired();
             }

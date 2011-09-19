@@ -69,12 +69,13 @@ public class AuthorizationFilter implements Filter {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try {
-            hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession);
+            hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
         } catch (Exception e) {
             LOGGER.warn("error during authorization check: " + e.getMessage());
         }

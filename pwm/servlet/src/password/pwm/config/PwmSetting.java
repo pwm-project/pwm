@@ -142,6 +142,8 @@ public enum PwmSetting {
             "ldap.guid.autoAddValue", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
+    LDAP_ALWAYS_USE_PROXY(
+            "ldap.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -551,8 +553,6 @@ public enum PwmSetting {
             "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
             "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false, Level.ADVANCED),
-    EDIRECTORY_ALWAYS_USE_PROXY(
-            "ldap.edirectory.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
 
     // helpdesk
     HELPDESK_ENABLE(
