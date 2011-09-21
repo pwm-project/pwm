@@ -59,4 +59,12 @@
         <!-- uncomment this to log to file <appender-ref ref="PWMfileLogger"/>-->
     </category>
 
+    <category name="org.jasig.cas.client">
+        <priority value="info"/>
+        <!-- possible priority values are "trace,debug,error,warn,fatal" -->
+
+        <appender-ref ref="PWMstdout"/>
+        <!-- uncomment this to log to file <appender-ref ref="PWMfileLogger"/>-->
+    </category>
+
 </log4j:configuration>

@@ -117,6 +117,8 @@ public class ContextManager implements Serializable {
         }
         Helper.pause(1000);
         initialize();
+        Helper.pause(1000);
+        restartRequested = false;
     }
 
     public Set<PwmSession> getPwmSessions() {

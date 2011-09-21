@@ -585,8 +585,11 @@ public class PwmApplication {
             final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
             final String chaiPackageName = ChaiUser.class.getPackage().getName();
             final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
+            final String casPackageName = "org.jasig.cas.client";
+            final Logger casPackageLogger = Logger.getLogger(casPackageName);
             pwmPackageLogger.removeAllAppenders();
             chaiPackageLogger.removeAllAppenders();
+            casPackageLogger.removeAllAppenders();
 
             Exception configException = null;
             boolean configured = false;
@@ -615,6 +618,8 @@ public class PwmApplication {
                     pwmPackageLogger.setLevel(level);
                     chaiPackageLogger.addAppender(consoleAppender);
                     chaiPackageLogger.setLevel(level);
+                    casPackageLogger.addAppender(consoleAppender);
+                    casPackageLogger.setLevel(level);
                     LOGGER.debug("successfully initialized default log4j config at log level " + level.toString());
                 } else {
                     LOGGER.debug("skipping stdout log4j initializtion due to blank setting for log level");
