@@ -39,7 +39,7 @@ import java.util.Map;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int MAX_SIZE = 40 * 1000 * 1000 ;
+    private static final int MAX_SIZE = 50 * 1000 * 1000 ;
     private static final long MAG_AGE_MS = 1000;
     private static final int BULK_EVENT_SIZE = 20 * 1000 * 1000;
 

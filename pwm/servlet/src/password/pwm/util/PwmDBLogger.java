@@ -421,11 +421,20 @@ public class PwmDBLogger {
                 if (eventQueue.isEmpty()) {
                     lastQueueFlushTimestamp = System.currentTimeMillis();
                 }
-                if (eventQueue.size() > MAX_QUEUE_SIZE) {
+
+                if (eventQueue.size() < MAX_QUEUE_SIZE) {
+                    eventQueue.add(event);
+                } else {
+                    final long startEventTime = System.currentTimeMillis();
+                    while (TimeDuration.fromCurrent(startEventTime).isShorterThan(3000)) {
+                        if (eventQueue.size() < MAX_QUEUE_SIZE) {
+                            eventQueue.add(event);
+                            return;
+                        }
+                        Helper.pause(100);
+                    }
                     LOGGER.warn("discarding event due to full write queue: " + event.toString());
-                    return;
                 }
-                eventQueue.add(event);
             }
         }
     }
