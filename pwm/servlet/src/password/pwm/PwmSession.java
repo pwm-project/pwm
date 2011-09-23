@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import org.jasig.cas.client.util.AbstractCasFilter;
 import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -274,6 +275,16 @@ public class PwmSession implements Serializable {
         }
 
         clearAllUserBeans();
+
+        // clear CAS session if it exists.
+        try {
+            if (httpSession.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION) != null) {
+                httpSession.removeAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
+                LOGGER.debug("CAS assertion removed");
+            }
+        } catch (Exception e) {
+            LOGGER.error("error clearing CAS assertion during unauthenticate: " + e.getMessage(),e);
+        }
     }
 
     public SetupResponsesBean getSetupResponseBean() {
