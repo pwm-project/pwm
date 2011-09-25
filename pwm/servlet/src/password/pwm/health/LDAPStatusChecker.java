@@ -62,9 +62,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             if (returnRecords.isEmpty()) {
                 returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
-            }
 
-            if (returnRecords.isEmpty()) { // check test user
                 final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
                 if (hr != null) {
                     returnRecords.add(hr);

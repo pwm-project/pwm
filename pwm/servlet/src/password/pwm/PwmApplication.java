@@ -481,65 +481,111 @@ public class PwmApplication {
         LOGGER.warn("shutting down");
         AlertHandler.alertShutdown(this);
 
-        if (getStatisticsManager() != null) {
-            getStatisticsManager().close();
+        if (statisticsManager != null) {
+            try {
+                getStatisticsManager().close();
+            } catch (Exception e) {
+                LOGGER.error("error closing statisticsManager: " + e.getMessage(),e);
+            }
+            statisticsManager = null;
         }
 
         if (taskMaster != null) {
-            taskMaster.cancel();
+            try {
+                taskMaster.cancel();
+            } catch (Exception e) {
+                LOGGER.error("error closing taskMaster: " + e.getMessage(),e);
+            }
             taskMaster = null;
         }
 
         if (wordlistManager != null) {
-            wordlistManager.close();
+            try {
+                wordlistManager.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing wordlistManager: " + e.getMessage(),e);
+            }
             wordlistManager = null;
         }
 
         if (seedlistManager != null) {
-            seedlistManager.close();
+            try {
+                seedlistManager.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing seedlistManager: " + e.getMessage(),e);
+            }
             seedlistManager = null;
         }
 
         if (sharedHistoryManager != null) {
-            sharedHistoryManager.close();
+            try {
+                sharedHistoryManager.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing sharedHistoryManager: " + e.getMessage(),e);
+            }
             sharedHistoryManager = null;
         }
 
         if (tokenManager != null) {
-            tokenManager.close();
+            try {
+                tokenManager.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing tokenManager: " + e.getMessage(),e);
+            }
             tokenManager = null;
         }
 
         if (emailQueue != null) {
-            emailQueue.close();
+            try {
+                emailQueue.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing emailQueue: " + e.getMessage(),e);
+            }
             emailQueue = null;
         }
 
         if (smsQueue != null) {
-            smsQueue.close();
+            try {
+                smsQueue.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing smsQueue: " + e.getMessage(),e);
+            }
             smsQueue = null;
         }
 
         if (databaseAccessor != null) {
-            databaseAccessor.close();
+            try {
+                databaseAccessor.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing databaseAccessor: " + e.getMessage(),e);
+            }
             databaseAccessor = null;
         }
 
         if (pwmDBLogger != null) {
-            pwmDBLogger.close();
+            try {
+                pwmDBLogger.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing pwmDBLogger: " + e.getMessage(),e);
+            }
             pwmDBLogger = null;
         }
 
         if (healthMonitor != null) {
-            healthMonitor.close();
+            try {
+                healthMonitor.close();
+            } catch (Exception e) {
+                LOGGER.error("error closing healthMonitor: " + e.getMessage(),e);
+            }
             healthMonitor = null;
+
         }
 
         if (pwmDB != null) {
             try {
                 pwmDB.close();
             } catch (Exception e) {
-                LOGGER.fatal("error destroying pwm context DB: " + e, e);
+                LOGGER.fatal("error closing pwmDB: " + e, e);
             }
             pwmDB = null;
         }

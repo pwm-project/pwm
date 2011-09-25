@@ -199,12 +199,11 @@ public class TokenManager implements PwmService {
     private void cleanupOutdatedTokens() throws
             PwmUnrecoverableException, PwmOperationalException
     {
-        //LOGGER.trace("beginning cleanup of outdated tokens (tokens older than " + maxTokenAgeMS + "ms)");
         final long startTime = System.currentTimeMillis();
         int cleanedTokens = 0;
         List<String> tempKeyList = new ArrayList<String>();
         tempKeyList.addAll(discoverOutdatedTokenKeys(100));
-        while (!tempKeyList.isEmpty()) {
+        while (status() == STATUS.OPEN && !tempKeyList.isEmpty()) {
             for (final String loopKey : tempKeyList) {
                 removeTokenFormStorage(loopKey);
             }
@@ -238,26 +237,28 @@ public class TokenManager implements PwmService {
         Iterator<String> keyIterator = null;
 
         try {
-        switch (storageMethod) {
-            case STORE_PWMDB:
-                keyIterator = pwmDB.iterator(PwmDB.DB.TOKENS);
-                break;
+            switch (storageMethod) {
+                case STORE_PWMDB:
+                    keyIterator = pwmDB.iterator(PwmDB.DB.TOKENS);
+                    break;
 
-            case STORE_DB:
-                keyIterator = databaseAccessor.iterator(DatabaseAccessor.TABLE.TOKENS);
-                break;
+                case STORE_DB:
+                    keyIterator = databaseAccessor.iterator(DatabaseAccessor.TABLE.TOKENS);
+                    break;
 
-        }
+            }
 
-        while (returnList.size() < maxCount && keyIterator.hasNext()) {
-            final String loopKey = keyIterator.next();
-            final TokenInformation loopInfo = retrieveStoredToken(loopKey);
-            if (loopInfo != null) {
-                if (testIfTokenIsExpired(loopInfo)) {
-                    returnList.add(loopKey);
+            while (status() == STATUS.OPEN && returnList.size() < maxCount && keyIterator.hasNext()) {
+                final String loopKey = keyIterator.next();
+                final TokenInformation loopInfo = retrieveStoredToken(loopKey);
+                if (loopInfo != null) {
+                    if (testIfTokenIsExpired(loopInfo)) {
+                        returnList.add(loopKey);
+                    }
                 }
             }
-        }
+        } catch (Exception e) {
+            LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
             if (keyIterator != null && storageMethod == StorageMethod.STORE_PWMDB) {
                 try {pwmDB.returnIterator(PwmDB.DB.TOKENS); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + pwmDB);}
@@ -304,7 +305,7 @@ public class TokenManager implements PwmService {
             try {
                 cleanupOutdatedTokens();
             } catch (Exception e) {
-                LOGGER.warn("unexpected error while cleaning expired stored tokens: " + e.getMessage());
+                LOGGER.warn("unexpected error while cleaning expired stored tokens: " + e.getMessage(),e);
             }
         }
     }

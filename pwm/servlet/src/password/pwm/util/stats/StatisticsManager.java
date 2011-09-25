@@ -263,8 +263,14 @@ public class StatisticsManager {
     }
 
     public void close() {
-        writeDbValues();
-        daemonTimer.cancel();
+        try {
+            writeDbValues();
+        } catch (Exception e) {
+            LOGGER.error("unexpected error closing: " + e.getMessage());
+        }
+        if (daemonTimer != null) {
+            daemonTimer.cancel();
+        }
     }
 
 

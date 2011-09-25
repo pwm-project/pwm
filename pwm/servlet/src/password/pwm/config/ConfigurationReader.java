@@ -185,7 +185,7 @@ public class ConfigurationReader {
             return "";
         }
 
-        return String.valueOf(file.lastModified());
+        return String.valueOf(file.lastModified() + String.valueOf(file.length()));
     }
 
     public Date getConfigurationReadTime() {

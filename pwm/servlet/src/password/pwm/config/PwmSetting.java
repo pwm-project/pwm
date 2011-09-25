@@ -55,7 +55,7 @@ public enum PwmSetting {
     PASSWORD_SYNC_MIN_WAIT_TIME(
             "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     WORDLIST_FILENAME(
@@ -143,7 +143,7 @@ public enum PwmSetting {
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     LDAP_ALWAYS_USE_PROXY(
-            "ldap.alwaysUseProxy", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
+            "ldap.alwaysUseProxy", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -169,21 +169,37 @@ public enum PwmSetting {
     EMAIL_CHANGEPASSWORD_BODY_HMTL(
             "email.changePassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_SUBJECT(
-            "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_FROM(
-            "email.newUser.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_BODY(
-            "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_BODY_HTML(
-            "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_VERIFICATION_SUBJECT(
-            "email.newUser.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_VERIFICATION_FROM(
-            "email.newUser.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_VERIFICATION_BODY(
-            "email.newUser.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_VERIFICATION_BODY_HTML(
-            "email.newUser.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+            "email.newUser.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_SUBJECT(
+            "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_FROM(
+            "email.activation.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_BODY(
+            "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_BODY_HTML(
+            "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
+    EMAIL_CHALLENGE_TOKEN_FROM(
+            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.BASIC),
+    EMAIL_CHALLENGE_TOKEN_SUBJECT(
+            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.BASIC),
+    EMAIL_CHALLENGE_TOKEN_BODY(
+            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.BASIC),
+    EMAIL_CHALLENGE_TOKEN_BODY_HTML(
+            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.BASIC),
     EMAIL_GUEST_SUBJECT(
             "email.guest.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_GUEST_FROM(
@@ -200,22 +216,6 @@ public enum PwmSetting {
             "email.updateguest.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_UPDATEGUEST_BODY_HTML(
             "email.updateguest.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_ACTIVATION_SUBJECT(
-            "email.activation.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_ACTIVATION_FROM(
-            "email.activation.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_ACTIVATION_BODY(
-            "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_ACTIVATION_BODY_HTML(
-            "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_CHALLENGE_TOKEN_FROM(
-            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.ADVANCED),
-    EMAIL_CHALLENGE_TOKEN_SUBJECT(
-            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.ADVANCED),
-    EMAIL_CHALLENGE_TOKEN_BODY(
-            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
-    EMAIL_CHALLENGE_TOKEN_BODY_HTML(
-            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.ADVANCED),
 
     // sms settings
     SMS_USER_PHONE_ATTRIBUTE(
@@ -386,7 +386,7 @@ public enum PwmSetting {
     CHALLENGE_ENABLE(
             "challenge.enable", Syntax.BOOLEAN, Category.CHALLENGE, false, Level.BASIC),
     CHALLENGE_FORCE_SETUP(
-            "challenge.forceSetup", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
+            "challenge.forceSetup", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.BASIC),
     CHALLENGE_RANDOM_CHALLENGES(
             "challenge.randomChallenges", Syntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE, false, Level.BASIC),
     CHALLENGE_REQUIRED_CHALLENGES(
@@ -402,7 +402,7 @@ public enum PwmSetting {
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
+            "challenge.applyWorldlist", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.BASIC),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", Syntax.STRING, Category.CHALLENGE, true, Level.ADVANCED),
     QUERY_MATCH_CHECK_RESPONSES(
@@ -548,11 +548,11 @@ public enum PwmSetting {
     EDIRECTORY_ENABLE_NMAS(
             "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
+            "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.ADVANCED),
+            "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false, Level.ADVANCED),
+            "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false, Level.BASIC),
 
     // helpdesk
     HELPDESK_ENABLE(

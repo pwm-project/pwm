@@ -25,7 +25,6 @@ public class ContextManager implements Serializable {
 
     private transient PwmApplication pwmApplication;
     private ConfigurationReader configReader;
-    private boolean restartRequested;
     private ErrorInformation startupErrorInformation;
 
     private final transient Map<PwmSession, Object> activeSessions = new WeakHashMap<PwmSession, Object>();
@@ -115,7 +114,6 @@ public class ContextManager implements Serializable {
             LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
         }
         initialize();
-        restartRequested = false;
     }
 
     public Set<PwmSession> getPwmSessions() {
@@ -162,10 +160,9 @@ public class ContextManager implements Serializable {
         @Override
         public void run() {
             if (configReader != null) {
-                if (!restartRequested && configReader.modifiedSinceLoad()) {
+                if (configReader.modifiedSinceLoad()) {
                     LOGGER.info("configuration file modification has been detected");
                     reinitialize();
-                    restartRequested = true;
                 }
             }
         }
