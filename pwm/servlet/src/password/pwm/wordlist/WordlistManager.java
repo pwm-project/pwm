@@ -66,7 +66,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
         super(wordlistConfiguration, pwmDB);
 
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
-        this.DEBUG_LABEL = "pwm-wordlist";
+        this.DEBUG_LABEL = "Pwm-wordlist";
         this.META_DB = PwmDB.DB.WORDLIST_META;
         this.WORD_DB = PwmDB.DB.WORDLIST_WORDS;
 

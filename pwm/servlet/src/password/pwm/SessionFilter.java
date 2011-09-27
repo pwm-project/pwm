@@ -130,6 +130,7 @@ public class SessionFilter implements Filter {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing session filter: " + e.getMessage(), e );
+            ServletHelper.forwardToErrorPage(req,resp,true);
         }
     }
 

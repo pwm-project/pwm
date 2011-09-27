@@ -59,7 +59,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         super(wordlistConfiguration, pwmDB);
 
         this.LOGGER = PwmLogger.getLogger(this.getClass());
-        this.DEBUG_LABEL = "pwm-seedist";
+        this.DEBUG_LABEL = "Pwm-seedist";
         this.META_DB = PwmDB.DB.SEEDLIST_META;
         this.WORD_DB = PwmDB.DB.SEEDLIST_WORDS;
 

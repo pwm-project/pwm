@@ -303,7 +303,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             if (populator != null) {
                 LOGGER.info("waiting 10 seconds for populator to exit");
             }
-            while (populator != null && (System.currentTimeMillis() - beginWaitTime > 10 * 1000)) {
+            while (populator != null && (System.currentTimeMillis() - beginWaitTime > 30 * 1000)) {
                 Helper.pause(100);
             }
             populator = null;

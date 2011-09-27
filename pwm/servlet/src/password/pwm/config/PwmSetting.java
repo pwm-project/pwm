@@ -144,6 +144,8 @@ public enum PwmSetting {
             "ldap.wireTrace.enable", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     LDAP_ALWAYS_USE_PROXY(
             "ldap.alwaysUseProxy", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
+    LDAP_CHAI_SETTINGS(
+            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -216,6 +218,8 @@ public enum PwmSetting {
             "email.updateguest.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_UPDATEGUEST_BODY_HTML(
             "email.updateguest.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_ADVANCED_SETTINGS(
+            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
 
     // sms settings
     SMS_USER_PHONE_ATTRIBUTE(
@@ -585,18 +589,8 @@ public enum PwmSetting {
             "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     WORDLIST_CASE_SENSITIVE(
             "wordlistCaseSensitive", Syntax.BOOLEAN, Category.MISC, true, Level.BASIC),
-    PWMDB_LOCATION(
-            "pwmDb.location", Syntax.STRING, Category.MISC, true, Level.BASIC),
-    PWMDB_IMPLEMENTATION(
-            "pwmDb.implementation", Syntax.STRING, Category.MISC, true, Level.ADVANCED),
-    PWMDB_INIT_STRING(
-            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
@@ -612,6 +606,12 @@ public enum PwmSetting {
             "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
 
     // Database
+    PWMDB_LOCATION(
+            "pwmDb.location", Syntax.STRING, Category.DATABASE, true, Level.BASIC),
+    PWMDB_IMPLEMENTATION(
+            "pwmDb.implementation", Syntax.STRING, Category.DATABASE, true, Level.ADVANCED),
+    PWMDB_INIT_STRING(
+            "pwmDb.initParameters", Syntax.STRING_ARRAY, Category.DATABASE, false, Level.ADVANCED),
     DATABASE_CLASS(
             "db.classname", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_URL(

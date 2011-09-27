@@ -65,10 +65,6 @@ public class PwmDBFactory {
 
             initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
             final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
-            LOGGER.trace("clearing TEMP db");
-            if (!readonly) {
-                db.truncate(PwmDB.DB.TEMP);
-            }
 
             final StringBuilder debugText = new StringBuilder();
             debugText.append("pwmDB open in ").append(openTime.asCompactString());

@@ -47,8 +47,6 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
-    private final static int MAX_OPEN_ATTEMPTS = 12;
-    private final static long OPEN_ATTEMPT_DELAY_MS = 5 * 1000;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -102,20 +100,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
 
         LOGGER.trace("opening environment with config: " + environmentConfig.toString());
-        int attempts = 0;
-        Environment environment = null;
-        while (environment == null) {
-            try {
-                environment = new Environment(databaseDirectory, environmentConfig);
-            } catch (LockTimeoutException e) {
-                attempts++;
-                if (attempts > MAX_OPEN_ATTEMPTS) {
-                    throw e;
-                }
-                LOGGER.trace("LockTimeoutException during pwmDB open, retry " + attempts + ", will attempt " + MAX_OPEN_ATTEMPTS + " retries.");
-                Helper.pause(OPEN_ATTEMPT_DELAY_MS);
-            }
-        }
+        final Environment environment = new Environment(databaseDirectory, environmentConfig);
         LOGGER.trace("db environment open");
         return environment;
     }
@@ -362,5 +347,10 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         if (status != PwmDB.Status.OPEN) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
         }
+
+        if (write && readOnly) {
+            throw new IllegalStateException("cannot allow mutator operation; pwmDB is in read-only mode");
+        }
     }
+
 }
