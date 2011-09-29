@@ -25,17 +25,19 @@ package password.pwm.util;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Message;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ServletHelper {
 
@@ -79,17 +81,10 @@ public class ServletHelper {
     )
             throws IOException, ServletException {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-            if (ssBean.getSessionError() == null) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN));
-            }
-
             final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
             req.getSession().getServletContext().getRequestDispatcher(url).forward(req, resp);
             if (forceLogout) {
-                pwmSession.unauthenticateUser();
+                PwmSession.getPwmSession(req).unauthenticateUser();
             }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());

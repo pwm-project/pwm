@@ -418,13 +418,13 @@ public class NewUserServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        String rdnValue = null;
+        String rdnValue;
 
-        final String randUsernameChars = config.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
         final String newUserContextDN = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
-        final int randUsernameLength = (int)config.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
 
-        if (randUsernameChars != null && randUsernameChars.length() > 0) {
+        if (isUsernameRandomGenerated(config)) {
+            final String randUsernameChars = config.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
+            final int randUsernameLength = (int)config.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
             final PwmRandom RANDOM = PwmRandom.getInstance();
 
             final StringBuilder sb = new StringBuilder();
@@ -514,14 +514,7 @@ public class NewUserServlet extends TopServlet {
         final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM,locale);
         final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
 
-        boolean usernameIsGenerated = false;
-        {
-            final String randUsernameChars = configuration.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
-            final int randUsernameLength = (int)configuration.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
-            if (randUsernameChars != null && randUsernameChars.length() > 0 && randUsernameLength > 0) {
-                usernameIsGenerated = true;
-            }
-        }
+        boolean usernameIsGenerated = isUsernameRandomGenerated(configuration);
 
         {
             boolean namingIsInForm = false;
@@ -561,6 +554,19 @@ public class NewUserServlet extends TopServlet {
             }
         }
         return returnRecords;
+    }
+
+    private static boolean isUsernameRandomGenerated(final Configuration configuration) {
+        boolean usernameIsGenerated = false;
+        {
+            final String randUsernameChars = configuration.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
+            final int randUsernameLength = (int)configuration.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
+            if (randUsernameChars != null && randUsernameChars.length() > 0 && randUsernameLength > 0) {
+                usernameIsGenerated = true;
+            }
+        }
+
+        return usernameIsGenerated;
     }
 
     private static Map<String, String> readResponsesFromJsonRequest(
