@@ -434,10 +434,10 @@ public class NewUserServlet extends TopServlet {
 
             rdnValue = sb.toString();
         } else {
-            formValues.get(namingAttribute);
+            rdnValue = formValues.get(namingAttribute);
         }
 
-        if (rdnValue == null) {
+        if (rdnValue == null || rdnValue.length() == 0) {
             final String errorMsg = "unable to determine new user DN due to missing form value for naming attribute '" + namingAttribute + '"';
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
