@@ -230,25 +230,6 @@ public class PwmDBLogger {
         if (setting_maxAgeMs > 0) {
             final long ageOfTail = System.currentTimeMillis() - tailTimestampMs;
             if ((tailTimestampMs > 0) && (ageOfTail > setting_maxAgeMs)) {
-                /*
-                // if the tail is old, peek forward a ways to see if a large chunk needs to be purged.
-                if (figureItemCount() > MAX_REMOVALS_PER_CYCLE) {
-
-                    //figure out the tail + MAX_REMOVALS_PER_CYCLE + position
-                    int checkPosition = tailPosition;
-                    for (int i = 0; i < MAX_REMOVALS_PER_CYCLE; i++) {
-                        checkPosition = figureNextPosition(checkPosition);
-                    }
-
-                    final PwmLogEvent checkEvent = readEvent(checkPosition);
-                    if (checkEvent != null && checkEvent.getDate() != null) {
-                        final long checkEventAgeMS = System.currentTimeMillis() - checkEvent.getDate().getTime();
-                        if (checkEventAgeMS > setting_maxAgeMs) {
-                            return MAX_REMOVALS_PER_CYCLE;
-                        }
-                    }
-                }
-                */
                 return 1;
             }
         }

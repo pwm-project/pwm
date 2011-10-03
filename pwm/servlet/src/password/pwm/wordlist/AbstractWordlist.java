@@ -185,18 +185,16 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             resetDB(checksumString);
         }
 
-        if (wlStatus != STATUS.OPENING) {
-            LOGGER.warn(DEBUG_LABEL + " changed unexpectedly during startup, closing");
-            close();
-            return;
-        }
+        final ZipReader zipReader = new ZipReader(wordlistConfiguration.getWordlistFile());
+        final Sleeper sleeper = new Sleeper(wordlistConfiguration.getLoadFactor());
 
-        populator = new Populator(
-                new ZipReader(wordlistConfiguration.getWordlistFile()),
-                new Sleeper(wordlistConfiguration.getLoadFactor()),
-                this
-        );
-        populator.populate();
+        try {
+            populator = new Populator(zipReader,sleeper,this);
+            populator.init();
+            populator.populate();
+        } catch (Exception e) {
+            LOGGER.warn("unexpected error running populator: " + e.getMessage());
+        }
         populator = null;
     }
 
@@ -297,16 +295,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public synchronized void close() {
+        final long wordlistExitWaitTime = 60 * 1000;
+        final long beginWaitTime = System.currentTimeMillis();
         if (populator != null) {
             populator.pause();
-            final long beginWaitTime = System.currentTimeMillis();
-            if (populator != null) {
-                LOGGER.info("waiting 10 seconds for populator to exit");
+            while (populator != null && (TimeDuration.fromCurrent(beginWaitTime).isShorterThan(wordlistExitWaitTime))) {
+                Helper.pause(1000);
+                LOGGER.warn("waiting for populator to exit: " + TimeDuration.fromCurrent(beginWaitTime).asCompactString());
             }
-            while (populator != null && (System.currentTimeMillis() - beginWaitTime > 30 * 1000)) {
-                Helper.pause(100);
-            }
-            populator = null;
+        }
+
+        if (TimeDuration.fromCurrent(beginWaitTime).isLongerThan(wordlistExitWaitTime)) {
+            LOGGER.error("wordlist populator failed to exit");
         }
 
         if (wlStatus != STATUS.CLOSED) {

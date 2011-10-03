@@ -22,13 +22,11 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.PwmService;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.Sleeper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 
@@ -65,9 +63,11 @@ class Populator {
     private final boolean caseSensitive;
 
     private volatile boolean abortFlag;
+    private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
+
     private final PopulationStats overallStats = new PopulationStats();
     private PopulationStats perReportStats = new PopulationStats();
-    private final int totalLines;
+    private int totalLines;
     private int transactionSize = 200;
     private int loopLines;
 
@@ -108,6 +108,12 @@ class Populator {
         this.rootWordlist = rootWordlist;
 
         sleeper.reset();
+    }
+
+    public void init()
+            throws Exception
+    {
+        status = PwmService.STATUS.OPEN;
 
         LOGGER.info(
                 DEBUG_LABEL + " using source ZIP file of "
@@ -138,6 +144,13 @@ class Populator {
         }
 
         pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.DIRTY.toString());
+
+        if (overallStats.getLines() > 0) {
+            for (int i = 0; i < overallStats.getLines(); i++) {
+                zipFileReader.nextLine();
+            }
+        }
+        status = PwmService.STATUS.OPEN;
     }
 
     private int wordlistSize(final File wordlistFile)
@@ -171,6 +184,8 @@ class Populator {
     public void pause()
     {
         abortFlag = true;
+        final long startCloseTime = System.currentTimeMillis();
+
         try {
             LOGGER.info(makeStatString());
         } catch (Exception e) {
@@ -183,6 +198,11 @@ class Populator {
             pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
         } catch (Exception e) {
             LOGGER.warn(DEBUG_LABEL + " unable to cleanly pause wordlist population: " + e.getMessage());
+        }
+
+        while (status != PwmService.STATUS.CLOSED && TimeDuration.fromCurrent(startCloseTime).isShorterThan(120 * 1000)) {
+            LOGGER.info("waiting for populator to close");
+            Helper.pause(1000);
         }
     }
 
@@ -212,29 +232,15 @@ class Populator {
         return sb.toString();
     }
 
-    void populate()
-            throws PwmUnrecoverableException, IOException, PwmDBException {
+    void populate() throws IOException, PwmDBException, PwmUnrecoverableException {
+
         try {
             long lastReportTime = System.currentTimeMillis() - (long)(DEBUG_OUTPUT_FREQUENCY * 0.33);
 
-            if (overallStats.getLines() > 0) {
-                for (int i = 0; i < overallStats.getLines(); i++) {
-                    zipFileReader.nextLine();
-
-                    if (abortFlag) {
-                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "pausing " + DEBUG_LABEL + " population", "pausing " + DEBUG_LABEL + " population"));
-                    }
-                }
-            }
-
             sleeper.reset();
             String line;
-            while ((line = zipFileReader.nextLine()) != null) {
+            while (!abortFlag && (line = zipFileReader.nextLine()) != null) {
                 sleeper.sleep();
-
-                if (abortFlag) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING, "pausing " + DEBUG_LABEL + " population"));
-                }
 
                 overallStats.incrementLines();
                 perReportStats.incrementLines();
@@ -242,7 +248,7 @@ class Populator {
                 addLine(line);
                 loopLines++;
 
-                if (!abortFlag && (System.currentTimeMillis() - lastReportTime) > DEBUG_OUTPUT_FREQUENCY) {
+                if (TimeDuration.fromCurrent(lastReportTime).isLongerThan(DEBUG_OUTPUT_FREQUENCY)) {
                     LOGGER.info(makeStatString());
                     lastReportTime = System.currentTimeMillis();
                 }
@@ -251,11 +257,17 @@ class Populator {
                     flushBuffer();
                 }
             }
-
-            populationComplete();
         } finally {
             zipFileReader.close();
         }
+
+        if (abortFlag) {
+            LOGGER.warn("pausing " + DEBUG_LABEL + " population");
+        } else {
+            populationComplete();
+        }
+
+        status = PwmService.STATUS.CLOSED;
     }
 
     private void addLine(String line)

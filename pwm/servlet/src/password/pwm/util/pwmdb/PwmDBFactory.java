@@ -27,8 +27,6 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,9 +38,6 @@ public class PwmDBFactory {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBFactory.class);
     private static final String DEFAULT_IMPLEMENTATION = Berkeley_PwmDb.class.getName();
 
-    private static final Map<File, PwmDB> singletonMap = Collections.synchronizedMap(new HashMap<File, PwmDB>());
-
-
 // -------------------------- STATIC METHODS --------------------------
 
     public static synchronized PwmDB getInstance(
@@ -52,32 +47,31 @@ public class PwmDBFactory {
             final boolean readonly
     )
             throws Exception {
-        PwmDB db = singletonMap.get(dbDirectory);
 
-        if (db == null) {
-            final long startTime = System.currentTimeMillis();
-            final String theClass = className != null ? className : DEFAULT_IMPLEMENTATION;
-            final PwmDBProvider dbProvider = createInstance(theClass);
-            LOGGER.debug("initializing " + theClass + " pwmDBProvider instance");
+        final long startTime = System.currentTimeMillis();
+        final String theClass = className != null ? className : DEFAULT_IMPLEMENTATION;
+        final PwmDBProvider dbProvider = createInstance(theClass);
+        LOGGER.debug("initializing " + theClass + " pwmDBProvider instance");
 
+        final PwmDB db = new PwmDBAdaptor(dbProvider);
 
-            db = new PwmDBAdaptor(dbProvider);
+        initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
+        final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
-            initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
-            final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
-
-            final StringBuilder debugText = new StringBuilder();
-            debugText.append("pwmDB open in ").append(openTime.asCompactString());
-            debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
-            debugText.append(" at ").append(dbDirectory.toString());
-            final long freeSpace = Helper.diskSpaceRemaining(db.getFileLocation());
-            if (freeSpace >= 0) {
-                debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
-            }
-            LOGGER.info(debugText);
+        LOGGER.trace("clearing TEMP db");
+        if (!readonly) {
+            db.truncate(PwmDB.DB.TEMP);
         }
 
-        //readDBSizes(db);
+        final StringBuilder debugText = new StringBuilder();
+        debugText.append("pwmDB open in ").append(openTime.asCompactString());
+        debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
+        debugText.append(" at ").append(dbDirectory.toString());
+        final long freeSpace = Helper.diskSpaceRemaining(db.getFileLocation());
+        if (freeSpace >= 0) {
+            debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
+        }
+        LOGGER.info(debugText);
 
         return db;
     }
@@ -114,25 +108,4 @@ public class PwmDBFactory {
 
         LOGGER.trace("db init completed for " + theClass);
     }
-
-    /*
-    private static void readDBSizes(final PwmDB pwmDB) {
-        final Thread sizeReader = new Thread() {
-            public void run() {
-                try {
-                    Helper.pause(90 * 1000);
-                    for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-                        final int size = pwmDB.size(loopDB);
-                        LOGGER.debug("size of " + loopDB + " read as " + size);
-                    }
-                } catch (Exception e) {
-                //do nothing
-                }
-            }
-        };
-        sizeReader.setDaemon(true);
-        sizeReader.setName("PwmDB size reader");
-        sizeReader.start();
-    }
-    */
 }

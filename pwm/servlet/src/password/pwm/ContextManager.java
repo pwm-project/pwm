@@ -27,6 +27,8 @@ public class ContextManager implements Serializable {
     private ConfigurationReader configReader;
     private ErrorInformation startupErrorInformation;
 
+    private volatile boolean restartRequestedFlag = false;
+
     private final transient Map<PwmSession, Object> activeSessions = new WeakHashMap<PwmSession, Object>();
 
     public ContextManager(ServletContext servletContext) {
@@ -90,7 +92,7 @@ public class ContextManager implements Serializable {
             try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
         }
 
-        taskMaster = new Timer("pwm-PwmApplication timer", true);
+        taskMaster = new Timer("pwm-ContextManager timer", true);
         taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
         taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
     }
@@ -108,12 +110,7 @@ public class ContextManager implements Serializable {
     }
 
     public void reinitialize() {
-        try {
-            shutdown();
-        } catch (Exception e) {
-            LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
-        }
-        initialize();
+        restartRequestedFlag = true;
     }
 
     public Set<PwmSession> getPwmSessions() {
@@ -162,9 +159,27 @@ public class ContextManager implements Serializable {
             if (configReader != null) {
                 if (configReader.modifiedSinceLoad()) {
                     LOGGER.info("configuration file modification has been detected");
-                    reinitialize();
+                    restartRequestedFlag = true;
                 }
             }
+
+            if (restartRequestedFlag) {
+                doReinitialize();
+            }
+        }
+
+        public void doReinitialize() {
+            LOGGER.info("beginning application restart");
+            try {
+                shutdown();
+            } catch (Exception e) {
+                LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
+            }
+
+            LOGGER.info("application restart; shutdown completed, now starting new application instance");
+            initialize();
+            LOGGER.info("application restart completed");
+            restartRequestedFlag = false;
         }
     }
 }

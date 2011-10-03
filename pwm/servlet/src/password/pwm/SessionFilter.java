@@ -129,7 +129,7 @@ public class SessionFilter implements Filter {
         try {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {
-            LOGGER.fatal("unexpected error processing session filter: " + e.getMessage(), e );
+            LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req,resp,true);
         }
     }

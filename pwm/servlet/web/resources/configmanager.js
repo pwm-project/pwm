@@ -558,8 +558,7 @@ function saveConfiguration() {
         handleAs: "json",
         load: function(data) {
             dojo.xhrGet({
-                url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                sync:true
+                url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID']
             });
             var oldEpoch = data['configEpoch'];
             var currentTime = new Date().getTime();

@@ -332,7 +332,7 @@ public class Helper {
      * @param pwmSession to lookup session info
      * @param theUser    ldap user to operate on
      * @return true if successful;
-     * @throws ChaiUnavailableException if the directory is unavailble
+     * @throws ChaiUnavailableException if the directory is unavailable
      */
     public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser)
             throws ChaiUnavailableException, PwmUnrecoverableException {

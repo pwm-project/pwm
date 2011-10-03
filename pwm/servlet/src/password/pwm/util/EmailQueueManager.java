@@ -289,11 +289,16 @@ public class EmailQueueManager implements PwmService {
             }
 
             LOGGER.debug("successfully sent email: " + emailItemBean.toString());
-            statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
+            if (statsMgr != null) {
+                statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
+            }
 
             return true;
         } catch (MessagingException e) {
-            statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
+            if (statsMgr != null) {
+                statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
+            }
+
             lastSendFailure = new HealthRecord(HealthStatus.WARN, "EmailQueue", "Unable to send email in queue due to error: " + e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
