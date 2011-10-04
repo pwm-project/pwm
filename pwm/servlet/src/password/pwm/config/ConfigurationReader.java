@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -43,7 +44,6 @@ public class ConfigurationReader {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigurationReader.class.getName());
-    private static final int MAX_FILE_CHARS = 100 * 1024;
     private static final String CONFIG_FILE_CHARSET = "UTF-8";
 
     private final File configFile;
@@ -101,7 +101,7 @@ public class ConfigurationReader {
 
         final String theFileData;
         try {
-            theFileData = Helper.readFileAsString(configFile, MAX_FILE_CHARS, CONFIG_FILE_CHARSET);
+            theFileData = Helper.readFileAsString(configFile, PwmConstants.MAX_CONFIG_FILE_CHARS, CONFIG_FILE_CHARSET);
         } catch (Exception e) {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);

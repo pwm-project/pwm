@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.Message;
@@ -48,7 +49,6 @@ import java.io.InputStreamReader;
 
 public class ConfigUploadServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigUploadServlet.class);
-    private static final int MAX_UPLOAD_CHARS = 1024 * 50;
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
@@ -148,7 +148,7 @@ public class ConfigUploadServlet extends TopServlet {
         final StringBuilder sb = new StringBuilder();
         int charCounter = 0;
         int nextChar = bufferedReader.read();
-        while (charCounter < MAX_UPLOAD_CHARS && nextChar != -1) {
+        while (charCounter < PwmConstants.MAX_CONFIG_FILE_CHARS && nextChar != -1) {
             charCounter++;
             sb.append((char)nextChar);
             nextChar = bufferedReader.read();
