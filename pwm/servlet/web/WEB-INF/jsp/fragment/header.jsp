@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.ContextManager" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/
@@ -21,6 +20,7 @@
 ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
+<%@ page import="password.pwm.ContextManager" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <head>
     <title><pwm:Display key="Title_Application"/>

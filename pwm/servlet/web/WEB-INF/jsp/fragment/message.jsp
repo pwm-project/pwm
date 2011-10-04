@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.PwmSession" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/

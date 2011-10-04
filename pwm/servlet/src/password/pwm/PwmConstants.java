@@ -91,7 +91,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_NEW_USER_ENTER_CODE = "WEB-INF/jsp/newuser-entercode.jsp";
     public static final String URL_JSP_NEW_USER_WAIT = "WEB-INF/jsp/newuser-wait.jsp";
     public static final String URL_JSP_NEW_USER_AGREEMENT = "WEB-INF/jsp/newuser-agreement.jsp";
-    public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/newguest.jsp";
+    public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/guest-create.jsp";
     public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/updateguest.jsp";
     public static final String URL_JSP_GUEST_UPDATE_SEARCH = "WEB-INF/jsp/updateguest-search.jsp";
     public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";

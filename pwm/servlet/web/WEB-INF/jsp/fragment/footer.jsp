@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">

@@ -448,7 +448,6 @@ public enum PwmSetting {
     FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
             "forgottenUsername.usernameAttribute", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
 
-
     // new user settings
     NEWUSER_ENABLE(
             "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true, Level.BASIC),
@@ -474,29 +473,27 @@ public enum PwmSetting {
             "newUser.minimumWaitTime", Syntax.NUMERIC, Category.NEWUSER, false, Level.BASIC),
 
 
-
-
     // guest settings
     GUEST_ENABLE(
             "guest.enable", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
     GUEST_CONTEXT(
             "guest.createContext", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_ADMIN_GROUP(
-            "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.ADVANCED),
+            "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_FORM(
-            "guest.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.ADVANCED),
+            "guest.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.BASIC),
     GUEST_UNIQUE_ATTRIBUTES(
-            "guest.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.ADVANCED),
+            "guest.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.BASIC),
     GUEST_WRITE_ATTRIBUTES(
-            "guest.writeAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.ADVANCED),
+            "guest.writeAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.BASIC),
     GUEST_ADMIN_ATTRIBUTE(
-            "guest.adminAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
+            "guest.adminAttribute", Syntax.STRING, Category.GUEST, false, Level.BASIC),
     GUEST_EDIT_ORIG_ADMIN_ONLY(
-            "guest.editOriginalAdminOnly", Syntax.BOOLEAN, Category.GUEST, true, Level.ADVANCED),
+            "guest.editOriginalAdminOnly", Syntax.BOOLEAN, Category.GUEST, true, Level.BASIC),
     GUEST_MAX_VALID_DAYS(
-            "guest.maxValidDays", Syntax.NUMERIC, Category.GUEST, true, Level.ADVANCED),
+            "guest.maxValidDays", Syntax.NUMERIC, Category.GUEST, true, Level.BASIC),
     GUEST_EXPIRATION_ATTRIBUTE (
-            "guest.expirationAttribute", Syntax.STRING, Category.GUEST, false, Level.ADVANCED),
+            "guest.expirationAttribute", Syntax.STRING, Category.GUEST, false, Level.BASIC),
 
     // activation settings
     ACTIVATE_USER_ENABLE(

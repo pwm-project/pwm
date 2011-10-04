@@ -125,16 +125,18 @@ public class PasswordUtility {
         try {
             doPasswordSetOperation(pwmSession, newPassword, oldPassword);
         } catch (ChaiPasswordPolicyException e) {
+            final String errorMsg = "error setting password for user '" + uiBean.getUserDN() + "'' " + e.toString();
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError);
+            final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg);
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr());
+            LOGGER.warn(pwmSession,error.toDebugStr());
             return false;
         } catch (ChaiOperationException e) {
-            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            final String errorMsg = "error setting password for user '" + uiBean.getUserDN() + "'' " + e.getMessage();
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(pwmError, errorMsg);
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error setting password for user '" + uiBean.getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+            LOGGER.warn(pwmSession, error.toDebugStr());
             return false;
         }
 

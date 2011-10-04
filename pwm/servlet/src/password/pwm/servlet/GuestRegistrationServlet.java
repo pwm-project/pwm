@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
@@ -42,15 +41,16 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
-import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.wordlist.SeedlistManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -62,7 +62,7 @@ import java.util.*;
 public class GuestRegistrationServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(GuestRegistrationServlet.class);
 
-    private static final FormConfiguration DURATION_FORM_CONFIG = new FormConfiguration(1,5,FormConfiguration.Type.NUMBER,true,false,"Account Validity Duration (Days)","__accountDuration__");
+    private static final String HTTP_PARAM_EXPIRATION_DATE = "__expirationDate__";
 
     protected void processRequest(
             final HttpServletRequest req,
@@ -118,6 +118,9 @@ public class GuestRegistrationServlet extends TopServlet {
             //read the values from the request
             final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, guestUserForm);
 
+            //read the expiration date from the request.
+            final Date expirationDate = readExpirationFromRequest(pwmSession, req);
+
             // see if the values meet form requirements.
             Validator.validateParmValuesMeetRequirements(formValues);
 
@@ -145,10 +148,6 @@ public class GuestRegistrationServlet extends TopServlet {
             // Write creator DN
             createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserDN());
 
-            // set duration value(s);
-            createAttributes.putAll(handleDurationValue(pwmSession,req));
-            notifyAttrs.put(config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE),readableDurationValue(pwmSession,req));
-
             // read the creation object classes.
             final Set<String> createObjectClasses = new HashSet<String>(config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
 
@@ -164,6 +163,13 @@ public class GuestRegistrationServlet extends TopServlet {
             Helper.writeMapToLdap(pwmSession, theUser, configNameValuePairs);
             for (final String key : configNameValuePairs.keySet()) {
             	notifyAttrs.put(key, configNameValuePairs.get(key));
+            }
+
+            // write the expiration date:
+            if (expirationDate != null) {
+                final String expirationAttr =config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
+                theUser.writeDateAttribute(expirationAttr,expirationDate);
+                notifyAttrs.put(expirationAttr,new SimpleDateFormat().format(expirationDate));
             }
 
             final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, locale, theUser);
@@ -191,59 +197,45 @@ public class GuestRegistrationServlet extends TopServlet {
         }
     }
 
-    private static String readableDurationValue(
+    private static Date readExpirationFromRequest(
             final PwmSession pwmSession,
             final HttpServletRequest req
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
-        final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
+        final long durationValueDays = config.readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
 
-        final String durationStringValue = Validator.readStringFromRequest(req, DURATION_FORM_CONFIG.getAttributeName());
-        final int durationValue;
-        try {
-            durationValue = Integer.parseInt(durationStringValue);
-        } catch (NumberFormatException e) {
-            final String errorMsg = "unable to read expiration duration value: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER,errorMsg));
-        }
-        final long durationValueMs = durationValue * 24 * 60 * 60 * 1000;
-        final long futureDateMs = System.currentTimeMillis() + durationValueMs;
-        final Date futureDate = new Date(futureDateMs);
-		final SimpleDateFormat nfmt = new SimpleDateFormat();
-        final String dStr = nfmt.format(futureDate);
-        LOGGER.debug(pwmSession,"figured expiration date for user attribute " + expirationAttribute + " (readable), value=" + dStr);
-        return dStr;
-    }
-    
-    private static Map<String,String> handleDurationValue(
-            final PwmSession pwmSession,
-            final HttpServletRequest req
-    )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final Configuration config = pwmApplication.getConfig();
-        final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
-
-        final String durationStringValue = Validator.readStringFromRequest(req, DURATION_FORM_CONFIG.getAttributeName());
-        final int durationValue;
-        try {
-            durationValue = Integer.parseInt(durationStringValue);
-        } catch (NumberFormatException e) {
-            final String errorMsg = "unable to read expiration duration value: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER,errorMsg));
+        if (durationValueDays == 0) {
+            return null;
         }
 
-        final long durationValueMs = durationValue * 24 * 60 * 60 * 1000;
+        final String expirationDateStr = Validator.readStringFromRequest(req, HTTP_PARAM_EXPIRATION_DATE);
+
+        Date expirationDate;
+        try {
+            expirationDate = new SimpleDateFormat("yyyy-MM-dd").parse(expirationDateStr);
+        } catch (ParseException e) {
+            final String errorMsg = "unable to read expiration date value: " + e.getMessage();
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg));
+        }
+
+        if (expirationDate.before(new Date())) {
+            final String errorMsg = "expiration date must be in the future";
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg));
+        }
+
+        final long durationValueMs = durationValueDays * 24 * 60 * 60 * 1000;
         final long futureDateMs = System.currentTimeMillis() + durationValueMs;
         final Date futureDate = new Date(futureDateMs);
-        final String zuluDate = EdirEntries.convertDateToZulu(futureDate);
 
-        final Map<String,String> props = new HashMap<String, String>();
-        props.put(expirationAttribute, zuluDate);
-        LOGGER.debug(pwmSession,"figured expiration date for user attribute " + expirationAttribute + ", value=" + zuluDate);
-        return props;
+        if (expirationDate.after(futureDate)) {
+            final String errorMsg = "expiration date must be sooner than " + futureDate.toString();
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg));
+        }
+
+        LOGGER.trace(pwmSession,"read expiration date as " + expirationDate.toString());
+        return expirationDate;
     }
 
     private static String determineUserDN(final Map<FormConfiguration, String> formValues, final Configuration config)
