@@ -36,7 +36,9 @@
         <param-name>pwmConfigPath</param-name>
         <param-value>PwmConfiguration.xml</param-value>
     </context-param>
-
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
     <!-- uncomment and set parameters for CAS integration
     <filter>
         <filter-name>CAS Validation Filter</filter-name>
