@@ -83,11 +83,8 @@
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a href="<pwm:url url='GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/></a></h2>
+        <h2><a href="<pwm:url url='GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/> & <pwm:Display key="Title_GuestUpdate"/></a></h2>
         <p><pwm:Display key="Long_Title_GuestRegistration"/></p>
-
-        <h2><a href="<pwm:url url='GuestUpdate'/>" class="tablekey"><pwm:Display key="Title_GuestUpdate"/></a></h2>
-        <p><pwm:Display key="Long_Title_GuestUpdate"/></p>
         <% } %>
         <% } %>
 

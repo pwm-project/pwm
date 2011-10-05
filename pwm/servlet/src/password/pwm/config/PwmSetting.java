@@ -482,6 +482,8 @@ public enum PwmSetting {
             "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_FORM(
             "guest.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.BASIC),
+    GUEST_UPDATE_FORM(
+            "guest.update.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.BASIC),
     GUEST_UNIQUE_ATTRIBUTES(
             "guest.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.BASIC),
     GUEST_WRITE_ATTRIBUTES(

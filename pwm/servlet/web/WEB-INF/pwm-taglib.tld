@@ -105,19 +105,6 @@
         </attribute>
     </tag>
     <tag>
-        <name>ShowForm</name>
-        <tag-class>password.pwm.tag.ShowFormTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Displays a form using the supplied Map of ParameterConfig
-            values
-        </description>
-        <attribute>
-            <name>formName</name>
-            <required>true</required>
-            <rtexprvalue>false</rtexprvalue>
-        </attribute>
-    </tag>
-    <tag>
         <name>Display</name>
         <tag-class>password.pwm.tag.DisplayTag</tag-class>
         <body-content>empty</body-content>

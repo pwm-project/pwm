@@ -1,4 +1,3 @@
-<%@ page import="java.util.Date" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/
@@ -21,6 +20,7 @@
 ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
+<%@ page import="java.util.Date" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -28,10 +28,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.newGuest.elements[0].focus();" class="tundra">
+<body onload="pwmPageLoadHandler();document.forms.updateGuest.elements[0].focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_GuestRegistration"/>
+        <jsp:param name="pwm.PageName" value="Title_GuestUpdate"/>
     </jsp:include>
     <div id="centerbody">
         <p id="registration-menu-bar" style="text-align:center;">
@@ -39,13 +39,14 @@
             <a href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
         </p>
         <br/>
-        <p><pwm:Display key="Display_GuestRegistration"/></p>
+        <p><pwm:Display key="Display_GuestUpdate"/></p>
 
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="updateGuest" enctype="application/x-www-form-urlencoded"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+            <%@ include file="fragment/message.jsp" %>
+
             <br/>
-            <% request.setAttribute("form",PwmSetting.GUEST_FORM); %>
+            <% request.setAttribute("form",PwmSetting.GUEST_UPDATE_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <%
                 long maxValidDays = ContextManager.getPwmApplication(session).getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
@@ -55,7 +56,12 @@
                     String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
                     String selectedDate = PwmSession.getPwmSession(session).getSessionStateBean().getLastParameterValue("__expirationDate__");
                     if (selectedDate == null || selectedDate.length() <= 0) {
-                        selectedDate = maxValidDateString;
+                        Date currentDate = PwmSession.getPwmSession(session).getGuestRegistrationBean().getUpdateUserExpirationDate();
+                        if (currentDate == null) {
+                            selectedDate = maxValidDateString;
+                        } else {
+                            selectedDate = new SimpleDateFormat("yyyy-MM-dd").format(currentDate);
+                        }
                     }
             %>
             <p>
@@ -77,12 +83,14 @@
             <% } %>
 
             <div id="buttonbar">
-                <input type="hidden" name="processAction" value="create"/>
-                <input type="submit" name="Create" class="btn"
-                       value="     <pwm:Display key="Button_Create"/>     "
+                <input type="hidden" name="processAction" value="update"/>
+                <input type="submit" name="Update" class="btn"
+                       value="     <pwm:Display key="Button_Update"/>     "
                        id="submitBtn"/>
+                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
                        value="     <pwm:Display key="Button_Reset"/>     "/>
+                <% } %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
