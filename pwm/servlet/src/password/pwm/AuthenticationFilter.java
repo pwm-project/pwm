@@ -73,15 +73,15 @@ public class AuthenticationFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         try {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        //user is already authenticated
-        if (ssBean.isAuthenticated()) {
-            this.processAuthenticatedSession(req, resp, chain);
-        } else {
-            this.processUnAuthenticatedSession(req, resp, chain);
-        }
+            //user is already authenticated
+            if (ssBean.isAuthenticated()) {
+                this.processAuthenticatedSession(req, resp, chain);
+            } else {
+                this.processUnAuthenticatedSession(req, resp, chain);
+            }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(e.toString());
             throw new ServletException(e.toString());
@@ -473,8 +473,6 @@ public class AuthenticationFilter implements Filter {
                     theUser.setPassword(currentPass);
                     LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " password has been set to random value for pwm to use for user authentication");
 
-                    // if old password is not known, then mark the UIB accordingly.
-                    pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
                 } catch (ChaiPasswordPolicyException e) {
                     final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);
@@ -507,6 +505,9 @@ public class AuthenticationFilter implements Filter {
         // get the uib out of the session again (it may have been replaced) and mark
         // the password as expired to force a user password change.
         pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+
+        // mark the uib as coming from unknown pw.
+        pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
     }
 }
 
