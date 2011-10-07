@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.5.6
+v1.6.0
 ---
 + Added turkish locale, thanks erdem.bayer! (issue #86)
 + Added slovak locale, thanks svacko! (issue #87)
@@ -22,6 +22,7 @@ v1.5.6
    + Configurable password policy template user
    + Configurable minimum wait time on new user creation
 + Added stored token database (to PwmDB or RDBMS) for forgotten password and new user password
++ Updated look & feel for form tables throughout the application
 + UserReport module in /pwm/private/admin and from PwmCommand command line
 
 * Moved public menu options (ForgottenPassword, NewUser, Activate) to login page
@@ -32,7 +33,8 @@ v1.5.6
 - Fixed bug where non-english server locale results in configuration manager issues (issue #84)
 - Double-byte characters not stored properly in PwmConfiguration.xml (issue #100)
 - Issue where SMS Servlet Gateway URL couldn't be configured with a port number (issue #97)
--
+- Config file size limit of 50k characters increased to 10mb.
+- Current password required in some cases on forgotten password reset page. (issue #119)
 
 
 v1.5.5 (July 7, 2011) build 1056
