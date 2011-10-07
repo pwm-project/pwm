@@ -58,7 +58,7 @@
         PWM Configuration Editor
     </div>
     <div id="header-title" style="text-align: right;">
-        <% if (configMode == PwmApplication.MODE.CONFIGURING || configMode == PwmApplication.MODE.NEW) { %>
+        <% if (configMode == PwmApplication.MODE.CONFIGURATION || configMode == PwmApplication.MODE.NEW) { %>
         Editing Live Configuration
         <% } else { %>
         Editing In Memory Configuration

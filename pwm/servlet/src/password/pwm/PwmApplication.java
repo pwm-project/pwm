@@ -822,7 +822,7 @@ public class PwmApplication {
 
     public enum MODE {
         NEW,
-        CONFIGURING,
+        CONFIGURATION,
         RUNNING,
         READ_ONLY,
         ERROR

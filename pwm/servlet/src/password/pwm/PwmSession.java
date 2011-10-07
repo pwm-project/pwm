@@ -298,14 +298,14 @@ public class PwmSession implements Serializable {
     public void invalidate() {
         clearAllUserBeans();
 
-        if (httpSession != null) {
-            httpSession.invalidate();
-        }
-
         try {
             this.unauthenticateUser();
         } catch (Exception e) {
             //ignore
+        }
+
+        if (httpSession != null) {
+            httpSession.invalidate();
         }
     }
 }

@@ -34,6 +34,7 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -146,7 +147,7 @@ public class ConfigManagerServlet extends TopServlet {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
                     break;
 
-                case CONFIGURING:
+                case CONFIGURATION:
                     try {
                         final StoredConfiguration runningConfig = configReader.getStoredConfiguration();
                         final StoredConfiguration clonedConfiguration = (StoredConfiguration) runningConfig.clone();
@@ -465,9 +466,13 @@ public class ConfigManagerServlet extends TopServlet {
 
         try {
             saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
+            Helper.pause(5000);
             configManagerBean.setConfiguration(null);
+            pwmSession.invalidate();
         } catch (PwmUnrecoverableException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
+            configManagerBean.setErrorInformation(errorInfo);
+            LOGGER.error("error locking configuration: " + e.toString());
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
         }
     }
@@ -652,7 +657,7 @@ public class ConfigManagerServlet extends TopServlet {
             final PwmApplication.MODE configMode = pwmApplication.getConfigMode();
             if (config == null || configMode == PwmApplication.MODE.NEW) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
-            } else if (configMode == PwmApplication.MODE.CONFIGURING) {
+            } else if (configMode == PwmApplication.MODE.CONFIGURATION) {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
             } else {
                 servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);

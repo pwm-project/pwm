@@ -57,6 +57,13 @@ public class ConfigurationChecker implements HealthChecker {
             return records;
         }
 
+        if (pwmApplication.getConfigMode() == PwmApplication.MODE.CONFIGURATION) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("PWM is currently in ").append(pwmApplication.getConfigMode().toString()).append(" mode. ");
+            errorMsg.append("Anyone accessing this site can modify the configuration without authenticating.  When ready, lock the configuration to secure this installation.");
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+        }
+
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));

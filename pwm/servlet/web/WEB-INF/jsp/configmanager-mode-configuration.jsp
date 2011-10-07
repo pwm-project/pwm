@@ -43,7 +43,7 @@
             PWM Configuration Editor
         </div>
         <div id="header-title">
-            Configuration Mode: <%=ContextManager.getPwmApplication(session).getConfigMode()%>
+            Configuration is editable
         </div>
     </div>
     <div id="centerbody">
@@ -112,7 +112,7 @@
             the current configuration.</p>
 
         <h2><a href="#"
-               onclick="if (confirm('Are you sure you want to finalize the configuration?')) {showWaitDialog('Finalizing Configuration'); finalizeConfiguration();}">Finalize
+               onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock
             Configuration</a></h2>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
@@ -121,9 +121,9 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
 
-        <p>Finalize the configuration. Once the configuration is finalized, you can no longer directly edit the running
+        <p>Lock the configuration. Once the configuration is locked, you can no longer directly edit the running
             configuration using this interface.  If you wish to make changes
-            after finalization, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
+            after locking, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
             file on the PWM server.
 
         <h2><a href="<%=request.getContextPath()%>">PWM Main Menu</a></h2>
