@@ -62,11 +62,15 @@ public class LocaleOrientationTag extends PwmAbstractTag {
                 userLocale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
             }
 
-            final ComponentOrientation orient = ComponentOrientation.getOrientation(userLocale);
+            if (userLocale != null) {
+                final ComponentOrientation orient = ComponentOrientation.getOrientation(userLocale);
 
-            final String outputText = orient.isLeftToRight() ? "ltr" : "rtl";
+                final String outputText = orient != null && !orient.isLeftToRight() ? "rtl" : "ltr";
+                pageContext.getOut().write(outputText);
+            } else {
+                pageContext.getOut().write("ltr");
+            }
 
-            pageContext.getOut().write(outputText);
         } catch (Exception e) {
             LOGGER.error("error while executing jsp locale orientation tag: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());

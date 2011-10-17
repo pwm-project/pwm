@@ -626,7 +626,7 @@ function waitForRestart(startTime, oldEpoch) {
                 showError('Waiting for server restart, server has not yet restarted');
                 setTimeout(function() {
                     waitForRestart(startTime, oldEpoch)
-                }, 1000);
+                }, 3000);
             }
         },
         error: function(error) {

@@ -45,13 +45,20 @@
             Configuration is locked
         </div>
     </div>
+    <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="processAction" value="editMode"/>
+        <input type="hidden" name="mode" value="SETTINGS"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% if (!hasBeenModified) { %>
         <p>
-            The configuration for this server has been locked, and can not be edited online.  To edit the running configuration, upload the <span
-                style="font-style: italic;">PwmConfiguration.xml</span> file currently
-            located in your <span style="font-style: italic;">pwm/WEB-INF</span> directory.
+            The configuration for this server has been locked.
+            While the configuration is locked, it is not possible to edit the live, running configuration directly.
+            However, you can use this interface to upload your existing <span
+                style="font-style: italic;">PwmConfiguarion.xml</span> and edit
+            the configuration using this offline editor, and then save (download) the updated configuration to replace the current running configuration.
         </p>
         <h2>Upload Configuration File</h2>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
@@ -61,21 +68,21 @@
             <input type="submit" class="btn" name="uploadSubmit" value="Upload"
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>
-        <p>After you upload your <span style="font-style: italic;">PwmConfiguration.xml</span> file, you can edit and then download the result over the existing <i>pwm/WEB-INF/PwmConfiguration.xml</i> to update the running configuration of this server.</p>
+        <p>Upload an existing <span style="font-style: italic;">PwmConfiguration.xml</span> to be edited in this offline configuration editor.</p>
         <br/>
         <br/>
-        <h3>Un-locking the Configuration</h3>
+        <h3>Option: Un-locking the Configuration</h3>
         <p>
             The locking of the <span style="font-style: italic;">PwmConfiguration.xml</span> file is controlled by the property "configIsEditable" within the file.  Set this property to "true" to return
-            to the online configuration mode.  Be aware that when this property is set to true anyone accessing this site can make modifications to the live configuration without authentication.
+            to the online configuration mode.  Be aware that while this property is set to true anyone accessing this site can make modifications to the live configuration without authentication.
         </p>
-        <h3>Create a new configuration</h3>
+        <h3>Option: Create a new configuration</h3>
         <p>
                 <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
             <a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')">New Configuration - <%=template.getDescription()%></a><br/>
                 <% } %>
         <p>Edit a new, default configuration in memory by selecting a new configuration template.  After editing the configuration, you can download
-            the <span style="font-style: italic;">PwmConfiguration.xml</span> file.
+            the <span style="font-style: italic;">PwmConfiguration.xml</span> file.  This option will not modify the running configuration.
         </p>
         <% } else { %>
         <p>
@@ -92,11 +99,6 @@
         <p>Download the in memory configuration to an XML file. Save the <span style="font-style: italic;">PwmConfiguration.xml</span> to PWM's <span
                 style="font-style: italic;">WEB-INF </span> directory to change the configuration.  In most cases, PWM will automatically restart and load the new configuration immediately.</p>
 
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode" enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="editMode"/>
-            <input type="hidden" name="mode" value="SETTINGS"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
         <h2><a href="#" onclick="document.forms['editMode'].submit();">Return to Editor</a></h2>
         <p>Continue editing the in memory configuration.</p>
 

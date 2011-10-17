@@ -47,6 +47,8 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
+    private final static int OPEN_RETRY_SECONDS = 60;
+    private final static int CLOSE_RETRY_SECONDS = 120;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -100,7 +102,17 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
 
         LOGGER.trace("opening environment with config: " + environmentConfig.toString());
-        final Environment environment = new Environment(databaseDirectory, environmentConfig);
+
+        final long environmentOpenStartTime = System.currentTimeMillis();
+        Environment environment = null;
+        while (environment == null && TimeDuration.fromCurrent(environmentOpenStartTime).isShorterThan(OPEN_RETRY_SECONDS * 1000)) {
+            try {
+                environment = new Environment(databaseDirectory, environmentConfig);
+            } catch (EnvironmentLockedException e) {
+                LOGGER.info("unable to open environment (will retry for up to " + OPEN_RETRY_SECONDS + " seconds): " + e.getMessage());
+                Helper.pause(1000);
+            }
+        }
         LOGGER.trace("db environment open");
         return environment;
     }
@@ -134,7 +146,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         final long startTime = System.currentTimeMillis();
 
         boolean closed = false;
-        while (!closed && (System.currentTimeMillis() - startTime) < 90 * 1000) {
+        while (!closed && (System.currentTimeMillis() - startTime) < CLOSE_RETRY_SECONDS * 1000) {
             try {
                 for (final Database database : cachedDatabases.values()) {
                     database.close();
@@ -142,7 +154,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                 environment.close();
                 closed = true;
             } catch (Exception e) {
-                LOGGER.error("error while attempting to close berkeley pwmDB environment (will retry): " + e.getMessage());
+                LOGGER.error("error while closing environment (will retry for " + CLOSE_RETRY_SECONDS + " seconds): " + e.getMessage());
                 Helper.pause(5 * 1000);
             }
         }

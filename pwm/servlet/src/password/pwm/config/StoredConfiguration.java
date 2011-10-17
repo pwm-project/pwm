@@ -534,9 +534,22 @@ public class StoredConfiguration implements Serializable, Cloneable {
         private static String toXml(final StoredConfiguration storedConfiguration)
                 throws IOException {
             final Element pwmConfigElement = new Element("PwmConfiguration");
-            pwmConfigElement.addContent(new Comment("Configuration file generated for PWM Password Self Service"));
-            pwmConfigElement.addContent(new Comment("WARNING: This configuration file contains sensitive security information, please handle with care!"));
-            pwmConfigElement.addContent(new Comment("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not support UTF-8 encoding."));
+            final StringBuilder commentText = new StringBuilder();
+            commentText.append("\t\t").append(" ").append("\n");
+            commentText.append("\t\t").append("This configuration file has been generated for by PWM Password Self Service application.").append("\n");
+            commentText.append("\t\t").append("  http://code.google.com/p/pwm").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            commentText.append("\t\t").append("WARNING: This configuration file contains sensitive security information, please handle with care!").append("\n");
+            commentText.append("\t\t").append("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not").append("\n");
+            commentText.append("\t\t").append("        support UTF-8 encoding.").append("\n");
+            commentText.append("\t\t").append(" ").append("\n");
+            commentText.append("\t\t").append("To edit this file:").append("\n");
+            commentText.append("\t\t").append("      1. Upload this file to /pwm/config/ConfigManager url, edit and overwrite this file.").append("\n");
+            commentText.append("\t\t").append("   or 2. Edit this file directly by hand, syntax is mostly self-explanatory.").append("\n");
+            commentText.append("\t\t").append("   or 3. Set the property 'configIsEditable' to 'true', note that anyone with access to ").append("\n");
+            commentText.append("\t\t").append("         PWM url will be able to edit the configuration while this property is true.").append("\n");
+            commentText.append("\t\t").append(" ").append("\n");
+            pwmConfigElement.addContent(new Comment(commentText.toString()));
 
             { // write properties section
                 final Element propertiesElement = new Element("properties");

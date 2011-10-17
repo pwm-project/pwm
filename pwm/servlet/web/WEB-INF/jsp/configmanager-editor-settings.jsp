@@ -33,7 +33,7 @@
 <% if (showDesc) { %><span><%= category.getDescription(locale)%></span><br/><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p>
-    <img src="<%=request.getContextPath()%>/resources/warning.gif"/>
+    <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
     <span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Show Advanced Options" from the View menu to show additional settings.
 </p>
 <% } %>
@@ -41,21 +41,11 @@
 <% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
     <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
-        <label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%></label>
-        <% if (loopSetting.getLevel() == PwmSetting.Level.ADVANCED) { %>
-        <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="Warning" title="Advanced"
-             id="advancedWarningIcon-<%=loopSetting.getKey()%>"
-             style="vertical-align:bottom; margin-left: 5px;"/>
-        <script type="text/javascript">
-            dojo.require("dijit.Tooltip");
-            dojo.addOnLoad(function() {
-                new dijit.Tooltip({
-                    connectId: ["advancedWarningIcon-<%=loopSetting.getKey()%>"],
-                    label: 'This as an advanced setting.  Use caution when modifying this setting.'
-                });
-            });
-        </script>
-        <% }%>
+        <label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%>
+            <% if (loopSetting.getLevel() == PwmSetting.Level.ADVANCED) { %>
+            (Advanced)
+            <% }%>
+        </label>
         <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
              id="resetButton-<%=loopSetting.getKey()%>"
              style="visibility:hidden; vertical-align:bottom; float: right"
