@@ -59,6 +59,9 @@ public class ForgottenPasswordServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
 
+    private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
+    private static final String TOKEN_USER_DN_KEY = "userDN";
+
 // -------------------------- OTHER METHODS --------------------------
 
     public void processRequest(
@@ -170,7 +173,15 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String userDN;
         try {
-            userDN = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            TokenManager.TokenPayload tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            if (tokenPayload != null) {
+                if (!TOKEN_NAME.equals(tokenPayload.getName())) {
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
+                }
+                userDN = tokenPayload.getPayloadData().get(TOKEN_USER_DN_KEY);
+            } else {
+                userDN = null;
+            }
         } catch (PwmOperationalException e) {
             final String errorMsg = "unexpected error attempting to read token from storage: " + e.getMessage();
             LOGGER.error(errorMsg);
@@ -535,7 +546,9 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String token;
         try {
-            token = pwmApplication.getTokenManager().generateNewToken(proxiedUser.getEntryDN());
+            final Map<String,String> userDNmap = Collections.singletonMap(TOKEN_USER_DN_KEY, proxiedUser.getEntryDN());
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,userDNmap);
+            token = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }

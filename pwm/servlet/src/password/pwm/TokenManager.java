@@ -67,7 +67,7 @@ public class TokenManager implements PwmService {
         LOGGER.debug("open");
     }
 
-    public String generateNewToken(final String userData)
+    public String generateNewToken(final TokenPayload tokenPayload)
             throws PwmOperationalException
     {
         checkStatus();
@@ -86,12 +86,7 @@ public class TokenManager implements PwmService {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate a unique token key after " + attempts + " attempts"));
             }
 
-            final TokenInformation newToken = new TokenInformation(
-                    new Date(),
-                    userData
-            );
-
-            storeToken(tokenKey, newToken);
+            storeToken(tokenKey, tokenPayload);
 
             return tokenKey;
         } catch (PwmException e) {
@@ -101,14 +96,14 @@ public class TokenManager implements PwmService {
         }
     }
 
-    public String retrieveTokenData(final String tokenKey)
+    public TokenPayload retrieveTokenData(final String tokenKey)
             throws PwmOperationalException
     {
         checkStatus();
         try {
-            final TokenInformation storedToken = retrieveStoredToken(tokenKey);
+            final TokenPayload storedToken = retrieveStoredToken(tokenKey);
             if (storedToken != null) {
-                return storedToken.getUserData();
+                return storedToken;
             }
         } catch (PwmException e) {
             final String errorMsg = "unexpected error trying to retrieve token from datastore: " + e.getMessage();
@@ -131,9 +126,9 @@ public class TokenManager implements PwmService {
         return null;
     }
 
-    private TokenInformation retrieveStoredToken(final String tokenKey)
+    private TokenPayload retrieveStoredToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException {
-        TokenInformation returnToken = null;
+        TokenPayload returnToken = null;
 
         {
             final String storedRawValue;
@@ -152,7 +147,7 @@ public class TokenManager implements PwmService {
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
                 final Gson gson = new Gson();
-                returnToken = gson.fromJson(storedRawValue,TokenInformation.class);
+                returnToken = gson.fromJson(storedRawValue,TokenPayload.class);
                 if (testIfTokenIsExpired(returnToken)) {
                     returnToken = null;
                 }
@@ -166,7 +161,7 @@ public class TokenManager implements PwmService {
         return returnToken;
     }
 
-    private boolean testIfTokenIsExpired(final TokenInformation theToken) {
+    private boolean testIfTokenIsExpired(final TokenPayload theToken) {
         if (theToken == null) {
             return false;
         }
@@ -175,7 +170,7 @@ public class TokenManager implements PwmService {
         return duration.isLongerThan(maxTokenAgeMS);
     }
 
-    private void storeToken(final String tokenKey, final TokenInformation tokenInformation)
+    private void storeToken(final String tokenKey, final TokenPayload tokenInformation)
             throws  PwmUnrecoverableException, PwmOperationalException {
         final Gson gson = new Gson();
         final String rawValue = gson.toJson(tokenInformation);
@@ -250,7 +245,7 @@ public class TokenManager implements PwmService {
 
             while (status() == STATUS.OPEN && returnList.size() < maxCount && keyIterator.hasNext()) {
                 final String loopKey = keyIterator.next();
-                final TokenInformation loopInfo = retrieveStoredToken(loopKey);
+                final TokenPayload loopInfo = retrieveStoredToken(loopKey);
                 if (loopInfo != null) {
                     if (testIfTokenIsExpired(loopInfo)) {
                         returnList.add(loopKey);
@@ -282,21 +277,28 @@ public class TokenManager implements PwmService {
         return sb.toString();
     }
 
-    private static class TokenInformation implements Serializable {
-        private java.util.Date issueDate;
-        private String userData;
+    public static class TokenPayload implements Serializable {
+        private final java.util.Date issueDate;
+        private final String name;
+        private final Map<String,String> payloadData;
 
-        public TokenInformation(Date issueDate, String userData) {
-            this.issueDate = issueDate;
-            this.userData = userData;
+        public TokenPayload(final String name, final Map<String,String> payloadData) {
+            this.issueDate = new Date();
+            this.payloadData = payloadData;
+            this.name = name;
+
         }
 
         public Date getIssueDate() {
             return issueDate;
         }
 
-        public String getUserData() {
-            return userData;
+        public String getName() {
+            return name;
+        }
+
+        public Map<String, String> getPayloadData() {
+            return payloadData;
         }
     }
 

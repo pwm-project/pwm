@@ -63,6 +63,8 @@ public class NewUserServlet extends TopServlet {
     private static final String FIELD_PASSWORD = "password1";
     private static final String FIELD_PASSWORD_CONFIRM = "password2";
 
+    private static final String TOKEN_NAME = NewUserServlet.class.getName();
+
     protected void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -190,25 +192,28 @@ public class NewUserServlet extends TopServlet {
 
         final String userSuppliedTokenKey = Validator.readStringFromRequest(req, "code");
 
-        final String tokenData;
+        final TokenManager.TokenPayload tokenPayload;
         try {
-            tokenData = pwmApplication.getTokenManager().retrieveTokenData(userSuppliedTokenKey);
+            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userSuppliedTokenKey);
+            if (tokenPayload != null && !TOKEN_NAME.equals(tokenPayload.getName())) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token name/type"));
+            }
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             this.forwardToEnterCodeJSP(req, resp);
             return;
         }
 
-        if (tokenData != null) {
-            final Gson gson = new Gson();
-            final Map<String,String> formData = gson.fromJson(tokenData, new TypeToken<Map<String,String>>(){}.getType());
+        if (tokenPayload != null) {
+            final Map<String,String> formData;
+            formData = tokenPayload.getPayloadData();
             pwmSession.getNewUserBean().setFormData(formData);
             pwmSession.getNewUserBean().setTokenIssued(true);
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
 
-            this.forwardToWaitJSP(req,resp);
+            this.forwardToWaitJSP(req, resp);
             return;
         }
 
@@ -470,7 +475,7 @@ public class NewUserServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, ServletException, PwmUnrecoverableException {
-            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
     }
 
     private void forwardToAgreementJSP(
@@ -599,10 +604,9 @@ public class NewUserServlet extends TopServlet {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final Configuration config = pwmApplication.getConfig();
 
-        final Gson gson = new Gson();
         final String tokenKey;
         try {
-            final String tokenPayload = gson.toJson(newUserForm);
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,newUserForm);
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated new user tokenKey code for session: " + tokenKey);
         } catch (PwmOperationalException e) {
