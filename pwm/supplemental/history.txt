@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.6.0
+v1.6.0 (October 17, 2011) build 1096
 ---
 + Added turkish locale, thanks erdem.bayer! (issue #86)
 + Added slovak locale, thanks svacko! (issue #87)
