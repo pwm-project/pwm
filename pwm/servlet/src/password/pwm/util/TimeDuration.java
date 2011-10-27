@@ -67,6 +67,10 @@ public class TimeDuration implements Comparable, Serializable {
         return new TimeDuration(System.currentTimeMillis(), ms);
     }
 
+    public static TimeDuration fromCurrent(final Date date) {
+        return new TimeDuration(System.currentTimeMillis(), date.getTime());
+    }
+
     public static String compactFromCurrent(final long ms) {
         return new TimeDuration(System.currentTimeMillis(), ms).asCompactString();
     }

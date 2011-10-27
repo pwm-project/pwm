@@ -236,7 +236,6 @@ public class PwmPasswordPolicy implements Serializable {
         final long methodStartTime = System.currentTimeMillis();
         final Configuration config = pwmApplication.getConfig();
 
-
         PwmPasswordPolicy returnPolicy = config.getGlobalPasswordPolicy(locale);
         PwmPasswordPolicy userPolicy = null;
 
@@ -273,6 +272,13 @@ public class PwmPasswordPolicy implements Serializable {
             LOGGER.debug(pwmSession, "merged password policy with PWM configured policy: " + mergedPolicy.toString());
         } else {
             LOGGER.debug(pwmSession, "unable to discover an ldap assigned password policy, using pwm global policy: " + returnPolicy.toString());
+        }
+
+        if (!"read".equals(config.readSettingAsString(PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY))) {
+            returnPolicy.policyMap.put(
+                    PwmPasswordRule.CaseSensitive.getKey(),
+                    config.readSettingAsString(PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY)
+                    );
         }
 
         LOGGER.trace(pwmSession, "createPwmPasswordPolicy completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());

@@ -23,7 +23,18 @@
 package password.pwm.health;
 
 public enum HealthStatus {
-    WARN,
-    CAUTION,
-    GOOD
+    WARN(3),
+    CAUTION(2),
+    GOOD(1)
+    ;
+
+    private int severityLevel;
+
+    HealthStatus(int severityLevel) {
+        this.severityLevel = severityLevel;
+    }
+
+    public int getSeverityLevel() {
+        return severityLevel;
+    }
 }

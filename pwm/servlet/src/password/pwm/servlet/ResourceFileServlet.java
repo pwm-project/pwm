@@ -39,6 +39,7 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -51,7 +52,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 public class ResourceFileServlet extends HttpServlet {
@@ -112,7 +116,6 @@ public class ResourceFileServlet extends HttpServlet {
             (final HttpServletRequest request, final HttpServletResponse response, final boolean includeBody)
             throws IOException {
 
-        final File file = resolveRequestedFile(request);
 
         PwmSession pwmSession = null;
         try {
@@ -121,6 +124,15 @@ public class ResourceFileServlet extends HttpServlet {
             // ignore
         }
 
+        try {
+            if (handleSpecialURIs(request, response)) {
+                return;
+            }
+        } catch (Exception e) {
+            LOGGER.error(pwmSession, "unexpected error detecting/handling special request uri: " + e.getMessage());
+        }
+
+        final File file = resolveRequestedFile(request);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -394,6 +406,45 @@ public class ResourceFileServlet extends HttpServlet {
 
         LOGGER.warn("attempt to access file outside of servlet path " + file.getAbsolutePath());
         return null;
+    }
+
+    private static boolean handleSpecialURIs(final HttpServletRequest request, final HttpServletResponse response)
+            throws PwmUnrecoverableException, IOException {
+        final String requestURI = request.getRequestURI();
+        if (requestURI != null) {
+            if (requestURI.startsWith(request.getContextPath() + "/resources/themes/custom/pwmStyle.css")) {
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_STYLE, request, response);
+                return true;
+            } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/custom/pwmMobileStyle.css")) {
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE, request, response);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void writeConfigSettingToBody(
+            final PwmSetting pwmSetting,
+            final HttpServletRequest request,
+            final HttpServletResponse response
+    )
+            throws PwmUnrecoverableException, IOException {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final String bodyText = pwmApplication.getConfig().readSettingAsLocalizedString(
+                pwmSetting,
+                pwmSession.getSessionStateBean().getLocale()
+        );
+        if (bodyText != null && bodyText.length() > 0) {
+            try {
+                response.setContentType("text/css");
+                copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
+            } finally {
+                close(response.getOutputStream());
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
     private static final class UncacheableResourceException extends Exception {

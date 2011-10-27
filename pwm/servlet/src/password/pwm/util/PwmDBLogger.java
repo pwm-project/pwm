@@ -196,8 +196,8 @@ public class PwmDBLogger {
         }
     }
 
-    public long getTailTimestamp() {
-        return tailTimestampMs;
+    public Date getTailDate() {
+        return new Date(tailTimestampMs);
     }
 
     public int getStoredEventCount() {

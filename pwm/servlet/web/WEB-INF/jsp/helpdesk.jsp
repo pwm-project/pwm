@@ -25,7 +25,6 @@
 <%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
-<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>

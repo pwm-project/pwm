@@ -347,7 +347,7 @@ public class PwmApplication {
 
         if (getConfigMode() != MODE.RUNNING) {
             final Thread t = new Thread(new Runnable(){
-                public void run() {getHealthMonitor().getHealthRecords(true);}
+                public void run() {try {getHealthMonitor().getHealthRecords(true);} catch (Exception e) { /* */ }}
             },"pwm-Startup-Healthchecker");
             t.setDaemon(true);
             t.start();

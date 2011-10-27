@@ -91,5 +91,16 @@
         PWM_STRINGS['passwordGuideText'] = '<%=ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%>';
         dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
     </script>
-    <script type="text/javascript">initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);</script>
+    <script type="text/javascript">
+        dojo.addOnLoad(function(){
+            initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
+        });
+        dojo.addOnUnload(function(){
+            dojo.xhrGet({
+                url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                sync: true
+            });
+        });
+    </script>
+
 </div>

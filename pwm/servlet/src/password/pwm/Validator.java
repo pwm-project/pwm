@@ -223,18 +223,34 @@ public class Validator {
 
     public static void validatePwmFormID(final HttpServletRequest req) throws PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
-        if (pwmFormID != null) {
-            final String submittedpwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
-            if (submittedpwmFormID == null || submittedpwmFormID.length() < 1) {
-                LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
-                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
-            }
+        final long requestSequenceCounter = ssBean.getRequestCounter();
 
-            if (!pwmFormID.equals(submittedpwmFormID)) {
-                LOGGER.warn(pwmSession, "form submitted with incorrect pwmFormID value");
-                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
+        final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
+
+        if (submittedPwmFormID.length() < pwmFormID.length() + 1) {
+            LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
+            throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
+        }
+
+        if (!pwmFormID.equals(submittedPwmFormID.substring(0,pwmFormID.length()))) {
+            LOGGER.warn(pwmSession, "form submitted with incorrect pwmFormID value");
+            throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
+        }
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
+            try {
+                final String submittedSequenceCounterStr = submittedPwmFormID.substring(pwmFormID.length(),submittedPwmFormID.length());
+                final long submittedSequenceCounter = Long.parseLong(submittedSequenceCounterStr,36);
+                if (submittedSequenceCounter != requestSequenceCounter) {
+                    LOGGER.warn(pwmSession, "form submitted with incorrect pwmFormID-requestSequence value");
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
+                }
+            } catch (NumberFormatException e) {
+                LOGGER.warn(pwmSession, "unable to parse pwmFormID-requestSequence value: " + e.getMessage());
+                throw new PwmUnrecoverableException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
             }
         }
     }

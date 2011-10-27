@@ -23,6 +23,8 @@
 package password.pwm.tag;
 
 import password.pwm.PwmSession;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.util.Helper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -37,11 +39,10 @@ public class PwmFormIDTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final String pwmFormID = pwmSession.getSessionStateBean().getSessionVerificationKey();
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+            final String pwmFormID = Helper.buildPwmFormID(ssBean);
 
-            if (pwmFormID != null) {
-                pageContext.getOut().write(pwmFormID);
-            }
+            pageContext.getOut().write(pwmFormID);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

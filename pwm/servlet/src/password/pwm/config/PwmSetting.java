@@ -101,7 +101,10 @@ public enum PwmSetting {
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
-
+    DISPLAY_CSS_CUSTOM_STYLE(
+            "display.css.customStyle", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
+            "display.css.customMobileStyle", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
 
     //ldap directory
     LDAP_SERVER_URLS(
@@ -312,6 +315,8 @@ public enum PwmSetting {
             "password.policy.minimumUnique", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
             "password.policy.maximumOldPasswordChars", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
+    PASSWORD_POLICY_CASE_SENSITIVITY(
+            "password.policy.caseSensitivity", Syntax.SELECT, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_AD_COMPLEXITY(
@@ -334,25 +339,27 @@ public enum PwmSetting {
             "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.BASIC),
 
 
-    // intruder settings
+    // security settings
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
+            "intruder.user.resetTime", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
     INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC ),
+            "intruder.user.maxAttempts", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC ),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
+            "intruder.address.resetTime", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.INTRUDER, true, Level.BASIC),
-
-    // captcha
+            "intruder.address.maxAttempts", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
     RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", Syntax.STRING, Category.INTRUDER, false, Level.BASIC),
+            "captcha.recaptcha.publicKey", Syntax.STRING, Category.SECURITY, false, Level.BASIC),
     RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.INTRUDER, false, Level.BASIC),
+            "captcha.recaptcha.privateKey", Syntax.PASSWORD, Category.SECURITY, false, Level.BASIC),
     CAPTCHA_SKIP_PARAM(
-            "captcha.skip.param", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
+            "captcha.skip.param", Syntax.STRING, Category.SECURITY, false, Level.ADVANCED),
     CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", Syntax.STRING, Category.INTRUDER, false, Level.ADVANCED),
+            "captcha.skip.cookie", Syntax.STRING, Category.SECURITY, false, Level.ADVANCED),
+    PAGE_LEAVE_WAIT_TIME(
+            "security.page.leave.waitTime", Syntax.NUMERIC, Category.SECURITY, false, Level.ADVANCED),
+    SECURITY_ENABLE_REQUEST_SEQUENCE(
+            "security.page.enableRequestSequence", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
 
 
     // logger settings
@@ -502,6 +509,8 @@ public enum PwmSetting {
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_FORM(
             "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.BASIC),
+    ACTIVATE_USER_EMAIL_VERIFICATION(
+            "activateUser.email.verification", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_SEARCH_FILTER(
             "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_QUERY_MATCH(
@@ -792,7 +801,7 @@ public enum PwmSetting {
         CHALLENGE(0),
         EMAIL(0),
         SMS(0),
-        INTRUDER(0),
+        SECURITY(0),
         LOGGING(0),
         RECOVERY(1),
         FORGOTTEN_USERNAME(1),

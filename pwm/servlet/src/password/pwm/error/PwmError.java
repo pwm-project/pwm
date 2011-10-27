@@ -133,6 +133,7 @@ public enum PwmError {
     ERROR_DB_UNAVAILABLE("Error_DB_Unavailable",5051),
     ERROR_PWMDB_UNAVAILABLE("Error_PwmDB_Unavailable",5052),
     ERROR_PWM_UNAVAILABLE("Error_Pwm_Unavailable",5053),
+    ERROR_INCORRECT_REQUEST_SEQUENCE("Error_IncorrectRequestSequence", 5035),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

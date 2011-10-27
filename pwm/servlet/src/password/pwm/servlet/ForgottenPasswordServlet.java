@@ -702,7 +702,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         redirectURL.append("&");
         redirectURL.append("code=").append(aftPath);
         redirectURL.append("&");
-        redirectURL.append("pwmFormID=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+        redirectURL.append("pwmFormID=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
 
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         resp.sendRedirect(redirectURL.toString());

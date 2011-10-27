@@ -154,6 +154,7 @@ public class ServletHelper {
 
         for (Enumeration enumeration = req.getHeaderNames(); enumeration.hasMoreElements();) {
             final String headerName = (enumeration.nextElement()).toString();
+            sb.append("  ");
             sb.append(headerName);
             sb.append("=");
             sb.append(req.getHeader(headerName));

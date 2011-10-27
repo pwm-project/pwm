@@ -28,10 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -138,8 +135,11 @@ public class SessionFilter implements Filter {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final ServletContext servletContext = req.getSession().getServletContext();
-        final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        // check the leave flag
+        checkLastPageLeaveTime(pwmApplication, pwmSession, ssBean);
 
         // mark the user's IP address in the session bean
         ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
@@ -183,7 +183,7 @@ public class SessionFilter implements Filter {
         }
 
         // make sure connection is secure.
-        if (theManager.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SECURE_REQUEST_REQUIRED));
             ServletHelper.forwardToErrorPage(req,resp, true);
             return;
@@ -196,7 +196,7 @@ public class SessionFilter implements Filter {
         //check for session verification failure
         if (!ssBean.isSessionVerified()) {
             // ignore resource requests
-            if (theManager.getConfig() != null && !theManager.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
+            if (pwmApplication.getConfig() != null && !pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
                 ssBean.setSessionVerified(true);
             } else {
                 verifySession(req, resp, servletContext);
@@ -205,9 +205,9 @@ public class SessionFilter implements Filter {
         }
 
         //check intruder detection, if it is tripped, send user to error page
-        if (theManager.getIntruderManager() != null && theManager.getConfig() != null) {
+        if (pwmApplication.getIntruderManager() != null && pwmApplication.getConfig() != null) {
             try {
-                theManager.getIntruderManager().checkAddress(pwmSession);
+                pwmApplication.getIntruderManager().checkAddress(pwmSession);
             } catch (PwmUnrecoverableException e) {
                 ServletHelper.forwardToErrorPage(req, resp, false);
                 return;
@@ -228,7 +228,7 @@ public class SessionFilter implements Filter {
 
         final String skipCaptcha = Validator.readStringFromRequest(req, "skipCaptcha", 4096);
         if (skipCaptcha != null && skipCaptcha.length() > 0) {
-            final String configValue = theManager.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_PARAM);
+            final String configValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_PARAM);
             if (configValue != null && configValue.equals(skipCaptcha)) {
                 LOGGER.trace(pwmSession, "valid skipCaptcha value in request, skipping captcha check for this session");
                 ssBean.setPassedCaptcha(true);
@@ -244,7 +244,7 @@ public class SessionFilter implements Filter {
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             resp.setHeader("X-Pwm-Version", PwmConstants.SERVLET_VERSION);
-            resp.setHeader("X-Pwm-Instance", String.valueOf(theManager.getInstanceID()));
+            resp.setHeader("X-Pwm-Instance", String.valueOf(pwmApplication.getInstanceID()));
 
             if (PwmRandom.getInstance().nextInt(5) == 0) {
                 resp.setHeader("X-Pwm-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
@@ -261,11 +261,12 @@ public class SessionFilter implements Filter {
             throw new ServletException(e);
         }
 
-        if (theManager.getStatisticsManager() != null) {
-            theManager.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
+        if (pwmApplication.getStatisticsManager() != null) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
 
         ssBean.setLastAccessTime(System.currentTimeMillis());
+
     }
 
     public void destroy() {
@@ -440,5 +441,25 @@ public class SessionFilter implements Filter {
         }
 
         return false;
+    }
+
+    private void checkLastPageLeaveTime(final PwmApplication pwmApplication, final PwmSession pwmSession, final SessionStateBean ssBean) {
+        if (ssBean.getLastPageLeaveTime() == null) {
+            return;
+        }
+
+        final java.util.Date lastLeaveTime = ssBean.getLastPageLeaveTime();
+        final TimeDuration duration = TimeDuration.fromCurrent(lastLeaveTime);
+        final long maxSecondDuration = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PAGE_LEAVE_WAIT_TIME);
+
+        if (maxSecondDuration > 0) {
+            if (duration.isLongerThan(maxSecondDuration * 1000)) {
+                LOGGER.debug(pwmSession, "unauthenticating user due to dirty page leave flag (idle " + duration.asCompactString() + ")");
+                pwmSession.unauthenticateUser();
+            }
+        }
+
+        LOGGER.trace(pwmSession, "clearing page leave flag");
+        ssBean.setLastPageLeaveTime(null);
     }
 }

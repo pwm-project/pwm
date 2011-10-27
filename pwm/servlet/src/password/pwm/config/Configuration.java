@@ -251,6 +251,11 @@ public class Configuration implements Serializable {
                     passwordPolicySettings.put(rule.getKey(), value);
                 }
             }
+
+            if (!"read".equals(readSettingAsString(PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY))) {
+                passwordPolicySettings.put(PwmPasswordRule.CaseSensitive.getKey(),readSettingAsString(PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY));
+            }
+
             policy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
             cachedPasswordPolicy.put(locale,policy);
         }

@@ -35,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
@@ -468,7 +469,7 @@ public class ChangePasswordServlet extends TopServlet {
         returnURL.append(req.getContextPath());
         returnURL.append(req.getServletPath());
         returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
-        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
         final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
         req.setAttribute("nextURL",rewrittenURL );
 

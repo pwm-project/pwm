@@ -29,6 +29,7 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -59,30 +60,28 @@ public class SessionStateBean implements Serializable {
     private String srcHostname;
     private String forwardURL;
     private String logoutURL;
-    private String postWaitURL;
     private Locale locale;
     private String sessionID;
 
     private int incorrectLogins;
 
     private Properties lastParameterValues = new Properties();
-
+    private Map<String, ShortcutItem> visibleShortcutItems;
     private BasicAuthInfo originalBasicAuthInfo;
 
-    private boolean sessionVerified;
-
-    private static int sequenceNumber = PwmRandom.getInstance().nextInt();
-    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Integer.toHexString(sequenceNumber++) + Long.toHexString(System.currentTimeMillis());
+    private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
+    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
 
     private boolean passedCaptcha;
+    private boolean debugInitialized;
+    private boolean sessionVerified;
 
     private long lastAccessTime = System.currentTimeMillis();
+    private Date lastPageLeaveTime = null;
 
-    private Map<String, ShortcutItem> visibleShortcutItems;
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
-    private boolean debugInitialized;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -150,14 +149,6 @@ public class SessionStateBean implements Serializable {
         this.originalRequestURL = originalRequestURL;
     }
 
-    public String getPostWaitURL() {
-        return postWaitURL;
-    }
-
-    public void setPostWaitURL(final String postWaitURL) {
-        this.postWaitURL = postWaitURL;
-    }
-
     public ErrorInformation getSessionError() {
         return sessionError;
     }
@@ -221,10 +212,6 @@ public class SessionStateBean implements Serializable {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public void clearLastParameterValues() {
-        this.lastParameterValues = new Properties();
-    }
-
     public long getIdleTime() {
         final long lastAccessTime = getLastAccessTime();
         return System.currentTimeMillis() - lastAccessTime;
@@ -253,10 +240,6 @@ public class SessionStateBean implements Serializable {
         return sessionVerificationKey;
     }
 
-    public void setSessionVerificationKey(final String sessionVerificationKey) {
-        this.sessionVerificationKey = sessionVerificationKey;
-    }
-
     public boolean isSessionVerified() {
         return sessionVerified;
     }
@@ -281,12 +264,27 @@ public class SessionStateBean implements Serializable {
         this.debugInitialized = debugInitialized;
     }
 
+    public Date getLastPageLeaveTime() {
+        return lastPageLeaveTime;
+    }
+
+    public void setLastPageLeaveTime(final Date lastPageLeaveTime) {
+        this.lastPageLeaveTime = lastPageLeaveTime;
+    }
+
+    public int getRequestCounter() {
+        return requestCounter;
+    }
+
+    public void incrementRequestCounter() {
+        requestCounter = requestCounter++;
+    }
+
     // -------------------------- ENUMERATIONS --------------------------
 
     public enum FINISH_ACTION {
         LOGOUT, FORWARD
     }
-
 
 }
 

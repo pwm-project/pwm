@@ -60,6 +60,8 @@ public class ActivateUserServlet extends TopServlet {
     private static final String USERNAME_PARAM_NAME = "username";
     private static final String CONTEXT_PARAM_NAME = "context";
 
+    private static final String TOKEN_NAME = "activation";
+
 // -------------------------- OTHER METHODS --------------------------
 
     protected void processRequest(
@@ -171,6 +173,10 @@ public class ActivateUserServlet extends TopServlet {
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         }
         forwardToJSP(req, resp);
+    }
+
+    private void issueToken(PwmApplication pwmApplication, PwmSession pwmSession) {
+
     }
 
     public void activateUser(

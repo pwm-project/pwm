@@ -6,6 +6,14 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.6.1
+---
++ Added "application leave detection" to detect if user leaves PWM site.
++ Added settings to manage custom CSS from PwmApplication.xml
++ Added option to override Case Sensitivity detection (issue #127)
++ Request Sequence detection (duplicate form submit detection) added with option to disable.
+
+
 v1.6.0 (October 17, 2011) build 1096
 ---
 + Added turkish locale, thanks erdem.bayer! (issue #86)

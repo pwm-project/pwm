@@ -41,6 +41,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import password.pwm.*;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -897,5 +898,9 @@ public class Helper {
 
 
         return sb.toString();
+    }
+
+    static public String buildPwmFormID(final SessionStateBean ssBean) {
+        return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
     }
 }

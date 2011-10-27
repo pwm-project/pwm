@@ -84,12 +84,14 @@ public class ContextManager implements Serializable {
             pwmApplication = new PwmApplication(configuration, configReader.getConfigMode(), pwmApplicationPath);
         } catch (OutOfMemoryError e) {
             final String errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage();
-            LOGGER.fatal(errorMsg,e);
             startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+            try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
+            System.err.println(errorMsg);
         } catch (Exception e) {
             final String errorMsg = "unable to initialize pwm due to configuration related error: " + e.getMessage();
             startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
             try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
+            System.err.println(errorMsg);
         }
 
         taskMaster = new Timer("pwm-ContextManager timer", true);

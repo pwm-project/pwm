@@ -67,7 +67,7 @@
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
     timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
-    <%= SimpleDateFormat.getInstance().format(new Date(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailTimestamp())) %>
+    <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailDate()) %>
     .
 </p>
 

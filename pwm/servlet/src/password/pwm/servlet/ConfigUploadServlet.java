@@ -36,6 +36,7 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -120,7 +121,7 @@ public class ConfigUploadServlet extends TopServlet {
                     if ("uploadFile".equals(item.getFieldName())) {
                         uploadFile = streamToString(item.openStream());
                     } else if ("pwmFormID".equals(item.getFieldName())) {
-                        final String formNonce = PwmSession.getPwmSession(req).getSessionStateBean().getSessionVerificationKey();
+                        final String formNonce = Helper.buildPwmFormID(PwmSession.getPwmSession(req).getSessionStateBean());
                         final String inputpwmFormID = streamToString(item.openStream());
                         if (formNonce.equals(inputpwmFormID)) {
                             pwmFormIDvalidated = true;

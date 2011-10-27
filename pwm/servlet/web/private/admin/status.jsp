@@ -305,7 +305,7 @@
             Oldest Log Event
         </td>
         <td>
-            <%= pwmApplication.getPwmDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getPwmDBLogger().getTailTimestamp()).asCompactString() : "n/a" %>
+            <%= pwmApplication.getPwmDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getPwmDBLogger().getTailDate()).asCompactString() : "n/a" %>
         </td>
     </tr>
     <tr>

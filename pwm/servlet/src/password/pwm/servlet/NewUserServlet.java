@@ -504,7 +504,7 @@ public class NewUserServlet extends TopServlet {
         returnURL.append(req.getContextPath());
         returnURL.append(req.getServletPath());
         returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doCreate");
-        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(PwmSession.getPwmSession(req).getSessionStateBean().getSessionVerificationKey());
+        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(Helper.buildPwmFormID(PwmSession.getPwmSession(req).getSessionStateBean()));
         final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
         req.setAttribute("nextURL",rewrittenURL );
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_WAIT).forward(req, resp);
@@ -708,7 +708,7 @@ public class NewUserServlet extends TopServlet {
         redirectURL.append("&");
         redirectURL.append("code=").append(aftPath);
         redirectURL.append("&");
-        redirectURL.append("pwmFormID=").append(pwmSession.getSessionStateBean().getSessionVerificationKey());
+        redirectURL.append("pwmFormID=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
 
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         resp.sendRedirect(redirectURL.toString());

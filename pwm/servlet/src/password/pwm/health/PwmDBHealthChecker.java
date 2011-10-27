@@ -28,6 +28,7 @@ import password.pwm.util.PwmDBLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 
+import java.util.Date;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,17 +64,17 @@ public class PwmDBHealthChecker implements HealthChecker {
                 final int eventCount = pwmDBLogger.getStoredEventCount();
                 final int maxEventCount = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 if (eventCount > maxEventCount + 5000) {
-                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains " + NumberFormat.getInstance().format(eventCount) + " records, more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
+                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "PwmDBLogger contains " + NumberFormat.getInstance().format(eventCount) + " records, which is more than the configured maximum of " + NumberFormat.getInstance().format(maxEventCount)));
                 }
 
                 final long maxTailMs = pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000L;
-                final long tailDate = pwmDBLogger.getTailTimestamp();
-                final long maxTailDate = System.currentTimeMillis() - maxTailMs;
-                if (tailDate < maxTailDate - (60 * 60 * 1000)) { // older than an hour past tail date
-                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger contains records older than the configured maximum of " + new TimeDuration(maxTailMs).asLongString()));
+                final Date tailDate = pwmDBLogger.getTailDate();
+                final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
+                if (timeDuration.isLongerThan(maxTailMs)) { // older than max age
+                    healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "PwmDBLogger contains records older (" + timeDuration.asCompactString() + ") than the configured maximum of " + new TimeDuration(maxTailMs).asLongString()));
                 }
             } else {
-                healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB Logger is not running"));
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDBLogger is not running"));
             }
         }
 
