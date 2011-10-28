@@ -169,7 +169,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     public boolean contains(final DB db, final String key)
             throws PwmDBException {
-        preCheck(true);
+        preCheck(false);
         try {
             return cachedMaps.get(db).containsKey(key);
         } catch (RuntimeExceptionWrapper e) {
@@ -180,7 +180,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     public String get(final DB db, final String key)
             throws PwmDBException {
-        preCheck(true);
+        preCheck(false);
         try {
             return cachedMaps.get(db).get(key);
         } catch (RuntimeExceptionWrapper e) {
@@ -212,7 +212,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     public synchronized Iterator<String> iterator(final DB db)
             throws PwmDBException {
-        preCheck(true);
+        preCheck(false);
         try {
             if (dbIterators.containsKey(db)) {
                 throw new IllegalArgumentException("multiple outstanding iterators per DB are not permitted");
@@ -344,7 +344,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
 
         public void remove() {
-            innerIter.remove();
+            throw new UnsupportedOperationException("Berkeley PwmDB Iterator does not support removals");
         }
     }
 
