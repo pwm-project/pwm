@@ -232,9 +232,9 @@ public enum PwmSetting {
     SMS_GATEWAY_URL(
             "sms.gatewayURL", Syntax.STRING, Category.SMS, true, Level.BASIC),
     SMS_GATEWAY_USER(
-            "sms.gatewayUser", Syntax.STRING, Category.SMS, true, Level.BASIC),
+            "sms.gatewayUser", Syntax.STRING, Category.SMS, false, Level.BASIC),
     SMS_GATEWAY_PASSWORD(
-            "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, true, Level.BASIC),
+            "sms.gatewayPassword", Syntax.PASSWORD, Category.SMS, false, Level.BASIC),
     SMS_GATEWAY_METHOD(
             "sms.gatewayMethod", Syntax.SELECT, Category.SMS, true, Level.BASIC),
     SMS_GATEWAY_AUTHMETHOD(
