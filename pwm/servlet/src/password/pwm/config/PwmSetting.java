@@ -166,7 +166,7 @@ public enum PwmSetting {
     EMAIL_ADMIN_ALERT_FROM(
             "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_FROM(
-            "email.changePassword.form", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
+            "email.changePassword.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_SUBJECT(
             "email.changePassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_BODY(
