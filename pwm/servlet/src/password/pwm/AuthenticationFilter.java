@@ -350,7 +350,9 @@ public class AuthenticationFilter implements Filter {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                     LOGGER.warn(pwmSession, errorInformation.toDebugStr());
                     pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
-                    pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                    if (!PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT.equals(password)) {
+                        pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                    }
                     throw new PwmUnrecoverableException(errorInformation);
                 }
                 final String errorMsg = "ldap error during password check: " + e.getMessage();

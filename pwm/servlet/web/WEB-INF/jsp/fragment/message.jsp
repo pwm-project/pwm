@@ -26,8 +26,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
 <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
+<% PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); %>
 <% } else if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) { %>
 <span id="message" class="message message-success"><pwm:SuccessMessage/></span>
+<% PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); %>
 <% } else { %>
 <span id="message" class="message">&nbsp;</span>
 <% } %>

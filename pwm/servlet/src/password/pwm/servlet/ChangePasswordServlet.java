@@ -110,11 +110,6 @@ public class ChangePasswordServlet extends TopServlet {
             } else if (processRequestParam.equalsIgnoreCase("agree")) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted password change agreement");
                 cpb.setAgreementPassed(true);
-            } else {
-                if (cpb.getPasswordChangeError() != null) {
-                    ssBean.setSessionError(cpb.getPasswordChangeError());
-                    cpb.setPasswordChangeError(null);
-                }
             }
         }
 
@@ -432,7 +427,7 @@ public class ChangePasswordServlet extends TopServlet {
                         PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, newPassword)
                 ));
             }
-            cpb.setPasswordChangeError(errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorMsg);
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         }
 

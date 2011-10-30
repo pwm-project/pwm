@@ -348,6 +348,8 @@ public enum PwmSetting {
             "intruder.address.resetTime", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
             "intruder.address.maxAttempts", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
+    SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
+            "security.ldap.simulateBadPassword", Syntax.BOOLEAN, Category.SECURITY, false, Level.BASIC),
     RECAPTCHA_KEY_PUBLIC(
             "captcha.recaptcha.publicKey", Syntax.STRING, Category.SECURITY, false, Level.BASIC),
     RECAPTCHA_KEY_PRIVATE(

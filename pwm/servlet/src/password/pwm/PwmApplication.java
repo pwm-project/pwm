@@ -345,15 +345,7 @@ public class PwmApplication {
 
         AlertHandler.alertStartup(this);
 
-        if (getConfigMode() != MODE.RUNNING) {
-            final Thread t = new Thread(new Runnable(){
-                public void run() {try {getHealthMonitor().getHealthRecords(true);} catch (Exception e) { /* */ }}
-            },"pwm-Startup-Healthchecker");
-            t.setDaemon(true);
-            t.start();
-        }
-
-        // startup the stats engine;
+        // startup the token manager;
         PwmInitializer.initializeTokenManager(this);
     }
 

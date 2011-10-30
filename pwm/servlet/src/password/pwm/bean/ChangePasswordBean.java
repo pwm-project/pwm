@@ -22,7 +22,6 @@
 
 package password.pwm.bean;
 
-import password.pwm.error.ErrorInformation;
 import password.pwm.servlet.ChangePasswordServlet;
 
 import java.io.Serializable;
@@ -40,7 +39,6 @@ public class ChangePasswordBean implements Serializable {
     private boolean agreementPassed;
     private boolean currentPasswordRequired;
 
-    private ErrorInformation passwordChangeError;
     private final Map<String, ChangePasswordServlet.PasswordCheckInfo> passwordTestCache = new LinkedHashMap<String, ChangePasswordServlet.PasswordCheckInfo>() {
         @Override
         protected boolean removeEldestEntry(final Map.Entry<String, ChangePasswordServlet.PasswordCheckInfo> eldest) {
@@ -53,16 +51,6 @@ public class ChangePasswordBean implements Serializable {
     public String getNewPassword()
     {
         return newPassword;
-    }
-
-    public ErrorInformation getPasswordChangeError()
-    {
-        return passwordChangeError;
-    }
-
-    public void setPasswordChangeError(final ErrorInformation passwordChangeError)
-    {
-        this.passwordChangeError = passwordChangeError;
     }
 
     public Map<String, ChangePasswordServlet.PasswordCheckInfo> getPasswordTestCache()

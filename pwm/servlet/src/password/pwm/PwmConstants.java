@@ -57,15 +57,16 @@ public abstract class PwmConstants {
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
     public static final List<Locale> KNOWN_LOCALES;
 
-    public static final DateFormat PWM_STANDARD_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
+    public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
 
-    public static final String HTTP_HEADER_BASIC_AUTH = "Authorization";
-    public static final String HTTP_BASIC_AUTH_PREFIX = "Basic ";
-    public static final String HTTP_HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
+    public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
+    public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
+    public static final String HTTP_HEADER_X_FORWARDED_FOR = readPwmConstantsBundle("httpHeaderXForwardedFor");
 
+    public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
@@ -168,7 +169,7 @@ public abstract class PwmConstants {
     public static final int PASSWORD_UPDATE_INITIAL_DELAY = 1000; //milliseconds
 
     static {
-        PWM_STANDARD_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+        DEFAULT_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
         KNOWN_LOCALES = calculateKnownLocales();
     }
 
