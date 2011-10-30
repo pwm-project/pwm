@@ -125,7 +125,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         try {
-            if (handleSpecialURIs(request, response)) {
+            if (handleSpecialURIs(request, response, expireTimeMs)) {
                 return;
             }
         } catch (Exception e) {
@@ -408,15 +408,15 @@ public class ResourceFileServlet extends HttpServlet {
         return null;
     }
 
-    private static boolean handleSpecialURIs(final HttpServletRequest request, final HttpServletResponse response)
+    private static boolean handleSpecialURIs(final HttpServletRequest request, final HttpServletResponse response, final long expireTimeMs)
             throws PwmUnrecoverableException, IOException {
         final String requestURI = request.getRequestURI();
         if (requestURI != null) {
             if (requestURI.startsWith(request.getContextPath() + "/resources/themes/custom/pwmStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_STYLE, request, response);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_STYLE, request, response, expireTimeMs);
                 return true;
             } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/custom/pwmMobileStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE, request, response);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE, request, response, expireTimeMs);
                 return true;
             }
         }
@@ -426,7 +426,9 @@ public class ResourceFileServlet extends HttpServlet {
     private static void writeConfigSettingToBody(
             final PwmSetting pwmSetting,
             final HttpServletRequest request,
-            final HttpServletResponse response
+            final HttpServletResponse response,
+            final long expireTimeMs
+
     )
             throws PwmUnrecoverableException, IOException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
@@ -438,6 +440,8 @@ public class ResourceFileServlet extends HttpServlet {
         if (bodyText != null && bodyText.length() > 0) {
             try {
                 response.setContentType("text/css");
+                response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+                response.setIntHeader("Content-Length", bodyText.length());
                 copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
             } finally {
                 close(response.getOutputStream());

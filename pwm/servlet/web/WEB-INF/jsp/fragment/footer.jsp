@@ -98,7 +98,8 @@
         dojo.addOnUnload(function(){
             dojo.xhrGet({
                 url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                sync: true
+                sync: true,
+                failOk: true
             });
         });
     </script>

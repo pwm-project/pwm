@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); %>
+<% try { password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <body class="tundra">
 <div id="wrapper">
     <div id="centerbody">

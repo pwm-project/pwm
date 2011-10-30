@@ -239,15 +239,15 @@ function showPwmHealth(parentDivID, refreshNow) {
         }
     }, 1000);
 
-    var refreshUrl = PWM_GLOBAL['url-command'] + "?processAction=getHealthCheckData";
+    var refreshUrl = PWM_GLOBAL['url-rest'] + "/health";
     if (refreshNow) {
-        refreshUrl += "&refreshImmediate=true";
+        refreshUrl += "?refreshImmediate=true";
     }
 
     dojo.xhrGet({
         url: refreshUrl,
-        dataType: "json",
         handleAs: "json",
+        headers: { "Accept": "application/json" },
         timeout: 60 * 1000,
         load: function(data) {
             var healthRecords = data['data'];

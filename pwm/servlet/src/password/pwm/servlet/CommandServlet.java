@@ -22,7 +22,6 @@
 
 package password.pwm.servlet;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
@@ -33,8 +32,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
-import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -43,7 +40,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,8 +79,6 @@ public class CommandServlet extends TopServlet {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(req, resp);
-        } else if (action.equalsIgnoreCase("getHealthCheckData")) {
-            processGetHealthCheckData(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -111,47 +105,6 @@ public class CommandServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         pwmSession.getSessionStateBean().setLastPageLeaveTime(new java.util.Date());
         LOGGER.trace(pwmSession, "set page leave timestamp");
-    }
-
-    private static void processGetHealthCheckData(
-            final HttpServletRequest req, final HttpServletResponse resp
-    )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-
-        boolean refreshImmediate = false;
-        {
-            final String refreshImmediateParam = Validator.readStringFromRequest(req, "refreshImmediate");
-            if (refreshImmediateParam != null && refreshImmediateParam.equalsIgnoreCase("true")) {
-                if (pwmApplication.getConfigMode() == PwmApplication.MODE.CONFIGURATION) {
-                    LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
-                    refreshImmediate = true;
-                } else {
-                    try {
-                        refreshImmediate = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
-                    } catch (Exception e) {
-                        LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
-                    }
-                }
-            }
-        }
-
-        try {
-            final Collection<HealthRecord> healthRecords = healthMonitor.getHealthRecords(refreshImmediate);
-            final Map<String, Object> returnMap = new HashMap<String, Object>();
-            returnMap.put("date", healthMonitor.getLastHealthCheckDate());
-            returnMap.put("timestamp", healthMonitor.getLastHealthCheckDate().getTime());
-            returnMap.put("data", healthRecords);
-
-            final Gson gson = new Gson();
-            final String outputString = gson.toJson(returnMap);
-            resp.setContentType("application/json;charset=utf-8");
-            resp.getOutputStream().print(outputString);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error generating health records: " + e.getMessage());
-        }
     }
 
     private static void processCheckResponses(
