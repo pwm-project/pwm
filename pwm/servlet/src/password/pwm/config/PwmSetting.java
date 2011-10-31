@@ -97,6 +97,8 @@ public enum PwmSetting {
             "display.showCancelButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_RESET_BUTTON(
             "display.showResetButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
+    DISPLAY_SUCCESS_PAGES(
+            "display.showSuccessPage", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_PASSWORD_HISTORY(
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
