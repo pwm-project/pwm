@@ -1,0 +1,6 @@
+<Context>
+    <init-param>
+        <param-name>keepgenerated</param-name>
+        <param-value>false</param-value>
+    </init-param>
+</Context>
