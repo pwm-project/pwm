@@ -35,7 +35,7 @@ a {
 }
 
 p {
-    max-width: 600px;
+    max-width: 100%;
     color: #2D2D2D;
     position: relative;
     margin-left: auto;
@@ -44,7 +44,7 @@ p {
 
 hr {
     float: none;
-    width: 100px;
+    width: 100%;
     position: relative;
     margin-left: 5px;
     margin-top: 30px;
@@ -65,7 +65,7 @@ h3 {
 
 select {
     font-family: Trebuchet MS, sans-serif;
-    width: 500px
+    width: 80%
 }
 
 #form {
@@ -99,7 +99,7 @@ table td.key {
     text-align: right;
     font-weight: bold;
     padding-right: 10px;
-    width: 200px;
+    width: 40%;
 }
 
 table td.health-GOOD {
@@ -122,9 +122,9 @@ table td.health-WARN {
 }
 
 .inputfield {
-    width: 400px;
+    width: 60%;
     margin: 5px;
-    height: 18px
+    height: 18px;
 }
 
 /* main body wrapper, all elements (except footer) should be within wrapper */
@@ -152,7 +152,7 @@ table td.health-WARN {
 /* all forms use a buttonbar div containing the action buttons */
 #buttonbar {
     margin-top: 30px;
-    width: 600px;
+    width: 100%;
     margin-bottom: 15px;
     text-align: center
 }

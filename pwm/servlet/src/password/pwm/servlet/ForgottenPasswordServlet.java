@@ -222,7 +222,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+        pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
         pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
         simulateBadLogin(pwmApplication, pwmSession, userDN);
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds

@@ -433,10 +433,10 @@
     </tr>
     <tr>
         <td class="key">
-            <a href="#threads">Threads</a>
+            <a href="<pwm:url url='threads.jsp'/>">Threads</a>
         </td>
         <td>
-            <a href="#threads"><%= Thread.activeCount() %>
+            <a href="<pwm:url url='threads.jsp'/>"><%= Thread.activeCount() %></a>
             </a>
         </td>
     </tr>
@@ -459,57 +459,6 @@
             </script>
         </td>
     </tr>
-
-</table>
-<br class="clear"/>
-<table class="tablemain">
-    <tr>
-        <td class="title" colspan="10">
-            <a name="threads"></a>Java Threads
-        </td>
-    </tr>
-    <tr>
-        <td style="font-weight:bold;">
-            Id
-        </td>
-        <td style="font-weight:bold;">
-            Name
-        </td>
-        <td style="font-weight:bold;">
-            Priority
-        </td>
-        <td style="font-weight:bold;">
-            State
-        </td>
-        <td style="font-weight:bold;">
-            Daemon
-        </td>
-    </tr>
-    <%
-        final Thread[] tArray = new Thread[Thread.activeCount()];
-        Thread.enumerate(tArray);
-        try {
-            for (final Thread t : tArray) {
-    %>
-    <tr>
-        <td>
-            <%= t.getId() %>
-        </td>
-        <td>
-            <%= t.getName() != null ? t.getName() : "n/a" %>
-        </td>
-        <td>
-            <%= t.getPriority() %>
-        </td>
-        <td>
-            <%= t.getState().toString().toLowerCase() %>
-        </td>
-        <td>
-            <%= String.valueOf(t.isDaemon()) %>
-        </td>
-    </tr>
-    <% } %>
-    <% } catch (Exception e) { /* */ } %>
 </table>
 </div>
 </div>
