@@ -393,7 +393,9 @@ public class SmsQueueManager implements PwmService {
             }
             for (final String regex : regexes) {
                 LOGGER.trace("Matching string \"" + in + "\" against pattern \"" + regex + "\"");
-                if (in.matches(regex)) {
+                Pattern p = Pattern.compile(regex, Pattern.DOTALL);
+                Matcher m = p.matcher(in);
+                if (m.matches()) {
                     return true;
                 }
             }
