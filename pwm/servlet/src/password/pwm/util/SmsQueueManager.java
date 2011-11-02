@@ -207,13 +207,8 @@ public class SmsQueueManager implements PwmService {
             return false;
         }
 
-        if (gatewayUser == null || gatewayUser.length() < 1) {
-            LOGGER.debug("discarding sms send event (no SMS gateway user configured) " + smsItem.toString());
-            return false;
-        }
-
-        if (gatewayPass == null || gatewayPass.length() < 1) {
-            LOGGER.debug("discarding sms send event (no SMS gateway password configured) " + smsItem.toString());
+        if (gatewayUser != null && gatewayUser.length() > 0 && (gatewayPass == null || gatewayPass.length() < 1)) {
+            LOGGER.debug("discarding sms send event (SMS gateway user configured, but no password provided) " + smsItem.toString());
             return false;
         }
 
