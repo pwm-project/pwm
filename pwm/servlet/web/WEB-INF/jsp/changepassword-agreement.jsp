@@ -61,7 +61,7 @@
                        name="processAction"
                        value="agree"/>
                 <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "
+                       value="<pwm:Display key="Button_Continue"/>"
                        id="button_continue"/>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
@@ -70,7 +70,7 @@
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Logout"/>    "
+                       value="<pwm:Display key="Button_Logout"/>"
                        id="button_logout"/>
             </form>
         </div>

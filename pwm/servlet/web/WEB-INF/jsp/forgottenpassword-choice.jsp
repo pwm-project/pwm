@@ -39,7 +39,7 @@
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <input type="submit" name="submitBtn"
-                               value="    <pwm:Display key="Button_UnlockPassword"/>    "/>
+                               value="<pwm:Display key="Button_UnlockPassword"/>"/>
                         <input type="hidden" name="processAction" value="selectUnlock"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
@@ -57,7 +57,7 @@
                 <td class="key" style="border: 0">
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
-                        <input type="submit" name="submitBtn" value="   <pwm:Display key="Button_ChangePassword"/>  "/>
+                        <input type="submit" name="submitBtn" value="<pwm:Display key="Button_ChangePassword"/>"/>
                         <input type="hidden" name="processAction" value="selectResetPassword"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
@@ -71,7 +71,7 @@
                 <td class="key" style="border: 0">
                         <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                                 onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                            &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                            <pwm:Display key="Button_Cancel"/>
                         </button>
                         <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 </td>

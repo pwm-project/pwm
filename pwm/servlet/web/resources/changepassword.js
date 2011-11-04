@@ -274,11 +274,11 @@ function closeRandomPasswordsDialog() {
 function toggleMaskPasswords()
 {
     if (passwordsMasked) {
-        getObject("hide_button").value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Button_Hide'] + "\u00A0\u00A0\u00A0";
+        getObject("hide_button").value = PWM_STRINGS['Button_Hide'];
         changeInputTypeField(getObject("password1"),"text");
         changeInputTypeField(getObject("password2"),"text");
     } else {
-        getObject("hide_button").value = "\u00A0\u00A0\u00A0" + PWM_STRINGS['Button_Show'] + "\u00A0\u00A0\u00A0";
+        getObject("hide_button").value = PWM_STRINGS['Button_Show'];
         changeInputTypeField(getObject("password1"),"password");
         changeInputTypeField(getObject("password2"),"password");
     }

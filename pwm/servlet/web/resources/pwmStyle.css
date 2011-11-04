@@ -170,6 +170,8 @@ table td.health-WARN {
     background: -o-linear-gradient(top, #717081, #070618);
     border: 0;
     padding: 3px;
+    padding-right: 15px;
+    padding-left: 15px;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;

@@ -43,7 +43,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='ChangePassword'/>">
-                        <button style="float: right; padding: 7px" class="btn">
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_ChangePassword"/>
                         </button>
                     </a>
@@ -60,7 +60,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='SetupResponses'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_SetupResponses"/>
                         </button>
                     </a>
@@ -77,7 +77,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='UpdateProfile'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_UpdateProfile"/>
                         </button>
                     </a>
@@ -93,7 +93,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='history.jsp'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_UserEventHistory"/>
                         </button>
                     </a>
@@ -109,7 +109,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='Shortcuts'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_Shortcuts"/>
                         </button>
                     </a>
@@ -126,7 +126,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='PeopleSearch'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_PeopleSearch"/>
                         </button>
                     </a>
@@ -143,7 +143,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='userinfo.jsp'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_UserInformation"/>
                         </button>
                     </a>
@@ -160,7 +160,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='Helpdesk'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_Helpdesk"/>
                         </button>
                     </a>
@@ -178,7 +178,7 @@
             <tr>
                 <td style="border:0; width: 25%; height:50px">
                     <a href="<pwm:url url='GuestRegistration'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_GuestRegistration"/> & <pwm:Display key="Title_GuestUpdate"/>
                         </button>
                     </a>
@@ -195,7 +195,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='admin/status.jsp'/>">
-                        <button style="float: right; padding: 7px" class="btn">
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_Admin"/>
                         </button>
                     </a>
@@ -210,7 +210,7 @@
             <tr>
                 <td style="border:0; width: 25%; white-space: nowrap; height:50px">
                     <a href="<pwm:url url='../public/Logout'/>">
-                                                <button style="float: right; padding: 7px" class="btn"> 
+                        <button style="float: right;" class="btn">
                             <pwm:Display key="Title_Logout"/>
                         </button>
                     </a>

@@ -64,10 +64,10 @@
                 <input type="hidden" name="processAction" value="doVerify"/>
                 <input type="submit" name="verify" class="btn"
                        id="verify_button"
-                       value="    <pwm:Display key="Button_Verify"/>    "/>
+                       value="<pwm:Display key="Button_Verify"/>"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
-                       value="    <pwm:Display key="Button_Reset"/>    "/>
+                       value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>

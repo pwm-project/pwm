@@ -59,17 +59,17 @@
                        value="search"/>
                 <input type="submit" class="btn"
                        name="search"
-                       value="     <pwm:Display key="Button_Search"/>     "
+                       value="<pwm:Display key="Button_Search"/>"
                        id="submitBtn"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" class="btn"
                        name="reset" onclick="clearForm('searchForm');return false;"
-                       value="     <pwm:Display key="Button_Reset"/>     "/>
+                       value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                    <pwm:Display key="Button_Cancel"/>
                 </button>
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>

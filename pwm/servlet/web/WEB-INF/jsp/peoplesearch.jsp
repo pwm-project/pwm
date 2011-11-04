@@ -52,7 +52,7 @@
                    value="<pwm:ParamValue name='username'/>"/>
             <input tabindex="3" type="submit" class="btn"
                    name="search"
-                   value="     <pwm:Display key="Button_Search"/>     "
+                   value="<pwm:Display key="Button_Search"/>"
                    id="submitBtn"/>
 
             <input type="hidden"

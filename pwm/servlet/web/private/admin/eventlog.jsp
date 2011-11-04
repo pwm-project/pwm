@@ -141,9 +141,9 @@
                 &nbsp;
             </td>
             <td style="border: 0">
-                <input type="submit" name="submit" id="submit_button" value=" Search "/>
+                <input type="submit" name="submit" id="submit_button" value=" Search " class="btn"/>
                 &nbsp;&nbsp;
-                <button type="button" id="advanced_button" onclick="toggleAdvancedPanel()">Advanced</button>
+                <button type="button" id="advanced_button" class="btn" onclick="toggleAdvancedPanel()">Advanced</button>
             </td>
         </tr>
     </table>

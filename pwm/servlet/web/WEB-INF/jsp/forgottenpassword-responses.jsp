@@ -81,19 +81,19 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="checkResponses"/>
                 <input type="submit" name="checkResponses" class="btn"
-                       value="     <pwm:Display key="Button_RecoverPassword"/>     "
+                       value="<pwm:Display key="Button_RecoverPassword"/>"
                        id="submitBtn"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
                 <input type="reset" name="reset" class="btn"
-                       value="     <pwm:Display key="Button_Reset"/>     "/>
+                       value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
                 <input type="hidden" name="hideButton" class="btn"
-                       value="    <pwm:Display key="Button_Hide_Responses"/>    "
+                       value="<pwm:Display key="Button_Hide_Responses"/>"
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                    <pwm:Display key="Button_Cancel"/>
                 </button>
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>

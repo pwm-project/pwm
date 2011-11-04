@@ -59,7 +59,7 @@
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded">
                 <input type="submit" name="change_btn" class="btn"
-                       value="    « <pwm:Display key="Button_ChangeResponses"/> «    "/>
+                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
                 <input type="hidden" name="processAction" value="changeResponses"/>
             </form>
             <br/>
@@ -67,12 +67,12 @@
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded">
                 <input type="submit" name="confirm_btn" class="btn"
-                       value="    <pwm:Display key="Button_ConfirmResponses"/>    "/>
+                       value="<pwm:Display key="Button_ConfirmResponses"/>"/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                    &nbsp;&nbsp;&nbsp;<pwm:Display key="Button_Cancel"/>&nbsp;&nbsp;&nbsp;
+                    <pwm:Display key="Button_Cancel"/>
                 </button>
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
