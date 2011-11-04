@@ -50,9 +50,7 @@
     </span>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};
-    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
-    localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
-    <% } %>
+    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
     dojo.addOnLoad(function() {
         startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
     });

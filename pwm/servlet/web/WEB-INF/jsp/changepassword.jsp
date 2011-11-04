@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PasswordStatus" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%--
@@ -71,38 +70,41 @@
             <table style="border:0">
                 <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
                 <tr>
-                    <td style="border:0;" width="5%">
+                    <td style="border:1px; width:75%">
                         <h2><label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label></h2>
-                        <input type="password" name="currentPassword" id="currentPassword" class="inputfield"/>
+                        <input type="password" name="currentPassword" id="currentPassword" class="changepasswordfield"/>
                     </td>
-                    <td style="border:0;" width="95%">
+                    <td style="border:1px; width:15%">
                         &nbsp;
                     </td>
+                    <td style="border:1px; width:10%">&nbsp;</td>
                 </tr>
                 <% } %>
                 <tr>
-                    <td style="border:0;" width="5%">
+                    <td style="border:1px; width:75%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
-                        <input type="password" name="password1" id="password1" class="inputfield"/>
+                        <input type="password" name="password1" id="password1" class="changepasswordfield"/>
                     </td>
-                    <td style="border:0;" width="95%">
+                    <td style="border:1px; width:15%">
                         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
                         <div id="strengthBox" style="visibility:hidden;">
-                            <div id="strengthLabel" style="padding-top:40px;"><pwm:Display
-                                    key="Display_StrengthMeter"/></div>
+                            <div id="strengthLabel" style="padding-top:40px;">
+                                <pwm:Display key="Display_StrengthMeter"/>
+                            </div>
                             <div class="progress-container" style="margin-bottom:10px">
                                 <div id="strengthBar" style="width: 0">&nbsp;</div>
                             </div>
                         </div>
                         <% } %>
                     </td>
+                    <td style="border:1px; width:10%">&nbsp;</td>
                 </tr>
                 <tr>
-                    <td style="border:0;">
+                    <td style="border:1px; width:75%">
                         <h2><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h2>
-                        <input type="password" name="password2" id="password2" class="inputfield"/>
+                        <input type="password" name="password2" id="password2" class="changepasswordfield"/>
                     </td>
-                    <td style="border:0;">
+                    <td style="border:1px; width:15%">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
                         <div style="padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
@@ -111,6 +113,7 @@
                                  src="<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>">
                         </div>
                     </td>
+                    <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
             </table>
 

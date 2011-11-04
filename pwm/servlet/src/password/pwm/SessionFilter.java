@@ -330,6 +330,7 @@ public class SessionFilter implements Filter {
 
             LOGGER.trace(pwmSession, "session has not been validated, redirecting with verification key to " + returnURL);
 
+            resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
             return;
         }
@@ -342,6 +343,7 @@ public class SessionFilter implements Filter {
             LOGGER.trace(pwmSession, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
 
+            resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
             return;
         }

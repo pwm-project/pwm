@@ -339,6 +339,8 @@ public enum PwmSetting {
             "password.policy.minimumStrength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.BASIC),
+    PASSWORD_POLICY_RULE_TEXT(
+            "password.policy.ruleText", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.ADVANCED),
 
 
     // security settings

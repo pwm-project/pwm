@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.config.Configuration" %>
+<%@ page import="java.net.URLEncoder" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/

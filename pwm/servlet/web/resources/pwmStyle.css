@@ -127,6 +127,10 @@ table td.health-WARN {
     height: 18px;
 }
 
+.changepasswordfield {
+    width: 90%;
+}
+
 /* main body wrapper, all elements (except footer) should be within wrapper */
 #wrapper {
     width: 100%;
@@ -156,15 +160,36 @@ table td.health-WARN {
     margin-bottom: 15px;
     text-align: center
 }
-
-#buttonbar .btn {
+.btn {
     font-family: Trebuchet MS, sans-serif;
-    margin-left: 5px;
-    margin-right: 5px;
-    padding: 0 .25em;
-    width: auto;
-    overflow: visible
+    background: #717081;
+    background: -webkit-gradient(linear, left top, left bottom, from(#717081), to(#070618));
+    background: -webkit-linear-gradient(top, #717081, #070618);
+    background: -moz-linear-gradient(top, #717081, #070618);
+    background: -ms-linear-gradient(top, #717081, #070618);
+    background: -o-linear-gradient(top, #717081, #070618);
+    border: 0;
+    padding: 3px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-right: 7px;
+    margin-left: 7px;
+    color: white;
+    font-size: 13px;
+    text-decoration: none;
+    vertical-align: middle;
 }
+.btn:hover {
+    border-top-color: #070618;
+    background: #070618;
+    color: #ccc;
+}
+.btn:active {
+    border-top-color: #070618;
+    background: #070618;
+}
+
 
 /* used for password complexity meter */
 div.progress-container {

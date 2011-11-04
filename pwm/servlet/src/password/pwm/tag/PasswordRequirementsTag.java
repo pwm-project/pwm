@@ -30,6 +30,7 @@ import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -293,24 +294,31 @@ public class PasswordRequirementsTag extends TagSupport {
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final Configuration config = pwmApplication.getConfig();
-            final PwmPasswordPolicy passwordPolicy;
-            if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
-                passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();
+
+            final String configuredRuleText = config.readSettingAsLocalizedString(PwmSetting.PASSWORD_POLICY_RULE_TEXT, pwmSession.getSessionStateBean().getLocale());
+
+            if (configuredRuleText != null && configuredRuleText.length() > 0) {
+                pageContext.getOut().write(configuredRuleText);
             } else {
-                passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
-            }
-            final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
-            final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
-            final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());
+                final PwmPasswordPolicy passwordPolicy;
+                if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
+                    passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();
+                } else {
+                    passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+                }
+                final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
+                final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
+                final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());
 
-            final StringBuilder requirementsText = new StringBuilder();
-            for (final String requirementStatement : requirementsList) {
-                requirementsText.append(pre);
-                requirementsText.append(requirementStatement);
-                requirementsText.append(sep);
-            }
+                final StringBuilder requirementsText = new StringBuilder();
+                for (final String requirementStatement : requirementsList) {
+                    requirementsText.append(pre);
+                    requirementsText.append(requirementStatement);
+                    requirementsText.append(sep);
+                }
 
-            pageContext.getOut().write(requirementsText.toString());
+                pageContext.getOut().write(requirementsText.toString());
+            }
         } catch (Exception e) {
             LOGGER.error("unexpected error during password requirements generation: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());
