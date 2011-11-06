@@ -24,7 +24,10 @@ package password.pwm.util.db;
 
 import com.google.gson.Gson;
 import password.pwm.PwmService;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
@@ -395,23 +398,7 @@ public class DatabaseAccessor implements PwmService {
     {
         LOGGER.trace("attempting to create iterator for table=" + table);
         preOperationCheck();
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SELECT " + KEY_COLUMN + " FROM ").append(table.toString());
-
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = connection.prepareStatement(sb.toString());
-            resultSet = statement.executeQuery();
-            return new ResultIterator<String>(resultSet);
-        } catch (SQLException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get iterator failed: " + e.getMessage());
-            lastError = errorInformation;
-            throw new DatabaseException(errorInformation);
-        } finally {
-            close(statement);
-            close(resultSet);
-        }
+        return new DBIterator<String>(table);
     }
 
     public boolean remove(final TABLE table, final String key)
@@ -476,16 +463,35 @@ public class DatabaseAccessor implements PwmService {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    public static class ResultIterator<E> implements Iterator<String> {
+    public class DBIterator<E> implements Iterator<String> {
 
-        private ResultSet resultSet;
+        private final TABLE table;
+        private final ResultSet resultSet;
         private java.lang.String nextValue;
         private boolean finished;
 
-        public ResultIterator(ResultSet resultSet) {
-            this.resultSet = resultSet;
+        public DBIterator(final TABLE table)
+                throws DatabaseException
+        {
+            this.table = table;
+            this.resultSet = init();
             getNextItem();
         }
+
+        private ResultSet init() throws DatabaseException {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("SELECT " + KEY_COLUMN + " FROM ").append(table.toString());
+
+            try {
+                final PreparedStatement statement = connection.prepareStatement(sb.toString());
+                return statement.executeQuery();
+            } catch (SQLException e) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get iterator failed: " + e.getMessage());
+                lastError = errorInformation;
+                throw new DatabaseException(errorInformation);
+            }
+        }
+
 
         public boolean hasNext() {
             return !finished;
