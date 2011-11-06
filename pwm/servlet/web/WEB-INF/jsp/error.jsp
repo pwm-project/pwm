@@ -40,6 +40,7 @@
         <br/>
         <br/>
         <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
+        <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); } catch (Exception e) {} %>
         <br/>
         <br/>
         <div id="buttonbar">

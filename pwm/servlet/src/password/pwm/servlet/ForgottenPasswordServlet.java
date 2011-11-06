@@ -24,9 +24,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -212,8 +210,6 @@ public class ForgottenPasswordServlet extends TopServlet {
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN,pwmApplication.getProxyChaiProvider());
             forgottenPasswordBean.setProxiedUser(proxiedUser);
             forgottenPasswordBean.setTokenSatisfied(true);
-            final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, proxiedUser);
-            forgottenPasswordBean.setResponseSet(responseSet);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             this.advancedToNextStage(req, resp);
@@ -251,7 +247,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
                     if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
-                        forgottenPasswordBean.setResponseSet(responseSet);
+                        forgottenPasswordBean.setChallengeSet(responseSet.getPresentableChallengeSet());
                         forgottenPasswordBean.setProxiedUser(theUser);
                         return;
                     } else {
@@ -267,7 +263,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
         }
 
-        forgottenPasswordBean.setResponseSet(null);
+        forgottenPasswordBean.setChallengeSet(null);
         forgottenPasswordBean.setProxiedUser(null);
 
         final String errorMsg = "could not find a response set for " + theUser.getEntryDN();
@@ -315,9 +311,9 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
             try {
                 // read the supplied responses from the user
-                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
+                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getChallengeSet());
 
-                final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
+                final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
 
                 final boolean responsesSatisfied = responseSet.test(crMap);
                 forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
@@ -367,7 +363,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // if responses are required, and user has responses, then send to response screen.
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-            if (forgottenPasswordBean.getResponseSet() == null) {
+            if (forgottenPasswordBean.getChallengeSet() == null) {
                 try {
                     loadResponsesIntoBean(pwmSession, pwmApplication, forgottenPasswordBean);
                 } catch (PwmOperationalException e) {

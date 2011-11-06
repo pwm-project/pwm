@@ -13,8 +13,11 @@ v1.6.1
 + Added option to override Case Sensitivity detection (issue #127)
 + Request Sequence detection (duplicate form submit detection) added with option to disable.
 + Added feature/option to trip a "bad password" auth to ldap in case of forgotten password failure.
++ Password rule text configuration option to override auto-generated rule text.
+
 
 - Issue where change password page refresh would not properly show error (issue 131)
+- Implemented Jersey framework for rest web services
 
 
 v1.6.0 (October 17, 2011) build 1096

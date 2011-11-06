@@ -25,7 +25,10 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.impl.edir.NmasCrFactory;
+import com.novell.ldapchai.impl.edir.NmasResponseSet;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -72,11 +75,11 @@ public class CrUtility {
             try {
                 if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     if (policy != null && policy.getChaiPasswordPolicy() != null) {
-                        returnSet = CrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
+                        returnSet = NmasCrFactory.readAssignedChallengeSet(theUser.getChaiProvider(), policy.getChaiPasswordPolicy(), locale);
                     }
 
                     if (returnSet == null) {
-                        returnSet = CrFactory.readAssignedChallengeSet(theUser, locale);
+                        returnSet = NmasCrFactory.readAssignedChallengeSet(theUser, locale);
                     }
 
                     if (returnSet == null) {
@@ -278,8 +281,10 @@ public class CrUtility {
                 throws ChaiUnavailableException
         {
             try {
-                return theUser.readResponseSet();
+                return ChaiCrFactory.readChaiResponseSet(theUser);
             } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
+            } catch (ChaiValidationException e) {
                 LOGGER.debug(pwmSession, "ldap error reading response set: " + e.getMessage());
             }
             return null;
@@ -291,14 +296,22 @@ public class CrUtility {
             final PwmApplication pwmApplication,
             final ChaiUser theUser,
             final String userGUID,
-            final ResponseSet responses
+            final ResponseInfoBean responseInfoBean
 
     )
-            throws PwmOperationalException, ChaiUnavailableException
-    {
+            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException {
         int attempts = 0, successes = 0;
-
         final Configuration config = pwmApplication.getConfig();
+
+        final ChaiResponseSet chaiResponseSet = ChaiCrFactory.newChaiResponseSet(
+                responseInfoBean.getCrMap(),
+                responseInfoBean.getLocale(),
+                responseInfoBean.getMinRandoms(),
+                theUser.getChaiProvider().getChaiConfiguration(),
+                responseInfoBean.getCsIdentifier()
+        );
+
+
 
         if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
             attempts++;
@@ -308,7 +321,7 @@ public class CrUtility {
 
             try {
                 final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-                databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responses.stringValue());
+                databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, chaiResponseSet.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in remote database");
                 successes++;
             } catch (PwmUnrecoverableException e) {
@@ -332,7 +345,7 @@ public class CrUtility {
             }
 
             try {
-                pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responses.stringValue());
+                pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, chaiResponseSet.stringValue());
                 LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
                 successes++;
             } catch (PwmDBException e) {
@@ -347,10 +360,8 @@ public class CrUtility {
         if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
             try {
                 attempts++;
-                final boolean storeUsingHash = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
-                final CrMode writeMode = storeUsingHash ? CrMode.CHAI_SHA1_SALT : CrMode.CHAI_TEXT;
-                responses.write(writeMode);
-                LOGGER.info(pwmSession, "saved responses for user using method " + writeMode);
+                ChaiCrFactory.writeChaiResponseSet(chaiResponseSet, theUser);
+                LOGGER.info(pwmSession, "saved responses for user to chai-ldap format");
                 successes++;
             } catch (ChaiOperationException e) {
                 final String errorMsg;
@@ -370,8 +381,15 @@ public class CrUtility {
             try {
                 if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     attempts++;
-                    responses.write(CrMode.NMAS);
-                    LOGGER.info(pwmSession, "saved responses for user using method " + CrMode.NMAS);
+                    final NmasResponseSet nmasResponseSet = NmasCrFactory.newNmasResponseSet(
+                            responseInfoBean.getCrMap(),
+                            responseInfoBean.getLocale(),
+                            responseInfoBean.getMinRandoms(),
+                            theUser,
+                            responseInfoBean.getCsIdentifier()
+                    );
+                    NmasCrFactory.writeResponseSet(nmasResponseSet);
+                    LOGGER.info(pwmSession, "saved responses for user using NMAS method ");
                     successes++;
                 }
             } catch (ChaiOperationException e) {
@@ -418,7 +436,7 @@ public class CrUtility {
 
             final List<Challenge> challenges = new ArrayList<Challenge>();
             for (final String loopQuestion : wsBean.getChallengeQuestions()) {
-                final Challenge loopChallenge = CrFactory.newChallenge(
+                final Challenge loopChallenge = new ChaiChallenge(
                         true,
                         loopQuestion,
                         1,
@@ -428,10 +446,14 @@ public class CrUtility {
                 challenges.add(loopChallenge);
             }
             locale = PwmConstants.DEFAULT_LOCALE;
-            challengeSet = CrFactory.newChallengeSet(challenges, locale, 0, "NovellWSResponseSet derived ChallengeSet");
+            challengeSet = new ChaiChallengeSet(challenges, 0, locale, "NovellWSResponseSet derived ChallengeSet");
         }
 
         public ChallengeSet getChallengeSet() {
+            return challengeSet;
+        }
+
+        public ChallengeSet getPresentableChallengeSet() throws ChaiValidationException {
             return challengeSet;
         }
 
@@ -487,14 +509,6 @@ public class CrUtility {
                 // nothing to be done
             }
             return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public boolean write() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
-            throw new IllegalStateException("unsupported");
-        }
-
-        public boolean write(final CrMode writeMode) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
-            throw new IllegalStateException("unsupported");
         }
 
         public Locale getLocale() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {

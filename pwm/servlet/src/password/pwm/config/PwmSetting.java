@@ -515,8 +515,6 @@ public enum PwmSetting {
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_FORM(
             "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.BASIC),
-    ACTIVATE_USER_EMAIL_VERIFICATION(
-            "activateUser.email.verification", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_SEARCH_FILTER(
             "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_QUERY_MATCH(

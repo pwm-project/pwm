@@ -67,7 +67,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>
             <% // loop through challenges
                 int counter = 0;
-                for (final Challenge loopChallenge : recoverBean.getResponseSet().getChallengeSet().getChallenges()) {
+                for (final Challenge loopChallenge : recoverBean.getChallengeSet().getChallenges()) {
                     counter++;
             %>
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>

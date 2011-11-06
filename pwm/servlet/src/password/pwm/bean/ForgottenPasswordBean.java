@@ -23,7 +23,7 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.ChallengeSet;
 
 import java.io.Serializable;
 
@@ -34,7 +34,7 @@ public class ForgottenPasswordBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private transient ChaiUser proxiedUser;
-    private transient ResponseSet responseSet;
+    private transient ChallengeSet challengeSet;
     private String tokenEmailAddress;
     private String tokenSmsNumber;
 
@@ -47,12 +47,13 @@ public class ForgottenPasswordBean implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public ResponseSet getResponseSet() {
-        return responseSet;
+
+    public ChallengeSet getChallengeSet() {
+        return challengeSet;
     }
 
-    public void setResponseSet(final ResponseSet responseSet) {
-        this.responseSet = responseSet;
+    public void setChallengeSet(final ChallengeSet challengeSet) {
+        this.challengeSet = challengeSet;
     }
 
     public ChaiUser getProxiedUser() {

@@ -26,15 +26,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.CrFactory;
-import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
@@ -150,7 +148,7 @@ public class SetupResponsesServlet extends TopServlet {
             // read in the responses from the request
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
             validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
-            generateResponseSet(pwmSession, challengeSet, responseMap);
+            generateResponseInfoBean(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
@@ -183,13 +181,13 @@ public class SetupResponsesServlet extends TopServlet {
 
         Validator.validatePwmFormID(req);
 
-        final ResponseSet responses;
+        final ResponseInfoBean responses;
         final Map<Challenge, String> responseMap;
         try {
             // build a response set based on the user's challenge set and the html form response.
             responseMap = readResponsesFromHttpRequest(req, pwmSession, challengeSet);
             validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
-            responses = generateResponseSet(pwmSession, challengeSet, responseMap);
+            responses = generateResponseInfoBean(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
             ssBean.setSessionError(e.getErrorInformation());
@@ -209,6 +207,11 @@ public class SetupResponsesServlet extends TopServlet {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);
+                return;
+            } catch (ChaiValidationException e) {
+                LOGGER.error(pwmSession, e.getMessage());
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE,e.getMessage()));
+                this.forwardToConfirmJSP(req, resp);
                 return;
             }
 
@@ -233,11 +236,16 @@ public class SetupResponsesServlet extends TopServlet {
             try {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
                 validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
-                final ResponseSet responses = generateResponseSet(pwmSession, challengeSet, responseMap);
+                final ResponseInfoBean responses = generateResponseInfoBean(pwmSession, challengeSet, responseMap);
                 saveResponses(pwmSession, pwmApplication, responses);
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+                this.forwardToConfirmJSP(req, resp);
+                return;
+            } catch (ChaiValidationException e) {
+                LOGGER.error(pwmSession, e.getMessage());
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE,e.getMessage()));
                 this.forwardToConfirmJSP(req, resp);
                 return;
             }
@@ -246,12 +254,12 @@ public class SetupResponsesServlet extends TopServlet {
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
-    private void saveResponses(final PwmSession pwmSession, final PwmApplication pwmApplication, final ResponseSet responses)
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    private void saveResponses(final PwmSession pwmSession, final PwmApplication pwmApplication, final ResponseInfoBean responseInfoBean)
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException, ChaiValidationException
     {
         final ChaiUser theUser = pwmSession.getSessionManager().getActor();
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
-        CrUtility.writeResponses(pwmSession, pwmApplication, theUser, userGUID, responses);
+        CrUtility.writeResponses(pwmSession, pwmApplication, theUser, userGUID, responseInfoBean);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
@@ -418,7 +426,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
     }
 
-    private static ResponseSet generateResponseSet(
+    private static ResponseInfoBean generateResponseInfoBean(
             final PwmSession pwmSession,
             final ChallengeSet challengeSet,
             final Map<Challenge, String> readResponses
@@ -428,13 +436,19 @@ public class SetupResponsesServlet extends TopServlet {
         final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
 
         try {
-            final ResponseSet responseSet = CrFactory.newResponseSet(
+            final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
                     readResponses,
                     challengeSet.getLocale(),
                     challengeSet.getMinRandomRequired(),
-                    actor,
                     challengeSet.getIdentifier()
             );
+
+            final ChaiResponseSet responseSet = ChaiCrFactory.newChaiResponseSet(
+                    readResponses,
+                    challengeSet.getLocale(),
+                    challengeSet.getMinRandomRequired(),
+                    provider.getChaiConfiguration(),
+                    challengeSet.getIdentifier());
 
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
@@ -445,7 +459,7 @@ public class SetupResponsesServlet extends TopServlet {
                 }
             }
 
-            return responseSet;
+            return responseInfoBean;
         } catch (ChaiValidationException e) {
             final ErrorInformation errorInfo = convertChaiValidationException(e);
             throw new PwmDataValidationException(errorInfo);

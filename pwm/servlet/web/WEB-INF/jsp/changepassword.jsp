@@ -70,18 +70,18 @@
             <table style="border:0">
                 <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
                 <tr>
-                    <td style="border:1px; width:75%">
+                    <td style="border:0; width:75%">
                         <h2><label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label></h2>
                         <input type="password" name="currentPassword" id="currentPassword" class="changepasswordfield"/>
                     </td>
-                    <td style="border:1px; width:15%">
+                    <td style="border:0; width:15%">
                         &nbsp;
                     </td>
-                    <td style="border:1px; width:10%">&nbsp;</td>
+                    <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
                 <% } %>
                 <tr>
-                    <td style="border:1px; width:75%">
+                    <td style="border:0; width:75%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
                         <input type="password" name="password1" id="password1" class="changepasswordfield"/>
                     </td>
@@ -97,14 +97,14 @@
                         </div>
                         <% } %>
                     </td>
-                    <td style="border:1px; width:10%">&nbsp;</td>
+                    <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
                 <tr>
                     <td style="border:1px; width:75%">
                         <h2><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h2>
                         <input type="password" name="password2" id="password2" class="changepasswordfield"/>
                     </td>
-                    <td style="border:1px; width:15%">
+                    <td style="border:0; width:15%">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
                         <div style="padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"

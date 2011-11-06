@@ -50,7 +50,8 @@
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
               onkeypress="checkForCapsLock(event);"
               enctype="application/x-www-form-urlencoded"
-              onreset="handleFormClear();showSuccess('<pwm:Display key="Display_ResponsesPrompt"/>');return false">
+              onreset="handleFormClear();showSuccess('<pwm:Display key="Display_ResponsesPrompt"/>');return false"
+              onsubmit="handleFormSubmit('setresponses_button',this);return false" onreset="handleFormClear();return false">
             <%@ include file="fragment/message.jsp" %>
             <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {

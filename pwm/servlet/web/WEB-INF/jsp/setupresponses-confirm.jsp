@@ -65,8 +65,9 @@
             <br/>
 
             <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="submit" name="confirm_btn" class="btn"
+                  enctype="application/x-www-form-urlencoded"
+                  onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+                <input type="submit" name="confirm_btn" class="btn" id="submitBtn"
                        value="<pwm:Display key="Button_ConfirmResponses"/>"/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>

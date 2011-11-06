@@ -60,8 +60,6 @@ public class ActivateUserServlet extends TopServlet {
     private static final String USERNAME_PARAM_NAME = "username";
     private static final String CONTEXT_PARAM_NAME = "context";
 
-    private static final String TOKEN_NAME = "activation";
-
 // -------------------------- OTHER METHODS --------------------------
 
     protected void processRequest(

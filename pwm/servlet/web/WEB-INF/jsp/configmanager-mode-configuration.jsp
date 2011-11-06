@@ -104,7 +104,7 @@
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" class="btn" name="uploadFile" size="50"/>
+            <input type="file" name="uploadFile" size="50"/>
             <input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>

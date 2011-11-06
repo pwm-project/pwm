@@ -112,3 +112,35 @@ table td.key {
 #idleDialog_underlay {
     background-color: black;
 }
+
+.btn {
+    font-family: Trebuchet MS, sans-serif;
+    background: #070618;
+    background: -webkit-gradient(linear, left top, left bottom, from(#717081), to(#070618));
+    background: -webkit-linear-gradient(top, #717081, #070618);
+    background: -moz-linear-gradient(top, #717081, #070618);
+    background: -ms-linear-gradient(top, #717081, #070618);
+    background: -o-linear-gradient(top, #717081, #070618);
+    border: 0;
+    padding: 3px;
+    padding-right: 15px;
+    padding-left: 15px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-right: 7px;
+    margin-left: 7px;
+    color: white;
+    font-size: 13px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+.btn:hover {
+    border-top-color: #070618;
+    background: #717081;
+    color: #ccc;
+}
+.btn:active {
+    border-top-color: #070618;
+    background: #717081;
+}
