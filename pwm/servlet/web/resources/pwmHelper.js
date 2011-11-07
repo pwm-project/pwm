@@ -239,7 +239,7 @@ function showPwmHealth(parentDivID, refreshNow) {
         }
     }, 1000);
 
-    var refreshUrl = PWM_GLOBAL['url-rest'] + "/health";
+    var refreshUrl = PWM_GLOBAL['url-rest-public'] + "/pwm-health";
     if (refreshNow) {
         refreshUrl += "?refreshImmediate=true";
     }
@@ -250,6 +250,7 @@ function showPwmHealth(parentDivID, refreshNow) {
         headers: { "Accept": "application/json" },
         timeout: 60 * 1000,
         load: function(data) {
+            PWM_GLOBAL['pwm-health'] = data['overall'];
             var healthRecords = data['data'];
             var htmlBody = '<table width="100%" style="width=100%; border=0">';
             for (var i = 0; i < healthRecords.length; i++) {
@@ -285,6 +286,7 @@ function showPwmHealth(parentDivID, refreshNow) {
             htmlBody += '</div>';
             parentDiv.innerHTML = htmlBody;
             PWM_GLOBAL['healthCheckInProgress'] = false;
+            PWM_GLOBAL['pwm-health'] = 'UNKNOWN';
             setTimeout(function() {
                 showPwmHealth(parentDivID, false);
             }, 10 * 1000);

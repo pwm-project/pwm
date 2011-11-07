@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Path("/health")
+@Path("/pwm-health")
 public class RestHealthServer {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
@@ -42,16 +42,6 @@ public class RestHealthServer {
         }
         return "";
 	}
-
-	// This method is called if HTML is request
-    /*
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	public String sayHtmlHello() {
-		return "<html> " + "<title>" + "Hello" + "</title>"
-				+ "<body><h1>" + "Hello Jersey" + request.getRequestURI() + "</body></h1>" + "</html> ";
-	}
-	*/
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

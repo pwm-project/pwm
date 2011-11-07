@@ -33,9 +33,6 @@ var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 var validationCache = { };
 var validationInProgress = false;
 
-var fetchList = new Array();
-var outstandingFetches = 0;
-
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validatePasswords()
@@ -318,8 +315,7 @@ function beginFetchRandoms() {
         try { getObject("randomgen-player").play(); } catch (e){}
     }
     getObject('moreRandomsButton').disabled = true;
-    outstandingFetches = 0;
-    fetchList = new Array();
+    var fetchList = new Array();
     for (var counter = 0; counter < 20; counter++) {
         fetchList[counter] = 'randomGen' + counter;
         var name ='randomGen' + counter;
@@ -331,10 +327,10 @@ function beginFetchRandoms() {
     fetchList.sort(function() {return 0.5 - Math.random()});
     fetchList.sort(function() {return 0.5 - Math.random()});
 
-    fetchRandoms();
+    fetchRandoms(fetchList);
 }
 
-function fetchRandoms() {
+function fetchRandoms(fetchList) {
     if (fetchList.length < 1) {
         var moreButton = getObject('moreRandomsButton');
         if (moreButton != null) {
@@ -344,46 +340,34 @@ function fetchRandoms() {
         return;
     }
 
-    if (outstandingFetches > 3) {
-        setTimeout(function(){fetchRandoms();},100);
-    } else {
-        var name = fetchList.splice(0,1);
-        outstandingFetches++;
-        fetchRandom(function(results) {
-                handleRandomResponse(results, name);
-                outstandingFetches--;
-            },
-            function(errorObj) {outstandingFetches--;}
-        );
-        setTimeout(function(){fetchRandoms();},100);
-    }
-}
+    if (fetchList.length > 0) {
+        var successFunction = function(resultInfo) {
+            if (resultInfo["version"] != "1") {
+                showError("[ unexpected randomgen version string from server ]");
+                return;
+            }
 
-function fetchRandom(successFunction, errorFunction) {
-    dojo.xhrGet({
-        url: "ChangePassword?processAction=getrandom&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
-        timeout: 15000,
-        sync: false,
-        handleAs: "json",
-        load: successFunction,
-        error: errorFunction
-    });
-}
+            var password = resultInfo["password"];
+            var elementID = fetchList.pop();
+            var element = getObject(elementID);
+            if (element != null) {
+                element.firstChild.nodeValue = password;
+            }
+            fetchRandoms(fetchList);
+        };
 
-function handleRandomResponse(resultInfo, elementID)
-{
-    if (resultInfo["version"] != "1") {
-        showError("[ unexpected randomgen version string from server ]");
-        return;
-    }
-
-    var password = resultInfo["password"];
-
-    var element = getObject(elementID);
-    if (element != null) {
-        element.firstChild.nodeValue = password;
+        dojo.xhrGet({
+            url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
+            headers: {"Accept":"application/json"},
+            dataType: "json",
+            timeout: 15000,
+            sync: false,
+            handleAs: "json",
+            load: successFunction,
+            error: function(errorObj){
+                showError("unexpected randomgen version string from server: " + errorObj);
+            }
+        });
     }
 }
 

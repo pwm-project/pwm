@@ -102,24 +102,25 @@ table td.key {
     width: 40%;
 }
 
-table td.health-GOOD {
-    width: 1px;
+.health-GOOD {
     white-space:nowrap;
     background-color: #8ced3f;
-    filter: none;
-    opacity: 100;
 }
 
-table td.health-CAUTION {
-    width: 1px;
+.health-CAUTION {
     white-space:nowrap;
     background-color: #ffcd59;
 }
-table td.health-WARN {
-    width: 1px;
+.health-WARN {
     white-space:nowrap;
     background-color: #d20734;
 }
+
+.health-UNKNOWN {
+    white-space:nowrap;
+    background-color: red;
+}
+
 
 .inputfield {
     width: 60%;

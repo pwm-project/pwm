@@ -274,7 +274,11 @@
   </servlet>
     <servlet-mapping>
       <servlet-name>Jersey REST Service</servlet-name>
-      <url-pattern>/rest/*</url-pattern>
+      <url-pattern>/private/rest/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+      <servlet-name>Jersey REST Service</servlet-name>
+      <url-pattern>/public/rest/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>

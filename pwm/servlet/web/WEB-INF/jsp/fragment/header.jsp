@@ -101,6 +101,7 @@
         PWM_GLOBAL['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";
         PWM_GLOBAL['url-command'] = "<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>";
         PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%>/resources";
-        PWM_GLOBAL['url-rest'] = "<%=request.getContextPath()%>/rest";
+        PWM_GLOBAL['url-rest-private'] = "<%=request.getContextPath()%>/private/rest";
+        PWM_GLOBAL['url-rest-public'] = "<%=request.getContextPath()%>/public/rest";
     </script>
 </head>
