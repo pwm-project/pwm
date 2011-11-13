@@ -116,9 +116,9 @@ public class ContextManager implements Serializable {
 
     public void reinitialize() {
         if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
-            LOGGER.info("skipping application restart due to web.xml configChange-reload=false");
-        } else {
             restartRequestedFlag = true;
+        } else {
+            LOGGER.info("skipping application restart due to web.xml configChange-reload=false");
         }
     }
 

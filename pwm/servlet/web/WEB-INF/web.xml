@@ -39,7 +39,7 @@
     <context-param>
         <description>Reload configuration on PwmConfiguration.xml modification.</description>
         <param-name>configChange-reload</param-name>
-        <param-value>false</param-value>
+        <param-value>true</param-value>
     </context-param>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
