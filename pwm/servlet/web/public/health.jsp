@@ -54,8 +54,11 @@
     </div>
     <div id="floatparent">
     </div>
+    <div id="splatbutton" style="text-align: center; padding-top: 80px">
+        <button onclick="fetchRandomPassword();getObject('splatbutton').style.visibility = 'hidden'">Splat</button>
+    </div>
     <script type="text/javascript">
-        var MAX_NODES = 50 * 1000;
+        var MAX_NODES = 5 * 1000;
         PWM_GLOBAL['pwm-health'] = 'GOOD';
 
         function displayRandomFloat(id, text) {
@@ -68,17 +71,33 @@
             }
             dojo.require("dojo.window");
             var vs = dojo.window.getBox();
-            var cellHeight = 20;
-            var cellWidth = 80;
 
-            var topPos = Math.floor((Math.random() * (vs.h - 70)) - cellHeight) + 70; //header is 70px
-            var leftPos = Math.floor((Math.random() * vs.w) - cellWidth);
+            var topPos = Math.floor((Math.random() * vs.h));
+            var leftPos = Math.floor((Math.random() * vs.w));
+            var bottomPos = vs.h - topPos;
+            var rightPos = vs.w - leftPos;
+
+            var styleText = "position: absolute; ";
+            if (topPos > (vs.h / 2)) {
+                styleText = styleText + "bottom: " + bottomPos + "px; ";
+            } else {
+                styleText = styleText + "top: " + topPos + "px; ";
+            }
+            if (leftPos > (vs.w / 2)) {
+                styleText = styleText + "right: " + rightPos +"px; ";
+            } else {
+                styleText = styleText + "left: " + leftPos +"px; ";
+            }
+
+
+            styleText = styleText + "padding: 4px; z-index:2; border-radius: 5px;";
 
             var div = document.createElement('div');
             div.innerHTML = text;
             div.id = id;
             div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
-            div.setAttribute("style","position: absolute; top: " + topPos + "px; left: " + leftPos +"px; padding: 4px; z-index:2; border-radius: 5px;");
+
+            div.setAttribute("style",styleText);
             floatParent.appendChild(div);
         }
 
@@ -102,7 +121,7 @@
                     },5 * 1000);
                 },
                 error: function(errorObj){
-                    var password = "------------------";
+                    var password = "server unreachable";
                     var randomId = "randomPwDiv" + Math.floor(Math.random() * MAX_NODES);
                     displayRandomFloat(randomId,password);
                     setTimeout(function(){
@@ -124,16 +143,8 @@
 
         dojo.addOnLoad(function(){
             showPwmHealth('healthBody', false);
-            setTimeout(function(){
-                fetchRandomPassword();
-            },10 * 1000);
-            /*
-            window.onresize = function(event) {
-                clearAllNodes();
-            }
-            */
+            dojo.require()
         });
-
 
     </script>
 </div>

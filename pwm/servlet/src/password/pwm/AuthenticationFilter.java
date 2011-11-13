@@ -126,7 +126,7 @@ public class AuthenticationFilter implements Filter {
             ssBean = pwmSession.getSessionStateBean();
 
             // send en error to user.
-            ssBean.setSessionError(PwmError.ERROR_FIELDS_DONT_MATCH.toInfo());
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserDN() + "', session will be logged out"));
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
         } else {
             // user session is authed, and session and auth header match, so forward request on.
@@ -404,7 +404,7 @@ public class AuthenticationFilter implements Filter {
         }
 
         //user isn't already authed and has an auth header, so try to auth them.
-        LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header");
+        LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
         authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, pwmSession, pwmApplication, req.isSecure());
 
         pwmSession.getSessionStateBean().setOriginalBasicAuthInfo(basicAuthInfo);

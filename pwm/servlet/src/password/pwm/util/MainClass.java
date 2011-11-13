@@ -275,6 +275,8 @@ public class MainClass {
         out("Proceeding with this operation will clear all stored responses from the PwmDB.");
         out("Please consider exporting the responses before proceeding. ");
         out("");
+        out("PWM must be stopped for this operation to succeed.");
+        out("");
         out("To proceed, type 'continue'");
         final Scanner scanner = new Scanner(System.in);
         final String input = scanner.nextLine();

@@ -57,6 +57,7 @@ public class LogoutServlet extends TopServlet {
             if (sessionLogoutURL != null && sessionLogoutURL.length() > 0) {
                 LOGGER.trace(pwmSession, "redirecting user to session parameter set logout url:" + sessionLogoutURL );
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(sessionLogoutURL, req, resp));
+                pwmSession.invalidate();
                 return;
             }
         }
@@ -66,12 +67,14 @@ public class LogoutServlet extends TopServlet {
             if (configuredLogoutURL != null && configuredLogoutURL.length() > 0) {
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + configuredLogoutURL );
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(configuredLogoutURL, req, resp));
+                pwmSession.invalidate();
                 return;
             }
         }
 
         // if we didn't go anywhere yet, then show the pwm logout jsp
         forwardToJSP(req,resp);
+        pwmSession.invalidate();
     }
 
     private void forwardToJSP(

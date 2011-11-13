@@ -36,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -49,15 +51,7 @@ public class PwmSession implements Serializable {
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
 
-    private ConfigManagerBean configManagerBean;
-    private ForgottenPasswordBean forgottenPasswordBean;
-    private UserInfoBean userInfoBean;
-    private ChangePasswordBean changePasswordBean;
-    private SetupResponsesBean setupResponseBean;
-    private GuestRegistrationBean guestRegistrationBean;
-    private UserInformationServletBean userInformationServletBean;
-    private HelpdeskBean helpdeskBean;
-    private NewUserBean newUserBean;
+    private final Map<Class,Serializable> userBeans = new HashMap<Class, Serializable>();
 
     private Configuration config;
     private SessionManager sessionManager;
@@ -124,10 +118,7 @@ public class PwmSession implements Serializable {
 
 
     public ChangePasswordBean getChangePasswordBean() {
-        if (changePasswordBean == null) {
-            changePasswordBean = new ChangePasswordBean();
-        }
-        return changePasswordBean;
+        return (ChangePasswordBean)getUserBean(ChangePasswordBean.class);
     }
 
     public long getCreationTime() {
@@ -135,28 +126,19 @@ public class PwmSession implements Serializable {
     }
 
     public ForgottenPasswordBean getForgottenPasswordBean() {
-        if (forgottenPasswordBean == null) {
-            forgottenPasswordBean = new ForgottenPasswordBean();
-        }
-        return forgottenPasswordBean;
+        return (ForgottenPasswordBean)getUserBean(ForgottenPasswordBean.class);
     }
 
     public void clearForgottenPasswordBean() {
-        forgottenPasswordBean = new ForgottenPasswordBean();
+        userBeans.remove(ForgottenPasswordBean.class);
     }
 
     public ConfigManagerBean getConfigManagerBean() {
-        if (configManagerBean == null) {
-            configManagerBean = new ConfigManagerBean();
-        }
-        return configManagerBean;
+        return (ConfigManagerBean)getUserBean(ConfigManagerBean.class);
     }
 
     public GuestRegistrationBean getGuestRegistrationBean() {
-        if (guestRegistrationBean == null) {
-            guestRegistrationBean = new GuestRegistrationBean();
-        }
-        return guestRegistrationBean;
+        return (GuestRegistrationBean)getUserBean(GuestRegistrationBean.class);
     }
 
     public SessionManager getSessionManager() {
@@ -168,35 +150,22 @@ public class PwmSession implements Serializable {
     }
 
     public UserInfoBean getUserInfoBean() {
-        if (userInfoBean == null) {
-            userInfoBean = new UserInfoBean();
-        }
-        return userInfoBean;
+        return (UserInfoBean)getUserBean(UserInfoBean.class);
     }
 
     public HelpdeskBean getHelpdeskBean() {
-        if (helpdeskBean == null) {
-            helpdeskBean = new HelpdeskBean();
-        }
-        return helpdeskBean;
+        return (HelpdeskBean)getUserBean(HelpdeskBean.class);
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public void clearChangePasswordBean() {
-        changePasswordBean = new ChangePasswordBean();
+        userBeans.remove(ChangePasswordBean.class);
     }
 
     public void clearAllUserBeans() // clears all but the session state bean. 
     {
-        forgottenPasswordBean = null;
-        userInfoBean = null;
-        changePasswordBean = null;
-        setupResponseBean = null;
-        configManagerBean = null;
-        userInformationServletBean = null;
-        helpdeskBean = null;
-        newUserBean = null;
+        userBeans.clear();
 
         if (sessionManager != null) {
             sessionManager.closeConnections();
@@ -271,28 +240,15 @@ public class PwmSession implements Serializable {
     }
 
     public SetupResponsesBean getSetupResponseBean() {
-        if (setupResponseBean == null) {
-            setupResponseBean = new SetupResponsesBean();
-        }
-        return setupResponseBean;
+        return (SetupResponsesBean)getUserBean(SetupResponsesBean.class);
     }
 
     public UserInformationServletBean getUserInformationServletBean() {
-        if (userInformationServletBean == null) {
-            userInformationServletBean = new UserInformationServletBean();
-        }
-        return userInformationServletBean;
-    }
-
-    public int getMaxInactiveInterval() {
-        return httpSession == null ? -1 : httpSession.getMaxInactiveInterval();
+        return (UserInformationServletBean)getUserBean(UserInformationServletBean.class);
     }
 
     public NewUserBean getNewUserBean() {
-        if (newUserBean == null) {
-            newUserBean = new NewUserBean();
-        }
-        return newUserBean;
+        return (NewUserBean)getUserBean(NewUserBean.class);
     }
 
     public void invalidate() {
@@ -307,5 +263,18 @@ public class PwmSession implements Serializable {
         if (httpSession != null) {
             httpSession.invalidate();
         }
+    }
+
+    private Serializable getUserBean(final Class theClass) {
+        if (!userBeans.containsKey(theClass)) {
+            try {
+                final Object newBean = theClass.newInstance();
+                userBeans.put(theClass,(Serializable)newBean);
+            } catch (Exception e) {
+                LOGGER.error("unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(),e);
+            }
+
+        }
+        return userBeans.get(theClass);
     }
 }

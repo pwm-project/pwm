@@ -91,7 +91,7 @@
     </script>
     <script type="text/javascript">
         dojo.addOnLoad(function(){
-            initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
+            initCountDownTimer(<%= sessionStateBean.getMaxInactiveSeconds() %>);
         });
         dojo.addOnUnload(function(){
             dojo.xhrGet({

@@ -94,9 +94,12 @@ public class ContextManager implements Serializable {
             System.err.println(errorMsg);
         }
 
-        taskMaster = new Timer("pwm-ContextManager timer", true);
-        taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
-        taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
+
+        if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
+            taskMaster = new Timer("pwm-ContextManager timer", true);
+            taskMaster.schedule(new ConfigFileWatcher(), 5 * 1000, 5 * 1000);
+            taskMaster.schedule(new SessionWatcherTask(), 5 * 1000, 5 * 1000);
+        }
     }
 
     void shutdown() {
@@ -112,12 +115,16 @@ public class ContextManager implements Serializable {
     }
 
     public void reinitialize() {
-        restartRequestedFlag = true;
+        if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
+            LOGGER.info("skipping application restart due to web.xml configChange-reload=false");
+        } else {
+            restartRequestedFlag = true;
+        }
     }
 
-    public Set<PwmSession> getPwmSessions() {
-        return Collections.unmodifiableSet(activeSessions.keySet());
-    }
+        public Set<PwmSession> getPwmSessions() {
+            return Collections.unmodifiableSet(activeSessions.keySet());
+        }
 
     public void addPwmSession(final PwmSession pwmSession) {
         try {

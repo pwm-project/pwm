@@ -74,6 +74,8 @@ public enum PwmSetting {
             "token.lifetime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     TOKEN_STORAGEMETHOD(
             "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.ADVANCED),
+    IDLE_TIMEOUT_SECONDS(
+            "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
 
 
     // user interface

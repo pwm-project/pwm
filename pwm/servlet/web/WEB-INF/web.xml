@@ -36,6 +36,11 @@
         <param-name>pwmConfigPath</param-name>
         <param-value>PwmConfiguration.xml</param-value>
     </context-param>
+    <context-param>
+        <description>Reload configuration on PwmConfiguration.xml modification.</description>
+        <param-name>configChange-reload</param-name>
+        <param-value>false</param-value>
+    </context-param>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
@@ -390,7 +395,8 @@
         <location>/WEB-INF/jsp/error-http.jsp</location>
     </error-page>
     <session-config>
-        <session-timeout>5</session-timeout>
+        <!-- this setting only controls the HTTP session timeout.  For the user authentication timeout, see the PWM Configuration  -->
+        <session-timeout>30</session-timeout>
     </session-config>
     <jsp-config>
         <taglib>

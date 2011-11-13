@@ -30,6 +30,7 @@
 <% final UserInfoBean uiBean = PwmSession.getPwmSession(session).getUserInfoBean(); %>
 <% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
+<% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="tundra">
@@ -41,7 +42,8 @@
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
             <pwm:Display key="Display_PasswordWarn"
-                         value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
+                         value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"
+                         value2="<%= timeFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
             <% } else { %>
             <pwm:Display key="Display_PasswordNoExpire"/>
             <% } %>

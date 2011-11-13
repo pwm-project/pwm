@@ -39,6 +39,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -146,6 +147,14 @@ public class SessionFilter implements Filter {
 
         // mark the user's hostname in the session bean
         ssBean.setSrcHostname(readUserHostname(req, pwmSession));
+
+        if (ssBean.isAuthenticated()) {
+            final int maxAuthSeconds = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+            if (TimeDuration.fromCurrent(ssBean.getLastAccessTime()).isLongerThan(maxAuthSeconds * 1000)) {
+                LOGGER.info(pwmSession,"unauthenticating user due to idle timeout (" + TimeDuration.fromCurrent(ssBean.getLastAccessTime()).asCompactString() + ")" );
+                pwmSession.unauthenticateUser();
+            }
+        }
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
@@ -261,8 +270,7 @@ public class SessionFilter implements Filter {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
 
-        ssBean.setLastAccessTime(System.currentTimeMillis());
-
+        ssBean.setLastAccessTime(new Date());
     }
 
     public void destroy() {

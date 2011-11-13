@@ -64,6 +64,7 @@ public class SessionStateBean implements Serializable {
     private String sessionID;
 
     private int incorrectLogins;
+    private int maxInactiveSeconds;
 
     private Properties lastParameterValues = new Properties();
     private Map<String, ShortcutItem> visibleShortcutItems;
@@ -76,7 +77,7 @@ public class SessionStateBean implements Serializable {
     private boolean debugInitialized;
     private boolean sessionVerified;
 
-    private long lastAccessTime = System.currentTimeMillis();
+    private Date lastAccessTime = new Date();
     private Date lastPageLeaveTime = null;
 
 
@@ -105,11 +106,11 @@ public class SessionStateBean implements Serializable {
         return incorrectLogins;
     }
 
-    public long getLastAccessTime() {
+    public Date getLastAccessTime() {
         return lastAccessTime;
     }
 
-    public void setLastAccessTime(final long lastAccessTime) {
+    public void setLastAccessTime(final Date lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
     }
 
@@ -212,11 +213,6 @@ public class SessionStateBean implements Serializable {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public long getIdleTime() {
-        final long lastAccessTime = getLastAccessTime();
-        return System.currentTimeMillis() - lastAccessTime;
-    }
-
     public String getLastParameterValue(final String name) {
         final Properties props = this.lastParameterValues;
         return props.getProperty(name, "");
@@ -280,11 +276,18 @@ public class SessionStateBean implements Serializable {
         requestCounter = requestCounter++;
     }
 
+    public int getMaxInactiveSeconds() {
+        return maxInactiveSeconds;
+    }
+
+    public void setMaxInactiveSeconds(int maxInactiveSeconds) {
+        this.maxInactiveSeconds = maxInactiveSeconds;
+    }
+
     // -------------------------- ENUMERATIONS --------------------------
 
     public enum FINISH_ACTION {
         LOGOUT, FORWARD
     }
-
 }
 
