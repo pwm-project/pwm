@@ -39,6 +39,8 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -407,7 +409,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         forgottenPasswordBean.setAllPassed(true);
 
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
-            final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, pwmSession.getSessionStateBean().getLocale(), forgottenPasswordBean.getProxiedUser());
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, forgottenPasswordBean.getProxiedUser(), pwmSession.getSessionStateBean().getLocale());
             final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, null, pwmApplication, forgottenPasswordBean.getProxiedUser(), passwordPolicy);
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {

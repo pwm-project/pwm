@@ -22,7 +22,7 @@
 
 <%@ page import="com.novell.ldapchai.cr.ResponseSet" %>
 <%@ page import="com.novell.ldapchai.exception.ChaiUnavailableException" %>
-<%@ page import="password.pwm.CrUtility" %>
+<%@ page import="password.pwm.util.operations.CrUtility" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>

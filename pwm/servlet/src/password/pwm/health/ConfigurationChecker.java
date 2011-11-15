@@ -23,8 +23,8 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
-import password.pwm.CrUtility;
-import password.pwm.PasswordUtility;
+import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;

@@ -44,6 +44,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.*;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -663,11 +664,7 @@ public class NewUserServlet extends TopServlet {
         }
 
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider());
-        return PwmPasswordPolicy.createPwmPasswordPolicy(
-                pwmSession, pwmApplication,
-                userLocale,
-                chaiUser
-        );
+        return PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, chaiUser, userLocale);
     }
 
     private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)

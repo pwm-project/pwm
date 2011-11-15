@@ -42,6 +42,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.SeedlistManager;
 
@@ -378,7 +379,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 notifyAttrs.put(expirationAttr,new SimpleDateFormat().format(expirationDate));
             }
 
-            final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, locale, theUser);
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, locale);
             final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, seedlistManager, pwmApplication);
             theUser.setPassword(newPassword);

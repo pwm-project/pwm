@@ -39,6 +39,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;
@@ -143,7 +144,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (userPassword == null) {
                     try {
                         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                        final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(null, pwmApplication, locale, theUser);
+                        final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, theUser, locale);
                         final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
                         final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, seedlistManager, pwmApplication);
                         theUser.setPassword(newPassword);

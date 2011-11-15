@@ -39,6 +39,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletContext;

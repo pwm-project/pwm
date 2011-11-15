@@ -39,6 +39,8 @@ import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.PasswordUtility;
 
 import java.util.*;
 
@@ -178,7 +180,7 @@ public class UserStatusHelper {
         }
 
         //populate password policy
-        uiBean.setPasswordPolicy(PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, userLocale, theUser));
+        uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
 
         //populate c/r challenge set. 
         uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, config, theUser, uiBean.getPasswordPolicy(), userLocale));

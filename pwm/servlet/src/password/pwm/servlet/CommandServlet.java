@@ -35,6 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.CrUtility;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

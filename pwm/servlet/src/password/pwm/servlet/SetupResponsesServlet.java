@@ -41,6 +41,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.CrUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.WordlistManager;
 

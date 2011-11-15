@@ -43,6 +43,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.http.HttpServletRequest;

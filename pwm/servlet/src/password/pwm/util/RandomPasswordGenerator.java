@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;

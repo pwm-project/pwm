@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
@@ -28,6 +28,10 @@ import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.impl.edir.NmasResponseSet;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmSession;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -52,7 +56,7 @@ import java.util.*;
 /**
  * @author Jason D. Rivard
  */
-public class CrUtility {
+public abstract class CrUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrUtility.class);
 
     public enum STORAGE_METHOD { DB, LDAP, PWMDB }

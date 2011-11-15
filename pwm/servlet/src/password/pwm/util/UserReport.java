@@ -29,7 +29,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.CrUtility;
+import password.pwm.util.operations.CrUtility;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.UserStatusHelper;

@@ -33,6 +33,7 @@ import password.pwm.config.Display;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.*;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -464,7 +465,7 @@ public class AuthenticationFilter implements Filter {
         if (currentPass == null || currentPass.length() <= 0) {
             LOGGER.debug(pwmSession, "attempting to set temporary random password");
             try {
-                final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(pwmSession, pwmApplication, pwmSession.getSessionStateBean().getLocale(), theUser);
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale());
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user
