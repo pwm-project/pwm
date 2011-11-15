@@ -14,9 +14,11 @@ v1.6.1
 + Request Sequence detection (duplicate form submit detection) added with option to disable.
 + Added feature/option to trip a "bad password" auth to ldap in case of forgotten password failure.
 + Password rule text configuration option to override auto-generated rule text.
++ Added finnish locale, thanks tami.rauhala!
 
+* Idle authentication timeout now configurable, separate from http session timeout
 
-- Issue where change password page refresh would not properly show error (issue 131)
+- Issue where change password page refresh would not properly show error (issue #131)
 - Implemented Jersey framework for rest web services
 
 

@@ -48,6 +48,13 @@
     <span id="localeSelectionMenu">
     <%= sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName() %>
     </span>
+    <style type="text/css"> <%-- stylesheets used by flag routine on locale menu --%>
+        <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
+        <% if ("".equals(loopLocale.toString())) { %>
+        .flagLang_en { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/en.png); }
+        <% } else { %>.flagLang_<%=loopLocale.toString()%> { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/<%=loopLocale.toString()%>.png); } <% } %>
+        <% } %>
+    </style>
     <script type="text/javascript"> <%-- locale selector menu --%>
     var localeInfo = {};
     <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
@@ -88,6 +95,7 @@
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
         PWM_STRINGS['passwordGuideText'] = '<%=ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%>';
         dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
+        dojo.require("dijit.Dialog");
     </script>
     <script type="text/javascript">
         dojo.addOnLoad(function(){
