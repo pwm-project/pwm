@@ -57,32 +57,24 @@
 
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
 
-                <input type="search" id="username" name="username" class="inputfield"
-                       value="<pwm:ParamValue name='username'/>"/>
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_Search"/>"
-                       id="submitBtn"/>
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            <input type="search" id="username" name="username" class="inputfield"
+                   value="<pwm:ParamValue name='username'/>"/>
+            <input type="submit" class="btn"
+                   name="search"
+                   value="<pwm:Display key="Button_Search"/>"
+                   id="submitBtn"/>
+            <input type="hidden"
+                   name="processAction"
+                   value="search"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <br class="clear"/>
         <% if (helpdeskBean.isUserExists()) { %>
         <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
-        <table>
+        <table id="form">
             <tr>
                 <td colspan="10" class="title">
-                    User Information
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    UserID
-                </td>
-                <td>
-                    <%= searchedUserInfo.getUserID() == null ? "" : searchedUserInfo.getUserID() %>
+                    <%= helpdeskBean.getUserInfoBean().getUserID() %>
                 </td>
             </tr>
             <tr>
@@ -113,12 +105,8 @@
                     <%= helpdeskBean.getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getLastLoginTime()) : ""%>
                 </td>
             </tr>
-        </table>
-        <br class="clear"/>
-        <table>
             <tr>
                 <td colspan="10" class="title">
-                    Password Status
                 </td>
             </tr>
             <tr>
@@ -170,87 +158,89 @@
                 </td>
             </tr>
             <tr>
-                <td class="key">
-                    <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
-                </td>
-                <td>
-                    <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <input type="password" name="password1" id="password1" class="inputfield" style="width: 200px"/>
-                        <input type="password" name="password2" id="password2" class="inputfield" style="width: 200px"/>
-                        <input type="hidden" name="processAction" value="doReset"/>
-                        <input type="submit" name="change" class="btn" id="password_button" value=" <pwm:Display key="Button_ChangePassword"/> "/>
-                        <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                </td>
-            </tr>
-        </table>
-        <br class="clear"/>
-        <table>
-            <tr>
                 <td colspan="10" class="title">
-                    Intruder Status
                 </td>
             </tr>
             <tr>
                 <td class="key">
                     LDAP Password Locked
                 </td>
-                <td>
-                    <%= helpdeskBean.isIntruderLocked() ? "True" :"False" %>
-                    <% if (helpdeskBean.isIntruderLocked()) { %>
-                    <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-                    <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <input type="hidden" name="processAction" value="doUnlock"/>
-                        <input type="submit" name="change" class="btn" id="password_unlock" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                    <% } %>
-                    <% } %>
+                <% if (helpdeskBean.isIntruderLocked()) { %>
+                <td class="health-WARN">
+                    true
                 </td>
+                <% } else { %>
+                <td>
+                    false
+                </td>
+                <% } %>
             </tr>
             <tr>
                 <td class="key">
                     PWM Intruder Locked
                 </td>
-                <td>
-                    <%= helpdeskBean.isPwmIntruder() ? "True" :"False" %>
-                    <% if (helpdeskBean.isPwmIntruder()) { %>
-                    <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-                    <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
-                        <input type="hidden" name="processAction" value="doUnlock"/>
-                        <input type="submit" name="change" class="btn" id="password_unlock2" value=" <pwm:Display key="Button_UnlockPassword"/> "/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                    <% } %>
-                    <% } %>
+                <% if (helpdeskBean.isPwmIntruder()) { %>
+                <td class="health-WARN">
+                    true
                 </td>
+                <% } else { %>
+                <td>
+                    false
+                </td>
+                <% } %>
             </tr>
         </table>
-        <br class="clear"/>
 
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    User History
-                </td>
-            </tr>
-            <% for (final UserHistory.Record record : helpdeskBean.getUserHistory().getRecords()) { %>
-            <tr>
-                <td class="key" style="width: 200px">
-                    <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(new java.util.Date(record.getTimestamp())) %>
-                </td>
-                <td>
-                    <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                    <%= record.getMessage() != null ? record.getMessage() : "" %>
-                </td>
-            </tr>
+        <br class="clear"/>
+        <div style="margin-left: 20%; margin-right: 20%; text-align: center">
+            <table>
+                <% for (final UserHistory.Record record : helpdeskBean.getUserHistory().getRecords()) { %>
+                <tr>
+                    <td class="key" style="width: 200px">
+                        <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(new java.util.Date(record.getTimestamp())) %>
+                    </td>
+                    <td>
+                        <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
+                        <%= record.getMessage() != null ? record.getMessage() : "" %>
+                    </td>
+                </tr>
+                <% } %>
+            </table>
+        </div>
+
+        <div id="buttonbar">
+            <button class="btn" onclick="changePasswordPopup()">Change Password</button>
+            <% if (helpdeskBean.isIntruderLocked()) { %>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+            <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
+            <% } else { %>
+            <button class="btn" disabled="yes" onclick="alert('User is not locked');">Unlock</button>
             <% } %>
-        </table>
-
-        <br class="clear"/>
-        <% } %>
+            <% } %>
+        </div>
     </div>
+    <% } else { %>
+    <div>No such user holmes, try again</div>
+    <% } %>
+
 </div>
+
+<form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
+    <input type="hidden" name="processAction" value="doUnlock"/>
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+</form>
+<script type="text/javascript">
+    function changePasswordPopup() {
+        var bodyText = '<form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">';
+        bodyText += '<input type="password" name="password1" id="password1" class="inputfield" style="width: 200px"/>';
+        bodyText += '<input type="password" name="password2" id="password2" class="inputfield" style="width: 200px"/>';
+        bodyText += '<input type="hidden" name="processAction" value="doReset"/>';
+        bodyText += '<input type="submit" name="change" class="btn" id="password_button" value=" <pwm:Display key="Button_ChangePassword"/> "/>';
+        bodyText += '<input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>';
+        bodyText += '</form>';
+        showWaitDialog("Change Password",bodyText);
+    }
+</script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

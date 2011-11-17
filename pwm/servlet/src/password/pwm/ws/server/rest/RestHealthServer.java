@@ -68,7 +68,7 @@ public class RestHealthServer {
 
         boolean doRefresh = false;
         if (refreshImmediate) {
-            if (pwmApplication.getConfigMode() == PwmApplication.MODE.CONFIGURATION) {
+            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
                 LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
                 doRefresh = true;
             } else {

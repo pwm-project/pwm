@@ -45,7 +45,7 @@
 <% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getConfigMode(); %>
+<% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <script type="text/javascript">
@@ -288,7 +288,7 @@ function buildMenuBar() {
     { // Actions
         var actionsMenu = new dijit.Menu({});
 
-    <% if (ContextManager.getPwmApplication(session).getConfigMode() == PwmApplication.MODE.RUNNING) { %>
+    <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
         actionsMenu.addChild(new dijit.MenuItem({
             label: "Finish Editing",
             onClick: function() {

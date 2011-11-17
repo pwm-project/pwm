@@ -424,7 +424,7 @@ public class SessionFilter implements Filter {
 
         PwmApplication.MODE mode = PwmApplication.MODE.NEW;
         if (theManager != null) {
-            mode = theManager.getConfigMode();
+            mode = theManager.getApplicationMode();
         }
 
         if (mode == PwmApplication.MODE.NEW) {

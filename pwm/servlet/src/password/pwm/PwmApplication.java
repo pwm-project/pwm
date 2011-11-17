@@ -96,18 +96,18 @@ public class PwmApplication {
     private ErrorInformation lastLdapFailure = null;
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
-    private MODE configReaderMode;
+    private MODE applicationMode;
 
 
 // -------------------------- STATIC METHODS --------------------------
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmApplication(final Configuration config, final MODE configReaderMode, final File pwmApplicationPath)
+    public PwmApplication(final Configuration config, final MODE applicationMode, final File pwmApplicationPath)
             throws PwmDBException
     {
         this.configuration = config;
-        this.configReaderMode = configReaderMode;
+        this.applicationMode = applicationMode;
         this.pwmApplicationPath = pwmApplicationPath;
         initialize();
     }
@@ -230,8 +230,8 @@ public class PwmApplication {
         return configuration;
     }
 
-    public MODE getConfigMode() {
-        return configReaderMode;
+    public MODE getApplicationMode() {
+        return applicationMode;
     }
 
     public ChaiUser getProxyChaiUserActor(final PwmSession pwmSession)
@@ -269,7 +269,7 @@ public class PwmApplication {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = Helper.figureFilepath(log4jFileName,pwmApplicationPath);
             final String logLevel;
-            switch (getConfigMode()) {
+            switch (getApplicationMode()) {
                 case RUNNING:
                     logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
                     break;
@@ -671,6 +671,12 @@ public class PwmApplication {
         }
 
         public static void initializePwmDB(final PwmApplication pwmApplication) {
+            if (pwmApplication.getApplicationMode() == MODE.ERROR || pwmApplication.getApplicationMode() == MODE.NEW) {
+                LOGGER.warn("skipping pwmDB open due to application mode " + pwmApplication.getApplicationMode());
+                return;
+            }
+
+
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
@@ -688,7 +694,7 @@ public class PwmApplication {
                 final String classname = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
                 final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-                final boolean readOnly = pwmApplication.getConfigMode() == MODE.READ_ONLY;
+                final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
                 pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
@@ -696,7 +702,7 @@ public class PwmApplication {
         }
 
         public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
-            if (pwmApplication.getConfigMode() == MODE.READ_ONLY) {
+            if (pwmApplication.getApplicationMode() == MODE.READ_ONLY) {
                 LOGGER.trace("skipping pwmDBLogger due to read-only mode");
                 return;
             }

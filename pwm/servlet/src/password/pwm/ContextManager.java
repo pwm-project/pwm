@@ -187,6 +187,12 @@ public class ContextManager implements Serializable {
 
             LOGGER.info("application restart; shutdown completed, now starting new application instance");
             initialize();
+
+            LOGGER.info("invalidating all existing http sessions");
+            for (PwmSession pwmSession: getPwmSessions()) {
+                try { pwmSession.invalidate(); } catch (Exception e) { /* no error */ }
+            }
+
             LOGGER.info("application restart completed");
             restartRequestedFlag = false;
         }

@@ -28,7 +28,7 @@
   - which by default is a blue-gray gradieted and rounded block.       cd ..
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% if (ContextManager.getPwmApplication(session).getConfigMode() == PwmApplication.MODE.CONFIGURATION) { %>
+<% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
 <% if (!request.getRequestURI().contains("configmanager")) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a>
     to modify or lock the configuration.
