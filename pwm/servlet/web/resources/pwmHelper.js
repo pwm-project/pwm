@@ -175,6 +175,10 @@ function clearDigitWidget(widgetName) {
 }
 
 function startupLocaleSelectorMenu(localeData, attachNode) {
+    if (getObject(attachNode) == null) {
+        return;
+    }
+
     dojo.require("dijit.Menu");
     var pMenu = new dijit.Menu({
         targetNodeIds: [attachNode],

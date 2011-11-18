@@ -44,10 +44,13 @@
             out.write(userIP);
         }
     %>
-    |
-    <span id="localeSelectionMenu">
-    <%= sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName() %>
-    </span>
+    <% String currentLocaleName = sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName(); %>
+    <script type="text/javascript"> <%-- locale selector menu, uses jsscript to write to prevent restricted environments from showing menu --%>
+        var localeInfo = {};
+        <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
+        document.write('| <span id="localeSelectionMenu"><%=currentLocaleName%></span>');
+        startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
+    </script>
     <style type="text/css"> <%-- stylesheets used by flag routine on locale menu --%>
         <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
         <% if ("".equals(loopLocale.toString())) { %>
@@ -55,13 +58,6 @@
         <% } else { %>.flagLang_<%=loopLocale.toString()%> { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/<%=loopLocale.toString()%>.png); } <% } %>
         <% } %>
     </style>
-    <script type="text/javascript"> <%-- locale selector menu --%>
-    var localeInfo = {};
-    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
-    dojo.addOnLoad(function() {
-        startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
-    });
-    </script>
     <%-- fields for javascript display fields --%>
     <script type="text/javascript">
         PWM_STRINGS['Button_Logout'] = "<pwm:Display key="Button_Logout"/>";
