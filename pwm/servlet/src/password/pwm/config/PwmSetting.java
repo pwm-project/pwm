@@ -58,8 +58,6 @@ public enum PwmSetting {
             "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
-    WORDLIST_FILENAME(
-            "pwm.wordlist.location", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     SEEDLIST_FILENAME(
             "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     GOOGLE_ANAYLTICS_TRACKER(
@@ -345,6 +343,10 @@ public enum PwmSetting {
             "password.policy.ruleText", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.ADVANCED),
     PASSWORD_POLICY_SOURCE(
             "password.policy.source", Syntax.SELECT, Category.PASSWORD_POLICY, true, Level.ADVANCED),
+    WORDLIST_FILENAME(
+            "pwm.wordlist.location", Syntax.STRING, Category.PASSWORD_POLICY, false, Level.BASIC),
+    WORDLIST_CASE_SENSITIVE(
+            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
 
 
     // security settings
@@ -370,6 +372,12 @@ public enum PwmSetting {
             "security.page.leave.waitTime", Syntax.NUMERIC, Category.SECURITY, false, Level.ADVANCED),
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    ALLOW_URL_SESSIONS(
+            "allowUrlSessions", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    ENABLE_SESSION_VERIFICATION(
+            "enableSessionVerification", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    DISALLOWED_HTTP_INPUTS(
+            "disallowedInputs", Syntax.STRING_ARRAY, Category.SECURITY, false, Level.ADVANCED),
 
 
     // logger settings
@@ -589,10 +597,6 @@ public enum PwmSetting {
     // misc
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
-    ALLOW_URL_SESSIONS(
-            "allowUrlSessions", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
-    ENABLE_SESSION_VERIFICATION(
-            "enableSessionVerification", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     FORCE_BASIC_AUTH(
             "forceBasicAuth", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     REVERSE_DNS_ENABLE(
@@ -603,10 +607,6 @@ public enum PwmSetting {
             "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     EXTERNAL_RULE_METHODS(
             "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    DISALLOWED_HTTP_INPUTS(
-            "disallowedInputs", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", Syntax.BOOLEAN, Category.MISC, true, Level.BASIC),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(

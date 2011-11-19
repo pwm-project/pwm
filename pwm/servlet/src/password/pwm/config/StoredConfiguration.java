@@ -1035,7 +1035,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             }
 
             public String toString() {
-                return "***removed***";
+                return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
             }
         }
     }

@@ -38,10 +38,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
@@ -367,33 +366,35 @@ public class SessionFilter implements Filter {
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {
         final StringBuilder sb = new StringBuilder();
         sb.append(req.getRequestURL());
-        if (req.getQueryString() != null && req.getQueryString().length() > 0) {
+        if (!req.getParameterMap().isEmpty()) {
             sb.append("?");
-            sb.append(req.getQueryString());
         }
+        for (final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); ) {
+            final String paramName = (String)paramEnum.nextElement();
+            if (!PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
+                final List<String> paramValues = Arrays.asList(req.getParameterValues(paramName));
 
-        // remove any pre-existing session keys.
-        while (sb.toString().contains(PwmConstants.PARAM_VERIFICATION_KEY)) {
-            final int startIndex = sb.indexOf(PwmConstants.PARAM_VERIFICATION_KEY);
-            final int endIndex = sb.indexOf("&", startIndex);
-            if (endIndex != -1) {
-                sb.delete(startIndex, endIndex);
-            } else {
-                sb.delete(startIndex, sb.length());
+                for (final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext();) {
+                    final String value = valueIter.next();
+                    sb.append(paramName).append("=");
+                    try {
+                        sb.append(URLEncoder.encode(value, "UTF-8"));
+                    } catch (UnsupportedEncodingException e) {
+                        sb.append(value);
+                        LOGGER.warn("unexpected error",e);
+                    }
+                    if (valueIter.hasNext()) {
+                        sb.append("&");
+                    }
+                }
+                if (paramEnum.hasMoreElements()) {
+                    sb.append("&");
+                }
             }
-        }
-
-        // clear any dangling ? or & separators.
-        while (sb.length() > 2 && sb.charAt(sb.length() - 1) == '&' || sb.charAt(sb.length() - 1) == '?') {
-            sb.delete(sb.length() - 1, sb.length());
         }
 
         if (validationKey != null) {
-            if (!sb.toString().contains("?")) {
-                sb.append("?");
-            } else {
-                sb.append("&");
-            }
+            sb.append(sb.toString().contains("?") ? "&" : "?");
             sb.append(PwmConstants.PARAM_VERIFICATION_KEY).append("=").append(validationKey);
         }
 

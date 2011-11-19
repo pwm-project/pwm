@@ -176,7 +176,11 @@ public class ServletHelper {
             sb.append("  ");
             sb.append(headerName);
             sb.append("=");
-            sb.append(req.getHeader(headerName));
+            if (headerName.contains("Authorization")) {
+                sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+            } else {
+                sb.append(req.getHeader(headerName));
+            }
             sb.append(enumeration.hasMoreElements() ? "\n" : "");
         }
 
@@ -219,7 +223,7 @@ public class ServletHelper {
                 for (final String paramValue : paramValues) {
                     sb.append("  ").append(paramName).append("=");
                     if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
-                        sb.append("***removed***");
+                        sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
                     } else {
                         sb.append('\'');
                         sb.append(paramValue);

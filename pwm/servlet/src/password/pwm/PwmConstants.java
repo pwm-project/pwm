@@ -77,6 +77,8 @@ public abstract class PwmConstants {
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
+    public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
+
     public static final String URL_JSP_LOGIN = "WEB-INF/jsp/login.jsp";
     public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
