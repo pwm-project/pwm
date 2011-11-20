@@ -22,8 +22,6 @@
 
 package password.pwm.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
@@ -37,20 +35,15 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -61,8 +54,6 @@ public class ChangePasswordServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChangePasswordServlet.class);
-
-    public static final int MAX_CACHE_SIZE = 50;
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -98,13 +89,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (processRequestParam != null && processRequestParam.length() > 0) {
             Validator.validatePwmFormID(req);
-            if (processRequestParam.equalsIgnoreCase("validate")) {
-                handleValidatePasswords(req, resp);
-                return;
-            } else if (processRequestParam.equalsIgnoreCase("getrandom")) {     // ajax random generator
-                handleGetRandom(req, resp);
-                return;
-            } else if (processRequestParam.equalsIgnoreCase("change")) {        // change request
+            if (processRequestParam.equalsIgnoreCase("change")) {        // change request
                 this.handleChangeRequest(req, resp);
             } else if (processRequestParam.equalsIgnoreCase("doChange")) {      // wait page call-back
                 this.handleDoChangeRequest(req, resp);
@@ -119,91 +104,7 @@ public class ChangePasswordServlet extends TopServlet {
         }
     }
 
-    /**
-     * Write the pwm password pre-validation response.  A JSON formatted string is returned to the
-     * client containing information about a password's validation against the user's policy.
-     * <pre>pwm:[status]:[pre-localized error/success message]</pre>
-     *
-     * @param req  request
-     * @param resp response
-     * @throws IOException      for an error
-     * @throws ServletException for an error
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *                          if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmUnrecoverableException
-     *                          if an unexpected error occurs
-     */
-    protected static void handleValidatePasswords(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
-        final long startTime = System.currentTimeMillis();
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-
-        final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
-        final Gson gson = new Gson();
-        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());
-        final String password1 = srcMap.get("password1") != null ? srcMap.get("password1") : "";
-        final String password2 = srcMap.get("password2") != null ? srcMap.get("password2") : "";
-
-        final Map<String, PasswordCheckInfo> cache = pwmSession.getChangePasswordBean().getPasswordTestCache();
-        final boolean foundInCache = cache.containsKey(password1);
-        final PasswordCheckInfo passwordCheckInfo = foundInCache ? cache.get(password1) : checkEnteredPassword(pwmSession, pwmApplication, password1);
-        final MATCH_STATUS matchStatus = figureMatchStatus(pwmSession, password1, password2);
-        cache.put(password1, passwordCheckInfo); //update the cache
-
-        final String outputString = generateJsonOutputString(pwmSession, pwmApplication, passwordCheckInfo, matchStatus);
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("real-time password validator called for ").append(pwmSession.getUserInfoBean().getUserDN());
-            sb.append("\n");
-            sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
-            sb.append(", cached: ").append(foundInCache);
-            sb.append(", cacheSize: ").append(cache.size());
-            sb.append(", pass: ").append(passwordCheckInfo.isPassed());
-            sb.append(", confirm: ").append(matchStatus);
-            sb.append(", strength: ").append(passwordCheckInfo.getStrength());
-            if (!passwordCheckInfo.isPassed()) {
-                sb.append(", err: ").append(passwordCheckInfo.getUserStr());
-            }
-            sb.append("\n");
-            sb.append("  passwordCheckInfo string: ").append(outputString);
-            LOGGER.trace(pwmSession, sb.toString());
-        }
-
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
-
-        resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().print(outputString);
-    }
-
-    private static PasswordCheckInfo checkEnteredPassword(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String password1
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException {
-        boolean pass = false;
-        String userMessage;
-
-        if (password1.length() < 0) {
-            userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(pwmSession, pwmApplication);
-        } else {
-            try {
-                Validator.testPasswordAgainstPolicy(password1, pwmSession, pwmApplication);
-                userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession, pwmApplication);
-                pass = true;
-            } catch (PwmDataValidationException e) {
-                userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
-                pass = false;
-            }
-        }
-
-        final int strength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, password1);
-        return new PasswordCheckInfo(userMessage, pass, strength);
-    }
 
     private static MATCH_STATUS figureMatchStatus(final PwmSession session, final String password1, final String password2) {
         final MATCH_STATUS matchStatus;
@@ -218,78 +119,6 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         return matchStatus;
-    }
-
-    private static String generateJsonOutputString(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final PasswordCheckInfo checkInfo,
-            final MATCH_STATUS matchStatus
-    ) {
-        final String userMessage;
-        if (checkInfo.isPassed()) {
-            switch (matchStatus) {
-                case EMPTY:
-                    userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(pwmSession, pwmApplication);
-                    break;
-                case MATCH:
-                    userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession, pwmApplication);
-                    break;
-                case NO_MATCH:
-                    userMessage = new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH).toUserStr(pwmSession, pwmApplication);
-                    break;
-                default:
-                    userMessage = "";
-            }
-        } else {
-            userMessage = checkInfo.getUserStr();
-        }
-
-        final Map<String, String> outputMap = new HashMap<String, String>();
-        outputMap.put("version", "2");
-        outputMap.put("strength", String.valueOf(checkInfo.getStrength()));
-        outputMap.put("match", matchStatus.toString());
-        outputMap.put("message", userMessage);
-        outputMap.put("passed", String.valueOf(checkInfo.isPassed()));
-
-        final Gson gson = new Gson();
-        return gson.toJson(outputMap);
-    }
-
-    /**
-     * Write the pwm password pre-validation response.  A format such as the following is used:
-     * <p/>
-     * <pre>pwm:[status]:[pre-localized error/success message</pre>
-     *
-     * @param req  request
-     * @param resp response
-     * @throws IOException      for an error
-     * @throws password.pwm.error.PwmUnrecoverableException     for an error
-     * @throws ServletException for an error
-     */
-    protected static void handleGetRandom(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final long startTime = System.currentTimeMillis();
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
-
-        final Map<String, String> outputMap = new HashMap<String, String>();
-        outputMap.put("version", "1");
-        outputMap.put("password", randomPassword);
-
-        resp.setContentType("application/json;charset=utf-8");
-        final Gson gson = new Gson();
-        resp.getOutputStream().print(gson.toJson(outputMap));
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("real-time random password generator called");
-            sb.append(" (").append((int) (System.currentTimeMillis() - startTime)).append("ms");
-            sb.append(")");
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
-            LOGGER.trace(pwmSession, sb.toString());
-        }
     }
 
     /**
@@ -421,13 +250,6 @@ public class ChangePasswordServlet extends TopServlet {
             ServletHelper.forwardToSuccessPage(req, resp);
         } else {
             final ErrorInformation errorMsg = ssBean.getSessionError();
-            if (errorMsg != null) { // add the bad password to the history cache
-                cpb.getPasswordTestCache().put(newPassword, new PasswordCheckInfo(
-                        errorMsg.toUserStr(pwmSession, pwmApplication),
-                        false,
-                        PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, newPassword)
-                ));
-            }
             pwmSession.getSessionStateBean().setSessionError(errorMsg);
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         }
@@ -481,29 +303,5 @@ public class ChangePasswordServlet extends TopServlet {
     private enum MATCH_STATUS {
         MATCH, NO_MATCH, EMPTY
     }
-
-    public static class PasswordCheckInfo implements Serializable {
-        private final String userStr;
-        private final boolean passed;
-        private final int strength;
-
-        public PasswordCheckInfo(final String userStr, final boolean passed, final int strength) {
-            this.userStr = userStr;
-            this.passed = passed;
-            this.strength = strength;
-        }
-
-        public String getUserStr() {
-            return userStr;
-        }
-
-        public boolean isPassed() {
-            return passed;
-        }
-
-        public int getStrength() {
-            return strength;
-        }
-    }
-}
+ }
 

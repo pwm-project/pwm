@@ -261,7 +261,7 @@ public class PwmSession implements Serializable {
         }
 
         if (httpSession != null) {
-            httpSession.invalidate();
+            try { httpSession.invalidate(); } catch (Exception e) { /* nothing to do */ }
         }
     }
 

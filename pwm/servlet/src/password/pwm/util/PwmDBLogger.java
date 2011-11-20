@@ -22,10 +22,13 @@
 
 package password.pwm.util;
 
+import password.pwm.PwmService;
 import password.pwm.PwmSession;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -40,7 +43,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author Jason D. Rivard
  */
-public class PwmDBLogger {
+public class PwmDBLogger implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
     private final static PwmLogger LOGGER = PwmLogger.getLogger(PwmDBLogger.class);
@@ -65,7 +68,7 @@ public class PwmDBLogger {
 
     private final PwmDBStoredQueue pwmDBListQueue;
 
-    private volatile boolean open = true;
+    private volatile STATUS status = STATUS.NEW;
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
@@ -74,6 +77,7 @@ public class PwmDBLogger {
     public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final long maxAgeMS)
             throws PwmDBException {
         final long startTime = System.currentTimeMillis();
+        status = STATUS.OPENING;
         this.pwmDB = pwmDB;
         this.setting_maxAgeMs = maxAgeMS;
         this.pwmDBListQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
@@ -103,6 +107,7 @@ public class PwmDBLogger {
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
+        status = STATUS.OPEN;
     }
 
 
@@ -133,7 +138,7 @@ public class PwmDBLogger {
 
     public void close() {
         LOGGER.debug("PwmDBLogger closing... (" + debugStats() + ")");
-        open = false;
+        status = STATUS.CLOSED;
 
         { // wait for the writer to die.
             final long startTime = System.currentTimeMillis();
@@ -268,7 +273,7 @@ public class PwmDBLogger {
         boolean timeExceeded = false;
 
         int examinedPositions = 0;
-        while (open && returnList.size() < maxReturnedEvents && examinedPositions < eventsInDb) {
+        while (status == STATUS.OPEN && returnList.size() < maxReturnedEvents && examinedPositions < eventsInDb) {
             final PwmLogEvent loopEvent = readEvent(iterator.next());
             if (loopEvent != null) {
                 if (checkEventForParams(loopEvent, minimumLevel, username, text, pattern, eventType)) {
@@ -397,7 +402,7 @@ public class PwmDBLogger {
 
 
     public synchronized void writeEvent(final PwmLogEvent event) {
-        if (open) {
+        if (status == STATUS.OPEN) {
             if (setting_maxEvents > 0) {
                 if (eventQueue.isEmpty()) {
                     lastQueueFlushTimestamp = System.currentTimeMillis();
@@ -435,7 +440,7 @@ public class PwmDBLogger {
         }
 
         private void doLoop() throws PwmDBException {
-            while (open) {
+            while (status == STATUS.OPEN) {
                 boolean writeWorkDone = false;
 
                 if (!eventQueue.isEmpty()) {
@@ -452,7 +457,7 @@ public class PwmDBLogger {
 
                 if (!writeWorkDone) {
                     final long startSleepTime = System.currentTimeMillis();
-                    while (open && ((System.currentTimeMillis() - startSleepTime) < CYCLE_INTERVAL_MS) && (eventQueue.size() < (MAX_QUEUE_SIZE / 50))) {
+                    while (status == STATUS.OPEN && ((System.currentTimeMillis() - startSleepTime) < CYCLE_INTERVAL_MS) && (eventQueue.size() < (MAX_QUEUE_SIZE / 50))) {
                         Helper.pause(201);
                     }
                 }
@@ -482,6 +487,37 @@ public class PwmDBLogger {
         public TimeDuration getSearchTime() {
             return searchTime;
         }
+    }
+
+    public STATUS status() {
+        return status;
+    }
+
+    public List<HealthRecord> healthCheck() {
+        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+
+        if (status != STATUS.OPEN) {
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "PwmDBLogger is not open, status is " + status.toString()));
+            return healthRecords;
+        }
+
+        final int eventCount = getStoredEventCount();
+        if (eventCount > setting_maxEvents + 5000) {
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
+        }
+
+        final Date tailDate = getTailDate();
+        final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
+        if (timeDuration.isLongerThan(setting_maxAgeMs)) { // older than max age
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
+        }
+
+
+        if (healthRecords.isEmpty()) {
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDBLogger is not running"));
+        }
+
+        return healthRecords;
     }
 }
 

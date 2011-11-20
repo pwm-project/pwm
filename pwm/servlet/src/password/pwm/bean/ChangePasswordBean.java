@@ -22,11 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.servlet.ChangePasswordServlet;
-
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -39,23 +35,12 @@ public class ChangePasswordBean implements Serializable {
     private boolean agreementPassed;
     private boolean currentPasswordRequired;
 
-    private final Map<String, ChangePasswordServlet.PasswordCheckInfo> passwordTestCache = new LinkedHashMap<String, ChangePasswordServlet.PasswordCheckInfo>() {
-        @Override
-        protected boolean removeEldestEntry(final Map.Entry<String, ChangePasswordServlet.PasswordCheckInfo> eldest) {
-            return this.size() > ChangePasswordServlet.MAX_CACHE_SIZE;
-        }
-    };
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public String getNewPassword()
     {
         return newPassword;
-    }
-
-    public Map<String, ChangePasswordServlet.PasswordCheckInfo> getPasswordTestCache()
-    {
-        return passwordTestCache;
     }
 
     public boolean isAgreementPassed() {

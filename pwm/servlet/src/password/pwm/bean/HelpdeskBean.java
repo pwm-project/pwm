@@ -12,6 +12,7 @@ public class HelpdeskBean implements Serializable {
     private transient ResponseSet responseSet;
     private boolean intruderLocked;
     private boolean pwmIntruder;
+    private boolean accountEnabled;
     private Date lastLoginTime;
     private UserHistory userHistory;
 
@@ -69,5 +70,13 @@ public class HelpdeskBean implements Serializable {
 
     public void setUserHistory(UserHistory userHistory) {
         this.userHistory = userHistory;
+    }
+
+    public boolean isAccountEnabled() {
+        return accountEnabled;
+    }
+
+    public void setAccountEnabled(boolean accountEnabled) {
+        this.accountEnabled = accountEnabled;
     }
 }

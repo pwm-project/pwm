@@ -35,7 +35,7 @@ var validationInProgress = false;
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
-function validatePasswords()
+function validatePasswords(userDN)
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
         updateDisplay(null);
@@ -51,7 +51,7 @@ function validatePasswords()
         return;
     }
 
-    var passwordData = makeValidationKey();
+    var passwordData = makeValidationKey(userDN);
     {
         var cachedResult = validationCache[passwordData.cacheKey];
         if (cachedResult != null) {
@@ -60,14 +60,13 @@ function validatePasswords()
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },500);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },1000);
 
     validationInProgress = true;
     dojo.xhrPost({
-        url: PWM_STRINGS['url-changepassword'] + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        postData: dojo.toJson(passwordData),
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
+        url: PWM_GLOBAL['url-rest-private'] + "/checkpassword",
+        content: passwordData,
+        headers: {"Accept":"application/json"},
         handleAs: "json",
         timeout: 15000,
         error: function(errorObj) {
@@ -89,10 +88,11 @@ function validatePasswords()
     });
 }
 
-function makeValidationKey() {
+function makeValidationKey(userDN) {
     var validationKey = {
         password1:getObject("password1").value,
         password2:getObject("password2").value,
+        userDN: userDN,
         cacheKey: getObject("password1").value + getObject("password2").value
     };
 
@@ -133,8 +133,17 @@ function updateDisplay(resultInfo) {
         showError(message);
     }
 
-    markConfirmationCheck(resultInfo["match"]);
-    markStrength(resultInfo["strength"]);
+    try {
+        markConfirmationCheck(resultInfo["match"]);
+    } catch (e) {
+        console.log('error updating confirmation check icons: ' + e)
+    }
+
+    try {
+        markStrength(resultInfo["strength"]);
+    } catch (e) {
+        console.log('error updating strength icon: ' + e)
+    }
 }
 
 function markConfirmationCheck(matchStatus) {
@@ -357,7 +366,7 @@ function fetchRandoms(fetchList) {
         };
 
         dojo.xhrGet({
-            url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
+            url: PWM_GLOBAL['url-rest-private'] + "/randompassword",
             headers: {"Accept":"application/json"},
             dataType: "json",
             timeout: 15000,

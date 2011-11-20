@@ -396,7 +396,6 @@ public class DatabaseAccessor implements PwmService {
     public Iterator<String> iterator(final TABLE table)
             throws DatabaseException, PwmUnrecoverableException
     {
-        LOGGER.trace("attempting to create iterator for table=" + table);
         preOperationCheck();
         return new DBIterator<String>(table);
     }

@@ -152,6 +152,13 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         try {
+            helpdeskBean.setAccountEnabled(theUser.isAccountEnabled());
+        } catch (Exception e) {
+            LOGGER.error(pwmSession,"unexpected error reading account enabled status for user '" + userDN + "', " + e.getMessage());
+        }
+
+
+        try {
             helpdeskBean.setLastLoginTime(theUser.readLastLoginTime());
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading last login time for user '" + userDN + "', " + e.getMessage());
@@ -234,7 +241,7 @@ public class HelpdeskServlet extends TopServlet {
                 final ChaiProvider proxyProvider = pwmApplication.getProxyChaiProvider();
                 final ChaiUser proxiedChaiUser = ChaiFactory.createChaiUser(userDN, proxyProvider);
                 final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, pwmApplication, Record.Event.HELPDESK_SET_PASSWORD, message);
+                UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedChaiUser, Record.Event.HELPDESK_SET_PASSWORD, message);
                 Helper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedChaiUser);
             }
         } catch (ChaiUnavailableException e) {
@@ -259,6 +266,7 @@ public class HelpdeskServlet extends TopServlet {
         }
         LOGGER.info(pwmSession,"helpdesk set password for '" + userDN + "' successfully.");
         ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDRESET, helpdeskBean.getUserInfoBean().getUserID());
+        Helper.pause(1000);
         forwardToJSP(req, resp);
     }
 
@@ -309,7 +317,7 @@ public class HelpdeskServlet extends TopServlet {
             chaiUser.unlock();
             {
                 final String message = "(by " + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, pwmApplication, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
+                UserHistory.updateUserHistory(pwmSession, pwmApplication, chaiUser, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
             }
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
@@ -328,6 +336,7 @@ public class HelpdeskServlet extends TopServlet {
             LOGGER.warn(pwmSession, "error resetting password for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         }
 
+        Helper.pause(1000);
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
         this.forwardToJSP(req, resp);
     }

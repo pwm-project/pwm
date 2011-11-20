@@ -150,6 +150,7 @@ public class PwmApplication {
         pwmServices.add(this.wordlistManager);
         pwmServices.add(this.databaseAccessor);
         pwmServices.add(this.urlShort);
+        pwmServices.add(this.pwmDBLogger);
         pwmServices.remove(null);
         return Collections.unmodifiableSet(pwmServices);
     }

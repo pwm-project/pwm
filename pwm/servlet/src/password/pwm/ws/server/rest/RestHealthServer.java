@@ -33,7 +33,7 @@ public class RestHealthServer {
 	// This method is called if TEXT_PLAIN is request
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String sayPlainTextHello() {
+	public String doPwmHealthPlainGet() {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
@@ -45,7 +45,7 @@ public class RestHealthServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String sayJsonHealth(@QueryParam("refreshImmediate") final String requestImmediateParam) {
+    public String doPwmHealthJsonGet(@QueryParam("refreshImmediate") final String requestImmediateParam) {
         final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);

@@ -63,9 +63,9 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords();" onkeypress="checkForCapsLock(event);"
+              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event);"
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
-              onreset="handleFormClear();validatePasswords();setInputFocus();return false;" name="changePasswordForm"
+              onreset="handleFormClear();validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">
                 <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
