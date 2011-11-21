@@ -57,6 +57,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class ResourceFileServlet extends HttpServlet {
 
@@ -67,7 +69,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
 
-    private Map<CacheKey,CacheEntry> responseCache;
+    private static final String CACHE_CONTEXT_ATTRIBUTE_NAME = "ResourceFileServlet-Cache";
+
+    private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
     private long expireTimeMs = DEFAULT_EXPIRE_TIME_MS;
     private int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
@@ -92,14 +96,31 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
         }
 
-        responseCache = new LinkedHashMap<CacheKey,CacheEntry>(internalCacheItemLimit, 0.75f, true) {
+        final Map<CacheKey,CacheEntry> responseCache = new LinkedHashMap<CacheKey,CacheEntry>(internalCacheItemLimit, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(final Map.Entry<CacheKey, CacheEntry> entry) {
                 return this.size() > internalCacheItemLimit;
             }
         };
-
+        this.getServletContext().setAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME,responseCache);
         LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
+
+        final String zipFileResourceParam = this.getInitParameter("zipFileResources");
+        if (zipFileResourceParam != null) {
+            for (final String loopInitParam : zipFileResourceParam.split(";")) {
+                if (!loopInitParam.endsWith(".zip")) {
+                    LOGGER.warn("invalid zipFileResources parameter, must end in '.zip': " + loopInitParam);
+                } else {
+                    final String pathName = loopInitParam.substring(0, loopInitParam.length() - 4);
+                    try {
+                        final ZipFile zipFile = new ZipFile(this.getServletContext().getRealPath(loopInitParam));
+                        zipResources.put(pathName, zipFile);
+                    } catch (IOException e) {
+                        LOGGER.warn("unable to load zip file resource for " + loopInitParam + ", error: " + e.getMessage());
+                    }
+                }
+            }
+        }
     }
 
     protected void doHead(final HttpServletRequest request, final HttpServletResponse response)
@@ -132,7 +153,7 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.error(pwmSession, "unexpected error detecting/handling special request uri: " + e.getMessage());
         }
 
-        final File file = resolveRequestedFile(request);
+        final FileResource file = resolveRequestedFile(request, zipResources);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -140,7 +161,6 @@ public class ResourceFileServlet extends HttpServlet {
             return;
         }
 
-        final String fileName = file.getName();
         final String eTag = makeETag(request, file);
 
         // If-None-Match header should contain "*" or ETag. If so, then return 304.
@@ -159,7 +179,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         // Get content type by file name and set default GZIP support and content disposition.
-        String contentType = getServletContext().getMimeType(fileName);
+        String contentType = getServletContext().getMimeType(file.getName());
         boolean acceptsGzip = false;
 
         // If content type is unknown, then set the default value.
@@ -183,36 +203,58 @@ public class ResourceFileServlet extends HttpServlet {
         response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
         response.setContentType(contentType);
 
+        final long cacheByteCount = bytesInCache(this.getServletContext());
+
         try {
-            handleCachedResponse(response, file, includeBody, acceptsGzip);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(from cache)"));
+            if (handleCacheableResponse(response, file, includeBody, acceptsGzip)) {
+                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache hit)"));
+            } else {
+                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache miss"));
+            }
         } catch (UncacheableResourceException e) {
             handleUncachedResponse(response, file, includeBody, acceptsGzip);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"non-cacheable: " + e.getMessage()));
         }
     }
 
-    private void handleCachedResponse(
+    public static long bytesInCache(final ServletContext servletContext) {
+        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
+        final Map<CacheKey,CacheEntry> cacheCopy = new HashMap<CacheKey, CacheEntry>();
+        cacheCopy.putAll(responseCache);
+        long cacheByteCount = 0;
+        for (final CacheKey cacheKey : cacheCopy.keySet()) {
+            final CacheEntry cacheEntry = responseCache.get(cacheKey);
+            if (cacheEntry != null && cacheEntry.getEntity() != null) {
+                cacheByteCount += cacheEntry.getEntity().length;
+            }
+        }
+        return cacheByteCount;
+    }
+
+    private boolean handleCacheableResponse(
             final HttpServletResponse response,
-            final File file,
+            final FileResource file,
             final boolean includeBody,
             final boolean acceptsGzip
     ) throws
-            UncacheableResourceException, IOException {
+            UncacheableResourceException, IOException
+    {
+        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)this.getServletContext().getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
         if (!includeBody) {
-            throw new UncacheableResourceException();
+            throw new UncacheableResourceException("header only request");
         }
 
         if (file.length() > internalMaxCacheFileSize) {
-            throw new UncacheableResourceException();
+            throw new UncacheableResourceException("file to large");
         }
 
+        boolean fromCache = false;
         final CacheKey cacheKey = new CacheKey(file, acceptsGzip);
         CacheEntry cacheEntry = responseCache.get(cacheKey);
         if (cacheEntry == null) {
             final Map<String,String> headers = new HashMap<String,String>();
             final ByteArrayOutputStream output = new ByteArrayOutputStream(BUFFER_SIZE);
-            final FileInputStream input = new FileInputStream(file);
+            final InputStream input = file.getInputStream();
 
             try {
                 if (acceptsGzip) {
@@ -231,7 +273,10 @@ public class ResourceFileServlet extends HttpServlet {
             final byte[] entity = output.toByteArray();
             headers.put("Content-Length", String.valueOf(entity.length));
             cacheEntry = new CacheEntry(entity, headers);
+        } else {
+            fromCache = true;
         }
+
         responseCache.put(cacheKey,cacheEntry);
         for (final String key : cacheEntry.getHeaderStrings().keySet()) {
             response.setHeader(key, cacheEntry.getHeaderStrings().get(key));
@@ -243,11 +288,13 @@ public class ResourceFileServlet extends HttpServlet {
         } finally {
             close(responseOutputStream);
         }
+
+        return fromCache;
     }
 
     private static void handleUncachedResponse(
             final HttpServletResponse response,
-            final File file,
+            final FileResource file,
             final boolean includeBody,
             final boolean acceptsGzip
     ) throws IOException
@@ -258,7 +305,7 @@ public class ResourceFileServlet extends HttpServlet {
 
         try {
             // Open streams.
-            input = new FileInputStream(file);
+            input = file.getInputStream();
             output = response.getOutputStream();
 
             if (includeBody) {
@@ -347,7 +394,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
-    private static String makeETag(final HttpServletRequest req, final File file) {
+    private static String makeETag(final HttpServletRequest req, final FileResource file) {
         final StringBuilder sb = new StringBuilder();
 
         String startupTime = null;
@@ -368,7 +415,7 @@ public class ResourceFileServlet extends HttpServlet {
         return sb.toString();
     }
 
-    private static File resolveRequestedFile(final HttpServletRequest request)
+    private static FileResource resolveRequestedFile(final HttpServletRequest request, final Map<String,ZipFile> zipResources)
             throws UnsupportedEncodingException {
         final ServletContext servletContext = request.getSession().getServletContext();
 
@@ -384,6 +431,17 @@ public class ResourceFileServlet extends HttpServlet {
             filename = filename.substring(0, filename.indexOf(";"));
         }
 
+        for (final String path : zipResources.keySet()) {
+            if (filename.startsWith(path)) {
+                final String zipSubPath = filename.substring(path.length() + 1,filename.length());
+                final ZipFile zipFile = zipResources.get(path);
+                final ZipEntry zipEntry = zipFile.getEntry(zipSubPath);
+                if (zipEntry != null) {
+                    return new ZipFileResource(zipFile, zipEntry);
+                }
+            }
+        }
+
         // convert to file.
         final String filePath = servletContext.getRealPath(filename);
         final File file = new File(filePath);
@@ -397,7 +455,7 @@ public class ResourceFileServlet extends HttpServlet {
             File recurseFile = file.getParentFile();
             while (recurseFile != null && recursions < 100) {
                 if (parentDirectory.equals(recurseFile)) {
-                    return file;
+                    return new RealFileResource(file);
                 }
                 recurseFile = recurseFile.getParentFile();
                 recursions++;
@@ -452,7 +510,9 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static final class UncacheableResourceException extends Exception {
-
+        private UncacheableResourceException(String message) {
+            super(message);
+        }
     }
 
     private static final class CacheEntry implements Serializable {
@@ -474,32 +534,104 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static final class CacheKey implements Serializable {
-        final private File file;
+        final private String fileName;
         final private boolean acceptsGzip;
         final private long fileModificationTimestamp;
 
-        private CacheKey(final File file, final boolean acceptsGzip) {
-            this.file = file;
+        private CacheKey(final FileResource file, final boolean acceptsGzip) {
+            this.fileName = file.getName();
             this.acceptsGzip = acceptsGzip;
             this.fileModificationTimestamp = file.lastModified();
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            final CacheKey cacheKey = (CacheKey) o;
+            CacheKey cacheKey = (CacheKey) o;
 
-            return acceptsGzip == cacheKey.acceptsGzip && fileModificationTimestamp == cacheKey.fileModificationTimestamp && !(file != null ? !file.equals(cacheKey.file) : cacheKey.file != null);
+            if (acceptsGzip != cacheKey.acceptsGzip) return false;
+            if (fileModificationTimestamp != cacheKey.fileModificationTimestamp) return false;
+            if (fileName != null ? !fileName.equals(cacheKey.fileName) : cacheKey.fileName != null) return false;
+
+            return true;
         }
 
         @Override
         public int hashCode() {
-            int result = file != null ? file.hashCode() : 0;
+            int result = fileName != null ? fileName.hashCode() : 0;
             result = 31 * result + (acceptsGzip ? 1 : 0);
             result = 31 * result + (int) (fileModificationTimestamp ^ (fileModificationTimestamp >>> 32));
             return result;
+        }
+    }
+
+    static interface FileResource {
+        InputStream getInputStream() throws IOException;
+        long length();
+        long lastModified();
+        boolean exists();
+        String getName();
+    }
+
+    private static class ZipFileResource implements FileResource {
+        private final ZipFile zipFile;
+        private final ZipEntry zipEntry;
+
+        private ZipFileResource(ZipFile zipFile, ZipEntry zipEntry) {
+            this.zipFile = zipFile;
+            this.zipEntry = zipEntry;
+        }
+
+        public InputStream getInputStream()
+                throws IOException
+        {
+            return zipFile.getInputStream(zipEntry);
+        }
+
+        public long length() {
+            return zipEntry.getSize();
+        }
+
+        public long lastModified() {
+            return zipEntry.getTime();
+        }
+
+        public boolean exists() {
+            return zipEntry != null && zipFile != null;
+        }
+
+        public String getName() {
+            return zipFile.getName() + ":" + zipEntry.getName();
+        }
+    }
+
+    private static class RealFileResource implements FileResource {
+        private final File realFile;
+
+        private RealFileResource(File realFile) {
+            this.realFile = realFile;
+        }
+
+        public InputStream getInputStream() throws IOException {
+            return new FileInputStream(realFile);
+        }
+
+        public long length() {
+            return realFile.length();
+        }
+
+        public long lastModified() {
+            return realFile.lastModified();
+        }
+
+        public boolean exists() {
+            return realFile.exists();
+        }
+
+        public String getName() {
+            return realFile.getName();
         }
     }
 }

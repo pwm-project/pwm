@@ -26,6 +26,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="password.pwm.util.pwmdb.PwmDB" %>
+<%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -421,6 +422,14 @@
         </td>
         <td>
             <%= numberFormat.format(Runtime.getRuntime().totalMemory()) %>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            Resource File Servlet Cache
+        </td>
+        <td>
+            <%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>
         </td>
     </tr>
     <tr>

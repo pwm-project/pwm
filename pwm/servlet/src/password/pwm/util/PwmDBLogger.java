@@ -503,18 +503,18 @@ public class PwmDBLogger implements PwmService {
 
         final int eventCount = getStoredEventCount();
         if (eventCount > setting_maxEvents + 5000) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "PwmDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
         }
 
         final Date tailDate = getTailDate();
         final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
         if (timeDuration.isLongerThan(setting_maxAgeMs)) { // older than max age
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "PwmDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
         }
 
 
         if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDBLogger is not running"));
+            healthRecords.add(new HealthRecord(HealthStatus.GOOD, "PwmDBLogger", "PwmDBLogger is running normally"));
         }
 
         return healthRecords;
