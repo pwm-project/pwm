@@ -82,7 +82,7 @@ public class RestHealthServer {
 
         final Collection<HealthRecord> healthRecords = healthMonitor.getHealthRecords(doRefresh);
         final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
-        returnMap.put("date", PwmConstants.DEFAULT_DATE_FORMAT.format(healthMonitor.getLastHealthCheckDate()));
+        returnMap.put("date", PwmConstants.DEFAULT_DATETIME_FORMAT.format(healthMonitor.getLastHealthCheckDate()));
         returnMap.put("timestamp", healthMonitor.getLastHealthCheckDate().getTime());
         returnMap.put("overall", healthMonitor.getMostSevereHealthStatus().toString());
         returnMap.put("data", healthRecords);

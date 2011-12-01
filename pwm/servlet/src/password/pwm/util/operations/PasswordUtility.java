@@ -366,7 +366,7 @@ public class PasswordUtility {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
     }
 
     public static PwmPasswordPolicy readPasswordPolicyForUser(

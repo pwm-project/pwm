@@ -57,7 +57,10 @@ public abstract class PwmConstants {
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
     public static final List<Locale> KNOWN_LOCALES;
 
+    public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateTimeFormat"));
     public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
+    public static final DateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultTimeFormat"));
+
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
@@ -175,7 +178,7 @@ public abstract class PwmConstants {
     public static final int PASSWORD_UPDATE_INITIAL_DELAY = 1000; //milliseconds
 
     static {
-        DEFAULT_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+        DEFAULT_DATETIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
         KNOWN_LOCALES = calculateKnownLocales();
     }
 

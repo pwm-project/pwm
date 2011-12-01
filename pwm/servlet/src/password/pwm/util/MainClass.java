@@ -118,9 +118,9 @@ public class MainClass {
 
             csvRow.add(userInformation.getUserDN());
             csvRow.add(userInformation.getGuid());
-            csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATE_FORMAT.format(userInformation.getPasswordExpirationTime()));
-            csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATE_FORMAT.format(userInformation.getPasswordChangeTime()));
-            csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATE_FORMAT.format(userInformation.getResponseSetTime()));
+            csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordExpirationTime()));
+            csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordChangeTime()));
+            csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getResponseSetTime()));
             csvRow.add(Boolean.toString(userInformation.isHasValidResponses()));
             csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isExpired()));
             csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isPreExpired()));

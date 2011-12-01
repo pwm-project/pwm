@@ -102,8 +102,8 @@ public class HelpdeskServlet extends TopServlet {
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
         helpdeskBean.setUserExists(false);
-        final String username = Validator.readStringFromRequest(req, "username", 255);
-        final String context = Validator.readStringFromRequest(req, "context", 255);
+        String username = Validator.readStringFromRequest(req, "username", 255);
+        String context = Validator.readStringFromRequest(req, "context", 255);
 
 
         if (username.length() < 1) {
@@ -111,9 +111,17 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
+        final String configuredContext = pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CONTEXT);
+        final String searchContext;
+        if (configuredContext != null && configuredContext.length() > 0) {
+            searchContext = configuredContext;
+        } else {
+            searchContext = context;
+        }
+
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, searchContext);
         } catch (PwmOperationalException e) {
             LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
             helpdeskBean.setUserExists(false);

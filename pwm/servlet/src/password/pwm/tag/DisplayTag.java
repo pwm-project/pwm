@@ -26,9 +26,11 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.Display;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmMacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -93,8 +95,11 @@ public class DisplayTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
 
-            final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig());
+            String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig());
+
+            displayMessage = PwmMacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
 
             pageContext.getOut().write(displayMessage);
         } catch (Exception e) {

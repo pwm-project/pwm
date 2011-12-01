@@ -101,7 +101,8 @@
             dojo.xhrGet({
                 url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                 sync: true,
-                failOk: true
+                load: function() {},
+                error: function() {}
             });
         });
     </script>

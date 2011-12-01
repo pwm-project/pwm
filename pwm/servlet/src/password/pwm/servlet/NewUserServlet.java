@@ -468,7 +468,7 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), userInfoBean);
     }
 
     private void forwardToJSP(
@@ -642,7 +642,7 @@ public class NewUserServlet extends TopServlet {
         plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
         htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
     }

@@ -629,11 +629,11 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
     }
 
-    private boolean sendEmailToken(final PwmSession pwmSession, final PwmApplication theManager, final ChaiUser proxiedUser, final String tokenKey)
+    private boolean sendEmailToken(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser proxiedUser, final String tokenKey)
             throws PwmUnrecoverableException
     {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final Configuration config = theManager.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_FROM, userLocale);
         final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_SUBJECT, userLocale);
         String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY, userLocale);
@@ -650,8 +650,9 @@ public class ForgottenPasswordServlet extends TopServlet {
         plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
         htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
 
-        theManager.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
-        theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
+        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
         forgottenPasswordBean.setEmailUsed(true);
         return true;

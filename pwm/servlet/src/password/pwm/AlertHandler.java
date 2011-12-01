@@ -48,7 +48,7 @@ public abstract class AlertHandler {
             body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 
@@ -66,7 +66,7 @@ public abstract class AlertHandler {
             body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 
@@ -91,7 +91,7 @@ public abstract class AlertHandler {
             }
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 
@@ -115,7 +115,7 @@ public abstract class AlertHandler {
             body.append("message: ").append(pwmLogEvent.getMessage()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 
@@ -135,7 +135,7 @@ public abstract class AlertHandler {
             body.append(config.toDebugString());
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 
@@ -273,7 +273,7 @@ public abstract class AlertHandler {
             htmlBody.append("</body></html>");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
-            pwmApplication.sendEmailUsingQueue(emailItem);
+            pwmApplication.sendEmailUsingQueue(emailItem,null);
         }
     }
 

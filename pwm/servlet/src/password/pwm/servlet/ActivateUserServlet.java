@@ -368,7 +368,8 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody));
+        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
+        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
     }
 }
 

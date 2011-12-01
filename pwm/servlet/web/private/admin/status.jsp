@@ -426,7 +426,7 @@
     </tr>
     <tr>
         <td class="key">
-            Resource File Servlet Cache
+            ResourceFileServlet Cache
         </td>
         <td>
             <%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>

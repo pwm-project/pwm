@@ -99,6 +99,8 @@ public class PwmDBLogger implements PwmService {
             throw new IllegalArgumentException("pwmDB cannot be null");
         }
 
+        this.tailTimestampMs = readTailTimestamp();
+
         { // start the writer thread
             final Thread writerThread = new Thread(new WriterThread(), "pwm-PwmDBLogger writer");
             writerThread.setDaemon(true);

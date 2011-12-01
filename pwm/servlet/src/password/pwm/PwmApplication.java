@@ -32,6 +32,7 @@ import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
@@ -444,14 +445,22 @@ public class PwmApplication {
         return statisticsManager;
     }
 
-    public void sendEmailUsingQueue(final EmailItemBean emailItem) {
+    public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean) {
         if (emailQueue == null) {
             LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
             return;
         }
 
+        final EmailItemBean rewrittenEmailItem = new EmailItemBean(
+                emailItem.getTo(),
+                emailItem.getFrom(),
+                emailItem.getSubject(),
+                PwmMacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean),
+                PwmMacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean)
+        );
+
         try {
-            emailQueue.addMailToQueue(emailItem);
+            emailQueue.addMailToQueue(rewrittenEmailItem);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }

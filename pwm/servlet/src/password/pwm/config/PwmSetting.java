@@ -38,8 +38,6 @@ import java.util.regex.Pattern;
  */
 public enum PwmSetting {
     // general settings
-    REQUIRE_HTTPS(
-            "pwm.requireHTTPS", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
@@ -378,6 +376,8 @@ public enum PwmSetting {
             "enableSessionVerification", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", Syntax.STRING_ARRAY, Category.SECURITY, false, Level.ADVANCED),
+    REQUIRE_HTTPS(
+            "pwm.requireHTTPS", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
 
 
     // logger settings
@@ -593,6 +593,8 @@ public enum PwmSetting {
             "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
+    HELPDESK_CONTEXT(
+            "helpdesk.context", Syntax.STRING, Category.HELPDESK, false, Level.BASIC),
 
     // misc
     USE_X_FORWARDED_FOR_HEADER(

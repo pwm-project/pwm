@@ -235,7 +235,7 @@ public class PwmSession implements Serializable {
                 LOGGER.debug("CAS assertion removed");
             }
         } catch (Exception e) {
-            LOGGER.error("error clearing CAS assertion during unauthenticate: " + e.getMessage(),e);
+            /* session already invalided */
         }
     }
 
