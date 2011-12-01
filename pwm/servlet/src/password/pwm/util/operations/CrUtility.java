@@ -462,7 +462,28 @@ public abstract class CrUtility {
         }
 
         public boolean meetsChallengeSetRequirements(final ChallengeSet challengeSet) {
-            return challengeSet.getAdminDefinedChallenges().size() > 0 || challengeSet.getMinRandomRequired() > 0;
+            if (challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size()) {
+                LOGGER.debug("not enough required challenge");
+                return false;
+            }
+
+            for (final Challenge loopChallenge : challengeSet.getRequiredChallenges()) {
+                if (loopChallenge.isAdminDefined()) {
+                    if (!this.getChallengeSet().getChallengeTexts().contains(loopChallenge.getChallengeText())) {
+                        LOGGER.debug("missing required challenge text: '" + loopChallenge.getChallengeText() + "'");
+                        return false;
+                    }
+                }
+            }
+
+            if (challengeSet.getMinRandomRequired() > 0) {
+                if (this.getChallengeSet().getRandomChallenges().size() < challengeSet.getMinRandomRequired()) {
+                    LOGGER.debug("not enough random questions");
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public String stringValue() throws UnsupportedOperationException {
