@@ -27,10 +27,7 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
-import password.pwm.config.Configuration;
-import password.pwm.config.Message;
-import password.pwm.config.PwmPasswordRule;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -200,20 +197,19 @@ public class PasswordRequirementsTag extends TagSupport {
         value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLifetime);
         if (value > 0) {
             final int SECONDS_PER_DAY = 60 * 60 * 24;
-            String userMsg = getLocalString(Message.REQUIREMENT_MINIMUMFREQUENCY, 0, locale, config);
 
             final String durationStr;
             if (value % SECONDS_PER_DAY == 0) {
                 final int valueAsDays = value / (60 * 60 * 24);
                 final String key = valueAsDays <= 1 ? "Display_Day" : "Display_Days";
-                durationStr = valueAsDays + " " + Message.getLocalizedMessage(locale, Message.forResourceKey(key), config);
+                durationStr = valueAsDays + " " + Display.getLocalizedMessage(locale, key, config);
             } else {
                 final int valueAsHours = value / (60 * 60);
                 final String key = valueAsHours <= 1 ? "Display_Hour" : "Display_Hours";
-                durationStr = valueAsHours + " " + Message.getLocalizedMessage(locale, Message.forResourceKey(key), config);
+                durationStr = valueAsHours + " " + Display.getLocalizedMessage(locale, key, config);
             }
 
-            userMsg = userMsg.replace(Message.FIELD_REPLACE_VALUE, durationStr);
+            final String userMsg = Message.getLocalizedMessage(locale, Message.REQUIREMENT_MINIMUMFREQUENCY, config, durationStr);
             returnValues.add(userMsg);
         }
 
