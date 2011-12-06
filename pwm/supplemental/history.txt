@@ -11,15 +11,20 @@ v1.6.1
 + Added "application leave detection" to detect if user leaves PWM site.
 + Added settings to manage custom CSS from PwmApplication.xml
 + Added option to override Case Sensitivity detection (issue #127)
++ Option to skip success messages (
 + Request Sequence detection (duplicate form submit detection) added with option to disable.
 + Added feature/option to trip a "bad password" auth to ldap in case of forgotten password failure.
 + Password rule text configuration option to override auto-generated rule text.
 + Added finnish locale, thanks tami.rauhala!
 
 * Idle authentication timeout now configurable, separate from http session timeout
+* Implemented Jersey framework for rest web services
 
 - Issue where change password page refresh would not properly show error (issue #131)
-- Implemented Jersey framework for rest web services
+- PwmCommand line broken with "cannot allow mutator operations" (issue #134)
+- Added multi-line option as default for SMS multi-line response (issue #132)
+- Broken responseSet.meetsRequirements() for userapp responses with user-defined questions (issue #140)
+- NullPointerException on password requirements tag when a minimum-interval is set in policy (issue #137)
 
 
 v1.6.0 (October 17, 2011) build 1096

@@ -38,7 +38,7 @@
             <%= loopConfiguration.getLabel() %>
         </td>
         <td>
-            <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
+            <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
                    name="<%=loopConfiguration.getAttributeName()%>"
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
                    <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true" <%}%>
