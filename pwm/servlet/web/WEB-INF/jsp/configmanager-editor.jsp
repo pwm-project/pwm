@@ -250,6 +250,21 @@ function buildMenuBar() {
                 });
             }
         }));
+        viewMenu.addChild(new dijit.MenuItem({
+            label: "Show PWM Macro Help",
+            onClick: function() {
+                var idName = 'macroHelpDialog';
+                clearDigitWidget(idName);
+                dojo.require("dijit.Dialog");
+                var theDialog = new dijit.Dialog({
+                    id: idName,
+                    title: 'PWM Macro Help',
+                    style: "width: 500px",
+                    href: "/pwm/resources/macroHelp.html"
+                });
+                theDialog.show();
+            }
+        }));
         topMenuBar.addChild(new dijit.PopupMenuBarItem({
             label: "View",
             popup: viewMenu

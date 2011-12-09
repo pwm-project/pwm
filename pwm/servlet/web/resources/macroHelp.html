@@ -1,0 +1,90 @@
+<p>PWM Macros can be used at various places in the PWM Configuration.</p>
+
+<p>The following macros are available:</p>
+
+<table>
+    <tr>
+        <td class="key">
+            @LDAP:&lt;attributeName&gt;@
+        </td>
+        <td>
+            Replace with LDAP value of &lt;attributeName&gt;
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:InstanceID@
+        </td>
+        <td>
+            Instance ID of the PWM application
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:CurrentDateTime@
+        </td>
+        <td>
+            Current date & time
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:CurrentDate@
+        </td>
+        <td>
+            Current date
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:CurrentDateTime@
+        </td>
+        <td>
+            Current time
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:PwExpireDateTime@
+        </td>
+        <td>
+            Date & time user's password will expire
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:PwExpireDate@
+        </td>
+        <td>
+            Date user's password will expire
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:PwExpireDateTime@
+        </td>
+        <td>
+            Time user's password will expire
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @PWM:DaysUntilPwExpire@
+        </td>
+        <td>
+            Number of days until the user's password will expire
+        </td>
+    </tr>
+</table>
+<p>To use a macro, just place the macro into the configuration value such as:
+    <br/>
+        <span style="font-family: Courrier">
+            Dear, @LDAP:givenName@, Thank you for your activity today, @PWM:CurrentDate@.
+        </span>
+        </p>
+<p>This macro will then be expanded to:
+    <br/>
+<span style="font-family: Courrier">
+    Dear, John, Thank you for your activity today, January 1, 2010.
+</span>
+</p>

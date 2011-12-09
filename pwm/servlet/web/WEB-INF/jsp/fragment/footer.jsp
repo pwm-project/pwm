@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.util.PwmMacroMachine" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
@@ -73,23 +74,13 @@
         PWM_STRINGS['Display_PleaseWait'] = "<pwm:Display key="Display_PleaseWait"/>";
         PWM_STRINGS['Display_IdleWarningTitle'] = "<pwm:Display key="Display_IdleWarningTitle"/>";
         PWM_STRINGS['Display_IdleWarningMessage'] = "<pwm:Display key="Display_IdleWarningMessage"/>";
-        PWM_STRINGS['Tooltip_PasswordStrength'] = "<pwm:Display key="Tooltip_PasswordStrength"/>";
-        PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
-        PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
-        PWM_STRINGS['Display_PasswordGeneration'] = "<pwm:Display key="Display_PasswordGeneration"/>";
         PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
         PWM_STRINGS['Display_LeaveDirtyPasswordPage'] = "<pwm:Display key="Display_LeaveDirtyPasswordPage"/>";
-        PWM_STRINGS['Strength_Low'] = "<pwm:Display key="Display_PasswordStrengthLow"/>";
-        PWM_STRINGS['Strength_Medium'] = "<pwm:Display key="Display_PasswordStrengthMedium"/>";
-        PWM_STRINGS['Strength_High'] = "<pwm:Display key="Display_PasswordStrengthHigh"/>";
         PWM_STRINGS['Button_Hide'] = "<pwm:Display key="Button_Hide"/>";
         PWM_STRINGS['Button_Show'] = "<pwm:Display key="Button_Show"/>";
         PWM_STRINGS['Button_Cancel'] = "<pwm:Display key="Button_Cancel"/>";
         PWM_STRINGS['Button_More'] = "<pwm:Display key="Button_More"/>";
-        PWM_STRINGS['Title_RandomPasswords'] = "<pwm:Display key="Title_RandomPasswords"/>";
-        PWM_STRINGS['Title_PasswordGuide'] = "<pwm:Display key="Title_PasswordGuide"/>";
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-        PWM_STRINGS['passwordGuideText'] = '<%=ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%>';
         dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
         dojo.require("dijit.Dialog");
     </script>
@@ -106,5 +97,11 @@
             });
         });
     </script>
-
+    <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+    <% if (customScript != null && customScript.length() > 0) { %>
+    <script type="text/javascript">
+        <%=PwmMacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>
+    </script>
+    <% } %>
+}
 </div>

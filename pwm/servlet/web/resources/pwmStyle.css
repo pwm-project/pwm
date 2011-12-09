@@ -111,6 +111,12 @@ table td.key {
     white-space:nowrap;
     background-color: #ffcd59;
 }
+
+.health-CONFIG {
+    white-space:nowrap;
+    background-color: #ecd5d5;
+}
+
 .health-WARN {
     white-space:nowrap;
     background-color: #d20734;

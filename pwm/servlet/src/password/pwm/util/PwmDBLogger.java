@@ -100,6 +100,7 @@ public class PwmDBLogger implements PwmService {
         }
 
         this.tailTimestampMs = readTailTimestamp();
+        status = STATUS.OPEN;
 
         { // start the writer thread
             final Thread writerThread = new Thread(new WriterThread(), "pwm-PwmDBLogger writer");
@@ -109,7 +110,6 @@ public class PwmDBLogger implements PwmService {
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
-        status = STATUS.OPEN;
     }
 
 
@@ -442,6 +442,7 @@ public class PwmDBLogger implements PwmService {
         }
 
         private void doLoop() throws PwmDBException {
+            LOGGER.debug("starting writer thread loop");
             while (status == STATUS.OPEN) {
                 boolean writeWorkDone = false;
 
@@ -464,6 +465,7 @@ public class PwmDBLogger implements PwmService {
                     }
                 }
             }
+            LOGGER.debug("exiting writer thread loop");
         }
     }
 

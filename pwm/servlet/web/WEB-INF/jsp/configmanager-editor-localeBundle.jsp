@@ -32,6 +32,11 @@
 <p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
     value of the current pwm defaults.</p>
 <p>If your modifications are to correct missing non-english locale values, please consider sharing your translations with the <a href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project</a>.
+<% if (PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY.equals(bundleName)) { %>
+<p>All display settings may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about \
+PWM Macros.</p>
+<% } %>
+
 <script type="text/javascript">
     showError('Loading page...');
     var LOAD_TRACKER = new Array();

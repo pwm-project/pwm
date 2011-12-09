@@ -9,7 +9,7 @@
 v1.6.1
 ---
 + Added "application leave detection" to detect if user leaves PWM site.
-+ Added settings to manage custom CSS from PwmApplication.xml
++ Added settings to manage custom CSS & JavaScript from PwmApplication.xml
 + Added option to override Case Sensitivity detection (issue #127)
 + Option to skip success messages (
 + Request Sequence detection (duplicate form submit detection) added with option to disable.

@@ -23,8 +23,9 @@
 package password.pwm.health;
 
 public enum HealthStatus {
-    WARN(3),
-    CAUTION(2),
+    WARN(4),
+    CAUTION(3),
+    CONFIG(2),
     GOOD(1)
     ;
 

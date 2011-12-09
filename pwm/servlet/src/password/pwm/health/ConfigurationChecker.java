@@ -61,7 +61,7 @@ public class ConfigurationChecker implements HealthChecker {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append("PWM is currently in ").append(pwmApplication.getApplicationMode().toString()).append(" mode. ");
             errorMsg.append("Anyone accessing this site can modify the configuration without authenticating.  When ready, lock the configuration to secure this installation.");
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
@@ -71,7 +71,7 @@ public class ConfigurationChecker implements HealthChecker {
             errorMsg.append(PwmSetting.REQUIRE_HTTPS.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to true for proper security");
 
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
         if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
@@ -81,7 +81,7 @@ public class ConfigurationChecker implements HealthChecker {
             errorMsg.append(PwmSetting.LDAP_PROMISCUOUS_SSL.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to false for proper security");
 
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
@@ -91,7 +91,7 @@ public class ConfigurationChecker implements HealthChecker {
             errorMsg.append(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to false for proper security");
 
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
         if (config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN) == null || config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN).length() < 1 ) {
@@ -101,7 +101,7 @@ public class ConfigurationChecker implements HealthChecker {
             errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
             errorMsg.append(" setting should be set to verify proper operation");
 
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
         {
@@ -118,7 +118,7 @@ public class ConfigurationChecker implements HealthChecker {
                             errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE));
                             errorMsg.append(" url is configured for non-secure connection: ").append(urlStringValue);
 
-                            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
                         }
                     } catch (URISyntaxException  e) {
                         final StringBuilder errorMsg = new StringBuilder();
@@ -127,7 +127,7 @@ public class ConfigurationChecker implements HealthChecker {
                         errorMsg.append(PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE));
                         errorMsg.append(" error parsing urls: ").append(e.getMessage());
 
-                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
                     }
                 }
             }
@@ -144,7 +144,7 @@ public class ConfigurationChecker implements HealthChecker {
                     errorMsg.append(setting.getLabel(PwmConstants.DEFAULT_LOCALE));
                     errorMsg.append(" strength of password is weak (").append(strength).append("/100); increase password length/complexity for proper security");
 
-                    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
                 }
             }
         }
@@ -156,11 +156,11 @@ public class ConfigurationChecker implements HealthChecker {
                     final URL url = new URL(novellUserAppURL);
                     final boolean secure = "https".equalsIgnoreCase(url.getProtocol());
                     if (!secure) {
-                        records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "UserApp Password SOAP Service URL is not secure (should be https)"));
+                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "UserApp Password SOAP Service URL is not secure (should be https)"));
                     }
                 } catch (MalformedURLException e) {
                     LOGGER.debug("error parsing Novell PwdMgt Web Service URL: " + e.getMessage());
-                    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "error parsing Novell PwdMgt Web Service URL: " + e.getMessage()));
+                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "error parsing Novell PwdMgt Web Service URL: " + e.getMessage()));
                 }
             }
         }
@@ -170,7 +170,7 @@ public class ConfigurationChecker implements HealthChecker {
                 if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
                     final Collection<String> formSettings = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
                     if (formSettings.isEmpty()) {
-                        records.add(new HealthRecord(HealthStatus.WARN, TOPIC, "No forgotten password recovery options are enabled"));
+                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "No forgotten password recovery options are enabled"));
                     }
                 }
             }
@@ -203,7 +203,7 @@ public class ConfigurationChecker implements HealthChecker {
                 errorMsg.append(" -> ");
                 errorMsg.append(PwmSetting.RESPONSE_STORAGE_DB.getLabel(PwmConstants.DEFAULT_LOCALE));
                 errorMsg.append(" is enabled, but database connection settings are not set");
-                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
             }
 
             {
@@ -219,7 +219,7 @@ public class ConfigurationChecker implements HealthChecker {
                 errorMsg.append(" -> ");
                 errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getLabel(PwmConstants.DEFAULT_LOCALE));
                 errorMsg.append(" includes database storage, but database connection settings are not set");
-                records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, errorMsg.toString()));
+                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
             }
             }
         }

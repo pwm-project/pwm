@@ -16,6 +16,7 @@ public class PwmMacroMachine {
     private static final List<MacroImplementation> MACROS = new ArrayList<MacroImplementation>();
     static {
         MACROS.add(new LdapMacro());
+        MACROS.add(new InstanceIDMacro());
         MACROS.add(new CurrentDateTimeMacro());
         MACROS.add(new CurrentDateMacro());
         MACROS.add(new CurrentTimeMacro());
@@ -56,6 +57,21 @@ public class PwmMacroMachine {
         }
     }
 
+    private static class InstanceIDMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@PWM:InstanceID@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            if (pwmApplication == null) {
+                LOGGER.error("could not replace value for '" + matchValue + "', pwmApplication is null");
+                return "";
+            }
+
+            return pwmApplication.getInstanceID();
+        }
+    }
+
     private static class CurrentDateTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
             return Pattern.compile("@PWM:CurrentDateTime@");
@@ -68,7 +84,7 @@ public class PwmMacroMachine {
 
     private static class CurrentDateMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentDateTime@");
+            return Pattern.compile("@PWM:CurrentDate@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -78,7 +94,7 @@ public class PwmMacroMachine {
 
     private static class CurrentTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentDateTime@");
+            return Pattern.compile("@PWM:CurrentTime@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -88,7 +104,7 @@ public class PwmMacroMachine {
 
     private static class PwExpirationDateTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:DaysUntilPwExpire@");
+            return Pattern.compile("@PWM:PwExpireDateTime@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -104,7 +120,7 @@ public class PwmMacroMachine {
 
     private static class PwExpirationDateMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:DaysUntilPwExpire@");
+            return Pattern.compile("@PWM:PwExpireDate@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -120,7 +136,7 @@ public class PwmMacroMachine {
 
     private static class PwExpirationTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:DaysUntilPwExpire@");
+            return Pattern.compile("@PWM:PwExpireTime@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
