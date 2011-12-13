@@ -103,5 +103,4 @@
         <%=PwmMacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>
     </script>
     <% } %>
-}
 </div>
