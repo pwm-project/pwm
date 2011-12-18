@@ -156,7 +156,7 @@ public class ConfigurationChecker implements HealthChecker {
                     final URL url = new URL(novellUserAppURL);
                     final boolean secure = "https".equalsIgnoreCase(url.getProtocol());
                     if (!secure) {
-                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "UserApp Password SOAP Service URL is not secure (should be https)"));
+                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "UserApp Password SOAP Service URL is not secure (https)"));
                     }
                 } catch (MalformedURLException e) {
                     LOGGER.debug("error parsing Novell PwdMgt Web Service URL: " + e.getMessage());

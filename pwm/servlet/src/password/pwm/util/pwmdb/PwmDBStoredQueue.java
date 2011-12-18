@@ -338,36 +338,35 @@ public class PwmDBStoredQueue implements Queue<String>  //, Deque<String>
         private Position position;
         private final InternalQueue internalQueue;
         private final boolean first;
-        private final int initialModCount;
+        private int queueSizeAtCreate;
+        private int steps;
 
 
         private InnerIterator(final InternalQueue internalQueue, final boolean first) {
             this.internalQueue = internalQueue;
             this.first = first;
-            initialModCount = internalQueue.getModCount();
             position = internalQueue.size() == 0 ? null : first ? internalQueue.headPosition : internalQueue.tailPosition;
+            queueSizeAtCreate = internalQueue.size();
         }
 
         public boolean hasNext() {
-            if (internalQueue.getModCount() != initialModCount) {
-                throw new ConcurrentModificationException();
-            }
             return position != null;
         }
 
         public String next() {
-            if (internalQueue.getModCount() != initialModCount) {
-                throw new ConcurrentModificationException();
-            }
             if (position == null) {
                 throw new NoSuchElementException();
             }
+            steps++;
             try {
                 final String nextValue = internalQueue.pwmDB.get(internalQueue.DB, position.toString());
                 if (first) {
                     position = position.equals(internalQueue.tailPosition) ? null : position.previous();
                 } else {
                     position = position.equals(internalQueue.headPosition) ? null : position.next();
+                }
+                if (steps > queueSizeAtCreate) {
+                    position = null;
                 }
                 return nextValue;
             } catch (PwmDBException e) {

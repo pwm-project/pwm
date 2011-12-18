@@ -206,8 +206,10 @@ public class UserStatusHelper {
         }
 
         {// set userID
+            final String configUsernameAttr = config.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
             final String ldapNamingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-            uiBean.setUserID(uiBean.getAllUserAttributes().get(ldapNamingAttribute));
+            final String uIDattr = configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+            uiBean.setUserID(uiBean.getAllUserAttributes().get(uIDattr));
         }
 
         { // set guid

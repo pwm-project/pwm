@@ -35,6 +35,7 @@
 
 package password.pwm.servlet;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -54,8 +55,8 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -96,12 +97,9 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
         }
 
-        final Map<CacheKey,CacheEntry> responseCache = new LinkedHashMap<CacheKey,CacheEntry>(internalCacheItemLimit, 0.75f, true) {
-            @Override
-            protected boolean removeEldestEntry(final Map.Entry<CacheKey, CacheEntry> entry) {
-                return this.size() > internalCacheItemLimit;
-            }
-        };
+        final ConcurrentMap<CacheKey, CacheEntry> responseCache = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
+                .maximumWeightedCapacity(internalCacheItemLimit)
+        .build();
         this.getServletContext().setAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME,responseCache);
         LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
 
@@ -203,8 +201,6 @@ public class ResourceFileServlet extends HttpServlet {
         response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
         response.setContentType(contentType);
 
-        final long cacheByteCount = bytesInCache(this.getServletContext());
-
         try {
             if (handleCacheableResponse(response, file, includeBody, acceptsGzip)) {
                 LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache hit)"));
@@ -229,6 +225,11 @@ public class ResourceFileServlet extends HttpServlet {
             }
         }
         return cacheByteCount;
+    }
+
+    public static int itemsInCache(final ServletContext servletContext) {
+        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
+        return responseCache.size();
     }
 
     private boolean handleCacheableResponse(

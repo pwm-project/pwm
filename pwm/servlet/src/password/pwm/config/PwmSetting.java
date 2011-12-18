@@ -152,6 +152,8 @@ public enum PwmSetting {
             "ldap.alwaysUseProxy", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     LDAP_CHAI_SETTINGS(
             "ldapChaiSettings", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
+    LDAP_USERNAME_ATTRIBUTE(
+            "ldap.username.attr", Syntax.STRING, Category.LDAP, false, Level.ADVANCED),
 
     // email settings
     EMAIL_SERVER_ADDRESS(

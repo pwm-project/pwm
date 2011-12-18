@@ -29,6 +29,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.util.ConcurrentModificationException" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -228,9 +229,14 @@
     } catch (Exception e) {
     }
 
-    final PwmDBLogger.SearchResults searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+    PwmDBLogger.SearchResults searchResults = null;
+    try {
+        searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+    } catch (Exception e) {
+        out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");
+    }
 %>
-<% if (searchResults.getEvents().isEmpty()) { %>
+<% if (searchResults == null || searchResults.getEvents().isEmpty()) { %>
 <p>No events matched your search. Please refine your search query and try again.</p>
 <% } else { %>
 <p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getEvents().size()) %> entries after

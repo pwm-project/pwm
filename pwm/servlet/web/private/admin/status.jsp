@@ -429,7 +429,8 @@
             ResourceFileServlet Cache
         </td>
         <td>
-            <%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>
+            <%= numberFormat.format(ResourceFileServlet.itemsInCache(session.getServletContext())) %>
+            (<%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>)
         </td>
     </tr>
     <tr>
