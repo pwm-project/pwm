@@ -161,7 +161,7 @@ public enum PwmSetting {
     EMAIL_USERNAME(
             "email.smtp.username", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_PASSWORD(
-            "email.smtp.password", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
+            "email.smtp.userpassword", Syntax.PASSWORD, Category.EMAIL, false, Level.BASIC),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_MAX_QUEUE_AGE(
