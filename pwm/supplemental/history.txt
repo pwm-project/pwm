@@ -26,6 +26,8 @@ v1.6.1
 - Added multi-line option as default for SMS multi-line response (issue #132)
 - Broken responseSet.meetsRequirements() for userapp responses with user-defined questions (issue #140)
 - NullPointerException on password requirements tag when a minimum-interval is set in policy (issue #137)
+- SMTP Password encrypted in configuration (issue #144) 
+    NOTE: when upgrading from 1.6.0, the SMTP Password needs to be re-entered
 
 
 v1.6.0 (October 17, 2011) build 1096
