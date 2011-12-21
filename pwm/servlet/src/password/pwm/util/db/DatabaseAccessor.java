@@ -299,7 +299,7 @@ public class DatabaseAccessor implements PwmService {
         if (lastError != null) {
             final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
 
-            if (errorAge.isShorterThan(TimeDuration.DAY)) {
+            if (errorAge.isShorterThan(TimeDuration.HOUR)) {
                 returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString() + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
             }
         }

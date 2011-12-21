@@ -80,6 +80,8 @@
         PWM_STRINGS['Button_Show'] = "<pwm:Display key="Button_Show"/>";
         PWM_STRINGS['Button_Cancel'] = "<pwm:Display key="Button_Cancel"/>";
         PWM_STRINGS['Button_More'] = "<pwm:Display key="Button_More"/>";
+        PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
+        PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
         dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
         dojo.require("dijit.Dialog");

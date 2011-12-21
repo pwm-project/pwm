@@ -438,7 +438,7 @@ public class PwmDBLogger implements PwmService {
         private void doLoop() throws PwmDBException {
             LOGGER.debug("starting writer thread loop");
             while (status == STATUS.OPEN) {
-                final Sleeper sleeper = new Sleeper(10);
+                final Sleeper sleeper = new Sleeper(50);
 
                 long startWorkTime = System.currentTimeMillis();
                 boolean workDone = false;
@@ -458,9 +458,10 @@ public class PwmDBLogger implements PwmService {
 
                 if (workDone) {
                     transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startWorkTime));
+                } else {
+                    Helper.pause(503);
                 }
 
-                //LOGGER.trace("transactionSize=" + transactionCalculator.getTransactionSize());
                 sleeper.sleep();
             }
             LOGGER.debug("exiting writer thread loop");

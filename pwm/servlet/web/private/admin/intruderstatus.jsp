@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.util.IntruderManager" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -77,7 +77,7 @@
             %>
             <tr>
                 <td>
-                    <%= key %>
+                    <%= StringEscapeUtils.escapeHtml(key) %>
                 </td>
                 <td>
                     <% if (record.isLocked()) { %>
@@ -143,7 +143,7 @@
             %>
             <tr>
                 <td>
-                    <%= key %>
+                    <%= StringEscapeUtils.escapeHtml(key) %>
                 </td>
                 <td>
                     <% if (record.isLocked()) { %>
