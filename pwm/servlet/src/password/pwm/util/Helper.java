@@ -908,4 +908,38 @@ public class Helper {
     static public String buildPwmFormID(final SessionStateBean ssBean) {
         return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
     }
+
+    /**
+     * Based on {@link https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java}.
+     *
+     * @param input
+     * @return ldap escaped script
+     *
+     */
+    public static String escapeLdapString(final String input) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char curChar = input.charAt(i);
+            switch (curChar) {
+                case '\\':
+                    sb.append("\\5c");
+                    break;
+                case '*':
+                    sb.append("\\2a");
+                    break;
+                case '(':
+                    sb.append("\\28");
+                    break;
+                case ')':
+                    sb.append("\\29");
+                    break;
+                case '\u0000':
+                    sb.append("\\00");
+                    break;
+                default:
+                    sb.append(curChar);
+            }
+        }
+        return sb.toString();
+    }
 }

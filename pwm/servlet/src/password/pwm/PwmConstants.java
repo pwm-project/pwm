@@ -118,9 +118,6 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configmanager-mode-running.jsp";
     public static final String URL_JSP_HELPDESK = "WEB-INF/jsp/helpdesk.jsp";
 
-
-    public static final String URL_JSP_USER_INFORMATION = "private/admin/userinformation.jsp";
-
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_LOGOUT = "Logout";
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";

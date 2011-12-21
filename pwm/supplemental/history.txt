@@ -18,8 +18,10 @@ v1.6.1
 + Added finnish locale, thanks tami.rauhala!
 + Introduced PWM Macros for certain configuration settings and display fields.
 
+* Improved helpdesk module and removed administrative "UserInformation" module due to redundancy
 * Idle authentication timeout now configurable, separate from http session timeout
 * Implemented Jersey framework for rest web services
+! properly escape search strings during ldap username searches
 
 - Issue where change password page refresh would not properly show error (issue #131)
 - PwmCommand line broken with "cannot allow mutator operations" (issue #134)

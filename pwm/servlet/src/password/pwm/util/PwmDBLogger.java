@@ -458,11 +458,11 @@ public class PwmDBLogger implements PwmService {
 
                 if (workDone) {
                     transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startWorkTime));
+                    sleeper.sleep();
                 } else {
-                    Helper.pause(503);
+                    Helper.pause(703);
+                    sleeper.reset();
                 }
-
-                sleeper.sleep();
             }
             LOGGER.debug("exiting writer thread loop");
         }

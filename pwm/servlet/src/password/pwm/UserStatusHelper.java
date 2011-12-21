@@ -308,7 +308,7 @@ public class UserStatusHelper {
         final SearchHelper searchHelper = new SearchHelper();
         {
             final String filterSetting = config.readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
-            final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, username);
+            final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, Helper.escapeLdapString(username));
             searchHelper.setFilter(filter);
             searchHelper.setAttributes("");
             searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
