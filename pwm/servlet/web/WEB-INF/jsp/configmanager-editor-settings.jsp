@@ -141,7 +141,23 @@
             });
         </script>
         <% } else { %>
-        <% if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
+        <% if (loopSetting.getSyntax() == PwmSetting.Syntax.TEXT_AREA) { %>
+        <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
+        <script type="text/javascript">
+            dojo.require("dijit.form.Textarea");
+            new dijit.form.Textarea({
+                regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
+                required: <%=loopSetting.isRequired()%>,
+                invalidMessage: "The value does not have the correct format.",
+                style: "width: 450px",
+                onChange: function() {
+                    writeSetting('<%=loopSetting.getKey()%>', this.value);
+                },
+                value: "[Loading..]",
+                disabled: true
+            }, "value_<%=loopSetting.getKey()%>")
+        </script>
+        <% } if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
         <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
         <script type="text/javascript">
             dojo.require("dijit.form.ValidationTextBox");
@@ -232,7 +248,7 @@
                 getObject('value_<%=loopSetting.getKey()%>').value = dataValue;
                 getObject('value_<%=loopSetting.getKey()%>').disabled = false;
                 dijit.byId('value_<%=loopSetting.getKey()%>').set('disabled', false);
-                dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);
+                try {dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);} catch (e) {};
                 dijit.byId('value_<%=loopSetting.getKey()%>').startup();
             })
         </script>

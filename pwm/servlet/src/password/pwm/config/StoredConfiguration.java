@@ -80,8 +80,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
         return new StoredConfiguration();
     }
 
-    public static StoredConfiguration fromXml(final String xmlData) 
-            throws PwmUnrecoverableException 
+    public static StoredConfiguration fromXml(final String xmlData)
+            throws PwmUnrecoverableException
     {
         return XmlConverter.fromXml(xmlData);
     }
@@ -217,6 +217,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         switch (pwmSetting.getSyntax()) {
             case STRING:
             case BOOLEAN:
+            case TEXT_AREA:
             case SELECT:
             case NUMERIC:
                 return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
@@ -429,6 +430,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public String readSetting(final PwmSetting setting) {
         switch (setting.getSyntax()) {
             case STRING:
+            case TEXT_AREA:
             case SELECT:
             case BOOLEAN:
             case NUMERIC:
@@ -498,6 +500,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
         preModifyActions();
         switch (setting.getSyntax()) {
             case STRING:
+            case TEXT_AREA:
             case SELECT:
             case BOOLEAN:
             case NUMERIC:

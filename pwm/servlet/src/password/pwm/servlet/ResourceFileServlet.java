@@ -99,7 +99,7 @@ public class ResourceFileServlet extends HttpServlet {
 
         final ConcurrentMap<CacheKey, CacheEntry> responseCache = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
                 .maximumWeightedCapacity(internalCacheItemLimit)
-        .build();
+                .build();
         this.getServletContext().setAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME,responseCache);
         LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
 
@@ -491,22 +491,18 @@ public class ResourceFileServlet extends HttpServlet {
     )
             throws PwmUnrecoverableException, IOException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
-        final String bodyText = pwmApplication.getConfig().readSettingAsLocalizedString(
-                pwmSetting,
-                pwmSession.getSessionStateBean().getLocale()
-        );
-        if (bodyText != null && bodyText.length() > 0) {
-            try {
-                response.setContentType("text/css");
-                response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+        final String bodyText = pwmApplication.getConfig().readSettingAsString(pwmSetting);
+        try {
+            response.setContentType("text/css");
+            response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+            if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
                 copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
-            } finally {
-                close(response.getOutputStream());
+            } else {
+                response.setIntHeader("Content-Length", 0);
             }
-        } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } finally {
+            close(response.getOutputStream());
         }
     }
 

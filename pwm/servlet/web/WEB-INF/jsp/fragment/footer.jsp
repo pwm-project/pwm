@@ -99,7 +99,7 @@
             });
         });
     </script>
-    <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+    <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
         <%=PwmMacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>

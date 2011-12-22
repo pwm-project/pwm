@@ -102,11 +102,11 @@ public enum PwmSetting {
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CSS_CUSTOM_STYLE(
-            "display.css.customStyle", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
-            "display.css.customMobileStyle", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
-            "display.js.custom", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
 
 
     //ldap directory
@@ -781,7 +781,7 @@ public enum PwmSetting {
         final String value = readProps("REGEX_" + this.getKey(), PwmConstants.DEFAULT_LOCALE);
 
         if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value)) {
-            return Pattern.compile(".*");
+            return Pattern.compile(".*",Pattern.DOTALL);
         }
 
         return Pattern.compile(value);
@@ -799,6 +799,7 @@ public enum PwmSetting {
     public static enum Syntax {
         STRING,
         STRING_ARRAY,
+        TEXT_AREA,
         LOCALIZED_STRING,
         LOCALIZED_TEXT_AREA,
         LOCALIZED_STRING_ARRAY,
