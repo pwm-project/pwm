@@ -363,7 +363,7 @@ public class TokenManager implements PwmService {
                 case STORE_DB:
                     return databaseAccessor.size(PwmDB.DB.TOKENS);
             }
-        } catch (PwmOperationalException e) {
+        } catch (Exception e) {
             LOGGER.error("unexpected error reading size of token storage table: " + e.getMessage());
         }
 

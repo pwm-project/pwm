@@ -50,7 +50,7 @@ public class PwmDBLogger implements PwmService {
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
 
-    private final static int MAX_QUEUE_SIZE = 10 * 1000;
+    public final static int MAX_QUEUE_SIZE = 10 * 1000;
 
     private final PwmDB pwmDB;
 
@@ -68,7 +68,7 @@ public class PwmDBLogger implements PwmService {
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
-    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(1500, 2000, 5023, 3);
+    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(1049, 1607, 3, 5273);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -428,24 +428,23 @@ public class PwmDBLogger implements PwmService {
             LOGGER.debug("writer thread open");
             writerThreadActive = true;
             try {
-                doLoop();
+                loop();
             } catch (Exception e) {
                 LOGGER.fatal("unexpected fatal error during PwmDBLogger log event writing; logging to pwmDB will be suspended.", e);
             }
             writerThreadActive = false;
         }
 
-        private void doLoop() throws PwmDBException {
+        private void loop() throws PwmDBException {
             LOGGER.debug("starting writer thread loop");
-            while (status == STATUS.OPEN) {
-                final Sleeper sleeper = new Sleeper(50);
+            final Sleeper sleeper = new Sleeper(50);
 
-                long startWorkTime = System.currentTimeMillis();
+            while (status == STATUS.OPEN) {
+                long startLoopTime = System.currentTimeMillis();
                 boolean workDone = false;
                 if (!eventQueue.isEmpty()) {
                     flushQueue();
                     workDone = true;
-
                 }
 
                 final int purgeCount = determineTailRemovalCount();
@@ -457,7 +456,7 @@ public class PwmDBLogger implements PwmService {
                 }
 
                 if (workDone) {
-                    transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startWorkTime));
+                    transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startLoopTime));
                     sleeper.sleep();
                 } else {
                     Helper.pause(703);

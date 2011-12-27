@@ -154,6 +154,14 @@ public class TimeDuration implements Comparable, Serializable {
         return ms;
     }
 
+    public long getTotalSeconds() {
+        return ms / 1000;
+    }
+
+    public long getTotalMinutes() {
+        return ms / (60 * 1000);
+    }
+
     public String asCompactString() {
         final StringBuilder sb = new StringBuilder();
 

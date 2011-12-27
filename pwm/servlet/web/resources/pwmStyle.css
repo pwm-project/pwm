@@ -105,28 +105,32 @@ table td.key {
 .health-GOOD {
     white-space:nowrap;
     background-color: #8ced3f;
+    text-align: center;
 }
 
 .health-CAUTION {
     white-space:nowrap;
     background-color: #ffcd59;
+    text-align: center;
 }
 
 .health-CONFIG {
     white-space:nowrap;
     background-color: #ecd5d5;
+    text-align: center;
 }
 
 .health-WARN {
     white-space:nowrap;
     background-color: #d20734;
+    text-align: center;
 }
 
 .health-UNKNOWN {
     white-space:nowrap;
     background-color: red;
+    text-align: center;
 }
-
 
 .inputfield {
     width: 60%;

@@ -275,6 +275,7 @@ public class AuthenticationFilter implements Filter {
         debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
         LOGGER.info(pwmSession, debugMsg);
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION,1);
 
         //attempt to add the object class to the user
         Helper.addConfiguredUserObjectClass(userDN, pwmSession, pwmApplication);

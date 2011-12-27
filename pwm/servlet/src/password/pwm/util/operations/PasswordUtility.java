@@ -46,6 +46,7 @@ import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import java.util.*;
 
@@ -211,6 +212,7 @@ public class PasswordUtility {
 
         // update the status bean
         pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
+        pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES,1);
 
         // add the old password to the global history list (if the old password is known)
         if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {

@@ -32,6 +32,7 @@ import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBFactory;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -39,12 +40,11 @@ import java.util.Map;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int MAX_SIZE = 50 * 1000 * 1000 ;
-    private static final long MAG_AGE_MS = 1000;
     private static final int BULK_EVENT_SIZE = 20 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
+    private int maxSize;
 
     @Override
     protected void setUp() throws Exception {
@@ -62,30 +62,38 @@ public class PwmDBLoggerTest extends TestCase {
                 initStrings,
                 false
         );
-        pwmDBLogger = new PwmDBLogger(pwmDB,  MAX_SIZE, MAG_AGE_MS);
+        
+        maxSize = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+        final long maxAge = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000l;
+
+        pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
     }
 
     public void testBulkAddEvents() {
         final int startingSize = pwmDBLogger.getStoredEventCount();
-        final int writesPerCycle = 1000;
+        final long startBulkAddTime = System.currentTimeMillis();
+        final int loopCount = 100;
         int eventsRemaining = BULK_EVENT_SIZE;
         int eventsAdded = 0;
 
         while (eventsRemaining > 0) {
-            while (pwmDBLogger.getPendingEventCount() >= writesPerCycle) Helper.pause(100);
+            while (pwmDBLogger.getPendingEventCount() >= (PwmDBLogger.MAX_QUEUE_SIZE - loopCount)) Helper.pause(10);
 
-            final Collection<PwmLogEvent> events = makeBulkEvents(writesPerCycle + 1);
+            final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
             for (final PwmLogEvent logEvent : events) {
                 pwmDBLogger.writeEvent(logEvent);
                 eventsRemaining--;
                 eventsAdded++;
                 if (eventsAdded % (10 * 1000) == 0) {
                     final StringBuilder sb = new StringBuilder();
-                    sb.append("added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
+                    final TimeDuration td = TimeDuration.fromCurrent(startBulkAddTime);
+                    sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
+                    sb.append(", added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
                     sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
-                    sb.append(", stored event count: ").append(pwmDBLogger.getStoredEventCount());
+                    sb.append(", stored events: ").append(pwmDBLogger.getStoredEventCount());
                     sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
+                    //sb.append(", eps: ").append(pwmDBLogger.getEpsRate(TimeDuration.MINUTE));
                     System.out.println(sb);
                 }
             }
@@ -96,8 +104,8 @@ public class PwmDBLoggerTest extends TestCase {
             Helper.pause(500);
         }
 
-        if (startingSize + BULK_EVENT_SIZE >= MAX_SIZE) {
-            Assert.assertEquals(pwmDBLogger.getStoredEventCount(), MAX_SIZE);
+        if (startingSize + BULK_EVENT_SIZE >= maxSize) {
+            Assert.assertEquals(pwmDBLogger.getStoredEventCount(), maxSize);
         } else {
             Assert.assertEquals(pwmDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_SIZE);
         }
@@ -108,7 +116,7 @@ public class PwmDBLoggerTest extends TestCase {
 
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
         final PwmRandom random = PwmRandom.getInstance();
-        final String randomDescr = random.alphaNumericString(1024 * 4);
+        final String randomDescr = random.alphaNumericString(64 + random.nextInt(1024 * 2));
 
         for (int i = 0; i < count; i++) {
             final StringBuilder description = new StringBuilder();

@@ -29,6 +29,7 @@
 <%@ page import="java.util.LinkedHashSet" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="password.pwm.PwmSession" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -82,7 +83,7 @@
 
             <tr>
                 <td>
-                    <%= loopSession.getSessionLabel() %>
+                    <%= StringEscapeUtils.escapeHtml(loopSession.getSessionLabel()) %>
                 </td>
                 <td style="white-space: nowrap;">
                     <%= DateFormat.getDateTimeInstance().format(new Date(loopSession.getCreationTime())) %>

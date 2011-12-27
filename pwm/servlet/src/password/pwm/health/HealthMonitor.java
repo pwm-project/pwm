@@ -84,7 +84,7 @@ public class HealthMonitor implements Serializable {
         return getHealthRecords(false);
     }
 
-    public Set<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
+    public synchronized Set<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
         if (lastHealthCheckDate == null || refreshImmediate) {
             doHealthChecks();
         } else {

@@ -10,7 +10,13 @@ public class TransactionSizeCalculator {
 
     private int transactionSize = 3;
 
-    public TransactionSizeCalculator(final long lowTimeMS, final long highTimeMS, final int maxTransactions, final int minTransactions) {
+    public TransactionSizeCalculator(
+            final long lowTimeMS,
+            final long highTimeMS,
+            final int minTransactions,
+            final int maxTransactions
+    )
+    {
         this.setting_LowGoal = new TimeDuration(lowTimeMS);
         this.setting_HighGoal = new TimeDuration(highTimeMS);
         this.setting_OutOfRange = new TimeDuration(setting_HighGoal.getTotalMilliseconds() * 5);

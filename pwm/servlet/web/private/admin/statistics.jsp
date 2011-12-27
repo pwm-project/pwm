@@ -112,8 +112,8 @@
                     </td>
                 </tr>
                 <% for (Iterator<Statistic> iter = Statistic.sortedValues(locale).iterator(); iter.hasNext();) { %>
+                <% Statistic leftStat = iter.next(); %>
                 <tr>
-                    <% Statistic leftStat = iter.next(); %>
                     <td class="key">
                         <%= leftStat.getLabel(locale) %>
                     </td>

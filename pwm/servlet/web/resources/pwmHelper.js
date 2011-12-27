@@ -184,6 +184,7 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
     });
     pMenu.startup();
 
+    dojo.require("dijit.MenuItem");
     var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
         pMenu.addChild(new dijit.MenuItem({
             label: localeDisplayName,

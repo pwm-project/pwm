@@ -26,9 +26,11 @@ import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -59,8 +61,14 @@ public class StatisticsManager {
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
+    private Map<EpsType, EventRateMeter> epsMeterMap = new HashMap<EpsType, EventRateMeter>();
 
     final private PwmApplication pwmApplication;
+
+    public enum EpsType {
+        PASSWORD_CHANGES,
+        AUTHENTICATION
+    }
 
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
         @Override
@@ -72,6 +80,10 @@ public class StatisticsManager {
     public StatisticsManager(final PwmDB pwmDB, final PwmApplication pwmApplication) {
         this.pwmDB = pwmDB;
         this.pwmApplication = pwmApplication;
+        
+        for (final EpsType type : EpsType.values()) {
+            epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
+        }
 
         try {
             initialize(pwmDB);
@@ -349,5 +361,13 @@ public class StatisticsManager {
             result = 31 * result + day;
             return result;
         }
+    }
+    
+    public void updateEps(final EpsType type, final int itemCount) {
+        epsMeterMap.get(type).markEvents(itemCount);
+    }
+
+    public BigDecimal readEps(final EpsType type, final TimeDuration duration) {
+        return epsMeterMap.get(type).readEventRate(duration,TimeDuration.MINUTE);
     }
 }
