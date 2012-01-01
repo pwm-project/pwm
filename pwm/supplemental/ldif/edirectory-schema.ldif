@@ -83,7 +83,7 @@ dn: cn=schema
 changetype: modify
 add: objectClasses
 objectClasses: (
-  1.3.6.1.4.1.35015.1.2.4
+  1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
   AUXILIARY
   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID )

@@ -63,7 +63,7 @@ BEGIN
 	 Operation 	ADD, 
 	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID" }, 
 	 Flags 	{ DS_AUXILIARY_CLASS, DS_CONTAINER_CLASS, DS_AMBIGUOUS_CONTAINMENT }, 
-	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 4 } 
+	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 1 1 } 
  }
 
 END
