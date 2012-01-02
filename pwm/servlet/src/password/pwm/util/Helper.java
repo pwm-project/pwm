@@ -121,7 +121,7 @@ public class Helper {
             chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, encryptResponses ? ChaiResponseSet.FormatType.SHA1_SALT.toString() : ChaiResponseSet.FormatType.TEXT.toString());
         }
 
-        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_PROXY_IDLE_TIMEOUT) * 1000;
+        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
         // if possible, set the ldap timeout.
         if (idleTimeoutMs > 0) {

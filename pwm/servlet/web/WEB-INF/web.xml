@@ -249,9 +249,9 @@
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
         <init-param>
-            <description>Default HTTP expiration time for resources (in milliseconds)</description>
+            <description>Default HTTP expiration time for resources (in milliseconds), 86400000=1 day</description>
             <param-name>expireTimeMs</param-name>
-            <param-value>3600000</param-value>
+            <param-value>86400000</param-value>
         </init-param>
         <init-param>
             <description>Maximum item limit for internal resource cache</description>

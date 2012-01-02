@@ -53,7 +53,7 @@ function validatePasswords(userDN)
 
     var passwordData = makeValidationKey(userDN);
     {
-        var cachedResult = validationCache[passwordData.cacheKey];
+        var cachedResult = validationCache[passwordData.passwordCacheKey];
         if (cachedResult != null) {
             updateDisplay(cachedResult);
             return;
@@ -78,8 +78,8 @@ function validatePasswords(userDN)
         },
         load: function(data){
             validationInProgress = false;
-            validationCache[passwordData.cacheKey] = data;
-            if (passwordData.cacheKey != makeValidationKey().cacheKey) {
+            validationCache[passwordData.passwordCacheKey] = data;
+            if (passwordData.passwordCacheKey != makeValidationKey().passwordCacheKey) {
                 setTimeout(function() {validatePasswords();}, 1);
             } else {
                 updateDisplay(data);
@@ -93,12 +93,12 @@ function makeValidationKey(userDN) {
         password1:getObject("password1").value,
         password2:getObject("password2").value,
         userDN: userDN,
-        cacheKey: getObject("password1").value + getObject("password2").value
+        passwordCacheKey: getObject("password1").value + getObject("password2").value
     };
 
     if (getObject("currentPassword") != null) {
         validationKey.currentPassword = getObject("currentPassword").value;
-        validationKey.cacheKey = getObject("password1").value + getObject("password2").value + getObject("currentPassword").value;
+        validationKey.passwordCacheKey = getObject("password1").value + getObject("password2").value + getObject("currentPassword").value;
     }
 
     return validationKey;

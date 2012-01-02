@@ -140,8 +140,8 @@ public enum PwmSetting {
             "passwordLastUpdateAttribute", Syntax.STRING, Category.LDAP, false, Level.ADVANCED),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
-    LDAP_PROXY_IDLE_TIMEOUT(
-            "ldap.proxy.idleTimeout", Syntax.NUMERIC, Category.LDAP, true, Level.ADVANCED),
+    LDAP_IDLE_TIMEOUT(
+            "ldap.idleTimeout", Syntax.NUMERIC, Category.LDAP, true, Level.ADVANCED),
     LDAP_GUID_ATTRIBUTE(
             "ldap.guidAttribute", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_GUID_AUTO_ADD(

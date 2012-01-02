@@ -127,7 +127,7 @@
 <table class="tablemain">
     <tr>
         <td class="title" colspan="10">
-            Current Status
+            Current Activity
         </td>
     </tr>
     <tr>
@@ -143,7 +143,7 @@
         </td>
         <td class="key">
             <a href="<pwm:url url='activesessions.jsp'/>">
-                Stored Token Keys
+                Stored Tokens
             </a>
         </td>
         <td>
