@@ -134,6 +134,7 @@ public enum PwmError {
     ERROR_PWMDB_UNAVAILABLE("Error_PwmDB_Unavailable",5052),
     ERROR_PWM_UNAVAILABLE("Error_Pwm_Unavailable",5053),
     ERROR_INCORRECT_REQUEST_SEQUENCE("Error_IncorrectRequestSequence", 5035),
+    ERROR_UNREACHABLE_CLOUD_SERVICE("Error_UnreachableCloudService", 5036),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

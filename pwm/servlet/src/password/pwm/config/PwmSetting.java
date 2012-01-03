@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  */
 public enum PwmSetting {
     // general settings
+    VERSION_CHECK_ENABLE(
+            "pwm.versionCheck.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
@@ -607,7 +609,7 @@ public enum PwmSetting {
     FORCE_BASIC_AUTH(
             "forceBasicAuth", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
     REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
+            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.MISC, true, Level.BASIC),
     EXTERNAL_CHANGE_METHODS(
             "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     EXTERNAL_JUDGE_METHODS(
@@ -615,9 +617,9 @@ public enum PwmSetting {
     EXTERNAL_RULE_METHODS(
             "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
     HTTP_PROXY_URL(
-            "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+            "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.BASIC),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
-            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.MISC, false, Level.ADVANCED),
+            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.MISC, false, Level.BASIC),
     CAS_CLEAR_PASS_URL(
             "cas.clearPassUrl", Syntax.STRING, Category.MISC, false, Level.BASIC),
 

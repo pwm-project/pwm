@@ -44,11 +44,16 @@ public abstract class PwmConstants {
     public static final String BUILD_NUMBER =   readBuildInfoBundle("build.number");
     public static final String BUILD_TYPE =     readBuildInfoBundle("build.type");
     public static final String PWM_VERSION =    readBuildInfoBundle("pwm.version");
-    public static final String PWM_WEBSITE =    readBuildInfoBundle("pwm.website");
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER + " (" + BUILD_TYPE + ")";
 
     public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
+
+    public static final String PWM_URL_HOME = readPwmConstantsBundle("url.pwm-home");
+    public static final String PWM_URL_CLOUD = readPwmConstantsBundle("url.pwm-cloud");
+
+    public static final long VERSION_CHECK_FREQUENCEY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFrequencyMs"));
+    public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int MAX_SMS_QUEUE_SIZE = 100;

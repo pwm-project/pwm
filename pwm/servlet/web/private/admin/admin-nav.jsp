@@ -27,5 +27,5 @@
         href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="eventlog.jsp">Event Log</a>
     <br/>
     <a href="userreport.jsp">User Report</a> | <a href="config.jsp">Configuration</a> | <a href="http-request-information.jsp">Http Debug</a> | <a
-        href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project</a> | <a href="<%=request.getContextPath()%>">Main Menu</a>
+        href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a> | <a href="<%=request.getContextPath()%>">Main Menu</a>
 </p>

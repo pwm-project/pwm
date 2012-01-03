@@ -76,8 +76,6 @@ public class PwmApplication {
     private String instanceID = DEFAULT_INSTANCE_ID;
     private final IntruderManager intruderManager = new IntruderManager(this);
     private final Configuration configuration;
-    private EmailQueueManager emailQueue;
-    private SmsQueueManager smsQueue;
     private UrlShortenerService urlShort;
 
     private HealthMonitor healthMonitor;
@@ -91,6 +89,8 @@ public class PwmApplication {
     private PwmDBLogger pwmDBLogger;
     private volatile ChaiProvider proxyChaiProvider;
     private volatile DatabaseAccessor databaseAccessor;
+
+    private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
@@ -146,12 +146,12 @@ public class PwmApplication {
 
     public Set<PwmService> getPwmServices() {
         final Set<PwmService> pwmServices = new HashSet<PwmService>();
-        pwmServices.add(this.emailQueue);
-        pwmServices.add(this.smsQueue);
         pwmServices.add(this.wordlistManager);
+        pwmServices.add(this.seedlistManager);
         pwmServices.add(this.databaseAccessor);
         pwmServices.add(this.urlShort);
         pwmServices.add(this.pwmDBLogger);
+        pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
         return Collections.unmodifiableSet(pwmServices);
     }
@@ -186,11 +186,11 @@ public class PwmApplication {
     }
 
     public EmailQueueManager getEmailQueue() {
-        return emailQueue;
+        return (EmailQueueManager)pwmServices.get(EmailQueueManager.class);
     }
 
     public SmsQueueManager getSmsQueue() {
-        return smsQueue;
+        return (SmsQueueManager)pwmServices.get(SmsQueueManager.class);
     }
 
     public UrlShortenerService getUrlShortener() {
@@ -199,6 +199,10 @@ public class PwmApplication {
 
     public ErrorInformation getLastLdapFailure() {
         return lastLdapFailure;
+    }
+
+    public VersionChecker getPwmCloudClient() {
+        return (VersionChecker)pwmServices.get(VersionChecker.class);
     }
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
@@ -314,10 +318,10 @@ public class PwmApplication {
         LOGGER.info(logEnvironment());
         LOGGER.info(logDebugInfo());
 
-        emailQueue = new EmailQueueManager(this);
+        pwmServices.put(EmailQueueManager.class, new EmailQueueManager(this));
         LOGGER.trace("email queue manager started");
 
-        smsQueue = new SmsQueueManager(this);
+        pwmServices.put(SmsQueueManager.class, new SmsQueueManager(this));
         LOGGER.trace("sms queue manager started");
 
         urlShort = new UrlShortenerService(this);
@@ -325,6 +329,14 @@ public class PwmApplication {
 
         taskMaster = new Timer("pwm-PwmApplication timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
+
+        {
+            VersionChecker versionChecker = new VersionChecker(this);
+            pwmServices.put(VersionChecker.class, versionChecker);
+            if (!versionChecker.isVersionCurrent()) {
+                LOGGER.warn("this version of PWM is outdated, please check the project website for the current version");
+            }
+        }
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
@@ -446,6 +458,7 @@ public class PwmApplication {
     }
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean) {
+        final EmailQueueManager emailQueue = this.getEmailQueue();
         if (emailQueue == null) {
             LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
             return;
@@ -467,6 +480,7 @@ public class PwmApplication {
     }
 
     public void sendSmsUsingQueue(final SmsItemBean smsItem) {
+        final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
             LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
             return;
@@ -537,22 +551,12 @@ public class PwmApplication {
             tokenManager = null;
         }
 
-        if (emailQueue != null) {
+        for (final PwmService loopService : pwmServices.values()) {
             try {
-                emailQueue.close();
+                loopService.close();
             } catch (Exception e) {
-                LOGGER.error("error closing emailQueue: " + e.getMessage(),e);
+                LOGGER.error("error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(),e);
             }
-            emailQueue = null;
-        }
-
-        if (smsQueue != null) {
-            try {
-                smsQueue.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing smsQueue: " + e.getMessage(),e);
-            }
-            smsQueue = null;
         }
 
         if (databaseAccessor != null) {

@@ -43,7 +43,7 @@
     </div>
     <div id="centerbody">
         <p>Welcome to PWM.  We hope you enjoy using this software.</p>
-        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_WEBSITE%>">PWM Project Page</a></p>
+        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project Page</a></p>
         <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting a default
             template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
         <p>After selecting a default template below configure PWM by setting the LDAP configuration options, and then saving the configuration.</p>
