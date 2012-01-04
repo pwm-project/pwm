@@ -27,12 +27,9 @@ import java.util.Map;
 public class RestCheckPasswordServer {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
 
-    @Context
-    HttpServletRequest request;
-
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String doPasswordRuleCheckTextGet() {
+	public String doPasswordRuleCheckTextGet(@Context HttpServletRequest request) {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
@@ -44,10 +41,12 @@ public class RestCheckPasswordServer {
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String doPasswordRuleCheckJsonPost(
             final @FormParam("password1") String password1,
             final @FormParam("password2") String password2,
-            final @FormParam("username") String username
+            final @FormParam("username") String username,
+            final @Context HttpServletRequest request
     )
     {
         try {

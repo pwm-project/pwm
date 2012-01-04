@@ -54,6 +54,7 @@ public abstract class PwmConstants {
 
     public static final long VERSION_CHECK_FREQUENCEY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFrequencyMs"));
     public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
+    public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));
 
     public static final int MAX_EMAIL_QUEUE_SIZE = 1000;
     public static final int MAX_SMS_QUEUE_SIZE = 100;

@@ -22,15 +22,28 @@
 
 package password.pwm.util.stats;
 
+import com.google.gson.Gson;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.StatsPublishBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,6 +63,7 @@ public class StatisticsManager {
 
     public static final String KEY_CURRENT = "CURRENT";
     public static final String KEY_CUMULATIVE = "CUMULATIVE";
+    public static final String KEY_CLOUD_PUBLISH_TIMESTAMP = "CLOUD_PUB_TIMESTAMP";
 
     private final PwmDB pwmDB;
 
@@ -80,7 +94,7 @@ public class StatisticsManager {
     public StatisticsManager(final PwmDB pwmDB, final PwmApplication pwmApplication) {
         this.pwmDB = pwmDB;
         this.pwmApplication = pwmApplication;
-        
+
         for (final EpsType type : EpsType.values()) {
             epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
         }
@@ -235,6 +249,22 @@ public class StatisticsManager {
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
             daemonTimer.schedule(new NightlyTask(), nextDate());
         }
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
+            long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
+            {
+                final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
+                if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
+                    try {
+                        lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
+                    } catch (Exception e) {
+                        LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
+                    }
+                }
+            }
+            final Date nextPublishTime = new Date(lastPublishTimestamp + PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS + (long)PwmRandom.getInstance().nextInt(3600 * 1000));
+            daemonTimer.schedule(new PublishTask(), nextPublishTime, PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS);
+        }
     }
 
     private static Date nextDate() {
@@ -300,6 +330,16 @@ public class StatisticsManager {
         }
     }
 
+    private class PublishTask extends TimerTask {
+        public void run() {
+            try {
+                publishStatisticsToCloud();
+            } catch (Exception e) {
+                LOGGER.error("error publishing statistics to cloud: " + e.getMessage());
+            }
+        }
+    }
+
     public static class DailyKey {
         int year;
         int day;
@@ -362,12 +402,57 @@ public class StatisticsManager {
             return result;
         }
     }
-    
+
     public void updateEps(final EpsType type, final int itemCount) {
         epsMeterMap.get(type).markEvents(itemCount);
     }
 
     public BigDecimal readEps(final EpsType type, final TimeDuration duration) {
         return epsMeterMap.get(type).readEventRate(duration,TimeDuration.MINUTE);
+    }
+
+    private void publishStatisticsToCloud()
+            throws URISyntaxException, IOException {
+        final StatsPublishBean statsPublishData;
+        {
+            final StatisticsBundle bundle = getStatBundleForKey(KEY_CUMULATIVE);
+            final Map<String,String> statData = new HashMap<String,String>();
+            for (final Statistic loopStat : Statistic.values()) {
+                statData.put(loopStat.getKey(),bundle.getStatistic(loopStat));
+            }
+            final Configuration config = pwmApplication.getConfig();
+            final List<String> configuredSettings = new ArrayList<String>();
+            for (final PwmSetting pwmSetting : PwmSetting.values()) {
+                if (!config.isDefaultValue(pwmSetting)) {
+                    configuredSettings.add(pwmSetting.getKey());
+                }
+            }
+            statsPublishData = new StatsPublishBean(
+                    pwmApplication.getInstanceID(),
+                    new Date(),
+                    statData,
+                    configuredSettings,
+                    PwmConstants.BUILD_NUMBER,
+                    PwmConstants.PWM_VERSION
+            );
+        }
+        final URI requestURI = new URI(PwmConstants.PWM_URL_CLOUD + "/rest/pwm/statistics");
+        final HttpPost httpPost = new HttpPost(requestURI.toString());
+        final Gson gson = new Gson();
+        final String jsonDataString = gson.toJson(statsPublishData);
+        httpPost.setEntity(new StringEntity(jsonDataString));
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-Type", "application/json");
+        LOGGER.debug("preparing to send anonymous statics to " + requestURI.toString() + ", data to send: " + jsonDataString);
+        final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
+        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
+        }
+        LOGGER.info("published anonymous statics to " + requestURI.toString());
+        try {
+            pwmDB.put(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP,String.valueOf(System.currentTimeMillis()));
+        } catch (PwmDBException e) {
+            LOGGER.error("unexpected error trying to save last statistics published time to PwmDB: " + e.getMessage());
+        }
     }
 }

@@ -40,6 +40,8 @@ public enum PwmSetting {
     // general settings
     VERSION_CHECK_ENABLE(
             "pwm.versionCheck.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
+    PUBLISH_STATS_ENABLE(
+            "pwm.publishStats.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
