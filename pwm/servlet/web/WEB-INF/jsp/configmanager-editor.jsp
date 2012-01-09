@@ -419,8 +419,8 @@ function buildMenuBar() {
 </script>
 </body>
 <script type="text/javascript">
-    if(dojo.isIE <= 7){ // only IE7 and below
-        alert('Internet Explorer 7 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
+    if(dojo.isIE <= 8){ // only IE8 and below
+        alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
     }
 </script>
 </html>

@@ -40,6 +40,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpProtocolParams;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
@@ -880,7 +881,8 @@ public class Helper {
                 httpClient.getCredentialsProvider().setCredentials (new AuthScope(host, port),passwordCredentials);
             }
         }
-
+        final String userAgent = "PWM " + PwmConstants.SERVLET_VERSION;
+        httpClient.getParams().setParameter(HttpProtocolParams.USER_AGENT, userAgent);
         return httpClient;
     }
 

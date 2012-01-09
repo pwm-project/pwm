@@ -17,6 +17,7 @@ v1.6.1
 + Password rule text configuration option to override auto-generated rule text.
 + Added finnish locale, thanks tami.rauhala!
 + Introduced PWM Macros for certain configuration settings and display fields.
++ Version checking and anonymous statistics publishing (configurable)
 
 * Improved helpdesk module and removed administrative "UserInformation" module due to redundancy
 * Idle authentication timeout now configurable, separate from http session timeout
