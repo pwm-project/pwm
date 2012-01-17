@@ -1,0 +1,92 @@
+html, body {
+    font: 100% verdana,helvetica,arial,sans-serif;
+    font-size: 11px;
+    color: #aaaaaa;
+    height: 100%;
+    margin: 0px;
+    border: 0px;
+    padding: 0px;
+    background-color: #000000;
+    background-image: url('MatrixText.jpg');
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+
+#header {
+    font-family: verdana,helvetica,arial,sans-serif;
+    background: #000000;
+    opacity: 0.8;
+    color: #aaffaa;
+    height: 110px;
+    -moz-box-shadow: 0px 5px 5px #444444;
+    -webkit-box-shadow: 0px 5px 5px #444444;
+    box-shadow: 0px 5px 5px #444444;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#444444')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#444444');
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url(logo.png);
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#header-page, #header-title {
+    font-family: verdana,helvetica,arial,sans-serif;
+    color: #aaffaa;
+}
+
+#centerbody {
+    background-color: #222222;
+    padding: 10px 10px 40px 10px;
+    border: #00dd00 solid 1px;
+    opacity: 0.8;
+    -moz-box-shadow: 0px 5px 10px #444444;
+    -webkit-box-shadow: 0px 5px 10px #444444;
+    box-shadow: 0px 5px 10px #444444;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#444444')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#444444');
+}
+
+a {
+    color: #008800;
+}
+
+a:hover {
+    color: #00ff00;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #008800;
+}
+
+p, h1, h2, h3, h4 {
+    color: #aaffaa;
+}
+
+table td.title {
+    background-color: #338833;
+}
+
+table td {
+    border: 1 px solid #338833;
+}
+
+#footer .idle_status {
+    color: #88ff88;
+}
+
+input, button {
+    background-color: #224422;
+    color: #aaffaa;
+}
