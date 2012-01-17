@@ -1,0 +1,75 @@
+html, body {
+    font: 100% verdana,helvetica,arial,sans-serif;
+    font-size: 11px;
+    color: #444444;
+    height: 100%;
+    margin: 0
+}
+
+#header {
+    font-family: verdana,helvetica,arial,sans-serif;
+    background: #ffffff;
+    height: 110px;
+    -moz-box-shadow: 0px 5px 5px #aaaaaa;
+    -webkit-box-shadow: 0px 5px 5px #aaaaaa;
+    box-shadow: 0px 5px 5px #aaaaaa;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#aaaaaa')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#aaaaaa');
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url(logo.png);
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#header-page, #header-title {
+    font-family: verdana,helvetica,arial,sans-serif;
+    color: #444444;
+}
+
+#centerbody {
+    background-color: #ffffff;
+    padding: 10px 10px 40px 10px;
+    border: none
+    opacity: 1;
+    -moz-box-shadow: 0px 5px 10px #aaaaaa;
+    -webkit-box-shadow: 0px 5px 10px #aaaaaa;
+    box-shadow: 0px 5px 10px #aaaaaa;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#aaaaaa')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#aaaaaa');
+}
+
+a {
+    color: #666666;
+}
+
+a:hover {
+    color: #888888;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #666666;
+}
+
+p h1 h2 h3 h4 {
+    color: #444444;
+}
+
+table td.title {
+    background-color: #f8f8f8;
+}
+
+table td {
+    border: 1 px solid #f8f8f8;
+}
