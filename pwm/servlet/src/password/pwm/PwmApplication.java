@@ -38,8 +38,9 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.*;
+import password.pwm.health.HealthMonitor;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
@@ -49,7 +50,6 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.wordlist.SeedlistManager;
 import password.pwm.wordlist.SharedHistoryManager;
-import password.pwm.wordlist.WordlistConfiguration;
 import password.pwm.wordlist.WordlistManager;
 
 import java.io.File;
@@ -76,14 +76,7 @@ public class PwmApplication {
     private String instanceID = DEFAULT_INSTANCE_ID;
     private final IntruderManager intruderManager = new IntruderManager(this);
     private final Configuration configuration;
-    private UrlShortenerService urlShort;
 
-    private HealthMonitor healthMonitor;
-    private StatisticsManager statisticsManager;
-    private WordlistManager wordlistManager;
-    private SharedHistoryManager sharedHistoryManager;
-    private SeedlistManager seedlistManager;
-    private TokenManager tokenManager;
     private Timer taskMaster;
     private PwmDB pwmDB;
     private PwmDBLogger pwmDBLogger;
@@ -98,6 +91,18 @@ public class PwmApplication {
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
     private MODE applicationMode;
+
+    private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(SharedHistoryManager.class,
+            HealthMonitor.class,
+            StatisticsManager.class,
+            WordlistManager.class,
+            SeedlistManager.class,
+            EmailQueueManager.class,
+            SmsQueueManager.class,
+            UrlShortenerService.class,
+            TokenManager.class,
+            VersionChecker.class
+    ));
 
 
 // -------------------------- STATIC METHODS --------------------------
@@ -120,7 +125,7 @@ public class PwmApplication {
     }
 
     public SharedHistoryManager getSharedHistoryManager() {
-        return sharedHistoryManager;
+        return (SharedHistoryManager)pwmServices.get(SharedHistoryManager.class);
     }
 
     public IntruderManager getIntruderManager() {
@@ -141,15 +146,12 @@ public class PwmApplication {
     }
 
     public HealthMonitor getHealthMonitor() {
-        return healthMonitor;
+        return (HealthMonitor)pwmServices.get(HealthMonitor.class);
     }
 
     public Set<PwmService> getPwmServices() {
         final Set<PwmService> pwmServices = new HashSet<PwmService>();
-        pwmServices.add(this.wordlistManager);
-        pwmServices.add(this.seedlistManager);
         pwmServices.add(this.databaseAccessor);
-        pwmServices.add(this.urlShort);
         pwmServices.add(this.pwmDBLogger);
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
@@ -178,11 +180,11 @@ public class PwmApplication {
     }
 
     public WordlistManager getWordlistManager() {
-        return wordlistManager;
+        return (WordlistManager)pwmServices.get(WordlistManager.class);
     }
 
     public SeedlistManager getSeedlistManager() {
-        return seedlistManager;
+        return (SeedlistManager)pwmServices.get(SeedlistManager.class);
     }
 
     public EmailQueueManager getEmailQueue() {
@@ -194,15 +196,11 @@ public class PwmApplication {
     }
 
     public UrlShortenerService getUrlShortener() {
-        return urlShort;
+        return (UrlShortenerService)pwmServices.get(UrlShortenerService.class);
     }
 
     public ErrorInformation getLastLdapFailure() {
         return lastLdapFailure;
-    }
-
-    public VersionChecker getPwmCloudClient() {
-        return (VersionChecker)pwmServices.get(VersionChecker.class);
     }
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
@@ -226,7 +224,7 @@ public class PwmApplication {
 
 
     public TokenManager getTokenManager() {
-        return tokenManager;
+        return (TokenManager)pwmServices.get(TokenManager.class);
     }
 
     public Configuration getConfig() {
@@ -290,8 +288,6 @@ public class PwmApplication {
         PwmInitializer.initializePwmDB(this);
         PwmInitializer.initializePwmDBLogger(this);
 
-        PwmInitializer.initializeHealthMonitor(this);
-
         LOGGER.info("initializing pwm");
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
@@ -308,38 +304,41 @@ public class PwmApplication {
         installTime = fetchInstallDate(pwmDB, startupTime);
         LOGGER.debug("this pwm instance first installed on " + installTime.toString());
 
-        // startup the stats engine;
-        PwmInitializer.initializeStatisticsManager(this);
-
-        PwmInitializer.initializeWordlist(this);
-        PwmInitializer.initializeSeedlist(this);
-        PwmInitializer.initializeSharedHistory(this);
-
         LOGGER.info(logEnvironment());
         LOGGER.info(logDebugInfo());
 
-        pwmServices.put(EmailQueueManager.class, new EmailQueueManager(this));
-        LOGGER.trace("email queue manager started");
+        for (final Class serviceClass : PWM_SERVICE_CLASSES) {
+            final PwmService newServiceInstance;
+            try {
+                final Object newInstance = serviceClass.newInstance();
+                newServiceInstance = (PwmService)newInstance;
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', error: " + e.toString();
+                LOGGER.fatal(errorMsg);
+                throw new IllegalStateException(errorMsg);
+            }
 
-        pwmServices.put(SmsQueueManager.class, new SmsQueueManager(this));
-        LOGGER.trace("sms queue manager started");
-
-        urlShort = new UrlShortenerService(this);
-        LOGGER.trace("url shortener service started");
+            try {
+                LOGGER.debug("initializing service " + serviceClass.getName());
+                newServiceInstance.init(this);
+                LOGGER.debug("initialization of service " + serviceClass.getName() + " has completed successfully");
+            } catch (PwmException e) {
+                LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', pwm cannot load, error: " + e.getMessage();
+                LOGGER.fatal(errorMsg);
+                throw new IllegalStateException(errorMsg);
+            }
+            pwmServices.put(serviceClass,newServiceInstance);
+        }
 
         taskMaster = new Timer("pwm-PwmApplication timer", true);
         taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
 
-        {
-            VersionChecker versionChecker = new VersionChecker(this);
-            pwmServices.put(VersionChecker.class, versionChecker);
-            if (!versionChecker.isVersionCurrent()) {
-                LOGGER.warn("this version of PWM is outdated, please check the project website for the current version");
-            }
-        }
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+        getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
         LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", pwmDefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
         // detect if config has been modified since previous startup
@@ -359,8 +358,6 @@ public class PwmApplication {
 
         AlertHandler.alertStartup(this);
 
-        // startup the token manager;
-        PwmInitializer.initializeTokenManager(this);
     }
 
     private static Date fetchInstallDate(final PwmDB pwmDB, final Date startupTime) {
@@ -454,7 +451,7 @@ public class PwmApplication {
     }
 
     public StatisticsManager getStatisticsManager() {
-        return statisticsManager;
+        return (StatisticsManager)pwmServices.get(StatisticsManager.class);
     }
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean) {
@@ -497,15 +494,6 @@ public class PwmApplication {
         LOGGER.warn("shutting down");
         AlertHandler.alertShutdown(this);
 
-        if (statisticsManager != null) {
-            try {
-                getStatisticsManager().close();
-            } catch (Exception e) {
-                LOGGER.error("error closing statisticsManager: " + e.getMessage(),e);
-            }
-            statisticsManager = null;
-        }
-
         if (taskMaster != null) {
             try {
                 taskMaster.cancel();
@@ -515,47 +503,20 @@ public class PwmApplication {
             taskMaster = null;
         }
 
-        if (wordlistManager != null) {
-            try {
-                wordlistManager.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing wordlistManager: " + e.getMessage(),e);
-            }
-            wordlistManager = null;
-        }
-
-        if (seedlistManager != null) {
-            try {
-                seedlistManager.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing seedlistManager: " + e.getMessage(),e);
-            }
-            seedlistManager = null;
-        }
-
-        if (sharedHistoryManager != null) {
-            try {
-                sharedHistoryManager.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing sharedHistoryManager: " + e.getMessage(),e);
-            }
-            sharedHistoryManager = null;
-        }
-
-        if (tokenManager != null) {
-            try {
-                tokenManager.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing tokenManager: " + e.getMessage(),e);
-            }
-            tokenManager = null;
-        }
-
-        for (final PwmService loopService : pwmServices.values()) {
-            try {
-                loopService.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(),e);
+        {
+            final List<Class> reverseServiceList = new ArrayList<Class>(PWM_SERVICE_CLASSES);
+            Collections.reverse(reverseServiceList);
+            for (final Class serviceClass : reverseServiceList) {
+                if (pwmServices.containsKey(serviceClass)) {
+                    LOGGER.trace("closing service " + serviceClass.getName());
+                    final PwmService loopService = pwmServices.get(serviceClass);
+                    LOGGER.trace("successfully closed service " + serviceClass.getName());
+                    try {
+                        loopService.close();
+                    } catch (Exception e) {
+                        LOGGER.error("error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(),e);
+                    }
+                }
             }
         }
 
@@ -575,16 +536,6 @@ public class PwmApplication {
                 LOGGER.error("error closing pwmDBLogger: " + e.getMessage(),e);
             }
             pwmDBLogger = null;
-        }
-
-        if (healthMonitor != null) {
-            try {
-                healthMonitor.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing healthMonitor: " + e.getMessage(),e);
-            }
-            healthMonitor = null;
-
         }
 
         if (pwmDB != null) {
@@ -731,105 +682,10 @@ public class PwmApplication {
                 LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
             }
         }
+    }
 
-        public static void initializeHealthMonitor(final PwmApplication pwmApplication) {
-            try {
-                pwmApplication.healthMonitor = new HealthMonitor(pwmApplication);
-                pwmApplication.healthMonitor.registerHealthCheck(new LDAPStatusChecker());
-                pwmApplication.healthMonitor.registerHealthCheck(new JavaChecker());
-                pwmApplication.healthMonitor.registerHealthCheck(new ConfigurationChecker());
-                pwmApplication.healthMonitor.registerHealthCheck(new PwmDBHealthChecker());
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize password.pwm.health.HealthMonitor: " + e.getMessage());
-            }
-        }
-
-        public static void initializeTokenManager(final PwmApplication pwmApplication) {
-            try {
-                pwmApplication.tokenManager = new TokenManager(
-                        pwmApplication.getConfig(),
-                        pwmApplication.getPwmDB(),
-                        pwmApplication.getDatabaseAccessor()
-                );
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize the TokenManager: " + e.getMessage());
-            }
-        }
-
-        public static void initializeWordlist(final PwmApplication pwmApplication) {
-            try {
-                LOGGER.trace("opening wordlist");
-
-                final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
-                final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.pwmApplicationPath);
-                final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-                final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-                final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive);
-
-                pwmApplication.wordlistManager = WordlistManager.createWordlistManager(
-                        wordlistConfiguration,
-                        pwmApplication.pwmDB
-                );
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize wordlist-db: " + e.getMessage());
-            }
-        }
-
-        public static void initializeSeedlist(final PwmApplication pwmApplication) {
-            try {
-                LOGGER.trace("opening seedlist");
-
-                final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
-                final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.pwmApplicationPath);
-                final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-                final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true);
-
-                pwmApplication.seedlistManager = SeedlistManager.createSeedlistManager(
-                        wordlistConfiguration,
-                        pwmApplication.pwmDB
-                );
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize seedlist-db: " + e.getMessage());
-            }
-        }
-
-        public static void initializeSharedHistory(final PwmApplication pwmApplication) {
-
-            try {
-                final long maxAgeSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE);
-                final long maxAgeMS = maxAgeSeconds * 1000;  // convert to MS;
-                final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-
-                pwmApplication.sharedHistoryManager = SharedHistoryManager.createSharedHistoryManager(pwmApplication.pwmDB, maxAgeMS, caseSensitive);
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize sharedhistory-db: " + e.getMessage());
-            }
-        }
-
-        public static void initializeStatisticsManager(final PwmApplication pwmApplication) {
-            final StatisticsManager statisticsManager = new StatisticsManager(pwmApplication.pwmDB, pwmApplication);
-            statisticsManager.incrementValue(Statistic.PWM_STARTUPS);
-
-            final PwmDB.PwmDBEventListener statsEventListener = new PwmDB.PwmDBEventListener() {
-                public void processAction(final PwmDB.PwmDBEvent event) {
-                    if (event != null && event.getEventType() != null) {
-                        if (event.getEventType() == PwmDB.EventType.READ) {
-                            statisticsManager.incrementValue(Statistic.PWMDB_READS);
-                            // System.out.println("----pwmDB Read: " + event.getDB() + "," + event.getKey() + "," + event.getValue());
-                        } else if (event.getEventType() == PwmDB.EventType.WRITE) {
-                            statisticsManager.incrementValue(Statistic.PWMDB_WRITES);
-                            // System.out.println("----pwmDB Write: " + event.getDB() + "," + event.getKey() + "," + event.getValue());
-                        }
-                    }
-                }
-            };
-
-            if (pwmApplication.pwmDB != null) {
-                pwmApplication.pwmDB.addEventListener(statsEventListener);
-            }
-
-            pwmApplication.statisticsManager = statisticsManager;
-        }
+    public File getPwmApplicationPath() {
+        return pwmApplicationPath;
     }
 
     public enum MODE {

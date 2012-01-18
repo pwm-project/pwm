@@ -22,8 +22,10 @@
 
 package password.pwm.util;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.pwmdb.PwmDB;
@@ -520,6 +522,9 @@ public class PwmDBLogger implements PwmService {
         }
 
         return healthRecords;
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
     }
 }
 

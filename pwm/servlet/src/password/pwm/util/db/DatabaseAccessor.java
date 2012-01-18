@@ -23,6 +23,7 @@
 package password.pwm.util.db;
 
 import com.google.gson.Gson;
+import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -575,5 +576,8 @@ public class DatabaseAccessor implements PwmService {
             }
             return false;
         }
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
     }
 }

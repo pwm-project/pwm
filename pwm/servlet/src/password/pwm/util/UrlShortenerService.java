@@ -23,25 +23,13 @@
 package password.pwm.util;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.BasicUrlShortener;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.List;
-import java.util.Iterator;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -53,24 +41,29 @@ public class UrlShortenerService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UrlShortenerService.class);
 
-    private final PwmApplication theManager;
+    private PwmApplication pwmApplication;
     private BasicUrlShortener theShortener = null;
-    private HealthRecord lastRequestFailure;
     private STATUS status = PwmService.STATUS.NEW;
 
-    public UrlShortenerService(final PwmApplication theManager) {
-        this.theManager = theManager;
-        Configuration config = theManager.getConfig();
+    public UrlShortenerService() {
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface PwmService ---------------------
+
+    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+        this.pwmApplication = pwmApplication;
+        Configuration config = this.pwmApplication.getConfig();
         String classNameString = config.readSettingAsString(PwmSetting.URL_SHORTENER_CLASS);
         if (classNameString != null && classNameString.length() > 0) {
             Properties sConfig = new Properties();
             List<String> sConfigList = config.readSettingAsStringArray(PwmSetting.URL_SHORTENER_PARAMETERS);
             // Parse configuration
             if (sConfigList != null) {
-                for (Iterator<String> sci = sConfigList.iterator(); sci.hasNext();) {
-                    String p = sci.next();
-                    List<String> pl = Arrays.asList(p.split("=",2));
-                    if (pl.size()==2) {
+                for (final String p : sConfigList) {
+                    List<String> pl = Arrays.asList(p.split("=", 2));
+                    if (pl.size() == 2) {
                         sConfig.put(pl.get(0), pl.get(1));
                     }
                 }
@@ -90,13 +83,6 @@ public class UrlShortenerService implements PwmService {
         status = PwmService.STATUS.OPEN;
     }
 
-// ------------------------ INTERFACE METHODS ------------------------
-
-// --------------------- Interface PwmService ---------------------
-
-    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
-    }
-
     public STATUS status() {
         return status;
     }
@@ -107,27 +93,23 @@ public class UrlShortenerService implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
-        if (lastRequestFailure == null) {
-            return null;
-        }
-        return Collections.singletonList(lastRequestFailure);
+        return Collections.emptyList();
     }
 
 // -------------------------- OTHER METHODS --------------------------
     public String shortenUrl(String text) {
         if (theShortener != null) {
-            return theShortener.shorten(text, theManager);
+            return theShortener.shorten(text, pwmApplication);
         }
         return text;
     }
     
     public String shortenUrlInText(String text) {
-        final String urlRegex = theManager.getConfig().readSettingAsString(PwmSetting.URL_SHORTENER_REGEX);
+        final String urlRegex = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_SHORTENER_REGEX);
         try {
             final Pattern p = Pattern.compile(urlRegex);
             final Matcher m = p.matcher(text);
             String result = "";
-            int position = 0;
             Boolean found = m.find();
             if (found) {
                 int start = 0;

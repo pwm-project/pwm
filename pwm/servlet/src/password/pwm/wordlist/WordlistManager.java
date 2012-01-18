@@ -22,15 +22,21 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.pwmdb.PwmDB;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
 
 /**
- * @author Jason D. Rivard
+ * @author Jason D. Rivard         b
  */
 public class WordlistManager extends AbstractWordlist implements Wordlist {
 // ------------------------------ FIELDS ------------------------------
@@ -39,32 +45,11 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    /**
-     * Fetch the WordlistManager for a given database directory.  Any existing values in the database
-     * will be truncated and replaced with the wordlist file.
-     *
-     * @param pwmDB          Functioning instance
-     * @param wordlistConfiguration wordlist configuration
-     * @return WordlistManager for the instance.
-     */
-    public synchronized static WordlistManager createWordlistManager(
-            final WordlistConfiguration wordlistConfiguration,
-            final PwmDB pwmDB
-    )
-    {
-        return new WordlistManager(
-                pwmDB,
-                wordlistConfiguration
-        );
+    public WordlistManager() {
     }
 
-    protected WordlistManager(
-            final PwmDB pwmDB,
-            final WordlistConfiguration wordlistConfiguration
 
-    ) {
-        super(wordlistConfiguration, pwmDB);
-
+    public void init(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
         this.DEBUG_LABEL = "Pwm-wordlist";
         this.META_DB = PwmDB.DB.WORDLIST_META;
@@ -75,7 +60,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
             {
                 LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
                 try {
-                    init();
+                    startup(pwmDB, wordlistConfiguration);
                 } catch (Exception e) {
                     try {
                         LOGGER.warn("error during startup: " + e.getMessage());
@@ -89,5 +74,15 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
     protected Map<String,String> getWriteTxnForValue(final String value) {
         return Collections.singletonMap(value,"");
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
+        final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
+        final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
+        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive);
+
+        init(pwmApplication.getPwmDB(),wordlistConfiguration);
     }
 }

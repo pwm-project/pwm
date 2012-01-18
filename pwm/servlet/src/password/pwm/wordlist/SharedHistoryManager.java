@@ -22,6 +22,9 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.PwmApplication;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
@@ -67,50 +70,12 @@ public class SharedHistoryManager implements Wordlist {
     private long oldestEntry;
     private long maxAgeMs;
 
-    private final boolean caseSensitive;
+    private boolean caseSensitive;
 
-
-// -------------------------- STATIC METHODS --------------------------
-
-    public static SharedHistoryManager createSharedHistoryManager(final PwmDB pwmDB, final long maxAgeMs, final boolean caseSensitive) throws Exception {
-        return new SharedHistoryManager(pwmDB, maxAgeMs, caseSensitive);
-    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private SharedHistoryManager(final PwmDB pwmDB, final long maxAgeMs, final boolean caseSensitive) throws PwmDBException {
-        this.pwmDB = pwmDB;
-        this.caseSensitive = caseSensitive;
-
-        if (pwmDB == null) {
-            LOGGER.info("pwmDB is not available, will remain closed");
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        if (maxAgeMs < 1) {
-            LOGGER.debug("max age=" + maxAgeMs + ", will remain closed");
-
-            new Thread(new Runnable() {
-                public void run() {
-                    LOGGER.trace("clearing wordlist");
-                    try {
-                        pwmDB.truncate(WORDS_DB);
-                    } catch (Exception e) {
-                        LOGGER.error("error during wordlist truncate", e);
-                    }
-                }
-            }, "pwm-SharedHistoryManager wordlist truncate").start();
-            return;
-        }
-
-        new Thread(new Runnable() {
-            public void run() {
-                LOGGER.debug("starting up in background thread");
-                init(maxAgeMs);
-            }
-        }, "pwm-SharedHistoryManager initializer").start();
-
+    public SharedHistoryManager() throws PwmDBException {
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -445,5 +410,42 @@ public class SharedHistoryManager implements Wordlist {
 
     public List<HealthRecord> healthCheck() {
         return null;
+    }
+
+    public void init(final PwmApplication pwmApplication)
+            throws PwmException
+    {
+        this.maxAgeMs = 1000 *  pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE); // convert to MS;
+        this.caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
+        this.pwmDB = pwmApplication.getPwmDB();
+
+        if (pwmDB == null) {
+            LOGGER.info("pwmDB is not available, will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
+
+        if (maxAgeMs < 1) {
+            LOGGER.debug("max age=" + maxAgeMs + ", will remain closed");
+
+            new Thread(new Runnable() {
+                public void run() {
+                    LOGGER.trace("clearing wordlist");
+                    try {
+                        pwmDB.truncate(WORDS_DB);
+                    } catch (Exception e) {
+                        LOGGER.error("error during wordlist truncate", e);
+                    }
+                }
+            }, "pwm-SharedHistoryManager wordlist truncate").start();
+            return;
+        }
+
+        new Thread(new Runnable() {
+            public void run() {
+                LOGGER.debug("starting up in background thread");
+                init(maxAgeMs);
+            }
+        }, "pwm-SharedHistoryManager initializer").start();
     }
 }

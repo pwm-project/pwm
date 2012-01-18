@@ -22,10 +22,16 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.pwmdb.PwmDB;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -33,31 +39,14 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
     private int initialPopulationCounter = 0;
 
-    /**
-     * Fetch the WordlistManager for a given database directory.  Any existing values in the database
-     * will be truncated and replaced with the wordlist file.
-     *
-     * @param wordlistConfiguration wordlist configuration
-     * @param pwmDB                 Functioning instance
-     * @return WordlistManager for the instance.
-     */
-    public synchronized static SeedlistManager createSeedlistManager(
-            final WordlistConfiguration wordlistConfiguration,
-            final PwmDB pwmDB
-    ) {
-        return new SeedlistManager(
-                wordlistConfiguration,
-                pwmDB
-        );
+    public SeedlistManager() {
     }
 
-    protected SeedlistManager(
+    public void init(
             final WordlistConfiguration wordlistConfiguration,
             final PwmDB pwmDB
 
     ) {
-        super(wordlistConfiguration, pwmDB);
-
         this.LOGGER = PwmLogger.getLogger(this.getClass());
         this.DEBUG_LABEL = "Pwm-seedist";
         this.META_DB = PwmDB.DB.SEEDLIST_META;
@@ -66,7 +55,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         final Thread t = new Thread(new Runnable() {
             public void run() {
                 LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
-                init();
+                startup(pwmDB, wordlistConfiguration);
             }
         }, "pwm-SeedlistManager initializer/populator");
 
@@ -112,5 +101,14 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
             pwmDB.truncate(WORD_DB);
         }
         super.checkPopulation();
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
+        final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
+        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true);
+
+        init(wordlistConfiguration, pwmApplication.getPwmDB());
     }
 }

@@ -27,26 +27,34 @@ public class TokenManager implements PwmService {
         STORE_DB,
     }
 
-    private final Timer timer;
+    private Timer timer;
 
-    private final Configuration configuration;
-    private final PwmDB pwmDB;
-    private final DatabaseAccessor databaseAccessor;
-    private final StorageMethod storageMethod;
-    private final long maxTokenAgeMS;
-    private final long maxTokenPurgeAgeMS;
+    private Configuration configuration;
+    private PwmDB pwmDB;
+    private DatabaseAccessor databaseAccessor;
+    private StorageMethod storageMethod;
+    private long maxTokenAgeMS;
+    private long maxTokenPurgeAgeMS;
 
     private STATUS status = STATUS.NEW;
 
-    public TokenManager(Configuration configuration, final PwmDB pwmDB, DatabaseAccessor databaseAccessor)
+    public TokenManager()
             throws PwmOperationalException
     {
+    }
+
+    public void init(final PwmApplication pwmApplication)
+            throws PwmException
+    {
+        final PwmDB pwmDB = pwmApplication.getPwmDB();
+        final Configuration configuration = pwmApplication.getConfig();
+
         LOGGER.trace("opening");
         status = STATUS.OPENING;
 
         this.configuration = configuration;
         this.pwmDB = pwmDB;
-        this.databaseAccessor = databaseAccessor;
+        this.databaseAccessor = pwmApplication.getDatabaseAccessor();
         try {
             storageMethod = StorageMethod.valueOf(configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
         } catch (Exception e) {

@@ -31,11 +31,11 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -65,7 +65,7 @@ public class EmailQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
     private PwmDBStoredQueue mailSendQueue;
-    private final PwmApplication theManager;
+    private PwmApplication pwmApplication;
 
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
@@ -75,12 +75,21 @@ public class EmailQueueManager implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public EmailQueueManager(final PwmApplication theManager)
-            throws PwmDBException {
-        this.theManager = theManager;
-        this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
+    public EmailQueueManager() {
+    }
 
-        final PwmDB pwmDB = theManager.getPwmDB();
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface PwmService ---------------------
+
+    public void init(final PwmApplication pwmApplication)
+            throws PwmException
+    {
+        this.pwmApplication = pwmApplication;
+        this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
+
+        final PwmDB pwmDB = this.pwmApplication.getPwmDB();
 
         if (pwmDB == null) {
             status = STATUS.CLOSED;
@@ -98,14 +107,6 @@ public class EmailQueueManager implements PwmService {
             emailSendThread.start();
             threadActive = true;
         }
-    }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface PwmService ---------------------
-
-    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {
@@ -176,7 +177,7 @@ public class EmailQueueManager implements PwmService {
     }
 
     private boolean determineIfEmailCanBeDelivered(final EmailItemBean emailItem) {
-        final String serverAddress = theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+        final String serverAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
 
         if (serverAddress == null || serverAddress.length() < 1) {
             LOGGER.debug("discarding email send event (no SMTP server address configured) " + emailItem.toString());
@@ -251,14 +252,14 @@ public class EmailQueueManager implements PwmService {
      * @return
      */
     private boolean sendEmail(final EmailItemBean emailItemBean) {
-        final StatisticsManager statsMgr = theManager.getStatisticsManager();
+        final StatisticsManager statsMgr = pwmApplication.getStatisticsManager();
 
         // createSharedHistoryManager a new MimeMessage object (using the Session created above)
         try {
-            final Message message = convertEmailItemToMessage(emailItemBean, this.theManager.getConfig());
-            final String mailhost = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
-            final String mailuser = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
-            final String mailpassword = this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_PASSWORD);
+            final Message message = convertEmailItemToMessage(emailItemBean, this.pwmApplication.getConfig());
+            final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+            final String mailuser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
+            final String mailpassword = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_PASSWORD);
 
             // Login to SMTP server first if both username and password is given
             if (mailuser == null || mailuser.length() < 1 || mailpassword == null || mailpassword.length() < 1) {
@@ -273,10 +274,10 @@ public class EmailQueueManager implements PwmService {
                 final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
 
                 //Specify the desired SMTP server
-                props.put("mail.smtp.host", this.theManager.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
+                props.put("mail.smtp.host", this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
 
                 //Specify configured advanced settings.
-                final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(this.theManager.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
+                final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(this.pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
                 for (final String key : advancedSettingValues.keySet()) {
                     props.put(key, advancedSettingValues.get(key));
                 }

@@ -30,9 +30,12 @@ import org.apache.http.entity.StringEntity;
 import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.bean.StatsPublishBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -48,7 +51,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class StatisticsManager {
+public class StatisticsManager implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
 
@@ -65,7 +68,7 @@ public class StatisticsManager {
     public static final String KEY_CUMULATIVE = "CUMULATIVE";
     public static final String KEY_CLOUD_PUBLISH_TIMESTAMP = "CLOUD_PUB_TIMESTAMP";
 
-    private final PwmDB pwmDB;
+    private PwmDB pwmDB;
 
     private DailyKey currentDailyKey = new DailyKey(new Date());
     private DailyKey initialDailyKey = new DailyKey(new Date());
@@ -77,7 +80,9 @@ public class StatisticsManager {
     private StatisticsBundle statsCummulative = new StatisticsBundle();
     private Map<EpsType, EventRateMeter> epsMeterMap = new HashMap<EpsType, EventRateMeter>();
 
-    final private PwmApplication pwmApplication;
+    private PwmApplication pwmApplication;
+
+    private STATUS status = STATUS.NEW;
 
     public enum EpsType {
         PASSWORD_CHANGES,
@@ -91,19 +96,7 @@ public class StatisticsManager {
         }
     };
 
-    public StatisticsManager(final PwmDB pwmDB, final PwmApplication pwmApplication) {
-        this.pwmDB = pwmDB;
-        this.pwmApplication = pwmApplication;
-
-        for (final EpsType type : EpsType.values()) {
-            epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
-        }
-
-        try {
-            initialize(pwmDB);
-        } catch (Exception e) {
-            LOGGER.error("error loading db statistics values: " + e.getMessage());
-        }
+    public StatisticsManager() {
     }
 
     public synchronized void incrementValue(final Statistic statistic) {
@@ -209,9 +202,15 @@ public class StatisticsManager {
         return sb.toString();
     }
 
-    private void initialize(final PwmDB pwmDB)
-            throws PwmDBException
-    {
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        status = STATUS.OPENING;
+        this.pwmDB = pwmApplication.getPwmDB();
+        this.pwmApplication = pwmApplication;
+
+        for (final EpsType type : EpsType.values()) {
+            epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
+        }
+
         if (pwmDB == null) {
             return;
         }
@@ -265,6 +264,22 @@ public class StatisticsManager {
             final Date nextPublishTime = new Date(lastPublishTimestamp + PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS + (long)PwmRandom.getInstance().nextInt(3600 * 1000));
             daemonTimer.schedule(new PublishTask(), nextPublishTime, PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS);
         }
+
+        if (pwmDB != null) {
+            final PwmDB.PwmDBEventListener statsEventListener = new PwmDB.PwmDBEventListener() {
+                public void processAction(final PwmDB.PwmDBEvent event) {
+                    if (event != null && event.getEventType() != null) {
+                        if (event.getEventType() == PwmDB.EventType.READ) {
+                            StatisticsManager.this.incrementValue(Statistic.PWMDB_READS);
+                        } else if (event.getEventType() == PwmDB.EventType.WRITE) {
+                            StatisticsManager.this.incrementValue(Statistic.PWMDB_WRITES);
+                        }
+                    }
+                }
+            };
+            pwmDB.addEventListener(statsEventListener);
+        }
+        status = STATUS.OPEN;
     }
 
     private static Date nextDate() {
@@ -304,6 +319,11 @@ public class StatisticsManager {
         LOGGER.debug("reset daily statistics");
     }
 
+    public STATUS status() {
+        return status;
+    }
+
+
     public void close() {
         try {
             writeDbValues();
@@ -313,6 +333,11 @@ public class StatisticsManager {
         if (daemonTimer != null) {
             daemonTimer.cancel();
         }
+        status = STATUS.CLOSED;
+    }
+
+    public List<HealthRecord> healthCheck() {
+        return Collections.emptyList();
     }
 
 

@@ -36,7 +36,10 @@ public class VersionChecker implements PwmService {
     private PwmApplication pwmApplication;
     private VersionCheckInfoCache versionCheckInfoCache;
 
-    public VersionChecker(PwmApplication pwmApplication) {
+    public VersionChecker() {
+    }
+
+    public void init(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
         if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().getStatus() == PwmDB.Status.OPEN) {
             try {
@@ -52,6 +55,10 @@ public class VersionChecker implements PwmService {
 
         if (versionCheckInfoCache != null && versionCheckInfoCache.getLastError() != null) {
             versionCheckInfoCache = null;
+        }
+
+        if (!isVersionCurrent()) {
+            LOGGER.warn("this version of PWM is outdated, please check the project website for the current version");
         }
     }
 

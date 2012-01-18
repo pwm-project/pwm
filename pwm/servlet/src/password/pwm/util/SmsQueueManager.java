@@ -37,10 +37,10 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class SmsQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
 
     private PwmDBStoredQueue smsSendQueue;
-    private final PwmApplication theManager;
+    private PwmApplication theManager;
 
     private STATUS status = PwmService.STATUS.NEW;
     private volatile boolean threadActive;
@@ -90,9 +90,14 @@ public class SmsQueueManager implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SmsQueueManager(final PwmApplication theManager)
-            throws PwmDBException {
-        this.theManager = theManager;
+    public SmsQueueManager() {
+    }
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface PwmService ---------------------
+
+    public void init(final PwmApplication pwmApplication) throws PwmException {
+        this.theManager = pwmApplication;
         this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
 
         final PwmDB pwmDB = theManager.getPwmDB();
@@ -113,12 +118,6 @@ public class SmsQueueManager implements PwmService {
             smsSendThread.start();
             threadActive = true;
         }
-    }
-// ------------------------ INTERFACE METHODS ------------------------
-
-// --------------------- Interface PwmService ---------------------
-
-    public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
     }
 
     public STATUS status() {

@@ -6,7 +6,7 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.6.1
+v1.6.1 (January 16, 2012) build 1123
 ---
 + Added "application leave detection" to detect if user leaves PWM site.
 + Added settings to manage custom CSS & JavaScript from PwmApplication.xml

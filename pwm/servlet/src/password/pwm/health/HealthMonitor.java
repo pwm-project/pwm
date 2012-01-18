@@ -25,38 +25,26 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 
-import java.io.Serializable;
 import java.util.*;
 
-public class HealthMonitor implements Serializable {
+public class HealthMonitor implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthMonitor.class);
     private static final int MIN_INTERVAL_SECONDS = 30;
     private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
-    private final PwmApplication pwmApplication;
+    private PwmApplication pwmApplication;
     private Set<HealthRecord> healthRecords = Collections.emptySet();
     private final List<HealthChecker> healthCheckers = new ArrayList<HealthChecker>();
 
     private Date lastHealthCheckDate = null;
     private int intervalSeconds = 0;
 
-    private boolean open = true;
+    private STATUS status = STATUS.NEW;
 
-    public HealthMonitor(final PwmApplication pwmApplication) {
-        this.pwmApplication = pwmApplication;
-        this.intervalSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
-
-        if (intervalSeconds < MIN_INTERVAL_SECONDS) {
-            intervalSeconds = MIN_INTERVAL_SECONDS;
-        } else if (intervalSeconds > MAX_INTERVAL_SECONDS) {
-            intervalSeconds = MAX_INTERVAL_SECONDS;
-        }
-
-        final Set<HealthRecord> newHealthRecords = new HashSet<HealthRecord>();
-        newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started."));
-        healthRecords = Collections.unmodifiableSet(newHealthRecords);
+    public HealthMonitor() {
     }
 
     public Date getLastHealthCheckDate() {
@@ -97,15 +85,46 @@ public class HealthMonitor implements Serializable {
         return healthRecords;
     }
 
+    public STATUS status() {
+        return status;
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        status = STATUS.OPENING;
+        this.pwmApplication = pwmApplication;
+        this.intervalSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
+
+        if (intervalSeconds < MIN_INTERVAL_SECONDS) {
+            intervalSeconds = MIN_INTERVAL_SECONDS;
+        } else if (intervalSeconds > MAX_INTERVAL_SECONDS) {
+            intervalSeconds = MAX_INTERVAL_SECONDS;
+        }
+
+        registerHealthCheck(new LDAPStatusChecker());
+        registerHealthCheck(new JavaChecker());
+        registerHealthCheck(new ConfigurationChecker());
+        registerHealthCheck(new PwmDBHealthChecker());
+
+        final Set<HealthRecord> newHealthRecords = new HashSet<HealthRecord>();
+        newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started."));
+        healthRecords = Collections.unmodifiableSet(newHealthRecords);
+
+        status = STATUS.OPEN;
+    }
+
     public void close() {
         final Set<HealthRecord> closeSet = new HashSet<HealthRecord>();
         closeSet.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
         healthRecords = Collections.unmodifiableSet(closeSet);
-        open = false;
+        status = STATUS.CLOSED;
+    }
+
+    public List<HealthRecord> healthCheck() {
+        return Collections.emptyList();
     }
 
     private void doHealthChecks() {
-        if (!open) {
+        if (status != STATUS.OPEN) {
             return;
         }
 

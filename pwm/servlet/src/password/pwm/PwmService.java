@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 
 import java.util.List;
@@ -37,6 +38,8 @@ public interface PwmService {
 
     STATUS status();
 
+    void init(PwmApplication pwmApplication) throws PwmException;
+    
     void close();
 
     List<HealthRecord> healthCheck();

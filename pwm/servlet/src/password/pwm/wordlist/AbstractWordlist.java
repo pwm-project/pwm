@@ -62,15 +62,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    protected AbstractWordlist(
-            final WordlistConfiguration wordlistConfiguration,
-            final PwmDB pwmDB
-    ) {
-        this.wordlistConfiguration = wordlistConfiguration;
-        this.pwmDB = pwmDB;
+    protected AbstractWordlist() {
     }
 
-    protected void init() {
+    protected final void startup(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
+        this.wordlistConfiguration = wordlistConfiguration;
+        this.pwmDB = pwmDB;
         final long startTime = System.currentTimeMillis();
         wlStatus = STATUS.OPENING;
 
