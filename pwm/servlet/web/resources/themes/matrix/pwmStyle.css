@@ -9,7 +9,7 @@ html, body {
     background-color: #000000;
     background-image: url('MatrixText.jpg');
     background-size: 100%;
-    background-repeat: no-repeat;
+    background-repeat: repeat;
 }
 
 #header {
