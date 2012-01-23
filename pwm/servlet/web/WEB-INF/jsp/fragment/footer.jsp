@@ -50,7 +50,9 @@
         var localeInfo = {};
         <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
         document.write('| <span id="localeSelectionMenu"><%=currentLocaleName%></span>');
-        startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
+        dojo.addOnLoad(function(){
+            startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
+        });
     </script>
     <style type="text/css"> <%-- stylesheets used by flag routine on locale menu --%>
         <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
@@ -83,8 +85,10 @@
         PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
         PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-        dojo.addOnLoad(function(){var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif'});
-        dojo.require("dijit.Dialog");
+        dojo.addOnLoad(function(){setTimeout(function(){
+            var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif';
+            dojo.require("dijit.Dialog");
+        },10);});
     </script>
     <script type="text/javascript">
         dojo.addOnLoad(function(){
@@ -103,6 +107,20 @@
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
         <%=PwmMacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>
+    </script>
+    <% } %>
+    <% final String googleTrackingCode = pwmApplicationHeader.getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
+    <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+        try {
+            var pageTracker = _gat._getTracker("<%=googleTrackingCode%>");
+            pageTracker._trackPageview();
+        } catch(err) {
+        }
     </script>
     <% } %>
 </div>

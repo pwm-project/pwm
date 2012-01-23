@@ -255,7 +255,7 @@ public class StatisticsManager implements PwmService {
                 final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                 if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
                     try {
-                        lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
+                        //lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
                     } catch (Exception e) {
                         LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
                     }
