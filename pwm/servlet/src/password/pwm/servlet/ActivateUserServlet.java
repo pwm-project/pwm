@@ -57,7 +57,6 @@ public class ActivateUserServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ActivateUserServlet.class);
 
-    private static final String USERNAME_PARAM_NAME = "username";
     private static final String CONTEXT_PARAM_NAME = "context";
 
 // -------------------------- OTHER METHODS --------------------------
@@ -131,7 +130,7 @@ public class ActivateUserServlet extends TopServlet {
             pwmApplication.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
 
             // see if the params match ldap values
-            validateParamsAgainstLDAP(formValues, pwmSession, theUser);
+            validateParamsAgainstLDAP(formValues, pwmSession, theUser, config);
 
             final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
             if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
@@ -319,26 +318,31 @@ public class ActivateUserServlet extends TopServlet {
     public static void validateParamsAgainstLDAP(
             final Map<FormConfiguration, String> formValues,
             final PwmSession pwmSession,
-            final ChaiUser theUser
+            final ChaiUser theUser,
+            final Configuration config
     )
             throws ChaiUnavailableException, PwmDataValidationException
     {
+        final String searchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String attrName = formConfiguration.getAttributeName();
-            if (!USERNAME_PARAM_NAME.equalsIgnoreCase(attrName)) {
+            final String tokenizedAttrName = "%" + attrName + "%";
+            if (searchFilter.contains(tokenizedAttrName)) {
+                LOGGER.trace(pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter");
+            } else {
                 final String value = formValues.get(formConfiguration);
                 try {
                     if (!theUser.compareStringAttribute(attrName, value)) {
-                        throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "incorrect value for '" + attrName + "'", attrName));
+                        final String errorMsg = "incorrect value for '" + attrName + "'";
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg, attrName);
+                        LOGGER.debug(pwmSession, errorInfo.toDebugStr());
+                        throw new PwmDataValidationException(errorInfo);
                     }
                     LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
                     throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
                 }
-
-
-
             }
         }
     }

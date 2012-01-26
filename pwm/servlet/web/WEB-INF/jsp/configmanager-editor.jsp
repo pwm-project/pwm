@@ -70,6 +70,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
+    dojo.require("dijit.Menu");
     dojo.require("dijit.MenuBar");
     dojo.require("dijit.MenuItem");
     dojo.require("dijit.MenuBarItem");
