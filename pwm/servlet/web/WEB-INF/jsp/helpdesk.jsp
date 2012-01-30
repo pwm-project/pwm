@@ -39,7 +39,7 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <script type="text/javascript"

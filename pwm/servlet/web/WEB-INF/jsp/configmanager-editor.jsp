@@ -34,7 +34,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(PwmConstants.KNOWN_LOCALES); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>

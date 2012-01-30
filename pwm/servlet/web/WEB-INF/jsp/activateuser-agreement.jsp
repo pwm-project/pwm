@@ -42,18 +42,18 @@
 </script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
+        <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
 
         <span>
-            <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+            <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
             <%= PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()) %>
         </span>
 
         <div id="buttonbar">
-            <form action="<pwm:url url='ChangePassword'/>" method="post"
+            <form action="<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()"

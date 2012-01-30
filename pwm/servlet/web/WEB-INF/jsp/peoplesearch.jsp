@@ -26,7 +26,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <div id="wrapper">

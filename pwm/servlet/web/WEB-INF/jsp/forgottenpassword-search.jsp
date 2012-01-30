@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<!DOCTYPE html>
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <div id="wrapper">

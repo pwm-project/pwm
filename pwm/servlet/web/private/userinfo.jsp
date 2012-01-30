@@ -31,14 +31,14 @@
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInfoBean uiBean = pwmSession.getUserInfoBean(); %>
 <% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper" class="tundra">

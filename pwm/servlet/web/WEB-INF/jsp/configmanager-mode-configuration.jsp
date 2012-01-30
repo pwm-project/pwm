@@ -32,7 +32,7 @@
     String configFilePath = "PwmConfiguration.xml";
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>

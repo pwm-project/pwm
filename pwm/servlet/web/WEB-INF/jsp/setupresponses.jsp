@@ -35,7 +35,7 @@
     final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
 %>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="tundra"
       onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms.setupResponses.elements[0].focus();">

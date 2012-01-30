@@ -28,12 +28,12 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.TimeDuration;
+import password.pwm.health.HealthStatus;
+import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.*;
 
@@ -47,6 +47,7 @@ public class TokenManager implements PwmService {
     private enum StorageMethod {
         STORE_PWMDB,
         STORE_DB,
+        STORE_CRYPTO
     }
 
     private Timer timer;
@@ -57,8 +58,11 @@ public class TokenManager implements PwmService {
     private StorageMethod storageMethod;
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
+    private SecretKey secretKey;
 
     private STATUS status = STATUS.NEW;
+
+    private ErrorInformation errorInformation = null;
 
     public TokenManager()
             throws PwmOperationalException
@@ -80,23 +84,46 @@ public class TokenManager implements PwmService {
         try {
             storageMethod = StorageMethod.valueOf(configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
         } catch (Exception e) {
-            final String errorMsg = "Unknown storage method specified: " + configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg));
+            final String errorMsg = "unknown storage method specified: " + configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD);
+            errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+            status = STATUS.CLOSED;
+            throw new PwmOperationalException(errorInformation);
         }
         try {
             maxTokenAgeMS = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME) * 1000;
         } catch (Exception e) {
-            final String errorMsg = "Unable to parse max token age value";
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg));
+            final String errorMsg = "unable to parse max token age value: " + e.getMessage();
+            errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+            status = STATUS.CLOSED;
+            throw new PwmOperationalException(errorInformation);
         }
 
-        maxTokenPurgeAgeMS = maxTokenAgeMS + PwmConstants.TOKEN_REMOVAL_DELAY_MS;
-        timer = new Timer("pwm-TokenManager",true);
-        final TimerTask cleanerTask = new CleanerTask();
+        switch (storageMethod) {
+            case STORE_DB:
+            case STORE_PWMDB:
+            {
+                maxTokenPurgeAgeMS = maxTokenAgeMS + PwmConstants.TOKEN_REMOVAL_DELAY_MS;
+                timer = new Timer("pwm-TokenManager",true);
+                final TimerTask cleanerTask = new CleanerTask();
 
-        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
-        timer.schedule(cleanerTask, 10000, cleanerFrequency + 731);
-        LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
+                final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
+                timer.schedule(cleanerTask, 10000, cleanerFrequency + 731);
+                LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
+                break;
+            }
+            case STORE_CRYPTO:
+            {
+                try {
+                    secretKey = configuration.getSecurityKey();
+                } catch (PwmOperationalException e) {
+                    errorInformation = e.getErrorInformation();
+                    status = STATUS.CLOSED;
+                    throw new PwmOperationalException(errorInformation);
+                }
+            }
+            break;
+        }
+
         status = STATUS.OPEN;
         LOGGER.debug("open");
     }
@@ -105,6 +132,10 @@ public class TokenManager implements PwmService {
             throws PwmOperationalException
     {
         checkStatus();
+        if (storageMethod == StorageMethod.STORE_CRYPTO) {
+            return generateEmbedToken(tokenPayload);
+        }
+
         try {
             String tokenKey = null;
             int attempts = 0;
@@ -130,10 +161,27 @@ public class TokenManager implements PwmService {
         }
     }
 
+    private String generateEmbedToken(final TokenPayload tokenPayload) throws PwmOperationalException {
+        final Gson gson = new Gson();
+        final String jsonPayload = gson.toJson(tokenPayload);
+        try {
+            final String encryptedPaylod = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
+            return Base64Util.encodeObject(encryptedPaylod, Base64Util.GZIP | Base64Util.URL_SAFE);
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error generating embeded token: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            throw new PwmOperationalException(errorInformation);
+        }
+    }
+
     public TokenPayload retrieveTokenData(final String tokenKey)
             throws PwmOperationalException
     {
         checkStatus();
+        if (storageMethod == StorageMethod.STORE_CRYPTO) {
+            return retrieveEmbedToken(tokenKey);
+        }
+
         try {
             final TokenPayload storedToken = retrieveStoredToken(tokenKey);
             if (storedToken != null) {
@@ -159,16 +207,39 @@ public class TokenManager implements PwmService {
         return null;
     }
 
+    private TokenPayload retrieveEmbedToken(final String tokenKey) throws PwmOperationalException {
+        final String decodedString;
+        try {
+            decodedString = (String) Base64Util.decodeToObject(tokenKey, Base64Util.GZIP | Base64Util.URL_SAFE, ClassLoader.getSystemClassLoader());
+            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(decodedString,secretKey);
+            final Gson gson = new Gson();
+            final TokenPayload tokenPayload = gson.fromJson(decryptedString,TokenPayload.class);
+            if (testIfTokenIsExpired(tokenPayload)) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
+            }
+            return tokenPayload;
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error decrypting embed token: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            throw new PwmOperationalException(errorInformation);
+        }
+    }
+
     public STATUS status() {
         return status;
     }
 
     public void close() {
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
         status = STATUS.CLOSED;
     }
 
     public List<HealthRecord> healthCheck() {
+        if (errorInformation != null) {
+            return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
+        }
         return null;
     }
 

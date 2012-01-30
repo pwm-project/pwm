@@ -21,33 +21,48 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.updateProfile.elements[0].focus();" class="tundra">
+<body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
+        <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_UpdateProfile"/></p>
-
-        <%@ include file="fragment/message.jsp" %>
-        <br/>
-        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
+        <%
+            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+            final String destMail = fpb.getTokenEmailAddress();
+            final String destSms = fpb.getTokenSmsNumber();
+            String destination = "";
+            if (fpb.getEmailUsed()) {
+                destination += destMail;
+            }
+            if (fpb.getSmsUsed()) {
+                if (destination.length() > 0) {
+                    destination += " / ";
+                }
+                destination += destSms;
+            }
+        %>
+        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <form action="<pwm:url url='ActivateUser'/>" method="post"
+              enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-
-            <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
-            <jsp:include page="fragment/form.jsp"/>
+            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+            <h2><label for="code"><pwm:Display key="Field_Code"/></label></h2>
+            <input type="text" id="code" name="code" class="inputfield"/>
 
             <div id="buttonbar">
-                <input id="submitBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_Update"/>"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" class="btn" name="reset" value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
-                <input type="hidden" name="processAction" value="updateProfile"/>
+                <input type="submit" class="btn"
+                       name="search"
+                       value="<pwm:Display key="Button_CheckCode"/>"
+                       id="submitBtn"/>
+                <input type="reset" class="btn"
+                       name="reset"
+                       value="<pwm:Display key="Button_Reset"/>"/>
+                <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
@@ -55,7 +70,7 @@
                 </button>
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

@@ -36,17 +36,11 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Base64Util;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import java.io.*;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -719,8 +713,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                                     final Element valueElement = settingElement.getChild("value");
                                     final String encodedValue = valueElement.getText();
                                     try {
-                                        final String key = PwmConstants.DEFAULT_DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
-                                        final String decodedValue = TextConversations.decryptValue(encodedValue, key);
+                                        final SecretKey key = Helper.SimpleTextCrypto.makeKey(PwmConstants.DEFAULT_DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName());
+                                        final String decodedValue = Helper.SimpleTextCrypto.decryptValue(encodedValue, key);
                                         newConfiguration.writeSetting(pwmSetting, decodedValue);
                                     } catch (Exception e) {
                                         final String errorMsg = "unable to decode encrypted password value for setting '" + pwmSetting.toString() + "' : " + e.getMessage();
@@ -784,44 +778,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
             LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values, epoch " + newConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
             return newConfiguration;
-        }
-    }
-
-    private static class TextConversations {
-        private static String encryptValue(final String value, final String key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-            if (value == null || value.length() < 1) {
-                return "";
-            }
-
-            final SecretKey sks = makeKey(key);
-            final Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, sks, cipher.getParameters());
-            final byte[] encrypted = cipher.doFinal(value.getBytes());
-            return Base64Util.encodeBytes(encrypted);
-        }
-
-        private static String decryptValue(final String value, final String key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            if (value == null || value.length() < 1) {
-                return "";
-            }
-
-            final SecretKey sks = makeKey(key);
-            final byte[] decoded = Base64Util.decode(value);
-            final Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, sks);
-            final byte[] decrypted = cipher.doFinal(decoded);
-            return new String(decrypted);
-        }
-
-        private static SecretKey makeKey(final String text)
-                throws NoSuchAlgorithmException, UnsupportedEncodingException {
-            final MessageDigest md = MessageDigest.getInstance("SHA1");
-            md.update(text.getBytes("iso-8859-1"), 0, text.length());
-            final byte[] key = new byte[16];
-            System.arraycopy(md.digest(), 0, key, 0, 16);
-            return new SecretKeySpec(key, "AES");
         }
     }
 
@@ -1028,7 +984,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 final Element valueElement = new Element(valueElementName);
                 try {
-                    final String encodedValue = TextConversations.encryptValue(value, key);
+                    final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
+                    final String encodedValue = Helper.SimpleTextCrypto.encryptValue(value, secretKey);
                     valueElement.addContent(encodedValue);
                 } catch (Exception e) {
                     valueElement.addContent("");

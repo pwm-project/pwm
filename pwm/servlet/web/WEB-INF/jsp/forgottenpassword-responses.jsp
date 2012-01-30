@@ -33,7 +33,7 @@
 <% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = PwmSession.getPwmSession(session).getForgottenPasswordBean(); %>
 <% final List<FormConfiguration> requiredAttrParams = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.

@@ -24,12 +24,10 @@
   --%>
 
 <!DOCTYPE html>
-
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
-<!DOCTYPE html>
 <%@ include file="fragment/header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body onload="pwmPageLoadHandler();" class="tundra">

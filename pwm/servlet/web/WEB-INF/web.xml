@@ -268,6 +268,7 @@
             <param-name>zipFileResources</param-name>
             <param-value>/resources/dojo.zip</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
@@ -345,6 +346,10 @@
     <servlet-mapping>
         <servlet-name>ActivateUserServlet</servlet-name>
         <url-pattern>/public/ActivateUser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ActivateUserServlet</servlet-name>
+        <url-pattern>/public/ActivateUser/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UpdateProfileServlet</servlet-name>

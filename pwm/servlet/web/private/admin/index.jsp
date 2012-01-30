@@ -25,7 +25,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body onload="pwmPageLoadHandler();">
 <meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>"/>

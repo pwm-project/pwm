@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<!DOCTYPE html>
 <%@ include file="fragment/header.jsp" %>
+<html dir="<pwm:LocaleOrientation/>">
 <body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

@@ -103,6 +103,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "WEB-INF/jsp/forgottenpassword-entercode.jsp";
     public static final String URL_JSP_FORGOTTEN_USERNAME = "WEB-INF/jsp/forgottenusername-search.jsp";
     public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
+    public static final String URL_JSP_ACTIVATE_USER_AGREEMENT = "WEB-INF/jsp/activateuser-agreement.jsp";
+    public static final String URL_JSP_ACTIVATE_USER_ENTER_CODE = "WEB-INF/jsp/activateuser-entercode.jsp";
     public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateprofile.jsp";
     public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
     public static final String URL_JSP_NEW_USER_ENTER_CODE = "WEB-INF/jsp/newuser-entercode.jsp";

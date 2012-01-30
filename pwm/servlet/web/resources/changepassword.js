@@ -433,7 +433,7 @@ function startupChangePasswordPage(initialPrompt)
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){
             showInfo(initialPrompt);
-        },2500);
+        },100);
     }
 
     setInputFocus();

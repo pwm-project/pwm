@@ -51,9 +51,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
@@ -943,5 +947,41 @@ public class Helper {
             }
         }
         return sb.toString();
+    }
+
+    public static class SimpleTextCrypto {
+        public static String encryptValue(final String value, final SecretKey key)
+                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+            if (value == null || value.length() < 1) {
+                return "";
+            }
+
+            final Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
+            final byte[] encrypted = cipher.doFinal(value.getBytes());
+            return Base64Util.encodeBytes(encrypted);
+        }
+
+        public static String decryptValue(final String value, final SecretKey key)
+                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+            if (value == null || value.length() < 1) {
+                return "";
+            }
+
+            final byte[] decoded = Base64Util.decode(value);
+            final Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            final byte[] decrypted = cipher.doFinal(decoded);
+            return new String(decrypted);
+        }
+
+        public static SecretKey makeKey(final String text)
+                throws NoSuchAlgorithmException, UnsupportedEncodingException {
+            final MessageDigest md = MessageDigest.getInstance("SHA1");
+            md.update(text.getBytes("iso-8859-1"), 0, text.length());
+            final byte[] key = new byte[16];
+            System.arraycopy(md.digest(), 0, key, 0, 16);
+            return new SecretKeySpec(key, "AES");
+        }
     }
 }

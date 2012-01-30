@@ -23,12 +23,10 @@
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.ContextManager;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.ServletHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
@@ -144,5 +142,52 @@ public abstract class TopServlet extends HttpServlet {
             throws ServletException, IOException {
         this.handleRequest(req, resp);
     }
+
+    static boolean convertURLtokenCommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
+            throws IOException
+    {
+        final String uri = req.getRequestURI();
+        if (uri == null || uri.length() < 1) {
+            return false;
+        }
+        final String servletPath = req.getServletPath();
+        if (!uri.contains(servletPath)) {
+            LOGGER.error("unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'");
+            return false;
+        }
+
+        String aftPath = uri.substring(uri.indexOf(servletPath) + servletPath.length(),uri.length());
+        if (aftPath.startsWith("/")) {
+            aftPath = aftPath.substring(1,aftPath.length());
+        }
+
+        if (aftPath.contains("?")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.contains("&")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.length() <= 1) {
+            return false;
+        }
+
+        final StringBuilder redirectURL = new StringBuilder();
+        redirectURL.append(req.getContextPath());
+        redirectURL.append(req.getServletPath());
+        redirectURL.append("?");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
+        redirectURL.append("&");
+        redirectURL.append("code=").append(aftPath);
+        redirectURL.append("&");
+        redirectURL.append("pwmFormID=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
+
+        LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
+        resp.sendRedirect(redirectURL.toString());
+        return true;
+    }
+
+
 }
 

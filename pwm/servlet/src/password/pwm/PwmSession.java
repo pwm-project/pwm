@@ -157,6 +157,14 @@ public class PwmSession implements Serializable {
         return (HelpdeskBean)getUserBean(HelpdeskBean.class);
     }
 
+    public ActivateUserBean getActivateUserBean() {
+        return (ActivateUserBean)getUserBean(ActivateUserBean.class);
+    }
+
+    public void clearActivateUserBean() {
+        userBeans.remove(ActivateUserBean.class);
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public void clearChangePasswordBean() {

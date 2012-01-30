@@ -38,7 +38,7 @@
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); %>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
 <div id="wrapper">

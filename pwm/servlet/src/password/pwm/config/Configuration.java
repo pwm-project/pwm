@@ -30,11 +30,14 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
 
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.*;
 
@@ -364,5 +367,29 @@ public class Configuration implements Serializable {
 
     public String getNotes() {
         return storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+    }
+    
+    public SecretKey getSecurityKey() throws PwmOperationalException {
+        final String configValue = readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
+        if (configValue == null || configValue.length() <= 0) {
+            final String errorMsg = "PWM Security Key value is not configured";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
+            throw new PwmOperationalException(errorInfo);  
+        }
+        
+        if (configValue.length() < 32) {
+            final String errorMsg = "PWM Security Key must be greater than 32 charachters in length";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
+
+        try {
+            return Helper.SimpleTextCrypto.makeKey(configValue);
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error generating PWM Security Key crypto: " + e.getMessage();
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
+            LOGGER.error(errorInfo,e);
+            throw new PwmOperationalException(errorInfo);
+        }
     }
 }

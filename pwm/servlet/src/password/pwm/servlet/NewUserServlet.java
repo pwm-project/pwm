@@ -99,7 +99,7 @@ public class NewUserServlet extends TopServlet {
 
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
-            if (checkForURLcommand(req, resp, pwmSession)) {
+            if (convertURLtokenCommand(req, resp, pwmSession)) {
                 return;
             }
         }
@@ -665,50 +665,5 @@ public class NewUserServlet extends TopServlet {
 
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider());
         return PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, chaiUser, userLocale);
-    }
-
-    private static boolean checkForURLcommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
-            throws IOException
-    {
-        final String uri = req.getRequestURI();
-        if (uri == null || uri.length() < 1) {
-            return false;
-        }
-        final String servletPath = req.getServletPath();
-        if (!uri.contains(servletPath)) {
-            LOGGER.error("unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'");
-            return false;
-        }
-
-        String aftPath = uri.substring(uri.indexOf(servletPath) + servletPath.length(),uri.length());
-        if (aftPath.startsWith("/")) {
-            aftPath = aftPath.substring(1,aftPath.length());
-        }
-
-        if (aftPath.contains("?")) {
-            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
-        }
-
-        if (aftPath.contains("&")) {
-            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
-        }
-
-        if (aftPath.length() <= 1) {
-            return false;
-        }
-
-        final StringBuilder redirectURL = new StringBuilder();
-        redirectURL.append(req.getContextPath());
-        redirectURL.append(req.getServletPath());
-        redirectURL.append("?");
-        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
-        redirectURL.append("&");
-        redirectURL.append("code=").append(aftPath);
-        redirectURL.append("&");
-        redirectURL.append("pwmFormID=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
-
-        LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
-        resp.sendRedirect(redirectURL.toString());
-        return true;
     }
 }

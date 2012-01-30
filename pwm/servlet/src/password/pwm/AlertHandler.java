@@ -215,21 +215,6 @@ public abstract class AlertHandler {
             textBody.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
             textBody.append("\n");
 
-            final Map<String, String> sortedStats = new TreeMap<String, String>();
-            sortedStats.putAll(valueMap);
-
-            htmlBody.append("<table border='1'>");
-            for (final String key : sortedStats.keySet()) {
-                final String value = valueMap.get(key);
-                textBody.append(key).append(": ").append(value).append("\n");
-                htmlBody.append("<tr><td class='key'>").append(key).append("</td><td>").append(value).append("</td></tr>");
-            }
-            htmlBody.append("</table>");
-
-            textBody.append("\n\n\n");
-            htmlBody.append("<br/><br/>");
-
-
             {
                 final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords();
                 final java.util.Date lastHeathCheckDate = pwmApplication.getHealthMonitor().getLastHealthCheckDate();
@@ -267,7 +252,22 @@ public abstract class AlertHandler {
                     htmlBody.append("<td>").append(record.getDetail()).append("</td></tr>");
                 }
                 htmlBody.append("</table>");
+            }
 
+            textBody.append("\n\n\n");
+            htmlBody.append("<br/><br/>");
+
+            { // statistics
+                final Map<String, String> sortedStats = new TreeMap<String, String>();
+                sortedStats.putAll(valueMap);
+
+                htmlBody.append("<table border='1'>");
+                for (final String key : sortedStats.keySet()) {
+                    final String value = valueMap.get(key);
+                    textBody.append(key).append(": ").append(value).append("\n");
+                    htmlBody.append("<tr><td class='key'>").append(key).append("</td><td>").append(value).append("</td></tr>");
+                }
+                htmlBody.append("</table>");
             }
 
             htmlBody.append("</body></html>");

@@ -73,9 +73,13 @@ public enum PwmSetting {
     TOKEN_LIFETIME(
             "token.lifetime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     TOKEN_STORAGEMETHOD(
-            "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.ADVANCED),
+            "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.BASIC),
+    PWM_SECURITY_KEY(
+            "pwm.securityKey", Syntax.PASSWORD, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
+
+
 
 
     // user interface
@@ -91,8 +95,6 @@ public enum PwmSetting {
             "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
-    NEWUSER_AGREEMENT_MESSAGE(
-            "display.newuser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CANCEL_BUTTON(
@@ -206,6 +208,14 @@ public enum PwmSetting {
             "email.activation.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_ACTIVATION_BODY_HTML(
             "email.activation.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_VERIFICATION_SUBJECT(
+            "email.activation.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_VERIFICATION_FROM(
+            "email.activation.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_VERIFICATION_BODY(
+            "email.activation.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_VERIFICATION_BODY_HTML(
+            "email.activation.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_FROM(
             "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_SUBJECT(
@@ -487,6 +497,8 @@ public enum PwmSetting {
             "newUser.enable", Syntax.BOOLEAN, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_CONTEXT(
             "newUser.createContext", Syntax.STRING, Category.NEWUSER, true, Level.BASIC),
+    NEWUSER_AGREEMENT_MESSAGE(
+            "display.newuser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_FORM(
             "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_UNIQUE_ATTRIBUES(
@@ -534,6 +546,10 @@ public enum PwmSetting {
     // activation settings
     ACTIVATE_USER_ENABLE(
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
+    ACTIVATE_USER_EMAIL_VERIFICATION(
+            "activateUser.email.verification", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
+    ACTIVATE_AGREEMENT_MESSAGE(
+            "display.activateUser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_USER_FORM(
             "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_SEARCH_FILTER(
