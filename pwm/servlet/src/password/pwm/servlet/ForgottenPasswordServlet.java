@@ -595,7 +595,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final SmsPriority pref = SmsPriority.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         final boolean success;
         switch (pref) {
             case BOTH:
@@ -681,14 +681,6 @@ public class ForgottenPasswordServlet extends TopServlet {
         LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         forgottenPasswordBean.setSmsUsed(true);
         return true;
-    }
-
-    public enum SmsPriority {
-        EMAILONLY,
-        BOTH,
-        EMAILFIRST,
-        SMSFIRST,
-        SMSONLY
     }
 
     private static void simulateBadLogin(

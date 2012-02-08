@@ -283,7 +283,11 @@ public enum PwmSetting {
     SMS_REQUESTID_LENGTH(
             "sms.requestId.length", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_CHALLENGE_TOKEN_TEXT(
-            "sms.challenge.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.ADVANCED),
+            "sms.challenge.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
+    SMS_ACTIVATION_VERIFICATION_TEXT(
+            "sms.activation.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
+    SMS_ACTIVATION_TEXT(
+            "sms.activation.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
     SMS_USE_URL_SHORTENER(
             "sms.useUrlShortener", Syntax.BOOLEAN, Category.SMS, false, Level.ADVANCED),
 
@@ -564,6 +568,8 @@ public enum PwmSetting {
             "activateUser.writePreAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
             "activateUser.writePostAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.BASIC),
+    ACTIVATE_TOKEN_SEND_METHOD(
+            "activation.token.sendMethod", Syntax.SELECT, Category.ACTIVATION, true, Level.BASIC),
 
     // update profile
     UPDATE_PROFILE_ENABLE(
@@ -896,6 +902,14 @@ public enum PwmSetting {
             }
             return returnCategories.toArray(new Category[returnCategories.size()]);
         }
+    }
+
+    public enum SmsPriority {
+        EMAILONLY,
+        BOTH,
+        EMAILFIRST,
+        SMSFIRST,
+        SMSONLY
     }
 
     public enum Level {

@@ -554,7 +554,8 @@ public class TokenManager implements PwmService {
         }
 
         public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
-            return Collections.emptyIterator();
+        	final List<String> el = Collections.emptyList();
+            return (Iterator<String>) el.iterator();
         }
 
         public void cleanup() {
@@ -646,7 +647,8 @@ public class TokenManager implements PwmService {
         }
 
         public Iterator<String> keyIterator() throws PwmOperationalException {
-            return Collections.emptyIterator();
+        	final List<String> el = Collections.emptyList();
+            return (Iterator<String>) el.iterator();
         }
 
         public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
