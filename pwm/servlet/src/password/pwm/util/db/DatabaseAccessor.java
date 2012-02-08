@@ -40,8 +40,6 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 
-import static password.pwm.util.pwmdb.PwmDB.DB;
-
 /**
  * @author Jason D. Rivard
  */
@@ -428,12 +426,12 @@ public class DatabaseAccessor implements PwmService {
         return true;
     }
 
-    public int size(final DB db) throws
+    public int size(final TABLE table) throws
             DatabaseException, PwmUnrecoverableException {
         preOperationCheck();
 
         final StringBuilder sb = new StringBuilder();
-        sb.append("SELECT COUNT(" + KEY_COLUMN + ") FROM ").append(db.toString());
+        sb.append("SELECT COUNT(" + KEY_COLUMN + ") FROM ").append(table.toString());
 
         PreparedStatement statement = null;
         ResultSet resultSet = null;

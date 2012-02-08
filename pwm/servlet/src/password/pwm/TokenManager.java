@@ -24,6 +24,11 @@ package password.pwm;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
@@ -37,6 +42,13 @@ import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * This PWM service is responsible for reading/writing tokens used for forgotten password,
+ * new user registration, account activation, and other functions.  Several implementations
+ * of the backing storage method are available.
+ *
+ * @author jrivard@gmail.com
+ */
 public class TokenManager implements PwmService {
 
     private static PwmLogger LOGGER = PwmLogger.getLogger(TokenManager.class);
@@ -47,18 +59,17 @@ public class TokenManager implements PwmService {
     private enum StorageMethod {
         STORE_PWMDB,
         STORE_DB,
-        STORE_CRYPTO
+        STORE_CRYPTO,
+        STORE_LDAP
     }
 
     private Timer timer;
 
     private Configuration configuration;
-    private PwmDB pwmDB;
-    private DatabaseAccessor databaseAccessor;
     private StorageMethod storageMethod;
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
-    private SecretKey secretKey;
+    private TokenMachine tokenMachine;
 
     private STATUS status = STATUS.NEW;
 
@@ -72,15 +83,10 @@ public class TokenManager implements PwmService {
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
-        final PwmDB pwmDB = pwmApplication.getPwmDB();
-        final Configuration configuration = pwmApplication.getConfig();
-
         LOGGER.trace("opening");
         status = STATUS.OPENING;
 
-        this.configuration = configuration;
-        this.pwmDB = pwmDB;
-        this.databaseAccessor = pwmApplication.getDatabaseAccessor();
+        this.configuration = pwmApplication.getConfig();
         try {
             storageMethod = StorageMethod.valueOf(configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
         } catch (Exception e) {
@@ -91,6 +97,7 @@ public class TokenManager implements PwmService {
         }
         try {
             maxTokenAgeMS = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME) * 1000;
+            maxTokenPurgeAgeMS = maxTokenAgeMS + PwmConstants.TOKEN_REMOVAL_DELAY_MS;
         } catch (Exception e) {
             final String errorMsg = "unable to parse max token age value: " + e.getMessage();
             errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
@@ -99,60 +106,52 @@ public class TokenManager implements PwmService {
         }
 
         switch (storageMethod) {
-            case STORE_DB:
             case STORE_PWMDB:
-            {
-                maxTokenPurgeAgeMS = maxTokenAgeMS + PwmConstants.TOKEN_REMOVAL_DELAY_MS;
-                timer = new Timer("pwm-TokenManager",true);
-                final TimerTask cleanerTask = new CleanerTask();
-
-                final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
-                timer.schedule(cleanerTask, 10000, cleanerFrequency + 731);
-                LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
+                tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
                 break;
-            }
+
+            case STORE_DB:
+                tokenMachine = new DBTokenMachine(pwmApplication.getDatabaseAccessor());
+                break;
+
             case STORE_CRYPTO:
-            {
-                try {
-                    secretKey = configuration.getSecurityKey();
-                } catch (PwmOperationalException e) {
-                    errorInformation = e.getErrorInformation();
-                    status = STATUS.CLOSED;
-                    throw new PwmOperationalException(errorInformation);
-                }
-            }
-            break;
+                tokenMachine = new CryptoTokenMachine();
+                break;
+
+            case STORE_LDAP:
+                tokenMachine = new LdapTokenMachine(pwmApplication);
+                break;
         }
+
+        timer = new Timer("pwm-TokenManager",true);
+        final TimerTask cleanerTask = new CleanerTask();
+
+        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
+        timer.schedule(cleanerTask, 10000, cleanerFrequency + 731);
+        LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
 
         status = STATUS.OPEN;
         LOGGER.debug("open");
+    }
+
+    public boolean supportsName() {
+        switch (storageMethod) {
+            case STORE_LDAP:
+                return false;
+
+            default:
+                return true;
+        }
     }
 
     public String generateNewToken(final TokenPayload tokenPayload)
             throws PwmOperationalException
     {
         checkStatus();
-        if (storageMethod == StorageMethod.STORE_CRYPTO) {
-            return generateEmbedToken(tokenPayload);
-        }
 
         try {
-            String tokenKey = null;
-            int attempts = 0;
-            while (tokenKey == null && attempts < PwmConstants.TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS) {
-                tokenKey = makeRandomCode(configuration);
-                if (retrieveStoredToken(tokenKey) != null) {
-                    tokenKey = null;
-                }
-                attempts++;
-            }
-
-            if (tokenKey == null) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate a unique token key after " + attempts + " attempts"));
-            }
-
-            storeToken(tokenKey, tokenPayload);
-
+            final String tokenKey = tokenMachine.generateToken(tokenPayload);
+            tokenMachine.storeToken(tokenKey, tokenPayload);
             return tokenKey;
         } catch (PwmException e) {
             final String errorMsg = "unexpected error trying to store token in datastore: " + e.getMessage();
@@ -161,40 +160,22 @@ public class TokenManager implements PwmService {
         }
     }
 
-    private String generateEmbedToken(final TokenPayload tokenPayload) throws PwmOperationalException {
-        final Gson gson = new Gson();
-        final String jsonPayload = gson.toJson(tokenPayload);
-        try {
-            final String encryptedPaylod = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
-            return Base64Util.encodeObject(encryptedPaylod, Base64Util.GZIP | Base64Util.URL_SAFE);
-        } catch (Exception e) {
-            final String errorMsg = "unexpected error generating embeded token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-            throw new PwmOperationalException(errorInformation);
-        }
-    }
 
     public TokenPayload retrieveTokenData(final String tokenKey)
             throws PwmOperationalException
     {
         checkStatus();
-        if (storageMethod == StorageMethod.STORE_CRYPTO) {
-            return retrieveEmbedToken(tokenKey);
-        }
 
         try {
-            final TokenPayload storedToken = retrieveStoredToken(tokenKey);
+            final TokenPayload storedToken = tokenMachine.retrieveToken(tokenKey);
             if (storedToken != null) {
 
                 if (testIfTokenIsExpired(storedToken)) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
                 }
 
-                if (storedToken.isUsed()) {
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED,"token has already been used"));
-                } else {
-                    storedToken.setUsed(true);
-                    storeToken(tokenKey, storedToken);
+                if (testIfTokenIsPurgable(storedToken)) {
+                    tokenMachine.removeToken(tokenKey);
                 }
 
                 return storedToken;
@@ -205,24 +186,6 @@ public class TokenManager implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
         return null;
-    }
-
-    private TokenPayload retrieveEmbedToken(final String tokenKey) throws PwmOperationalException {
-        final String decodedString;
-        try {
-            decodedString = (String) Base64Util.decodeToObject(tokenKey, Base64Util.GZIP | Base64Util.URL_SAFE, ClassLoader.getSystemClassLoader());
-            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(decodedString,secretKey);
-            final Gson gson = new Gson();
-            final TokenPayload tokenPayload = gson.fromJson(decryptedString,TokenPayload.class);
-            if (testIfTokenIsExpired(tokenPayload)) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
-            }
-            return tokenPayload;
-        } catch (Exception e) {
-            final String errorMsg = "unexpected error decrypting embed token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-            throw new PwmOperationalException(errorInformation);
-        }
     }
 
     public STATUS status() {
@@ -237,44 +200,23 @@ public class TokenManager implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+
         if (errorInformation != null) {
-            return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
+            returnRecords.add(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
         }
-        return null;
-    }
 
-    private TokenPayload retrieveStoredToken(final String tokenKey)
-            throws PwmOperationalException, PwmUnrecoverableException {
-        TokenPayload returnToken = null;
-
-        {
-            final String storedRawValue;
-            switch (storageMethod) {
-                case STORE_PWMDB:
-                    storedRawValue = pwmDB.get(PwmDB.DB.TOKENS,tokenKey);
-                    break;
-
-                case STORE_DB:
-                    storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,tokenKey);
-                    break;
-
-                default:
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown storage method: " + storageMethod));
-            }
-
-            if (storedRawValue != null && storedRawValue.length() > 0 ) {
-                try {
-                    final Gson gson = new Gson();
-                    returnToken = gson.fromJson(storedRawValue,TokenPayload.class);
-                } catch (JsonSyntaxException e) {
-                    LOGGER.error("unexpected syntax error reading token payload: " + e.getMessage());
-                    removeTokenFormStorage(tokenKey);
+        if (storageMethod == StorageMethod.STORE_LDAP) {
+            if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+                if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
+                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to LDAP, this configuration is not supported."));
                 }
             }
         }
 
-        return returnToken;
+        return returnRecords;
     }
+
 
     private boolean testIfTokenIsExpired(final TokenPayload theToken) {
         if (theToken == null) {
@@ -295,27 +237,6 @@ public class TokenManager implements PwmService {
     }
 
 
-    private void storeToken(final String tokenKey, final TokenPayload tokenInformation)
-            throws  PwmUnrecoverableException, PwmOperationalException {
-        final Gson gson = new Gson();
-        final String rawValue = gson.toJson(tokenInformation);
-
-        {
-            switch (storageMethod) {
-                case STORE_PWMDB:
-                    pwmDB.put(PwmDB.DB.TOKENS, tokenKey, rawValue);
-                    break;
-
-                case STORE_DB:
-                    databaseAccessor.put(DatabaseAccessor.TABLE.TOKENS, tokenKey, rawValue);
-                    break;
-
-                default:
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown storage method: " + storageMethod));
-            }
-        }
-    }
-
     private void purgeOutdatedTokens() throws
             PwmUnrecoverableException, PwmOperationalException
     {
@@ -325,27 +246,13 @@ public class TokenManager implements PwmService {
         tempKeyList.addAll(discoverPurgeableTokenKeys(PwmConstants.TOKEN_PURGE_BATCH_SIZE));
         while (status() == STATUS.OPEN && !tempKeyList.isEmpty()) {
             for (final String loopKey : tempKeyList) {
-                removeTokenFormStorage(loopKey);
+                tokenMachine.removeToken(loopKey);
             }
             cleanedTokens = cleanedTokens + tempKeyList.size();
             tempKeyList.clear();
         }
         if (cleanedTokens > 0) {
             LOGGER.trace("cleaner thread removed " + cleanedTokens + " tokens in " + TimeDuration.fromCurrent(startTime).asCompactString());
-        }
-    }
-
-    private void removeTokenFormStorage(final String tokenKey)
-            throws PwmUnrecoverableException, PwmOperationalException
-    {
-        switch (storageMethod) {
-            case STORE_PWMDB:
-                pwmDB.remove(PwmDB.DB.TOKENS,tokenKey);
-                break;
-
-            case STORE_DB:
-                databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,tokenKey);
-                break;
         }
     }
 
@@ -356,20 +263,11 @@ public class TokenManager implements PwmService {
         Iterator<String> keyIterator = null;
 
         try {
-            switch (storageMethod) {
-                case STORE_PWMDB:
-                    keyIterator = pwmDB.iterator(PwmDB.DB.TOKENS);
-                    break;
-
-                case STORE_DB:
-                    keyIterator = databaseAccessor.iterator(DatabaseAccessor.TABLE.TOKENS);
-                    break;
-
-            }
+            keyIterator = tokenMachine.keyIterator();
 
             while (status() == STATUS.OPEN && returnList.size() < maxCount && keyIterator.hasNext()) {
                 final String loopKey = keyIterator.next();
-                final TokenPayload loopInfo = retrieveStoredToken(loopKey);
+                final TokenPayload loopInfo = tokenMachine.retrieveToken(loopKey);
                 if (loopInfo != null) {
                     if (testIfTokenIsPurgable(loopInfo)) {
                         returnList.add(loopKey);
@@ -380,7 +278,7 @@ public class TokenManager implements PwmService {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
             if (keyIterator != null && storageMethod == StorageMethod.STORE_PWMDB) {
-                try {pwmDB.returnIterator(PwmDB.DB.TOKENS); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + pwmDB);}
+                try {((PwmDBTokenMachine)tokenMachine).returnIterator(keyIterator); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
             }
         }
 
@@ -405,13 +303,13 @@ public class TokenManager implements PwmService {
         private final java.util.Date issueDate;
         private final String name;
         private final Map<String,String> payloadData;
-        private boolean used;
+        private final String userDN;
 
-        public TokenPayload(final String name, final Map<String,String> payloadData) {
+        public TokenPayload(final String name, final Map<String,String> payloadData, final String userDN) {
             this.issueDate = new Date();
             this.payloadData = payloadData;
             this.name = name;
-            this.used = false;
+            this.userDN = userDN;
         }
 
         public Date getIssueDate() {
@@ -426,19 +324,15 @@ public class TokenManager implements PwmService {
             return payloadData;
         }
 
-        public boolean isUsed() {
-            return used;
-        }
-
-        public void setUsed(final boolean used) {
-            this.used = used;
+        public String getUserDN() {
+            return userDN;
         }
     }
 
     private class CleanerTask extends TimerTask {
         public void run() {
             try {
-                purgeOutdatedTokens();
+                tokenMachine.cleanup();
             } catch (Exception e) {
                 LOGGER.warn("unexpected error while cleaning expired stored tokens: " + e.getMessage(),e);
             }
@@ -457,17 +351,305 @@ public class TokenManager implements PwmService {
         }
 
         try {
-            switch (storageMethod) {
-                case STORE_PWMDB:
-                    return pwmDB.size(PwmDB.DB.TOKENS);
-
-                case STORE_DB:
-                    return databaseAccessor.size(PwmDB.DB.TOKENS);
-            }
+            return tokenMachine.size();
         } catch (Exception e) {
             LOGGER.error("unexpected error reading size of token storage table: " + e.getMessage());
         }
 
         return -1;
+    }
+
+    private static String makeUniqueTokenForMachine(final TokenMachine machine, final TokenPayload payload, final Configuration config)
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        String tokenKey = null;
+        int attempts = 0;
+        while (tokenKey == null && attempts < PwmConstants.TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS) {
+            tokenKey = makeRandomCode(config);
+            if (machine.retrieveToken(tokenKey) != null) {
+                tokenKey = null;
+            }
+            attempts++;
+        }
+
+        if (tokenKey == null) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate a unique token key after " + attempts + " attempts"));
+        }
+        return tokenKey;
+    }
+
+    private interface TokenMachine {
+        String generateToken(final TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException;
+
+        TokenPayload retrieveToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException;
+
+        void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException;
+
+        void removeToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException;
+
+        int size() throws PwmOperationalException, PwmUnrecoverableException;
+
+        Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException;
+
+        void cleanup() throws PwmUnrecoverableException, PwmOperationalException;
+    }
+
+    private class PwmDBTokenMachine implements TokenMachine {
+        private PwmDB pwmDB;
+
+        private PwmDBTokenMachine(PwmDB pwmDB) {
+            this.pwmDB = pwmDB;
+        }
+
+        public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
+            return makeUniqueTokenForMachine(this, tokenPayload, configuration);
+        }
+
+        public TokenPayload retrieveToken(String tokenKey)
+                throws PwmOperationalException
+        {
+            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS,tokenKey);
+
+            if (storedRawValue != null && storedRawValue.length() > 0 ) {
+                try {
+                    final Gson gson = new Gson();
+                    return gson.fromJson(storedRawValue,TokenPayload.class);
+                } catch (JsonSyntaxException e) {
+                    LOGGER.error("unexpected syntax error reading token payload: " + e.getMessage());
+                    removeToken(tokenKey);
+                }
+            }
+
+            return null;
+        }
+
+        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException {
+            final Gson gson = new Gson();
+            final String rawValue = gson.toJson(tokenPayload);
+            pwmDB.put(PwmDB.DB.TOKENS, tokenKey, rawValue);
+        }
+
+        public void removeToken(String tokenKey) throws PwmOperationalException {
+            pwmDB.remove(PwmDB.DB.TOKENS,tokenKey);
+        }
+
+        public int size() throws PwmOperationalException {
+            return pwmDB.size(PwmDB.DB.TOKENS);
+        }
+
+        public Iterator<String> keyIterator() throws PwmOperationalException {
+            return pwmDB.iterator(PwmDB.DB.TOKENS);
+        }
+
+        public void returnIterator(final Iterator<String> iterator) throws PwmOperationalException {
+            pwmDB.returnIterator(PwmDB.DB.TOKENS);
+        }
+
+        public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
+            purgeOutdatedTokens();
+        }
+    }
+
+    private class DBTokenMachine implements TokenMachine {
+        private DatabaseAccessor databaseAccessor;
+
+        private DBTokenMachine(DatabaseAccessor databaseAccessor) {
+            this.databaseAccessor = databaseAccessor;
+        }
+
+        public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
+            return makeUniqueTokenForMachine(this, tokenPayload, configuration);
+        }
+
+        public TokenPayload retrieveToken(String tokenKey)
+                throws PwmOperationalException, PwmUnrecoverableException {
+            final String storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,tokenKey);
+
+            if (storedRawValue != null && storedRawValue.length() > 0 ) {
+                try {
+                    final Gson gson = new Gson();
+                    return gson.fromJson(storedRawValue,TokenPayload.class);
+                } catch (JsonSyntaxException e) {
+                    LOGGER.error("unexpected syntax error reading token payload: " + e.getMessage());
+                    removeToken(tokenKey);
+                }
+            }
+
+            return null;
+        }
+
+        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+            final Gson gson = new Gson();
+            final String rawValue = gson.toJson(tokenPayload);
+            databaseAccessor.put(DatabaseAccessor.TABLE.TOKENS, tokenKey, rawValue);
+        }
+
+        public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+            databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,tokenKey);
+        }
+
+        public int size() throws PwmOperationalException, PwmUnrecoverableException {
+            return databaseAccessor.size(DatabaseAccessor.TABLE.TOKENS);
+        }
+
+        public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
+            return databaseAccessor.iterator(DatabaseAccessor.TABLE.TOKENS);
+        }
+
+        public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
+            purgeOutdatedTokens();
+        }
+    }
+
+    private class CryptoTokenMachine implements TokenMachine {
+        private SecretKey secretKey;
+
+        private CryptoTokenMachine()
+                throws PwmOperationalException
+        {
+            secretKey = configuration.getSecurityKey();
+        }
+
+        public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
+            final Gson gson = new Gson();
+            final String jsonPayload = gson.toJson(tokenPayload);
+            try {
+                final String encryptedPaylod = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
+                return Base64Util.encodeObject(encryptedPaylod, Base64Util.GZIP | Base64Util.URL_SAFE);
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error generating embeded token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        public TokenPayload retrieveToken(String tokenKey)
+                throws PwmOperationalException, PwmUnrecoverableException
+        {
+            final String decodedString;
+            try {
+                decodedString = (String) Base64Util.decodeToObject(tokenKey, Base64Util.GZIP | Base64Util.URL_SAFE, ClassLoader.getSystemClassLoader());
+                final String decryptedString = Helper.SimpleTextCrypto.decryptValue(decodedString,secretKey);
+                final Gson gson = new Gson();
+                final TokenPayload tokenPayload = gson.fromJson(decryptedString,TokenPayload.class);
+                if (testIfTokenIsExpired(tokenPayload)) {
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
+                }
+                return tokenPayload;
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error decrypting embed token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+        }
+
+        public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+        }
+
+        public int size() throws PwmOperationalException, PwmUnrecoverableException {
+            return -1;
+        }
+
+        public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
+            return Collections.emptyIterator();
+        }
+
+        public void cleanup() {
+        }
+    }
+
+    private class LdapTokenMachine implements TokenMachine {
+        private PwmApplication pwmApplication;
+
+        private String tokenAttribute;
+
+        private LdapTokenMachine(PwmApplication pwmApplication){
+            this.pwmApplication = pwmApplication;
+            this.tokenAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.TOKEN_LDAP_ATTRIBUTE);
+        }
+
+        public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
+            if (tokenPayload.getPayloadData() != null && !tokenPayload.getPayloadData().isEmpty()) {
+                final String errorMsg = "ldap token storage method does not support payload data";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+            return makeUniqueTokenForMachine(this, tokenPayload, configuration);
+        }
+
+        public TokenPayload retrieveToken(String tokenKey)
+                throws PwmOperationalException
+        {
+            try {
+                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
+                final SearchHelper searchHelper = new SearchHelper();
+                searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
+                searchHelper.setFilter(tokenAttribute, tokenKey);
+                searchHelper.setMaxResults(2);
+                final String baseDN = configuration.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+                final Map<String,Map<String,String>> results = chaiProvider.search(baseDN, searchHelper);
+                if (results.isEmpty()) {
+                    return null;
+                } else if (results.keySet().size() > 1) {
+                    final String errorMsg = "multiple search results found for token key";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                    throw new PwmOperationalException(errorInformation);
+                }
+                final String userDN = results.keySet().iterator().next();
+                return new TokenPayload(null,Collections.<String,String>emptyMap(),userDN);
+            } catch (ChaiException e) {
+                final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException {
+            if (tokenPayload.getPayloadData() != null && !tokenPayload.getPayloadData().isEmpty()) {
+                final String errorMsg = "ldap token storage method does not support payload data";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+
+            try {
+                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(tokenPayload.getUserDN(),chaiProvider);
+                chaiUser.writeStringAttribute(tokenAttribute, tokenKey);
+            } catch (ChaiException e) {
+                final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        public void removeToken(String tokenKey) throws PwmOperationalException {
+            final TokenPayload payload = retrieveToken(tokenKey);
+            if (payload != null) {
+                final String userDN = payload.getUserDN();
+                try {
+                    final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN,chaiProvider);
+                    chaiUser.deleteAttribute(tokenAttribute, null);
+                } catch (ChaiException e) {
+                    final String errorMsg = "unexpected ldap error removing token: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+                    throw new PwmOperationalException(errorInformation);
+                }
+            }
+        }
+
+        public int size() throws PwmOperationalException {
+            return -1;
+        }
+
+        public Iterator<String> keyIterator() throws PwmOperationalException {
+            return Collections.emptyIterator();
+        }
+
+        public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
+        }
     }
 }

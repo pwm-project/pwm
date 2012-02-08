@@ -60,7 +60,6 @@ public class ForgottenPasswordServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
 
     private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
-    private static final String TOKEN_USER_DN_KEY = "userDN";
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -176,10 +175,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         try {
             TokenManager.TokenPayload tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
-                if (!TOKEN_NAME.equals(tokenPayload.getName())) {
+                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
-                final String dnFromToken = tokenPayload.getPayloadData().get(TOKEN_USER_DN_KEY);
+                final String dnFromToken = tokenPayload.getUserDN();
                 {
                     final ChaiUser proxiedUser = forgottenPasswordBean.getProxiedUser();
                     if (proxiedUser == null) {
@@ -566,8 +565,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final String token;
         try {
-            final Map<String,String> userDNmap = Collections.singletonMap(TOKEN_USER_DN_KEY, proxiedUser.getEntryDN());
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,userDNmap);
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, Collections.<String,String>emptyMap(), proxiedUser.getEntryDN());
             token = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());

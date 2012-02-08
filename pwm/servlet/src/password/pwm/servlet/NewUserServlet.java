@@ -607,7 +607,7 @@ public class NewUserServlet extends TopServlet {
 
         final String tokenKey;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,newUserForm);
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,newUserForm,null);
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated new user tokenKey code for session: " + tokenKey);
         } catch (PwmOperationalException e) {

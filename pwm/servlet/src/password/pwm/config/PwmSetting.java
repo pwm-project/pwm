@@ -74,6 +74,8 @@ public enum PwmSetting {
             "token.lifetime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
     TOKEN_STORAGEMETHOD(
             "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.BASIC),
+    TOKEN_LDAP_ATTRIBUTE(
+            "token.ldap.attribute", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     PWM_SECURITY_KEY(
             "pwm.securityKey", Syntax.PASSWORD, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
@@ -389,6 +391,8 @@ public enum PwmSetting {
             "security.page.leave.waitTime", Syntax.NUMERIC, Category.SECURITY, false, Level.ADVANCED),
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    SECURITY_ENABLE_FORM_NONCE(
+            "security.formNonce.enable", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     ALLOW_URL_SESSIONS(
             "allowUrlSessions", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     ENABLE_SESSION_VERIFICATION(

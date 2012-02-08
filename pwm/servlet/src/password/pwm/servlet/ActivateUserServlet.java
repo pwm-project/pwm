@@ -58,7 +58,6 @@ public class ActivateUserServlet extends TopServlet {
     private static final String CONTEXT_PARAM_NAME = "context";
 
     private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
-    private static final String TOKEN_USER_DN_KEY = "userDN";
 
 
 // -------------------------- OTHER METHODS --------------------------
@@ -452,11 +451,9 @@ public class ActivateUserServlet extends TopServlet {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final Map<String,String> formData = Collections.singletonMap(TOKEN_USER_DN_KEY, theUser.getEntryDN());
-
         final String tokenKey;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,formData);
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,Collections.<String,String>emptyMap(),theUser.getEntryDN());
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session: " + tokenKey);
         } catch (PwmOperationalException e) {
@@ -481,10 +478,10 @@ public class ActivateUserServlet extends TopServlet {
         try {
             TokenManager.TokenPayload tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
-                if (!TOKEN_NAME.equals(tokenPayload.getName())) {
+                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
-                final String dnFromToken = tokenPayload.getPayloadData().get(TOKEN_USER_DN_KEY);
+                final String dnFromToken = tokenPayload.getUserDN();
                 {
                     final ChaiUser proxiedUser = activateUserBean.getTheUser();
                     if (proxiedUser == null) {
