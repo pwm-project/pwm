@@ -231,7 +231,7 @@ public class Validator {
 
         final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
 
-        if (submittedPwmFormID.length() < pwmFormID.length() + 1) {
+        if (submittedPwmFormID == null || submittedPwmFormID.length() < 1) {
             LOGGER.warn(pwmSession, "form submitted with missing pwmFormID value");
             throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
         }

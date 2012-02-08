@@ -164,8 +164,6 @@ public class ActivateUserServlet extends TopServlet {
             Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-            return;
         }
 
         // redirect user to change password screen.
@@ -336,11 +334,11 @@ public class ActivateUserServlet extends TopServlet {
 
             if (results.isEmpty()) {
                 final String errorMsg = "user not found using search filter " + searchFilter + ", in " + searchBase;
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
                 throw new PwmOperationalException(errorInformation);
             } else if (results.size() > 1) {
                 final String errorMsg = "multiple matches results for activation search";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }
 
@@ -349,7 +347,7 @@ public class ActivateUserServlet extends TopServlet {
             return ChaiFactory.createChaiUser(userDN, chaiProvider);
         } catch (ChaiOperationException e) {
             final String errorMsg = "ldap error during activation search: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
             final PwmOperationalException newException = new PwmOperationalException(errorInformation);
             newException.initCause(e);
             throw newException;

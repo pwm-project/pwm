@@ -33,10 +33,7 @@ import password.pwm.util.pwmdb.PwmDBFactory;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 public class PwmDBLoggerTest extends TestCase {
 
@@ -45,6 +42,12 @@ public class PwmDBLoggerTest extends TestCase {
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
     private int maxSize;
+
+    private int eventsAdded;
+    private int eventsRemaining;
+    final StringBuilder randomValue = new StringBuilder();
+    final Random random = new Random();
+
 
     @Override
     protected void setUp() throws Exception {
@@ -62,40 +65,37 @@ public class PwmDBLoggerTest extends TestCase {
                 initStrings,
                 false
         );
-        
+
         maxSize = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
         final long maxAge = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000l;
 
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
+        {
+            final int randomLength = random.nextInt(10 * 1000);
+            while (randomValue.length() < randomLength) {
+                randomValue.append(String.valueOf(random.nextInt(9)));
+            }
+        }
     }
 
     public void testBulkAddEvents() {
         final int startingSize = pwmDBLogger.getStoredEventCount();
-        final long startBulkAddTime = System.currentTimeMillis();
         final int loopCount = 100;
-        int eventsRemaining = BULK_EVENT_SIZE;
-        int eventsAdded = 0;
+        eventsRemaining = BULK_EVENT_SIZE;
+        eventsAdded = 0;
+        final Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new DebugOutputTimerTask(),10 * 1000, 30 * 1000);
 
         while (eventsRemaining > 0) {
-            while (pwmDBLogger.getPendingEventCount() >= (PwmDBLogger.MAX_QUEUE_SIZE - loopCount)) Helper.pause(10);
+            //while (pwmDBLogger.getPendingEventCount() >= (PwmDBLogger.MAX_QUEUE_SIZE - loopCount)) Helper.pause(10);
+            while (pwmDBLogger.getPendingEventCount() >= 1000) Helper.pause(10);
 
             final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
             for (final PwmLogEvent logEvent : events) {
                 pwmDBLogger.writeEvent(logEvent);
                 eventsRemaining--;
                 eventsAdded++;
-                if (eventsAdded % (10 * 1000) == 0) {
-                    final StringBuilder sb = new StringBuilder();
-                    final TimeDuration td = TimeDuration.fromCurrent(startBulkAddTime);
-                    sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
-                    sb.append(", added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
-                    sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
-                    sb.append(", stored events: ").append(pwmDBLogger.getStoredEventCount());
-                    sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
-                    //sb.append(", eps: ").append(pwmDBLogger.getEpsRate(TimeDuration.MINUTE));
-                    System.out.println(sb);
-                }
             }
         }
 
@@ -109,19 +109,21 @@ public class PwmDBLoggerTest extends TestCase {
         } else {
             Assert.assertEquals(pwmDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_SIZE);
         }
+        timer.cancel();
     }
 
 
-    private static Collection<PwmLogEvent> makeBulkEvents(final int count) {
+    private Collection<PwmLogEvent> makeBulkEvents(final int count) {
 
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
-        final PwmRandom random = PwmRandom.getInstance();
-        final String randomDescr = random.alphaNumericString(64 + random.nextInt(1024 * 2));
 
         for (int i = 0; i < count; i++) {
+            randomValue.deleteCharAt(random.nextInt(randomValue.length()));
+            randomValue.insert(random.nextInt(randomValue.length()),String.valueOf(random.nextInt(9)));
+
             final StringBuilder description = new StringBuilder();
             description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
-            description.append(randomDescr);
+            description.append(randomValue);
 
             final PwmLogEvent event = new PwmLogEvent(
                     new Date(),
@@ -133,4 +135,17 @@ public class PwmDBLoggerTest extends TestCase {
         return events;
     }
 
+    private class DebugOutputTimerTask extends TimerTask {
+        public void run() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            sb.append(", added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
+            sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
+            sb.append(", stored events: ").append(pwmDBLogger.getStoredEventCount());
+            sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
+            sb.append(", pending: ").append(pwmDBLogger.getPendingEventCount());
+            //sb.append(", eps: ").append(pwmDBLogger.getEpsRate(TimeDuration.MINUTE));
+            System.out.println(sb);
+        }
+    }
 }

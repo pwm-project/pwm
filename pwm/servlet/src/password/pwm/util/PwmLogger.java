@@ -216,7 +216,9 @@ public class PwmLogger {
             }
 
             if (level == PwmLogLevel.FATAL) {
-                AlertHandler.alertFatalEvent(pwmApplication, logEvent);
+                if (!message.toString().contains("5039")) {
+                    AlertHandler.alertFatalEvent(pwmApplication, logEvent);
+                }
             }
         } catch (Exception e2) {
             //nothing can be done about it now;
