@@ -188,7 +188,7 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        final boolean tokenRequired = config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_EMAIL_VERIFICATION);
+        final boolean tokenRequired = config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION);
         if (tokenRequired) {
             if (!activateUserBean.isTokenIssued()) {
                 try {

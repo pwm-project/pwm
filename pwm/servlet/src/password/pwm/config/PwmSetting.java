@@ -554,8 +554,8 @@ public enum PwmSetting {
     // activation settings
     ACTIVATE_USER_ENABLE(
             "activateUser.enable", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
-    ACTIVATE_USER_EMAIL_VERIFICATION(
-            "activateUser.email.verification", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
+    ACTIVATE_USER_TOKEN_VERIFICATION(
+            "activateUser.token.verification", Syntax.BOOLEAN, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_AGREEMENT_MESSAGE(
             "display.activateUser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_USER_FORM(
@@ -569,7 +569,7 @@ public enum PwmSetting {
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
             "activateUser.writePostAttributes", Syntax.STRING_ARRAY, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_TOKEN_SEND_METHOD(
-            "activation.token.sendMethod", Syntax.SELECT, Category.ACTIVATION, true, Level.BASIC),
+            "activateUser.token.sendMethod", Syntax.SELECT, Category.ACTIVATION, true, Level.BASIC),
 
     // update profile
     UPDATE_PROFILE_ENABLE(
