@@ -37,6 +37,7 @@ import password.pwm.UserHistory.Record;
 import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
@@ -143,7 +144,9 @@ public class HelpdeskServlet extends TopServlet {
 
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, searchContext);
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final Configuration config = pwmApplication.getConfig();
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, searchContext, provider, config);
         } catch (PwmOperationalException e) {
             LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
             helpdeskBean.setUserExists(false);

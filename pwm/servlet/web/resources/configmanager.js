@@ -106,22 +106,24 @@ function toggleBooleanSetting(keyName) {
 
 function clearDivElements(parentDiv, showLoading) {
     var parentDivElement = getObject(parentDiv);
-    if (parentDivElement.hasChildNodes()) {
-        while (parentDivElement.childNodes.length >= 1) {
-            var firstChild = parentDivElement.firstChild;
-            parentDivElement.removeChild(firstChild);
+    if (parentDivElement != null) {
+        if (parentDivElement.hasChildNodes()) {
+            while (parentDivElement.childNodes.length >= 1) {
+                var firstChild = parentDivElement.firstChild;
+                parentDivElement.removeChild(firstChild);
+            }
         }
-    }
-    if (showLoading) {
-        var newTableRow = document.createElement("tr");
-        newTableRow.setAttribute("style", "border-width: 0");
-        parentDivElement.appendChild(newTableRow);
+        if (showLoading) {
+            var newTableRow = document.createElement("tr");
+            newTableRow.setAttribute("style", "border-width: 0");
+            parentDivElement.appendChild(newTableRow);
 
 
-        var newTableData = document.createElement("td");
-        newTableData.setAttribute("style", "border-width: 0");
-        newTableData.innerHTML = "[Loading...]";
-        newTableRow.appendChild(newTableData);
+            var newTableData = document.createElement("td");
+            newTableData.setAttribute("style", "border-width: 0");
+            newTableData.innerHTML = "[Loading...]";
+            newTableRow.appendChild(newTableData);
+        }
     }
 }
 

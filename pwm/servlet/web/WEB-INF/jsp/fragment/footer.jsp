@@ -47,19 +47,19 @@
     %>
     <% String currentLocaleName = sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName(); %>
     <script type="text/javascript"> <%-- locale selector menu, uses jsscript to write to prevent restricted environments from showing menu --%>
-        var localeInfo = {};
-        <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
-        document.write('| <span id="localeSelectionMenu"><%=currentLocaleName%></span>');
-        dojo.addOnLoad(function(){
+    var localeInfo = {};
+    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
+    document.write('| <span id="localeSelectionMenu"><%=currentLocaleName%></span>');
+    dojo.addOnLoad(function(){setTimeout(function(){
             startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
-        });
+    },100);});
     </script>
     <style type="text/css"> <%-- stylesheets used by flag routine on locale menu --%>
-        <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
-        <% if ("".equals(loopLocale.toString())) { %>
-        .flagLang_en { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/en.png); }
-        <% } else { %>.flagLang_<%=loopLocale.toString()%> { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/<%=loopLocale.toString()%>.png); } <% } %>
-        <% } %>
+    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
+    <% if ("".equals(loopLocale.toString())) { %>
+    .flagLang_en { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/en.png); }
+    <% } else { %>.flagLang_<%=loopLocale.toString()%> { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/<%=loopLocale.toString()%>.png); } <% } %>
+    <% } %>
     </style>
     <%-- fields for javascript display fields --%>
     <script type="text/javascript">
@@ -85,15 +85,13 @@
         PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
         PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-        dojo.addOnLoad(function(){setTimeout(function(){
+        dojo.addOnLoad(function(){setTimeout(function(){ // pre-fetch dojo/dijit objects
             var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif';
-            dojo.require("dijit.Dialog");
-        },10);});
-    </script>
-    <script type="text/javascript">
-        dojo.addOnLoad(function(){
+            dojo.require("dijit.Dialog");dojo.require("dijit.Tooltip");dojo.require("dijit.Menu");dojo.require("dijit.MenuItem");
+        },9000);});
+        dojo.addOnLoad(function(){setTimeout(function(){
             initCountDownTimer(<%= sessionStateBean.getMaxInactiveSeconds() %>);
-        });
+        },90);});
         dojo.addOnUnload(function(){
             dojo.xhrGet({
                 url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],

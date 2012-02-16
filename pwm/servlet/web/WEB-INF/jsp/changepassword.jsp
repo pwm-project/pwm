@@ -85,7 +85,7 @@
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
                         <input type="password" name="password1" id="password1" class="changepasswordfield"/>
                     </td>
-                    <td style="border:1px; width:15%">
+                    <td style="border:0; width:15%">
                         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
                         <div id="strengthBox" style="visibility:hidden;">
                             <div id="strengthLabel" style="padding-top:40px;">
@@ -100,7 +100,7 @@
                     <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
                 <tr>
-                    <td style="border:1px; width:75%">
+                    <td style="border:0; width:75%">
                         <h2><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h2>
                         <input type="password" name="password2" id="password2" class="changepasswordfield"/>
                     </td>

@@ -72,7 +72,7 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = random.nextInt(10 * 1000);
+            final int randomLength = 500;
             while (randomValue.length() < randomLength) {
                 randomValue.append(String.valueOf(random.nextInt(9)));
             }

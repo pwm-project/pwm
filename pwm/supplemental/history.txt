@@ -6,6 +6,12 @@
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.6.2
++ Added token (email and sms) support for user activation
++ Added new user agreement support for user activation
++ Added crypto and ldap options for tokens
+
+
 v1.6.1 (January 16, 2012) build 1123
 ---
 + Added "application leave detection" to detect if user leaves PWM site.

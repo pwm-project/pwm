@@ -66,16 +66,6 @@ public enum PwmSetting {
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
-    TOKEN_CHARACTERS(
-            "token.characters", Syntax.STRING, Category.GENERAL, true, Level.ADVANCED),
-    TOKEN_LENGTH(
-            "token.length", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
-    TOKEN_LIFETIME(
-            "token.lifetime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
-    TOKEN_STORAGEMETHOD(
-            "token.storageMethod", Syntax.SELECT, Category.GENERAL, true, Level.BASIC),
-    TOKEN_LDAP_ATTRIBUTE(
-            "token.ldap.attribute", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     PWM_SECURITY_KEY(
             "pwm.securityKey", Syntax.PASSWORD, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
@@ -406,6 +396,17 @@ public enum PwmSetting {
     REQUIRE_HTTPS(
             "pwm.requireHTTPS", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
 
+    // token settings
+    TOKEN_STORAGEMETHOD(
+            "token.storageMethod", Syntax.SELECT, Category.TOKEN, true, Level.BASIC),
+    TOKEN_CHARACTERS(
+            "token.characters", Syntax.STRING, Category.TOKEN, true, Level.BASIC),
+    TOKEN_LENGTH(
+            "token.length", Syntax.NUMERIC, Category.TOKEN, true, Level.BASIC),
+    TOKEN_LIFETIME(
+            "token.lifetime", Syntax.NUMERIC, Category.TOKEN, true, Level.BASIC),
+    TOKEN_LDAP_ATTRIBUTE(
+            "token.ldap.attribute", Syntax.STRING, Category.TOKEN, true, Level.BASIC),
 
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
@@ -589,7 +590,7 @@ public enum PwmSetting {
     SHORTCUT_ITEMS(
             "shortcut.items", Syntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT, false, Level.BASIC),
     SHORTCUT_HEADER_NAMES(
-            "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false, Level.ADVANCED),
+            "shortcut.httpHeaders", Syntax.STRING_ARRAY, Category.SHORTCUT, false, Level.BASIC),
 
     // peoplesearch settings
     PEOPLE_SEARCH_ENABLE(
@@ -848,6 +849,7 @@ public enum PwmSetting {
         EMAIL(0),
         SMS(0),
         SECURITY(0),
+        TOKEN(0),
         LOGGING(0),
         RECOVERY(1),
         FORGOTTEN_USERNAME(1),

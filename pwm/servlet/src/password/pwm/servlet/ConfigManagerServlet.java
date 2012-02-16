@@ -671,7 +671,6 @@ public class ConfigManagerServlet extends TopServlet {
         configManagerBean.setConfigurationLoadTime(null);
         configManagerBean.setEditMode(EDIT_MODE.NONE);
     }
-
 // -------------------------- ENUMERATIONS --------------------------
 
     public static enum EDIT_MODE {
