@@ -52,7 +52,10 @@ import password.pwm.wordlist.SeedlistManager;
 import password.pwm.wordlist.SharedHistoryManager;
 import password.pwm.wordlist.WordlistManager;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -74,9 +77,10 @@ public class PwmApplication {
 
 
     private String instanceID = DEFAULT_INSTANCE_ID;
+    private String autoSiteUrl;
     private final IntruderManager intruderManager = new IntruderManager(this);
     private final Configuration configuration;
-
+    
     private Timer taskMaster;
     private PwmDB pwmDB;
     private PwmDBLogger pwmDBLogger;
@@ -461,30 +465,38 @@ public class PwmApplication {
             return;
         }
 
-        final EmailItemBean rewrittenEmailItem = new EmailItemBean(
-                emailItem.getTo(),
-                emailItem.getFrom(),
-                emailItem.getSubject(),
+        final EmailItemBean expandedEmailItem = new EmailItemBean(
+                PwmMacroMachine.expandMacros(emailItem.getTo(), this, uiBean),
+                PwmMacroMachine.expandMacros(emailItem.getFrom(), this, uiBean),
+                PwmMacroMachine.expandMacros(emailItem.getSubject(), this, uiBean),
                 PwmMacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean),
                 PwmMacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean)
         );
 
         try {
-            emailQueue.addMailToQueue(rewrittenEmailItem);
+            emailQueue.addMailToQueue(expandedEmailItem);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
     }
 
-    public void sendSmsUsingQueue(final SmsItemBean smsItem) {
+    public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean) {
         final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
             LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
             return;
         }
 
+        final SmsItemBean rewrittenSmsItem = new SmsItemBean(
+                PwmMacroMachine.expandMacros(smsItem.getTo(), this, uiBean),
+                PwmMacroMachine.expandMacros(smsItem.getFrom(), this, uiBean),
+                PwmMacroMachine.expandMacros(smsItem.getMessage(), this, uiBean),
+                smsItem.getPartlength(),
+                smsItem.getLocale()
+        );
+
         try {
-            smsQueue.addSmsToQueue(smsItem);
+            smsQueue.addSmsToQueue(rewrittenSmsItem);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add sms to queue: " + e.getMessage());
         }
@@ -694,6 +706,35 @@ public class PwmApplication {
         RUNNING,
         READ_ONLY,
         ERROR
+    }
+
+    public String getSiteURL() {
+        final String configuredURL = configuration.readSettingAsString(PwmSetting.PWM_URL);
+        if (configuredURL == null || configuredURL.length() < 1) {
+            return autoSiteUrl == null ? "<UNCONFIGURED_URL>" : autoSiteUrl;
+        }
+        return configuredURL;
+    }
+    
+    void setAutoSiteURL(final HttpServletRequest request) {
+        if (autoSiteUrl == null && request != null) {
+            try {
+                final URL url = new URL(request.getRequestURL().toString());
+                final StringBuilder sb = new StringBuilder();
+                sb.append(url.getProtocol());
+                sb.append("://");
+                sb.append(url.getHost());
+                if (url.getPort() != -1) {
+                    sb.append(":");
+                    sb.append(url.getPort());
+                }
+                sb.append(request.getSession().getServletContext().getContextPath());
+                autoSiteUrl = sb.toString();
+                LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
+            } catch (MalformedURLException e) {
+                LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
+            }
+        }
     }
 }
 

@@ -138,6 +138,9 @@ public class SessionFilter implements Filter {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+        // set the auto-config url value.
+        pwmApplication.setAutoSiteURL(req);
+
         // check the leave flag
         checkLastPageLeaveTime(pwmApplication, pwmSession, ssBean);
 

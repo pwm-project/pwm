@@ -40,7 +40,7 @@ function validateNewUserForm() {
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_PleaseWait']); }},500);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_PleaseWait']); }},1000);
 
     validationInProgress = true;
     dojo.xhrPost({
@@ -55,13 +55,11 @@ function validateNewUserForm() {
             console.log('error: ' + errorObj);
         },
         load: function(data){
-            validationInProgress = false;
-            validationCache[parameterData.cacheKey] = data;
-            if (parameterData.cacheKey != makeValidationKey().cacheKey) {
-                setTimeout(function() {validateNewUserForm();}, 1);
-            } else {
-                updateDisplay(data);
-            }
+            setTimeout(function(){
+                validationCache[parameterData.cacheKey] = data;
+                validationInProgress = false;
+                validateNewUserForm();
+            },500);
         }
     });
 }

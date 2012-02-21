@@ -45,7 +45,7 @@ function validateResponses() {
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingResponses']); }},500);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingResponses']); }},1000);
 
     validationInProgress = true;
     dojo.xhrPost({
@@ -61,13 +61,11 @@ function validateResponses() {
             console.log('error: ' + errorObj);
         },
         load: function(data){
-            validationInProgress = false;
-            validationCache[parameterData.cacheKey] = data;
-            if (parameterData.cacheKey != makeValidationKey().cacheKey) {
-                setTimeout(function() {validateResponses();}, 1);
-            } else {
-                updateDisplay(data);
-            }
+            setTimeout(function(){
+                validationCache[parameterData.cacheKey] = data;
+                validationInProgress = false;
+                validateResponses();
+            },500);
         }
     });
 }

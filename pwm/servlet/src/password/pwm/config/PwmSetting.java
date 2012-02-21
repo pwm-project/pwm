@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  */
 public enum PwmSetting {
     // general settings
+    PWM_URL(
+            "pwm.selfURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     VERSION_CHECK_ENABLE(
             "pwm.versionCheck.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     PUBLISH_STATS_ENABLE(
@@ -66,8 +68,6 @@ public enum PwmSetting {
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
-    PWM_SECURITY_KEY(
-            "pwm.securityKey", Syntax.PASSWORD, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
 
@@ -130,8 +130,6 @@ public enum PwmSetting {
             "ldap.readPasswordPolicies", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
-    DEFAULT_OBJECT_CLASSES(
-            "ldap.defaultObjectClasses", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     QUERY_MATCH_CHANGE_PASSWORD(
             "password.allowChange.queryMatch", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
@@ -363,6 +361,8 @@ public enum PwmSetting {
 
 
     // security settings
+    PWM_SECURITY_KEY(
+            "pwm.securityKey", Syntax.PASSWORD, Category.SECURITY, false, Level.BASIC),
     INTRUDER_USER_RESET_TIME(
             "intruder.user.resetTime", Syntax.NUMERIC, Category.SECURITY, true, Level.BASIC),
     INTRUDER_USER_MAX_ATTEMPTS(
@@ -526,6 +526,8 @@ public enum PwmSetting {
             "newUser.passwordPolicy.user", Syntax.STRING, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_MINIMUM_WAIT_TIME(
             "newUser.minimumWaitTime", Syntax.NUMERIC, Category.NEWUSER, false, Level.BASIC),
+    DEFAULT_OBJECT_CLASSES(
+            "ldap.defaultObjectClasses", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.ADVANCED),
 
 
     // guest settings

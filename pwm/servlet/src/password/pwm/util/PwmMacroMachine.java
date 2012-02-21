@@ -26,6 +26,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +48,8 @@ public class PwmMacroMachine {
         MACROS.add(new PwExpirationDateMacro());
         MACROS.add(new PwExpirationTimeMacro());
         MACROS.add(new DaysUntilPwExpireMacro());
+        MACROS.add(new SiteURLMacro());
+        MACROS.add(new SiteHostMacro());
     }
 
     private PwmMacroMachine() {
@@ -192,6 +196,31 @@ public class PwmMacroMachine {
         }
     }
 
+    private static class SiteURLMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@PWM:SiteURL@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            return pwmApplication.getSiteURL();
+        }
+    }
+
+    private static class SiteHostMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@PWM:SiteHost@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            try {
+                final URL url = new URL(pwmApplication.getSiteURL());
+                return url.getHost();
+            } catch (MalformedURLException e) {
+                LOGGER.error("unable to parse configured/detected site URL: " + e.getMessage());
+            }
+            return "";
+        }
+    }
 
     public static String expandMacros(final String input, final PwmApplication pwmApplication, final UserInfoBean uiBean) {
         if (input == null) {

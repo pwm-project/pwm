@@ -164,6 +164,12 @@ public class PwmSession implements Serializable {
     public void clearActivateUserBean() {
         userBeans.remove(ActivateUserBean.class);
     }
+    
+    public boolean clearUserBean(final Class userBeanClass) {
+        final boolean exists = userBeans.containsKey(userBeanClass);
+        userBeans.remove(userBeanClass);
+        return exists;
+    }
 
 // -------------------------- OTHER METHODS --------------------------
 

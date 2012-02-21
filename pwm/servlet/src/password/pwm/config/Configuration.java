@@ -22,20 +22,26 @@
 
 package password.pwm.config;
 
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiChallengeSet;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.PasswordUtility;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
@@ -55,6 +61,8 @@ public class Configuration implements Serializable {
     private final StoredConfiguration storedConfiguration;
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
+    private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
+    private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -368,17 +376,17 @@ public class Configuration implements Serializable {
     public String getNotes() {
         return storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
     }
-    
+
     public SecretKey getSecurityKey() throws PwmOperationalException {
         final String configValue = readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
         if (configValue == null || configValue.length() <= 0) {
             final String errorMsg = "PWM Security Key value is not configured";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
-            throw new PwmOperationalException(errorInfo);  
+            throw new PwmOperationalException(errorInfo);
         }
-        
+
         if (configValue.length() < 32) {
-            final String errorMsg = "PWM Security Key must be greater than 32 charachters in length";
+            final String errorMsg = "PWM Security Key must be greater than 32 characters in length";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }
@@ -390,6 +398,41 @@ public class Configuration implements Serializable {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             LOGGER.error(errorInfo,e);
             throw new PwmOperationalException(errorInfo);
+        }
+    }
+
+    public PwmPasswordPolicy getNewUserPasswordPolicy(final PwmApplication pwmApplication, final Locale userLocale)
+            throws PwmUnrecoverableException, ChaiUnavailableException {
+
+        {
+            if ((System.currentTimeMillis() - newUserPasswordPolicyCacheTime) > PwmConstants.NEWUSER_PASSWORD_POLICY_CACHE_MS) {
+                newUserPasswordPolicy.clear();
+            }
+
+            final PwmPasswordPolicy cachedPolicy = newUserPasswordPolicy.get(userLocale);
+            if (cachedPolicy != null) {
+                return cachedPolicy;
+            }
+
+            final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
+            if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
+                final PwmPasswordPolicy thePolicy = getGlobalPasswordPolicy(userLocale);
+                newUserPasswordPolicy.put(userLocale,thePolicy);
+                return thePolicy;
+            } else {
+
+                final String lookupDN;
+                if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
+                    lookupDN = readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+                } else {
+                    lookupDN = configuredNewUserPasswordDN;
+                }
+
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider());
+                final PwmPasswordPolicy thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, chaiUser, userLocale);
+                newUserPasswordPolicy.put(userLocale,thePolicy);
+                return thePolicy;
+            }
         }
     }
 }

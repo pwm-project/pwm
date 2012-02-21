@@ -22,12 +22,14 @@
 
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
-<% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<% final password.pwm.config.PwmSetting.Category category = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getCategory(); %>
+<% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
+<% final password.pwm.config.PwmSetting.Level level = configManagerBean.getLevel(); %>
+<% final boolean showDesc = configManagerBean.isShowDescr(); %>
+<% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
 <% if (showDesc) { %><span><%= category.getDescription(locale)%></span><br/><% } %>
@@ -38,7 +40,8 @@
 </p>
 <% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
-<% if (loopSetting.getCategory() == category && (level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC)) { %>
+<% final boolean showSetting = loopSetting.getCategory() == category && ((level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC) || !configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
+<% if (showSetting) { %>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="margin-top:0; padding-top:0; border-top:0">
     <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
         <label for="value_<%=loopSetting.getKey()%>"><%=loopSetting.getLabel(locale)%>

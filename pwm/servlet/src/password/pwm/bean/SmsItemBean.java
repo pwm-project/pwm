@@ -103,4 +103,7 @@ public class SmsItemBean implements Serializable {
         return sb.toString();
     }
 
+    public Integer getPartlength() {
+        return partlength;
+    }
 }

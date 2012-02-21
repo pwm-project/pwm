@@ -390,6 +390,13 @@ public class SetupResponsesServlet extends TopServlet {
     )
             throws PwmDataValidationException, PwmUnrecoverableException {
 
+        if (responseMap == null || responseMap.isEmpty()) {
+            final String errorMsg = "empty response set";
+            LOGGER.debug(pwmSession, errorMsg);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
+            throw new PwmDataValidationException(errorInfo);
+        }
+
         final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
 
         int randomCount = 0;
@@ -401,15 +408,17 @@ public class SetupResponsesServlet extends TopServlet {
 
         if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
             if (randomCount < challengeSet.getRandomChallenges().size()) {
-                LOGGER.debug(pwmSession, "all randoms required, but not all randoms are completed");
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
+                final String errorMsg = "all randoms required, but not all randoms are completed";
+                LOGGER.debug(pwmSession, errorMsg);
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
                 throw new PwmDataValidationException(errorInfo);
             }
         }
 
         if (randomCount < minRandomRequiredSetup) {
-            LOGGER.debug(pwmSession, minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed");
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE);
+            final String errorMsg = minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed";
+            LOGGER.debug(pwmSession, errorMsg);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
             throw new PwmDataValidationException(errorInfo);
         }
 

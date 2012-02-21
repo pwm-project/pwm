@@ -491,7 +491,7 @@ public class ActivateUserServlet extends TopServlet {
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, senderId, message, maxlen, locale);
-        pwmApplication.sendSmsUsingQueue(smsItem);
+        pwmApplication.sendSmsUsingQueue(smsItem, userInfoBean);
         return true;
     }
 
@@ -691,7 +691,7 @@ public class ActivateUserServlet extends TopServlet {
         message = message.replaceAll("%TOKEN%", tokenKey);
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale));
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         return true;

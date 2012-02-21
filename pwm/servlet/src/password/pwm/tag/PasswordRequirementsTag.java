@@ -298,7 +298,7 @@ public class PasswordRequirementsTag extends TagSupport {
             } else {
                 final PwmPasswordPolicy passwordPolicy;
                 if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
-                    passwordPolicy = pwmSession.getNewUserBean().getPasswordPolicy();
+                    passwordPolicy = config.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
                 } else {
                     passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
                 }

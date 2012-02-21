@@ -84,13 +84,11 @@ function validatePasswords(userDN)
             console.log('error: ' + errorObj);
         },
         load: function(data){
-            validationInProgress = false;
-            validationCache[passwordData.passwordCacheKey] = data;
-            if (passwordData.passwordCacheKey != makeValidationKey().passwordCacheKey) {
-                setTimeout(function() {validatePasswords();}, 1);
-            } else {
-                updateDisplay(data);
-            }
+            setTimeout(function(){
+                validationCache[passwordData.passwordCacheKey] = data;
+                validationInProgress = false;
+                validatePasswords();
+            },500);
         }
     });
 }

@@ -676,7 +676,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         message = message.replaceAll("%TOKEN%", token);
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        theManager.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale));
+        theManager.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         forgottenPasswordBean.setSmsUsed(true);
