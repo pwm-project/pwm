@@ -65,6 +65,9 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     // operation lock
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+    
+    private PwmDB.Status status = PwmDB.Status.NEW;
+    private boolean readOnly = false;
 
 
 // -------------------------- STATIC METHODS --------------------------
@@ -78,7 +81,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(db.toString()).append(" (").append("\n");
                 sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
-                sqlString.append("  " + VALUE_COLUMN + " VARCHAR(").append(WIDTH_VALUE).append(") ");
+                sqlString.append("  " + VALUE_COLUMN + " CLOB");
                 sqlString.append("\n");
                 sqlString.append(")").append("\n");
 
@@ -167,6 +170,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public void close()
             throws PwmDBException {
+        status = PwmDB.Status.CLOSED;
         try {
             LOCK.writeLock().lock();
             for (final Connection connection : connectionMap.values()) {
@@ -193,16 +197,18 @@ public class Derby_PwmDb implements PwmDBProvider {
     }
 
     public PwmDB.Status getStatus() {
-        return connectionMap.values().isEmpty() ? PwmDB.Status.CLOSED : PwmDB.Status.OPEN;
+        return status;
     }
 
     public boolean contains(final DB db, final String key)
             throws PwmDBException {
+        preCheck(false);
         return get(db, key) != null;
     }
 
     public String get(final DB db, final String key)
             throws PwmDBException {
+        preCheck(false);
         final StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM ").append(db.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
 
@@ -230,10 +236,6 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public void init(final File dbDirectory, final Map<String, String> initParams, final boolean readOnly)
             throws PwmDBException {
-        if (readOnly) {
-            throw new UnsupportedOperationException("readOnly not supported");
-        }
-
         this.dbDirectory = dbDirectory;
 
         for (final DB db : DB.values()) {
@@ -243,6 +245,9 @@ public class Derby_PwmDb implements PwmDBProvider {
         for (final DB db : DB.values()) {
             initTable(connectionMap.get(db), db);
         }
+
+        this.readOnly = readOnly;
+        this.status = PwmDB.Status.OPEN;
     }
 
     public synchronized Iterator<String> iterator(final DB db)
@@ -262,6 +267,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public void putAll(final DB db, final Map<String, String> keyValueMap)
             throws PwmDBException {
+        preCheck(true);
         PreparedStatement insertStatement = null, removeStatement = null;
         final String removeSqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
         final String insertSqlString = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
@@ -299,6 +305,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public boolean put(final DB db, final String key, final String value)
             throws PwmDBException {
+        preCheck(true);
         if (!contains(db, key)) {
             final String sqlText = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
             PreparedStatement statement = null;
@@ -344,6 +351,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public boolean remove(final DB db, final String key)
             throws PwmDBException {
+        preCheck(true);
         if (!contains(db, key)) {
             return false;
         }
@@ -370,7 +378,8 @@ public class Derby_PwmDb implements PwmDBProvider {
     }
 
     public synchronized void returnIterator(final DB db)
-            throws PwmDBException {
+            throws PwmDBException
+    {
         final DbIterator dbIterator = dbIterators.remove(db);
         if (dbIterator != null) {
             try {
@@ -382,7 +391,9 @@ public class Derby_PwmDb implements PwmDBProvider {
     }
 
     public int size(final DB db)
-            throws PwmDBException {
+            throws PwmDBException
+    {
+        preCheck(false);
         final StringBuilder sb = new StringBuilder();
         sb.append("SELECT COUNT(" + KEY_COLUMN + ") FROM ").append(db.toString());
 
@@ -408,7 +419,9 @@ public class Derby_PwmDb implements PwmDBProvider {
     }
 
     public void truncate(final DB db)
-            throws PwmDBException {
+            throws PwmDBException
+    {
+        preCheck(true);
         final StringBuilder sqlText = new StringBuilder();
         sqlText.append("DROP TABLE ").append(db.toString());
 
@@ -428,7 +441,10 @@ public class Derby_PwmDb implements PwmDBProvider {
         }
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
+    public void removeAll(final DB db, final Collection<String> keys)
+            throws PwmDBException
+    {
+        preCheck(true);
         final String sqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
         PreparedStatement statement = null;
         final Connection connection = connectionMap.get(db);
@@ -544,5 +560,15 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     public File getFileLocation() {
         return dbDirectory;
+    }
+
+    private void preCheck(final boolean write) throws PwmDBException {
+        if (status != PwmDB.Status.OPEN) {
+            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
+        }
+
+        if (write && readOnly) {
+            throw new IllegalStateException("cannot allow mutator operation; pwmDB is in read-only mode");
+        }
     }
 }

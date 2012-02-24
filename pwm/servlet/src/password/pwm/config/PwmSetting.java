@@ -70,6 +70,8 @@ public enum PwmSetting {
             "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
+    HIDE_CONFIGURATION_HEALTH_WARNINGS(
+            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
 
 
 
@@ -395,6 +397,12 @@ public enum PwmSetting {
             "disallowedInputs", Syntax.STRING_ARRAY, Category.SECURITY, false, Level.ADVANCED),
     REQUIRE_HTTPS(
             "pwm.requireHTTPS", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
+    FORCE_BASIC_AUTH(
+            "forceBasicAuth", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    USE_X_FORWARDED_FOR_HEADER(
+            "useXForwardedForHeader", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
+    REVERSE_DNS_ENABLE(
+            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
 
     // token settings
     TOKEN_STORAGEMETHOD(
@@ -634,33 +642,6 @@ public enum PwmSetting {
     HELPDESK_CONTEXT(
             "helpdesk.context", Syntax.STRING, Category.HELPDESK, false, Level.BASIC),
 
-    // misc
-    USE_X_FORWARDED_FOR_HEADER(
-            "useXForwardedForHeader", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
-    FORCE_BASIC_AUTH(
-            "forceBasicAuth", Syntax.BOOLEAN, Category.MISC, true, Level.ADVANCED),
-    REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.MISC, true, Level.BASIC),
-    EXTERNAL_CHANGE_METHODS(
-            "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    EXTERNAL_JUDGE_METHODS(
-            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    EXTERNAL_RULE_METHODS(
-            "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-    HTTP_PROXY_URL(
-            "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.BASIC),
-    HIDE_CONFIGURATION_HEALTH_WARNINGS(
-            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.MISC, false, Level.BASIC),
-    CAS_CLEAR_PASS_URL(
-            "cas.clearPassUrl", Syntax.STRING, Category.MISC, false, Level.BASIC),
-
-    URL_SHORTENER_CLASS(
-            "urlshortener.classname", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
-    URL_SHORTENER_REGEX(
-            "urlshortener.regex", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
-    URL_SHORTENER_PARAMETERS(
-            "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
-
     // Database
     PWMDB_LOCATION(
             "pwmDb.location", Syntax.STRING, Category.DATABASE, true, Level.BASIC),
@@ -676,6 +657,24 @@ public enum PwmSetting {
             "db.username", Syntax.STRING, Category.DATABASE, false, Level.BASIC),
     DATABASE_PASSWORD(
             "db.password", Syntax.PASSWORD, Category.DATABASE, false, Level.BASIC),
+
+    // misc
+    EXTERNAL_CHANGE_METHODS(
+            "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+    EXTERNAL_JUDGE_METHODS(
+            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+    EXTERNAL_RULE_METHODS(
+            "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+    HTTP_PROXY_URL(
+            "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.BASIC),
+    CAS_CLEAR_PASS_URL(
+            "cas.clearPassUrl", Syntax.STRING, Category.MISC, false, Level.BASIC),
+    URL_SHORTENER_CLASS(
+            "urlshortener.classname", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+    URL_SHORTENER_REGEX(
+            "urlshortener.regex", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
+    URL_SHORTENER_PARAMETERS(
+            "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
 
     ;
 

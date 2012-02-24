@@ -25,12 +25,12 @@
 
 <%--
   ~ This file is imported by most JSPs, it shows the main 'header' in the html
-  - which by default is a blue-gray gradieted and rounded block.       cd ..
+  - which by default is a blue-gray gradieted and rounded block.
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
 <% if (!request.getRequestURI().contains("configmanager")) { %>
-<div id="header-warning">PWM is in configuration mode. Use the <a href="<pwm:url url='/pwm/config/ConfigManager'/>">ConfigManager</a>
+<div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
     to modify or lock the configuration.
 </div>
 <% } %>

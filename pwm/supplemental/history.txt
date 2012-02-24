@@ -10,6 +10,14 @@ v1.6.2
 + Added token (email and sms) support for user activation
 + Added new user agreement support for user activation
 + Added crypto and ldap options for tokens
++ ConfigManager performance improvements for display value editing
+
+* Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
+
+- Changed servlet version to v2.5, v2.5 container (tomcat 6) is now minimum requirement
+- Resolved issue where newuser agreement screen could be bypassed (issue #165)
+- Fixed url path issue (/private url required for public pages) (issue #154)
+- Issue where activate user wasn't performing LDAP compare on correct form values (issue #153)
 
 
 v1.6.1 (January 16, 2012) build 1123
