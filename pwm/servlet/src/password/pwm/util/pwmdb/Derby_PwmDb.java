@@ -52,7 +52,8 @@ public class Derby_PwmDb implements PwmDBProvider {
     private static final String VALUE_COLUMN = "value";
 
     private static final String WIDTH_KEY = String.valueOf(PwmDB.MAX_KEY_LENGTH);
-    private static final String WIDTH_VALUE = String.valueOf(PwmDB.MAX_VALUE_LENGTH);
+    
+    private static final String DERBY_CLASSPATH = "org.apache.derby.jdbc.EmbeddedDriver";
 
     //private Connection connection;
     private String baseConnectionURL;
@@ -61,11 +62,12 @@ public class Derby_PwmDb implements PwmDBProvider {
     // cache of dbIterators
     private final Map<DB, DbIterator<String>> dbIterators = new ConcurrentHashMap<DB, DbIterator<String>>();
 
-    private final Map<DB, Connection> connectionMap = new ConcurrentHashMap<DB, Connection>();
+    // sql db connection
+    private Connection dbConnection;
 
     // operation lock
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
-    
+
     private PwmDB.Status status = PwmDB.Status.NEW;
     private boolean readOnly = false;
 
@@ -173,24 +175,31 @@ public class Derby_PwmDb implements PwmDBProvider {
         status = PwmDB.Status.CLOSED;
         try {
             LOCK.writeLock().lock();
-            for (final Connection connection : connectionMap.values()) {
-                if (connection != null) {
+            if (dbConnection != null) {
+                try {
+
+                    dbConnection.close();
+                    final String connectionURL = baseConnectionURL + ";shutdown=true";
+
                     try {
-
-                        connection.close();
-                        final String connectionURL = baseConnectionURL + ";shutdown=true";
-
-                        try {
-                            DriverManager.getConnection(connectionURL);
-                        } catch (Throwable e) {
-                            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
-                        }
-                    } catch (Exception e) {
-                        LOGGER.debug("error while closing DB: " + e.getMessage());
+                        DriverManager.getConnection(connectionURL);
+                    } catch (Throwable e) {
+                        throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
                     }
+                } catch (Exception e) {
+                    LOGGER.debug("error while closing DB: " + e.getMessage());
                 }
-                connectionMap.values().remove(connection);
             }
+        } finally {
+            LOCK.writeLock().unlock();
+        }
+
+        try {
+            LOCK.writeLock().lock();
+            final Driver driver = DriverManager.getDriver(baseConnectionURL);
+            DriverManager.deregisterDriver(driver);
+        } catch (SQLException e) {
+            LOGGER.error("unable to de-register sql driver: " + e.getMessage(),e);
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -214,10 +223,9 @@ public class Derby_PwmDb implements PwmDBProvider {
 
         PreparedStatement statement = null;
         ResultSet resultSet = null;
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.readLock().lock();
-            statement = connection.prepareStatement(sb.toString());
+            statement = dbConnection.prepareStatement(sb.toString());
             statement.setString(1, key);
             statement.setMaxRows(1);
             resultSet = statement.executeQuery();
@@ -238,12 +246,10 @@ public class Derby_PwmDb implements PwmDBProvider {
             throws PwmDBException {
         this.dbDirectory = dbDirectory;
 
-        for (final DB db : DB.values()) {
-            connectionMap.put(db, openDB(dbDirectory));
-        }
+        this.dbConnection = openDB(dbDirectory);
 
         for (final DB db : DB.values()) {
-            initTable(connectionMap.get(db), db);
+            initTable(dbConnection, db);
         }
 
         this.readOnly = readOnly;
@@ -272,12 +278,11 @@ public class Derby_PwmDb implements PwmDBProvider {
         final String removeSqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
         final String insertSqlString = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
 
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.writeLock().lock();
             // just in case anyone was unclear: sql does indeed suck.
-            removeStatement = connection.prepareStatement(removeSqlString);
-            insertStatement = connection.prepareStatement(insertSqlString);
+            removeStatement = dbConnection.prepareStatement(removeSqlString);
+            insertStatement = dbConnection.prepareStatement(insertSqlString);
 
             for (final String loopKey : keyValueMap.keySet()) {
                 removeStatement.clearParameters();
@@ -292,7 +297,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
             removeStatement.executeBatch();
             insertStatement.executeBatch();
-            connection.commit();
+            dbConnection.commit();
         } catch (SQLException ex) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
@@ -310,14 +315,13 @@ public class Derby_PwmDb implements PwmDBProvider {
             final String sqlText = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
             PreparedStatement statement = null;
 
-            final Connection connection = connectionMap.get(db);
             try {
                 LOCK.writeLock().lock();
-                statement = connection.prepareStatement(sqlText);
+                statement = dbConnection.prepareStatement(sqlText);
                 statement.setString(1, key);
                 statement.setString(2, value);
                 statement.executeUpdate();
-                connection.commit();
+                dbConnection.commit();
             } catch (SQLException ex) {
                 throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
             } finally {
@@ -330,14 +334,13 @@ public class Derby_PwmDb implements PwmDBProvider {
         final String sqlText = "UPDATE " + db.toString() + " SET " + VALUE_COLUMN + "=? WHERE " + KEY_COLUMN + "=?";
         PreparedStatement statement = null;
 
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.writeLock().lock();
-            statement = connection.prepareStatement(sqlText);
+            statement = dbConnection.prepareStatement(sqlText);
             statement.setString(1, value);
             statement.setString(2, key);
             statement.executeUpdate();
-            connection.commit();
+            dbConnection.commit();
         } catch (SQLException ex) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
@@ -360,13 +363,12 @@ public class Derby_PwmDb implements PwmDBProvider {
         sqlText.append("DELETE FROM ").append(db.toString()).append(" WHERE " + KEY_COLUMN + "=?");
 
         PreparedStatement statement = null;
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.writeLock().lock();
-            statement = connection.prepareStatement(sqlText.toString());
+            statement = dbConnection.prepareStatement(sqlText.toString());
             statement.setString(1, key);
             statement.executeUpdate();
-            connection.commit();
+            dbConnection.commit();
         } catch (SQLException ex) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
@@ -399,10 +401,9 @@ public class Derby_PwmDb implements PwmDBProvider {
 
         PreparedStatement statement = null;
         ResultSet resultSet = null;
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.readLock().lock();
-            statement = connection.prepareStatement(sb.toString());
+            statement = dbConnection.prepareStatement(sb.toString());
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return resultSet.getInt(1);
@@ -426,13 +427,12 @@ public class Derby_PwmDb implements PwmDBProvider {
         sqlText.append("DROP TABLE ").append(db.toString());
 
         PreparedStatement statement = null;
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.writeLock().lock();
-            statement = connection.prepareStatement(sqlText.toString());
+            statement = dbConnection.prepareStatement(sqlText.toString());
             statement.executeUpdate();
-            connection.commit();
-            initTable(connection, db);
+            dbConnection.commit();
+            initTable(dbConnection, db);
         } catch (SQLException ex) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
@@ -447,10 +447,9 @@ public class Derby_PwmDb implements PwmDBProvider {
         preCheck(true);
         final String sqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
         PreparedStatement statement = null;
-        final Connection connection = connectionMap.get(db);
         try {
             LOCK.writeLock().lock();
-            statement = connection.prepareStatement(sqlString);
+            statement = dbConnection.prepareStatement(sqlString);
 
             for (final String loopKey : keys) {
                 statement.clearParameters();
@@ -458,7 +457,7 @@ public class Derby_PwmDb implements PwmDBProvider {
                 statement.addBatch();
             }
             statement.executeBatch();
-            connection.commit();
+            dbConnection.commit();
         } catch (SQLException ex) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
         } finally {
@@ -475,7 +474,8 @@ public class Derby_PwmDb implements PwmDBProvider {
         final String connectionURL = baseConnectionURL + ";create=true";
 
         try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+            final Driver driver = (Driver)Class.forName(DERBY_CLASSPATH).newInstance();
+            DriverManager.registerDriver(driver);
             final Connection connection = DriverManager.getConnection(connectionURL);
             connection.setAutoCommit(false);
             return connection;
@@ -506,8 +506,7 @@ public class Derby_PwmDb implements PwmDBProvider {
             sb.append("SELECT * FROM ").append(db.toString());
 
             try {
-                final Connection connection = connectionMap.get(db);
-                final PreparedStatement statement = connection.prepareStatement(sb.toString());
+                final PreparedStatement statement = dbConnection.prepareStatement(sb.toString());
                 resultSet = statement.executeQuery();
             } catch (SQLException ex) {
                 throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));

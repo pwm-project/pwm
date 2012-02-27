@@ -225,6 +225,9 @@ public class PasswordUtility {
         // call out to external methods.
         Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, oldPassword, newPassword);
 
+        // call out to external REST methods.
+        Helper.invokeExternalRestChangeMethods(pwmSession, pwmApplication, oldPassword, newPassword);
+
         return true;
     }
 

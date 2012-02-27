@@ -157,17 +157,17 @@ public enum PwmSetting {
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_USERNAME(
-            "email.smtp.username", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
+            "email.smtp.username", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_PASSWORD(
-            "email.smtp.userpassword", Syntax.PASSWORD, Category.EMAIL, false, Level.BASIC),
+            "email.smtp.userpassword", Syntax.PASSWORD, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", Syntax.STRING, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", Syntax.NUMERIC, Category.EMAIL, true, Level.ADVANCED),
     EMAIL_ADMIN_ALERT_TO(
-            "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
+            "email.adminAlert.toAddress", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.BASIC),
     EMAIL_ADMIN_ALERT_FROM(
-            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.BASIC),
+            "email.adminAlert.fromAddress", Syntax.STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_CHANGEPASSWORD_FROM(
             "email.changePassword.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_SUBJECT(
@@ -660,11 +660,13 @@ public enum PwmSetting {
 
     // misc
     EXTERNAL_CHANGE_METHODS(
-            "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+            "externalChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.BASIC),
+    EXTERNAL_REST_CHANGE_METHODS(
+            "externalRestChangeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.BASIC),
     EXTERNAL_JUDGE_METHODS(
-            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+            "externalJudgeMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.BASIC),
     EXTERNAL_RULE_METHODS(
-            "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+            "externalRuleMethod", Syntax.STRING_ARRAY, Category.MISC, false, Level.BASIC),
     HTTP_PROXY_URL(
             "http.proxy.url", Syntax.STRING, Category.MISC, false, Level.BASIC),
     CAS_CLEAR_PASS_URL(

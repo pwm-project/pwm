@@ -25,6 +25,8 @@ package password.pwm.util.db;
 import com.google.gson.Gson;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -55,25 +57,107 @@ public class DatabaseAccessor implements PwmService {
     private static final String KEY_TEST = "write-test-key";
     private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
 
-    private final DBConfiguration dbConfiguration;
-    private final String instanceID;
+    private DBConfiguration dbConfiguration;
+    private String instanceID;
     private volatile Connection connection;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
     private ErrorInformation lastError;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DatabaseAccessor(final DBConfiguration dbConfiguration, final String instanceID)
+    public DatabaseAccessor()
             throws PwmUnrecoverableException
     {
-        this.dbConfiguration = dbConfiguration;
-        this.instanceID = instanceID;
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface PwmService ---------------------
+
+    public STATUS status() {
+        return status;
+    }
+
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        final Configuration config = pwmApplication.getConfig();
+        this.dbConfiguration = new DBConfiguration(
+                config.readSettingAsString(PwmSetting.DATABASE_CLASS),
+                config.readSettingAsString(PwmSetting.DATABASE_URL),
+                config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
+                config.readSettingAsString(PwmSetting.DATABASE_PASSWORD));
+
+        this.instanceID = pwmApplication.getInstanceID();
 
         if (this.dbConfiguration.isEmpty()) {
             status = PwmService.STATUS.CLOSED;
             LOGGER.debug("skipping database connection open, no connection parameters configured");
         }
     }
+
+    public void close()
+    {
+        status = PwmService.STATUS.CLOSED;
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (Exception e) {
+                LOGGER.debug("error while closing DB: " + e.getMessage());
+            }
+        }
+
+        try {
+            final Driver driver = DriverManager.getDriver(dbConfiguration.connectionString);
+            DriverManager.deregisterDriver(driver);
+        } catch (Exception e) {
+            LOGGER.debug("error while de-registering driver: " + e.getMessage());
+        }
+
+        connection = null;
+    }
+
+    public List<HealthRecord> healthCheck() {
+        if (status == PwmService.STATUS.CLOSED) {
+            return Collections.emptyList();
+        }
+
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+
+        try {
+            preOperationCheck();
+        } catch (PwmUnrecoverableException e) {
+            lastError = e.getErrorInformation();
+            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Database server is not available: " + e.getErrorInformation().toDebugStr()));
+            return returnRecords;
+        }
+
+        try {
+            final Gson gson = new Gson();
+            final Map<String,String> tempMap = new HashMap<String,String>();
+            tempMap.put("instance",instanceID);
+            tempMap.put("date",(new java.util.Date()).toString());
+            this.put(TABLE.PWM_META, DatabaseAccessor.KEY_TEST, gson.toJson(tempMap));
+        } catch (PwmException e) {
+            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Error writing to database: " + e.getErrorInformation().toDebugStr()));
+            return returnRecords;
+        }
+
+        if (lastError != null) {
+            final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
+
+            if (errorAge.isShorterThan(TimeDuration.HOUR)) {
+                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString() + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
+            }
+        }
+
+        if (returnRecords.isEmpty()) {
+            returnRecords.add(new HealthRecord(HealthStatus.GOOD, "Database", "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
+        }
+
+        return returnRecords;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
 
     private synchronized void init()
             throws PwmUnrecoverableException
@@ -96,69 +180,13 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    private synchronized void preOperationCheck() throws PwmUnrecoverableException {
-        if (status == PwmService.STATUS.CLOSED) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"database connection is not open"));
-        }
-
-        if (status == PwmService.STATUS.NEW) {
-            init();
-        }
-
-        if (!isValid(connection)) {
-            init();
-        }
-    }
-
-    private boolean isValid(final Connection connection) {
-        if (connection == null) {
-            return false;
-        }
-
-        if (status != PwmService.STATUS.OPEN) {
-            return false;
-        }
-
-        try {
-            final Method getFreeSpaceMethod = File.class.getMethod("isValid");
-            final Object rawResult = getFreeSpaceMethod.invoke(connection,10);
-            return (Boolean) rawResult;
-        } catch (NoSuchMethodException e) {
-            /* no error, pre java 1.6 doesn't have this method */
-        } catch (Exception e) {
-            LOGGER.debug("error checking for isValid for " + connection.toString() + ",: " + e.getMessage());
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SELECT * FROM ").append(TABLE.PWM_META.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = connection.prepareStatement(sb.toString());
-            statement.setString(1, KEY_ENGINE_START_PREFIX + instanceID);
-            statement.setMaxRows(1);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                resultSet.getString(VALUE_COLUMN);
-            }
-        } catch (SQLException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"isValid operation failed: " + e.getMessage());
-            lastError = errorInformation;
-            LOGGER.error(errorInformation.toDebugStr());
-            return false;
-        } finally {
-            close(statement);
-            close(resultSet);
-        }
-        return true;
-    }
-
     private static Connection openDB(final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
         final String connectionURL = dbConfiguration.getConnectionString();
         final String jdbcClass = dbConfiguration.getDriverClassname();
 
         try {
-            Class.forName(jdbcClass).newInstance();
+            final Driver driver = (Driver)Class.forName(jdbcClass).newInstance();
+            DriverManager.registerDriver(driver);
             final Connection connection = DriverManager.getConnection(connectionURL,dbConfiguration.getUsername(),dbConfiguration.getPassword());
             connection.setAutoCommit(true);
             return connection;
@@ -227,91 +255,6 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    private static void close(final ResultSet resultSet) {
-        if (resultSet != null) {
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                LOGGER.error("unexpected error during close resultSet object " + e.getMessage(), e);
-            }
-        }
-    }
-
-    private static void close(final Statement statement) {
-        if (statement != null) {
-            try {
-                statement.close();
-            } catch (SQLException e) {
-                LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
-            }
-        }
-    }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface PwmService ---------------------
-
-    public STATUS status() {
-        return status;
-    }
-
-    public void close()
-    {
-        status = PwmService.STATUS.CLOSED;
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (Exception e) {
-                LOGGER.debug("error while closing DB: " + e.getMessage());
-            }
-        }
-        connection = null;
-    }
-
-    public List<HealthRecord> healthCheck() {
-        if (status == PwmService.STATUS.CLOSED) {
-            return Collections.emptyList();
-        }
-
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
-
-        try {
-            preOperationCheck();
-        } catch (PwmUnrecoverableException e) {
-            lastError = e.getErrorInformation();
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Database server is not available: " + e.getErrorInformation().toDebugStr()));
-            return returnRecords;
-        }
-
-        try {
-            final Gson gson = new Gson();
-            final Map<String,String> tempMap = new HashMap<String,String>();
-            tempMap.put("instance",instanceID);
-            tempMap.put("date",(new java.util.Date()).toString());
-            this.put(TABLE.PWM_META, DatabaseAccessor.KEY_TEST, gson.toJson(tempMap));
-        } catch (PwmException e) {
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Error writing to database: " + e.getErrorInformation().toDebugStr()));
-            return returnRecords;
-        }
-
-        if (lastError != null) {
-            final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
-
-            if (errorAge.isShorterThan(TimeDuration.HOUR)) {
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString() + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
-            }
-        }
-
-        if (returnRecords.isEmpty()) {
-            returnRecords.add(new HealthRecord(HealthStatus.GOOD, "Database", "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
-        }
-
-        return returnRecords;
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
     public boolean put(final TABLE table, final String key, final String value)
             throws PwmUnrecoverableException, DatabaseException {
         LOGGER.trace("attempting put operation for table=" + table + ", key=" + key);
@@ -353,6 +296,83 @@ public class DatabaseAccessor implements PwmService {
 
         LOGGER.trace("put operation succeeded for table=" + table + ", key=" + key);
         return true;
+    }
+
+    private synchronized void preOperationCheck() throws PwmUnrecoverableException {
+        if (status == PwmService.STATUS.CLOSED) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"database connection is not open"));
+        }
+
+        if (status == PwmService.STATUS.NEW) {
+            init();
+        }
+
+        if (!isValid(connection)) {
+            init();
+        }
+    }
+
+    private boolean isValid(final Connection connection) {
+        if (connection == null) {
+            return false;
+        }
+
+        if (status != PwmService.STATUS.OPEN) {
+            return false;
+        }
+
+        try {
+            final Method getFreeSpaceMethod = File.class.getMethod("isValid");
+            final Object rawResult = getFreeSpaceMethod.invoke(connection,10);
+            return (Boolean) rawResult;
+        } catch (NoSuchMethodException e) {
+            /* no error, pre java 1.6 doesn't have this method */
+        } catch (Exception e) {
+            LOGGER.debug("error checking for isValid for " + connection.toString() + ",: " + e.getMessage());
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SELECT * FROM ").append(TABLE.PWM_META.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement(sb.toString());
+            statement.setString(1, KEY_ENGINE_START_PREFIX + instanceID);
+            statement.setMaxRows(1);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                resultSet.getString(VALUE_COLUMN);
+            }
+        } catch (SQLException e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"isValid operation failed: " + e.getMessage());
+            lastError = errorInformation;
+            LOGGER.error(errorInformation.toDebugStr());
+            return false;
+        } finally {
+            close(statement);
+            close(resultSet);
+        }
+        return true;
+    }
+
+    private static void close(final Statement statement) {
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private static void close(final ResultSet resultSet) {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                LOGGER.error("unexpected error during close resultSet object " + e.getMessage(), e);
+            }
+        }
     }
 
     public boolean contains(final TABLE table, final String key)
@@ -462,7 +482,6 @@ public class DatabaseAccessor implements PwmService {
 // -------------------------- INNER CLASSES --------------------------
 
     public class DBIterator<E> implements Iterator<String> {
-
         private final TABLE table;
         private final ResultSet resultSet;
         private java.lang.String nextValue;
@@ -489,7 +508,6 @@ public class DatabaseAccessor implements PwmService {
                 throw new DatabaseException(errorInformation);
             }
         }
-
 
         public boolean hasNext() {
             return !finished;
@@ -574,8 +592,5 @@ public class DatabaseAccessor implements PwmService {
             }
             return false;
         }
-    }
-
-    public void init(PwmApplication pwmApplication) throws PwmException {
     }
 }

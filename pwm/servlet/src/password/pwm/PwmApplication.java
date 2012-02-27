@@ -85,7 +85,6 @@ public class PwmApplication {
     private PwmDB pwmDB;
     private PwmDBLogger pwmDBLogger;
     private volatile ChaiProvider proxyChaiProvider;
-    private volatile DatabaseAccessor databaseAccessor;
 
     private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
 
@@ -97,6 +96,7 @@ public class PwmApplication {
     private MODE applicationMode;
 
     private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(SharedHistoryManager.class,
+            DatabaseAccessor.class,
             HealthMonitor.class,
             StatisticsManager.class,
             WordlistManager.class,
@@ -155,7 +155,6 @@ public class PwmApplication {
 
     public Set<PwmService> getPwmServices() {
         final Set<PwmService> pwmServices = new HashSet<PwmService>();
-        pwmServices.add(this.databaseAccessor);
         pwmServices.add(this.pwmDBLogger);
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
@@ -257,16 +256,7 @@ public class PwmApplication {
     public synchronized DatabaseAccessor getDatabaseAccessor()
             throws PwmUnrecoverableException
     {
-        if (databaseAccessor == null) {
-            final DatabaseAccessor.DBConfiguration dbConfiguration = new DatabaseAccessor.DBConfiguration(
-                    getConfig().readSettingAsString(PwmSetting.DATABASE_CLASS),
-                    getConfig().readSettingAsString(PwmSetting.DATABASE_URL),
-                    getConfig().readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                    getConfig().readSettingAsString(PwmSetting.DATABASE_PASSWORD));
-
-            databaseAccessor = new DatabaseAccessor(dbConfiguration, this.getInstanceID());
-        }
-        return databaseAccessor;
+        return (DatabaseAccessor)pwmServices.get(DatabaseAccessor.class);
     }
 
     private void initialize() throws PwmDBException {
@@ -530,15 +520,6 @@ public class PwmApplication {
                     }
                 }
             }
-        }
-
-        if (databaseAccessor != null) {
-            try {
-                databaseAccessor.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing databaseAccessor: " + e.getMessage(),e);
-            }
-            databaseAccessor = null;
         }
 
         if (pwmDBLogger != null) {

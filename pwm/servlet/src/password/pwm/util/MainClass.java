@@ -32,7 +32,6 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.csv.CsvReader;
 import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBFactory;
@@ -327,16 +326,6 @@ public class MainClass {
         return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly);
     }
 
-    static DatabaseAccessor loadDBAccessor(final Configuration config, final boolean readonly) throws Exception {
-        final DatabaseAccessor.DBConfiguration dbConfiguration = new DatabaseAccessor.DBConfiguration(
-                config.readSettingAsString(PwmSetting.DATABASE_CLASS),
-                config.readSettingAsString(PwmSetting.DATABASE_URL),
-                config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                config.readSettingAsString(PwmSetting.DATABASE_PASSWORD));
-
-        return new DatabaseAccessor(dbConfiguration, "MainClass");
-    }
-
     static Configuration loadConfiguration() throws Exception {
         return (new ConfigurationReader(new File("PwmConfiguration.xml"))).getConfiguration();
     }
@@ -478,6 +467,7 @@ public class MainClass {
             transactionMap.put(loopDB,new HashMap<String, String>());
         }
 
+        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 1100, 3, 50 * 1000);
         try {
             csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
             while (csvReader.readRecord()) {
@@ -488,9 +478,11 @@ public class MainClass {
                 transactionMap.get(db).put(key,value);
                 staticCounter++;
                 for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-                    if (transactionMap.get(loopDB).size() > 500) {
+                    if (transactionMap.get(loopDB).size() > transactionCalculator.getTransactionSize()) {
+                        final long startTxnTime = System.currentTimeMillis();
                         pwmDB.putAll(loopDB,transactionMap.get(loopDB));
                         transactionMap.get(loopDB).clear();
+                        transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startTxnTime));
                     }
                 }
             }

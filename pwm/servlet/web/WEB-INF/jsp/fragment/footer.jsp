@@ -88,7 +88,7 @@
         dojo.addOnLoad(function(){setTimeout(function(){ // pre-fetch dojo/dijit objects
             var img = new Image();img.src='<%=request.getContextPath()%>/resources/wait.gif';
             dojo.require("dijit.Dialog");dojo.require("dijit.Tooltip");dojo.require("dijit.Menu");dojo.require("dijit.MenuItem");
-        },9000);});
+        },3500);});
         dojo.addOnLoad(function(){setTimeout(function(){
             initCountDownTimer(<%= sessionStateBean.getMaxInactiveSeconds() %>);
         },90);});
