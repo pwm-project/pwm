@@ -851,6 +851,22 @@ public class Helper {
         return new File(suggestedPath + File.separator + filename);
     }
 
+    public static Boolean fileExists(final String filename) {
+    	if (filename != null) {
+    		File file = new File(filename);
+    		return file.exists() && file.isFile();
+    	}
+    	return false;
+    }
+
+    public static Boolean directoryExists(final String dirname) {
+    	if (dirname != null) {
+    		File directory = new File(dirname);
+    		return directory.exists() && directory.isDirectory();
+    	}
+    	return false;
+    }
+    
     public static String readFileAsString(final File filePath, final long maxLength, final String charset)
             throws IOException {
         final StringBuilder fileData = new StringBuilder();
