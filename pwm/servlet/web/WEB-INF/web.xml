@@ -398,6 +398,18 @@
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
 -->
+<!-- issue 169 -->
+    <servlet-mapping>
+        <servlet-name>ResourceFileServlet</servlet-name>
+        <url-pattern>/resources/changepassword.js</url-pattern>
+        <url-pattern>/resources/configmanager.js</url-pattern>
+        <url-pattern>/resources/newuser.js</url-pattern>
+        <url-pattern>/resources/pwmHelper.js</url-pattern>
+        <url-pattern>/resources/responses.js</url-pattern>
+        <url-pattern>/resources/dojo.zip</url-pattern>
+    </servlet-mapping>
+<!-- /issue 169 -->
+
     <servlet>
         <servlet-name>HelpdeskServlet</servlet-name>
         <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
