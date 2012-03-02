@@ -115,6 +115,10 @@
         <filter-class>password.pwm.SessionFilter</filter-class>
     </filter>
     <filter>
+        <filter-name>ThemeFileFilter</filter-name>
+        <filter-class>password.pwm.ThemeFileFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>CaptchaFilter</filter-name>
         <filter-class>password.pwm.CaptchaFilter</filter-class>
     </filter>
@@ -165,6 +169,18 @@
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
         <url-pattern>/public/ForgottenUsername</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ThemeFileFilter</filter-name>
+        <url-pattern>*.png</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ThemeFileFilter</filter-name>
+        <url-pattern>*.gif</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ThemeFileFilter</filter-name>
+        <url-pattern>*.jpg</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
@@ -375,10 +391,13 @@
         <servlet-name>ConfigUploadServlet</servlet-name>
         <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
+<!-- disabled temporarily (issue 169) -->
+<!--
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
+-->
     <servlet>
         <servlet-name>HelpdeskServlet</servlet-name>
         <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
