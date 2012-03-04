@@ -28,15 +28,7 @@
 <% final PwmSession pwmSessionHeader = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplicationHeader = ContextManager.getPwmApplication(session); %>
 <head>
-    <title><pwm:Display key="Title_Application"/>
-        <%
-            final String userField = pwmSessionHeader.getUserInfoBean().getUserID();
-            if (userField != null && userField.length() > 0) {
-                out.write(" - ");
-                out.write(userField);
-            }
-        %>
-    </title>
+    <title><pwm:Display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="Description" content="PWM Password Self Service"/>
     <meta name="X-Pwm-Instance"

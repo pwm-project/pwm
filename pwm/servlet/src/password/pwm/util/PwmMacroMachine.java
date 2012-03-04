@@ -44,6 +44,7 @@ public class PwmMacroMachine {
         MACROS.add(new UserPwExpirationDateMacro());
         MACROS.add(new UserPwExpirationTimeMacro());
         MACROS.add(new UserDaysUntilPwExpireMacro());
+        MACROS.add(new UserIDMacro());
         MACROS.add(new PwmInstanceIDMacro());
         MACROS.add(new PwmCurrentDateTimeMacro());
         MACROS.add(new PwmCurrentDateMacro());
@@ -67,7 +68,6 @@ public class PwmMacroMachine {
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
             if (uiBean == null) {
-                LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
             }
 
@@ -203,6 +203,20 @@ public class PwmMacroMachine {
         }
     }
 
+    private static class UserIDMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@User:ID@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            if (uiBean == null || uiBean.getUserID() == null) {
+                return "";
+            }
+
+            return uiBean.getUserID();
+        }
+    }
+
     private static class PwmSiteURLMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
             return Pattern.compile("@PWM:SiteURL@");
@@ -281,7 +295,11 @@ public class PwmMacroMachine {
             LOGGER.error("error while replacing PwmMacro '" + matchedStr + "', error: " + e.getMessage());
         }
 
-        if (stringReplacer != null && replaceStr != null) {
+        if (replaceStr == null) {
+            return input;
+        }
+
+        if (stringReplacer != null) {
             try {
                 replaceStr = stringReplacer.replace(matchedStr, replaceStr);
             }  catch (Exception e) {
