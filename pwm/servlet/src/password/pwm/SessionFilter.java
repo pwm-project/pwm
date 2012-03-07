@@ -123,6 +123,16 @@ public class SessionFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
+        if (req.getRequestURI().startsWith("/public/rest")) {
+            try {
+                processFilter(req,resp,filterChain);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
+                ServletHelper.forwardToErrorPage(req,resp,true);
+            }
+            return;
+        }
+
         try {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {

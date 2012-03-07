@@ -56,7 +56,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>Jersey REST Service</servlet-name>
-        <url-pattern>/private/rest/*</url-pattern>
         <url-pattern>/public/rest/*</url-pattern>
     </servlet-mapping>
     <!-- uncomment and set parameters for CAS integration
@@ -147,9 +146,11 @@
     </filter>
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
-        <url-pattern>/jsp/*</url-pattern>
+        <url-pattern>/public/NewUser</url-pattern>
+        <url-pattern>/public/ActivateUser</url-pattern>
+        <url-pattern>/public/ForgottenPassword</url-pattern>
+        <url-pattern>/public/ForgottenUsername</url-pattern>
         <url-pattern>/private/*</url-pattern>
-        <url-pattern>/public/*</url-pattern>
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
         <url-pattern>*.jsp</url-pattern>

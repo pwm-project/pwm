@@ -62,16 +62,9 @@ function validatePasswords(userDN)
 
     setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },1000);
 
-    var restUrl;
-    if (document.URL.indexOf('/private') != -1) {
-        restUrl = PWM_GLOBAL['url-rest-private'] + "/checkpassword";
-    } else {
-        restUrl = PWM_GLOBAL['url-rest-public'] + "/checkpassword";
-    }
-
     validationInProgress = true;
     dojo.xhrPost({
-        url: restUrl,
+        url: PWM_GLOBAL['url-rest-public'] + "/checkpassword",
         content: passwordData,
         headers: {"Accept":"application/json"},
         handleAs: "json",
@@ -371,7 +364,7 @@ function fetchRandoms(fetchList) {
         };
 
         dojo.xhrGet({
-            url: PWM_GLOBAL['url-rest-private'] + "/randompassword",
+            url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
             headers: {"Accept":"application/json"},
             dataType: "json",
             timeout: 15000,
