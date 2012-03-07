@@ -24,7 +24,6 @@ package password.pwm.tag;
 
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.PwmLogger;
 
@@ -58,5 +57,3 @@ public class ThemeNameTag extends PwmAbstractTag {
     }
 }
 
-
-}
