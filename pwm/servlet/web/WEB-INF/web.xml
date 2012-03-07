@@ -25,7 +25,8 @@
          version="2.5"
          xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         metadata-complete="true">
     <display-name>PWM Password Management</display-name>
     <distributable/>
     <description>Password Management Servlet</description>
@@ -44,6 +45,20 @@
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    <servlet>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>password.pwm.ws.server.rest</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <url-pattern>/private/rest/*</url-pattern>
+        <url-pattern>/public/rest/*</url-pattern>
+    </servlet-mapping>
     <!-- uncomment and set parameters for CAS integration
     <filter>
         <filter-name>CAS Validation Filter</filter-name>
@@ -133,61 +148,28 @@
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/jsp/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SessionFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SessionFilter</filter-name>
         <url-pattern>/public/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SessionFilter</filter-name>
         <url-pattern>/config/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SessionFilter</filter-name>
         <url-pattern>/</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SessionFilter</filter-name>
         <url-pattern>*.jsp</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
         <url-pattern>/public/NewUser</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>CaptchaFilter</filter-name>
         <url-pattern>/public/ActivateUser</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>CaptchaFilter</filter-name>
         <url-pattern>/public/ForgottenPassword</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>CaptchaFilter</filter-name>
         <url-pattern>/public/ForgottenUsername</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>ThemeFileFilter</filter-name>
         <url-pattern>*.png</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>ThemeFileFilter</filter-name>
         <url-pattern>*.gif</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>ThemeFileFilter</filter-name>
         <url-pattern>*.jpg</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/public/ChangePassword</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -287,22 +269,9 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet>
-        <servlet-name>Jersey REST Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>password.pwm.ws.server.rest</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>HelpdeskServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>Jersey REST Service</servlet-name>
-        <url-pattern>/private/rest/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>Jersey REST Service</servlet-name>
-        <url-pattern>/public/rest/*</url-pattern>
-    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/private/Login</url-pattern>
@@ -310,17 +279,11 @@
     <servlet-mapping>
         <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/private/Logout</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/public/Logout</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ChangePasswordServlet</servlet-name>
         <url-pattern>/private/ChangePassword</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ChangePasswordServlet</servlet-name>
         <url-pattern>/public/ChangePassword</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -334,25 +297,16 @@
     <servlet-mapping>
         <servlet-name>ForgottenPasswordServlet</servlet-name>
         <url-pattern>/public/ForgottenPassword</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ForgottenPasswordServlet</servlet-name>
         <url-pattern>/public/ForgottenPassword/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CommandServlet</servlet-name>
         <url-pattern>/public/CommandServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>CommandServlet</servlet-name>
         <url-pattern>/private/CommandServlet</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>NewUserServlet</servlet-name>
         <url-pattern>/public/NewUser</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>NewUserServlet</servlet-name>
         <url-pattern>/public/NewUser/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -362,9 +316,6 @@
     <servlet-mapping>
         <servlet-name>ActivateUserServlet</servlet-name>
         <url-pattern>/public/ActivateUser</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ActivateUserServlet</servlet-name>
         <url-pattern>/public/ActivateUser/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -397,10 +348,6 @@
         <url-pattern>/resources/dojo/*</url-pattern>
     </servlet-mapping>
 <!-- temporarily changed (issue 169) -->
-    <servlet>
-        <servlet-name>HelpdeskServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
-    </servlet>
     <servlet-mapping>
         <servlet-name>HelpdeskServlet</servlet-name>
         <url-pattern>/private/Helpdesk</url-pattern>
@@ -415,7 +362,8 @@
         <location>/WEB-INF/jsp/error-http.jsp</location>
     </error-page>
     <session-config>
-        <!-- this setting only controls the HTTP session timeout.  For the user authentication timeout, see the PWM Configuration  -->
+        <!-- this setting only controls the HTTP session timeout.
+        For the user authentication timeout, see the PWM Configuration  -->
         <session-timeout>30</session-timeout>
     </session-config>
     <jsp-config>
