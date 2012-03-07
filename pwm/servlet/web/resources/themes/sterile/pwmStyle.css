@@ -95,3 +95,7 @@ table td.title {
 table td {
     border: 1 px solid #f8f8f8;
 }
+
+#LogoutButton {
+    background-image: url('logout.png');
+}

@@ -39,10 +39,8 @@
     <div id="header-company-logo"></div>
     <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
     <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px">
-        <a style="border-width:0" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
-           id="pwmLogoutButton">
-            <img src="<%=request.getContextPath()%>/resources/logout.png" alt="<pwm:Display key="Button_Logout"/>"
-                 longdesc="<pwm:Display key="Button_Logout"/>" title="<pwm:Display key="Button_Logout"/>" border="0"/>
+        <a id="LogoutButton" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
+           title="<pwm:Display key="Button_Logout"/>">
         </a>
     </div>
     <%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>

@@ -181,6 +181,14 @@ table td.key {
     margin-left: 7px;
 }
 
+#LogoutButton {
+    height: 26px;
+    width: 26px;
+    border-width: 0;
+    display: block;
+    background-image: url('logout.png');
+}
+
 /* used for password complexity meter */
 div.progress-container {
     border: 1px solid #ccc;
