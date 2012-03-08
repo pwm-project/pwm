@@ -81,7 +81,7 @@ function validatePasswords(userDN)
                 validationCache[passwordData.passwordCacheKey] = data;
                 validationInProgress = false;
                 validatePasswords();
-            },500);
+            },350);
         }
     });
 }
@@ -363,10 +363,10 @@ function fetchRandoms(fetchList) {
             fetchRandoms(fetchList);
         };
 
-        dojo.xhrGet({
+        dojo.xhrPost({
             url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
             headers: {"Accept":"application/json"},
-            dataType: "json",
+            //dataType: "json",
             timeout: 15000,
             sync: false,
             handleAs: "json",
@@ -391,6 +391,8 @@ function startupChangePasswordPage(initialPrompt)
 
         }
     }
+
+    markStrength(0);
 
     // show the auto generate password panel
     var autoGenPasswordElement = getObject("autoGeneratePassword");

@@ -45,11 +45,12 @@ p {
     width: 100%;
     height: 70px;
     margin: 0;
-    background-image: none;
-    background-color: black;
+    background-image: url('header-gradient.gif');
     filter:alpha(opacity=50);
     opacity: 0.5;
 }
+
+
 
 #header-company-logo {
     position: relative;

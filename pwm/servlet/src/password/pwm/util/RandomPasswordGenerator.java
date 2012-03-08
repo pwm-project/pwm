@@ -31,6 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;
@@ -188,6 +189,16 @@ public class RandomPasswordGenerator {
                 LOGGER.error(pwmSession, sb.toString());
             }
         }
+
+        if (pwmApplication != null && pwmApplication.getStatisticsManager() != null) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("real-time random password generator called");
+        sb.append(" (").append(TimeDuration.fromCurrent(startTimeMS).asCompactString());
+        sb.append(")");
+        LOGGER.trace(pwmSession, sb.toString());
 
         return password.toString();
     }

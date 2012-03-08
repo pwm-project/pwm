@@ -339,16 +339,6 @@
                 </ul>
             </td>
         </tr>
-        <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
-        <tr>
-            <td class="key">
-                <%= rule.name() %>
-            </td>
-            <td>
-                <%= searchedUserInfo.getPasswordPolicy().getValue(rule) != null ? searchedUserInfo.getPasswordPolicy().getValue(rule) : "" %>
-            </td>
-        </tr>
-        <% } %>
     </table>
 </div>
 <div dojoType="dijit.layout.ContentPane" title="ChallengeSet">
@@ -415,10 +405,10 @@
 </div>
 <div style="margin-left: 20%; margin-right: 20%; text-align: center">
 </div>
-</div>
 <% } else { %>
 <div>&nbsp;</div>
 <% } %>
+</div>
 </div>
 <script type="text/javascript">
     dojo.addOnLoad(function(){

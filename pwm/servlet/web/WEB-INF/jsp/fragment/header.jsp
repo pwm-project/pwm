@@ -42,16 +42,14 @@
           href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>
-    <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
-    <link href="<%=request.getContextPath()%>/resources/themes/<pwm:ThemeName/>/<pwm:url url='pwmStyle.css'/>"
-          rel="stylesheet" type="text/css" media="screen"/>
-    <% } %>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
           href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css"
           rel="stylesheet"/>
+    <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
+    <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
-          href="<%=request.getContextPath()%>/resources/themes/<pwm:ThemeName/>/<pwm:url url='pwmMobileStyle.css'/>" type="text/css"
-          rel="stylesheet"/>
+          href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/>
+    <% } %>
     <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
           type="text/css"/>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"></script>

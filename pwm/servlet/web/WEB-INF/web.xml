@@ -128,10 +128,12 @@
         <filter-name>SessionFilter</filter-name>
         <filter-class>password.pwm.SessionFilter</filter-class>
     </filter>
+    <!--
     <filter>
         <filter-name>ThemeFileFilter</filter-name>
         <filter-class>password.pwm.ThemeFileFilter</filter-class>
     </filter>
+    -->
     <filter>
         <filter-name>CaptchaFilter</filter-name>
         <filter-class>password.pwm.CaptchaFilter</filter-class>
@@ -162,12 +164,14 @@
         <url-pattern>/public/ForgottenPassword</url-pattern>
         <url-pattern>/public/ForgottenUsername</url-pattern>
     </filter-mapping>
+    <!--
     <filter-mapping>
         <filter-name>ThemeFileFilter</filter-name>
         <url-pattern>*.png</url-pattern>
         <url-pattern>*.gif</url-pattern>
         <url-pattern>*.jpg</url-pattern>
     </filter-mapping>
+    -->
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
@@ -346,7 +350,7 @@
 <!-- temporarily changed (issue 169) -->
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>
-        <url-pattern>/resources/dojo/*</url-pattern>
+        <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
 <!-- temporarily changed (issue 169) -->
     <servlet-mapping>

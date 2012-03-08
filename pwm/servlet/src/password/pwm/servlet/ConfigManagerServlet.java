@@ -525,6 +525,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         try {
             if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING) {
+                servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,null);
                 ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
                 pwmApplication.setLastLdapFailure(null);
                 ContextManager.getContextManager(servletContext).reinitialize();

@@ -74,8 +74,6 @@ public enum PwmSetting {
             "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
 
 
-
-
     // user interface
     INTERFACE_THEME(
             "interface.theme", Syntax.SELECT, Category.USER_INTERFACE, true, Level.BASIC),
@@ -102,8 +100,12 @@ public enum PwmSetting {
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CSS_CUSTOM_STYLE(
-            "display.css.customStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
+            "display.css.customMobileStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_CSS_EMBED(
+            "display.css.customStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_CSS_MOBILE_EMBED(
             "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),

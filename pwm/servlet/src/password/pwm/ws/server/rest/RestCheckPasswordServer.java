@@ -49,17 +49,8 @@ import java.util.Map;
 public class RestCheckPasswordServer {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
 
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public String doPasswordRuleCheckTextGet(@Context HttpServletRequest request) {
-        try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
-        } catch (Exception e) {
-            LOGGER.error("unexpected error building text response for /checkpassword rest service: " + e.getMessage());
-        }
-        return "";
-	}
+    @Context
+    HttpServletRequest request;
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -67,13 +58,17 @@ public class RestCheckPasswordServer {
     public String doPasswordRuleCheckJsonPost(
             final @FormParam("password1") String password1,
             final @FormParam("password2") String password2,
-            final @FormParam("username") String username,
-            final @Context HttpServletRequest request
+            final @FormParam("username") String username
     )
     {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                throw new WebApplicationException(401);
+            }
+            
             final String userDN = (username != null && username.length() > 0) ? username : pwmSession.getUserInfoBean().getUserDN();
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, password1, password2);
 

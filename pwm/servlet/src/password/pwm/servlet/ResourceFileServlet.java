@@ -70,12 +70,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
 
-    private static final String CACHE_CONTEXT_ATTRIBUTE_NAME = "ResourceFileServlet-Cache";
-
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
     private long expireTimeMs = DEFAULT_EXPIRE_TIME_MS;
-    private int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
     private int internalMaxCacheFileSize = DEFAULT_MAX_CACHE_FILE_SIZE;
 
     public void init() throws ServletException {
@@ -85,11 +82,6 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'expireTimeMs' servlet parameter: " + e.getMessage());
         }
 
-        try {
-            internalCacheItemLimit = Integer.parseInt(this.getInitParameter("internalCacheItemLimit"));
-        } catch (Exception e) {
-            LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
-        }
 
         try {
             internalMaxCacheFileSize = Integer.parseInt(this.getInitParameter("internalMaxCacheFileSize"));
@@ -97,10 +89,6 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
         }
 
-        final ConcurrentMap<CacheKey, CacheEntry> responseCache = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                .maximumWeightedCapacity(internalCacheItemLimit)
-                .build();
-        this.getServletContext().setAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME,responseCache);
         LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
 
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
@@ -129,6 +117,25 @@ public class ResourceFileServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response, true);
+    }
+
+    private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
+        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+        if (responseCache == null) {
+            int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
+            try {
+                internalCacheItemLimit = Integer.parseInt(servletContext.getInitParameter("internalCacheItemLimit"));
+            } catch (Exception e) {
+                LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
+            }
+
+            final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
+                    .maximumWeightedCapacity(internalCacheItemLimit)
+                    .build();
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
+            return newCacheMap;
+        }
+        return responseCache;
     }
 
     private void processRequest
@@ -214,7 +221,7 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     public static long bytesInCache(final ServletContext servletContext) {
-        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
+        final Map<CacheKey,CacheEntry> responseCache = getCache(servletContext);
         final Map<CacheKey,CacheEntry> cacheCopy = new HashMap<CacheKey, CacheEntry>();
         cacheCopy.putAll(responseCache);
         long cacheByteCount = 0;
@@ -228,7 +235,7 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     public static int itemsInCache(final ServletContext servletContext) {
-        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
+        final Map<CacheKey,CacheEntry> responseCache = getCache(servletContext);
         return responseCache.size();
     }
 
@@ -240,7 +247,7 @@ public class ResourceFileServlet extends HttpServlet {
     ) throws
             UncacheableResourceException, IOException
     {
-        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)this.getServletContext().getAttribute(CACHE_CONTEXT_ATTRIBUTE_NAME);
+        final Map<CacheKey,CacheEntry> responseCache = getCache(getServletContext());
         if (!includeBody) {
             throw new UncacheableResourceException("header only request");
         }

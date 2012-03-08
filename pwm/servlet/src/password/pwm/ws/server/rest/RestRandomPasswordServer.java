@@ -23,17 +23,18 @@
 package password.pwm.ws.server.rest;
 
 import com.google.gson.Gson;
-import password.pwm.*;
-import password.pwm.error.PwmUnrecoverableException;
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmSession;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.stats.Statistic;
+import password.pwm.util.operations.PasswordUtility;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
@@ -49,24 +50,40 @@ public class RestRandomPasswordServer {
 	// This method is called if TEXT_PLAIN is request
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String sayPlainTextHello() {
+	public String doPlainRandomPassword() {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            return makeRandomPassword(pwmApplication, pwmSession);
+            return RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /randompassword rest service: " + e.getMessage());
         }
         return "";
 	}
 
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public String sayJsonHealth() {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String doJsonRandomPassword(
+            final @FormParam("username") String username
+    ) {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final String randomPassword = makeRandomPassword(pwmApplication, pwmSession);
+            
+            final String randomPassword;
+            if (username != null && username.length() > 0) {
+                if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                    throw new WebApplicationException(401);
+                }
+
+                final ChaiUser theUser = ChaiFactory.createChaiUser(username,pwmSession.getSessionManager().getChaiProvider());
+                final PwmPasswordPolicy userPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale());
+                randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, userPasswordPolicy, pwmApplication.getSeedlistManager(), pwmApplication);
+            } else {
+                randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
+            }
+
             final Map<String, String> outputMap = new HashMap<String, String>();
             outputMap.put("version", "1");
             outputMap.put("password", randomPassword);
@@ -79,23 +96,5 @@ public class RestRandomPasswordServer {
 
         return "";
     }
-
-
-    private static String makeRandomPassword(final PwmApplication pwmApplication, final PwmSession pwmSession)
-            throws PwmUnrecoverableException
-    {
-        final long startTime = System.currentTimeMillis();
-        final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("real-time random password generator called");
-            sb.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString());
-            sb.append(")");
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.GENERATED_PASSWORDS);
-            LOGGER.trace(pwmSession, sb.toString());
-        }
-
-        return randomPassword;
-    }
 }
+
