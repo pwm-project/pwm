@@ -73,16 +73,18 @@ public class ThemeFileFilter implements Filter {
 	        ThemeFileManager tfm = pwmApplication.getThemeFileManager();
 
 			String path = req.getServletPath();
-			LOGGER.debug("Theme filter triggered for "+path);
+			String pathInfo = req.getPathInfo();
+			String fullPath = (pathInfo==null)?path:path+pathInfo;
+			LOGGER.debug("Theme filter triggered for "+fullPath);
 			if (path != null && tfm != null) {
-				String newPath = tfm.themedPath(path, req.getSession().getServletContext());
-				if (newPath == null || path.equals(newPath)) {
+				//String newPath = tfm.themedPath(path, req.getSession().getServletContext());
+				String newPath = tfm.themedPath(req);
+				if (newPath == null || fullPath.equals(newPath) || path.equals(newPath)) {
 		    		filterChain.doFilter(req, resp);
 				} else {
-					LOGGER.debug("New path for "+path+": "+newPath);
-					PwmHttpServletRequest newreq = new PwmHttpServletRequest(req);
-					newreq.setServletPath(newPath);
-	    			filterChain.doFilter(newreq, resp);
+					LOGGER.debug("New path for "+path+": "+newPath+"; redirecting…");
+					resp.sendRedirect(req.getContextPath()+newPath);
+	    			filterChain.doFilter(req, resp);
 				}
 			} else {
 	    		filterChain.doFilter(req, resp);

@@ -41,6 +41,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.HashMap;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
 
 /**
@@ -100,12 +101,29 @@ public class ThemeFileManager implements PwmService {
 		cache.put(standardPath, themedPath);
 	}
 
+	public String themedPath(final HttpServletRequest req) {
+		String path = req.getServletPath();
+		final ServletContext ctx = req.getSession().getServletContext();
+		if (Helper.fileExists(ctx.getRealPath(path))) {
+			return themedPath(path, ctx);
+		}
+		if (Helper.directoryExists(ctx.getRealPath(path))) {
+			LOGGER.trace("path is a directory");
+			String pathInfo = req.getPathInfo();
+			if (pathInfo != null) {
+				LOGGER.trace("PathInfo: "+pathInfo);
+				return themedPath(path+pathInfo, ctx);
+			}
+		}
+		return null;
+	}
+
 	public String themedPath(final String path, ServletContext ctx) {
 		LOGGER.trace("Finding themed file for "+path);
 		if (path != null) {
 			if (path.startsWith(PwmConstants.URL_THEMES)) {
 				LOGGER.debug(path+" is themed file already");
-				return path;
+				return null;
 			}
 			if (cache.containsKey(path)) {
 				LOGGER.trace("Returning from cached entry");
