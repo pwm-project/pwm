@@ -479,10 +479,10 @@ public class ResourceFileServlet extends HttpServlet {
         final String requestURI = request.getRequestURI();
         if (requestURI != null) {
             if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_STYLE, request, response, expireTimeMs);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response, expireTimeMs);
                 return true;
             } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmMobileStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE, request, response, expireTimeMs);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response, expireTimeMs);
                 return true;
             }
         }
