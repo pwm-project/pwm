@@ -189,6 +189,14 @@ table td.key {
     background-image: url('logout.png');
 }
 
+#WaitDialogBlank {
+    height: 46px;
+    width: 46px;
+    margin-left: auto;
+    margin-right: auto;
+    background-image: url('wait.gif');
+}
+
 /* used for password complexity meter */
 div.progress-container {
     border: 1px solid #ccc;

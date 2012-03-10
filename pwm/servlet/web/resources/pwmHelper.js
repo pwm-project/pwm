@@ -218,7 +218,7 @@ function showWaitDialog(title, body) {
     var idName = 'waitDialogID';
     clearDigitWidget(idName);
     if (body == null || body.length < 1) {
-        body = '<div style="text-align: center"><img alt="' + title + '" src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
+        body = '<div id="WaitDialogBlank"/>';
     }
     dojo.require("dijit.Dialog");
     var theDialog = new dijit.Dialog({
@@ -238,7 +238,7 @@ function showPwmHealth(parentDivID, refreshNow) {
 
     setTimeout(function() {
         if (PWM_GLOBAL['healthCheckInProgress']) {
-            parentDiv.innerHTML = '<div style="text-align: center"><img alt="loading..." src="' + PWM_GLOBAL['url-resources'] + '/wait.gif"/></div>';
+            parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
         }
     }, 1000);
 

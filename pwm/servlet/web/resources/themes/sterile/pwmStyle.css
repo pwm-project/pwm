@@ -99,3 +99,7 @@ table td {
 #LogoutButton {
     background-image: url('logout.png');
 }
+
+#WaitDialogBlank {
+    background-image: url('wait.gif');
+}

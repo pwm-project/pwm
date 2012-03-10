@@ -36,8 +36,7 @@
         <p><pwm:Display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div id="buttonbar">
-            <img src="<%=request.getContextPath()%>/resources/<pwm:url url='wait.gif'/>"
-                 alt="<pwm:Display key="Title_PleaseWait"/>"/></div>
+        <div id="WaitDialogBlank"></div>
     </div>
     <br class="clear"/>
 </div>
