@@ -452,22 +452,21 @@ public class MainClass {
         out("beginning restore...");
         final long startTime = System.currentTimeMillis();
         final Timer statTimer = new Timer(true);
+        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 1100, 50, 50 * 1000);
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 final float percentComplete = ((float) staticCounter / (float) totalLines);
                 final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
-
-                out(" restored " + staticCounter + " records, " + percentStr + " complete");
+                out(" restored " + staticCounter + " records, " + percentStr + " complete, transactionSize=" + transactionCalculator.getTransactionSize());
             }
-        },30 * 1000, 30 * 1000);
+        },15 * 1000, 30 * 1000);
 
         final Map<PwmDB.DB,Map<String,String>> transactionMap = new HashMap<PwmDB.DB, Map<String, String>>();
         for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
             transactionMap.put(loopDB,new HashMap<String, String>());
         }
 
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 1100, 3, 50 * 1000);
         try {
             csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
             while (csvReader.readRecord()) {
@@ -476,15 +475,20 @@ public class MainClass {
                 final String value = csvReader.get(2);
                 pwmDB.put(db, key, value);
                 transactionMap.get(db).put(key,value);
-                staticCounter++;
+                int cachedTransactions = 0;
                 for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-                    if (transactionMap.get(loopDB).size() > transactionCalculator.getTransactionSize()) {
-                        final long startTxnTime = System.currentTimeMillis();
-                        pwmDB.putAll(loopDB,transactionMap.get(loopDB));
-                        transactionMap.get(loopDB).clear();
-                        transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startTxnTime));
-                    }
+                    cachedTransactions += transactionMap.get(loopDB).keySet().size();
                 }
+                if (cachedTransactions >= transactionCalculator.getTransactionSize()) {
+                    final long startTxnTime = System.currentTimeMillis();
+                    for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+                        pwmDB.putAll(loopDB,transactionMap.get(loopDB));
+                        staticCounter += transactionMap.get(loopDB).size();
+                        transactionMap.get(loopDB).clear();
+                    }
+                    transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startTxnTime));
+                }
+
             }
         } finally {
             if (csvReader != null) {csvReader.close();}

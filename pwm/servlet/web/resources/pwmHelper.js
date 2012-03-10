@@ -242,7 +242,7 @@ function showPwmHealth(parentDivID, refreshNow) {
         }
     }, 1000);
 
-    var refreshUrl = PWM_GLOBAL['url-rest-public'] + "/pwm-health";
+    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
     if (refreshNow) {
         refreshUrl += "?refreshImmediate=true";
     }

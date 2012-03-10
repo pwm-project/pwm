@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -47,10 +46,10 @@ public class RestRandomPasswordServer {
     @Context
     HttpServletRequest request;
 
-	// This method is called if TEXT_PLAIN is request
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public String doPlainRandomPassword() {
+    // This method is called if TEXT_PLAIN is request
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String doPlainRandomPassword() {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
@@ -59,33 +58,38 @@ public class RestRandomPasswordServer {
             LOGGER.error("unexpected error building json response for /randompassword rest service: " + e.getMessage());
         }
         return "";
-	}
+    }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doJsonRandomPassword(
-            final @FormParam("username") String username
+    public String doPostRandomPassword(
+            final @FormParam("username") String username,
+            final @FormParam("strength") String strength
     ) {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            
-            final String randomPassword;
-            if (username != null && username.length() > 0) {
-                if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                    throw new WebApplicationException(401);
-                }
 
-                final ChaiUser theUser = ChaiFactory.createChaiUser(username,pwmSession.getSessionManager().getChaiProvider());
-                final PwmPasswordPolicy userPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale());
-                randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, userPasswordPolicy, pwmApplication.getSeedlistManager(), pwmApplication);
+            final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
+
+            if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                if (username != null && username.length() > 0) {
+                    final ChaiUser theUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
+                    randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale()));
+                } else {
+                    randomConfig.setPasswordPolicy(pwmSession.getUserInfoBean().getPasswordPolicy());
+                }
             } else {
-                randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
+                randomConfig.setPasswordPolicy(pwmApplication.getConfig().getGlobalPasswordPolicy(pwmSession.getSessionStateBean().getLocale()));
             }
 
+            if (strength != null && strength.length() > 0) {
+                randomConfig.setMinimumStrength(Integer.valueOf(strength));
+            }
+            
+            final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, randomConfig, pwmApplication);
             final Map<String, String> outputMap = new HashMap<String, String>();
-            outputMap.put("version", "1");
             outputMap.put("password", randomPassword);
 
             final Gson gson = new Gson();

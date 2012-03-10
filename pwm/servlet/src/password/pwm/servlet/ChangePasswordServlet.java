@@ -25,14 +25,13 @@ package password.pwm.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -235,26 +234,27 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         LOGGER.trace(pwmSession, "retrieved password from server session");
+        cpb.clearPassword();
 
-        final boolean success = PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
-
-        if (success) {
-            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE)) {
-                ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
-            }
-
-            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.CHANGE_PASSWORD, null);
-
-            ServletHelper.forwardToSuccessPage(req, resp);
-        } else {
-            final ErrorInformation errorMsg = ssBean.getSessionError();
-            pwmSession.getSessionStateBean().setSessionError(errorMsg);
+        try {
+            PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
+        } catch (PwmOperationalException e) {
+            LOGGER.debug(e.getErrorInformation().toDebugStr());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
+            return;
         }
 
-        cpb.clearPassword();
+        // send user an email confirmation
+        sendChangePasswordEmailNotice(pwmSession, pwmApplication);
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE)) {
+            ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
+        }
+
+        ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
+        UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.CHANGE_PASSWORD, null);
+        ServletHelper.forwardToSuccessPage(req, resp);
     }
 
     private void forwardToJSP(
@@ -300,8 +300,26 @@ public class ChangePasswordServlet extends TopServlet {
 
     }
 
+    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+        final Configuration config = pwmApplication.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT, locale);
+        final String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY, locale);
+        final String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL, locale);
+
+        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+            return;
+        }
+
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
+    }
+
     private enum MATCH_STATUS {
         MATCH, NO_MATCH, EMPTY
     }
- }
+}
 

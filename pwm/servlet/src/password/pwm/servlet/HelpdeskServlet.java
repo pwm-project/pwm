@@ -64,6 +64,13 @@ public class HelpdeskServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HelpdeskServlet.class);
     private static final int DEFAULT_INPUT_LENGTH = 1024;
 
+    public static enum SET_PW_UI_MODE {
+        none,
+        type,
+        autogen,
+        both
+    }
+
     @Override
     protected void processRequest(
             HttpServletRequest req,
@@ -273,8 +280,6 @@ public class HelpdeskServlet extends TopServlet {
             {
                 final ChaiProvider proxyProvider = pwmApplication.getProxyChaiProvider();
                 final ChaiUser proxiedChaiUser = ChaiFactory.createChaiUser(userDN, proxyProvider);
-                final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedChaiUser, Record.Event.HELPDESK_SET_PASSWORD, message);
                 Helper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedChaiUser);
             }
         } catch (ChaiUnavailableException e) {

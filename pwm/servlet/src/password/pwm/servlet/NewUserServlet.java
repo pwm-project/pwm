@@ -343,7 +343,6 @@ public class NewUserServlet extends TopServlet {
         final String temporaryPassword = RandomPasswordGenerator.createRandomPassword(
                 pwmSession,
                 pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale()),
-                pwmApplication.getSeedlistManager(),
                 pwmApplication
         );
 

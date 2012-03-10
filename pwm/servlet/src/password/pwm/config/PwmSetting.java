@@ -639,10 +639,13 @@ public enum PwmSetting {
             "helpdesk.queryMatch", Syntax.STRING, Category.HELPDESK, true, Level.BASIC),
     HELPDESK_DISPLAY_ATTRIBUTES(
             "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_SET_PASSWORD_MODE(
+            "helpdesk.setPassword.mode", Syntax.SELECT, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
     HELPDESK_CONTEXT(
             "helpdesk.context", Syntax.STRING, Category.HELPDESK, false, Level.BASIC),
+
 
     // Database
     PWMDB_LOCATION(

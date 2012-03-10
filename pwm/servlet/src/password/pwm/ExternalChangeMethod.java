@@ -27,6 +27,8 @@ package password.pwm;
  * <p/>
  * The {@link #passwordChange} method will be called just after a successful password change.
  * To be invoked, implementations of this class must be specified by {@link password.pwm.config.PwmSetting#EXTERNAL_CHANGE_METHODS}.
+ * <p/>
+ * Modified on 3/9/2012 to accommodate non-first person (helpdesk) changes.
  *
  * @author Jason D. Rivard
  */
@@ -36,12 +38,12 @@ public interface ExternalChangeMethod {
     /**
      * This method is invoked after a successful password change in PWM.  
      *
-     * @param pwmSession  The session handler of the user.
+     * @param pwmApplication  The session handler of the user.
      * @param oldPassword The old password of the user.  Under certain circumstances, it is possible this
      *                    value may be null or an empty string.
      * @param newPassword The new password of the user.
      * @return true if the operation was successful
      */
-    public boolean passwordChange(PwmSession pwmSession, String oldPassword, String newPassword);
+    public boolean passwordChange(PwmApplication pwmApplication, String userDN, String oldPassword, String newPassword);
 }
 

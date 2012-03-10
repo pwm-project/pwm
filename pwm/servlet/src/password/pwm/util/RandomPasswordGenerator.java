@@ -72,36 +72,19 @@ public class RandomPasswordGenerator {
     )
             throws PwmUnrecoverableException
     {
-        final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
         final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
-        return createRandomPassword(pwmSession, userPasswordPolicy, seedlistManager, pwmApplication);
+        return createRandomPassword(pwmSession, userPasswordPolicy, pwmApplication);
     }
 
     public static String createRandomPassword(
             final PwmSession pwmSession,
             final PwmPasswordPolicy passwordPolicy,
-            final SeedlistManager seedlistManagr,
             final PwmApplication pwmApplication
-    ) throws PwmUnrecoverableException {
-        Set<String> seeds = DEFAULT_SEED_PHRASES;
-
-        if (seedlistManagr != null && seedlistManagr.status() == PwmService.STATUS.OPEN && seedlistManagr.size() > 0) {
-            seeds = new HashSet<String>();
-            int safteyCounter = 0;
-            while (seeds.size() < 10 && safteyCounter < 100) {
-                safteyCounter++;
-                final String randomWord = seedlistManagr.randomSeed();
-                if (randomWord != null) {
-                    seeds.add(seedlistManagr.randomSeed());
-                } else {
-                    break;
-                }
-            }
-        }
-
+    )
+            throws PwmUnrecoverableException
+    {
         final RandomGeneratorConfig randomGeneratorConfig = new RandomGeneratorConfig();
         randomGeneratorConfig.setPasswordPolicy(passwordPolicy);
-        randomGeneratorConfig.setSeedlistPhrases(seeds);
 
         return createRandomPassword(
                 pwmSession,
@@ -126,12 +109,31 @@ public class RandomPasswordGenerator {
      *          If there is no way to create a password using the configured rules and
      *          default seed phrase
      */
-    private static String createRandomPassword(
+    public static String createRandomPassword(
             final PwmSession pwmSession,
             final RandomGeneratorConfig randomGeneratorConfig,
             final PwmApplication pwmApplication
     ) throws PwmUnrecoverableException {
         final long startTimeMS = System.currentTimeMillis();
+
+        if (randomGeneratorConfig.getSeedlistPhrases() == null || randomGeneratorConfig.getSeedlistPhrases().isEmpty()) {
+            Set<String> seeds = DEFAULT_SEED_PHRASES;
+
+            final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
+            if (seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0) {
+                seeds = new HashSet<String>();
+                int safetyCounter = 0;
+                while (seeds.size() < 10 && safetyCounter < 100) {
+                    safetyCounter++;
+                    final String randomWord = seedlistManager.randomSeed();
+                    if (randomWord != null) {
+                        seeds.add(randomWord);
+                    }
+                }
+            }
+            randomGeneratorConfig.setSeedlistPhrases(seeds);
+        }
+
 
         final SeedMachine seedMachine = new SeedMachine(normalizeSeeds(randomGeneratorConfig.getSeedlistPhrases()));
 
@@ -471,11 +473,11 @@ public class RandomPasswordGenerator {
 
         if (RANDOM.nextBoolean()) {
             addRandChar(password, DEFAULT_SEED_MACHINE.getNumChars(), RANDOM.nextInt(password.length()));
-        } else {
-            addRandChar(password, DEFAULT_SEED_MACHINE.getSpecialChars(), RANDOM.nextInt(password.length()));
         }
 
-        switchRandomCase(password);
+        if (RANDOM.nextBoolean()) {
+            switchRandomCase(password);
+        }
 
         return password.toString();
     }

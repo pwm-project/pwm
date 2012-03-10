@@ -60,11 +60,15 @@ function validatePasswords(userDN)
         }
     }
 
+    if (userDN != null && userDN.length > 0) {
+        passwordData['username'] = userDN;
+    }
+
     setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },1000);
 
     validationInProgress = true;
     dojo.xhrPost({
-        url: PWM_GLOBAL['url-rest-public'] + "/checkpassword",
+        url: PWM_GLOBAL['url-restservice'] + "/checkpassword",
         content: passwordData,
         headers: {"Accept":"application/json"},
         handleAs: "json",
@@ -80,7 +84,7 @@ function validatePasswords(userDN)
             setTimeout(function(){
                 validationCache[passwordData.passwordCacheKey] = data;
                 validationInProgress = false;
-                validatePasswords();
+                validatePasswords(userDN);
             },350);
         }
     });
@@ -246,16 +250,18 @@ function closePasswordGuide() {
     }
 }
 
-function showRandomPasswordsDialog(dialogBody) {
+function showRandomPasswordsDialog(randomConfig) {
     dojo.require("dijit.Dialog");
     closeRandomPasswordsDialog();
+
+    var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
 
     var centerBodyElement = getObject('centerbody');
 
     var theDialog = new dijit.Dialog({
-        title: PWM_STRINGS['Title_RandomPasswords'],
+        title: titleString,
         style: "width: 300px; border: 2px solid #D4D4D4;",
-        content: dialogBody,
+        content: randomConfig['dialogBody'],
         closable: false,
         draggable: true,
         autofocus: false,
@@ -296,28 +302,46 @@ function handleChangePasswordSubmit()
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 }
 
-function doRandomGeneration() {
-    var dialogBody = PWM_STRINGS['Display_PasswordGeneration'] + "<br/><br/>";
+function doRandomGeneration(randomConfig) {
+    if (randomConfig == null) {
+        randomConfig = { };
+    }
+
+    var dialogBody = "";
+    if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
+        dialogBody += randomConfig['dialog'];
+    } else {
+        dialogBody += PWM_STRINGS['Display_PasswordGeneration'];
+    }
+    dialogBody += "<br/><br/>";
     dialogBody += '<table style="border: 0">';
     for (var i = 0; i < 20; i++) {
         dialogBody += '<tr style="border: 0">';
         for (var j = 0; j < 2; j++) {
             i = i + j;
-            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="copyToPasswordFields(\'randomGen' + i + '\')" id="randomGen' + i + '">&nbsp;</a></td>';
+            var clickAction;
+            if (randomConfig['finishAction'] != null) {
+                clickAction = randomConfig['finishAction'];
+            } else {
+                clickAction = 'copyToPasswordFields(\'randomGen' + i + '\');';
+            }
+            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="' + clickAction + '" id="randomGen' + i + '">&nbsp;</a></td>';
         }
         dialogBody += '</tr>';
     }
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms()">' + PWM_STRINGS['Button_More'] + '</button></td>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_STRINGS['Button_More'] + '</button></td>';
     dialogBody += '<td style="border: 0; text-align:right;"><button onclick="closeRandomPasswordsDialog()">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
     dialogBody += "</table>";
-    showRandomPasswordsDialog(dialogBody);
-    beginFetchRandoms();
+    randomConfig['dialogBody'] = dialogBody;
+    PWM_GLOBAL['lastRandomConfig'] = randomConfig;
+    showRandomPasswordsDialog(randomConfig);
+    beginFetchRandoms(randomConfig);
 }
 
-function beginFetchRandoms() {
+function beginFetchRandoms(randomConfig) {
     if (getObject("randomgen-player") != null) {
         try { getObject("randomgen-player").play(); } catch (e){}
     }
@@ -333,12 +357,12 @@ function beginFetchRandoms() {
     }
     fetchList.sort(function() {return 0.5 - Math.random()});
     fetchList.sort(function() {return 0.5 - Math.random()});
-
-    fetchRandoms(fetchList);
+    randomConfig['fetchList'] = fetchList;
+    fetchRandoms(randomConfig);
 }
 
-function fetchRandoms(fetchList) {
-    if (fetchList.length < 1) {
+function fetchRandoms(randomConfig) {
+    if (randomConfig['fetchList'].length < 1) {
         var moreButton = getObject('moreRandomsButton');
         if (moreButton != null) {
             moreButton.disabled = false;
@@ -347,26 +371,23 @@ function fetchRandoms(fetchList) {
         return;
     }
 
-    if (fetchList.length > 0) {
+    if (randomConfig['fetchList'].length > 0) {
         var successFunction = function(resultInfo) {
-            if (resultInfo["version"] != "1") {
-                showError("[ unexpected randomgen version string from server ]");
-                return;
-            }
-
             var password = resultInfo["password"];
-            var elementID = fetchList.pop();
+            var elementID = randomConfig['fetchList'].pop();
             var element = getObject(elementID);
             if (element != null) {
                 element.firstChild.nodeValue = password;
             }
-            fetchRandoms(fetchList);
+            fetchRandoms(randomConfig);
         };
 
+        var dataInput = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
+
         dojo.xhrPost({
-            url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
+            url: PWM_GLOBAL['url-restservice'] + "/randompassword",
             headers: {"Accept":"application/json"},
-            //dataType: "json",
+            content: dataInput,
             timeout: 15000,
             sync: false,
             handleAs: "json",

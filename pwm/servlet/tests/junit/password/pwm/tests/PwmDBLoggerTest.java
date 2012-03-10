@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.util.*;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBFactory;
+import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -47,6 +48,8 @@ public class PwmDBLoggerTest extends TestCase {
     private int eventsRemaining;
     final StringBuilder randomValue = new StringBuilder();
     final Random random = new Random();
+    
+    private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(2 * 60 * 1000));
 
 
     @Override
@@ -94,6 +97,7 @@ public class PwmDBLoggerTest extends TestCase {
             final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
             for (final PwmLogEvent logEvent : events) {
                 pwmDBLogger.writeEvent(logEvent);
+                eventRateMeter.markEvents(1);
                 eventsRemaining--;
                 eventsAdded++;
             }
@@ -144,7 +148,7 @@ public class PwmDBLoggerTest extends TestCase {
             sb.append(", stored events: ").append(pwmDBLogger.getStoredEventCount());
             sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
             sb.append(", pending: ").append(pwmDBLogger.getPendingEventCount());
-            //sb.append(", eps: ").append(pwmDBLogger.getEpsRate(TimeDuration.MINUTE));
+            sb.append(", eps: ").append(eventRateMeter.readEventRate(new TimeDuration(2 * 60 * 1000),new TimeDuration(1000)));
             System.out.println(sb);
         }
     }

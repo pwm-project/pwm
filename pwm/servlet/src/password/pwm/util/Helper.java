@@ -48,6 +48,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -394,6 +395,7 @@ public class Helper {
     public static void invokeExternalChangeMethods(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
+            final String userDN,
             final String oldPassword,
             final String newPassword) throws PwmUnrecoverableException {
         final List<String> externalMethods = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
@@ -407,7 +409,7 @@ public class Helper {
                     final ExternalChangeMethod externalClass = (ExternalChangeMethod) theClass.newInstance();
 
                     // invoke the passwordChange method;
-                    final boolean success = externalClass.passwordChange(pwmSession, oldPassword, newPassword);
+                    final boolean success = externalClass.passwordChange(pwmApplication, userDN, oldPassword, newPassword);
 
                     if (success) {
                         LOGGER.info(pwmSession, "externalPasswordMethod '" + classNameString + "' was successfull");
@@ -430,15 +432,30 @@ public class Helper {
     public static void invokeExternalRestChangeMethods(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
+            final String userDN,
             final String oldPassword,
-            final String newPassword)
-            throws PwmUnrecoverableException
+            final String newPassword
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final List<String> externalURLs = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_REST_CHANGE_METHODS);
+        if (externalURLs == null || externalURLs.isEmpty()) {
+            return;
+        }
+
+        final UserInfoBean userInfoBean;
+        if (userDN == null || userDN.length() < 1 || !userDN.equals(pwmSession.getUserInfoBean().getUserDN())) {
+            final UserInfoBean newUiBean = new UserInfoBean();
+            UserStatusHelper.populateUserInfoBean(pwmSession, newUiBean, pwmApplication, pwmSession.getSessionStateBean().getLocale(), userDN, newPassword, pwmSession.getSessionManager().getChaiProvider());
+            userInfoBean = newUiBean;
+        } else {
+            userInfoBean = pwmSession.getUserInfoBean();
+        }
+
         for (final String loopURL : externalURLs) {
             try {
                 // expand using pwm macros
-                String expandedURL = PwmMacroMachine.expandMacros(loopURL, pwmApplication, pwmSession.getUserInfoBean(), new PwmMacroMachine.StringReplacer() {
+                String expandedURL = PwmMacroMachine.expandMacros(loopURL, pwmApplication, userInfoBean, new PwmMacroMachine.StringReplacer() {
                     public String replace(String matchedMacro, String newValue) {
                         return StringEscapeUtils.escapeHtml(newValue); // make sure replacement values are properly encoded
                     }

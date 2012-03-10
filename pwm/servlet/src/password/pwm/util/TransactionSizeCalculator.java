@@ -30,7 +30,7 @@ public class TransactionSizeCalculator {
     private final int setting_MaxTransactions;
     private final int setting_MinTransactions;
 
-    private int transactionSize = 3;
+    private int transactionSize;
 
     public TransactionSizeCalculator(
             final long lowTimeMS,
@@ -39,11 +39,29 @@ public class TransactionSizeCalculator {
             final int maxTransactions
     )
     {
+        this(lowTimeMS, highTimeMS, minTransactions, maxTransactions, minTransactions + 1);
+    }
+
+    public TransactionSizeCalculator(
+            final long lowTimeMS,
+            final long highTimeMS,
+            final int minTransactions,
+            final int maxTransactions,
+            final int initialTransactionSize
+    )
+    {
         this.setting_LowGoal = new TimeDuration(lowTimeMS);
         this.setting_HighGoal = new TimeDuration(highTimeMS);
         this.setting_OutOfRange = new TimeDuration(setting_HighGoal.getTotalMilliseconds() * 5);
         this.setting_MaxTransactions = maxTransactions;
         this.setting_MinTransactions = minTransactions;
+        this.transactionSize = initialTransactionSize;
+        if (transactionSize > maxTransactions) {
+            transactionSize = maxTransactions;
+        }
+        if (transactionSize < minTransactions) {
+            transactionSize = minTransactions;
+        }
     }
 
     public void recordLastTransactionDuration(final long duration) {

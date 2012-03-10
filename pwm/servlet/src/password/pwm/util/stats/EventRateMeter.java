@@ -30,11 +30,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-class EventRateMeter {
+public class EventRateMeter {
     final ConcurrentLinkedQueue<EventElement> tracker = new ConcurrentLinkedQueue<EventElement>();
     private final TimeDuration maxDuration;
 
-    EventRateMeter(final TimeDuration maxDuration) {
+    public EventRateMeter(final TimeDuration maxDuration) {
         if (maxDuration == null) {
             throw new NullPointerException("maxDuration cannot be null");
         }

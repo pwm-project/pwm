@@ -64,7 +64,7 @@ public class RestCheckPasswordServer {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            
+
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw new WebApplicationException(401);
             }
@@ -108,13 +108,10 @@ public class RestCheckPasswordServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
-
-
         final PasswordCheckInfo passwordCheckInfo = checkEnteredPassword(pwmApplication, pwmSession, checkRequest.getUserDN(), checkRequest.getPassword1());
         final MATCH_STATUS matchStatus = figureMatchStatus(pwmSession, checkRequest.getPassword1(), checkRequest.getPassword2());
 
         final String outputString = generateJsonOutputString(pwmSession, pwmApplication, passwordCheckInfo, matchStatus);
-
         {
             final StringBuilder sb = new StringBuilder();
             sb.append("real-time password validator called for ").append(checkRequest.getUserDN());
@@ -141,7 +138,8 @@ public class RestCheckPasswordServer {
             final String userDN,
             final String password1
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         boolean pass = false;
         String userMessage;
 

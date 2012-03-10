@@ -102,7 +102,7 @@
 
         function fetchRandomPassword() {
             dojo.xhrGet({
-                url: PWM_GLOBAL['url-rest-public'] + "/randompassword",
+                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
                 headers: {"Accept":"application/json"},
                 dataType: "json",
                 timeout: 15000,
