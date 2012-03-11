@@ -82,6 +82,17 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'expireTimeMs' servlet parameter: " + e.getMessage());
         }
 
+        int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
+        try {
+            internalCacheItemLimit = Integer.parseInt(this.getInitParameter("internalCacheItemLimit"));
+        } catch (Exception e) {
+            LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
+        }
+
+        final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
+                .maximumWeightedCapacity(internalCacheItemLimit)
+                .build();
+        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
 
         try {
             internalMaxCacheFileSize = Integer.parseInt(this.getInitParameter("internalMaxCacheFileSize"));
@@ -120,27 +131,20 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
-        final Map<CacheKey,CacheEntry> responseCache = (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
-        if (responseCache == null) {
-            int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
-            try {
-                internalCacheItemLimit = Integer.parseInt(servletContext.getInitParameter("internalCacheItemLimit"));
-            } catch (Exception e) {
-                LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
-            }
-
-            final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                    .maximumWeightedCapacity(internalCacheItemLimit)
-                    .build();
-            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
-            return newCacheMap;
-        }
-        return responseCache;
+        return (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+    }
+    
+    public static void clearCache(final ServletContext servletContext) {
+        getCache(servletContext).clear();
     }
 
-    private void processRequest
-            (final HttpServletRequest request, final HttpServletResponse response, final boolean includeBody)
-            throws IOException {
+    private void processRequest (
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final boolean includeBody
+    )
+            throws IOException
+    {
 
 
         PwmSession pwmSession = null;

@@ -87,7 +87,7 @@ public class RestRandomPasswordServer {
             if (strength != null && strength.length() > 0) {
                 randomConfig.setMinimumStrength(Integer.valueOf(strength));
             }
-            
+
             final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, randomConfig, pwmApplication);
             final Map<String, String> outputMap = new HashMap<String, String>();
             outputMap.put("password", randomPassword);

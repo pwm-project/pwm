@@ -170,9 +170,8 @@ public class GuestRegistrationServlet extends TopServlet {
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
-
             // Update user attributes
-            Helper.writeMapToLdap(pwmSession, theGuest, updateAttrs);
+            Helper.writeMapToLdap(pwmApplication, pwmSession, theGuest, updateAttrs, false);
 
             // Write expirationDate
             if (expirationDate != null) {
@@ -370,7 +369,7 @@ public class GuestRegistrationServlet extends TopServlet {
             LOGGER.debug(pwmSession, "writing guestUser.writeAttributes to user " + theUser.getEntryDN());
             final List<String> configValues = config.readSettingAsStringArray(PwmSetting.GUEST_WRITE_ATTRIBUTES);
             final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmSession, theUser, configNameValuePairs);
+            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
             for (final String key : configNameValuePairs.keySet()) {
                 notifyAttrs.put(key, configNameValuePairs.get(key));
             }

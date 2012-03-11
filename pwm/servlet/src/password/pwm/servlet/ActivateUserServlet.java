@@ -239,7 +239,7 @@ public class ActivateUserServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "writing pre-activate user attribute write values to user " + theUser.getEntryDN());
                 final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
                 final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                Helper.writeMapToLdap(pwmSession, theUser, writeAttributesSettings);
+                Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, writeAttributesSettings, true);
             }
 
             //authenticate the pwm session
@@ -271,7 +271,7 @@ public class ActivateUserServlet extends TopServlet {
                         LOGGER.debug(pwmSession, "writing post-activate user attribute write values to user " + theUser.getEntryDN());
                         final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                        Helper.writeMapToLdap(pwmSession, theUser, writeAttributesSettings);
+                        Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, writeAttributesSettings, true);
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
                         final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);

@@ -48,7 +48,7 @@ public class PwmDBLoggerTest extends TestCase {
     private int eventsRemaining;
     final StringBuilder randomValue = new StringBuilder();
     final Random random = new Random();
-    
+
     private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(2 * 60 * 1000));
 
 
@@ -75,7 +75,7 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 500;
+            final int randomLength = 5000;
             while (randomValue.length() < randomLength) {
                 randomValue.append(String.valueOf(random.nextInt(9)));
             }
@@ -84,23 +84,15 @@ public class PwmDBLoggerTest extends TestCase {
 
     public void testBulkAddEvents() {
         final int startingSize = pwmDBLogger.getStoredEventCount();
-        final int loopCount = 100;
         eventsRemaining = BULK_EVENT_SIZE;
         eventsAdded = 0;
         final Timer timer = new Timer();
         timer.scheduleAtFixedRate(new DebugOutputTimerTask(),10 * 1000, 30 * 1000);
+        final Thread populatorThread = new PopulatorThread();
+        populatorThread.start();
 
         while (eventsRemaining > 0) {
-            //while (pwmDBLogger.getPendingEventCount() >= (PwmDBLogger.MAX_QUEUE_SIZE - loopCount)) Helper.pause(10);
-            while (pwmDBLogger.getPendingEventCount() >= 1000) Helper.pause(10);
-
-            final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
-            for (final PwmLogEvent logEvent : events) {
-                pwmDBLogger.writeEvent(logEvent);
-                eventRateMeter.markEvents(1);
-                eventsRemaining--;
-                eventsAdded++;
-            }
+            Helper.pause(500);
         }
 
         final long startWaitTime = System.currentTimeMillis();
@@ -114,6 +106,22 @@ public class PwmDBLoggerTest extends TestCase {
             Assert.assertEquals(pwmDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_SIZE);
         }
         timer.cancel();
+    }
+
+    private class PopulatorThread extends Thread {
+        public void run() {
+            final int loopCount = 100;
+            while (eventsRemaining > 0) {
+                while (pwmDBLogger.getPendingEventCount() >= 2000) Helper.pause(5);
+                final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
+                for (final PwmLogEvent logEvent : events) {
+                    pwmDBLogger.writeEvent(logEvent);
+                    eventRateMeter.markEvents(1);
+                    eventsRemaining--;
+                    eventsAdded++;
+                }
+            }
+        }
     }
 
 

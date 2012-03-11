@@ -134,7 +134,7 @@ public enum Message {
     public static String getLocalizedMessage(final Locale locale, final Message message, final Configuration config, final String... fieldValue) {
         String result = getRawString(config, message.getResourceKey(),locale);
         try {
-            if (fieldValue != null && fieldValue.length > 0) {
+            if (fieldValue != null && fieldValue.length > 0 && fieldValue[0] != null && fieldValue[0].length() > 0) {
                 result = result.replace(FIELD_REPLACE_VALUE, fieldValue[0]);
             }
         } catch (Exception e) {

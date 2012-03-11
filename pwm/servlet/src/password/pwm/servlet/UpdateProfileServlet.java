@@ -142,13 +142,13 @@ public class UpdateProfileServlet extends TopServlet {
             // write the form values
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-            Helper.writeFormValuesToLdap(pwmSession, actor, formValues);
+            Helper.writeFormValuesToLdap(pwmApplication, pwmSession, actor, formValues, false);
 
             // write configured values
             final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
             final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmApplication.getProxyChaiProvider());
-            Helper.writeMapToLdap(pwmSession, proxiedUser, writeAttributesSettings);
+            Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, writeAttributesSettings, true);
 
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.UPDATE_PROFILE, null);

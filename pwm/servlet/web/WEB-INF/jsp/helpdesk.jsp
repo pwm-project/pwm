@@ -256,7 +256,7 @@
             bodyText += '<br/>';
             bodyText += '<input type="text" name="password2" id="password2" class="inputfield" style="width: 200px"/>';
             bodyText += '<br/>';
-            bodyText += '<input type="submit" name="change" class="btn" id="password_button" value=" <pwm:Display key="Button_ChangePassword"/> " onclick="var pw=getObject(\'password1\').value;clearDigitWidget(\'changepassword-popup\');doPasswordChange(pw)"/>';
+            bodyText += '<input type="submit" name="change" class="btn" id="password_button" value=" <pwm:Display key="Button_ChangePassword"/> " onclick="var pw=getObject(\'password1\').value;clearDigitWidget(\'changepassword-popup\');doPasswordChange(pw)" disabled="true"/>';
             bodyText += '</form>';
             try { getObject('message').id = "base-message"; } catch (e) {}
             clearDigitWidget('changepassword-popup');
@@ -272,6 +272,7 @@
                 }
             });
             theDialog.show();
+            setTimeout(function(){ getObject('password1').focus();},500);
         }
         function generatePasswordPopup() {
             var dataInput = {};
@@ -279,51 +280,51 @@
             dataInput['strength'] = 0;
 
             var randomConfig = {};
-            //randomConfig['title'] = 'jasonTitle';
-            //randomConfig['dialog'] = 'jasonBody';
             randomConfig['dataInput'] = dataInput;
             randomConfig['finishAction'] = 'clearDigitWidget(\'randomPasswordDialog\');doPasswordChange(this.innerHTML);';
             doRandomGeneration(randomConfig);
         }
         function doPasswordChange(password) {
-            showWaitDialog('changing password...','to ' + password);
+            showWaitDialog('Setting: <b>' + password + '</b>');
             var inputValues = {};
             inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
             inputValues['password'] = password;
-            dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/setpassword",
-                headers: {"Accept":"application/json"},
-                content: inputValues,
-                timeout: 90000,
-                sync: true,
-                handleAs: "json",
-                load: function(results){
-                    var bodyText = "";
-                    if (results['success'] == 'true') {
-                        bodyText += PWM_STRINGS['Message_SuccessUnknown']
+            setTimeout(function(){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-restservice'] + "/setpassword",
+                    headers: {"Accept":"application/json"},
+                    content: inputValues,
+                    timeout: 90000,
+                    sync: true,
+                    handleAs: "json",
+                    load: function(results){
+                        var bodyText = "";
+                        if (results['success'] == 'true') {
+                            bodyText += PWM_STRINGS['Message_SuccessUnknown']
                             bodyText+= '<br/><br/><b>' + password + '</b><br/';
-                    } else {
-                        bodyText += results['errorMsg'];
-                    }
-                    bodyText += '<br/><br/><button onclick="getObject(\'searchForm\').submit();"> OK </button>';
-                    clearDigitWidget('waitDialogID');
-                    dojo.require("dijit.Dialog");
-                    var theDialog = new dijit.Dialog({
-                        id: 'result-popup',
-                        //title: '',
-                        style: "width: 450px",
-                        content: bodyText,
-                        hide: function(){
-                            clearDigitWidget('result-popup');
+                        } else {
+                            bodyText += results['errorMsg'];
                         }
-                    });
-                    theDialog.show();
-                },
-                error: function(errorObj){
-                    clearDigitWidget('waitDialogID');
-                    showError("unexpected set password error: " + errorObj);
-                }
-            });
+                        bodyText += '<br/><br/><button onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        clearDigitWidget('waitDialogID');
+                        dojo.require("dijit.Dialog");
+                        var theDialog = new dijit.Dialog({
+                            id: 'result-popup',
+                            //title: '',
+                            style: "width: 450px",
+                            content: bodyText,
+                            hide: function(){
+                                clearDigitWidget('result-popup');
+                            }
+                        });
+                        theDialog.show();
+                    },
+                    error: function(errorObj){
+                        clearDigitWidget('waitDialogID');
+                        showError("unexpected set password error: " + errorObj);
+                    }
+                });
+            },300);
         }
     </script>
 </div>

@@ -259,7 +259,7 @@ function buildMenuBar() {
                 var theDialog = new dijit.Dialog({
                     id: idName,
                     title: 'PWM Macro Help',
-                    style: "width: 500px",
+                    style: "width: 550px",
                     href: "/pwm/resources/macroHelp.html"
                 });
                 theDialog.show();

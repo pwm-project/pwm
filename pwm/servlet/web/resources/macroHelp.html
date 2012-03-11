@@ -38,31 +38,15 @@
             @LDAP:DN@
         </td>
         <td>
-            Replace with LDAP value of &lt;attributeName&gt;
+            Replace with LDAP value of user's Distinguished Name (DN).
         </td>
     </tr>
     <tr>
         <td class="key">
-            @User:PwExpireDate@
+            @User:PwExpireTime:&lt;pattern&gt;@
         </td>
         <td>
-            Date user's password will expire
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            @User:PwExpireTime@
-        </td>
-        <td>
-            Time user's password will expire
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            @User:PwExpireDateTime@
-        </td>
-        <td>
-            Date & time user's password will expire
+            Time user's password will expire where &lt;pattern&gt; is a <a onclick="window.open('http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html')" href="#">SimpleDateFormat</a> pattern.
         </td>
     </tr>
     <tr>
@@ -91,26 +75,10 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:CurrentDateTime@
+            @PWM:CurrentTime:&lt;pattern&gt;@
         </td>
         <td>
-            Current date & time
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            @PWM:CurrentDate@
-        </td>
-        <td>
-            Current date
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            @PWM:CurrentDateTime@
-        </td>
-        <td>
-            Current time
+            Current time where &lt;pattern&gt; is a <a onclick="window.open('http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html')" href="#">SimpleDateFormat</a> pattern.
         </td>
     </tr>
     <tr>
@@ -133,12 +101,11 @@
 <p>To use a macro, just place the macro into the configuration value such as:
     <br/>
         <span style="font-family: Courrier">
-            Dear, @LDAP:givenName@, Thank you for your activity today, @PWM:CurrentDate@.
+            Dear, @LDAP:givenName@, Thank you for your activity today, @PWM:CurrentTime:EEE, MMM d, yyyy@.
         </span>
         </p>
 <p>This macro will then be expanded to:
     <br/>
-<span style="font-family: Courrier">
-    Dear, John, Thank you for your activity today, January 1, 2010.
+<span style="font-family: Courrier">    Dear, John, Thank you for your activity today, Wed, Jul 4, 2001.
 </span>
 </p>

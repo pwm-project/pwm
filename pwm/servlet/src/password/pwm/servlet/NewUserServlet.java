@@ -360,7 +360,7 @@ public class NewUserServlet extends TopServlet {
             LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
             final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
             final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmSession, theUser, configNameValuePairs);
+            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
         }
 
         LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user to PWM using temporary password");

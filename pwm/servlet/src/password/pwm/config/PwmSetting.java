@@ -48,22 +48,6 @@ public enum PwmSetting {
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
     URL_LOGOUT(
             "pwm.logoutURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
-    LOGOUT_AFTER_PASSWORD_CHANGE(
-            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
-    PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
-    PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
-    EXPIRE_CHECK_DURING_AUTH(
-            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.GENERAL, true, Level.ADVANCED),
-    PASSWORD_SYNC_MIN_WAIT_TIME(
-            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
-    PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.GENERAL, true, Level.ADVANCED),
-    PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
@@ -72,6 +56,26 @@ public enum PwmSetting {
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
+
+    // change password
+    LOGOUT_AFTER_PASSWORD_CHANGE(
+            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_REQUIRE_CURRENT(
+            "password.change.requireCurrent", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_SYNC_MIN_WAIT_TIME(
+            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    PASSWORD_SYNC_MAX_WAIT_TIME(
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    PASSWORD_EXPIRE_PRE_TIME(
+            "expirePreTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_EXPIRE_WARN_TIME(
+            "expireWarnTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    EXPIRE_CHECK_DURING_AUTH(
+            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", Syntax.STRING, Category.CHANGE_PASSWORD, false, Level.ADVANCED),
+    CHANGE_PASSWORD_WRITE_ATTRIBUTES(
+            "changePassword.writeAttributes", Syntax.STRING_ARRAY, Category.CHANGE_PASSWORD, false, Level.BASIC),
 
 
     // user interface
@@ -859,6 +863,7 @@ public enum PwmSetting {
         SECURITY(0),
         TOKEN(0),
         LOGGING(0),
+        CHANGE_PASSWORD(1),
         RECOVERY(1),
         FORGOTTEN_USERNAME(1),
         NEWUSER(1),

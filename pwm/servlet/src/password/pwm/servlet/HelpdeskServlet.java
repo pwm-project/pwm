@@ -161,6 +161,7 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, userDN);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_USER_LOOKUP);
     }
 
 

@@ -35,7 +35,7 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:Display key="Display_PleaseWaitPassword"/></p>
-        <div id="buttonbar">
+        <div id="buttonbar"></div>
         <div id="WaitDialogBlank"></div>
     </div>
     <br class="clear"/>

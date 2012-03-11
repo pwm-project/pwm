@@ -882,8 +882,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
                 final Gson gson = new Gson();
                 final List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
-                }.getType());
-                return new StoredValueList(srcList);
+                }.getType());                               
+                return new StoredValueList(srcList == null ? Collections.<String>emptyList() : srcList);
             }
 
             public String toJsonString() {

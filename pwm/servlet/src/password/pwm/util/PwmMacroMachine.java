@@ -28,6 +28,8 @@ import password.pwm.bean.UserInfoBean;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,14 +42,10 @@ public class PwmMacroMachine {
     private static final List<MacroImplementation> MACROS = new ArrayList<MacroImplementation>();
     static {
         MACROS.add(new LdapMacro());
-        MACROS.add(new UserPwExpirationDateTimeMacro());
-        MACROS.add(new UserPwExpirationDateMacro());
         MACROS.add(new UserPwExpirationTimeMacro());
         MACROS.add(new UserDaysUntilPwExpireMacro());
         MACROS.add(new UserIDMacro());
         MACROS.add(new PwmInstanceIDMacro());
-        MACROS.add(new PwmCurrentDateTimeMacro());
-        MACROS.add(new PwmCurrentDateMacro());
         MACROS.add(new PwmCurrentTimeMacro());
         MACROS.add(new PwmSiteURLMacro());
         MACROS.add(new PwmSiteHostMacro());
@@ -75,16 +73,14 @@ public class PwmMacroMachine {
             final String ldapValue = uiBean.getAllUserAttributes().get(ldapAttr);
 
             if (ldapValue == null || ldapValue.length() < 1) {
-                LOGGER.debug("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr );
+                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr);
                 return "";
             } else if (uiBean.getAllUserAttributes().containsKey(ldapAttr)) {
-                LOGGER.debug("replaced value for '" + matchValue + "', with ldap attribute value: " + ldapValue);
                 return ldapValue;
             } else if (ldapAttr.equalsIgnoreCase("dn")) {
-                LOGGER.debug("replaced value for '" + matchValue + "', user ldap DN" + ldapAttr );
                 return uiBean.getUserDN();
             } else {
-                LOGGER.debug("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr );
+                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr);
                 return "";
             }
         }
@@ -105,81 +101,57 @@ public class PwmMacroMachine {
         }
     }
 
-    private static class PwmCurrentDateTimeMacro implements MacroImplementation {
-        public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentDateTime@");
-        }
-
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
-        }
-    }
-
-    private static class PwmCurrentDateMacro implements MacroImplementation {
-        public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentDate@");
-        }
-
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            return PwmConstants.DEFAULT_DATE_FORMAT.format(new Date());
-        }
-    }
-
     private static class PwmCurrentTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentTime@");
+            return Pattern.compile("@PWM:CurrentTime:.*@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            return PwmConstants.DEFAULT_TIME_FORMAT.format(new Date());
-        }
-    }
+            final String datePattern = matchValue.substring(17,matchValue.length() -1);
 
-    private static class UserPwExpirationDateTimeMacro implements MacroImplementation {
-        public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireDateTime@");
-        }
-
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            if (uiBean == null) {
-                LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
-                return "";
+            if (datePattern != null && datePattern.length() > 0) {
+                try {
+                    final DateFormat dateFormat = new SimpleDateFormat(datePattern);
+                    return dateFormat.format(new Date());
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                }
+            } else {
+                LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
             }
 
-            final Date pwdExpirationTime = uiBean.getPasswordExpirationTime();
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
-        }
-    }
-
-    private static class UserPwExpirationDateMacro implements MacroImplementation {
-        public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireDate@");
-        }
-
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            if (uiBean == null) {
-                LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
-                return "";
-            }
-
-            final Date pwdExpirationTime = uiBean.getPasswordExpirationTime();
-            return PwmConstants.DEFAULT_DATE_FORMAT.format(pwdExpirationTime);
+            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         }
     }
 
     private static class UserPwExpirationTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireTime@");
+            return Pattern.compile("@User:PwExpireTime:.*@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
             if (uiBean == null) {
-                LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
             }
 
             final Date pwdExpirationTime = uiBean.getPasswordExpirationTime();
-            return PwmConstants.DEFAULT_TIME_FORMAT.format(pwdExpirationTime);
+            if (pwdExpirationTime == null) {
+                return "";
+            }
+
+            final String datePattern = matchValue.substring(19,matchValue.length() -1);
+            if (datePattern != null && datePattern.length() > 0) {
+                try {
+                    final DateFormat dateFormat = new SimpleDateFormat(datePattern);
+                    return dateFormat.format(pwdExpirationTime);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                }
+            } else {
+                LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
+            }
+
+            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
         }
     }
 
@@ -264,11 +236,11 @@ public class PwmMacroMachine {
 
         final StringBuilder sb = new StringBuilder(input);
 
-        for (MacroImplementation configVar : MACROS) {
-            final Pattern pattern = configVar.getRegExPattern();
+        for (MacroImplementation pwmMacro : MACROS) {
+            final Pattern pattern = pwmMacro.getRegExPattern();
             final Matcher matcher = pattern.matcher(sb.toString());
             while (matcher.find()) {
-                final String replaceString = doReplace(sb.toString(), configVar, matcher, pwmApplication, uiBean, stringReplacer);
+                final String replaceString = doReplace(sb.toString(), pwmMacro, matcher, pwmApplication, uiBean, stringReplacer);
                 sb.delete(0, sb.length());
                 sb.append(replaceString);
             }
@@ -307,6 +279,9 @@ public class PwmMacroMachine {
             }
         }
 
+        if (replaceStr != null && replaceStr.length() > 0) {
+            LOGGER.trace("replaced PwmMacro " + matchedStr + " with value: " + replaceStr);
+        }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
     }
 

@@ -656,7 +656,13 @@ public class Helper {
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmOperationalException if their is an unexpected ldap problem
      */
-    public static void writeFormValuesToLdap(final PwmSession pwmSession, final ChaiUser theUser, final Map<FormConfiguration,String> formValues)
+    public static void writeFormValuesToLdap(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser,
+            final Map<FormConfiguration,String> formValues,
+            final boolean expandPwmMacros
+    )
             throws ChaiUnavailableException, PwmOperationalException
     {
         final Map<String,String> tempMap = new HashMap<String,String>();
@@ -665,7 +671,7 @@ public class Helper {
             tempMap.put(formConfiguration.getAttributeName(),formValues.get(formConfiguration));
         }
 
-        writeMapToLdap(pwmSession, theUser, tempMap);
+        writeMapToLdap(pwmApplication, pwmSession, theUser, tempMap, expandPwmMacros);
     }
 
     /**
@@ -680,7 +686,13 @@ public class Helper {
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmOperationalException if their is an unexpected ldap problem
      */
-    public static void writeMapToLdap(final PwmSession pwmSession, final ChaiUser theUser, final Map<String,String> valueMap)
+    public static void writeMapToLdap(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser,
+            final Map<String,String> valueMap,
+            final boolean expandPwmMacros
+    )
             throws PwmOperationalException, ChaiUnavailableException
     {
         final Map<String,String> currentValues;
@@ -695,7 +707,10 @@ public class Helper {
         }
 
         for (final String attrName : valueMap.keySet()) {
-            final String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+            String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+            if (expandPwmMacros) {
+                attrValue = PwmMacroMachine.expandMacros(attrValue, pwmApplication, pwmSession.getUserInfoBean(), null);
+            }
             if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {
                     try {
