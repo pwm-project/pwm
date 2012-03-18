@@ -24,9 +24,9 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.util.PwmMacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
-<%@ page import="password.pwm.util.PwmMacroMachine" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
@@ -89,7 +89,7 @@
             dojo.require("dijit.Dialog");dojo.require("dijit.Tooltip");dojo.require("dijit.Menu");dojo.require("dijit.MenuItem");
         },3500);});
         dojo.addOnLoad(function(){setTimeout(function(){
-            initCountDownTimer(<%= sessionStateBean.getMaxInactiveSeconds() %>);
+            initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
         },90);});
         dojo.addOnUnload(function(){
             dojo.xhrGet({

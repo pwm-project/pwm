@@ -303,7 +303,8 @@ public abstract class CrUtility {
             final ResponseInfoBean responseInfoBean
 
     )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException {
+            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
+    {
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
 
@@ -314,8 +315,6 @@ public abstract class CrUtility {
                 theUser.getChaiProvider().getChaiConfiguration(),
                 responseInfoBean.getCsIdentifier()
         );
-
-
 
         if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
             attempts++;
@@ -417,6 +416,119 @@ public abstract class CrUtility {
             throw new PwmOperationalException(errorInfo);
         }
     }
+
+    public static void clearResponses(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser,
+            final String userGUID
+
+    )
+            throws PwmOperationalException, ChaiUnavailableException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        int attempts = 0, successes = 0;
+
+        LOGGER.trace(pwmSession, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
+
+        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
+            attempts++;
+            if (userGUID == null || userGUID.length() < 1) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to remote database, user does not have a pwmGUID"));
+            }
+
+            try {
+                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+                databaseAccessor.remove(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
+                LOGGER.info(pwmSession, "cleared responses for user " + theUser.getEntryDN() + " in remote database");
+                successes++;
+            } catch (PwmUnrecoverableException e) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected error clearing responses to remote database: " + e.getMessage());
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
+            attempts++;
+            if (userGUID == null || userGUID.length() < 1) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to pwmDB, user does not have a pwmGUID"));
+            }
+
+            if (pwmApplication.getPwmDB() == null) {
+                final String errorMsg = "pwmDB is not available, unable to write user responses";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+
+            try {
+                pwmApplication.getPwmDB().remove(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                LOGGER.info(pwmSession, "cleared responses for user in local pwmDB");
+                successes++;
+            } catch (PwmDBException e) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected pwmDB error clearing responses to pwmDB: " + e.getMessage());
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
+        }
+
+        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
+            try {
+                attempts++;
+                final String currentValue = theUser.readStringAttribute(ldapStorageAttribute);
+                if (currentValue != null && currentValue.length() > 0) {
+                    theUser.deleteAttribute(ldapStorageAttribute, null);
+                }
+                LOGGER.info(pwmSession, "cleared responses for user to chai-ldap format");
+                successes++;
+            } catch (ChaiOperationException e) {
+                final String errorMsg;
+                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+                    errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
+                } else {
+                    errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+                }
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            try {
+                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                    attempts++;
+                    NmasCrFactory.clearResponseSet(theUser);
+                    LOGGER.info(pwmSession, "cleared responses for user using NMAS method ");
+                    successes++;
+                }
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "error writing responses to nmas: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
+        }
+
+        if (attempts == 0) {
+            final String errorMsg = "no response save methods are available or configured";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
+
+        if (attempts != successes) { // should be impossible to get here, but just in case.
+            final String errorMsg = "response clear partially successful; attempts=" + attempts + ", successes=" + successes;
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
+    }
+
+
 
     public static class NovellWSResponseSet implements ResponseSet, Serializable {
         private transient final PasswordManagement service;

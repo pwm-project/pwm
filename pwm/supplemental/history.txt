@@ -11,6 +11,8 @@ v1.6.2
 + Added new user agreement support for user activation
 + Added crypto and ldap options for tokens
 + ConfigManager performance improvements for display value editing
++ Helpdesk random passsword generation and clear responses options
++ Helpdesk session timeout configuration option
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages

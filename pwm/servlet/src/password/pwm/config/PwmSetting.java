@@ -649,6 +649,10 @@ public enum PwmSetting {
             "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
     HELPDESK_CONTEXT(
             "helpdesk.context", Syntax.STRING, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_IDLE_TIMEOUT_SECONDS(
+            "helpdesk.idleTimeout", Syntax.NUMERIC, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_CLEAR_RESPONSES(
+            "helpdesk.clearResponses", Syntax.SELECT, Category.HELPDESK, false, Level.BASIC),
 
 
     // Database

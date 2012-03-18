@@ -64,7 +64,6 @@ public class SessionStateBean implements Serializable {
     private String sessionID;
 
     private int incorrectLogins;
-    private int maxInactiveSeconds;
 
     private Properties lastParameterValues = new Properties();
     private Map<String, ShortcutItem> visibleShortcutItems;
@@ -274,14 +273,6 @@ public class SessionStateBean implements Serializable {
 
     public void incrementRequestCounter() {
         requestCounter = requestCounter++;
-    }
-
-    public int getMaxInactiveSeconds() {
-        return maxInactiveSeconds;
-    }
-
-    public void setMaxInactiveSeconds(int maxInactiveSeconds) {
-        this.maxInactiveSeconds = maxInactiveSeconds;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

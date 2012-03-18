@@ -41,7 +41,9 @@
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(request); %>
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
-<% final HelpdeskServlet.SET_PW_UI_MODE PW_UI_MODE = HelpdeskServlet.SET_PW_UI_MODE.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
+<% final HelpdeskServlet.SETTING_PW_UI_MODE SETTING_PW_UI_MODE = HelpdeskServlet.SETTING_PW_UI_MODE.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
+<% final HelpdeskServlet.SETTING_CLEAR_RESPONSES SETTING_CLEAR_RESPONSES = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES)); %>
+<% final Map<String, String> attrMap = ContextManager.getPwmApplication(session).getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
@@ -52,6 +54,7 @@
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
 </jsp:include>
 <div id="centerbody">
+<p><pwm:Display key="Display_Helpdesk"/></p>
 <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
       onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" id="searchForm">
     <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -78,13 +81,43 @@
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
 <br class="clear"/>
-
 <% if (helpdeskBean.isUserExists()) { %>
 <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
 <div style="width: 100%; height: 400px">
 <div class="message message-info">
 <div style="text-align: center; width: 100%"><%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %></div>
 <div dojoType="dijit.layout.TabContainer" style="width: 100%; height: 100%;" doLayout="false">
+<div dojoType="dijit.layout.ContentPane" title="Data">
+    <table>
+        <tr>
+            <td class="key">
+                User DN
+            </td>
+            <td>
+                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserDN()) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                User GUID
+            </td>
+            <td>
+                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
+            </td>
+        </tr>
+        <% for (Map.Entry<String, String> me : attrMap.entrySet()) { %>
+        <tr>
+            <td class="key">
+                <%=me.getValue()%>
+            </td>
+            <td>
+                <% final String loopValue = searchedUserInfo.getAllUserAttributes().get(me.getKey()); %>
+                <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
+            </td>
+        </tr>
+        <%  } %>
+    </table>
+</div>
 <div dojoType="dijit.layout.ContentPane" title="Status">
 <table>
     <tr>
@@ -158,7 +191,7 @@
             Password Set Time (PWM)
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : ""%>
+            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
         </td>
     </tr>
     <tr>
@@ -166,7 +199,7 @@
             Password Expiration Time
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : ""%>
+            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
         </td>
     </tr>
     <tr>
@@ -223,7 +256,7 @@
     </tr>
 </table>
 <div id="buttonbar">
-    <% if (PW_UI_MODE != HelpdeskServlet.SET_PW_UI_MODE.none) { %>
+    <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
     <button class="btn" onclick="initiateChangePasswordDialog()">Change Password</button>
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
@@ -239,7 +272,7 @@
     </form>
     <script type="text/javascript">
         function initiateChangePasswordDialog() {
-        <% if (PW_UI_MODE == HelpdeskServlet.SET_PW_UI_MODE.autogen) { %>
+        <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
             generatePasswordPopup();
         <% } else { %>
             changePasswordPopup();
@@ -249,7 +282,7 @@
             var bodyText = '<form action="#" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"';
             bodyText += ' onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');">';
             bodyText += '<span id="message" class="message message-info" style="width: 400">Please type new password</span>'
-        <% if (PW_UI_MODE == HelpdeskServlet.SET_PW_UI_MODE.both) { %>
+        <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.both) { %>
             bodyText += '<p>&nbsp;»&nbsp; <a href="#" onclick="clearDigitWidget(\'changepassword-popup\');generatePasswordPopup();"><pwm:Display key="Display_AutoGeneratedPassword"/></a></p>';
         <% } %>
             bodyText += '<input type="text" name="password1" id="password1" class="inputfield" style="width: 200px"/>';
@@ -300,8 +333,12 @@
                     load: function(results){
                         var bodyText = "";
                         if (results['success'] == 'true') {
-                            bodyText += PWM_STRINGS['Message_SuccessUnknown']
-                            bodyText+= '<br/><br/><b>' + password + '</b><br/';
+                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                            bodyText += '<br/><br/><b>' + password + '</b><br/';
+                        <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
+                            bodyText += '<br/><br/><button onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
+                            bodyText += 'Clear Responses</button><br/>';
+                        <% } %>
                         } else {
                             bodyText += results['errorMsg'];
                         }
@@ -326,43 +363,48 @@
                 });
             },300);
         }
+        function doResponseClear(username) {
+            clearDigitWidget('result-popup');
+            showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
+            var inputValues = { 'username':username };
+            setTimeout(function(){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-restservice'] + "/clearresponses",
+                    headers: {"Accept":"application/json"},
+                    content: inputValues,
+                    timeout: 90000,
+                    sync: true,
+                    handleAs: "json",
+                    load: function(results){
+                        var bodyText = "";
+                        if (results['success'] == 'true') {
+                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                        } else {
+                            bodyText += results['errorMsg'];
+                        }
+                        bodyText += '<br/><br/><button onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        clearDigitWidget('waitDialogID');
+                        dojo.require("dijit.Dialog");
+                        var theDialog = new dijit.Dialog({
+                            id: 'result-popup',
+                            style: "width: 450px",
+                            content: bodyText,
+                            hide: function(){
+                                clearDigitWidget('result-popup');
+                            }
+                        });
+                        theDialog.show();
+                    },
+                    error: function(errorObj){
+                        clearDigitWidget('waitDialogID');
+                        showError("unexpected clear responses error: " + errorObj);
+                    }
+                });
+            },100);
+        }
     </script>
 </div>
 </div>
-<% Map<String, String> attrMap = ContextManager.getPwmApplication(session).getConfig().readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES); %>
-<% if (!attrMap.isEmpty()) { %>
-<div dojoType="dijit.layout.ContentPane" title="Data">
-    <table>
-        <tr>
-            <td class="key">
-                User DN
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserDN()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                User GUID
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
-            </td>
-        </tr>
-        <% for (Map.Entry<String, String> me : attrMap.entrySet()) { %>
-        <tr>
-            <td class="key">
-                <%=me.getValue()%>
-            </td>
-            <td>
-                <% final String loopValue = searchedUserInfo.getAllUserAttributes().get(me.getKey()); %>
-                <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
-            </td>
-        </tr>
-        <%  } %>
-    </table>
-</div>
-<%  } %>
 <div dojoType="dijit.layout.ContentPane" title="History">
     <table>
         <% for (final UserHistory.Record record : helpdeskBean.getUserHistory().getRecords()) { %>

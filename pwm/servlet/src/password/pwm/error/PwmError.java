@@ -136,6 +136,7 @@ public enum PwmError {
     ERROR_INCORRECT_REQUEST_SEQUENCE("Error_IncorrectRequestSequence", 5035),
     ERROR_UNREACHABLE_CLOUD_SERVICE("Error_UnreachableCloudService", 5036),
     ERROR_INVALID_SECURITY_KEY("Error_InvalidSecurityKey", 5037),
+    ERROR_CLEARING_RESPONSES("Error_Clearing_Responses",5038),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

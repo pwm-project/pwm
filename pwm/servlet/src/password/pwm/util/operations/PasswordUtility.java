@@ -36,6 +36,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
@@ -233,8 +234,10 @@ public class PasswordUtility {
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(chaiUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
 
         // mark the event log
+        {
         final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
         UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_SET_PASSWORD, message);
+        }
 
         // update statistics
         pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES,1);
@@ -251,6 +254,16 @@ public class PasswordUtility {
             final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
             final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
             Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, configNameValuePairs, true);
+        }
+        
+        final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
+        if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
+            final String userGUID = Helper.readLdapGuidValue(proxiedUser.getChaiProvider(), pwmApplication.getConfig(), proxiedUser.getEntryDN());
+            CrUtility.clearResponses(pwmSession, pwmApplication, proxiedUser, userGUID);
+
+            // mark the event log
+            final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
+            UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES, message);
         }
 
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);

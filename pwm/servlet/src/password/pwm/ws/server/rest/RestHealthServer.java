@@ -52,10 +52,10 @@ public class RestHealthServer {
     @Context
     HttpServletRequest request;
 
-	// This method is called if TEXT_PLAIN is request
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public String doPwmHealthPlainGet() {
+    // This method is called if TEXT_PLAIN is request
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String doPwmHealthPlainGet() {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
@@ -63,7 +63,7 @@ public class RestHealthServer {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }
         return "";
-	}
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,10 +94,12 @@ public class RestHealthServer {
                 LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
                 doRefresh = true;
             } else {
-                try {
-                    doRefresh = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
-                } catch (Exception e) {
-                    LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
+                if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                    try {
+                        doRefresh = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
+                    } catch (Exception e) {
+                        LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
+                    }
                 }
             }
         }

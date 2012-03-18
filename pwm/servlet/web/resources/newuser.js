@@ -40,7 +40,7 @@ function validateNewUserForm() {
         }
     }
 
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_PleaseWait']); }},1000);
+    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingData']); }},1000);
 
     validationInProgress = true;
     dojo.xhrPost({

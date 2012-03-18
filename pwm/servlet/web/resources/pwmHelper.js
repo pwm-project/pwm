@@ -368,7 +368,8 @@ function pollActivity() {
 function pingServer() {
     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     dojo.xhrPost({
-        url: pingURL
+        url: pingURL,
+        sync: false
     });
 }
 

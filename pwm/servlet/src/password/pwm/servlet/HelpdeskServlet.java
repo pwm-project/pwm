@@ -27,6 +27,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
@@ -44,6 +45,7 @@ import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.CrUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -64,11 +66,17 @@ public class HelpdeskServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HelpdeskServlet.class);
     private static final int DEFAULT_INPUT_LENGTH = 1024;
 
-    public static enum SET_PW_UI_MODE {
+    public static enum SETTING_PW_UI_MODE {
         none,
         type,
         autogen,
         both
+    }
+
+    public static enum SETTING_CLEAR_RESPONSES {
+        yes,
+        ask,
+        no
     }
 
     @Override
@@ -93,6 +101,10 @@ public class HelpdeskServlet extends TopServlet {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
+        }
+
+        if (req.getSession().getMaxInactiveInterval() < (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS)) {
+            req.getSession().setMaxInactiveInterval((int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS));
         }
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, DEFAULT_INPUT_LENGTH);
@@ -155,7 +167,18 @@ public class HelpdeskServlet extends TopServlet {
             final Configuration config = pwmApplication.getConfig();
             userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, searchContext, provider, config);
         } catch (PwmOperationalException e) {
-            LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
+            final ErrorInformation errorInformation = PwmError.ERROR_CANT_MATCH_USER.toInfo();
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.trace(pwmSession, errorInformation);
+            helpdeskBean.setUserExists(false);
+            return;
+        }
+        
+        if (pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(userDN)) {
+            final String errorMsg = "cannot select self";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.trace(pwmSession, errorInformation);
             helpdeskBean.setUserExists(false);
             return;
         }
@@ -220,6 +243,11 @@ public class HelpdeskServlet extends TopServlet {
                 LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
             }
             helpdeskBean.setUserHistory(userHistory);
+        }
+        
+        {
+            final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
+            helpdeskBean.setResponseSet(responseSet);
         }
     }
 

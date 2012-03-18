@@ -66,7 +66,7 @@ public class RestCheckPasswordServer {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                throw new WebApplicationException(401);
+                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
             
             final String userDN = (username != null && username.length() > 0) ? username : pwmSession.getUserInfoBean().getUserDN();

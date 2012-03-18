@@ -105,22 +105,31 @@ public class TokenManager implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
 
-        switch (storageMethod) {
-            case STORE_PWMDB:
-                tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
-                break;
+        try {
+            switch (storageMethod) {
+                case STORE_PWMDB:
+                    tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
+                    break;
 
-            case STORE_DB:
-                tokenMachine = new DBTokenMachine(pwmApplication.getDatabaseAccessor());
-                break;
+                case STORE_DB:
+                    tokenMachine = new DBTokenMachine(pwmApplication.getDatabaseAccessor());
+                    break;
 
-            case STORE_CRYPTO:
-                tokenMachine = new CryptoTokenMachine();
-                break;
+                case STORE_CRYPTO:
+                    tokenMachine = new CryptoTokenMachine();
+                    break;
 
-            case STORE_LDAP:
-                tokenMachine = new LdapTokenMachine(pwmApplication);
-                break;
+                case STORE_LDAP:
+                    tokenMachine = new LdapTokenMachine(pwmApplication);
+                    break;
+            }
+        } catch (PwmException e) {
+            final String errorMsg = "unable to start token manager: " + e.getErrorInformation().getDetailedErrorMsg();
+            final ErrorInformation newErrorInformation = new ErrorInformation(e.getError(), errorMsg);
+            errorInformation = newErrorInformation;
+            LOGGER.error(newErrorInformation.toDebugStr());
+            status = STATUS.CLOSED;
+            return;
         }
 
         timer = new Timer("pwm-TokenManager",true);
@@ -514,10 +523,12 @@ public class TokenManager implements PwmService {
             final Gson gson = new Gson();
             final String jsonPayload = gson.toJson(tokenPayload);
             try {
-                final String encryptedPaylod = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
-                return Base64Util.encodeObject(encryptedPaylod, Base64Util.GZIP | Base64Util.URL_SAFE);
+                final String encryptedPayload = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
+//                BigInteger i = new BigInteger(1,encryptedPayload.getBytes());
+//                return i.toString(Character.MAX_RADIX);
+                return Base64Util.encodeObject(encryptedPayload, Base64Util.GZIP | Base64Util.URL_SAFE);
             } catch (Exception e) {
-                final String errorMsg = "unexpected error generating embeded token: " + e.getMessage();
+                final String errorMsg = "unexpected error generating embedded token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }

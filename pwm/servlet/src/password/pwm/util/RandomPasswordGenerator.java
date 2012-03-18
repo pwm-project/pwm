@@ -471,7 +471,7 @@ public class RandomPasswordGenerator {
             password.append(seedMachine.getRandomSeed());
         }
 
-        if (RANDOM.nextBoolean()) {
+        if (RANDOM.nextInt(3) == 0) {
             addRandChar(password, DEFAULT_SEED_MACHINE.getNumChars(), RANDOM.nextInt(password.length()));
         }
 
@@ -502,7 +502,7 @@ public class RandomPasswordGenerator {
     }
 
     public static class RandomGeneratorConfig {
-        public static final int DEFAULT_MINIMUM_LENGTH = 8;
+        public static final int DEFAULT_MINIMUM_LENGTH = 6;
         public static final int DEFAULT_MAXIMUM_LENGTH = 16;
         public static final int DEFAULT_DESIRED_STRENGTH = 45;
         public static final int DEFAULT_MAXIMUM_TRY_COUNT = 1000;

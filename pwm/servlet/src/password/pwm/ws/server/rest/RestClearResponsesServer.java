@@ -25,14 +25,13 @@ package password.pwm.ws.server.rest;
 import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import password.pwm.ContextManager;
-import password.pwm.Permission;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
+import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.*;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.CrUtility;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -41,9 +40,9 @@ import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("/setpassword")
-public class RestSetPasswordServer {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestSetPasswordServer.class);
+@Path("/clearresponses")
+public class RestClearResponsesServer {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestClearResponsesServer.class);
 
     @Context
     HttpServletRequest request;
@@ -52,8 +51,7 @@ public class RestSetPasswordServer {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String doPostSetPassword(
-            final @FormParam("username") String username,
-            final @FormParam("password") String password
+            final @FormParam("username") String username
     ) {
         final Gson gson = new Gson();
         final Map<String,String> outputMap = new HashMap<String,String>();
@@ -63,38 +61,48 @@ public class RestSetPasswordServer {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                outputMap.put("success","false");
+                outputMap.put("success", "false");
                 outputMap.put("errorMsg", PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo().toDebugStr());
                 return gson.toJson(outputMap);
             }
 
             try {
                 if (username != null && username.length() > 0) {
-
                     if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
                         outputMap.put("success","false");
                         outputMap.put("errorMsg", PwmError.ERROR_UNAUTHORIZED.toInfo().toDebugStr());
                         return gson.toJson(outputMap);
                     }
 
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
-                    PasswordUtility.helpdeskSetUserPassword(pwmSession, chaiUser, pwmApplication, password);
+                    final ChaiProvider actorProvider = pwmSession.getSessionManager().getChaiProvider();
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, actorProvider);
+                    final String userGUID = Helper.readLdapGuidValue(actorProvider, pwmApplication.getConfig(), chaiUser.getEntryDN());
+                    CrUtility.clearResponses(pwmSession,pwmApplication, chaiUser, userGUID);
+
+                    // mark the event log
+                    final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
+                    UserHistory.updateUserHistory(pwmSession, pwmApplication, chaiUser, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES, message);
+
                 } else {
-                    PasswordUtility.setUserPassword(pwmSession, pwmApplication, password);
+                    CrUtility.clearResponses(
+                            pwmSession,
+                            pwmApplication,
+                            pwmSession.getSessionManager().getActor(),
+                            pwmSession.getUserInfoBean().getUserGuid()
+                    );
+                    UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES,null);
                 }
                 outputMap.put("success","true");
                 return gson.toJson(outputMap);
             } catch (PwmOperationalException e) {
-                outputMap.put("success","false");
                 outputMap.put("errorCode", String.valueOf(e.getError().getErrorCode()));
                 outputMap.put("errorMsg", e.getErrorInformation().getDetailedErrorMsg());
                 return gson.toJson(outputMap);
             }
-
         } catch (Exception e) {
             outputMap.put("success","false");
             outputMap.put("errorCode", String.valueOf(PwmError.ERROR_UNKNOWN.getErrorCode()));
-            outputMap.put("errorMsg", "unexpected error building json response for /randompassword rest service: " + e.getMessage());
+            outputMap.put("errorMsg", "unexpected error building json response for /clearresponses rest service: " + e.getMessage());
             return gson.toJson(outputMap);
         }
     }

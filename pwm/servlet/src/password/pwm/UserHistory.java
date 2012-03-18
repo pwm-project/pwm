@@ -246,6 +246,7 @@ public class UserHistory implements Serializable {
             INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
             HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD),
             HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD),
+            HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES),
             UNKNOWN(null);
 
             final private Message message;
