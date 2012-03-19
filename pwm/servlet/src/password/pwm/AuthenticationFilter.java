@@ -277,9 +277,6 @@ public class AuthenticationFilter implements Filter {
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
         statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION,1);
 
-        //attempt to add the object class to the user
-        Helper.addConfiguredUserObjectClass(userDN, pwmSession, pwmApplication);
-
         // update the actor user info bean
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);
 

@@ -168,6 +168,9 @@ public class UserStatusHelper {
             throw new NullPointerException("userDN can not be null");
         }
 
+        //attempt to add the object class to the user
+        Helper.addConfiguredUserObjectClass(userDN, pwmSession, pwmApplication);
+
         uiBean.setUserCurrentPassword(userCurrentPassword);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);

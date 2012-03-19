@@ -144,8 +144,8 @@ public class HelpdeskServlet extends TopServlet {
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
         helpdeskBean.setUserExists(false);
-        String username = Validator.readStringFromRequest(req, "username", 255);
-        String context = Validator.readStringFromRequest(req, "context", 255);
+        final String username = Validator.readStringFromRequest(req, "username", 255);
+        final String context = Validator.readStringFromRequest(req, "context", 255);
 
 
         if (username.length() < 1) {
@@ -169,16 +169,17 @@ public class HelpdeskServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = PwmError.ERROR_CANT_MATCH_USER.toInfo();
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            LOGGER.trace(pwmSession, errorInformation);
+            LOGGER.trace(pwmSession, errorInformation.toDebugStr());
             helpdeskBean.setUserExists(false);
             return;
         }
         
+        // check if user found is the actor, if so throw error
         if (pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(userDN)) {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            LOGGER.trace(pwmSession, errorInformation);
+            LOGGER.trace(pwmSession, errorInformation.toDebugStr());
             helpdeskBean.setUserExists(false);
             return;
         }

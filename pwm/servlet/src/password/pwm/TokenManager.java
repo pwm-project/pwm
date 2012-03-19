@@ -471,7 +471,8 @@ public class TokenManager implements PwmService {
         }
 
         public TokenPayload retrieveToken(String tokenKey)
-                throws PwmOperationalException, PwmUnrecoverableException {
+                throws PwmOperationalException, PwmUnrecoverableException 
+        {
             final String storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,tokenKey);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
@@ -524,8 +525,6 @@ public class TokenManager implements PwmService {
             final String jsonPayload = gson.toJson(tokenPayload);
             try {
                 final String encryptedPayload = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
-//                BigInteger i = new BigInteger(1,encryptedPayload.getBytes());
-//                return i.toString(Character.MAX_RADIX);
                 return Base64Util.encodeObject(encryptedPayload, Base64Util.GZIP | Base64Util.URL_SAFE);
             } catch (Exception e) {
                 final String errorMsg = "unexpected error generating embedded token: " + e.getMessage();

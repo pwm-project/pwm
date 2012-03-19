@@ -715,8 +715,14 @@ public class PwmApplication {
                     sb.append(url.getPort());
                 }
                 sb.append(request.getSession().getServletContext().getContextPath());
-                autoSiteUrl = sb.toString();
-                LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
+
+                if (sb.indexOf("localhost") == -1 && !sb.toString().matches("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")) {
+                    autoSiteUrl = sb.toString();
+                    LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
+                } else {
+                    LOGGER.debug("ignoring autoSiteURL detected as: " + sb.toString());
+                }
+
             } catch (MalformedURLException e) {
                 LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
             }

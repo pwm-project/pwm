@@ -160,14 +160,6 @@ public class SessionFilter implements Filter {
         // mark the user's hostname in the session bean
         ssBean.setSrcHostname(readUserHostname(req, pwmSession));
 
-        if (ssBean.isAuthenticated()) {
-            final int maxAuthSeconds = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            if (TimeDuration.fromCurrent(ssBean.getLastAccessTime()).isLongerThan(maxAuthSeconds * 1000)) {
-                LOGGER.info(pwmSession,"unauthenticating user due to idle timeout (" + TimeDuration.fromCurrent(ssBean.getLastAccessTime()).asCompactString() + ")" );
-                pwmSession.unauthenticateUser();
-            }
-        }
-
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
             LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(req));
