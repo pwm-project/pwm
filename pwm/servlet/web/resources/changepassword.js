@@ -307,6 +307,10 @@ function doRandomGeneration(randomConfig) {
         randomConfig = { };
     }
 
+    if (randomConfig['finishAction'] == null || randomConfig['finishAction'].length < 1) {
+        randomConfig['finishAction'] = "copyToPasswordFields(PWM_GLOBAL['SelectedRandomPassword'])";
+    }
+
     var dialogBody = "";
     if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
@@ -319,13 +323,10 @@ function doRandomGeneration(randomConfig) {
         dialogBody += '<tr style="border: 0">';
         for (var j = 0; j < 2; j++) {
             i = i + j;
-            var clickAction;
-            if (randomConfig['finishAction'] != null) {
-                clickAction = randomConfig['finishAction'];
-            } else {
-                clickAction = 'copyToPasswordFields(\'randomGen' + i + '\');';
-            }
-            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="' + clickAction + '" id="randomGen' + i + '">&nbsp;</a></td>';
+            var elementID = "randomGen" + i;
+            var clickAction = "PWM_GLOBAL['SelectedRandomPassword'] = getObject('" + elementID + "').firstChild.nodeValue;";
+            clickAction += randomConfig['finishAction'];
+            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="' + clickAction + '" id="' + elementID + '">&nbsp;</a></td>';
         }
         dialogBody += '</tr>';
     }

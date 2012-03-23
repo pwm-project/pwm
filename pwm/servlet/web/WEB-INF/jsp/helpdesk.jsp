@@ -314,7 +314,7 @@
 
             var randomConfig = {};
             randomConfig['dataInput'] = dataInput;
-            randomConfig['finishAction'] = 'clearDigitWidget(\'randomPasswordDialog\');doPasswordChange(this.innerHTML);';
+            randomConfig['finishAction'] = "clearDigitWidget('randomPasswordDialog');doPasswordChange(PWM_GLOBAL['SelectedRandomPassword'])";
             doRandomGeneration(randomConfig);
         }
         function doPasswordChange(password) {
