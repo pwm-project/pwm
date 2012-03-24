@@ -555,14 +555,14 @@ function saveConfiguration() {
 
     dojo.xhrGet({
         url:"ConfigManager?processAction=getOptions",
-        sync: false,
+        sync: true,
         dataType: "json",
         handleAs: "json",
         load: function(data) {
             dojo.xhrGet({
                 url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID']
             });
-            var oldEpoch = data['configEpoch'];
+            var oldEpoch = data != null ? data['configEpoch'] : null;
             var currentTime = new Date().getTime();
             showError('Waiting for server restart');
             setTimeout(function() {
@@ -612,16 +612,22 @@ function waitForRestart(startTime, oldEpoch) {
         dataType: "json",
         handleAs: "json",
         load: function(data) {
-            var error = data['error'];
+            var error = data != null ? data['error'] : null;
             if (error) {
                 clearDigitWidget('waitDialogID');
                 showError(data['errorDetail']);
                 return;
             }
-            var epoch = data['configEpoch'];
-            if (epoch != oldEpoch) {
-                window.location = "ConfigManager"; //refresh page
-            } else if (currentTime - startTime > 4 * 60 * 1000) { // timeout
+
+            if (data != null) {
+                var epoch = data['configEpoch'];
+                if (epoch != oldEpoch) {
+                    window.location = "ConfigManager"; //refresh page
+                    return;
+                }
+            }
+
+            if (currentTime - startTime > 4 * 60 * 1000) { // timeout
                 alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
                 showError('PWM Server has not restarted (timeout)');
             } else {
