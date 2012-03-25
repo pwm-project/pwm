@@ -36,7 +36,10 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PostChangePasswordAction;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -160,7 +163,7 @@ public class ActivateUserServlet extends TopServlet {
             activateUserBean.setFormValidated(true);
         } catch (PwmOperationalException e) {
             pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
         }
@@ -211,9 +214,9 @@ public class ActivateUserServlet extends TopServlet {
             ServletHelper.forwardToSuccessPage(req, resp);
         } catch (PwmOperationalException e) {
             pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
+            LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
+            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
@@ -599,7 +602,7 @@ public class ActivateUserServlet extends TopServlet {
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
         pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
         pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 

@@ -38,9 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
@@ -104,8 +102,8 @@ public class ForgottenUsernameServlet extends TopServlet {
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
                 pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-                Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
+                pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
                 forwardToJSP(req, resp);
                 return;
             }
@@ -134,8 +132,8 @@ public class ForgottenUsernameServlet extends TopServlet {
             pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
         }
 
-        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
+        pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
         forwardToJSP(req, resp);
     }
 

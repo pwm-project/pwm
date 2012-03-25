@@ -60,6 +60,7 @@ public abstract class PwmConstants {
     public static final int MAX_EMAIL_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxEmailQueueSize"));
     public static final int MAX_SMS_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxSmsQueueSize"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
+    public static final int MAX_INTRUDER_TABLE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxIntruderTableSize"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
     public static final List<Locale> KNOWN_LOCALES;

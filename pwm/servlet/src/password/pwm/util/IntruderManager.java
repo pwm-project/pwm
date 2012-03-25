@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -37,7 +38,6 @@ import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * IntruderManager watches for login errors by users and from IP addresses.  When to many bad attempts
@@ -56,8 +56,14 @@ public class IntruderManager implements Serializable {
     public static final int INTRUDER_RETENTION_TIME = 60 * 60 * 1000; //1 hr
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(IntruderManager.class);
-    private final Map<String, IntruderRecord> addressLockTable = new ConcurrentHashMap<String, IntruderRecord>();
-    private final Map<String, IntruderRecord> userLockTable = new ConcurrentHashMap<String, IntruderRecord>();
+
+    private final Map<String, IntruderRecord> addressLockTable = new ConcurrentLinkedHashMap.Builder<String, IntruderRecord>()
+            .maximumWeightedCapacity(PwmConstants.MAX_INTRUDER_TABLE_SIZE)
+            .build();
+
+    private final Map<String, IntruderRecord> userLockTable = new ConcurrentLinkedHashMap.Builder<String, IntruderRecord>()
+            .maximumWeightedCapacity(PwmConstants.MAX_INTRUDER_TABLE_SIZE)
+            .build();
 
     private final PwmApplication pwmApplication;
 
@@ -185,6 +191,10 @@ public class IntruderManager implements Serializable {
             }
             LOGGER.debug(pwmSession, sb.toString());
         }
+    }
+    
+    public void delayPenalty(final String username, final PwmSession pwmSession) {
+        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
     }
 
     private void lockUser(final PwmSession pwmSession, final IntruderRecord record, final String username) {

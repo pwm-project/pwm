@@ -245,7 +245,7 @@ public class AuthenticationFilter implements Filter {
             intruderManager.addBadUserAttempt(username, pwmSession);
             intruderManager.checkUser(username, pwmSession);
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            pwmApplication.getIntruderManager().delayPenalty(username, pwmSession);
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
         }
 
@@ -261,7 +261,7 @@ public class AuthenticationFilter implements Filter {
             intruderManager.addBadUserAttempt(userDN, pwmSession);
             LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
             throw e;
         }
 

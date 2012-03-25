@@ -24,7 +24,9 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -35,9 +37,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
@@ -150,7 +150,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmApplication.getIntruderManager().checkUser(usernameParam, pwmSession);
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
-            Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+            pwmApplication.getIntruderManager().delayPenalty(usernameParam, pwmSession);
             this.forwardToSearchJSP(req, resp);
             return;
         }
@@ -222,12 +222,17 @@ public class ForgottenPasswordServlet extends TopServlet {
         pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
         pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
         simulateBadLogin(pwmApplication, pwmSession, userDN);
-        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+        pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 
-    private static void loadResponsesIntoBean(final PwmSession pwmSession, final PwmApplication pwmApplication, final ForgottenPasswordBean forgottenPasswordBean)
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
+    private static void loadResponsesIntoBean(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
         // retrieve the responses for the user from ldap
         final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
         final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
@@ -332,7 +337,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
                     pwmApplication.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
                     simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
-                    Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
+                    pwmApplication.getIntruderManager().delayPenalty(theUser.getEntryDN(), pwmSession);
                     this.forwardToResponsesJSP(req, resp);
                     return;
                 }
