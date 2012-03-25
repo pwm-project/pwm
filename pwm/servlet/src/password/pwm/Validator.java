@@ -362,13 +362,14 @@ public class Validator {
      *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
+            final PwmApplication pwmApplication,
             final Map<FormConfiguration, String> formValues
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
     {
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String value = formValues.get(formConfiguration);
-            formConfiguration.checkValue(value);
+            formConfiguration.checkValue(pwmApplication, value);
         }
     }
 

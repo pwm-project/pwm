@@ -354,7 +354,7 @@ public class MainClass {
 
     static void handleExportPwmDB(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, false);
+        final PwmDB pwmDB = loadPwmDB(config, true);
 
         if (args.length < 2) {
             out("must specify file to write PwmDB data to");

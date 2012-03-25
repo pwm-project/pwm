@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +60,7 @@ public class RestClearResponsesServer {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 outputMap.put("success", "false");

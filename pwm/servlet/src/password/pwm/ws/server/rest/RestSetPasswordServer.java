@@ -32,6 +32,7 @@ import password.pwm.PwmSession;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +62,7 @@ public class RestSetPasswordServer {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 outputMap.put("success","false");

@@ -139,14 +139,14 @@ public class GuestRegistrationServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations);
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(formValues);
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             //read current values from user.
             final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
 
             final Map<String, String> updateAttrs = new HashMap<String, String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                if ( formConfiguration.getType() != FormConfiguration.Type.READONLY) {
+                if ( formConfiguration.getType() != FormConfiguration.Type.readonly) {
                     final String attrName = formConfiguration.getAttributeName();
                     updateAttrs.put(attrName, formValues.get(formConfiguration));
                     notifyAttrs.put(attrName, formValues.get(formConfiguration));
@@ -331,7 +331,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(formValues);
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             // check unique fields against ldap
             Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));

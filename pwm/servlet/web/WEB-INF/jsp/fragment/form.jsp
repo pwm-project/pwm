@@ -1,9 +1,11 @@
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,33 +31,35 @@
 <table id="form">
     <%
         final PwmSession pwmSession = PwmSession.getPwmSession(session);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
         for (FormConfiguration loopConfiguration : formConfigurationList) {
         %>
     <tr>
         <td class="key">
-            <%= loopConfiguration.getLabel() %>
+            <label id="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
         </td>
         <td>
             <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
                    name="<%=loopConfiguration.getAttributeName()%>"
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true" <%}%>
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.tel)){%> pattern="<%=StringEscapeUtils.escapeHtml(pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX))%>"<%}%>
                     />
         </td>
     </tr>
     <% if (loopConfiguration.isConfirmationRequired()) { %>
     <tr>
         <td class="key">
-            <pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %>
+            <label id="<%=loopConfiguration.getAttributeName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %></label>
         </td>
         <td>
             <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm" type="<%=loopConfiguration.getType()%>"
                    name="<%=loopConfiguration.getAttributeName()%>_confirm"
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.READONLY)){%> readonly="true" disabled="true" <%}%>
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
          </td>
     </tr>
@@ -64,7 +68,7 @@
     <% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
     <tr>
         <td class="key">
-            <pwm:Display key="Field_NewPassword"/>
+            <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
         </td>
         <td>
             <input style="border:0; width: 100%" type="password" name="password1" id="password1"/>
@@ -72,7 +76,7 @@
     </tr>
     <tr>
         <td class="key">
-            <pwm:Display key="Field_ConfirmPassword"/>
+            <label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label>
         </td>
         <td>
             <input style="border:0; width: 100%" type="password" name="password2" id="password2"/>

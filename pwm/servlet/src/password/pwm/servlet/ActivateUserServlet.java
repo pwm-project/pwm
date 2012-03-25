@@ -142,7 +142,7 @@ public class ActivateUserServlet extends TopServlet {
             }
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(formValues);
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             validateParamsAgainstLDAP(formValues, pwmSession, theUser, config);
 

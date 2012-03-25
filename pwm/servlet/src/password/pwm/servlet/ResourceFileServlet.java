@@ -216,7 +216,7 @@ public class ResourceFileServlet extends HttpServlet {
             if (handleCacheableResponse(response, file, includeBody, acceptsGzip)) {
                 LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache hit)"));
             } else {
-                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache miss"));
+                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache miss)"));
             }
         } catch (UncacheableResourceException e) {
             handleUncachedResponse(response, file, includeBody, acceptsGzip);

@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmApplication;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -63,7 +64,7 @@ import java.util.StringTokenizer;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {TEXT, EMAIL, NUMBER, PASSWORD, RANDOM, READONLY}
+    public enum Type {text, email, number, password, random, readonly, tel}
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 
@@ -97,7 +98,7 @@ public class FormConfiguration implements Serializable {
         {
             final String typeStr = st.nextToken();
             try {
-                type = Type.valueOf(typeStr.toUpperCase());
+                type = Type.valueOf(typeStr.toLowerCase());
             } catch (IllegalArgumentException e) {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"unknown type for form config: " + typeStr));
             }
@@ -215,7 +216,7 @@ public class FormConfiguration implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void checkValue(final String value)
+    public void checkValue(final PwmApplication pwmApplication, final String value)
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
@@ -224,7 +225,7 @@ public class FormConfiguration implements Serializable {
         }
 
         switch (type) {
-            case NUMBER:
+            case number:
                 if (value != null && value.length() > 0) {
                     try {
                         new BigInteger(value);
@@ -236,11 +237,25 @@ public class FormConfiguration implements Serializable {
                 break;
 
 
-            case EMAIL:
+            case email:
                 if (value != null && value.length() > 0) {
                     if (!Helper.testEmailAddress(value)) {
                         final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
                         throw new PwmDataValidationException(error);
+                    }
+                }
+                break;
+
+            case tel:
+                if (value != null && value.length() > 0) {
+                    try {
+                        final String patternString = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX);
+                        if (!value.matches(patternString)) {
+                            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, null, this.label);
+                            throw new PwmDataValidationException(error);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("unexpected error validating telephone number field: " + e.getMessage());
                     }
                 }
                 break;

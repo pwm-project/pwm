@@ -56,7 +56,7 @@
 <div id="centerbody">
 <p><pwm:Display key="Display_Helpdesk"/></p>
 <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-      onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();" id="searchForm">
+      onsubmit="handleFormSubmit('submitBtn',this);" onreset="handleFormClear();" id="searchForm">
     <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
     <% //check to see if any locations are configured.
         if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
@@ -327,8 +327,9 @@
                     url: PWM_GLOBAL['url-restservice'] + "/setpassword",
                     headers: {"Accept":"application/json"},
                     content: inputValues,
+                    preventCache: true,
                     timeout: 90000,
-                    sync: true,
+                    sync: false,
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";
@@ -372,8 +373,9 @@
                     url: PWM_GLOBAL['url-restservice'] + "/clearresponses",
                     headers: {"Accept":"application/json"},
                     content: inputValues,
+                    preventCache: true,
                     timeout: 90000,
-                    sync: true,
+                    sync: false,
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";

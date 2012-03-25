@@ -123,16 +123,6 @@ public class SessionFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
-        if (req.getRequestURI().startsWith("/public/rest")) {
-            try {
-                processFilter(req,resp,filterChain);
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
-                ServletHelper.forwardToErrorPage(req,resp,true);
-            }
-            return;
-        }
-
         try {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {
@@ -141,8 +131,9 @@ public class SessionFilter implements Filter {
         }
     }
 
-    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain) throws PwmUnrecoverableException, IOException, ServletException {
-
+    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
         final ServletContext servletContext = req.getSession().getServletContext();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
@@ -440,7 +431,6 @@ public class SessionFilter implements Filter {
             // check if current request is actually for the config url, if it is, just do nothing.
             if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
                 LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
                 resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
                 return true;
             }

@@ -30,6 +30,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +54,7 @@ public class RestRandomPasswordServer {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
             return RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /randompassword rest service: " + e.getMessage());
@@ -70,6 +72,7 @@ public class RestRandomPasswordServer {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
 
             final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
 

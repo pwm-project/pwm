@@ -262,7 +262,7 @@
         <init-param>
             <description>Maximum file size limit for internal resource cache</description>
             <param-name>internalMaxCacheFileSize</param-name>
-            <param-value>100200</param-value>
+            <param-value>153600</param-value>
         </init-param>
         <init-param>
             <description>zip files to treat as resource paths, seperated by semi-colons (;), must end in .zip</description>

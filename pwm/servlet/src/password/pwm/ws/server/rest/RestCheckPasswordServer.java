@@ -34,6 +34,7 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
@@ -64,6 +65,7 @@ public class RestCheckPasswordServer {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);

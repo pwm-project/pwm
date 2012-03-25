@@ -194,6 +194,7 @@ function startupLocaleSelectorMenu(localeData, attachNode) {
                 dojo.xhrGet({
                     url: pingURL,
                     sync: true,
+                    preventCache: true,
                     load: function() {
                         PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
                         window.location.reload();
@@ -252,6 +253,7 @@ function showPwmHealth(parentDivID, refreshNow) {
         handleAs: "json",
         headers: { "Accept": "application/json" },
         timeout: 60 * 1000,
+        preventCache: true,
         load: function(data) {
             PWM_GLOBAL['pwm-health'] = data['overall'];
             var healthRecords = data['data'];

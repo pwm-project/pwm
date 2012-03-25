@@ -1,3 +1,6 @@
+PWM History/Changelog
+http://code.google.com/p/pwm
+
 [------legend----------------]
 [ + Added feature            ]
 [ * Improved/changed feature ]

@@ -258,7 +258,7 @@ public class CommandServlet extends TopServlet {
             }
 
             try {
-                Validator.validateParmValuesMeetRequirements(formValues);
+                Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
                 LOGGER.info(pwmSession, "checkProfile: " + userDN + " has value for attributes, update profile will not be required");
             } catch (PwmDataValidationException e) {
                 LOGGER.info(pwmSession, "checkProfile: " + userDN + " does not have good attributes (" + e.getMessage() + "), update profile will br required");

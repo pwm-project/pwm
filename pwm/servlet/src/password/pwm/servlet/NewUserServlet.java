@@ -29,8 +29,14 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.NewUserBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.Message;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -409,7 +415,7 @@ public class NewUserServlet extends TopServlet {
         }
 
         // see if the values meet form requirements.
-        Validator.validateParmValuesMeetRequirements(formValues);
+        Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
         // test the password
         final String password = userValues.get(FIELD_PASSWORD);

@@ -54,8 +54,10 @@ import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -80,7 +82,7 @@ public class PwmApplication {
     private String autoSiteUrl;
     private final IntruderManager intruderManager = new IntruderManager(this);
     private final Configuration configuration;
-    
+
     private Timer taskMaster;
     private PwmDB pwmDB;
     private PwmDBLogger pwmDBLogger;
@@ -697,15 +699,22 @@ public class PwmApplication {
     public String getSiteURL() {
         final String configuredURL = configuration.readSettingAsString(PwmSetting.PWM_URL);
         if (configuredURL == null || configuredURL.length() < 1) {
-            return autoSiteUrl == null ? "<UNCONFIGURED_URL>" : autoSiteUrl;
+            return autoSiteUrl == null ? "[UNCONFIGURED_URL]" : autoSiteUrl;
         }
         return configuredURL;
     }
-    
+
     void setAutoSiteURL(final HttpServletRequest request) {
         if (autoSiteUrl == null && request != null) {
             try {
                 final URL url = new URL(request.getRequestURL().toString());
+
+                final InetAddress urlAddress = InetAddress.getByName(url.getHost());
+                if (urlAddress.isLoopbackAddress()) {
+                    LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
+                    return;
+                }
+
                 final StringBuilder sb = new StringBuilder();
                 sb.append(url.getProtocol());
                 sb.append("://");
@@ -716,13 +725,11 @@ public class PwmApplication {
                 }
                 sb.append(request.getSession().getServletContext().getContextPath());
 
-                if (sb.indexOf("localhost") == -1 && !sb.toString().matches("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")) {
-                    autoSiteUrl = sb.toString();
-                    LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
-                } else {
-                    LOGGER.debug("ignoring autoSiteURL detected as: " + sb.toString());
-                }
+                autoSiteUrl = sb.toString();
+                LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
 
+            } catch (UnknownHostException e) {
+                LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
             } catch (MalformedURLException e) {
                 LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
             }

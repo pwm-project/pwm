@@ -87,7 +87,7 @@
         PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
         dojo.addOnLoad(function(){setTimeout(function(){ // pre-fetch dojo/dijit objects
             dojo.require("dijit.Dialog");dojo.require("dijit.Tooltip");dojo.require("dijit.Menu");dojo.require("dijit.MenuItem");
-        },3500);});
+        },9500);});
         dojo.addOnLoad(function(){setTimeout(function(){
             initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
         },90);});

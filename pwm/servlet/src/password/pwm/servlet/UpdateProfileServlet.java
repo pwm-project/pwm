@@ -33,7 +33,10 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -122,7 +125,7 @@ public class UpdateProfileServlet extends TopServlet {
         // remove read-only fields
         for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
             FormConfiguration loopFormConfig = iterator.next();
-            if (loopFormConfig.getType() == FormConfiguration.Type.READONLY) {
+            if (loopFormConfig.getType() == FormConfiguration.Type.readonly) {
                 iterator.remove();
             }
         }
@@ -133,7 +136,7 @@ public class UpdateProfileServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields);
 
             // see if the values meet requirements.
-            Validator.validateParmValuesMeetRequirements(formValues);
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             // write values.
             LOGGER.info("updating profile for " + uiBean.getUserDN());

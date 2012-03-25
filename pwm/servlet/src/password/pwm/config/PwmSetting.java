@@ -113,6 +113,8 @@ public enum PwmSetting {
             "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_TEL_REGEX(
+            "display.validation.tel.regex", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
 
 
     //ldap directory
@@ -288,6 +290,8 @@ public enum PwmSetting {
             "sms.useUrlShortener", Syntax.BOOLEAN, Category.SMS, false, Level.ADVANCED),
 
     //global password policy settings
+    PASSWORD_POLICY_SOURCE(
+            "password.policy.source", Syntax.SELECT, Category.PASSWORD_POLICY, true, Level.ADVANCED),
     PASSWORD_POLICY_MINIMUM_LENGTH(
             "password.policy.minimumLength", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
@@ -360,8 +364,6 @@ public enum PwmSetting {
             "password.policy.changeMessage", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.BASIC),
     PASSWORD_POLICY_RULE_TEXT(
             "password.policy.ruleText", Syntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY, false, Level.ADVANCED),
-    PASSWORD_POLICY_SOURCE(
-            "password.policy.source", Syntax.SELECT, Category.PASSWORD_POLICY, true, Level.ADVANCED),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", Syntax.STRING, Category.PASSWORD_POLICY, false, Level.BASIC),
     WORDLIST_CASE_SENSITIVE(

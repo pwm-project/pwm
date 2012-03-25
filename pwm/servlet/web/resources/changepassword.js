@@ -72,6 +72,7 @@ function validatePasswords(userDN)
         content: passwordData,
         headers: {"Accept":"application/json"},
         handleAs: "json",
+        preventCache: true,
         timeout: 15000,
         error: function(errorObj) {
             validationInProgress = false;
@@ -206,10 +207,8 @@ function markStrength(strength) { //strength meter
 }
 
 
-function copyToPasswordFields(elementID)  // used to copy auto-generated passwords to password field
+function copyToPasswordFields(text)  // used to copy auto-generated passwords to password field
 {
-    var text = getObject(elementID).firstChild.nodeValue;
-
     if (text.length > 255) {
         text = text.substring(0,255);
     }
@@ -389,6 +388,7 @@ function fetchRandoms(randomConfig) {
             url: PWM_GLOBAL['url-restservice'] + "/randompassword",
             headers: {"Accept":"application/json"},
             content: dataInput,
+            preventCache: true,
             timeout: 15000,
             sync: false,
             handleAs: "json",

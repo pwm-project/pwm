@@ -42,6 +42,7 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class UserStatusHelper {
@@ -364,5 +365,53 @@ public class UserStatusHelper {
 
         LOGGER.warn(pwmSession, "attempt to use '" + context + "' context for search, but is not a configured context, changing search base to default context");
         return configuredLdapContextlessRoot;
+    }
+
+    public static class UsernameSearchRequest implements Serializable {
+        private String filter;
+        private String username;
+        private String context;
+        private ChaiProvider chaiProvider;
+        private PwmApplication pwmApplication;
+
+        public String getFilter() {
+            return filter;
+        }
+
+        public void setFilter(String filter) {
+            this.filter = filter;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getContext() {
+            return context;
+        }
+
+        public void setContext(String context) {
+            this.context = context;
+        }
+
+        public ChaiProvider getChaiProvider() {
+            return chaiProvider;
+        }
+
+        public void setChaiProvider(ChaiProvider chaiProvider) {
+            this.chaiProvider = chaiProvider;
+        }
+
+        public PwmApplication getPwmApplication() {
+            return pwmApplication;
+        }
+
+        public void setPwmApplication(PwmApplication pwmApplication) {
+            this.pwmApplication = pwmApplication;
+        }
     }
 }

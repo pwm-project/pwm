@@ -30,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +59,8 @@ public class RestHealthServer {
     public String doPwmHealthPlainGet() {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
             return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
@@ -70,8 +73,9 @@ public class RestHealthServer {
     public String doPwmHealthJsonGet(@QueryParam("refreshImmediate") final String requestImmediateParam) {
         final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
             return processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());

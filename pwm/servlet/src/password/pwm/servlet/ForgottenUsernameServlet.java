@@ -94,7 +94,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenUsernameForm);
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(formValues);
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             // get an ldap user object based on the params
             final String searchFilter = figureSearchFilterForParams(formValues, pwmApplication);
