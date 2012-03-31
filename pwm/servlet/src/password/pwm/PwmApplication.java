@@ -54,10 +54,8 @@ import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -709,8 +707,8 @@ public class PwmApplication {
             try {
                 final URL url = new URL(request.getRequestURL().toString());
 
-                final InetAddress urlAddress = InetAddress.getByName(url.getHost());
-                if (urlAddress.isLoopbackAddress()) {
+                final String hostname = url.getHost();
+                if (hostname.equalsIgnoreCase("localhost") || hostname.equalsIgnoreCase("127.0.0.1")) {
                     LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
                     return;
                 }
@@ -728,10 +726,8 @@ public class PwmApplication {
                 autoSiteUrl = sb.toString();
                 LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
 
-            } catch (UnknownHostException e) {
-                LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
             } catch (MalformedURLException e) {
-                LOGGER.error("unexpected error trying to set autoSiteURL: " + e.getMessage());
+                LOGGER.error("unexpected malformed url error trying to set autoSiteURL: " + e.getMessage());
             }
         }
     }
