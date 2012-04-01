@@ -20,16 +20,11 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
-<%@ page import="password.pwm.config.ConfigurationReader" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="password.pwm.util.Helper" %>
-<%@ page import="java.util.Collection" %>
-<%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="password.pwm.*" %>
+<%@ page import="java.util.Collection" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -46,7 +41,7 @@
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
 <body class="tundra">
-<script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
 <script type="text/javascript">
     <% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
 } %></script>
@@ -260,7 +255,7 @@ function buildMenuBar() {
                     id: idName,
                     title: 'PWM Macro Help',
                     style: "width: 550px",
-                    href: "/pwm/resources/macroHelp.html"
+                    href: "<pwm:url url="/pwm/resources/macroHelp.html"/>"
                 });
                 theDialog.show();
             }

@@ -39,33 +39,26 @@
           content="<%=PwmConstants.BUILD_NUMBER%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <link rel="icon" type="image/x-icon"
-          href="<%=request.getContextPath()%>/resources/<pwm:url url='favicon.ico'/>"/>
-    <link href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmStyle.css'/>"
+          href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>
+    <link href="<%=request.getContextPath()%><pwm:url url='/resources/pwmStyle.css'/>"
           rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
-          href="<%=request.getContextPath()%>/resources/<pwm:url url='pwmMobileStyle.css'/>" type="text/css"
+          href="<%=request.getContextPath()%><pwm:url url='/resources/pwmMobileStyle.css'/>" type="text/css"
           rel="stylesheet"/>
     <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
           href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/>
     <% } %>
-    <link href="<%=request.getContextPath()%>/resources/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet"
-          type="text/css"/>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dojo/dojo.js"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/dojo/dijit/dijit.js"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmHelper.js'/>"></script>
+    <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/tundra/tundra.css'/>" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/dijit.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?locale=<%=pwmSessionHeader.getSessionStateBean().getLocale().toString()%>&nonce=<%=pwmSessionHeader.getSessionStateBean().getSessionVerificationKey()%>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
     <% if (pwmApplicationHeader.getConfig() != null) { %>
     <% } %>
     <script type="text/javascript">
         <% pwmSessionHeader.getSessionStateBean().incrementRequestCounter();%>
         PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
-        <% if (pwmApplicationHeader.getConfig() != null) { %>
-        PWM_GLOBAL['setting-showHidePasswordFields'] =<%=pwmApplicationHeader.getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS)%>;
-        <% } %>
-        PWM_GLOBAL['url-logout'] = "<%=request.getContextPath()%>/public/<pwm:url url='Logout?idle=true'/>";
-        PWM_GLOBAL['url-command'] = "<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>";
-        PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%>/resources";
-        PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%>/public/rest";
     </script>
 </head>

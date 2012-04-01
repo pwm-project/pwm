@@ -22,9 +22,9 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -171,13 +171,6 @@
     </div>
     <br class="clear"/>
 </div>
-<script type="text/javascript">
-    PWM_STRINGS['Button_Hide_Responses'] = "<pwm:Display key="Button_Hide_Responses"/>";
-    PWM_STRINGS['Button_Show_Responses'] = "<pwm:Display key="Button_Show_Responses"/>";
-    PWM_STRINGS['Display_CheckingResponses'] = "<pwm:Display key="Display_CheckingResponses"/>";
-    PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
-    PWM_STRINGS['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
-</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

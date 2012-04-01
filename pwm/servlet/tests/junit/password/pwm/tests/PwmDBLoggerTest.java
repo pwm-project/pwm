@@ -47,7 +47,7 @@ public class PwmDBLoggerTest extends TestCase {
     private int eventsAdded;
     private int eventsRemaining;
     final StringBuilder randomValue = new StringBuilder();
-    final Random random = new Random();
+    final PwmRandom random = PwmRandom.getInstance();
 
     private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(2 * 60 * 1000));
 
@@ -75,9 +75,9 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 5000;
+            final int randomLength = 20 * 1000;
             while (randomValue.length() < randomLength) {
-                randomValue.append(String.valueOf(random.nextInt(9)));
+                randomValue.append(String.valueOf(random.nextChar()));
             }
         }
     }

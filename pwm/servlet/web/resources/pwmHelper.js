@@ -20,14 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var PWM_STRINGS = {};
-var PWM_GLOBAL = {};
-
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
+
+    setTimeout(function(){ // pre-fetch dojo/dijit objects
+        require(["dijit/Dialog","dijit/Tooltip","dijit/Menu","dijit/MenuItem"]);
+    },9500);
+
+    dojo.addOnUnload(function(){
+        dojo.xhrGet({
+            url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            sync: true,
+            load: function() {},
+            error: function() {}
+        });
+    });
 }
 
 function checkForCapsLock(e) {
@@ -172,7 +182,9 @@ function clearDigitWidget(widgetName) {
     }
 }
 
-function startupLocaleSelectorMenu(localeData, attachNode) {
+function startupLocaleSelectorMenu(attachNode) {
+    var localeData = PWM_GLOBAL['localeInfo'];
+
     if (getObject(attachNode) == null) {
         return;
     }

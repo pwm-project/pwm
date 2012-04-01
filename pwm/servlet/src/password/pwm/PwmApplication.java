@@ -105,7 +105,6 @@ public class PwmApplication {
             SmsQueueManager.class,
             UrlShortenerService.class,
             TokenManager.class,
-            ThemeFileManager.class,
             VersionChecker.class
     ));
 
@@ -197,10 +196,6 @@ public class PwmApplication {
 
     public SmsQueueManager getSmsQueue() {
         return (SmsQueueManager)pwmServices.get(SmsQueueManager.class);
-    }
-
-    public ThemeFileManager getThemeFileManager() {
-        return (ThemeFileManager)pwmServices.get(ThemeFileManager.class);
     }
 
     public UrlShortenerService getUrlShortener() {

@@ -49,7 +49,7 @@ function validateResponses() {
 
     validationInProgress = true;
     dojo.xhrPost({
-        url: PWM_STRINGS['url-setupresponses'] + "?processAction=validateResponses&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        url: PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         postData:  dojo.toJson(parameterData),
         contentType: "application/json;charset=utf-8",
         dataType: "json",

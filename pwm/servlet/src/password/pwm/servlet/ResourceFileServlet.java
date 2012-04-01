@@ -48,7 +48,6 @@ import password.pwm.util.TimeDuration;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -61,10 +60,10 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ResourceFileServlet extends HttpServlet {
+public class ResourceFileServlet extends TopServlet {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
-    private static final long DEFAULT_EXPIRE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+    private static final long DEFAULT_EXPIRE_TIME_MS = TimeDuration.DAY.getTotalMilliseconds() * 500; // 500 days.
     private static final int DEFAULT_MAX_CACHE_FILE_SIZE = 50 * 1024; // 50k
     private static final int DEFAULT_MAX_CACHE_ITEM_LIMIT = 100; // 100 items
 
@@ -72,16 +71,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
-    private long expireTimeMs = DEFAULT_EXPIRE_TIME_MS;
     private int internalMaxCacheFileSize = DEFAULT_MAX_CACHE_FILE_SIZE;
 
     public void init() throws ServletException {
-        try {
-            expireTimeMs = Long.parseLong(this.getInitParameter("expireTimeMs"));
-        } catch (Exception e) {
-            LOGGER.warn("unable to parse 'expireTimeMs' servlet parameter: " + e.getMessage());
-        }
-
         int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
         try {
             internalCacheItemLimit = Integer.parseInt(this.getInitParameter("internalCacheItemLimit"));
@@ -100,7 +92,7 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
         }
 
-        LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(expireTimeMs));
+        LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(DEFAULT_EXPIRE_TIME_MS));
 
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
         if (zipFileResourceParam != null) {
@@ -120,70 +112,38 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
-    protected void doHead(final HttpServletRequest request, final HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response, false);
-    }
-
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response, true);
-    }
-
     private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
         return (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
     }
-    
+
     public static void clearCache(final ServletContext servletContext) {
         getCache(servletContext).clear();
     }
 
-    private void processRequest (
+    public void processRequest (
             final HttpServletRequest request,
-            final HttpServletResponse response,
-            final boolean includeBody
+            final HttpServletResponse response
     )
-            throws IOException
-    {
+            throws IOException, PwmUnrecoverableException {
 
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
 
-        PwmSession pwmSession = null;
-        try {
-            pwmSession = PwmSession.getPwmSession(request);
-        } catch (PwmUnrecoverableException e) {
-            // ignore
-        }
+        final String requestURI = stripNonceFromURI(request.getRequestURI(),pwmApplication, pwmSession);
 
         try {
-            if (handleSpecialURIs(request, response, expireTimeMs)) {
+            if (handleSpecialURIs(requestURI, request, response)) {
                 return;
             }
         } catch (Exception e) {
             LOGGER.error(pwmSession, "unexpected error detecting/handling special request uri: " + e.getMessage());
         }
 
-        final FileResource file = resolveRequestedFile(request, zipResources);
+        final FileResource file = resolveRequestedFile(requestURI, request, zipResources);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            return;
-        }
-
-        final String eTag = makeETag(request, file);
-
-        // If-None-Match header should contain "*" or ETag. If so, then return 304.
-        final String ifNoneMatch = request.getHeader("If-None-Match");
-        if (ifNoneMatch != null && matches(ifNoneMatch, eTag)) {
-            response.setHeader("ETag", eTag); // Required in 304.
-            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
-            return;
-        }
-
-        // If-Match header should contain "*" or ETag. If not, then return 412.
-        final String ifMatch = request.getHeader("If-Match");
-        if (ifMatch != null && !matches(ifMatch, eTag)) {
-            response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
             return;
         }
 
@@ -209,17 +169,17 @@ public class ResourceFileServlet extends HttpServlet {
         // Initialize response.
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
-        response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+        response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
         response.setContentType(contentType);
 
         try {
-            if (handleCacheableResponse(response, file, includeBody, acceptsGzip)) {
+            if (handleCacheableResponse(response, file, acceptsGzip)) {
                 LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache hit)"));
             } else {
                 LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache miss)"));
             }
         } catch (UncacheableResourceException e) {
-            handleUncachedResponse(response, file, includeBody, acceptsGzip);
+            handleUncachedResponse(response, file, acceptsGzip);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"non-cacheable: " + e.getMessage()));
         }
     }
@@ -246,15 +206,11 @@ public class ResourceFileServlet extends HttpServlet {
     private boolean handleCacheableResponse(
             final HttpServletResponse response,
             final FileResource file,
-            final boolean includeBody,
             final boolean acceptsGzip
     ) throws
             UncacheableResourceException, IOException
     {
         final Map<CacheKey,CacheEntry> responseCache = getCache(getServletContext());
-        if (!includeBody) {
-            throw new UncacheableResourceException("header only request");
-        }
 
         if (file.length() > internalMaxCacheFileSize) {
             throw new UncacheableResourceException("file to large");
@@ -307,7 +263,6 @@ public class ResourceFileServlet extends HttpServlet {
     private static void handleUncachedResponse(
             final HttpServletResponse response,
             final FileResource file,
-            final boolean includeBody,
             final boolean acceptsGzip
     ) throws IOException
     {
@@ -320,20 +275,18 @@ public class ResourceFileServlet extends HttpServlet {
             input = file.getInputStream();
             output = response.getOutputStream();
 
-            if (includeBody) {
-                if (acceptsGzip) {
-                    // The browser accepts GZIP, so GZIP the content.
-                    response.setHeader("Content-Encoding", "gzip");
-                    output = new GZIPOutputStream(output, BUFFER_SIZE);
-                } else {
-                    // Content length is not directly predictable in case of GZIP.
-                    // So only add it if there is no means of GZIP, else browser will hang.
-                    response.setHeader("Content-Length", String.valueOf(file.length()));
-                }
-
-                // Copy full range.
-                copy(input, output);
+            if (acceptsGzip) {
+                // The browser accepts GZIP, so GZIP the content.
+                response.setHeader("Content-Encoding", "gzip");
+                output = new GZIPOutputStream(output, BUFFER_SIZE);
+            } else {
+                // Content length is not directly predictable in case of GZIP.
+                // So only add it if there is no means of GZIP, else browser will hang.
+                response.setHeader("Content-Length", String.valueOf(file.length()));
             }
+
+            // Copy full range.
+            copy(input, output);
         } finally {
             // Gently close streams.
             close(output);
@@ -406,33 +359,16 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
-    private static String makeETag(final HttpServletRequest req, final FileResource file) {
-        final StringBuilder sb = new StringBuilder();
-
-        String startupTime = null;
-        try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-            startupTime = String.valueOf(pwmApplication.getStartupTime().getTime());
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to load context startup time: " + e.getMessage());
-        }
-
-        sb.append(PwmConstants.BUILD_NUMBER);
-        sb.append("-");
-        sb.append(startupTime);
-        sb.append("-");
-        sb.append(file.length());
-        sb.append("-");
-        sb.append(file.lastModified());
-        return sb.toString();
-    }
-
-    private static FileResource resolveRequestedFile(final HttpServletRequest request, final Map<String,ZipFile> zipResources)
-            throws UnsupportedEncodingException {
+    private static FileResource resolveRequestedFile(
+            final String requestURI,
+            final HttpServletRequest request,
+            final Map<String,ZipFile> zipResources
+    )
+            throws UnsupportedEncodingException
+    {
         final ServletContext servletContext = request.getSession().getServletContext();
 
         // Get requested file by path info.
-        final String requestURI = request.getRequestURI();
         final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
 
         // URL-decode the file name (might contain spaces and on) and prepare file object.
@@ -478,15 +414,19 @@ public class ResourceFileServlet extends HttpServlet {
         return null;
     }
 
-    private static boolean handleSpecialURIs(final HttpServletRequest request, final HttpServletResponse response, final long expireTimeMs)
-            throws PwmUnrecoverableException, IOException {
-        final String requestURI = request.getRequestURI();
+    private static boolean handleSpecialURIs(
+            final String requestURI,
+            final HttpServletRequest request,
+            final HttpServletResponse response
+    )
+            throws PwmUnrecoverableException, IOException
+    {
         if (requestURI != null) {
             if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response, expireTimeMs);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response);
                 return true;
             } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmMobileStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response, expireTimeMs);
+                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response);
                 return true;
             }
         }
@@ -496,16 +436,14 @@ public class ResourceFileServlet extends HttpServlet {
     private static void writeConfigSettingToBody(
             final PwmSetting pwmSetting,
             final HttpServletRequest request,
-            final HttpServletResponse response,
-            final long expireTimeMs
-
+            final HttpServletResponse response
     )
             throws PwmUnrecoverableException, IOException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
         final String bodyText = pwmApplication.getConfig().readSettingAsString(pwmSetting);
         try {
             response.setContentType("text/css");
-            response.setDateHeader("Expires", System.currentTimeMillis() + expireTimeMs);
+            response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
             if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
                 copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
@@ -641,5 +579,23 @@ public class ResourceFileServlet extends HttpServlet {
         public String getName() {
             return realFile.getName();
         }
+    }
+
+    private String stripNonceFromURI(final String uriString, final PwmApplication pwmApplication, final PwmSession pwmSession) {
+        final String nonce = makeResourcePathNonce(pwmApplication, pwmSession);
+        if (uriString.contains(nonce)) {
+            return uriString.replace(nonce,"");
+        } else {
+            LOGGER.debug("resource request missing nonce: " + uriString);
+        }
+        return uriString;
+    }
+
+    public static String makeResourcePathNonce(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+    {
+        return "/z" + Long.toString(pwmApplication.getStartupTime().getTime(),36);//+ pwmSession.getSessionStateBean().getSessionID();
     }
 }

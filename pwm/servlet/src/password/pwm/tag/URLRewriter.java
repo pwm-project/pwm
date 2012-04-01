@@ -22,14 +22,18 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
+import password.pwm.servlet.ResourceFileServlet;
 
 import javax.servlet.jsp.JspTagException;
 
 public class URLRewriter extends PwmAbstractTag {
 
     private String url;
-
+    private static final String resource_url = "/resources";
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public void setUrl(final String url)
@@ -46,7 +50,14 @@ public class URLRewriter extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException
     {
         try {
-            final String newURL = SessionFilter.rewriteURL(url, pageContext.getRequest(), pageContext.getResponse());
+            String newURL = SessionFilter.rewriteURL(url, pageContext.getRequest(), pageContext.getResponse());
+            if (newURL.contains(resource_url)) {
+                final PwmApplication pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
+                final PwmSession pwmSession = PwmSession.getPwmSession(pageContext.getSession());
+                final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication, pwmSession);
+                newURL = newURL.replace(resource_url, resource_url + nonce);
+            }
+            
             pageContext.getOut().write(newURL);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

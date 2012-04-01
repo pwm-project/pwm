@@ -129,10 +129,6 @@
         <filter-class>password.pwm.SessionFilter</filter-class>
     </filter>
     <filter>
-        <filter-name>ThemeFileFilter</filter-name>
-        <filter-class>password.pwm.ThemeFileFilter</filter-class>
-    </filter>
-    <filter>
         <filter-name>CaptchaFilter</filter-name>
         <filter-class>password.pwm.CaptchaFilter</filter-class>
     </filter>
@@ -150,6 +146,7 @@
         <url-pattern>/public/ActivateUser</url-pattern>
         <url-pattern>/public/ForgottenPassword</url-pattern>
         <url-pattern>/public/ForgottenUsername</url-pattern>
+        <url-pattern>/public/CommandServlet</url-pattern>
         <url-pattern>/private/*</url-pattern>
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
@@ -162,14 +159,6 @@
         <url-pattern>/public/ForgottenPassword</url-pattern>
         <url-pattern>/public/ForgottenUsername</url-pattern>
     </filter-mapping>
-    <!--
-    <filter-mapping>
-        <filter-name>ThemeFileFilter</filter-name>
-        <url-pattern>*.png</url-pattern>
-        <url-pattern>*.gif</url-pattern>
-        <url-pattern>*.jpg</url-pattern>
-    </filter-mapping>
-    -->
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
@@ -247,13 +236,16 @@
         <servlet-class>password.pwm.servlet.ConfigUploadServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>pwmVariablesJS</servlet-name>
+        <jsp-file>/resources/pwmVariablesJS.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>pwmVariablesJS</servlet-name>
+        <url-pattern>/resources/pwmVariables.js</url-pattern>
+    </servlet-mapping>
+    <servlet>
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
-        <init-param>
-            <description>Default HTTP expiration time for resources (in milliseconds), 86400000=1 day</description>
-            <param-name>expireTimeMs</param-name>
-            <param-value>86400000</param-value>
-        </init-param>
         <init-param>
             <description>Maximum item limit for internal resource cache</description>
             <param-name>internalCacheItemLimit</param-name>

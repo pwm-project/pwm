@@ -24,8 +24,10 @@ package password.pwm.tag;
 
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
 import password.pwm.config.PwmSetting;
+import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -52,7 +54,8 @@ public class ThemeUrlTag extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
-            final String themeURL = figureThemeURL(pwmApplication, pageContext.getServletContext(), type);
+            final PwmSession pwmSession = PwmSession.getPwmSession(pageContext.getSession());
+            final String themeURL = figureThemeURL(pwmApplication, pwmSession, pageContext.getServletContext(), type);
             pageContext.getOut().write(SessionFilter.rewriteURL(themeURL, pageContext.getRequest(), pageContext.getResponse()));
         } catch (Exception e) {
             LOGGER.error("error while executing theme name tag: " + e.getMessage(), e);
@@ -61,7 +64,13 @@ public class ThemeUrlTag extends PwmAbstractTag {
         return EVAL_PAGE;
     }
 
-    private static String figureThemeURL(final PwmApplication pwmApplication, final ServletContext servletContext, final String type) {
+    private static String figureThemeURL(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ServletContext servletContext,
+            final String type
+    )
+    {
         final String themeName;
         if (pwmApplication != null && pwmApplication.getConfig() != null) {
             themeName = pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
@@ -86,10 +95,11 @@ public class ThemeUrlTag extends PwmAbstractTag {
                 themeURL = configuredURL;
             }
         } else {
+            final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication, pwmSession);
             if (isMobile) {
-                themeURL = servletContext.getContextPath() + "/resources/themes/" + themeName + "/pwmMobileStyle.css";
+                themeURL = servletContext.getContextPath() + "/resources" + nonce + "/themes/" + themeName + "/pwmMobileStyle.css";
             } else {
-                themeURL = servletContext.getContextPath() + "/resources/themes/" + themeName + "/pwmStyle.css";
+                themeURL = servletContext.getContextPath() + "/resources" + nonce + "/themes/" + themeName + "/pwmStyle.css";
             }
         }
 

@@ -22,7 +22,6 @@
 
 <!DOCTYPE html>
 <%@ page import="password.pwm.config.PasswordStatus" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
@@ -142,17 +141,10 @@
             </div>
         </form>
     </div>
+    <audio id="randomgen-player" src="<%=request.getContextPath()%>/resources/<pwm:url url='fill.mp3'/>"></audio>
     <script type="text/javascript">
         PWM_STRINGS['passwordGuideText'] = '<%=PwmMacroMachine.expandMacros(ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()),ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>';
-        PWM_STRINGS['Tooltip_PasswordStrength'] = "<pwm:Display key="Tooltip_PasswordStrength"/>";
-        PWM_STRINGS['Display_PasswordGeneration'] = "<pwm:Display key="Display_PasswordGeneration"/>";
-        PWM_STRINGS['Strength_Low'] = "<pwm:Display key="Display_PasswordStrengthLow"/>";
-        PWM_STRINGS['Strength_Medium'] = "<pwm:Display key="Display_PasswordStrengthMedium"/>";
-        PWM_STRINGS['Strength_High'] = "<pwm:Display key="Display_PasswordStrengthHigh"/>";
-        PWM_STRINGS['Title_RandomPasswords'] = "<pwm:Display key="Title_RandomPasswords"/>";
-        PWM_STRINGS['Title_PasswordGuide'] = "<pwm:Display key="Title_PasswordGuide"/>";
     </script>
-    <audio id="randomgen-player" src="<%=request.getContextPath()%>/resources/<pwm:url url='fill.mp3'/>"></audio>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

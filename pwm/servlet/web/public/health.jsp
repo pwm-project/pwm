@@ -101,7 +101,7 @@
         }
 
         function fetchRandomPassword() {
-            dojo.xhrGet({
+            dojo.xhrPost({
                 url: PWM_GLOBAL['url-restservice'] + "/randompassword",
                 headers: {"Accept":"application/json"},
                 dataType: "json",
@@ -109,9 +109,6 @@
                 sync: false,
                 handleAs: "json",
                 load:  function(resultInfo) {
-                    if (resultInfo["version"] != "1") {
-                        return;
-                    }
                     var password = resultInfo["password"];
                     var randomId = "randomPwDiv" + Math.floor(Math.random() * MAX_NODES);
                     displayRandomFloat(randomId,password);

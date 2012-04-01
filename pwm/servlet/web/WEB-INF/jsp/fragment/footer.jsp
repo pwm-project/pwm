@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.PwmMacroMachine" %>
@@ -46,59 +45,14 @@
         }
     %>
     <% String currentLocaleName = sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName(); %>
-    <script type="text/javascript"> <%-- locale selector menu, uses jsscript to write to prevent restricted environments from showing menu --%>
-    var localeInfo = {};
-    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>'; <% } %>
-    document.write('| <span id="localeSelectionMenu"><%=currentLocaleName%></span>');
-    dojo.addOnLoad(function(){setTimeout(function(){
-            startupLocaleSelectorMenu(localeInfo, 'localeSelectionMenu');
-    },100);});
-    </script>
-    <style type="text/css"> <%-- stylesheets used by flag routine on locale menu --%>
-    <% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
-    <% if ("".equals(loopLocale.toString())) { %>
-    .flagLang_en { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/en.png); }
-    <% } else { %>.flagLang_<%=loopLocale.toString()%> { background-image: url(<%=request.getContextPath()%>/resources/flags/languages/<%=loopLocale.toString()%>.png); } <% } %>
-    <% } %>
-    </style>
-    <%-- fields for javascript display fields --%>
+    | <span id="localeSelectionMenu"><%=currentLocaleName%></span>
     <script type="text/javascript">
-        PWM_STRINGS['Button_Logout'] = "<pwm:Display key="Button_Logout"/>";
-        PWM_STRINGS['Display_IdleTimeout'] = "<pwm:Display key="Display_IdleTimeout"/>";
-        PWM_STRINGS['Display_Day'] = "<pwm:Display key="Display_Day"/>";
-        PWM_STRINGS['Display_Days'] = "<pwm:Display key="Display_Days"/>";
-        PWM_STRINGS['Display_Hour'] = "<pwm:Display key="Display_Hour"/>";
-        PWM_STRINGS['Display_Hours'] = "<pwm:Display key="Display_Hours"/>";
-        PWM_STRINGS['Display_Minute'] = "<pwm:Display key="Display_Minute"/>";
-        PWM_STRINGS['Display_Minutes'] = "<pwm:Display key="Display_Minutes"/>";
-        PWM_STRINGS['Display_Second'] = "<pwm:Display key="Display_Second"/>";
-        PWM_STRINGS['Display_Seconds'] = "<pwm:Display key="Display_Seconds"/>";
-        PWM_STRINGS['Display_PleaseWait'] = "<pwm:Display key="Display_PleaseWait"/>";
-        PWM_STRINGS['Display_IdleWarningTitle'] = "<pwm:Display key="Display_IdleWarningTitle"/>";
-        PWM_STRINGS['Display_IdleWarningMessage'] = "<pwm:Display key="Display_IdleWarningMessage"/>";
-        PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
-        PWM_STRINGS['Display_LeaveDirtyPasswordPage'] = "<pwm:Display key="Display_LeaveDirtyPasswordPage"/>";
-        PWM_STRINGS['Button_Hide'] = "<pwm:Display key="Button_Hide"/>";
-        PWM_STRINGS['Button_Show'] = "<pwm:Display key="Button_Show"/>";
-        PWM_STRINGS['Button_Cancel'] = "<pwm:Display key="Button_Cancel"/>";
-        PWM_STRINGS['Button_More'] = "<pwm:Display key="Button_More"/>";
-        PWM_STRINGS['Display_CheckingPassword'] = "<pwm:Display key="Display_CheckingPassword"/>";
-        PWM_STRINGS['Display_PasswordPrompt'] = "<pwm:Display key="Display_PasswordPrompt"/>";
-        PWM_STRINGS['url-changepassword'] = "<pwm:url url='ChangePassword'/>";
-        dojo.addOnLoad(function(){setTimeout(function(){ // pre-fetch dojo/dijit objects
-            dojo.require("dijit.Dialog");dojo.require("dijit.Tooltip");dojo.require("dijit.Menu");dojo.require("dijit.MenuItem");
-        },9500);});
         dojo.addOnLoad(function(){setTimeout(function(){
             initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
-        },90);});
-        dojo.addOnUnload(function(){
-            dojo.xhrGet({
-                url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                sync: true,
-                load: function() {},
-                error: function() {}
-            });
-        });
+        },100);});
+        dojo.addOnLoad(function(){setTimeout(function(){
+            startupLocaleSelectorMenu('localeSelectionMenu');
+        },500);});
     </script>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
