@@ -77,6 +77,7 @@
             fetchRandoms(fetchList);
         }
 
+
         dojo.addOnLoad(function(){
             makeTable();
             window.onresize = function(event) {

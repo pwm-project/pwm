@@ -48,13 +48,10 @@
             </table>
         </div>
         <div id style="z-index: 3; position: relative; background: white; text-align: center; opacity: 0.8; margin-left: auto; margin-right: auto; white-space: nowrap;">
-        This page refreshes automatically.
-            </div>
+            This page refreshes automatically.
+        </div>
     </div>
     <div id="floatparent">
-    </div>
-    <div id="splatbutton" style="text-align: center; padding-top: 80px">
-        <button onclick="fetchRandomPassword();getObject('splatbutton').style.visibility = 'hidden'">Splat</button>
     </div>
     <script type="text/javascript">
         var MAX_NODES = 5 * 1000;
@@ -101,12 +98,14 @@
         }
 
         function fetchRandomPassword() {
+            var randomInterval = checkIfSplat() ? 23 : 7 * 1023;
             dojo.xhrPost({
                 url: PWM_GLOBAL['url-restservice'] + "/randompassword",
                 headers: {"Accept":"application/json"},
                 dataType: "json",
                 timeout: 15000,
                 sync: false,
+                preventCache: true,
                 handleAs: "json",
                 load:  function(resultInfo) {
                     var password = resultInfo["password"];
@@ -114,7 +113,7 @@
                     displayRandomFloat(randomId,password);
                     setTimeout(function(){
                         fetchRandomPassword();
-                    },5 * 1000);
+                    },randomInterval);
                 },
                 error: function(errorObj){
                     var password = "server unreachable";
@@ -122,24 +121,26 @@
                     displayRandomFloat(randomId,password);
                     setTimeout(function(){
                         fetchRandomPassword();
-                    },5 * 1000);
+                    },randomInterval);
                 }
             });
         }
 
-        function clearAllNodes() {
-            var floatParent = getObject("floatparent");
-            for (var i = 0; i < MAX_NODES; i++) {
-                var existingDiv = getObject("randomPwDiv"+i);
-                if (existingDiv != null) {
-                    floatParent.removeChild(existingDiv);
-                }
-            }
+        function checkIfSplat() {
+            var uri = window.location.search;
+            var query = uri.substring(uri.indexOf("?") + 1, uri.length);
+            var queryObject = dojo.queryToObject(query);
+            return queryObject['splat'] != null;
         }
 
         dojo.addOnLoad(function(){
             showPwmHealth('healthBody', false);
-            dojo.require()
+
+            if (checkIfSplat()) {
+                fetchRandomPassword();
+            } else {
+                setTimeout(function(){ fetchRandomPassword(); },60 * 1000);
+            }
         });
 
     </script>

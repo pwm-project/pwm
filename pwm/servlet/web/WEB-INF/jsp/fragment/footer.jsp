@@ -29,6 +29,11 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%-- begin pwm footer --%>
 <div id="footer">
+    <span class="infotext">
+        <pwm:Display key="Display_FooterInfoText"/>&nbsp;
+    </span>
+    <br/>
+    <br/>
     <span class="idle_status" id="idle_status">
         &nbsp;
     </span>

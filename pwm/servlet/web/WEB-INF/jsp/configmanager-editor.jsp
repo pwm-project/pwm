@@ -199,7 +199,7 @@ function buildMenuBar() {
     <% } %>
     <% } %>
         topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Display",
+            label: "Display Text",
             popup: displayMenu
         }));
     }
