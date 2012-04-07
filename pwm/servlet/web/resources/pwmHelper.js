@@ -26,9 +26,11 @@ function pwmPageLoadHandler() {
         loopForm.setAttribute('autocomplete', 'off');
     }
 
+    /*
     setTimeout(function(){ // pre-fetch dojo/dijit objects
         require(["dijit/Dialog","dijit/Tooltip","dijit/Menu","dijit/MenuItem"]);
     },9500);
+    */
 
     dojo.addOnUnload(function(){
         dojo.xhrGet({

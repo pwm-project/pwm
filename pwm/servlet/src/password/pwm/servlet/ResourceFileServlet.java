@@ -63,36 +63,18 @@ import java.util.zip.ZipFile;
 public class ResourceFileServlet extends TopServlet {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
-    private static final long DEFAULT_EXPIRE_TIME_MS = TimeDuration.DAY.getTotalMilliseconds() * 500; // 500 days.
-    private static final int DEFAULT_MAX_CACHE_FILE_SIZE = 50 * 1024; // 50k
-    private static final int DEFAULT_MAX_CACHE_ITEM_LIMIT = 100; // 100 items
+    private static final long DEFAULT_EXPIRE_TIME_MS = TimeDuration.DAY.getTotalMilliseconds() * 1000; // 500 days.
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
-    private int internalMaxCacheFileSize = DEFAULT_MAX_CACHE_FILE_SIZE;
 
     public void init() throws ServletException {
-        int internalCacheItemLimit = DEFAULT_MAX_CACHE_ITEM_LIMIT;
-        try {
-            internalCacheItemLimit = Integer.parseInt(this.getInitParameter("internalCacheItemLimit"));
-        } catch (Exception e) {
-            LOGGER.warn("unable to parse 'internalCacheItemLimit' servlet parameter: " + e.getMessage());
-        }
-
         final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                .maximumWeightedCapacity(internalCacheItemLimit)
+                .maximumWeightedCapacity(PwmConstants.RESOURCE_SERVLET_MAX_CACHE_ITEMS)
                 .build();
         this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
-
-        try {
-            internalMaxCacheFileSize = Integer.parseInt(this.getInitParameter("internalMaxCacheFileSize"));
-        } catch (Exception e) {
-            LOGGER.warn("unable to parse 'internalMaxCacheFileSize' servlet parameter: " + e.getMessage());
-        }
-
-        LOGGER.trace("using resource expire time of " + TimeDuration.asCompactString(DEFAULT_EXPIRE_TIME_MS));
 
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
         if (zipFileResourceParam != null) {
@@ -160,10 +142,12 @@ public class ResourceFileServlet extends TopServlet {
 
         // If content type is text, then determine whether GZIP content encoding is supported by
         // the browser and expand content type with the one and right character encoding.
-        if (contentType.startsWith("text")) {
-            final String acceptEncoding = request.getHeader("Accept-Encoding");
-            acceptsGzip = acceptEncoding != null && accepts(acceptEncoding, "gzip");
-            contentType += ";charset=UTF-8";
+        if (PwmConstants.RESOURCE_SERVLET_ENABLE_GZIP) {
+            if (contentType.startsWith("text") || contentType.contains("javascript")) {
+                final String acceptEncoding = request.getHeader("Accept-Encoding");
+                acceptsGzip = acceptEncoding != null && accepts(acceptEncoding, "gzip");
+                contentType += ";charset=UTF-8";
+            }
         }
 
         // Initialize response.
@@ -172,15 +156,29 @@ public class ResourceFileServlet extends TopServlet {
         response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
         response.setContentType(contentType);
 
+        // set pwm headers
+        ServletHelper.addPwmResponseHeaders(pwmApplication, response);
+
         try {
-            if (handleCacheableResponse(response, file, acceptsGzip)) {
-                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache hit)"));
+            final boolean fromCache = handleCacheableResponse(response, file, acceptsGzip);
+            if (fromCache || acceptsGzip) {
+                final StringBuilder debugText = new StringBuilder();
+                debugText.append("(");
+                if (fromCache) debugText.append("cached");
+                if (fromCache && acceptsGzip) debugText.append(", ");
+                if (acceptsGzip) debugText.append("gzip");
+                debugText.append(")");
+                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
             } else {
-                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(cache miss)"));
+                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(not cached)"));
             }
         } catch (UncacheableResourceException e) {
             handleUncachedResponse(response, file, acceptsGzip);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"non-cacheable: " + e.getMessage()));
+            final StringBuilder debugText = new StringBuilder();
+            debugText.append("(uncacheable");
+            if (acceptsGzip) debugText.append(", gzip");
+            debugText.append(")");
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
         }
     }
 
@@ -212,8 +210,8 @@ public class ResourceFileServlet extends TopServlet {
     {
         final Map<CacheKey,CacheEntry> responseCache = getCache(getServletContext());
 
-        if (file.length() > internalMaxCacheFileSize) {
-            throw new UncacheableResourceException("file to large");
+        if (file.length() > PwmConstants.RESOURCE_SERVLET_MAX_CACHE_BYTES) {
+            throw new UncacheableResourceException("file to large to cache");
         }
 
         boolean fromCache = false;
@@ -310,20 +308,6 @@ public class ResourceFileServlet extends TopServlet {
         return Arrays.binarySearch(acceptValues, toAccept) > -1
                 || Arrays.binarySearch(acceptValues, toAccept.replaceAll("/.*$", "/*")) > -1
                 || Arrays.binarySearch(acceptValues, "*/*") > -1;
-    }
-
-    /**
-     * Returns true if the given match header matches the given value.
-     *
-     * @param matchHeader The match header.
-     * @param toMatch     The value to be matched.
-     * @return True if the given match header matches the given value.
-     */
-    private static boolean matches(final String matchHeader, final String toMatch) {
-        final String[] matchValues = matchHeader.split("\\s*,\\s*");
-        Arrays.sort(matchValues);
-        return Arrays.binarySearch(matchValues, toMatch) > -1
-                || Arrays.binarySearch(matchValues, "*") > -1;
     }
 
     /**

@@ -288,4 +288,15 @@ public class ServletHelper {
         }
         return inputData.toString();
     }
+
+    public static void addPwmResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp) {
+        if (!resp.isCommitted()) {
+            resp.setHeader("X-Pwm-Version", PwmConstants.SERVLET_VERSION);
+            resp.setHeader("X-Pwm-Instance", String.valueOf(pwmApplication.getInstanceID()));
+
+            if (PwmRandom.getInstance().nextInt(5) == 0) {
+                resp.setHeader("X-Pwm-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+            }
+        }
+    }
 }

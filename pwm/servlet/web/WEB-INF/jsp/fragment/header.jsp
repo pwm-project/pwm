@@ -53,7 +53,7 @@
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/tundra/tundra.css'/>" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/dijit.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?locale=<%=pwmSessionHeader.getSessionStateBean().getLocale()%>&nonce=<%=pwmSessionHeader.getSessionStateBean().getSessionVerificationKey()%>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?locale=<%=pwmSessionHeader.getSessionStateBean().getLocale()%>&amp;nonce=<%=pwmSessionHeader.getSessionStateBean().getSessionVerificationKey()%>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
     <% if (pwmApplicationHeader.getConfig() != null) { %>
     <% } %>

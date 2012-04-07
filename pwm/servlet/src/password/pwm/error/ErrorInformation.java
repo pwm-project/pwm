@@ -27,7 +27,9 @@ import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * An ErrorInformation is a package of error data generated within PWM.  Error information includes an error code
@@ -120,14 +122,22 @@ public class ErrorInformation implements Serializable {
         return toUserStr(userLocale, config);
     }
 
-    public String toUserStr(final Locale userLocale , final Configuration config) {
+    public String toUserStr(final Locale userLocale, final Configuration config) {
 
+        final StringBuilder sb = new StringBuilder();
+        if (this.getError() != null) {
+            sb.append("[");
+            sb.append(this.getError().getErrorCode());
+            sb.append("] ");
+        }
 
         if (fieldValues != null && fieldValues.length > 0) {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]);
+            sb.append(PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]));
         } else {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), config);
+            sb.append(PwmError.getLocalizedMessage(userLocale, this.getError(), config));
         }
+
+        return sb.toString();
     }
 
     public Date getDate() {

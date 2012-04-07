@@ -28,7 +28,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -243,12 +246,7 @@ public class SessionFilter implements Filter {
 
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            resp.setHeader("X-Pwm-Version", PwmConstants.SERVLET_VERSION);
-            resp.setHeader("X-Pwm-Instance", String.valueOf(pwmApplication.getInstanceID()));
-
-            if (PwmRandom.getInstance().nextInt(5) == 0) {
-                resp.setHeader("X-Pwm-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
-            }
+            ServletHelper.addPwmResponseHeaders(pwmApplication, resp);
         }
 
         try {

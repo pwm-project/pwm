@@ -73,6 +73,11 @@ public abstract class PwmConstants {
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
 
+    public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
+    public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
+    public static final boolean RESOURCE_SERVLET_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnableGzip"));
+
+
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
