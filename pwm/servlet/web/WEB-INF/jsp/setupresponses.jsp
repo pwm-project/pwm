@@ -56,7 +56,6 @@
             <% // display fields for REQUIRED challenges.
                 if (!challengeSet.getRequiredChallenges().isEmpty()) {
             %>
-            <%--<h1><pwm:Display key="Title_SetupRequiredResponses"/></h1>--%>
             <p><pwm:Display key="Display_SetupRequiredResponses"/></p>
             <%
                 for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {

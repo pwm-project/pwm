@@ -24,8 +24,10 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
+import password.pwm.config.FormConfiguration;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Jason D. Rivard
@@ -42,8 +44,10 @@ public class ForgottenPasswordBean implements Serializable {
     private boolean tokenSatisfied;
     private boolean allPassed;
 
-    private boolean commEmailUsed = false;
-    private boolean commSmsUsed = false;
+    private boolean emailUsed = false;
+    private boolean smsUsed = false;
+
+    private List<FormConfiguration> attributeForm;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -105,19 +109,27 @@ public class ForgottenPasswordBean implements Serializable {
     }
     
     public void setEmailUsed(final boolean used) {
-    	this.commEmailUsed = used;
+    	this.emailUsed = used;
     }
     
-    public boolean getEmailUsed() {
-    	return commEmailUsed;
+    public boolean isEmailUsed() {
+    	return emailUsed;
     }
 
     public void setSmsUsed(final boolean used) {
-    	this.commSmsUsed = used;
+    	this.smsUsed = used;
     }
     
-    public boolean getSmsUsed() {
-    	return commSmsUsed;
+    public boolean isSmsUsed() {
+    	return smsUsed;
+    }
+
+    public List<FormConfiguration> getAttributeForm() {
+        return attributeForm;
+    }
+
+    public void setAttributeForm(final List<FormConfiguration> attributeForm) {
+        this.attributeForm = attributeForm;
     }
 }
 

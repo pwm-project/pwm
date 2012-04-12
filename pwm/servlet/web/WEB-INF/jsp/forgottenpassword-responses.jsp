@@ -23,16 +23,14 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = PwmSession.getPwmSession(session).getForgottenPasswordBean(); %>
-<% final List<FormConfiguration> requiredAttrParams = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, ssBean.getLocale()); %>
+<% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <%--

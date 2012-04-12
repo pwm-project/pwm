@@ -367,6 +367,19 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
+        // check for attribute form in bean.
+        if (forgottenPasswordBean.getAttributeForm() == null) {
+            try {
+                final List<FormConfiguration> form = figureAttributeForm(pwmApplication, pwmSession, forgottenPasswordBean.getProxiedUser());
+                forgottenPasswordBean.setAttributeForm(form);
+            } catch (PwmOperationalException e) {
+                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+                LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
+                this.forwardToSearchJSP(req, resp);
+                return;
+            }
+        }
+
         // if responses are required, and user has responses, then send to response screen.
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
             if (forgottenPasswordBean.getChallengeSet() == null) {
@@ -540,26 +553,28 @@ public class ForgottenPasswordServlet extends TopServlet {
     private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final List<FormConfiguration> requiredAttributesForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
+        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+
+        final List<FormConfiguration> requiredAttributesForm = forgottenPasswordBean.getAttributeForm();
 
         if (requiredAttributesForm.isEmpty()) {
             return;
         }
 
         final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm);
-
         for (final FormConfiguration paramConfig : formValues.keySet()) {
             final String attrName = paramConfig.getAttributeName();
 
             try {
-                if (!theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
+                if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
+                    LOGGER.trace(pwmSession, "successful validation of ldap attribute value for '" + attrName + "'");
+                } else {
                     throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", attrName));
                 }
-                LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
             } catch (ChaiOperationException e) {
                 LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", attrName));            }
+                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", attrName));
+            }
         }
     }
 
@@ -714,6 +729,43 @@ public class ForgottenPasswordServlet extends TopServlet {
                 }
             }
         }
+    }
+
+    private List<FormConfiguration> figureAttributeForm(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser
+    )
+            throws ChaiUnavailableException, PwmOperationalException
+    {
+        final List<FormConfiguration> requiredAttributesForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
+        if (requiredAttributesForm.isEmpty()) {
+            return requiredAttributesForm;
+        }
+
+        final List<FormConfiguration> returnList = new ArrayList<FormConfiguration>();
+        for (final FormConfiguration formConfiguration : requiredAttributesForm) {
+            if (formConfiguration.isRequired()) {
+                returnList.add(formConfiguration);
+            } else {
+                try {
+                    final String currentValue = theUser.readStringAttribute(formConfiguration.getAttributeName());
+                    if (currentValue != null && currentValue.length() > 0) {
+                        returnList.add(formConfiguration);
+                    } else {
+                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formConfiguration.getAttributeName() + "), user has no value");
+                    }
+                } catch (ChaiOperationException e) {
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formConfiguration.getAttributeName()));
+                }
+            }
+        }
+
+        if (returnList.isEmpty()) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "user has no values for any optional attribute"));
+        }
+
+        return returnList;
     }
 }
 

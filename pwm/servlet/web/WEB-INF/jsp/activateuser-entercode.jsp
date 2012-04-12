@@ -36,10 +36,10 @@
             final String destMail = fpb.getTokenEmailAddress();
             final String destSms = fpb.getTokenSmsNumber();
             String destination = "";
-            if (fpb.getEmailUsed()) {
+            if (fpb.isEmailUsed()) {
                 destination += destMail;
             }
-            if (fpb.getSmsUsed()) {
+            if (fpb.isSmsUsed()) {
                 if (destination.length() > 0) {
                     destination += " / ";
                 }

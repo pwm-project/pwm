@@ -137,10 +137,10 @@ public class PwmPasswordPolicy implements Serializable {
                     case RegExMatch:
                     case RegExNoMatch:
                         final String seperator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
-                        final Set<String> cominedSet = new HashSet<String>();
-                        cominedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()), seperator));
-                        cominedSet.addAll(StringHelper.tokenizeString(otherPolicy.policyMap.get(rule.getKey()), seperator));
-                        newPasswordPolicies.put(ruleKey, StringHelper.stringCollectionToString(cominedSet, seperator));
+                        final Set<String> combinedSet = new HashSet<String>();
+                        combinedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()), seperator));
+                        combinedSet.addAll(StringHelper.tokenizeString(otherPolicy.policyMap.get(rule.getKey()), seperator));
+                        newPasswordPolicies.put(ruleKey, StringHelper.stringCollectionToString(combinedSet, seperator));
                         break;
 
                     case ChangeMessage:

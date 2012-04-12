@@ -44,7 +44,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -63,14 +62,14 @@ import java.util.zip.ZipFile;
 public class ResourceFileServlet extends TopServlet {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
-    private static final long DEFAULT_EXPIRE_TIME_MS = TimeDuration.DAY.getTotalMilliseconds() * 1000; // 500 days.
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
-
-    public void init() throws ServletException {
+    public void init()
+            throws ServletException
+    {
         final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
                 .maximumWeightedCapacity(PwmConstants.RESOURCE_SERVLET_MAX_CACHE_ITEMS)
                 .build();
@@ -153,7 +152,7 @@ public class ResourceFileServlet extends TopServlet {
         // Initialize response.
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
-        response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
+        response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
         response.setContentType(contentType);
 
         // set pwm headers
@@ -427,7 +426,7 @@ public class ResourceFileServlet extends TopServlet {
         final String bodyText = pwmApplication.getConfig().readSettingAsString(pwmSetting);
         try {
             response.setContentType("text/css");
-            response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
+            response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
             if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
                 copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
@@ -580,6 +579,10 @@ public class ResourceFileServlet extends TopServlet {
             final PwmSession pwmSession
     )
     {
-        return "/z" + Long.toString(pwmApplication.getStartupTime().getTime(),36);//+ pwmSession.getSessionStateBean().getSessionID();
+        if (PwmConstants.RESOURCE_SERVLET_ENABLE_PATH_NONCE) {
+            return "/z" + Long.toString(pwmApplication.getStartupTime().getTime(),36); //+ pwmSession.getSessionStateBean().getSessionID();
+        } else {
+            return "";
+        }
     }
 }
