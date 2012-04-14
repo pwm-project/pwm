@@ -258,7 +258,7 @@ public class PasswordUtility {
         
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
-            final String userGUID = Helper.readLdapGuidValue(proxiedUser.getChaiProvider(), pwmApplication.getConfig(), proxiedUser.getEntryDN());
+            final String userGUID = Helper.readLdapGuidValue(pwmApplication, proxiedUser.getEntryDN());
             CrUtility.clearResponses(pwmSession, pwmApplication, proxiedUser, userGUID);
 
             // mark the event log

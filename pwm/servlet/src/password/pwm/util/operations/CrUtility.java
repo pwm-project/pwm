@@ -140,7 +140,7 @@ public abstract class CrUtility {
 
         final String userGUID;
         if (readPreferences.contains(STORAGE_METHOD.DB) || readPreferences.contains(STORAGE_METHOD.PWMDB)) {
-            userGUID = Helper.readLdapGuidValue(theUser.getChaiProvider(), config, theUser.getEntryDN());
+            userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
         } else {
             userGUID = null;
         }

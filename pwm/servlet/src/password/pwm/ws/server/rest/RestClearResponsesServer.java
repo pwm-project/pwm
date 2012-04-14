@@ -78,7 +78,7 @@ public class RestClearResponsesServer {
 
                     final ChaiProvider actorProvider = pwmSession.getSessionManager().getChaiProvider();
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, actorProvider);
-                    final String userGUID = Helper.readLdapGuidValue(actorProvider, pwmApplication.getConfig(), chaiUser.getEntryDN());
+                    final String userGUID = Helper.readLdapGuidValue(pwmApplication, chaiUser.getEntryDN());
                     CrUtility.clearResponses(pwmSession,pwmApplication, chaiUser, userGUID);
 
                     // mark the event log

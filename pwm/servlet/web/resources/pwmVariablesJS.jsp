@@ -24,10 +24,10 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.bean.SessionStateBean"%><%@ page import="password.pwm.config.Display"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
-<% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
+<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.config.Display"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+        <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
-<% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
+<% response.setDateHeader("Expires", System.currentTimeMillis() + (100 * 24 * 60 * 60 * 1000)); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 PWM_GLOBAL={};

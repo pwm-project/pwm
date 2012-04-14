@@ -164,20 +164,21 @@ public class Helper {
     }
 
     public static String readLdapGuidValue(
-            final ChaiProvider proxyChaiProvider,
-            final Configuration config,
+            final PwmApplication pwmApplication,
             final String userDN
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
 
+        final Configuration config = pwmApplication.getConfig();
+        final ChaiProvider proxyChaiProvider = pwmApplication.getProxyChaiProvider();
         final String GUIDattributeName = config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if ("DN".equalsIgnoreCase(GUIDattributeName)) {
             return userDN;
         }
 
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, proxyChaiProvider);
         if ("VENDORGUID".equals(GUIDattributeName)) {
             try {
-                final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, proxyChaiProvider);
                 final String guidValue = theUser.readGUID();
                 if (guidValue != null && guidValue.length() > 1) {
                     LOGGER.trace("read VENDORGUID value for user " + userDN + ": " + guidValue);
@@ -191,8 +192,18 @@ public class Helper {
             }
         }
 
-        if (!config.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
-            LOGGER.warn("user " + userDN + " does not have a valid GUID");
+        try {
+            final String guidValue = theUser.readStringAttribute(GUIDattributeName);
+            if (guidValue != null && guidValue.length() > 0) {
+                return guidValue;
+            }
+
+            if (!config.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+                LOGGER.warn("user " + userDN + " does not have a valid GUID");
+                return null;
+            }
+        } catch (ChaiOperationException e) {
+            LOGGER.warn("unexpected error while reading attribute GUID value for user " + userDN + " from '" + GUIDattributeName + "', error: " + e.getMessage());
             return null;
         }
 
@@ -282,6 +293,14 @@ public class Helper {
 
             LOGGER.error(pwmSession, errorMsg.toString());
         }
+    }
+
+    public static String md5sum(final String input)
+            throws IOException {
+        if (input == null || input.length() < 1) {
+            return null;
+        }
+        return md5sum(new ByteArrayInputStream(input.getBytes()));
     }
 
     public static String md5sum(final File theFile)
@@ -1076,5 +1095,30 @@ public class Helper {
             System.arraycopy(md.digest(), 0, key, 0, 16);
             return new SecretKeySpec(key, "AES");
         }
+    }
+
+    public static String calcEtagUserString(final PwmApplication pwmApplication, final PwmSession pwmSession) {
+        if (pwmApplication == null || pwmSession == null) {
+            return "";
+        }
+
+        final SessionStateBean sessionStateBean = pwmSession.getSessionStateBean();
+        if (sessionStateBean == null) {
+            return "";
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append(Long.toString(pwmApplication.getStartupTime().getTime(),36));
+        sb.append("-");
+        sb.append(String.valueOf(sessionStateBean.getLocale()));
+        if (sessionStateBean.isAuthenticated()) {
+            sb.append("-");
+            try {
+                sb.append(md5sum(pwmSession.getUserInfoBean().getUserDN()));
+            } catch (IOException e) {
+                //nothing doin
+            }
+        }
+        return sb.toString();
     }
 }

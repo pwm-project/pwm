@@ -217,7 +217,7 @@ public class UserStatusHelper {
         }
 
         { // set guid
-            final String userGuid = Helper.readLdapGuidValue(theUser.getChaiProvider(), config, userDN);
+            final String userGuid = Helper.readLdapGuidValue(pwmApplication, userDN);
             uiBean.setUserGuid(userGuid);
         }
 
