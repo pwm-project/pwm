@@ -79,6 +79,7 @@ public class UserInfoBean implements Serializable {
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
+    private boolean requiresUpdateProfile;
 
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<String, PostChangePasswordAction>();
 
@@ -186,6 +187,14 @@ public class UserInfoBean implements Serializable {
 
     public void setRequiresResponseConfig(final boolean requiresResponseConfig) {
         this.requiresResponseConfig = requiresResponseConfig;
+    }
+
+    public boolean isRequiresUpdateProfile() {
+        return requiresUpdateProfile;
+    }
+
+    public void setRequiresUpdateProfile(final boolean requiresUpdateProfile) {
+        this.requiresUpdateProfile = requiresUpdateProfile;
     }
 
     public Date getPasswordLastModifiedTime() {

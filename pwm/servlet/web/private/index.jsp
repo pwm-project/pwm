@@ -1,5 +1,3 @@
-<%@ page import="password.pwm.config.Configuration" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.Permission" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -48,8 +46,10 @@
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
+        <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
         <h2><a href="<pwm:url url='UpdateProfile'/>" class="tablekey"><pwm:Display key="Title_UpdateProfile"/></a></h2>
         <p><pwm:Display key="Long_Title_UpdateProfile"/></p>
+        <% } %>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>        <h2><a href="<pwm:url url='history.jsp'/>" class="tablekey"><pwm:Display key="Title_UserEventHistory"/></a></h2>

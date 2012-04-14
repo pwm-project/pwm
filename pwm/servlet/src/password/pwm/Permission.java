@@ -45,6 +45,7 @@ public enum Permission {
     GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP),
     PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
     HELPDESK(PwmSetting.HELPDESK_QUERY_MATCH),
+    PROFILE_UPDATE(PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
 
     ;
 // ------------------------------ FIELDS ------------------------------

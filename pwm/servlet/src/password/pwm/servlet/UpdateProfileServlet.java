@@ -68,10 +68,16 @@ public class UpdateProfileServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
+        if (!Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
@@ -158,6 +164,9 @@ public class UpdateProfileServlet extends TopServlet {
 
             // re-populate the uiBean because we have changed some values.
             UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+
+            // mark the uiBean so we user isn't recycled to the update profile page by the CommandServlet
+            uiBean.setRequiresUpdateProfile(false);
 
             // success, so forward to success page
             pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);

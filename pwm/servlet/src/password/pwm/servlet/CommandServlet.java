@@ -217,14 +217,14 @@ public class CommandServlet extends TopServlet {
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!checkProfile(pwmSession, pwmApplication)) {
+        if (checkProfile(pwmSession, pwmApplication)) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_PROFILE, req, resp));
         } else {
             processContinue(req, resp);
         }
     }
 
-    private static boolean checkProfile(
+    public static boolean checkProfile(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication
     )
@@ -232,20 +232,24 @@ public class CommandServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final String userDN = uiBean.getUserDN();
 
-        if (!Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_QUERY_MATCH))) {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
+            return false;
+        }
+
+        if (!Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
             LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkProfile due to query match");
-            return true;
+            return false;
         }
 
         final String checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
-        boolean checkProfileRequired = false;
 
         if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
             if (Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
                 LOGGER.info(pwmSession, "checkProfiles: " + userDN + " matches 'checkProfiles query match', update profile will be required by user");
-                checkProfileRequired = true;
+                return true;
             } else {
                 LOGGER.info(pwmSession, "checkProfiles: " + userDN + " does not match 'checkProfiles query match', update profile not required by user");
+                return false;
             }
         } else {
             LOGGER.trace("no checkProfiles query match configured, will check to see if form attributes have values");
@@ -260,12 +264,12 @@ public class CommandServlet extends TopServlet {
             try {
                 Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
                 LOGGER.info(pwmSession, "checkProfile: " + userDN + " has value for attributes, update profile will not be required");
+                return false;
             } catch (PwmDataValidationException e) {
                 LOGGER.info(pwmSession, "checkProfile: " + userDN + " does not have good attributes (" + e.getMessage() + "), update profile will br required");
-                checkProfileRequired = true;
+                return true;
             }
         }
-        return !checkProfileRequired;
     }
 
     private static void processCheckAll(
@@ -285,7 +289,7 @@ public class CommandServlet extends TopServlet {
             processCheckExpire(req, resp);
         } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE) && !checkProfile(pwmSession, pwmApplication)) {
+        } else if (checkProfile(pwmSession, pwmApplication)) {
             processCheckProfile(req, resp);
         } else {
             processContinue(req, resp);
@@ -302,8 +306,8 @@ public class CommandServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        //check if user has expired password, and expirecheck during auth is turned on.
         if (ssBean.isAuthenticated()) {
+            //check if user has expired password, and expirecheck during auth is turned on.
             if (uiBean.isRequiresNewPassword() || (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EXPIRE_CHECK_DURING_AUTH) && checkIfPasswordExpired(pwmSession))) {
                 if (uiBean.isRequiresNewPassword()) {
                     LOGGER.trace(pwmSession, "user password has been marked as requiring a change");
@@ -324,22 +328,30 @@ public class CommandServlet extends TopServlet {
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(setupResponsesURL, req, resp));
                 return;
             }
-        }
 
-        // log the user out if our finish action is currently set to log out.
-        if (ssBean.getFinishAction() == SessionStateBean.FINISH_ACTION.LOGOUT) {
-            LOGGER.trace(pwmSession, "logging out user; password has been modified");
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));
-            return;
-        }
+            if (uiBean.isRequiresUpdateProfile() && (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP))) {
+                LOGGER.info(pwmSession, "user profile needs to be updated, redirecting to update profile page");
+                final String updateProfileURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE;
 
-        String redirectURL = ssBean.getForwardURL();
-        if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
-        }
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(updateProfileURL, req, resp));
+                return;
+            }
 
-        LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+            // log the user out if our finish action is currently set to log out.
+            if (ssBean.getFinishAction() == SessionStateBean.FINISH_ACTION.LOGOUT) {
+                LOGGER.trace(pwmSession, "logging out user; password has been modified");
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));
+                return;
+            }
+
+            String redirectURL = ssBean.getForwardURL();
+            if (redirectURL == null || redirectURL.length() < 1) {
+                redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
+            }
+
+            LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+        }
     }
 }
 

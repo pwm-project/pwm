@@ -36,6 +36,7 @@ import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.servlet.CommandServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -238,6 +239,9 @@ public class UserStatusHelper {
 
         // read response state
         uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, theUser, uiBean.getChallengeSet()));
+
+        // check if responses need to be updated
+        uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication));
 
         // fetch last password modification time;
         final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));

@@ -23,13 +23,12 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
-import password.pwm.util.operations.CrUtility;
-import password.pwm.util.operations.PasswordUtility;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.PasswordUtility;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -169,7 +168,7 @@ public class ConfigurationChecker implements HealthChecker {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
                 if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
                     final Collection<String> formSettings = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
-                    if (formSettings.isEmpty()) {
+                    if (formSettings == null || formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "No forgotten password recovery options are enabled"));
                     }
                 }
@@ -207,13 +206,9 @@ public class ConfigurationChecker implements HealthChecker {
             }
 
             {
-                final String readRawValue = config.readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
-                final List<CrUtility.STORAGE_METHOD> readPreferences = new ArrayList<CrUtility.STORAGE_METHOD>();
-                for (final String rawValue : readRawValue.split("-")) {
-                    readPreferences.add(CrUtility.STORAGE_METHOD.valueOf(rawValue));
-                }
+                final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseReadLocations();
 
-                if (readPreferences.contains(CrUtility.STORAGE_METHOD.DB)) {
+                if (readPreferences.contains(Configuration.STORAGE_METHOD.DB)) {
                 final StringBuilder errorMsg = new StringBuilder();
                 errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
                 errorMsg.append(" -> ");

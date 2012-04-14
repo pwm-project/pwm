@@ -59,8 +59,6 @@ import java.util.*;
 public abstract class CrUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrUtility.class);
 
-    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
-
     private CrUtility() {
     }
 
@@ -132,20 +130,16 @@ public abstract class CrUtility {
             }
         }
 
-        final String readRawValue = config.readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
-        final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
-        for (final String rawValue : readRawValue.split("-")) {
-            readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
-        }
+        final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseReadLocations();
 
         final String userGUID;
-        if (readPreferences.contains(STORAGE_METHOD.DB) || readPreferences.contains(STORAGE_METHOD.PWMDB)) {
+        if (readPreferences.contains(Configuration.STORAGE_METHOD.DB) || readPreferences.contains(Configuration.STORAGE_METHOD.PWMDB)) {
             userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
         } else {
             userGUID = null;
         }
 
-        for (final STORAGE_METHOD storageMethod : readPreferences) {
+        for (final Configuration.STORAGE_METHOD storageMethod : readPreferences) {
             final ResponseSet readResponses;
 
             switch (storageMethod) {

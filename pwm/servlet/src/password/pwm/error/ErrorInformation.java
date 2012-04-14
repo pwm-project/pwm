@@ -123,21 +123,11 @@ public class ErrorInformation implements Serializable {
     }
 
     public String toUserStr(final Locale userLocale, final Configuration config) {
-
-        final StringBuilder sb = new StringBuilder();
         if (fieldValues != null && fieldValues.length > 0) {
-            sb.append(PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]));
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]);
         } else {
-            sb.append(PwmError.getLocalizedMessage(userLocale, this.getError(), config));
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), config);
         }
-
-        if (this.getError() != null) {
-            sb.append("  (");
-            sb.append(this.getError().getErrorCode());
-            sb.append(")");
-        }
-
-        return sb.toString();
     }
 
     public Date getDate() {

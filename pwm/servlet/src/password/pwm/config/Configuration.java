@@ -401,6 +401,15 @@ public class Configuration implements Serializable {
         }
     }
 
+    public List<STORAGE_METHOD> getResponseReadLocations() {
+        final String readRawValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+        final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
+        for (final String rawValue : readRawValue.split("-")) {
+            readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
+        }
+        return readPreferences;
+    }
+
     public PwmPasswordPolicy getNewUserPasswordPolicy(final PwmApplication pwmApplication, final Locale userLocale)
             throws PwmUnrecoverableException, ChaiUnavailableException {
 
@@ -435,4 +444,6 @@ public class Configuration implements Serializable {
             }
         }
     }
+
+    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
 }

@@ -593,6 +593,8 @@ public enum PwmSetting {
     // update profile
     UPDATE_PROFILE_ENABLE(
             "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
+    UPDATE_PROFILE_FORCE_SETUP(
+            "updateAttributes.forceSetup", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_QUERY_MATCH(
             "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
