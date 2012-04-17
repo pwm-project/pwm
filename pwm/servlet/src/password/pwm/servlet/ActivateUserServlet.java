@@ -508,9 +508,14 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
         final Configuration config = pwmApplication.getConfig();
 
+        final StringBuilder tokenSendDisplay = new StringBuilder();
         final String toAddress;
         try {
             toAddress = theUser.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+            if (toAddress != null && toAddress.length() > 0) {
+                tokenSendDisplay.append(toAddress);
+            }
+
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
@@ -521,6 +526,12 @@ public class ActivateUserServlet extends TopServlet {
         final String toSmsNumber;
         try {
             toSmsNumber = theUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+            if (toSmsNumber !=null && toSmsNumber.length() > 0) {
+                if (tokenSendDisplay.length() > 0) {
+                    tokenSendDisplay.append(" / ");
+                }
+                tokenSendDisplay.append(toSmsNumber);
+            }
         } catch (Exception e) {
             final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
@@ -538,6 +549,7 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         sendToken(pwmSession, pwmApplication, toAddress, toSmsNumber, tokenKey);
+        activateUserBean.setTokenSendAddress(tokenSendDisplay.toString());
         activateUserBean.setTokenIssued(true);
     }
 

@@ -31,6 +31,8 @@ public class ActivateUserBean implements Serializable {
     private boolean tokenPassed;
     private boolean agreementPassed;
     private boolean formValidated;
+    private String tokenSendAddress;
+
     private ChaiUser theUser;
 
     public boolean isTokenIssued() {
@@ -71,5 +73,13 @@ public class ActivateUserBean implements Serializable {
 
     public void setTheUser(ChaiUser theUser) {
         this.theUser = theUser;
+    }
+
+    public String getTokenSendAddress() {
+        return tokenSendAddress;
+    }
+
+    public void setTokenSendAddress(final String tokenSendAddress) {
+        this.tokenSendAddress = tokenSendAddress;
     }
 }

@@ -22,7 +22,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
-<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.bean.ActivateUserBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
@@ -32,19 +32,8 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-            final String destMail = fpb.getTokenEmailAddress();
-            final String destSms = fpb.getTokenSmsNumber();
-            String destination = "";
-            if (fpb.isEmailUsed()) {
-                destination += destMail;
-            }
-            if (fpb.isSmsUsed()) {
-                if (destination.length() > 0) {
-                    destination += " / ";
-                }
-                destination += destSms;
-            }
+            final ActivateUserBean aub = PwmSession.getPwmSession(session).getActivateUserBean();
+            String destination = aub.getTokenSendAddress();
         %>
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <form action="<pwm:url url='ActivateUser'/>" method="post"

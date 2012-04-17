@@ -37,15 +37,11 @@ public class ForgottenPasswordBean implements Serializable {
 
     private transient ChaiUser proxiedUser;
     private transient ChallengeSet challengeSet;
-    private String tokenEmailAddress;
-    private String tokenSmsNumber;
+    private String tokenSendAddress;
 
     private boolean responsesSatisfied;
     private boolean tokenSatisfied;
     private boolean allPassed;
-
-    private boolean emailUsed = false;
-    private boolean smsUsed = false;
 
     private List<FormConfiguration> attributeForm;
 
@@ -92,36 +88,12 @@ public class ForgottenPasswordBean implements Serializable {
         this.allPassed = allPassed;
     }
 
-    public String getTokenEmailAddress() {
-        return tokenEmailAddress;
+    public String getTokenSendAddress() {
+        return tokenSendAddress;
     }
 
-    public void setTokenEmailAddress(final String tokenEmailAddress) {
-        this.tokenEmailAddress = tokenEmailAddress;
-    }
-
-    public String getTokenSmsNumber() {
-        return tokenSmsNumber;
-    }
-
-    public void setTokenSmsNumber(final String tokenSmsNumber) {
-        this.tokenSmsNumber = tokenSmsNumber;
-    }
-    
-    public void setEmailUsed(final boolean used) {
-    	this.emailUsed = used;
-    }
-    
-    public boolean isEmailUsed() {
-    	return emailUsed;
-    }
-
-    public void setSmsUsed(final boolean used) {
-    	this.smsUsed = used;
-    }
-    
-    public boolean isSmsUsed() {
-    	return smsUsed;
+    public void setTokenSendAddress(final String tokenSendAddress) {
+        this.tokenSendAddress = tokenSendAddress;
     }
 
     public List<FormConfiguration> getAttributeForm() {

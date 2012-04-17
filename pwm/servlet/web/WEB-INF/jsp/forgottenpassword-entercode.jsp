@@ -34,18 +34,7 @@
     <div id="centerbody">
         <% 
            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-           final String destMail = fpb.getTokenEmailAddress();
-           final String destSms = fpb.getTokenSmsNumber();
-           String destination = "";
-           if (fpb.isEmailUsed()) {
-             destination += destMail;
-           }
-           if (fpb.isSmsUsed()) {
-             if (destination.length() > 0) {
-               destination += " / ";
-             }
-             destination += destSms;
-           }
+           String destination = fpb.getTokenSendAddress();
         %>
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
 
