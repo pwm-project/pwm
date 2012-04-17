@@ -37,6 +37,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
@@ -155,9 +156,19 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
+        final String forgottenPasswordQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_QUERY_MATCH);
+        if (forgottenPasswordQueryMatch != null && forgottenPasswordQueryMatch.length() > 0) {
+            if (!Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, forgottenPasswordQueryMatch)) {
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"does not match forgotten password query match");
+                LOGGER.info(pwmSession, errorInfo.toDebugStr());
+                pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                ServletHelper.forwardToErrorPage(req,resp,true);
+                return;
+            }
+        }
+
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
         forgottenPasswordBean.setProxiedUser(proxiedUser);
-
         this.advancedToNextStage(req, resp);
     }
 

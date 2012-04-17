@@ -229,6 +229,8 @@ public class Helper {
                 // check if it is unique
                 final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
                 searchHelper.setFilter(GUIDattributeName, newGUID);
+                searchHelper.setMaxResults(1);
+                searchHelper.setAttributes(GUIDattributeName);
                 final Map<String, Map<String,String>> result = proxyChaiProvider.search(baseContext, searchHelper);
                 if (result.isEmpty()) {
                     try {

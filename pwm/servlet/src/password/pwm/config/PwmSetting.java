@@ -485,6 +485,8 @@ public enum PwmSetting {
     // recovery settings
     FORGOTTEN_PASSWORD_ENABLE(
             "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
+    FORGOTTEN_PASSWORD_QUERY_MATCH(
+            "recovery.queryMatch", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
     FORGOTTEN_PASSWORD_READ_PREFERENCE(
             "recovery.response.readPreference", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_USER_ATTRIBUTE(

@@ -261,7 +261,7 @@ public class FormConfiguration implements Serializable {
                 break;
         }
 
-        if ((this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {
+        if (value != null && (this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_SHORT, null, this.label);
             throw new PwmDataValidationException(error);
         }
