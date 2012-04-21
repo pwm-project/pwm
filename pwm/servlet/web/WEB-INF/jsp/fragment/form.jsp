@@ -33,6 +33,7 @@
         final PwmSession pwmSession = PwmSession.getPwmSession(session);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final String telRegex = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX);
         List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
         for (FormConfiguration loopConfiguration : formConfigurationList) {
         %>
@@ -46,7 +47,7 @@
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
                    <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.tel)){%> pattern="<%=StringEscapeUtils.escapeHtml(pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX))%>"<%}%>
+                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.tel)){%> <%=telRegex != null && telRegex.length() > 0 ? "pattern=\"" + StringEscapeUtils.escapeHtml(telRegex) + "\"" : ""%>"<%}%>
                     />
         </td>
     </tr>

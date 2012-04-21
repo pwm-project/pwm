@@ -35,6 +35,7 @@ import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -54,7 +55,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final Configuration config = pwmApplication.getConfig();
 
         { // check ldap server
-            returnRecords.addAll(checkBasicLdapConnectivity(config));
+            returnRecords.addAll(checkBasicLdapConnectivity(pwmApplication,config));
 
             if (returnRecords.isEmpty()) {
                 returnRecords.addAll(checkLdapServerUrls(config));
@@ -67,16 +68,14 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (hr != null) {
                     returnRecords.add(hr);
                 }
-            }
-        }
 
-        { // check recent ldap status
-            final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
-            if (errorInfo != null) {
-                final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+                final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
+                if (errorInfo != null) {
+                    final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
-                if (errorAge.isShorterThan(TimeDuration.DAY)) {
-                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
+                    if (errorAge.isShorterThan(TimeDuration.HOUR.getTotalMilliseconds() * 3)) {
+                        returnRecords.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
+                    }
                 }
             }
         }
@@ -196,7 +195,7 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static List<HealthRecord> checkBasicLdapConnectivity(final Configuration config) {
+    private static List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config) {
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         ChaiProvider chaiProvider = null;
@@ -211,6 +210,7 @@ public class LDAPStatusChecker implements HealthChecker {
             } catch (Exception e) {
                 final String errorString = "error connecting to ldap directory: " + e.getMessage();
                 returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString));
                 return returnRecords;
             }
 

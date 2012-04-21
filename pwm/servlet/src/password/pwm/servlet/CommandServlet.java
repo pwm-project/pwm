@@ -343,15 +343,15 @@ public class CommandServlet extends TopServlet {
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));
                 return;
             }
-
-            String redirectURL = ssBean.getForwardURL();
-            if (redirectURL == null || redirectURL.length() < 1) {
-                redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
-            }
-
-            LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
         }
+
+        String redirectURL = ssBean.getForwardURL();
+        if (redirectURL == null || redirectURL.length() < 1) {
+            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
+        }
+
+        LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
+        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
     }
 }
 

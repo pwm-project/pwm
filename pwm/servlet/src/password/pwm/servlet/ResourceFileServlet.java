@@ -569,7 +569,7 @@ public class ResourceFileServlet extends TopServlet {
         if (uriString.contains(nonce)) {
             return uriString.replace(nonce,"");
         } else {
-            LOGGER.debug("resource request missing nonce: " + uriString);
+            //LOGGER.debug("resource request missing nonce: " + uriString);
         }
         return uriString;
     }
@@ -580,7 +580,7 @@ public class ResourceFileServlet extends TopServlet {
     )
     {
         if (PwmConstants.RESOURCE_SERVLET_ENABLE_PATH_NONCE) {
-            return "/z" + Long.toString(pwmApplication.getStartupTime().getTime(),36); //+ pwmSession.getSessionStateBean().getSessionID();
+            return "/nonce-" + Long.toString(pwmApplication.getStartupTime().getTime(),36); //+ pwmSession.getSessionStateBean().getSessionID();
         } else {
             return "";
         }

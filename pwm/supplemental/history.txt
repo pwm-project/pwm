@@ -16,6 +16,7 @@ v1.6.2
 + ConfigManager performance improvements for display value editing
 + Helpdesk random passsword generation and clear responses options
 + Helpdesk session timeout configuration option
++ "Force Profile Update" option added to route users through the Profile Update module
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
@@ -25,6 +26,10 @@ v1.6.2
 - Resolved issue where newuser agreement screen could be bypassed (issue #165)
 - Fixed url path issue (/private url required for public pages) (issue #154)
 - Issue where activate user wasn't performing LDAP compare on correct form values (issue #153)
+- Update Query Match filter not being applied (issue #178)
+- Email address destination token not being inserted (issue #177)
+- Double nested form tags on ActiveUser data entry page (issue #175)
+
 
 
 v1.6.1 (January 16, 2012) build 1123
