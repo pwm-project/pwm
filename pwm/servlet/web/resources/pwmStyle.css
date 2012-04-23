@@ -144,6 +144,7 @@ table td.key {
 
 .menubutton {
     padding: 4px;
+    white-space: nowrap;
     border-radius: 2px;
     padding-right: 11px;
     padding-left: 11px;
