@@ -77,7 +77,6 @@ public class SessionStateBean implements Serializable {
     private boolean sessionVerified;
 
     private Date lastAccessTime = new Date();
-    private Date lastPageLeaveTime = null;
 
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
@@ -257,14 +256,6 @@ public class SessionStateBean implements Serializable {
 
     public void setDebugInitialized(final boolean debugInitialized) {
         this.debugInitialized = debugInitialized;
-    }
-
-    public Date getLastPageLeaveTime() {
-        return lastPageLeaveTime;
-    }
-
-    public void setLastPageLeaveTime(final Date lastPageLeaveTime) {
-        this.lastPageLeaveTime = lastPageLeaveTime;
     }
 
     public int getRequestCounter() {

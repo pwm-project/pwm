@@ -205,10 +205,15 @@ table td.key {
     background:-moz-linear-gradient( center top, #3e374c 5%, #08070f 100% );
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#3e374c', endColorstr='#08070f');
 }.btn:hover {
-     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #08070f), color-stop(1, #3e374c) );
-     background:-moz-linear-gradient( center top, #08070f 5%, #3e374c 100% );
-     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#08070f', endColorstr='#3e374c');
- }
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #08070f), color-stop(1, #3e374c) );
+    background:-moz-linear-gradient( center top, #08070f 5%, #3e374c 100% );
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#08070f', endColorstr='#3e374c');
+}.btn:disabled {
+    color: #656565;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #4f485d), color-stop(1, #191820) );
+    background:-moz-linear-gradient( center top, #4f485d 5%, #191820 100% );
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#4f485d', endColorstr='#191820');
+}
 
 
 #LogoutButton {

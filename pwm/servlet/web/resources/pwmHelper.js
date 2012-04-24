@@ -25,21 +25,6 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
-
-    /*
-    setTimeout(function(){ // pre-fetch dojo/dijit objects
-        require(["dijit/Dialog","dijit/Tooltip","dijit/Menu","dijit/MenuItem"]);
-    },9500);
-    */
-
-    dojo.addOnUnload(function(){
-        dojo.xhrGet({
-            url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            sync: true,
-            load: function() {},
-            error: function() {}
-        });
-    });
 }
 
 function checkForCapsLock(e) {

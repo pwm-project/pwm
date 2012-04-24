@@ -727,6 +727,7 @@ public class Helper {
             throw newException;
         }
 
+        // krowten made me do this shit
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
             if (expandPwmMacros) {

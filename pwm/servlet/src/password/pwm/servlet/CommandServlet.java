@@ -68,8 +68,6 @@ public class CommandServlet extends TopServlet {
 
         if (action.equalsIgnoreCase("idleUpdate")) {
             processIdleUpdate(req, resp);
-        } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
-            processPageLeaveNotice(req);
         } else if (action.equalsIgnoreCase("checkResponses") || action.equalsIgnoreCase("checkIfResponseConfigNeeded")) {
             processCheckResponses(req, resp);
         } else if (action.equalsIgnoreCase("checkExpire")) {
@@ -96,16 +94,6 @@ public class CommandServlet extends TopServlet {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             resp.setContentType("text/plain");
         }
-    }
-
-    private static void processPageLeaveNotice(
-            final HttpServletRequest req
-    )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
-        Validator.validatePwmFormID(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        pwmSession.getSessionStateBean().setLastPageLeaveTime(new java.util.Date());
-        LOGGER.trace(pwmSession, "set page leave timestamp");
     }
 
     private static void processCheckResponses(

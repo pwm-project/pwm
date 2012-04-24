@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UpdateProfileBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -83,12 +84,24 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
-
         populateFormFromLdap(req);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("updateProfile")) {
             handleUpdateRequest(req, resp);
             return;
+        } else if ("agree".equalsIgnoreCase(actionParam)) {         // accept password change agreement
+            LOGGER.debug(pwmSession, "user accepted update profile agreement");
+            final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
+            updateProfileBean.setAgreementPassed(true);
+        }
+
+        final String newUserAgreementText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
+        if (newUserAgreementText != null && newUserAgreementText.length() > 0) {
+            final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
+            if (!updateProfileBean.isAgreementPassed()) {
+                this.forwardToAgreementJSP(req,resp);
+                return;
+            }
         }
 
         this.forwardToJSP(req, resp);
@@ -187,5 +200,14 @@ public class UpdateProfileServlet extends TopServlet {
             throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES).forward(req, resp);
     }
+
+    private void forwardToAgreementJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES_AGREEMENT).forward(req, resp);
+    }
+
 }
 

@@ -31,7 +31,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -144,9 +143,6 @@ public class SessionFilter implements Filter {
 
         // set the auto-config url value.
         pwmApplication.setAutoSiteURL(req);
-
-        // check the leave flag
-        checkLastPageLeaveTime(pwmApplication, pwmSession, ssBean);
 
         // mark the user's IP address in the session bean
         ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
@@ -441,25 +437,5 @@ public class SessionFilter implements Filter {
         }
 
         return false;
-    }
-
-    private void checkLastPageLeaveTime(final PwmApplication pwmApplication, final PwmSession pwmSession, final SessionStateBean ssBean) {
-        if (ssBean.getLastPageLeaveTime() == null) {
-            return;
-        }
-
-        final java.util.Date lastLeaveTime = ssBean.getLastPageLeaveTime();
-        final TimeDuration duration = TimeDuration.fromCurrent(lastLeaveTime);
-        final long maxSecondDuration = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PAGE_LEAVE_WAIT_TIME);
-
-        if (maxSecondDuration > 0) {
-            if (duration.isLongerThan(maxSecondDuration * 1000)) {
-                LOGGER.debug(pwmSession, "unauthenticating user due to dirty page leave flag (idle " + duration.asCompactString() + ")");
-                pwmSession.unauthenticateUser();
-            }
-        }
-
-        LOGGER.trace(pwmSession, "clearing page leave flag");
-        ssBean.setLastPageLeaveTime(null);
     }
 }

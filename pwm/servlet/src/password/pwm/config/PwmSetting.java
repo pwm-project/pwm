@@ -391,8 +391,6 @@ public enum PwmSetting {
             "captcha.skip.param", Syntax.STRING, Category.SECURITY, false, Level.ADVANCED),
     CAPTCHA_SKIP_COOKIE(
             "captcha.skip.cookie", Syntax.STRING, Category.SECURITY, false, Level.ADVANCED),
-    PAGE_LEAVE_WAIT_TIME(
-            "security.page.leave.waitTime", Syntax.NUMERIC, Category.SECURITY, false, Level.ADVANCED),
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     SECURITY_ENABLE_FORM_NONCE(
@@ -597,6 +595,8 @@ public enum PwmSetting {
             "updateAttributes.enable", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_FORCE_SETUP(
             "updateAttributes.forceSetup", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
+    UPDATE_PROFILE_AGREEMENT_MESSAGE(
+            "display.updateAttributes.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.UPDATE, false, Level.BASIC),
     UPDATE_PROFILE_QUERY_MATCH(
             "updateAttributes.queryMatch", Syntax.STRING, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
@@ -605,6 +605,8 @@ public enum PwmSetting {
             "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
             "updateAttributes.check.queryMatch", Syntax.STRING, Category.UPDATE, false, Level.BASIC),
+    UPDATE_PROFILE_SHOW_CONFIRMATION(
+            "updateAttributes.showConfirmation", Syntax.BOOLEAN, Category.UPDATE, true, Level.BASIC),
 
     // shortcut settings
     SHORTCUT_ENABLE(

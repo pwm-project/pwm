@@ -17,6 +17,7 @@ v1.6.2
 + Helpdesk random passsword generation and clear responses options
 + Helpdesk session timeout configuration option
 + "Force Profile Update" option added to route users through the Profile Update module
++ Added partial localizations for Thai, Korean, Japanese and Chinese (issue #184)
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
