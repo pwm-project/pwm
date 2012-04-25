@@ -31,13 +31,7 @@
 <head>
     <title><pwm:Display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta name="Description" content="PWM Password Self Service"/>
-    <meta name="X-Pwm-Instance"
-          content="<%=pwmApplicationHeader.getInstanceID()%>>"/>
-    <meta name="X-Pwm-Version"
-          content="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)"/>
-    <meta name="X-Pwm-Build"
-          content="<%=PwmConstants.BUILD_NUMBER%>"/>
+    <meta name="application-name" content="PWM Password Self Service" data-pwm-version="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-pwm-build="<%=PwmConstants.BUILD_NUMBER%>" data-pwm-instance="<%=pwmApplicationHeader.getInstanceID()%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <link rel="icon" type="image/x-icon"
           href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>

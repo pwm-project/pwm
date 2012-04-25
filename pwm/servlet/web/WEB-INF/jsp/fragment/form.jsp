@@ -1,6 +1,5 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
@@ -31,24 +30,24 @@
 <table id="form">
     <%
         final PwmSession pwmSession = PwmSession.getPwmSession(session);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String telRegex = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX);
         List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
         for (FormConfiguration loopConfiguration : formConfigurationList) {
+            final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),""));
         %>
     <tr>
         <td class="key">
-            <label id="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
+            <label for="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
         </td>
         <td>
+            <% if ("true".equalsIgnoreCase((String)request.getAttribute("form-readonly")) || loopConfiguration.getType().equals(FormConfiguration.Type.readonly)) { %>
+            <%= currentValue %>
+            <% } else { %>
             <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
-                   name="<%=loopConfiguration.getAttributeName()%>"
-                   value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
-                   <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.tel)){%> <%=telRegex != null && telRegex.length() > 0 ? "pattern=\"" + StringEscapeUtils.escapeHtml(telRegex) + "\"" : ""%>"<%}%>
-                    />
+                   name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"
+                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
+            />
+            <% } %>
         </td>
     </tr>
     <% if (loopConfiguration.isConfirmationRequired()) { %>
@@ -57,7 +56,8 @@
             <label id="<%=loopConfiguration.getAttributeName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %></label>
         </td>
         <td>
-            <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm" type="<%=loopConfiguration.getType()%>"
+            <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm"
+                   <%-- type="<%=loopConfiguration.getType()%>" --%> type="time"
                    name="<%=loopConfiguration.getAttributeName()%>_confirm"
                    value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
                    <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>

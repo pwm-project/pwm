@@ -20,57 +20,43 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.SetupResponsesBean" %>
 <!DOCTYPE html>
-
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();"
-      class="tundra">
+<body onload="pwmPageLoadHandler();document.forms.updateProfile.elements[0].focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
+        <jsp:param name="pwm.PageName" value="Title_UpdateProfileConfirm"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ConfirmResponses"/></p>
+        <p><pwm:Display key="Display_UpdateProfileConfirm"/></p>
+
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <%
-            for (final Challenge loopChallenge : responseBean.getResponseMap().keySet()) {
-                final String responseText = responseBean.getResponseMap().get(loopChallenge);
-        %>
-        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
-        </h2>
-
-        <p>
-            &nbsp;»&nbsp;
-            <%= StringEscapeUtils.escapeHtml(responseText) %>
-        </p>
-        <% } %>
-        <br/>
+        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
+              onsubmit="return false" onreset="handleFormClear();return false">
+            <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
+            <% request.setAttribute("form-readonly","true"); %>
+            <jsp:include page="fragment/form.jsp"/>
+        </form>
 
         <div id="buttonbar">
-            <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="submit" name="change_btn" class="btn"
-                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
-                <input type="hidden" name="processAction" value="changeResponses"/>
+            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
+                  onsubmit="handleFormSubmit('confirmBtn',this);return false">
+                <input id="confirmBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_Confirm"/>"/>
+                <input type="hidden" name="processAction" value="confirm"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+             </form>
+            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
+                  onsubmit="handleFormSubmit('gobackBtn',this);return false">
+                <input id="gobackBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_GoBack"/>"/>
+                <input type="hidden" name="processAction" value="unConfirm"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <br/>
-
-            <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-                <input type="submit" name="confirm_btn" class="btn" id="submitBtn"
-                       value="<pwm:Display key="Button_ConfirmResponses"/>"/>
-                <input type="hidden" name="processAction" value="confirmResponses"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     <pwm:Display key="Button_Cancel"/>
@@ -78,11 +64,11 @@
                 <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-        </div>
+            </div>
     </div>
     <br class="clear"/>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
+

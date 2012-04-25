@@ -22,11 +22,18 @@
 
 package password.pwm.bean;
 
+import password.pwm.config.FormConfiguration;
+
 import java.io.Serializable;
+import java.util.Map;
 
 public class UpdateProfileBean implements Serializable {
 
     private boolean agreementPassed;
+    private boolean formDataInitialized;
+    private boolean confirmationPassed;
+
+    private Map<FormConfiguration,String> formData;
 
     public boolean isAgreementPassed() {
         return agreementPassed;
@@ -34,5 +41,29 @@ public class UpdateProfileBean implements Serializable {
 
     public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
+    }
+
+    public boolean isFormDataInitialized() {
+        return formDataInitialized;
+    }
+
+    public void setFormDataInitialized(final boolean formDataInitialized) {
+        this.formDataInitialized = formDataInitialized;
+    }
+
+    public Map<FormConfiguration, String> getFormData() {
+        return formData;
+    }
+
+    public void setFormData(Map<FormConfiguration, String> formData) {
+        this.formData = formData;
+    }
+
+    public boolean isConfirmationPassed() {
+        return confirmationPassed;
+    }
+
+    public void setConfirmationPassed(final boolean confirmationPassed) {
+        this.confirmationPassed = confirmationPassed;
     }
 }

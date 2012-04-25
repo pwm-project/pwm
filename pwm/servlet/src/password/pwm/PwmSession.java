@@ -161,6 +161,10 @@ public class PwmSession implements Serializable {
         return (UpdateProfileBean)getUserBean(UpdateProfileBean.class);
     }
 
+    public void clearUpdateProfileBean() {
+        userBeans.remove(UpdateProfileBean.class);
+    }
+
     public ActivateUserBean getActivateUserBean() {
         return (ActivateUserBean)getUserBean(ActivateUserBean.class);
     }

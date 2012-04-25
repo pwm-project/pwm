@@ -74,12 +74,15 @@ function checkForCapsLock(e) {
 
 function handleFormSubmit(buttonID, form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-    getObject(buttonID).value = PWM_STRINGS['Display_PleaseWait'];
-    getObject(buttonID).disabled = true;
+    var submitButton = getObject(buttonID);
+    if (submitButton != null) {
+        getObject(buttonID).value = PWM_STRINGS['Display_PleaseWait'];
+        getObject(buttonID).disabled = true;
 
-    var formElements = getObject(buttonID).form.elements;
-    for (var i = 0; i < formElements.length; i++) {
-        formElements[i].readOnly = true;
+        var formElements = submitButton.form.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].readOnly = true;
+        }
     }
 
     showWaitDialog(PWM_STRINGS['Display_PleaseWait'], "");

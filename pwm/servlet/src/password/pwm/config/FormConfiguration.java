@@ -246,6 +246,7 @@ public class FormConfiguration implements Serializable {
                 }
                 break;
 
+            /*
             case tel:
                 if (value != null && value.length() > 0) {
                     try {
@@ -259,6 +260,7 @@ public class FormConfiguration implements Serializable {
                     }
                 }
                 break;
+                */
         }
 
         if (value != null && (this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {

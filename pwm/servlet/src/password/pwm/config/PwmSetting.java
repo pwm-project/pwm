@@ -113,8 +113,6 @@ public enum PwmSetting {
             "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
-    DISPLAY_TEL_REGEX(
-            "display.validation.tel.regex", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
 
 
     //ldap directory
