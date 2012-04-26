@@ -333,8 +333,11 @@ public class SmsQueueManager implements PwmService {
                 }
             }
 
-            if ("BASIC".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
-                httpRequest.getParams().setParameter("Authorization", new BasicAuthInfo(gatewayUser, gatewayPass).toAuthHeader());
+            if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
+            	LOGGER.debug("Using Basic Authentication");
+            	BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
+            	LOGGER.trace("Adding authentication header: "+ba.toAuthHeader());
+                httpRequest.addHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH, ba.toAuthHeader());
             }
 
             final HttpClient httpClient = Helper.getHttpClient(config);

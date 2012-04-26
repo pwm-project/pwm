@@ -604,20 +604,24 @@ public class ForgottenPasswordServlet extends TopServlet {
         LOGGER.debug(pwmSession, "generated token code for session: " + token);
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
-        String toEmailAddr = null, toSmsAddr = null;
+        String toEmailAddr = null;
         try {
+        	LOGGER.trace("Reading setting "+PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             toEmailAddr = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
             if (toEmailAddr != null && toEmailAddr.length() > 0) {
+            	LOGGER.trace("Email address: "+toEmailAddr);
                 tokenSendDisplay.append(toEmailAddr);
             }
         } catch (Exception e) {
             LOGGER.debug("error reading mail attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
 
-        final String toSmsNumber;
+        String toSmsNumber = null;
         try {
+        	LOGGER.trace("Reading setting "+PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
             if (toSmsNumber !=null && toSmsNumber.length() > 0) {
+            	LOGGER.trace("SMS number: "+toSmsNumber);
                 if (tokenSendDisplay.length() > 0) {
                     tokenSendDisplay.append(" / ");
                 }
@@ -628,7 +632,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
         forgottenPasswordBean.setTokenSendAddress(tokenSendDisplay.toString());
 
-        sendToken(pwmSession, pwmApplication, proxiedUser, token, toEmailAddr, toSmsAddr);
+        sendToken(pwmSession, pwmApplication, proxiedUser, token, toEmailAddr, toSmsNumber);
     }
 
     private void sendToken(
@@ -637,7 +641,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             final ChaiUser proxiedUser,
             final String tokenKey,
             final String toEmailAddr,
-            final String toSmsAddr
+            final String toSmsNumber
 
     )
             throws PwmUnrecoverableException
@@ -649,20 +653,20 @@ public class ForgottenPasswordServlet extends TopServlet {
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
                 final boolean suc1 = sendEmailToken(pwmSession, pwmApplication, proxiedUser,tokenKey,toEmailAddr);
-                final boolean suc2 = sendSmsToken(pwmSession, pwmApplication, proxiedUser,tokenKey, toSmsAddr);
+                final boolean suc2 = sendSmsToken(pwmSession, pwmApplication, proxiedUser,tokenKey, toSmsNumber);
                 success = suc1 || suc2;
                 break;
             case EMAILFIRST:
                 // Send email first, try SMS if email is not available
-                success = sendEmailToken(pwmSession, pwmApplication, proxiedUser,tokenKey, toEmailAddr) || sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsAddr);
+                success = sendEmailToken(pwmSession, pwmApplication, proxiedUser,tokenKey, toEmailAddr) || sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsNumber);
                 break;
             case SMSFIRST:
                 // Send SMS first, try email if SMS is not available
-                success = sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsAddr) || sendEmailToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toEmailAddr);
+                success = sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsNumber) || sendEmailToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toEmailAddr);
                 break;
             case SMSONLY:
                 // Only try SMS
-                success = sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsAddr);
+                success = sendSmsToken(pwmSession, pwmApplication, proxiedUser, tokenKey, toSmsNumber);
                 break;
             case EMAILONLY:
             default:

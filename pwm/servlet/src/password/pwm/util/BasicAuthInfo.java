@@ -55,7 +55,8 @@ public class BasicAuthInfo implements Serializable {
             if (authHeader.indexOf(PwmConstants.HTTP_BASIC_AUTH_PREFIX) != -1) {
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
-                final String encoded = authHeader.substring(PwmConstants.HTTP_BASIC_AUTH_PREFIX.length(), authHeader.length());
+                final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ";
+                final String encoded = authHeader.substring(toStrip.length(), authHeader.length());
 
                 try {
                     // ***** Decode the username/chpass string
@@ -101,7 +102,7 @@ public class BasicAuthInfo implements Serializable {
 
         sb.replace(0, sb.length(), Base64Util.encodeBytes(sb.toString().getBytes()));
 
-        sb.insert(0, PwmConstants.HTTP_BASIC_AUTH_PREFIX);
+        sb.insert(0, PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ");
 
         return sb.toString();
     }
