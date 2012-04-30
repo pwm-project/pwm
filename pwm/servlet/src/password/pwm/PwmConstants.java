@@ -63,7 +63,6 @@ public abstract class PwmConstants {
     public static final int MAX_INTRUDER_TABLE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxIntruderTableSize"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
-    public static final List<Locale> KNOWN_LOCALES;
 
     public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateTimeFormat"));
     public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
@@ -199,7 +198,6 @@ public abstract class PwmConstants {
 
     static {
         DEFAULT_DATETIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
-        KNOWN_LOCALES = calculateKnownLocales();
     }
 
     private static String readPwmConstantsBundle(final String key) {

@@ -115,6 +115,8 @@ public enum PwmSetting {
             "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+    DISPLAY_KNOWN_LOCALES(
+            "display.knownLocales", Syntax.STRING_ARRAY, Category.USER_INTERFACE, false, Level.ADVANCED),
 
 
     //ldap directory

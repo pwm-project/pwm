@@ -20,12 +20,13 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.TreeSet" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
@@ -67,7 +68,7 @@
     </div>
     <div class="message message-info" style="width: 580px; background: white;">
         <table id="table_<%=key%>" style="border-width:0" width="500">
-            <% for(final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
+            <% for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) { %>
             <tr style="border-width:0">
                 <td style="border-width:0">
                     <%= "".equals(loopLocale.toString()) ? "Default" : loopLocale.toString() %>

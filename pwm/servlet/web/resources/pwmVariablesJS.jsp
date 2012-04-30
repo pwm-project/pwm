@@ -23,8 +23,8 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.config.Display"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.config.Display" %><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setDateHeader("Expires", System.currentTimeMillis() + (100 * 24 * 60 * 60 * 1000)); %>
@@ -58,7 +58,7 @@ function initPwmGlobalValues() {
 
 function initPwmLocaleVars() {
     var localeInfo = {};
-<% for (final Locale loopLocale : PwmConstants.KNOWN_LOCALES) { %>
+<% for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) { %>
 <% if ("".equals(loopLocale.toString())) { %>
     createCSSClass('.flagLang_en','background-image: url(flags/languages/en.png)');
 <% } else { %>

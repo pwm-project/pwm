@@ -239,7 +239,7 @@ public class ConfigManagerServlet extends TopServlet {
             final Map<String,String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(),keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
                 final Map<String,String> defaultValueMap = new LinkedHashMap<String, String>();
-                for (final Locale locale : PwmConstants.KNOWN_LOCALES) {
+                for (final Locale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
                     final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
                     final String localeStr = locale.toString().equalsIgnoreCase("en") ? "" : locale.toString();
                     defaultValueMap.put(localeStr,localeBundle.getString(keyName));
