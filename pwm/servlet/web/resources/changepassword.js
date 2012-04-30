@@ -183,11 +183,11 @@ function markStrength(strength) { //strength meter
     var barColor = "";
 
     if (strength > 70) {
-        strengthLabel = PWM_STRINGS['Strength_High'];
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthHigh'];
     } else if (strength > 45) {
-        strengthLabel = PWM_STRINGS['Strength_Medium'];
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthMedium'];
     } else {
-        strengthLabel = PWM_STRINGS['Strength_Low'];
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthLow'];
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }

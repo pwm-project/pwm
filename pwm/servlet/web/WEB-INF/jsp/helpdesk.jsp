@@ -48,7 +48,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
 <script type="text/javascript"
-        src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
+        src="<%=request.getContextPath()%><pwm:url url='/resources/changepassword.js'/>"></script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
@@ -91,7 +91,7 @@
     <table>
         <tr>
             <td class="key">
-                User DN
+                <pwm:Display key="Field_UserDN"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserDN()) %>
@@ -99,7 +99,7 @@
         </tr>
         <tr>
             <td class="key">
-                User GUID
+                <pwm:Display key="Field_UserGUID"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
@@ -122,7 +122,7 @@
 <table>
     <tr>
         <td class="key">
-            Username
+            <pwm:Display key="Field_Username"/>
         </td>
         <td>
             <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
@@ -130,15 +130,15 @@
     </tr>
     <tr>
         <td class="key">
-            Account Enabled
+            <pwm:Display key="Field_AccountEnabled"/>
         </td>
         <td>
-            <%= helpdeskBean.isAccountEnabled() ? "true" : "false" %>
+            <%if (helpdeskBean.isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            Last Login Time
+            <pwm:Display key="Field_LastLoginTime"/>
         </td>
         <td>
             <%= helpdeskBean.getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getLastLoginTime()) : ""%>
@@ -147,7 +147,7 @@
     <% if (helpdeskBean.getLastLoginTime() != null) { %>
     <tr>
         <td class="key">
-            Last Login Time Delta
+            <pwm:Display key="Field_LastLoginTimeDelta"/>
         </td>
         <td>
             <%= TimeDuration.fromCurrent(helpdeskBean.getLastLoginTime()).asLongString() + " ago"%>
@@ -156,39 +156,39 @@
     <% } %>
     <tr>
         <td class="key">
-            Password Expired
+            <pwm:Display key="Field_PasswordExpired"/>
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordState().isExpired() %>
+            <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            Password Pre-Expired
+            <pwm:Display key="Field_PasswordPreExpired"/>
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordState().isPreExpired() %>
+            <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            Violates Password Policy
+            <pwm:Display key="Field_PasswordViolatesPolicy"/>
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordState().isViolatesPolicy() %>
+            <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            Within Warning Period
+            <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
         </td>
         <td>
-            <%= searchedUserInfo.getPasswordState().isWarnPeriod() %>
+            <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
         </td>
     </tr>
     <tr>
         <td class="key">
-            Password Set Time (PWM)
+            <pwm:Display key="Field_PasswordSetTime"/>
         </td>
         <td>
             <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
@@ -196,7 +196,7 @@
     </tr>
     <tr>
         <td class="key">
-            Password Expiration Time
+            <pwm:Display key="Field_PasswordExpirationTime"/>
         </td>
         <td>
             <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
@@ -204,35 +204,21 @@
     </tr>
     <tr>
         <td class="key">
-            LDAP Password Locked
+            <pwm:Display key="Field_PasswordLocked"/>
         </td>
         <% if (helpdeskBean.isIntruderLocked()) { %>
         <td class="health-WARN">
-            true
+            <pwm:Display key="Value_True"/>
         </td>
         <% } else { %>
         <td>
-            false
+            <pwm:Display key="Value_False"/>
         </td>
         <% } %>
     </tr>
     <tr>
         <td class="key">
-            PWM Intruder Locked
-        </td>
-        <% if (helpdeskBean.isPwmIntruder()) { %>
-        <td class="health-WARN">
-            true
-        </td>
-        <% } else { %>
-        <td>
-            false
-        </td>
-        <% } %>
-    </tr>
-    <tr>
-        <td class="key">
-            Responses Stored
+            <pwm:Display key="Field_ResponsesStored"/>
         </td>
         <td>
             <%= helpdeskBean.getResponseSet() != null %>
@@ -240,7 +226,7 @@
     </tr>
     <tr>
         <td class="key">
-            Response Updates are Needed
+            <pwm:Display key="Field_ResponsesNeeded"/>
         </td>
         <td>
             <%= helpdeskBean.getUserInfoBean().isRequiresResponseConfig() %>
@@ -248,7 +234,7 @@
     </tr>
     <tr>
         <td class="key">
-            Stored Response Timestamp
+            <pwm:Display key="Field_ResponsesTimestamp"/>
         </td>
         <td>
             <%= helpdeskBean.getResponseSet() != null && helpdeskBean.getResponseSet().getTimestamp() != null ? dateFormatter.format(helpdeskBean.getResponseSet().getTimestamp()) : "n/a" %>
@@ -519,9 +505,7 @@
 </div>
 </div>
 <script type="text/javascript">
-    PWM_STRINGS['Title_RandomPasswords'] = "<pwm:Display key="Title_RandomPasswords"/>";
     PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
-    PWM_STRINGS['Display_PasswordGeneration'] = "<pwm:Display key="Display_PasswordGeneration"/>";
     dojo.addOnLoad(function(){
         dojo.require("dijit.layout.TabContainer");
         dojo.require("dijit.layout.ContentPane");
@@ -529,6 +513,7 @@
         dojo.parser.parse();
     });
 </script>
+<div><br/><br/><br/><br/></div>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

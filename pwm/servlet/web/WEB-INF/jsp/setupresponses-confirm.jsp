@@ -23,8 +23,8 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -56,20 +56,20 @@
         <br/>
 
         <div id="buttonbar">
-            <form action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="submit" name="change_btn" class="btn"
-                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
-                <input type="hidden" name="processAction" value="changeResponses"/>
-            </form>
-            <br/>
-
-            <form action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
+            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded"
-                  onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
-                <input type="submit" name="confirm_btn" class="btn" id="submitBtn"
+                  onsubmit="handleFormSubmit('confirm_btn',this);return false">
+                <input type="submit" name="confirm_btn" class="btn" id="confirm_btn"
                        value="<pwm:Display key="Button_ConfirmResponses"/>"/>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
+                  enctype="application/x-www-form-urlencoded"
+                  onsubmit="handleFormSubmit('change_btn',this);return false">
+                <input type="submit" name="change_btn" class="btn" id="change_btn"
+                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
+                <input type="hidden" name="processAction" value="changeResponses"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">

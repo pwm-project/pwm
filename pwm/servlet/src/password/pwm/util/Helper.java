@@ -59,6 +59,7 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -1123,5 +1124,23 @@ public class Helper {
             }
         }
         return sb.toString();
+    }
+
+    public static String figureForwardURL(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req
+    ) {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        String redirectURL = ssBean.getForwardURL();
+        if (redirectURL == null || redirectURL.length() < 1) {
+            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
+        }
+
+        if (redirectURL == null || redirectURL.length() < 1) {
+            redirectURL = req.getContextPath();
+        }
+
+        return redirectURL;
     }
 }

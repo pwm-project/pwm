@@ -23,46 +23,67 @@
 function usage() {
   echo "This script can be used on a modern unix like environment in order to"
   echo "determine the missing strings in localisation property files."
-  echo "The script must be run from the folder where the property files"
-  echo "reside."
   echo
   echo "Usage:"
-  echo "  $0 <category> <locale>"
+  echo "  $0 <path to tomcat>"
   echo 
-  echo "<category> can be 'Message', 'Display' or 'Error'."
-  echo "<language> can be the code of any of the supported locales"
-  echo "The propert3syies files must be in your working directory."
+  echo "<path to tomcat> is the path to the root of your tomcat instance."
+  echo
+  echo "A file will be created in the current directory for each language"
+  echo "/property file combination containing a listing of the variables"
+  echo "with a missing translation."
   echo
   echo "Example:"
-  echo "  $0 Message it"
+  echo "  $0 /usr/share/tomcat6"
 }
 
-CAT=$1
-LCODE=$2
 
-if [ "$1" = "" -o "$2" = "" ]; then
+if [ "$1" = "" ]; then
   usage
   exit 1
 fi
 
-if [ ! -f "${CAT}.properties" ]; then
-  echo "Base properties file for category ${CAT} not found"
-  exit 1
-fi
 
-if [ ! -f "${CAT}_${LCODE}.properties" ]; then
-  echo "Translated properties file for category ${CAT}, language ${LCODE} not found"
-  exit 1
-fi
+FILEPATH="${1}/webapps/pwm/WEB-INF/classes/password/pwm/config"
 
-TMP="${CAT}`date +%s`"
-TFBASE="/tmp/__${TMP}.properties"
-TFLANG="/tmp/__${TMP}_${LCODE}.properties"
+shopt -s nullglob
 
-grep -v "^[[:space:]]*$" "${CAT}.properties" | grep -v "^#" | grep "^[[:alpha:]]" | cut -d '=' -f 1 | sort -u > "${TFBASE}"
-grep -v "^[[:space:]]*$" "${CAT}_${LCODE}.properties" | grep -v "^#" | grep "^[[:alpha:]]" | cut -d '=' -f 1 | sort -u > "${TFLANG}"
-diff -w "${TFLANG}" "${TFBASE}" | grep "^>" | cut -d " " -f2-
+for i in Display Message PwmError
 
-if [ -f "${TFBASE}" ]; then rm "${TFBASE}" ; fi
-if [ -f "${TFLANG}" ]; then rm "${TFLANG}" ; fi
+do
+  echo $i
+  if [ $i == "PwmError" ]; then
+    FILEPATH="${1}/webapps/pwm/WEB-INF/classes/password/pwm/error"
+  fi
+
+  for f in $FILEPATH/$i\_* 
+  do
+    echo Processing: $f
+
+    OUTPUTFILE="Missing_`basename $f`"
+	if [ -f "${OUTPUTFILE}" ]; then rm "${OUTPUTFILE}" ; fi
+
+    TMP="Display`date +%s`"
+    TFBASE="/tmp/__${TMP}.properties"
+    TFLANG="/tmp/__${TMP}_`basename $f`"
+    TFMISSING="/tmp/__${TMP}_Missing_`basename $f`"
+
+    grep -v "^[[:space:]]*$" "${FILEPATH}/${i}.properties" | grep -v "^#" | grep "^[[:alpha:]]" | cut -d '=' -f 1 | sort -u > "${TFBASE}"
+    grep -v "^[[:space:]]*$" "${f}" | grep -v "^#" | grep "^[[:alpha:]]" | cut -d '=' -f 1 | sort -u > "${TFLANG}"
+    diff -w "${TFLANG}" "${TFBASE}" | grep "^>" | cut -d " " -f2- > $TFMISSING
+
+    while read line; do
+      grep "$line" "${FILEPATH}/${i}.properties" >> $OUTPUTFILE
+    done < "$TFMISSING"
+
+
+    if [ -f "${TFBASE}" ]; then rm "${TFBASE}" ; fi
+    if [ -f "${TFLANG}" ]; then rm "${TFLANG}" ; fi
+    if [ -f "${TFMISSING}" ]; then rm "${TFMISSING}" ; fi
+
+  done
+done
+
+shopt -u nullglob
+
 exit 0

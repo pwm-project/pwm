@@ -76,6 +76,7 @@
             </div>
         </form>
         <br/>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)) { %>
         <div style="text-align: center;">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenPassword" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
@@ -127,6 +128,7 @@
                 </script>
             <% } %>
         </div>
+        <% } %>
     </div>
 </div>
 <%@ include file="fragment/footer.jsp" %>

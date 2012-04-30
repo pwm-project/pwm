@@ -333,11 +333,7 @@ public class CommandServlet extends TopServlet {
             }
         }
 
-        String redirectURL = ssBean.getForwardURL();
-        if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
-        }
-
+        final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
     }

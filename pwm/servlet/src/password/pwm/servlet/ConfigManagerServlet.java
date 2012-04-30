@@ -51,7 +51,7 @@ public class ConfigManagerServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
     private static final int MAX_INPUT_LENGTH = 1024 * 100;
-    private static final String DEFAULT_PW = "DEFAULT-PW";
+    public static final String DEFAULT_PW = "DEFAULT-PW";
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -331,7 +331,7 @@ public class ConfigManagerServlet extends TopServlet {
             final String keyName = st.nextToken();
             final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
             }.getType());
-            final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
+            final Map<String, String> outputMap = new LinkedHashMap<String, String>(valueMap);
 
             storedConfig.writeLocaleBundleMap(bundleName.getTheClass().getName(),keyName, outputMap);
             returnMap.put("isDefault", outputMap.isEmpty());
@@ -342,7 +342,7 @@ public class ConfigManagerServlet extends TopServlet {
                 case STRING_ARRAY: {
                     final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
                     }.getType());
-                    final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
+                    final Map<String, String> outputMap = new LinkedHashMap<String, String>(valueMap);
                     storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
                 }
                 break;
@@ -351,7 +351,7 @@ public class ConfigManagerServlet extends TopServlet {
                 case LOCALIZED_TEXT_AREA: {
                     final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
                     }.getType());
-                    final Map<String, String> outputMap = new TreeMap<String, String>(valueMap);
+                    final Map<String, String> outputMap = new LinkedHashMap<String, String>(valueMap);
                     storedConfig.writeLocalizedSetting(setting, outputMap);
                 }
                 break;
@@ -359,10 +359,10 @@ public class ConfigManagerServlet extends TopServlet {
                 case LOCALIZED_STRING_ARRAY: {
                     final Map<String, Map<String, String>> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, Map<String, String>>>() {
                     }.getType());
-                    final Map<String, List<String>> outputMap = new HashMap<String, List<String>>();
+                    final Map<String, List<String>> outputMap = new LinkedHashMap<String, List<String>>();
                     for (final String localeKey : valueMap.keySet()) {
                         final List<String> returnList = new LinkedList<String>();
-                        for (final String iterKey : new TreeMap<String, String>(valueMap.get(localeKey)).keySet()) {
+                        for (final String iterKey : new LinkedHashMap<String, String>(valueMap.get(localeKey)).keySet()) {
                             returnList.add(valueMap.get(localeKey).get(iterKey));
                         }
                         outputMap.put(localeKey, returnList);

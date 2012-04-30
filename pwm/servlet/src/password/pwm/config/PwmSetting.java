@@ -45,7 +45,7 @@ public enum PwmSetting {
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     URL_FORWARD(
-            "pwm.forwardURL", Syntax.STRING, Category.GENERAL, true, Level.BASIC),
+            "pwm.forwardURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     URL_LOGOUT(
             "pwm.logoutURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     GOOGLE_ANAYLTICS_TRACKER(
@@ -103,6 +103,8 @@ public enum PwmSetting {
             "display.passwordHistory", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_ACCOUNT_INFORMATION(
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
+    DISPLAY_LOGIN_PAGE_OPTIONS(
+            "display.showLoginPageOptions", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(

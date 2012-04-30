@@ -20,9 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.Locale" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
+<%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
@@ -209,7 +210,7 @@
                             <label for="value_verify_<%=loopSetting.getKey()%>">Verify Password</label>
                         </td>
                         <td>
-                            <input type="password" id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>" style="width: 400px" >
+                            <input type="password" id="value_verify_<%=loopSetting.getKey()%>" name="setting_verify_<%=loopSetting.getKey()%>" style="width: 400px"/>
                         </td>
                     </tr>
                 </table>
@@ -221,22 +222,29 @@
                 required: <%=loopSetting.isRequired()%>,
                 invalidMessage: "The password is not valid.",
                 style: "width: 400px",
-                value: "[Loading..]",
+                value: "<%=ConfigManagerServlet.DEFAULT_PW%>",
                 type: 'password',
-                onChange: function() {
-                    writeSetting('<%=loopSetting.getKey()%>', this.value);
+                onKeyDown: function() {
+                    var currentValue = dojo.byId('value_<%=loopSetting.getKey()%>').value;
+                    if (currentValue == '<%=ConfigManagerServlet.DEFAULT_PW%>') {
+                        dojo.byId('value_<%=loopSetting.getKey()%>').value = '';
+                    }
                     dojo.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
                     dijit.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
-                    dijit.byId('value_verify_<%=loopSetting.getKey()%>').validator();
-                },
-                disabled: true
+                }
             }, "value_<%=loopSetting.getKey()%>");
             new dijit.form.ValidationTextBox({
                 required: true,
                 invalidMessage: "The password does not match.",
                 style: "width: 400px",
-                disabled: false,
+                value: "<%=ConfigManagerServlet.DEFAULT_PW%>",
                 type: 'password',
+                onChange: function() {
+                    var v = dijit.byId('value_verify_<%=loopSetting.getKey()%>');
+                    if (v.isValid()) {
+                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                    }
+                },
                 validator: function() {
                     var password = dojo.byId('value_<%=loopSetting.getKey()%>').value;
                     var verifyPassword = dojo.byId('value_verify_<%=loopSetting.getKey()%>').value;
@@ -251,8 +259,9 @@
                 getObject('value_<%=loopSetting.getKey()%>').value = dataValue;
                 getObject('value_<%=loopSetting.getKey()%>').disabled = false;
                 dijit.byId('value_<%=loopSetting.getKey()%>').set('disabled', false);
-                try {dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);} catch (e) {};
                 dijit.byId('value_<%=loopSetting.getKey()%>').startup();
+                try {dijit.byId('value_<%=loopSetting.getKey()%>').validate(false);} catch (e) {}
+                try {dijit.byId('value_verify_<%=loopSetting.getKey()%>').validate(false);} catch (e) {}
             })
         </script>
         <% } %>
