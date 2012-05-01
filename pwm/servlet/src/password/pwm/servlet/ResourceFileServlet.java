@@ -55,6 +55,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -64,6 +66,7 @@ public class ResourceFileServlet extends TopServlet {
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
+    private static final Pattern NONCE_PATTERN = Pattern.compile(PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + "[^/]*?/");
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
 
@@ -110,7 +113,7 @@ public class ResourceFileServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
         final PwmSession pwmSession = PwmSession.getPwmSession(request);
 
-        final String requestURI = stripNonceFromURI(request.getRequestURI(),pwmApplication, pwmSession);
+        final String requestURI = stripNonceFromURI(request.getRequestURI());
 
         try {
             if (handleSpecialURIs(requestURI, request, response)) {
@@ -564,23 +567,26 @@ public class ResourceFileServlet extends TopServlet {
         }
     }
 
-    private String stripNonceFromURI(final String uriString, final PwmApplication pwmApplication, final PwmSession pwmSession) {
-        final String nonce = makeResourcePathNonce(pwmApplication, pwmSession);
-        if (uriString.contains(nonce)) {
-            return uriString.replace(nonce,"");
-        } else {
-            //LOGGER.debug("resource request missing nonce: " + uriString);
+    private static String stripNonceFromURI(final String uriString) {
+        if (!PwmConstants.RESOURCE_SERVLET_ENABLE_PATH_NONCE) {
+            return uriString;
         }
+
+        final Matcher theMatcher = NONCE_PATTERN.matcher(uriString);
+
+        if (theMatcher.find()) {
+            return theMatcher.replaceFirst("");
+        }
+
         return uriString;
     }
 
     public static String makeResourcePathNonce(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
+            final PwmApplication pwmApplication
     )
     {
         if (PwmConstants.RESOURCE_SERVLET_ENABLE_PATH_NONCE) {
-            return "/nonce-" + Long.toString(pwmApplication.getStartupTime().getTime(),36); //+ pwmSession.getSessionStateBean().getSessionID();
+            return '/' + PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + Long.toString(pwmApplication.getStartupTime().getTime(),36);
         } else {
             return "";
         }

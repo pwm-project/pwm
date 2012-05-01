@@ -24,7 +24,6 @@ package password.pwm.tag;
 
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
 import password.pwm.servlet.ResourceFileServlet;
 
@@ -53,8 +52,7 @@ public class URLRewriter extends PwmAbstractTag {
             String newURL = SessionFilter.rewriteURL(url, pageContext.getRequest(), pageContext.getResponse());
             if (newURL.contains(resource_url)) {
                 final PwmApplication pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
-                final PwmSession pwmSession = PwmSession.getPwmSession(pageContext.getSession());
-                final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication, pwmSession);
+                final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
                 newURL = newURL.replace(resource_url, resource_url + nonce);
             }
             

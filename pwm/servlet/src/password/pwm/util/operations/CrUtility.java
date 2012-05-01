@@ -569,14 +569,14 @@ public abstract class CrUtility {
 
         public boolean meetsChallengeSetRequirements(final ChallengeSet challengeSet) {
             if (challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size()) {
-                LOGGER.debug("not enough required challenge");
+                LOGGER.debug(pwmSession,"failed meetsChallengeSetRequirements, not enough required challenge");
                 return false;
             }
 
             for (final Challenge loopChallenge : challengeSet.getRequiredChallenges()) {
                 if (loopChallenge.isAdminDefined()) {
                     if (!this.getChallengeSet().getChallengeTexts().contains(loopChallenge.getChallengeText())) {
-                        LOGGER.debug("missing required challenge text: '" + loopChallenge.getChallengeText() + "'");
+                        LOGGER.debug(pwmSession,"failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'");
                         return false;
                     }
                 }
@@ -584,7 +584,7 @@ public abstract class CrUtility {
 
             if (challengeSet.getMinRandomRequired() > 0) {
                 if (this.getChallengeSet().getRandomChallenges().size() < challengeSet.getMinRandomRequired()) {
-                    LOGGER.debug("not enough random questions");
+                    LOGGER.debug(pwmSession,"failed meetsChallengeSetRequirements, not enough random questions; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", randomChallengesInSet=" + this.getChallengeSet().getRandomChallenges().size());
                     return false;
                 }
             }
@@ -648,6 +648,11 @@ public abstract class CrUtility {
 
         public Date getTimestamp() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
             return new Date();
+        }
+
+        @Override
+        public String toString() {
+            return "NovellWSResponseSet holding {" + challengeSet.toString() + "}";
         }
     }
 

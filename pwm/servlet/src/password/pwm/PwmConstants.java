@@ -77,6 +77,7 @@ public abstract class PwmConstants {
     public static final int RESOURCE_SERVLET_EXPIRATION_SECONDS = Integer.parseInt(readPwmConstantsBundle("resourceServletExpirationSeconds"));
     public static final boolean RESOURCE_SERVLET_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnableGzip"));
     public static final boolean RESOURCE_SERVLET_ENABLE_PATH_NONCE = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnablePathNonce"));
+    public static final String RESOURCE_SERVLET_NONCE_PATH_PREFIX = readPwmConstantsBundle("resourceServletNoncePathPrefix");
 
 
 

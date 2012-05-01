@@ -95,7 +95,7 @@ public class ThemeUrlTag extends PwmAbstractTag {
                 themeURL = configuredURL;
             }
         } else {
-            final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication, pwmSession);
+            final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
             if (isMobile) {
                 themeURL = servletContext.getContextPath() + "/resources" + nonce + "/themes/" + themeName + "/pwmMobileStyle.css";
             } else {
