@@ -264,7 +264,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
                     if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
-                        forgottenPasswordBean.setChallengeSet(responseSet.getPresentableChallengeSet());
+                        forgottenPasswordBean.setResponseSet(responseSet);
                         forgottenPasswordBean.setProxiedUser(theUser);
                         return;
                     } else {
@@ -280,7 +280,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
         }
 
-        forgottenPasswordBean.setChallengeSet(null);
+        forgottenPasswordBean.setResponseSet(null);
         forgottenPasswordBean.setProxiedUser(null);
 
         final String errorMsg = "could not find a response set for " + theUser.getEntryDN();
@@ -325,12 +325,20 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
+        if (forgottenPasswordBean.getResponseSet() == null) {
+            final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            LOGGER.error(pwmSession,errorInformation);
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
             try {
                 // read the supplied responses from the user
-                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getChallengeSet());
+                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
 
-                final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
+                final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
 
                 final boolean responsesSatisfied = responseSet.test(crMap);
                 forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
@@ -393,7 +401,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // if responses are required, and user has responses, then send to response screen.
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-            if (forgottenPasswordBean.getChallengeSet() == null) {
+            if (forgottenPasswordBean.getResponseSet() == null) {
                 try {
                     loadResponsesIntoBean(pwmSession, pwmApplication, forgottenPasswordBean);
                 } catch (PwmOperationalException e) {

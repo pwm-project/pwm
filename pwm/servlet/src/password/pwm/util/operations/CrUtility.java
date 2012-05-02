@@ -583,8 +583,8 @@ public abstract class CrUtility {
             }
 
             if (challengeSet.getMinRandomRequired() > 0) {
-                if (this.getChallengeSet().getRandomChallenges().size() < challengeSet.getMinRandomRequired()) {
-                    LOGGER.debug(pwmSession,"failed meetsChallengeSetRequirements, not enough random questions; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", randomChallengesInSet=" + this.getChallengeSet().getRandomChallenges().size());
+                if (this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired()) {
+                    LOGGER.debug(pwmSession,"failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
                     return false;
                 }
             }
