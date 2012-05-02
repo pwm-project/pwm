@@ -343,14 +343,14 @@ public class EmailQueueManager implements PwmService {
             final MimeBodyPart text = new MimeBodyPart();
             final MimeBodyPart html = new MimeBodyPart();
             text.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=\"utf-8\"");
-            html.setContent(emailItemBean.getBodyHtml(), "text/plain; charset=\"utf-8\"");
+            html.setContent(emailItemBean.getBodyHtml(), "text/html; charset=\"utf-8\"");
             content.addBodyPart(text);
             content.addBodyPart(html);
             message.setContent(content);
         } else if (hasPlainText) {
             message.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=\"utf-8\"");
         } else if (hasHtml) {
-            message.setContent(emailItemBean.getBodyHtml(), "text/plain; charset=\"utf-8\"");
+            message.setContent(emailItemBean.getBodyHtml(), "text/html; charset=\"utf-8\"");
         }
 
         return message;
