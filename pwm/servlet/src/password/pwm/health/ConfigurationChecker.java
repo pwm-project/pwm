@@ -63,6 +63,16 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
         }
 
+        if (PwmConstants.UNCONFIGURED_URL_VALUE.equals(pwmApplication.getSiteURL())) {
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("The site URL is unconfigured and can not be automatically discovered, please configure ");
+            errorMsg.append(PwmSetting.PWM_URL.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+            errorMsg.append(" -> ");
+            errorMsg.append(PwmSetting.PWM_URL.getLabel(PwmConstants.DEFAULT_LOCALE));
+
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
+        }
+
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append(PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));

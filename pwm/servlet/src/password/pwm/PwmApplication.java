@@ -692,7 +692,7 @@ public class PwmApplication {
     public String getSiteURL() {
         final String configuredURL = configuration.readSettingAsString(PwmSetting.PWM_URL);
         if (configuredURL == null || configuredURL.length() < 1) {
-            return autoSiteUrl == null ? "[UNCONFIGURED_URL]" : autoSiteUrl;
+            return autoSiteUrl == null ? PwmConstants.UNCONFIGURED_URL_VALUE : autoSiteUrl;
         }
         return configuredURL;
     }

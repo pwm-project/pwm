@@ -268,7 +268,7 @@ public abstract class CrUtility {
                 }
             } catch (Throwable e) {
                 final String errorMsg = "error retrieving novell user responses from web service: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
             }
 

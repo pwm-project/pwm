@@ -241,19 +241,48 @@ public class UserStatusHelper {
         uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, theUser, uiBean.getChallengeSet()));
 
         // check if responses need to be updated
-        uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication));
+        uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));
 
         // fetch last password modification time;
-        final String pwdLastModifiedStr = uiBean.getAllUserAttributes().get(config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
-        if (pwdLastModifiedStr != null && pwdLastModifiedStr.length() > 0) {
-            try {
-                uiBean.setPasswordLastModifiedTime(EdirEntries.convertZuluToDate(pwdLastModifiedStr));
-            } catch (Exception e) {
-                LOGGER.error(pwmSession, "error parsing password last modified value: " + e.getMessage());
+        final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, config, theUser, uiBean);
+        uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
+
+        LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+    }
+
+    public static Date determinePwdLastModified(
+            final PwmSession pwmSession,
+            final Configuration config,
+            final ChaiUser theUser,
+            final UserInfoBean userInfoBean
+    )
+            throws ChaiUnavailableException
+    {
+        // fetch last password modification time out of the uiBean
+        final String pwmLastSetAttr = config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0 && userInfoBean != null) {
+            final String pwdLastModifiedStr = userInfoBean.getAllUserAttributes().get(pwmLastSetAttr);
+            if (pwdLastModifiedStr != null && pwdLastModifiedStr.length() > 0) {
+                try {
+                    final Date pwmPasswordChangeTime = EdirEntries.convertZuluToDate(pwdLastModifiedStr);
+                    LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPasswordChangeTime);
+                    return pwmPasswordChangeTime;
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
+                    return null;
+                }
             }
         }
 
-        LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+
+        try {
+            final Date chaiReadDate = theUser.readPasswordModificationDate();
+            LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
+            return chaiReadDate;
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
+        }
+        return null;
     }
 
     /**

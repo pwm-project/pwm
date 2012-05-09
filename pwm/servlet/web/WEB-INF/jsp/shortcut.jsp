@@ -44,7 +44,7 @@
         <% for (final ShortcutItem item : shortcutItems.values()) { %>
         <h2>
             <a href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>"
-               class="tablekey"><%= item.getLabel() %>
+               target="_blank" class="tablekey"><%= item.getLabel() %>
             </a></h2>
 
         <p><%= item.getDescription() %>

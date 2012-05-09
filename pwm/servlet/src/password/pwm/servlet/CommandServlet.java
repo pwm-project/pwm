@@ -204,8 +204,9 @@ public class CommandServlet extends TopServlet {
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
-        if (checkProfile(pwmSession, pwmApplication)) {
+        if (checkProfile(pwmSession, pwmApplication, uiBean)) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_UPDATE_PROFILE, req, resp));
         } else {
             processContinue(req, resp);
@@ -214,11 +215,17 @@ public class CommandServlet extends TopServlet {
 
     public static boolean checkProfile(
             final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            final UserInfoBean uiBean
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+
         final String userDN = uiBean.getUserDN();
+
+        if (pwmSession == null) {
+            return false;
+        }
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             return false;
@@ -277,7 +284,7 @@ public class CommandServlet extends TopServlet {
             processCheckExpire(req, resp);
         } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
             processCheckResponses(req, resp);
-        } else if (checkProfile(pwmSession, pwmApplication)) {
+        } else if (checkProfile(pwmSession, pwmApplication, pwmSession.getUserInfoBean())) {
             processCheckProfile(req, resp);
         } else {
             processContinue(req, resp);

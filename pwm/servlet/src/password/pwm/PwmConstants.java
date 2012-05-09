@@ -196,6 +196,8 @@ public abstract class PwmConstants {
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY = 1000 * 2;  //milliseconds
     public static final int PASSWORD_UPDATE_INITIAL_DELAY = 1000; //milliseconds
+    public static final String TOKEN_KEY_PWD_CHG_DATE = "attribute_passwordChangeDate";
+    public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
 
     static {
         DEFAULT_DATETIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));

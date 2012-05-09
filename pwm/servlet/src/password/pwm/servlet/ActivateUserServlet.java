@@ -539,9 +539,20 @@ public class ActivateUserServlet extends TopServlet {
             throw new PwmOperationalException(errorInformation);
         }
 
+        final Map<String,String> tokenMapData = new HashMap<String, String>();
+
+        try {
+            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), activateUserBean.getTheUser(), null);
+            if (userLastPasswordChange != null) {
+                tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userLastPasswordChange.toString());
+            }
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
+        }
+
         final String tokenKey;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,Collections.<String,String>emptyMap(),theUser.getEntryDN());
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,tokenMapData,theUser.getEntryDN());
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session: " + tokenKey);
         } catch (PwmOperationalException e) {
@@ -590,6 +601,26 @@ public class ActivateUserServlet extends TopServlet {
                 }
             } else {
                 userDN = activateUserBean.getTheUser() == null ? null : activateUserBean.getTheUser().getEntryDN();
+            }
+
+            // check if password-last-modified is same as when tried to read it before.
+            if (tokenPayload != null) {
+                try {
+                    final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
+                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+                    final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+                    if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
+                        tokenPass = false;
+                        final String errorString = "user password has changed since token issued, token rejected";
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
+                        LOGGER.error(pwmSession, errorInfo.toDebugStr());
+                        pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                        this.forwardToEnterCodeJSP(req, resp);
+                        return;
+                    }
+                } catch (ChaiUnavailableException e) {
+                    LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
+                }
             }
         } catch (PwmOperationalException e) {
             final String errorMsg = "unexpected error attempting to read token from storage: " + e.getMessage();

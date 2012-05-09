@@ -190,6 +190,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
                 final String dnFromToken = tokenPayload.getUserDN();
+
                 {
                     final ChaiUser proxiedUser = forgottenPasswordBean.getProxiedUser();
                     if (proxiedUser == null) {
@@ -210,9 +211,29 @@ public class ForgottenPasswordServlet extends TopServlet {
             } else {
                 userDN = forgottenPasswordBean.getProxiedUser() == null ? null : forgottenPasswordBean.getProxiedUser().getEntryDN();
             }
+
+            // check if password-last-modified is same as when tried to read it before.
+            if (tokenPayload != null) {
+                try {
+                    final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
+                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+                    final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+                    if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
+                        tokenPass = false;
+                        final String errorString = "user password has changed since token issued, token rejected";
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
+                        LOGGER.error(pwmSession, errorInfo.toDebugStr());
+                        pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                        this.forwardToEnterCodeJSP(req, resp);
+                        return;
+                    }
+                } catch (ChaiUnavailableException e) {
+                    LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
+                }
+            }
         } catch (PwmOperationalException e) {
             final String errorMsg = "unexpected error attempting to read token from storage: " + e.getMessage();
-            LOGGER.error(errorMsg);
+            LOGGER.error(pwmSession, errorMsg);
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(e.getError(),e.getMessage()));
             this.forwardToEnterCodeJSP(req, resp);
             return;
@@ -602,9 +623,20 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final Configuration config = pwmApplication.getConfig();
 
+        final Map<String,String> tokenMapData = new HashMap<String, String>();
+
+        try {
+            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+            if (userLastPasswordChange != null) {
+                tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userLastPasswordChange.toString());
+            }
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
+        }
+
         final String token;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, Collections.<String,String>emptyMap(), proxiedUser.getEntryDN());
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, tokenMapData, proxiedUser.getEntryDN());
             token = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -614,10 +646,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         final StringBuilder tokenSendDisplay = new StringBuilder();
         String toEmailAddr = null;
         try {
-        	LOGGER.trace("Reading setting "+PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+            LOGGER.trace("Reading setting "+PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             toEmailAddr = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
             if (toEmailAddr != null && toEmailAddr.length() > 0) {
-            	LOGGER.trace("Email address: "+toEmailAddr);
+                LOGGER.trace("Email address: "+toEmailAddr);
                 tokenSendDisplay.append(toEmailAddr);
             }
         } catch (Exception e) {
@@ -626,10 +658,10 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         String toSmsNumber = null;
         try {
-        	LOGGER.trace("Reading setting "+PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            LOGGER.trace("Reading setting "+PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
             if (toSmsNumber !=null && toSmsNumber.length() > 0) {
-            	LOGGER.trace("SMS number: "+toSmsNumber);
+                LOGGER.trace("SMS number: "+toSmsNumber);
                 if (tokenSendDisplay.length() > 0) {
                     tokenSendDisplay.append(" / ");
                 }

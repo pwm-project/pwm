@@ -32,10 +32,13 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.UserStatusHelper;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -107,9 +110,10 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         ChaiUser theUser = null;
+        ChaiProvider chaiProvider = null;
         try {
             try {
-                final ChaiProvider chaiProvider = Helper.createChaiProvider(
+                chaiProvider = Helper.createChaiProvider(
                         config,
                         proxyUserDN,
                         proxyUserPW);
@@ -157,9 +161,17 @@ public class LDAPStatusChecker implements HealthChecker {
             if (userPassword == null) {
                 return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
             }
+
+            try {
+                UserStatusHelper.populateUserInfoBean(null, new UserInfoBean(), pwmApplication, PwmConstants.DEFAULT_LOCALE, theUser.getEntryDN(), userPassword, chaiProvider);
+            } catch (ChaiUnavailableException e) {
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage());
+            } catch (PwmUnrecoverableException e) {
+                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage());
+            }
         } finally {
-            if (theUser != null) {
-                try { theUser.getChaiProvider().close(); } catch (Exception e) { /* ignore */ }
+            if (chaiProvider != null) {
+                try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
             }
         }
 
