@@ -61,7 +61,7 @@ public class PwmMacroMachine {
 
     private static class LdapMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@LDAP:.*@");
+            return Pattern.compile("@LDAP:.*?@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -73,14 +73,14 @@ public class PwmMacroMachine {
             final String ldapValue = uiBean.getAllUserAttributes().get(ldapAttr);
 
             if (ldapValue == null || ldapValue.length() < 1) {
-                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr);
+                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
                 return "";
             } else if (uiBean.getAllUserAttributes().containsKey(ldapAttr)) {
                 return ldapValue;
             } else if (ldapAttr.equalsIgnoreCase("dn")) {
                 return uiBean.getUserDN();
             } else {
-                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for " + ldapAttr);
+                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
                 return "";
             }
         }
@@ -103,7 +103,7 @@ public class PwmMacroMachine {
 
     private static class PwmCurrentTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentTime:.*@");
+            return Pattern.compile("@PWM:CurrentTime:.*?@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -126,7 +126,7 @@ public class PwmMacroMachine {
 
     private static class UserPwExpirationTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireTime:.*@");
+            return Pattern.compile("@User:PwExpireTime:.*?@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -234,19 +234,22 @@ public class PwmMacroMachine {
             return input;
         }
 
-        final StringBuilder sb = new StringBuilder(input);
+        String workingString = input;
 
         for (MacroImplementation pwmMacro : MACROS) {
-            final Pattern pattern = pwmMacro.getRegExPattern();
-            final Matcher matcher = pattern.matcher(sb.toString());
-            while (matcher.find()) {
-                final String replaceString = doReplace(sb.toString(), pwmMacro, matcher, pwmApplication, uiBean, stringReplacer);
-                sb.delete(0, sb.length());
-                sb.append(replaceString);
+            boolean matched = true;
+            while (matched) {
+                final Pattern pattern = pwmMacro.getRegExPattern();
+                final Matcher matcher = pattern.matcher(workingString);
+                if (matcher.find()) {
+                    workingString = doReplace(workingString, pwmMacro, matcher, pwmApplication, uiBean, stringReplacer);
+                } else {
+                    matched = false;
+                }
             }
         }
 
-        return sb.toString();
+        return workingString;
     }
 
     private static String doReplace(

@@ -18,10 +18,13 @@ v1.6.2
 + Helpdesk session timeout configuration option
 + "Force Profile Update" option added to route users through the Profile Update module
 + Added partial localizations for Thai, Korean, Japanese and Chinese (issue #184)
++ Support for token expiration to prevent re-use of tokens
++ Added option for forgotten password query match (issue #180)
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
 * Config menu re-ordering and text improvements
+* Location list is configuratable (issue #181)
 
 - Changed servlet version to v2.5, v2.5 container (tomcat 6) is now minimum requirement
 - Resolved issue where newuser agreement screen could be bypassed (issue #165)
@@ -30,6 +33,10 @@ v1.6.2
 - Update Query Match filter not being applied (issue #178)
 - Email address destination token not being inserted (issue #177)
 - Double nested form tags on ActiveUser data entry page (issue #175)
+- PwmMacro engine broken when multiple macros used in a single string (issue #200)
+- Incorrect email incoding for non-latin charachtersets (issue #190)
+- Novell UserApp responses rejected when using random responses (issue #188)
+
 
 
 

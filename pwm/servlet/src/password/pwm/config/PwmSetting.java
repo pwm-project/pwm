@@ -62,6 +62,8 @@ public enum PwmSetting {
             "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
     PASSWORD_REQUIRE_CURRENT(
             "password.change.requireCurrent", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD, false, Level.BASIC),
     PASSWORD_SYNC_MIN_WAIT_TIME(
             "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
     PASSWORD_SYNC_MAX_WAIT_TIME(
@@ -89,8 +91,6 @@ public enum PwmSetting {
             "password.showStrengthMeter", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_PASSWORD_GUIDE_TEXT(
             "display.password.guideText", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
-    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CANCEL_BUTTON(
