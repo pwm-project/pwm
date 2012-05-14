@@ -10,6 +10,7 @@ http://code.google.com/p/pwm
 [----------------------------]
 
 v1.6.2
+---
 + Added token (email and sms) support for user activation
 + Added new user agreement support for user activation
 + Added crypto and ldap options for tokens
@@ -20,11 +21,12 @@ v1.6.2
 + Added partial localizations for Thai, Korean, Japanese and Chinese (issue #184)
 + Support for token expiration to prevent re-use of tokens
 + Added option for forgotten password query match (issue #180)
++ Option for confirmation of Profile Update values
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
 * Config menu re-ordering and text improvements
-* Location list is configuratable (issue #181)
+* Locale list is now configurable (issue #181)
 
 - Changed servlet version to v2.5, v2.5 container (tomcat 6) is now minimum requirement
 - Resolved issue where newuser agreement screen could be bypassed (issue #165)

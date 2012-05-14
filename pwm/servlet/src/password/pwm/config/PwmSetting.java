@@ -44,6 +44,8 @@ public enum PwmSetting {
             "pwm.versionCheck.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
+    PUBLISH_STATS_SITE_DESCRIPTION(
+            "pwm.publishStats.siteDescription", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     URL_FORWARD(
             "pwm.forwardURL", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     URL_LOGOUT(

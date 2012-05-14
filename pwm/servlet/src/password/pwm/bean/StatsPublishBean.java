@@ -34,17 +34,33 @@ public class StatsPublishBean implements Serializable {
     private List<String> configuredSettings;
     private String versionBuild;
     private String versionVersion;
+    private Map<String,String> otherInfo;
+
+    public enum KEYS {
+        SITE_URL,
+        SITE_DESCRIPTION,
+        INSTALL_DATE
+    }
 
     public StatsPublishBean() {
     }
 
-    public StatsPublishBean(String instanceID, Date timestamp, Map<String, String> totalStatistics, List<String> configuredSettings, String versionBuild, String versionVersion) {
+    public StatsPublishBean(
+            final String instanceID,
+            final Date timestamp,
+            final Map<String, String> totalStatistics,
+            final List<String> configuredSettings,
+            final String versionBuild,
+            final String versionVersion,
+            final Map<String,String> otherInfo
+    ) {
         this.instanceID = instanceID;
         this.timestamp = timestamp;
         this.totalStatistics = totalStatistics;
         this.configuredSettings = configuredSettings;
         this.versionBuild = versionBuild;
         this.versionVersion = versionVersion;
+        this.otherInfo = otherInfo;
     }
 
     public String getInstanceID() {
@@ -69,5 +85,9 @@ public class StatsPublishBean implements Serializable {
 
     public String getVersionVersion() {
         return versionVersion;
+    }
+
+    public Map<String, String> getOtherInfo() {
+        return otherInfo;
     }
 }

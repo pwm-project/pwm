@@ -255,7 +255,7 @@ public class StatisticsManager implements PwmService {
                 final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                 if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
                     try {
-                        //lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
+                        lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
                     } catch (Exception e) {
                         LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
                     }
@@ -452,13 +452,19 @@ public class StatisticsManager implements PwmService {
                     configuredSettings.add(pwmSetting.getKey());
                 }
             }
+            final Map<String,String> otherData = new HashMap<String, String>();
+            otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),pwmApplication.getSiteURL());
+            otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
+            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
+
             statsPublishData = new StatsPublishBean(
                     pwmApplication.getInstanceID(),
                     new Date(),
                     statData,
                     configuredSettings,
                     PwmConstants.BUILD_NUMBER,
-                    PwmConstants.PWM_VERSION
+                    PwmConstants.PWM_VERSION,
+                    otherData
             );
         }
         final URI requestURI = new URI(PwmConstants.PWM_URL_CLOUD + "/rest/pwm/statistics");
