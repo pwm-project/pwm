@@ -31,6 +31,8 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -61,7 +63,13 @@ public class RestHealthServer {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
-            return pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
+            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+
+            final String resultString = pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
+            if (isExternal) {
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+            }
+            return resultString;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }
@@ -76,7 +84,13 @@ public class RestHealthServer {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
-            return processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
+            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+
+            final String resultString = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
+            if (isExternal) {
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+            }
+            return resultString;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }

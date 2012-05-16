@@ -702,6 +702,8 @@ public enum PwmSetting {
             "urlshortener.regex", Syntax.STRING, Category.MISC, false, Level.ADVANCED),
     URL_SHORTENER_PARAMETERS(
             "urlshortener.parameters", Syntax.STRING_ARRAY, Category.MISC, false, Level.ADVANCED),
+    ENABLE_EXTERNAL_WEBSERVICES(
+            "external.webservices.enable", Syntax.BOOLEAN, Category.MISC, false, Level.BASIC),
 
     ;
 

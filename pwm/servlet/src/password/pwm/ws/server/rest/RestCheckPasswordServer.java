@@ -37,6 +37,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -66,6 +67,7 @@ public class RestCheckPasswordServer {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
@@ -74,7 +76,11 @@ public class RestCheckPasswordServer {
             final String userDN = (username != null && username.length() > 0) ? username : pwmSession.getUserInfoBean().getUserDN();
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, password1, password2);
 
-            return doPasswordRuleCheck(pwmApplication, pwmSession, checkRequest);
+            final String resultString = doPasswordRuleCheck(pwmApplication, pwmSession, checkRequest);
+            if (!isExternal) {
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
+            }
+            return resultString;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /checkpassword rest service: " + e.getMessage());
         }

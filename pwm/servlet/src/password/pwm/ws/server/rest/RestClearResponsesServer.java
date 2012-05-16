@@ -33,6 +33,8 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
+import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -61,6 +63,7 @@ public class RestClearResponsesServer {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 outputMap.put("success", "false");
@@ -95,7 +98,11 @@ public class RestClearResponsesServer {
                     UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES,null);
                 }
                 outputMap.put("success","true");
-                return gson.toJson(outputMap);
+                final String returnString = gson.toJson(outputMap);
+                if (isExternal) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CLEARRESPONSE);
+                }
+                return returnString;
             } catch (PwmOperationalException e) {
                 outputMap.put("errorCode", String.valueOf(e.getError().getErrorCode()));
                 outputMap.put("errorMsg", e.getErrorInformation().getDetailedErrorMsg());

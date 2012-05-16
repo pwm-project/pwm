@@ -68,7 +68,7 @@ function validatePasswords(userDN)
 
     validationInProgress = true;
     dojo.xhrPost({
-        url: PWM_GLOBAL['url-restservice'] + "/checkpassword",
+        url: PWM_GLOBAL['url-restservice'] + "/checkpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         content: passwordData,
         headers: {"Accept":"application/json"},
         handleAs: "json",
@@ -385,7 +385,7 @@ function fetchRandoms(randomConfig) {
         var dataInput = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
 
         dojo.xhrPost({
-            url: PWM_GLOBAL['url-restservice'] + "/randompassword",
+            url: PWM_GLOBAL['url-restservice'] + "/randompassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             headers: {"Accept":"application/json"},
             content: dataInput,
             preventCache: true,

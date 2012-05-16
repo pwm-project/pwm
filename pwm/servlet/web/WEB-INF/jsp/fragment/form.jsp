@@ -35,6 +35,7 @@
         for (FormConfiguration loopConfiguration : formConfigurationList) {
             final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),""));
         %>
+    <% if (!loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
     <tr>
         <td class="key">
             <label for="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
@@ -64,6 +65,10 @@
                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
          </td>
     </tr>
+    <% } %>
+    <% } else { %>
+    <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="hidden"
+           name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"/>
     <% } %>
     <% } %>
     <% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>

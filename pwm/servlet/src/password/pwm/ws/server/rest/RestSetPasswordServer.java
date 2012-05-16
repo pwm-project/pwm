@@ -34,6 +34,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -63,6 +65,7 @@ public class RestSetPasswordServer {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 outputMap.put("success","false");
@@ -84,8 +87,12 @@ public class RestSetPasswordServer {
                 } else {
                     PasswordUtility.setUserPassword(pwmSession, pwmApplication, password);
                 }
-                outputMap.put("success","true");
-                return gson.toJson(outputMap);
+                outputMap.put("success", "true");
+                final String resultString = gson.toJson(outputMap);
+                if (isExternal) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_SETPASSWORD);
+                }
+                return resultString;
             } catch (PwmOperationalException e) {
                 outputMap.put("success","false");
                 outputMap.put("errorCode", String.valueOf(e.getError().getErrorCode()));

@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, readonly, tel}
+    public enum Type {text, email, number, password, random, readonly, tel, hidden}
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
 

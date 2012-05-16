@@ -64,6 +64,11 @@ public enum Statistic {
     PEOPLESEARCH_SEARCHES(Type.INCREMENTOR, "PeopleSearchSearches"),
     HELPDESK_PASSWORD_SET(Type.INCREMENTOR, "HelpdeskPasswordSet"),
     HELPDESK_USER_LOOKUP(Type.INCREMENTOR, "HelpdeskUserLookup"),
+    REST_CHECKPASSWORD(Type.INCREMENTOR, "RestCheckPassword"),
+    REST_SETPASSWORD(Type.INCREMENTOR, "RestSetPassword"),
+    REST_RANDOMPASSWORD(Type.INCREMENTOR, "RestRandomPassword"),
+    REST_CLEARRESPONSE(Type.INCREMENTOR, "RestClearResponses"),
+    REST_HEALTH(Type.INCREMENTOR, "RestHealth"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),
