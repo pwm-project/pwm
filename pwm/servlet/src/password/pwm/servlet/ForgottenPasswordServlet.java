@@ -179,7 +179,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final String userEnteredCode = Validator.readStringFromRequest(req, "code");
+        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
         boolean tokenPass = false;
         final String userDN;
@@ -641,7 +641,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
-        LOGGER.debug(pwmSession, "generated token code for session: " + token);
+        LOGGER.debug(pwmSession, "generated token code for session");
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
         String toEmailAddr = null;
@@ -658,10 +658,10 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         String toSmsNumber = null;
         try {
-            LOGGER.trace("Reading setting "+PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            LOGGER.trace("reading setting " + PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             toSmsNumber = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
             if (toSmsNumber !=null && toSmsNumber.length() > 0) {
-                LOGGER.trace("SMS number: "+toSmsNumber);
+                LOGGER.trace("SMS number: " + toSmsNumber);
                 if (tokenSendDisplay.length() > 0) {
                     tokenSendDisplay.append(" / ");
                 }

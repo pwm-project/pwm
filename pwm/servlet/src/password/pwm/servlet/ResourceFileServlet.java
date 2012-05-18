@@ -47,6 +47,7 @@ import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -61,7 +62,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ResourceFileServlet extends TopServlet {
+public class ResourceFileServlet extends HttpServlet {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
 
@@ -96,6 +97,17 @@ public class ResourceFileServlet extends TopServlet {
         }
     }
 
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        processRequest(req,resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        processRequest(req, resp);
+    }
+
     private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
         return (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
     }
@@ -108,10 +120,18 @@ public class ResourceFileServlet extends TopServlet {
             final HttpServletRequest request,
             final HttpServletResponse response
     )
-            throws IOException, PwmUnrecoverableException {
+            throws IOException {
 
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final PwmApplication pwmApplication;
+        final PwmSession pwmSession;
+        try {
+            pwmApplication = ContextManager.getPwmApplication(request);
+            pwmSession = PwmSession.getPwmSession(request);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("error reading pwm session/application: " + e.getMessage());
+            response.sendError(500,"error reading pwm session/application: " + e.getMessage());
+            return;
+        }
 
         final String requestURI = stripNonceFromURI(request.getRequestURI());
 
@@ -162,6 +182,7 @@ public class ResourceFileServlet extends TopServlet {
         ServletHelper.addPwmResponseHeaders(pwmApplication, response);
 
         try {
+        try {
             final boolean fromCache = handleCacheableResponse(response, file, acceptsGzip);
             if (fromCache || acceptsGzip) {
                 final StringBuilder debugText = new StringBuilder();
@@ -181,6 +202,9 @@ public class ResourceFileServlet extends TopServlet {
             if (acceptsGzip) debugText.append(", gzip");
             debugText.append(")");
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
+        }
+        } catch (Exception e) {
+            LOGGER.error(pwmSession, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
         }
     }
 

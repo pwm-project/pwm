@@ -22,6 +22,10 @@ v1.6.2
 + Support for token expiration to prevent re-use of tokens
 + Added option for forgotten password query match (issue #180)
 + Option for confirmation of Profile Update values
++ Added several rest based web services
++ Security option to disable external clients from using web services; default is disabled
++ Improved token security by hashing stored keys and encrypting payloads
+
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages

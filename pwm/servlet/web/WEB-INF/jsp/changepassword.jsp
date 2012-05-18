@@ -141,7 +141,6 @@
             </div>
         </form>
     </div>
-    <audio id="randomgen-player" src="<%=request.getContextPath()%>/resources/<pwm:url url='fill.mp3'/>"></audio>
     <script type="text/javascript">
         PWM_STRINGS['passwordGuideText'] = '<%=PwmMacroMachine.expandMacros(ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()),ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>';
     </script>

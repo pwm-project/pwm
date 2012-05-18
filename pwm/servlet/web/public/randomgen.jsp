@@ -65,16 +65,14 @@
         }
 
         function initFetchProcess(fetchList) {
-            if (getObject("randomgen-player") != null) {
-                try { getObject("randomgen-player").play(); } catch (e){}
-            }
             for (var i = 0; i < fetchList.length; i++) {
                 fetchList.sort(function() {
                     return 0.5 - Math.random()
                 });
             }
-
-            fetchRandoms(fetchList);
+            var randomConfig = {};
+            randomConfig['fetchList'] = fetchList;
+            fetchRandoms(randomConfig);
         }
 
 

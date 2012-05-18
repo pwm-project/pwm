@@ -310,7 +310,7 @@
             inputValues['password'] = password;
             setTimeout(function(){
                 dojo.xhrPost({
-                    url: PWM_GLOBAL['url-restservice'] + "/setpassword",
+                    url: PWM_GLOBAL['url-restservice'] + "/setpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                     headers: {"Accept":"application/json"},
                     content: inputValues,
                     preventCache: true,
@@ -356,7 +356,7 @@
             var inputValues = { 'username':username };
             setTimeout(function(){
                 dojo.xhrPost({
-                    url: PWM_GLOBAL['url-restservice'] + "/clearresponses",
+                    url: PWM_GLOBAL['url-restservice'] + "/clearresponses?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                     headers: {"Accept":"application/json"},
                     content: inputValues,
                     preventCache: true,

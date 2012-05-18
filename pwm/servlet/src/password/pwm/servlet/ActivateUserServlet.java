@@ -554,7 +554,7 @@ public class ActivateUserServlet extends TopServlet {
         try {
             final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,tokenMapData,theUser.getEntryDN());
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
-            LOGGER.debug(pwmSession, "generated activate user tokenKey code for session: " + tokenKey);
+            LOGGER.debug(pwmSession, "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
@@ -571,7 +571,7 @@ public class ActivateUserServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
-        final String userEnteredCode = Validator.readStringFromRequest(req, "code");
+        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
         boolean tokenPass = false;
         final String userDN;

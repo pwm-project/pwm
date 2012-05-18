@@ -23,7 +23,6 @@
 package password.pwm;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -34,11 +33,15 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -70,6 +73,7 @@ public class TokenManager implements PwmService {
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
     private TokenMachine tokenMachine;
+    private SecretKey secretKey;
 
     private STATUS status = STATUS.NEW;
 
@@ -106,6 +110,8 @@ public class TokenManager implements PwmService {
         }
 
         try {
+            secretKey = configuration.getSecurityKey();
+
             switch (storageMethod) {
                 case STORE_PWMDB:
                     tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
@@ -336,6 +342,28 @@ public class TokenManager implements PwmService {
         public String getUserDN() {
             return userDN;
         }
+
+        public String toEncryptedString(final TokenManager tokenManager)
+                throws PwmUnrecoverableException, PwmOperationalException
+        {
+            final Gson gson = new Gson();
+            final String jsonPayload = gson.toJson(this);
+            final String encryptedPayload = Helper.SimpleTextCrypto.encryptValue(jsonPayload,tokenManager.secretKey);
+            final StringBuilder returnString = new StringBuilder(encryptedPayload);
+            for (int i = PwmConstants.TOKEN_WRAP_LENGTH - 1; i < returnString.length(); i += PwmConstants.TOKEN_WRAP_LENGTH) {
+                returnString.insert(i,"\n");
+            }
+            return returnString.toString();
+        }
+
+        private static TokenPayload fromEncryptedString(final TokenManager tokenManager, final String inputString)
+                throws PwmOperationalException, PwmUnrecoverableException
+        {
+            final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
+            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken,tokenManager.secretKey);
+            final Gson gson = new Gson();
+            return gson.fromJson(decryptedString,TokenPayload.class);
+        }
     }
 
     private class CleanerTask extends TimerTask {
@@ -369,8 +397,7 @@ public class TokenManager implements PwmService {
     }
 
     private static String makeUniqueTokenForMachine(final TokenMachine machine, final TokenPayload payload, final Configuration config)
-            throws PwmUnrecoverableException, PwmOperationalException
-    {
+            throws PwmUnrecoverableException, PwmOperationalException {
         String tokenKey = null;
         int attempts = 0;
         while (tokenKey == null && attempts < PwmConstants.TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS) {
@@ -385,6 +412,14 @@ public class TokenManager implements PwmService {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate a unique token key after " + attempts + " attempts"));
         }
         return tokenKey;
+    }
+
+    private static String makeTokenHash(final String tokenKey) throws PwmUnrecoverableException {
+        try {
+            return Helper.md5sum(tokenKey) + "-hash";
+        } catch (IOException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected IOException generating md5sum of tokenKey: " + e.getMessage()));
+        }
     }
 
     private interface TokenMachine {
@@ -415,31 +450,30 @@ public class TokenManager implements PwmService {
         }
 
         public TokenPayload retrieveToken(String tokenKey)
-                throws PwmOperationalException
+                throws PwmOperationalException, PwmUnrecoverableException
         {
-            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS,tokenKey);
+            final String md5sumToken = makeTokenHash(tokenKey);
+            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS,md5sumToken);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
-                try {
-                    final Gson gson = new Gson();
-                    return gson.fromJson(storedRawValue,TokenPayload.class);
-                } catch (JsonSyntaxException e) {
-                    LOGGER.error("unexpected syntax error reading token payload: " + e.getMessage());
-                    removeToken(tokenKey);
-                }
+                return TokenPayload.fromEncryptedString(TokenManager.this,storedRawValue);
             }
 
             return null;
         }
 
-        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException {
-            final Gson gson = new Gson();
-            final String rawValue = gson.toJson(tokenPayload);
-            pwmDB.put(PwmDB.DB.TOKENS, tokenKey, rawValue);
+        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+            final String rawValue = tokenPayload.toEncryptedString(TokenManager.this);
+            final String md5sumToken = makeTokenHash(tokenKey);
+            pwmDB.put(PwmDB.DB.TOKENS, md5sumToken, rawValue);
         }
 
-        public void removeToken(String tokenKey) throws PwmOperationalException {
+        public void removeToken(String tokenKey)
+                throws PwmOperationalException, PwmUnrecoverableException
+        {
+            final String md5sumToken = makeTokenHash(tokenKey);
             pwmDB.remove(PwmDB.DB.TOKENS,tokenKey);
+            pwmDB.remove(PwmDB.DB.TOKENS,md5sumToken);
         }
 
         public int size() throws PwmOperationalException {
@@ -471,31 +505,28 @@ public class TokenManager implements PwmService {
         }
 
         public TokenPayload retrieveToken(String tokenKey)
-                throws PwmOperationalException, PwmUnrecoverableException 
+                throws PwmOperationalException, PwmUnrecoverableException
         {
-            final String storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,tokenKey);
+            final String md5sumToken = makeTokenHash(tokenKey);
+            final String storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,md5sumToken);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
-                try {
-                    final Gson gson = new Gson();
-                    return gson.fromJson(storedRawValue,TokenPayload.class);
-                } catch (JsonSyntaxException e) {
-                    LOGGER.error("unexpected syntax error reading token payload: " + e.getMessage());
-                    removeToken(tokenKey);
-                }
+                return TokenPayload.fromEncryptedString(TokenManager.this, storedRawValue);
             }
 
             return null;
         }
 
         public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
-            final Gson gson = new Gson();
-            final String rawValue = gson.toJson(tokenPayload);
-            databaseAccessor.put(DatabaseAccessor.TABLE.TOKENS, tokenKey, rawValue);
+            final String rawValue = tokenPayload.toEncryptedString(TokenManager.this);
+            final String md5sumToken = makeTokenHash(tokenKey);
+            databaseAccessor.put(DatabaseAccessor.TABLE.TOKENS, md5sumToken, rawValue);
         }
 
         public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+            final String md5sumToken = makeTokenHash(tokenKey);
             databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,tokenKey);
+            databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,md5sumToken);
         }
 
         public int size() throws PwmOperationalException, PwmUnrecoverableException {
@@ -512,45 +543,28 @@ public class TokenManager implements PwmService {
     }
 
     private class CryptoTokenMachine implements TokenMachine {
-        private SecretKey secretKey;
 
         private CryptoTokenMachine()
                 throws PwmOperationalException
         {
-            secretKey = configuration.getSecurityKey();
         }
 
         public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
-            final Gson gson = new Gson();
-            final String jsonPayload = gson.toJson(tokenPayload);
-            try {
-                final String encryptedPayload = Helper.SimpleTextCrypto.encryptValue(jsonPayload,secretKey);
-                return Base64Util.encodeObject(encryptedPayload, Base64Util.GZIP | Base64Util.URL_SAFE);
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error generating embedded token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-                throw new PwmOperationalException(errorInformation);
+            final int WRAP_LENGTH = 60;
+            final StringBuilder returnString = new StringBuilder(tokenPayload.toEncryptedString(TokenManager.this));
+            for (int i = WRAP_LENGTH - 1; i < returnString.length(); i += WRAP_LENGTH) {
+                returnString.insert(i,"\n");
             }
+            return returnString.toString();
         }
 
         public TokenPayload retrieveToken(String tokenKey)
                 throws PwmOperationalException, PwmUnrecoverableException
         {
-            final String decodedString;
-            try {
-                decodedString = (String) Base64Util.decodeToObject(tokenKey, Base64Util.GZIP | Base64Util.URL_SAFE, ClassLoader.getSystemClassLoader());
-                final String decryptedString = Helper.SimpleTextCrypto.decryptValue(decodedString,secretKey);
-                final Gson gson = new Gson();
-                final TokenPayload tokenPayload = gson.fromJson(decryptedString,TokenPayload.class);
-                if (testIfTokenIsExpired(tokenPayload)) {
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED));
-                }
-                return tokenPayload;
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error decrypting embed token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
-                throw new PwmOperationalException(errorInformation);
+            if (tokenKey == null || tokenKey.length() < 1) {
+                return null;
             }
+            return TokenPayload.fromEncryptedString(TokenManager.this, tokenKey);
         }
 
         public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
@@ -560,7 +574,7 @@ public class TokenManager implements PwmService {
         }
 
         public int size() throws PwmOperationalException, PwmUnrecoverableException {
-            return -1;
+            return 0;
         }
 
         public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
@@ -573,31 +587,31 @@ public class TokenManager implements PwmService {
 
     private class LdapTokenMachine implements TokenMachine {
         private PwmApplication pwmApplication;
-
         private String tokenAttribute;
+        private final String KEY_VALUE_DELIMITER = " ";
 
-        private LdapTokenMachine(PwmApplication pwmApplication){
+        private LdapTokenMachine(PwmApplication pwmApplication)
+                throws PwmOperationalException
+        {
             this.pwmApplication = pwmApplication;
             this.tokenAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.TOKEN_LDAP_ATTRIBUTE);
+            secretKey = configuration.getSecurityKey();
         }
 
         public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
-            if (tokenPayload.getPayloadData() != null && !tokenPayload.getPayloadData().isEmpty()) {
-                final String errorMsg = "ldap token storage method does not support payload data";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
             return makeUniqueTokenForMachine(this, tokenPayload, configuration);
         }
 
         public TokenPayload retrieveToken(String tokenKey)
-                throws PwmOperationalException
+                throws PwmOperationalException, PwmUnrecoverableException
         {
+            final String md5sumToken = makeTokenHash(tokenKey);
             try {
                 final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
                 final SearchHelper searchHelper = new SearchHelper();
                 searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-                searchHelper.setFilter(tokenAttribute, tokenKey);
+                searchHelper.setFilter(tokenAttribute, md5sumToken + "*");
+                searchHelper.setAttributes(tokenAttribute);
                 searchHelper.setMaxResults(2);
                 final String baseDN = configuration.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
                 final Map<String,Map<String,String>> results = chaiProvider.search(baseDN, searchHelper);
@@ -608,26 +622,36 @@ public class TokenManager implements PwmService {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
                     throw new PwmOperationalException(errorInformation);
                 }
-                final String userDN = results.keySet().iterator().next();
-                return new TokenPayload(null,Collections.<String,String>emptyMap(),userDN);
+                final String userDNresult = results.keySet().iterator().next();
+                final Map<String,String> attributeValues = results.get(userDNresult);
+                final String tokenAttributeValue = attributeValues.get(attributeValues.get(tokenAttribute));
+                if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
+                    final String splitString[] = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
+                    if (splitString.length != 2) {
+                        final String errorMsg = "error parsing ldap stored token, not enough delimited values";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                        throw new PwmOperationalException(errorInformation);
+                    }
+                    return TokenPayload.fromEncryptedString(TokenManager.this,splitString[1]);
+                }
             } catch (ChaiException e) {
                 final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }
+            return null;
         }
 
-        public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException {
-            if (tokenPayload.getPayloadData() != null && !tokenPayload.getPayloadData().isEmpty()) {
-                final String errorMsg = "ldap token storage method does not support payload data";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
-
+        public void storeToken(String tokenKey, TokenPayload tokenPayload)
+                throws PwmOperationalException, PwmUnrecoverableException
+        {
             try {
+                final String md5sumToken = makeTokenHash(tokenKey);
+                final String encodedTokenPayload = tokenPayload.toEncryptedString(TokenManager.this);
+
                 final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
                 final ChaiUser chaiUser = ChaiFactory.createChaiUser(tokenPayload.getUserDN(),chaiProvider);
-                chaiUser.writeStringAttribute(tokenAttribute, tokenKey);
+                chaiUser.writeStringAttribute(tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload);
             } catch (ChaiException e) {
                 final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
@@ -635,7 +659,9 @@ public class TokenManager implements PwmService {
             }
         }
 
-        public void removeToken(String tokenKey) throws PwmOperationalException {
+        public void removeToken(String tokenKey)
+                throws PwmOperationalException, PwmUnrecoverableException
+        {
             final TokenPayload payload = retrieveToken(tokenKey);
             if (payload != null) {
                 final String userDN = payload.getUserDN();

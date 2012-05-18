@@ -25,7 +25,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('code').focus();" class="tundra">
+<body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
@@ -37,8 +37,8 @@
               enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <%@ include file="fragment/message.jsp" %>
-            <h2><label for="code"><pwm:Display key="Field_Code"/></label></h2>
-            <input type="text" id="code" name="code" class="inputfield"/>
+            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+            <textarea rows="6" cols="100" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"

@@ -69,6 +69,7 @@ public enum Statistic {
     REST_RANDOMPASSWORD(Type.INCREMENTOR, "RestRandomPassword"),
     REST_CLEARRESPONSE(Type.INCREMENTOR, "RestClearResponses"),
     REST_HEALTH(Type.INCREMENTOR, "RestHealth"),
+    REST_STATISTICS(Type.INCREMENTOR, "RestStatistics"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),

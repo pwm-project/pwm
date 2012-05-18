@@ -342,9 +342,6 @@ function doRandomGeneration(randomConfig) {
 }
 
 function beginFetchRandoms(randomConfig) {
-    if (getObject("randomgen-player") != null) {
-        try { getObject("randomgen-player").play(); } catch (e){}
-    }
     getObject('moreRandomsButton').disabled = true;
     var fetchList = new Array();
     for (var counter = 0; counter < 20; counter++) {

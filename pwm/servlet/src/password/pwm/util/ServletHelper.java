@@ -222,7 +222,11 @@ public class ServletHelper {
 
                 for (final String paramValue : paramValues) {
                     sb.append("  ").append(paramName).append("=");
-                    if (paramName.toLowerCase().contains("password") || paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX)) {
+                    if (
+                            paramName.toLowerCase().contains("password") ||
+                            paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX) ||
+                            paramName.contains(PwmConstants.PARAM_TOKEN)
+                            ) {
                         sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
                     } else {
                         sb.append('\'');

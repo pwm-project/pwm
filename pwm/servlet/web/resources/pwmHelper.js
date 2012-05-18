@@ -25,6 +25,17 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
+
+    setTimeout(function() {
+        dojo.require("dijit.Menu");
+        dojo.require("dijit.MenuItem");
+        dojo.require("dijit.Dialog");
+        dojo.require("dijit.Window");
+        dojo.require("dijit.Tooltip");
+        dojo.require("dojo.parser");
+        dojo.require("dijit.layout.ContentPane");
+        dojo.require("dijit.layout.TabContainer");
+    },30 * 1000);
 }
 
 function checkForCapsLock(e) {
@@ -247,7 +258,9 @@ function showPwmHealth(parentDivID, refreshNow) {
 
     var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
     if (refreshNow) {
-        refreshUrl += "?refreshImmediate=true";
+        refreshUrl += "?refreshImmediate=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    } else {
+        refreshUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     }
 
     dojo.xhrGet({

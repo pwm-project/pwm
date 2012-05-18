@@ -57,14 +57,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
@@ -907,21 +906,21 @@ public class Helper {
     }
 
     public static Boolean fileExists(final String filename) {
-    	if (filename != null) {
-    		File file = new File(filename);
-    		return file.exists() && file.isFile();
-    	}
-    	return false;
+        if (filename != null) {
+            File file = new File(filename);
+            return file.exists() && file.isFile();
+        }
+        return false;
     }
 
     public static Boolean directoryExists(final String dirname) {
-    	if (dirname != null) {
-    		File directory = new File(dirname);
-    		return directory.exists() && directory.isDirectory();
-    	}
-    	return false;
+        if (dirname != null) {
+            File directory = new File(dirname);
+            return directory.exists() && directory.isDirectory();
+        }
+        return false;
     }
-    
+
     public static String readFileAsString(final File filePath, final long maxLength, final String charset)
             throws IOException {
         final StringBuilder fileData = new StringBuilder();
@@ -1067,20 +1066,30 @@ public class Helper {
 
     public static class SimpleTextCrypto {
         public static String encryptValue(final String value, final SecretKey key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-            if (value == null || value.length() < 1) {
-                return "";
-            }
+                throws PwmUnrecoverableException
+        {
+            try {
+                if (value == null || value.length() < 1) {
+                    return "";
+                }
 
-            final Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
-            final byte[] encrypted = cipher.doFinal(value.getBytes());
-            return Base64Util.encodeBytes(encrypted);
+                final Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
+                final byte[] encrypted = cipher.doFinal(value.getBytes());
+                return Base64Util.encodeBytes(encrypted);
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                LOGGER.error(errorInformation.toDebugStr(),e);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
         }
 
         public static String decryptValue(final String value, final SecretKey key)
-                throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            if (value == null || value.length() < 1) {
+                throws PwmUnrecoverableException
+        {
+            try {
+                if (value == null || value.length() < 1) {
                 return "";
             }
 
@@ -1089,6 +1098,12 @@ public class Helper {
             cipher.init(Cipher.DECRYPT_MODE, key);
             final byte[] decrypted = cipher.doFinal(decoded);
             return new String(decrypted);
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                LOGGER.error(errorInformation.toDebugStr(),e);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
         }
 
         public static SecretKey makeKey(final String text)

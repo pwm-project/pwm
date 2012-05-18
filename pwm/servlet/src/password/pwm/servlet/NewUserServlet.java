@@ -226,7 +226,7 @@ public class NewUserServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        final String userSuppliedTokenKey = Validator.readStringFromRequest(req, "code");
+        final String userSuppliedTokenKey = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
         final TokenManager.TokenPayload tokenPayload;
         try {
@@ -642,7 +642,7 @@ public class NewUserServlet extends TopServlet {
         try {
             final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, formData,null);
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
-            LOGGER.debug(pwmSession, "generated new user tokenKey code for session: " + tokenKey);
+            LOGGER.debug(pwmSession, "generated new user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }

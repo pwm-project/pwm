@@ -84,6 +84,8 @@ public abstract class PwmConstants {
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
+    static final int TOKEN_WRAP_LENGTH = Integer.parseInt(readPwmConstantsBundle("token.wrapLength"));
+
 
     public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
@@ -159,6 +161,7 @@ public abstract class PwmConstants {
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
+    public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 

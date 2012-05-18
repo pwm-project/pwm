@@ -49,7 +49,7 @@ import java.util.Map;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestCheckPasswordServer.class);
 
     @Context
     HttpServletRequest request;
