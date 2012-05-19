@@ -27,15 +27,8 @@ function pwmPageLoadHandler() {
     }
 
     setTimeout(function() {
-        dojo.require("dijit.Menu");
-        dojo.require("dijit.MenuItem");
         dojo.require("dijit.Dialog");
-        dojo.require("dijit.Window");
-        dojo.require("dijit.Tooltip");
-        dojo.require("dojo.parser");
-        dojo.require("dijit.layout.ContentPane");
-        dojo.require("dijit.layout.TabContainer");
-    },30 * 1000);
+    },10 * 1000);
 }
 
 function checkForCapsLock(e) {

@@ -474,6 +474,8 @@ public enum PwmSetting {
             "challenge.showConfirmation", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.BASIC),
     CHALLENGE_CASE_INSENSITIVE(
             "challenge.caseInsensitive", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
+    CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE(
+            "challenge.maxChallengeLengthInResponse", Syntax.NUMERIC, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", Syntax.BOOLEAN, Category.CHALLENGE, true, Level.ADVANCED),
     CHALLENGE_APPLY_WORDLIST(

@@ -25,7 +25,8 @@ v1.6.2
 + Added several rest based web services
 + Security option to disable external clients from using web services; default is disabled
 + Improved token security by hashing stored keys and encrypting payloads
-
++ Disallow (configurable) challenge text from being used as response text
++ Added password strength meter check to helpdesk change password
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
@@ -40,7 +41,7 @@ v1.6.2
 - Email address destination token not being inserted (issue #177)
 - Double nested form tags on ActiveUser data entry page (issue #175)
 - PwmMacro engine broken when multiple macros used in a single string (issue #200)
-- Incorrect email incoding for non-latin charachtersets (issue #190)
+- Incorrect email encoding for non-latin charachtersets (issue #190)
 - Novell UserApp responses rejected when using random responses (issue #188)
 
 
@@ -51,7 +52,7 @@ v1.6.1 (January 16, 2012) build 1123
 + Added "application leave detection" to detect if user leaves PWM site.
 + Added settings to manage custom CSS & JavaScript from PwmApplication.xml
 + Added option to override Case Sensitivity detection (issue #127)
-+ Option to skip success messages (
++ Option to skip success messages
 + Request Sequence detection (duplicate form submit detection) added with option to disable.
 + Added feature/option to trip a "bad password" auth to ldap in case of forgotten password failure.
 + Password rule text configuration option to override auto-generated rule text.

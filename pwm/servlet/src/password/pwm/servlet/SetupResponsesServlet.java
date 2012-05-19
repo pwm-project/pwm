@@ -26,7 +26,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiCrFactory;
+import com.novell.ldapchai.cr.ChaiResponseSet;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -43,7 +46,6 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.stats.Statistic;
-import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -82,7 +84,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         // read the action request parameter
-        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
 
         // check to see if the user is permitted to setup responses
         if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
@@ -101,19 +103,23 @@ public class SetupResponsesServlet extends TopServlet {
 
         populateBean(pwmSession, pwmApplication, assignedCs);
 
-        // handle the requested action.
-        if ("validateResponses".equalsIgnoreCase(processRequestParam)) {
-            handleValidateResponses(req, resp, assignedCs);
-            return;
-        } else if ("setResponses".equalsIgnoreCase(processRequestParam)) {
-            handleSetupResponses(req, resp, assignedCs);
-            return;
-        } else if ("confirmResponses".equalsIgnoreCase(processRequestParam)) {
-            handleConfirmResponses(req, resp);
-            return;
-        } else if ("changeResponses".equalsIgnoreCase(processRequestParam)) {
-            this.forwardToJSP(req, resp);
-            return;
+        if (actionParam != null && actionParam.length() > 0) {
+            Validator.validatePwmFormID(req);
+
+            // handle the requested action.
+            if ("validateResponses".equalsIgnoreCase(actionParam)) {
+                handleValidateResponses(req, resp, assignedCs);
+                return;
+            } else if ("setResponses".equalsIgnoreCase(actionParam)) {
+                handleSetupResponses(req, resp, assignedCs);
+                return;
+            } else if ("confirmResponses".equalsIgnoreCase(actionParam)) {
+                handleConfirmResponses(req, resp);
+                return;
+            } else if ("changeResponses".equalsIgnoreCase(actionParam)) {
+                this.forwardToJSP(req, resp);
+                return;
+            }
         }
 
         this.forwardToJSP(req, resp);
@@ -140,15 +146,13 @@ public class SetupResponsesServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        Validator.validatePwmFormID(req);
-
         boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES, pwmApplication.getConfig());
 
         try {
             // read in the responses from the request
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
-            validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
+            CrUtility.validateResponses(pwmApplication, challengeSet, responseMap);
             generateResponseInfoBean(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             success = false;
@@ -180,14 +184,12 @@ public class SetupResponsesServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        Validator.validatePwmFormID(req);
-
         final ResponseInfoBean responses;
         final Map<Challenge, String> responseMap;
         try {
             // build a response set based on the user's challenge set and the html form response.
             responseMap = readResponsesFromHttpRequest(req, pwmSession, challengeSet);
-            validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
+            CrUtility.validateResponses(pwmApplication, challengeSet, responseMap);
             responses = generateResponseInfoBean(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
             LOGGER.debug(pwmSession, "error with user's supplied new responses: " + e.getErrorInformation().toDebugStr());
@@ -236,7 +238,7 @@ public class SetupResponsesServlet extends TopServlet {
         if (responseMap != null && !responseMap.isEmpty()) {
             try {
                 final ChallengeSet challengeSet = pwmSession.getUserInfoBean().getChallengeSet();
-                validateResponses(pwmSession, pwmApplication, challengeSet, responseMap);
+                CrUtility.validateResponses(pwmApplication, challengeSet, responseMap);
                 final ResponseInfoBean responses = generateResponseInfoBean(pwmSession, challengeSet, responseMap);
                 saveResponses(pwmSession, pwmApplication, responses);
             } catch (PwmOperationalException e) {
@@ -382,59 +384,6 @@ public class SetupResponsesServlet extends TopServlet {
         return readResponses;
     }
 
-    private static void validateResponses(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final ChallengeSet challengeSet,
-            final Map<Challenge, String> responseMap
-    )
-            throws PwmDataValidationException, PwmUnrecoverableException {
-
-        if (responseMap == null || responseMap.isEmpty()) {
-            final String errorMsg = "empty response set";
-            LOGGER.debug(pwmSession, errorMsg);
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
-            throw new PwmDataValidationException(errorInfo);
-        }
-
-        final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getMinRandomSetup();
-
-        int randomCount = 0;
-        for (final Challenge loopChallenge : responseMap.keySet()) {
-            if (!loopChallenge.isRequired()) {
-                randomCount++;
-            }
-        }
-
-        if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
-            if (randomCount < challengeSet.getRandomChallenges().size()) {
-                final String errorMsg = "all randoms required, but not all randoms are completed";
-                LOGGER.debug(pwmSession, errorMsg);
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
-                throw new PwmDataValidationException(errorInfo);
-            }
-        }
-
-        if (randomCount < minRandomRequiredSetup) {
-            final String errorMsg = minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed";
-            LOGGER.debug(pwmSession, errorMsg);
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
-            throw new PwmDataValidationException(errorInfo);
-        }
-
-        final boolean applyWordlist = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
-        final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
-
-        if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
-            for (final Challenge loopChallenge : responseMap.keySet()) {
-                final String answer = responseMap.get(loopChallenge);
-                if (wordlistManager.containsWord(pwmSession, answer)) {
-                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, loopChallenge.getChallengeText());
-                    throw new PwmDataValidationException(errorInfo);
-                }
-            }
-        }
-    }
 
     private static ResponseInfoBean generateResponseInfoBean(
             final PwmSession pwmSession,

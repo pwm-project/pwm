@@ -28,23 +28,18 @@ import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.impl.edir.NmasResponseSet;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
-import password.pwm.PwmSession;
+import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.wordlist.WordlistManager;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
 import javax.xml.rpc.Stub;
@@ -110,6 +105,82 @@ public abstract class CrUtility {
         LOGGER.trace(pwmSession, "readUserChallengeSet completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
 
         return returnSet;
+    }
+
+    public static void validateResponses(
+            final PwmApplication pwmApplication,
+            final ChallengeSet challengeSet,
+            final Map<Challenge, String> responseMap
+    )
+            throws PwmDataValidationException, PwmUnrecoverableException
+    {
+        if (responseMap == null || responseMap.isEmpty()) {
+            final String errorMsg = "empty response set";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
+            throw new PwmDataValidationException(errorInfo);
+        }
+
+        final Configuration config = pwmApplication.getConfig();
+
+        { // check that responses arent useing the challenge text word.
+            final int maxChallengeLengthInResponse = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE);
+            if (maxChallengeLengthInResponse > 0) {
+                for (final Challenge loopChallenge : responseMap.keySet()) {
+                    final String challengeText = loopChallenge.getChallengeText();
+                    if (challengeText != null && responseMap.containsKey(loopChallenge)) {
+                        final String[] challengeWords = challengeText.split("\\s");
+                        for (final String challengeWord :challengeWords) {
+                            if (challengeWord.length() > maxChallengeLengthInResponse) {
+                                final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
+                                for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
+                                    final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
+                                    if (responseTextLower.contains(wordPart)) {
+                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",challengeText);
+                                        throw new PwmDataValidationException(errorInformation);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        { // check responses against wordlist
+            final boolean applyWordlist = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
+            final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
+            if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
+                for (final Challenge loopChallenge : responseMap.keySet()) {
+                    final String answer = responseMap.get(loopChallenge);
+                    if (wordlistManager.containsWord(null, answer)) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, loopChallenge.getChallengeText());
+                        throw new PwmDataValidationException(errorInfo);
+                    }
+                }
+            }
+        }
+
+        int randomCount = 0;
+        for (final Challenge loopChallenge : responseMap.keySet()) {
+            if (!loopChallenge.isRequired()) {
+                randomCount++;
+            }
+        }
+
+        final int minRandomRequiredSetup = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+        if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
+            if (randomCount < challengeSet.getRandomChallenges().size()) {
+                final String errorMsg = "all randoms required, but not all randoms are completed";
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
+                throw new PwmDataValidationException(errorInfo);
+            }
+        }
+
+        if (randomCount < minRandomRequiredSetup) {
+            final String errorMsg = minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
+            throw new PwmDataValidationException(errorInfo);
+        }
     }
 
     public static ResponseSet readUserResponseSet(
@@ -295,7 +366,6 @@ public abstract class CrUtility {
             final ChaiUser theUser,
             final String userGUID,
             final ResponseInfoBean responseInfoBean
-
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
