@@ -48,25 +48,27 @@ function validateResponses() {
     setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingResponses']); }},1000);
 
     validationInProgress = true;
-    dojo.xhrPost({
-        url: PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        postData:  dojo.toJson(parameterData),
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        error: function(errorObj) {
-            validationInProgress = false;
-            getObject("setresponses_button").disabled = false;
-            showSuccess(PWM_STRINGS['Display_CommunicationError']);
-            console.log('error: ' + errorObj);
-        },
-        load: function(data){
-            setTimeout(function(){
-                validationCache[parameterData.cacheKey] = data;
+    require(["dojo"],function(dojo){
+        dojo.xhrPost({
+            url: PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            postData:  dojo.toJson(parameterData),
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "json",
+            error: function(errorObj) {
                 validationInProgress = false;
-                validateResponses();
-            },500);
-        }
+                getObject("setresponses_button").disabled = false;
+                showSuccess(PWM_STRINGS['Display_CommunicationError']);
+                console.log('error: ' + errorObj);
+            },
+            load: function(data){
+                setTimeout(function(){
+                    validationCache[parameterData.cacheKey] = data;
+                    validationInProgress = false;
+                    validateResponses();
+                },500);
+            }
+        });
     });
 }
 
@@ -135,54 +137,57 @@ function makeSelectOptionsDistinct() {
     var currentlySelectedTexts = [];
 
     // build list of all possible texts, and currently selected values.
-    for (var i1 in simpleRandomSelectElements) {
-        var current = simpleRandomSelectElements[i1];
-        var currentSelected = current.selectedIndex;
-        currentlySelectedTexts[current.id] = current.options[currentSelected].text;
+    require(["dojo"],function(dojo){
+        for (var i1 in simpleRandomSelectElements) {
+            var current = simpleRandomSelectElements[i1];
+            var currentSelected = current.selectedIndex;
+            currentlySelectedTexts[current.id] = current.options[currentSelected].text;
 
-        for (var optionIterator = 0; optionIterator < current.options.length; optionIterator++) {
-            var loopText = current.options[optionIterator].text;
-            var usedBefore = -1 != dojo.indexOf(allPossibleTexts,loopText);
-            if (!usedBefore) {
-                allPossibleTexts.push(loopText);
-            }
-        }
-    }
-
-    // ensure no two select lists have another's currently selected value
-    var usedTexts = [];
-    for (var loopIter in currentlySelectedTexts) {
-        var text = currentlySelectedTexts[loopIter];
-        if (-1 != dojo.indexOf(usedTexts,text)) {
-            for (var i in allPossibleTexts) {
-                var loopT = allPossibleTexts[i];
-                if (-1 == dojo.indexOf(usedTexts,loopT)) {
-                    currentlySelectedTexts[loopIter] = loopT;
-                    text = loopT;
-                    break;
+            for (var optionIterator = 0; optionIterator < current.options.length; optionIterator++) {
+                var loopText = current.options[optionIterator].text;
+                var usedBefore = -1 != dojo.indexOf(allPossibleTexts,loopText);
+                if (!usedBefore) {
+                    allPossibleTexts.push(loopText);
                 }
             }
         }
-        usedTexts.push(text);
-    }
 
-    // rewrite the options for each of the select lists
-    for (var iterID in currentlySelectedTexts) {
-        var selectElement = getObject(iterID);
-        var selectedText = currentlySelectedTexts[iterID];
-        selectElement.options.length = 0;
-        var nextOptionCounter = 0;
-        for (var optionIter = 0; optionIter < allPossibleTexts.length; optionIter++) {
-            var optionText = allPossibleTexts[optionIter];
-            var hasBeenUsed = -1 != dojo.indexOf(usedTexts,optionText);
-            var isSelected = optionText == selectedText;
-            if (isSelected || !hasBeenUsed) {
-                selectElement.options[nextOptionCounter] = new Option(optionText,optionText,isSelected,isSelected);
-                nextOptionCounter++;
+        // ensure no two select lists have another's currently selected value
+        var usedTexts = [];
+        for (var loopIter in currentlySelectedTexts) {
+            var text = currentlySelectedTexts[loopIter];
+            if (-1 != dojo.indexOf(usedTexts,text)) {
+                for (var i in allPossibleTexts) {
+                    var loopT = allPossibleTexts[i];
+                    if (-1 == dojo.indexOf(usedTexts,loopT)) {
+                        currentlySelectedTexts[loopIter] = loopT;
+                        text = loopT;
+                        break;
+                    }
+                }
             }
+            usedTexts.push(text);
         }
-        selectedText = selectElement.options[selectElement.selectedIndex].text;
-    }
+
+        // rewrite the options for each of the select lists
+        for (var iterID in currentlySelectedTexts) {
+            var selectElement = getObject(iterID);
+            var selectedText = currentlySelectedTexts[iterID];
+            selectElement.options.length = 0;
+            var nextOptionCounter = 0;
+            for (var optionIter = 0; optionIter < allPossibleTexts.length; optionIter++) {
+                var optionText = allPossibleTexts[optionIter];
+                var hasBeenUsed = -1 != dojo.indexOf(usedTexts,optionText);
+                var isSelected = optionText == selectedText;
+                if (isSelected || !hasBeenUsed) {
+                    selectElement.options[nextOptionCounter] = new Option(optionText,optionText,isSelected,isSelected);
+                    nextOptionCounter++;
+                }
+            }
+            selectedText = selectElement.options[selectElement.selectedIndex].text;
+        }
+
+    });
 }
 
 function startupResponsesPage(initialPrompt)

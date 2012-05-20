@@ -209,6 +209,8 @@ public class NewUserServlet extends TopServlet {
         final Map<String, String> outputMap = new HashMap<String, String>();
         outputMap.put("version", "1");
         outputMap.put("message", userMessage);
+        //outputMap.put("strength", String.valueOf(checkInfo.getStrength()));
+        //outputMap.put("match", matchStatus.toString());
         outputMap.put("success", String.valueOf(success));
 
         final Gson gson = new Gson();

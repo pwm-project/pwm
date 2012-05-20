@@ -111,7 +111,7 @@
             <% } %>
         </table>
         <% } else { %>
-        <dib>
+        <div>
                 <p>This report may take a long time to generate depending on the number of users in the search.  Also be sure PWM has been given adequate
                     Java memory (heap) size to run the report.
                 </p>

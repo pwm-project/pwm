@@ -38,7 +38,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="tundra"
-      onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms.setupResponses.elements[0].focus();">
+      onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms[0].elements[0].focus();">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -112,9 +112,9 @@
                        onkeyup="validateResponses();"/>
             </p>
             <% } %>
-            <script type="text/javascript"> dojo.addOnLoad(function() {
-                makeSelectOptionsDistinct();
-            })</script>
+            <script type="text/javascript">
+                require(["dojo"],function(){makeSelectOptionsDistinct();});
+            </script>
             <% } else { %>
             <% // display fields for RANDOM challenges.
                 if (!challengeSet.getRandomChallenges().isEmpty()) {

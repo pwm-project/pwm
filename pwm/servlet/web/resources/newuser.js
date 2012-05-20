@@ -43,24 +43,26 @@ function validateNewUserForm() {
     setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingData']); }},1000);
 
     validationInProgress = true;
-    dojo.xhrPost({
-        url: 'NewUser' + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        postData:  dojo.toJson(parameterData),
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        error: function(errorObj) {
-            validationInProgress = false;
-            showSuccess(PWM_STRINGS['Display_CommunicationError']);
-            console.log('error: ' + errorObj);
-        },
-        load: function(data){
-            setTimeout(function(){
-                validationCache[parameterData.cacheKey] = data;
+    require(["dojo"],function(dojo){
+        dojo.xhrPost({
+            url: 'NewUser' + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            postData:  dojo.toJson(parameterData),
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "json",
+            error: function(errorObj) {
                 validationInProgress = false;
-                validateNewUserForm();
-            },500);
-        }
+                showSuccess(PWM_STRINGS['Display_CommunicationError']);
+                console.log('error: ' + errorObj);
+            },
+            load: function(data){
+                setTimeout(function(){
+                    validationCache[parameterData.cacheKey] = data;
+                    validationInProgress = false;
+                    validateNewUserForm();
+                },500);
+            }
+        });
     });
 }
 
@@ -92,6 +94,30 @@ function updateDisplay(resultInfo)
         getObject("submitBtn").disabled = true;
         showError(result);
     }
+    markConfirmationCheck(null);
+    try {
+        markConfirmationCheck(resultInfo["match"]);
+    } catch (e) {
+        console.log('error updating confirmation check icons: ' + e)
+    }
 }
 
+function markConfirmationCheck(matchStatus) {
+    if (matchStatus == "MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'visible';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '15';
+        getObject("confirmCrossMark").width = '0';
+    } else if (matchStatus == "NO_MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'visible';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '15';
+    } else {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '0';
+    }
+}
 

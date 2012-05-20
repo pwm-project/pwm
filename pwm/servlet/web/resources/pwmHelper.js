@@ -26,9 +26,7 @@ function pwmPageLoadHandler() {
         loopForm.setAttribute('autocomplete', 'off');
     }
 
-    setTimeout(function() {
-        dojo.require("dijit.Dialog");
-    },10 * 1000);
+    require(["dijit/Dialog"]);
 }
 
 function checkForCapsLock(e) {
@@ -91,9 +89,11 @@ function handleFormSubmit(buttonID, form) {
 
     showWaitDialog(PWM_STRINGS['Display_PleaseWait'], "");
 
-    setTimeout(function() {
-        form.submit();
-    }, 100);
+    require(["dijit/Dialog"],function(){
+        setTimeout(function() {
+            form.submit();
+        }, 100);
+    });
 }
 
 function handleFormClear() {
@@ -167,143 +167,152 @@ function changeInputTypeField(object, type) {
 }
 
 function clearDigitWidget(widgetName) {
-    var oldDijitNode = dijit.byId(widgetName);
-    if (oldDijitNode != null) {
-        try {
-            oldDijitNode.destroy();
-        } catch (error) {
+    require(["dijit"],function(dijit){
+        var oldDijitNode = dijit.byId(widgetName);
+        if (oldDijitNode != null) {
+            try {
+                oldDijitNode.destroy();
+            } catch (error) {
+            }
         }
-    }
+    });
 }
 
-function startupLocaleSelectorMenu(attachNode) {
+function initLocaleSelectorMenu(attachNode) {
     var localeData = PWM_GLOBAL['localeInfo'];
 
     if (getObject(attachNode) == null) {
         return;
     }
 
-    dojo.require("dijit.Menu");
-    var pMenu = new dijit.Menu({
-        targetNodeIds: [attachNode],
-        leftClickToOpen: true
+    require(["dijit/Menu","dijit/MenuItem"],function(){
+        var pMenu = new dijit.Menu({
+            targetNodeIds: [attachNode],
+            leftClickToOpen: true
+        });
+        pMenu.startup();
+
+        var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
+            pMenu.addChild(new dijit.MenuItem({
+                label: localeDisplayName,
+                iconClass: localeIconClass,
+                onClick: function() {
+                    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
+                    dojo.xhrGet({
+                        url: pingURL,
+                        sync: true,
+                        preventCache: true,
+                        load: function() {
+                            PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+                            window.location.reload();
+                        },
+                        error: function(error) {
+                            alert('unable to set locale: ' + error);
+                        }
+                    });
+                }
+            }));
+        };
+
+        for (var localeKey in localeData) {
+            var loopDisplayName = localeKey == '' ? 'English' : localeData[localeKey];
+            var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
+            var loopKey = localeKey == '' ? 'default' : localeKey;
+            loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
+        }
+
+        // open the menu (for this first execution, afterwords menu will open itself via attachment)
+        //pMenu._openMyself({target: getObject(attachNode)});
     });
-    pMenu.startup();
-
-    dojo.require("dijit.MenuItem");
-    var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
-        pMenu.addChild(new dijit.MenuItem({
-            label: localeDisplayName,
-            iconClass: localeIconClass,
-            onClick: function() {
-                var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
-                dojo.xhrGet({
-                    url: pingURL,
-                    sync: true,
-                    preventCache: true,
-                    load: function() {
-                        PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                        window.location.reload();
-                    },
-                    error: function(error) {
-                        alert('unable to set locale: ' + error);
-                    }
-                });
-            }
-        }));
-    };
-
-    for (var localeKey in localeData) {
-        var loopDisplayName = localeKey == '' ? 'English' : localeData[localeKey];
-        var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
-        var loopKey = localeKey == '' ? 'default' : localeKey;
-        loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
-    }
 }
 
 function showWaitDialog(title, body) {
-    var idName = 'waitDialogID';
-    clearDigitWidget(idName);
-    if (body == null || body.length < 1) {
-        body = '<div id="WaitDialogBlank"/>';
-    }
-    dojo.require("dijit.Dialog");
-    var theDialog = new dijit.Dialog({
-        id: idName,
-        title: title,
-        style: "width: 300px",
-        content: body,
-        closable: false
+    require(["dijit/Dialog"],function(){
+        var idName = 'waitDialogID';
+        clearDigitWidget(idName);
+        if (body == null || body.length < 1) {
+            body = '<div id="WaitDialogBlank"/>';
+        }
+        var theDialog = new dijit.Dialog({
+            id: idName,
+            title: title,
+            style: "width: 300px",
+            content: body,
+            closable: false
 
+        });
+        theDialog.show();
     });
-    theDialog.show();
 }
 
 function showPwmHealth(parentDivID, refreshNow) {
-    var parentDiv = dojo.byId(parentDivID);
-    PWM_GLOBAL['healthCheckInProgress'] = "true";
+    require(["dojo"],function(dojo){
 
-    setTimeout(function() {
-        if (PWM_GLOBAL['healthCheckInProgress']) {
-            parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
-        }
-    }, 1000);
+        var parentDiv = dojo.byId(parentDivID);
+        PWM_GLOBAL['healthCheckInProgress'] = "true";
 
-    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
-    if (refreshNow) {
-        refreshUrl += "?refreshImmediate=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    } else {
-        refreshUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    }
-
-    dojo.xhrGet({
-        url: refreshUrl,
-        handleAs: "json",
-        headers: { "Accept": "application/json" },
-        timeout: 60 * 1000,
-        preventCache: true,
-        load: function(data) {
-            PWM_GLOBAL['pwm-health'] = data['overall'];
-            var healthRecords = data['data'];
-            var htmlBody = '<table width="100%" style="width=100%; border=0">';
-            for (var i = 0; i < healthRecords.length; i++) {
-                var healthData = healthRecords[i];
-                htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
-                htmlBody += healthData['topic'];
-                htmlBody += '</td><td class="health-' + healthData['status'] + '">';
-                htmlBody += healthData['status'];
-                htmlBody += "</td><td>";
-                htmlBody += healthData['detail'];
-                htmlBody += "</td></tr>";
+        setTimeout(function() {
+            if (PWM_GLOBAL['healthCheckInProgress']) {
+                parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
             }
+        }, 1000);
 
-            htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-            htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
-            htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
-            htmlBody += "</td></tr>";
-
-            htmlBody += '</table>';
-            parentDiv.innerHTML = htmlBody;
-            PWM_GLOBAL['healthCheckInProgress'] = false;
-            setTimeout(function() {
-                showPwmHealth(parentDivID, false);
-            }, 10 * 1000);
-        },
-        error: function(error) {
-            var htmlBody = '<div style="text-align:center; background-color: #d20734">';
-            htmlBody += '<br/><span style="font-weight: bold;">unable to load health data</span></br>';
-
-            htmlBody += '<br/>' + error + '<br/>';
-            htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
-            htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
-            htmlBody += '</div>';
-            parentDiv.innerHTML = htmlBody;
-            PWM_GLOBAL['healthCheckInProgress'] = false;
-            PWM_GLOBAL['pwm-health'] = 'UNKNOWN';
-            setTimeout(function() {
-                showPwmHealth(parentDivID, false);
-            }, 10 * 1000);
+        var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
+        if (refreshNow) {
+            refreshUrl += "?refreshImmediate=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        } else {
+            refreshUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         }
+
+        dojo.xhrGet({
+            url: refreshUrl,
+            handleAs: "json",
+            headers: { "Accept": "application/json" },
+            timeout: 60 * 1000,
+            preventCache: true,
+            load: function(data) {
+                PWM_GLOBAL['pwm-health'] = data['overall'];
+                var healthRecords = data['data'];
+                var htmlBody = '<table width="100%" style="width=100%; border=0">';
+                for (var i = 0; i < healthRecords.length; i++) {
+                    var healthData = healthRecords[i];
+                    htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
+                    htmlBody += healthData['topic'];
+                    htmlBody += '</td><td class="health-' + healthData['status'] + '">';
+                    htmlBody += healthData['status'];
+                    htmlBody += "</td><td>";
+                    htmlBody += healthData['detail'];
+                    htmlBody += "</td></tr>";
+                }
+
+                htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+                htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
+                htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
+                htmlBody += "</td></tr>";
+
+                htmlBody += '</table>';
+                parentDiv.innerHTML = htmlBody;
+                PWM_GLOBAL['healthCheckInProgress'] = false;
+                setTimeout(function() {
+                    showPwmHealth(parentDivID, false);
+                }, 10 * 1000);
+            },
+            error: function(error) {
+                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
+                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data</span></br>';
+
+                htmlBody += '<br/>' + error + '<br/>';
+                htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
+                htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
+                htmlBody += '</div>';
+                parentDiv.innerHTML = htmlBody;
+                PWM_GLOBAL['healthCheckInProgress'] = false;
+                PWM_GLOBAL['pwm-health'] = 'UNKNOWN';
+                setTimeout(function() {
+                    showPwmHealth(parentDivID, false);
+                }, 10 * 1000);
+            }
+        });
     });
 }
 
@@ -470,28 +479,30 @@ function showIdleWarning() {
         PWM_GLOBAL['idle_warningDisplayed'] = true;
 
         var dialogBody = PWM_STRINGS['Display_IdleWarningMessage'] + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
-
-        dojo.require("dijit.Dialog");
-        var theDialog = new dijit.Dialog({
-            title: PWM_STRINGS['Display_IdleWarningTitle'],
-            style: "width: 260px; border: 2px solid #D4D4D4;",
-            content: dialogBody,
-            closable: false,
-            draggable: false,
-            id: "idleDialog"
+        require(["dijit/Dialog"],function(){
+            var theDialog = new dijit.Dialog({
+                title: PWM_STRINGS['Display_IdleWarningTitle'],
+                style: "width: 260px; border: 2px solid #D4D4D4;",
+                content: dialogBody,
+                closable: false,
+                draggable: false,
+                id: "idleDialog"
+            });
+            theDialog.setAttribute('class', 'tundra');
+            theDialog.show();
         });
-        theDialog.setAttribute('class', 'tundra');
-        theDialog.show();
     }
 }
 
 function closeIdleWarning() {
-    var dialog = dijit.byId('idleDialog');
-    if (dialog != null) {
-        dialog.hide();
-        dialog.destroyRecursive();
-    }
-    document.title = PWM_GLOBAL['real-window-title'];
+    require(["dijit"],["dijit/_base"],function(dijit){
+        var dialog = dijit.byId('idleDialog');
+        if (dialog != null) {
+            dialog.hide();
+            dialog.destroyRecursive();
+        }
+        document.title = PWM_GLOBAL['real-window-title'];
+    });
 }
 
 function clearError()
@@ -536,32 +547,34 @@ function doShow(destClass, message) {
     }
     messageElement.firstChild.nodeValue = message;
 
-    if(dojo.isIE <= 8){ // only IE7 and below
-        messageElement.className = "message " + destClass;
-    } else {
-        try {
-            // create a temp element and place it on the page to figure out what the destination color should be
-            var tempDivElement = document.createElement('div');
-            tempDivElement.className = "message " + destClass;
-            tempDivElement.style.visibility = "hidden";
-            tempDivElement.id = "tempDivElement";
-            messageElement.appendChild(tempDivElement);
-            var destStyle = window.getComputedStyle(tempDivElement, null);
-            var destBackground = destStyle.backgroundColor;
-            var destColor = destStyle.color;
-
-            dojo.animateProperty({
-                node:"message",
-                duration: 500,
-                properties: {
-                    backgroundColor: destBackground,
-                    color: destColor
-                }
-            }).play();
-
-            dojo.query('#tempDivElement').orphan();
-        } catch (e) {
+    require(["dojo"],function(dojo){
+        if(dojo.isIE <= 8){ // only IE7 and below
             messageElement.className = "message " + destClass;
+        } else {
+            try {
+                // create a temp element and place it on the page to figure out what the destination color should be
+                var tempDivElement = document.createElement('div');
+                tempDivElement.className = "message " + destClass;
+                tempDivElement.style.visibility = "hidden";
+                tempDivElement.id = "tempDivElement";
+                messageElement.appendChild(tempDivElement);
+                var destStyle = window.getComputedStyle(tempDivElement, null);
+                var destBackground = destStyle.backgroundColor;
+                var destColor = destStyle.color;
+
+                dojo.animateProperty({
+                    node:"message",
+                    duration: 500,
+                    properties: {
+                        backgroundColor: destBackground,
+                        color: destColor
+                    }
+                }).play();
+
+                dojo.query('#tempDivElement').orphan();
+            } catch (e) {
+                messageElement.className = "message " + destClass;
+            }
         }
-    }
+    });
 }

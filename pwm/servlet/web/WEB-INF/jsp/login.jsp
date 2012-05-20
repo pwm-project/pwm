@@ -81,21 +81,19 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenPassword" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
             <script type="text/javascript">
-                dojo.addOnLoad(function() {
-                    dojo.require("dijit.Tooltip");
+
+                require(["dijit/Tooltip"],function(){
                     var strengthTooltip = new dijit.Tooltip({
                         connectId: ["Title_ForgottenPassword"],
                         label: '<pwm:Display key="Long_Title_ForgottenPassword"/>'
                     });
                 });
             </script>
-
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenUsername" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
             <script type="text/javascript">
-                dojo.addOnLoad(function() {
-                    dojo.require("dijit.Tooltip");
+                require(["dijit/Tooltip"],function(){
                     new dijit.Tooltip({
                         connectId: ["Title_ForgottenUsername"],
                         label: '<pwm:Display key="Long_Title_ForgottenUsername"/>'
@@ -106,8 +104,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
             <a class="menubutton" id="Title_ActivateUser" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
             <script type="text/javascript">
-                dojo.addOnLoad(function() {
-                    dojo.require("dijit.Tooltip");
+                require(["dijit/Tooltip"],function(){
                     new dijit.Tooltip({
                         connectId: ["Title_ActivateUser"],
                         label: '<pwm:Display key="Long_Title_ActivateUser"/>'
@@ -116,16 +113,17 @@
             </script>
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-            <p><a class="menubutton" id="Title_NewUser" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
-                <script type="text/javascript">
-                    dojo.addOnLoad(function() {
-                        dojo.require("dijit.Tooltip");
-                        new dijit.Tooltip({
-                            connectId: ["Title_NewUser"],
-                            label: '<pwm:Display key="Long_Title_NewUser"/>'
-                        });
+            <p>
+            <a class="menubutton" id="Title_NewUser" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
+            <script type="text/javascript">
+                require(["dijit/Tooltip"],function(){
+                    new dijit.Tooltip({
+                        connectId: ["Title_NewUser"],
+                        label: '<pwm:Display key="Long_Title_NewUser"/>'
                     });
-                </script>
+                });
+            </script>
+            </p>
             <% } %>
         </div>
         <% } %>

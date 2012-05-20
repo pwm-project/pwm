@@ -20,74 +20,78 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-dojo.require("dijit.form.Button");
-
 var clientSettingCache = { };
 var availableLocales = new Array();
 var menuItems = new Array();
 var selectedCategory = "";
 
 function readSetting(keyName, valueWriter) {
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        error: function(errorObj) {
-            showError("error loading " + keyName + ", reason: " + errorObj)
-        },
-        load: function(data) {
-            var resultValue = data.value;
-            valueWriter(resultValue);
-            var isDefault = data['isDefault'];
-            var resetImageButton = getObject('resetButton-' + keyName);
-            if (!isDefault) {
-                resetImageButton.style.visibility = 'visible';
-            } else {
-                resetImageButton.style.visibility = 'hidden';
+    require(["dojo"],function(dojo){
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "json",
+            error: function(errorObj) {
+                showError("error loading " + keyName + ", reason: " + errorObj)
+            },
+            load: function(data) {
+                var resultValue = data.value;
+                valueWriter(resultValue);
+                var isDefault = data['isDefault'];
+                var resetImageButton = getObject('resetButton-' + keyName);
+                if (!isDefault) {
+                    resetImageButton.style.visibility = 'visible';
+                } else {
+                    resetImageButton.style.visibility = 'hidden';
+                }
             }
-        }
+        });
     });
 }
 
 function writeSetting(keyName, valueData) {
-    var jsonString = dojo.toJson(valueData);
-    dojo.xhrPost({
-        url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
-        postData: jsonString,
-        contentType: "application/json;charset=utf-8",
-        encoding: "utf-8",
-        dataType: "json",
-        handleAs: "json",
-        sync: true,
-        error: function(errorObj) {
-            showError("error writing setting " + keyName + ", reason: " + errorObj)
-        },
-        load: function(data) {
-            var isDefault = data['isDefault'];
-            var resetImageButton = getObject('resetButton-' + keyName);
-            if (!isDefault) {
-                resetImageButton.style.visibility = 'visible';
-            } else {
-                resetImageButton.style.visibility = 'hidden';
+    require(["dojo"],function(dojo){
+        var jsonString = dojo.toJson(valueData);
+        dojo.xhrPost({
+            url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
+            postData: jsonString,
+            contentType: "application/json;charset=utf-8",
+            encoding: "utf-8",
+            dataType: "json",
+            handleAs: "json",
+            sync: true,
+            error: function(errorObj) {
+                showError("error writing setting " + keyName + ", reason: " + errorObj)
+            },
+            load: function(data) {
+                var isDefault = data['isDefault'];
+                var resetImageButton = getObject('resetButton-' + keyName);
+                if (!isDefault) {
+                    resetImageButton.style.visibility = 'visible';
+                } else {
+                    resetImageButton.style.visibility = 'hidden';
+                }
             }
-        }
+        });
     });
 }
 
 function resetSetting(keyName) {
-    var jsonData = { key:keyName };
-    var jsonString = dojo.toJson(jsonData);
-    dojo.xhrPost({
-        url: "ConfigManager?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        postData: jsonString,
-        contentType: "application/json;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        sync: true,
-        error: function(errorObj) {
-            showError("error resetting setting " + keyName + ", reason: " + errorObj)
-        }
+    require(["dojo"],function(dojo){
+        var jsonData = { key:keyName };
+        var jsonString = dojo.toJson(jsonData);
+        dojo.xhrPost({
+            url: "ConfigManager?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            postData: jsonString,
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "json",
+            sync: true,
+            error: function(errorObj) {
+                showError("error resetting setting " + keyName + ", reason: " + errorObj)
+            }
+        });
     });
 }
 
@@ -154,20 +158,20 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
-    dojo.require("dijit.form.ComboBox");
-    clearDigitWidget(keyName + '-addLocaleValue');
-    new dijit.form.ComboBox({
-        id: keyName + '-addLocaleValue'
-    }, keyName + '-addLocaleValue');
+    require(["dijit/form/ComboBox","dijit/form/Button"],function(){
+        clearDigitWidget(keyName + '-addLocaleValue');
+        new dijit.form.ComboBox({
+            id: keyName + '-addLocaleValue'
+        }, keyName + '-addLocaleValue');
 
-    dojo.require("dijit.form.Button");
-    clearDigitWidget(keyName + '-addLocaleButton');
-    new dijit.form.Button({
-        id: keyName + '-addLocaleButton',
-        onClick: addFunction
-    }, keyName + '-addLocaleButton');
+        clearDigitWidget(keyName + '-addLocaleButton');
+        new dijit.form.Button({
+            id: keyName + '-addLocaleButton',
+            onClick: addFunction
+        }, keyName + '-addLocaleButton');
 
-    return newTableRow;
+        return newTableRow;
+    });
 }
 
 // -------------------------- locale table handler ------------------------------------
@@ -184,9 +188,9 @@ function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
         });
 
         clientSettingCache[keyName] = resultValue;
-        dojo.require("dijit.form.Button");
-        dojo.require("dijit.form.Textarea");
-        dojo.parser.parse(parentDiv);
+        require(["dojo","dijit/form/Button","dijit/form/TextArea"],function(dojo){
+            dojo.parser.parse(parentDiv);
+        });
     });
 }
 
@@ -271,16 +275,18 @@ function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
 }
 
 function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
-    var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
-    try {
-        var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
-        if (existingElementForLocale == null) {
-            writeLocaleSetting(keyName, inputValue, '');
-            clearDivElements(parentDiv, true);
-            initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+    require(["dijit"],function(dijit){
+        var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
+        try {
+            var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
+            if (existingElementForLocale == null) {
+                writeLocaleSetting(keyName, inputValue, '');
+                clearDivElements(parentDiv, true);
+                initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+            }
+        } finally {
         }
-    } finally {
-    }
+    });
 }
 
 // -------------------------- multivalue table handler ------------------------------------
@@ -315,54 +321,57 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
             parentDivElement.appendChild(newTableRow);
         }
         clientSettingCache[keyName] = counter;
-        dojo.require("dijit.form.Button");
-        dojo.require("dijit.form.Textarea");
-        dojo.parser.parse(parentDiv);
+        require(["dojo","dijit/form/Button","dijit/form/TextArea"],function(dojo){
+            dojo.parser.parse(parentDiv);
+        });
     });
 }
 
 function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern) {
-    var inputID = 'value-' + settingKey + '-' + iteration;
+    require(["dijit"],function(dijit){
+        var inputID = 'value-' + settingKey + '-' + iteration;
 
-    // clear the old dijit node (if it exists)
-    var oldDijitNode = dijit.byId(inputID);
-    if (oldDijitNode != null) {
-        try {
-            oldDijitNode.destroy();
-        } catch (error) {
+        // clear the old dijit node (if it exists)
+
+        var oldDijitNode = dijit.byId(inputID);
+        if (oldDijitNode != null) {
+            try {
+                oldDijitNode.destroy();
+            } catch (error) {
+            }
         }
-    }
 
-    var newTableRow = document.createElement("tr");
-    newTableRow.setAttribute("style", "border-width: 0");
-    {
-        var td1 = document.createElement("td");
-        td1.setAttribute("width", "100%");
-        td1.setAttribute("style", "border-width: 0;");
-
-
-        var inputElement = document.createElement("input");
-        inputElement.setAttribute("id", inputID);
-        inputElement.setAttribute("value", value);
-        inputElement.setAttribute("onchange", "writeMultiSetting('" + settingKey + "','" + iteration + "',this.value)");
-        inputElement.setAttribute("style", "width: 450px");
-        inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
-        inputElement.setAttribute("regExp", regExPattern);
-        inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
-        td1.appendChild(inputElement);
-        newTableRow.appendChild(td1);
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
+        {
+            var td1 = document.createElement("td");
+            td1.setAttribute("width", "100%");
+            td1.setAttribute("style", "border-width: 0;");
 
 
-        if (iteration != 0) {
-            var imgElement = document.createElement("img");
-            imgElement.setAttribute("style", "width: 15px; height: 15px");
-            imgElement.setAttribute("src", "../resources/redX.png");
-            imgElement.setAttribute("onclick", "removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
-            td1.appendChild(imgElement);
+            var inputElement = document.createElement("input");
+            inputElement.setAttribute("id", inputID);
+            inputElement.setAttribute("value", value);
+            inputElement.setAttribute("onchange", "writeMultiSetting('" + settingKey + "','" + iteration + "',this.value)");
+            inputElement.setAttribute("style", "width: 450px");
+            inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
+            inputElement.setAttribute("regExp", regExPattern);
+            inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
+            td1.appendChild(inputElement);
+            newTableRow.appendChild(td1);
+
+
+            if (iteration != 0) {
+                var imgElement = document.createElement("img");
+                imgElement.setAttribute("style", "width: 15px; height: 15px");
+                imgElement.setAttribute("src", "../resources/redX.png");
+                imgElement.setAttribute("onclick", "removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
+                td1.appendChild(imgElement);
+            }
         }
-    }
-    var parentDivElement = getObject(parentDiv);
-    parentDivElement.appendChild(newTableRow);
+        var parentDivElement = getObject(parentDiv);
+        parentDivElement.appendChild(newTableRow);
+    });
 }
 
 function writeMultiSetting(settingKey, iteration, value) {
@@ -397,123 +406,125 @@ function addMultiSetting(keyName, parentDiv, regExPattern) {
 // -------------------------- multi locale table handler ------------------------------------
 
 function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
-        clearDivElements(parentDiv, false);
-        for (var localeName in resultValue) {
-            var localeTableRow = document.createElement("tr");
-            localeTableRow.setAttribute("style", "border-width: 0");
+    require(["dojo","dijit","dijit/form/Button","dijit/form/TextArea"],function(dojo,dijit){
+        clearDivElements(parentDiv, true);
+        readSetting(keyName, function(resultValue) {
+            clearDivElements(parentDiv, false);
+            for (var localeName in resultValue) {
+                var localeTableRow = document.createElement("tr");
+                localeTableRow.setAttribute("style", "border-width: 0");
 
-            var localeTdName = document.createElement("td");
-            localeTdName.setAttribute("style", "border-width: 0; text-align: right; vertical-align: top;");
-            localeTdName.innerHTML = localeName == "" ? "Default" : localeName;
-            localeTableRow.appendChild(localeTdName);
+                var localeTdName = document.createElement("td");
+                localeTdName.setAttribute("style", "border-width: 0; text-align: right; vertical-align: top;");
+                localeTdName.innerHTML = localeName == "" ? "Default" : localeName;
+                localeTableRow.appendChild(localeTdName);
 
-            var localeTdContent = document.createElement("td");
-            localeTdContent.setAttribute("style", "border-width: 0;");
-            localeTableRow.appendChild(localeTdContent);
+                var localeTdContent = document.createElement("td");
+                localeTdContent.setAttribute("style", "border-width: 0;");
+                localeTableRow.appendChild(localeTdContent);
 
-            var localeTableElement = document.createElement("table");
-            localeTableElement.setAttribute("style", "border-width: 1");
-            localeTdContent.appendChild(localeTableElement);
+                var localeTableElement = document.createElement("table");
+                localeTableElement.setAttribute("style", "border-width: 1");
+                localeTdContent.appendChild(localeTableElement);
 
-            var multiValues = resultValue[localeName];
+                var multiValues = resultValue[localeName];
 
-            for (var iteration in multiValues) {
+                for (var iteration in multiValues) {
 
-                var valueTableRow = document.createElement("tr");
+                    var valueTableRow = document.createElement("tr");
 
-                var valueTd1 = document.createElement("td");
-                valueTd1.setAttribute("style", "border-width: 0;");
+                    var valueTd1 = document.createElement("td");
+                    valueTd1.setAttribute("style", "border-width: 0;");
 
-                // clear the old dijit node (if it exists)
-                var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
-                var oldDijitNode = dijit.byId(inputID);
-                if (oldDijitNode != null) {
-                    try {
-                        oldDijitNode.destroy();
-                    } catch (error) {
+                    // clear the old dijit node (if it exists)
+                    var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
+                    var oldDijitNode = dijit.byId(inputID);
+                    if (oldDijitNode != null) {
+                        try {
+                            oldDijitNode.destroy();
+                        } catch (error) {
+                        }
+                    }
+
+                    var inputElement = document.createElement("input");
+                    inputElement.setAttribute("id", inputID);
+                    inputElement.setAttribute("value", multiValues[iteration]);
+                    inputElement.setAttribute("onchange", "writeMultiLocaleSetting('" + keyName + "')");
+                    inputElement.setAttribute("style", "width: 450px");
+                    inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
+                    inputElement.setAttribute("regExp", regExPattern);
+                    inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
+                    valueTd1.appendChild(inputElement);
+                    valueTableRow.appendChild(valueTd1);
+                    localeTableElement.appendChild(valueTableRow);
+
+                    if (iteration != 0) { // add the remove value button
+                        var imgElement = document.createElement("img");
+                        imgElement.setAttribute("style", "width: 15px; height: 15px");
+                        imgElement.setAttribute("src", "../resources/redX.png");
+                        imgElement.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                        valueTd1.appendChild(imgElement);
                     }
                 }
 
-                var inputElement = document.createElement("input");
-                inputElement.setAttribute("id", inputID);
-                inputElement.setAttribute("value", multiValues[iteration]);
-                inputElement.setAttribute("onchange", "writeMultiLocaleSetting('" + keyName + "')");
-                inputElement.setAttribute("style", "width: 450px");
-                inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
-                inputElement.setAttribute("regExp", regExPattern);
-                inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
-                valueTd1.appendChild(inputElement);
-                valueTableRow.appendChild(valueTd1);
-                localeTableElement.appendChild(valueTableRow);
+                { // add row button for this locale group
+                    var newTableRow = document.createElement("tr");
+                    newTableRow.setAttribute("style", "border-width: 0");
+                    newTableRow.setAttribute("colspan", "5");
 
-                if (iteration != 0) { // add the remove value button
-                    var imgElement = document.createElement("img");
-                    imgElement.setAttribute("style", "width: 15px; height: 15px");
-                    imgElement.setAttribute("src", "../resources/redX.png");
-                    imgElement.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                    valueTd1.appendChild(imgElement);
+                    var newTableData = document.createElement("td");
+                    newTableData.setAttribute("style", "border-width: 0;");
+
+                    var addItemButton = document.createElement("button");
+                    addItemButton.setAttribute("type", "[button");
+                    addItemButton.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + (multiValues.size + 1) + "','');initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                    addItemButton.setAttribute("dojoType", "dijit.form.Button");
+                    addItemButton.innerHTML = "Add Value";
+                    newTableData.appendChild(addItemButton);
+
+                    newTableRow.appendChild(newTableData);
+                    localeTableElement.appendChild(newTableRow);
+                }
+
+
+                if (localeName != '') { // add remove locale x
+                    var imgElement2 = document.createElement("img");
+                    imgElement2.setAttribute("style", "width: 15px; height: 15px");
+                    imgElement2.setAttribute("src", "../resources/redX.png");
+                    imgElement2.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                    var tdElement = document.createElement("td");
+                    tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
+
+                    localeTableRow.appendChild(tdElement);
+                    tdElement.appendChild(imgElement2);
+                }
+
+                var parentDivElement = getObject(parentDiv);
+                parentDivElement.appendChild(localeTableRow);
+
+                { // add a spacer row
+                    var spacerTableRow = document.createElement("tr");
+                    spacerTableRow.setAttribute("style", "border-width: 0");
+                    parentDivElement.appendChild(spacerTableRow);
+
+                    var spacerTableData = document.createElement("td");
+                    spacerTableData.setAttribute("style", "border-width: 0");
+                    spacerTableData.innerHTML = "&nbsp;";
+                    spacerTableRow.appendChild(spacerTableData);
                 }
             }
 
-            { // add row button for this locale group
-                var newTableRow = document.createElement("tr");
-                newTableRow.setAttribute("style", "border-width: 0");
-                newTableRow.setAttribute("colspan", "5");
+            var addLocaleFunction = function() {
+                require(["dijit"],function(dijit){
+                    writeMultiLocaleSetting(keyName, dijit.byId(keyName + "-addLocaleValue").value, 0, '');
+                    initMultiLocaleTable(parentDiv, keyName, regExPattern);
+                });
+            };
 
-                var newTableData = document.createElement("td");
-                newTableData.setAttribute("style", "border-width: 0;");
-
-                var addItemButton = document.createElement("button");
-                addItemButton.setAttribute("type", "[button");
-                addItemButton.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + (multiValues.size + 1) + "','');initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                addItemButton.setAttribute("dojoType", "dijit.form.Button");
-                addItemButton.innerHTML = "Add Value";
-                newTableData.appendChild(addItemButton);
-
-                newTableRow.appendChild(newTableData);
-                localeTableElement.appendChild(newTableRow);
-            }
-
-
-            if (localeName != '') { // add remove locale x
-                var imgElement2 = document.createElement("img");
-                imgElement2.setAttribute("style", "width: 15px; height: 15px");
-                imgElement2.setAttribute("src", "../resources/redX.png");
-                imgElement2.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                var tdElement = document.createElement("td");
-                tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
-
-                localeTableRow.appendChild(tdElement);
-                tdElement.appendChild(imgElement2);
-            }
-
-            var parentDivElement = getObject(parentDiv);
-            parentDivElement.appendChild(localeTableRow);
-
-            { // add a spacer row
-                var spacerTableRow = document.createElement("tr");
-                spacerTableRow.setAttribute("style", "border-width: 0");
-                parentDivElement.appendChild(spacerTableRow);
-
-                var spacerTableData = document.createElement("td");
-                spacerTableData.setAttribute("style", "border-width: 0");
-                spacerTableData.innerHTML = "&nbsp;";
-                spacerTableRow.appendChild(spacerTableData);
-            }
-        }
-
-        var addLocaleFunction = function() {
-            writeMultiLocaleSetting(keyName, dijit.byId(keyName + "-addLocaleValue").value, 0, '');
-            initMultiLocaleTable(parentDiv, keyName, regExPattern);
-        };
-
-        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
-        clientSettingCache[keyName] = resultValue;
-        dojo.require("dijit.form.Button");
-        dojo.require("dijit.form.Textarea");
-        dojo.parser.parse(parentDiv);
+            addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+            clientSettingCache[keyName] = resultValue;
+            dojo.parser.parse(parentDiv);
+        });
     });
 }
 
@@ -551,98 +562,103 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
 }
 
 function saveConfiguration() {
-    showWaitDialog('Saving Configuration...', null);
-
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=getOptions",
-        sync: true,
-        dataType: "json",
-        handleAs: "json",
-        load: function(data) {
-            dojo.xhrGet({
-                url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID']
-            });
-            var oldEpoch = data != null ? data['configEpoch'] : null;
-            var currentTime = new Date().getTime();
-            showError('Waiting for server restart');
-            setTimeout(function() {
-                waitForRestart(currentTime, oldEpoch);
-            }, 2 * 1000);
-        },
-        error: function(error) {
-            alert(error);
-            window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
-        }
+    require(["dojo"],function(dojo){
+        showWaitDialog('Saving Configuration...', null);
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=getOptions",
+            sync: true,
+            dataType: "json",
+            handleAs: "json",
+            load: function(data) {
+                dojo.xhrGet({
+                    url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID']
+                });
+                var oldEpoch = data != null ? data['configEpoch'] : null;
+                var currentTime = new Date().getTime();
+                showError('Waiting for server restart');
+                setTimeout(function() {
+                    waitForRestart(currentTime, oldEpoch);
+                }, 2 * 1000);
+            },
+            error: function(error) {
+                alert(error);
+                window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
+            }
+        });
     });
 }
 
 function finalizeConfiguration() {
-    showWaitDialog('Finalizing Configuration...', null);
+    require(["dojo"],function(dojo){
+        showWaitDialog('Finalizing Configuration...', null);
 
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=getOptions",
-        sync: false,
-        dataType: "json",
-        handleAs: "json",
-        load: function(data) {
-            dojo.xhrGet({
-                url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                sync:true
-            });
-            var oldEpoch = data['configEpoch'];
-            var currentTime = new Date().getTime();
-            showError('Waiting for server restart');
-            setTimeout(function() {
-                waitForRestart(currentTime, oldEpoch);
-            }, 1000);
-        },
-        error: function(error) {
-            alert(error);
-            window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
-        }
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=getOptions",
+            sync: false,
+            dataType: "json",
+            handleAs: "json",
+            load: function(data) {
+                dojo.xhrGet({
+                    url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    sync:true
+                });
+                var oldEpoch = data['configEpoch'];
+                var currentTime = new Date().getTime();
+                showError('Waiting for server restart');
+                setTimeout(function() {
+                    waitForRestart(currentTime, oldEpoch);
+                }, 1000);
+            },
+            error: function(error) {
+                alert(error);
+                window.location = "ConfigManager?unable_to_read_current_epoch"; //refresh page
+            }
+        });
     });
 }
 
 
 function waitForRestart(startTime, oldEpoch) {
-    var currentTime = new Date().getTime();
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=getOptions",
-        sync: true,
-        dataType: "json",
-        handleAs: "json",
-        load: function(data) {
-            var error = data != null ? data['error'] : null;
-            if (error) {
-                clearDigitWidget('waitDialogID');
-                showError(data['errorDetail']);
-                return;
-            }
-
-            if (data != null) {
-                var epoch = data['configEpoch'];
-                if (epoch != oldEpoch) {
-                    window.location = "ConfigManager"; //refresh page
+    require(["dojo"],function(dojo){
+        var currentTime = new Date().getTime();
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=getOptions",
+            sync: true,
+            dataType: "json",
+            handleAs: "json",
+            load: function(data) {
+                var error = data != null ? data['error'] : null;
+                if (error) {
+                    clearDigitWidget('waitDialogID');
+                    showError(data['errorDetail']);
                     return;
                 }
-            }
 
-            if (currentTime - startTime > 4 * 60 * 1000) { // timeout
-                alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
-                showError('PWM Server has not restarted (timeout)');
-            } else {
-                showError('Waiting for server restart, server has not yet restarted');
+                if (data != null) {
+                    var epoch = data['configEpoch'];
+                    if (epoch != oldEpoch) {
+                        window.location = "ConfigManager"; //refresh page
+                        return;
+                    }
+                }
+
+                if (currentTime - startTime > 4 * 60 * 1000) { // timeout
+                    alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
+                    showError('PWM Server has not restarted (timeout)');
+                } else {
+                    showError('Waiting for server restart, server has not yet restarted');
+                    setTimeout(function() {
+                        waitForRestart(startTime, oldEpoch)
+                    }, 3000);
+                }
+            },
+            error: function(error) {
+                showError('Waiting for server restart, unable to contact server: ' + error);
                 setTimeout(function() {
                     waitForRestart(startTime, oldEpoch)
-                }, 3000);
+                }, 1000);
             }
-        },
-        error: function(error) {
-            showError('Waiting for server restart, unable to contact server: ' + error);
-            setTimeout(function() {
-                waitForRestart(startTime, oldEpoch)
-            }, 1000);
-        }
+        });
     });
 }
 
@@ -655,16 +671,18 @@ function handleResetClick(settingKey) {
 }
 
 function startNewConfigurationEditor(template) {
-    showWaitDialog('Loading...','');
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
-        sync: true,
-        error: function(errorObj) {
-            showError("error starting configuration editor: " + errorObj)
-        },
-        load: function(data) {
-            document.forms['editMode'].submit();
-        }
+    require(["dojo"],function(dojo){
+        showWaitDialog('Loading...','');
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+            sync: true,
+            error: function(errorObj) {
+                showError("error starting configuration editor: " + errorObj)
+            },
+            load: function(data) {
+                document.forms['editMode'].submit();
+            }
+        });
     });
 }
 

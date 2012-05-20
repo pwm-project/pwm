@@ -67,27 +67,30 @@ function validatePasswords(userDN)
     setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },1000);
 
     validationInProgress = true;
-    dojo.xhrPost({
-        url: PWM_GLOBAL['url-restservice'] + "/checkpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        content: passwordData,
-        headers: {"Accept":"application/json"},
-        handleAs: "json",
-        preventCache: true,
-        timeout: 15000,
-        error: function(errorObj) {
-            validationInProgress = false;
-            showInfo(PWM_STRINGS['Display_CommunicationError']);
-            markStrength(0);
-            markConfirmationCheck(null);
-            console.log('error: ' + errorObj);
-        },
-        load: function(data){
-            setTimeout(function(){
-                validationCache[passwordData.passwordCacheKey] = data;
+
+    require(["dojo"],function(dojo){
+        dojo.xhrPost({
+            url: PWM_GLOBAL['url-restservice'] + "/checkpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            content: passwordData,
+            headers: {"Accept":"application/json"},
+            handleAs: "json",
+            preventCache: true,
+            timeout: 15000,
+            error: function(errorObj) {
                 validationInProgress = false;
-                validatePasswords(userDN);
-            },350);
-        }
+                showInfo(PWM_STRINGS['Display_CommunicationError']);
+                markStrength(0);
+                markConfirmationCheck(null);
+                console.log('error: ' + errorObj);
+            },
+            load: function(data){
+                setTimeout(function(){
+                    validationCache[passwordData.passwordCacheKey] = data;
+                    validationInProgress = false;
+                    validatePasswords(userDN);
+                },350);
+            }
+        });
     });
 }
 
@@ -109,7 +112,10 @@ function makeValidationKey(userDN) {
 
 function updateDisplay(resultInfo) {
     if (resultInfo == null) {
-        getObject("password_button").disabled = false;
+        var passwordButton = getObject("password_button");
+        if (passwordButton != null) {
+            passwordButton.disabled = false;
+        }
         showSuccess(PWM_STRINGS['Display_PasswordPrompt']);
         markStrength(0);
         markConfirmationCheck(null);
@@ -228,56 +234,61 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
 
 function showPasswordGuide() {
     closePasswordGuide();
-    dojo.require("dijit.Dialog");
-
-    var theDialog = new dijit.Dialog({
-        title: PWM_STRINGS['Title_PasswordGuide'],
-        style: "border: 2px solid #D4D4D4;",
-        content: PWM_STRINGS['passwordGuideText'],
-        closable: true,
-        draggable: true,
-        id: "passwordGuideDialog"
+    require(["dijit/Dialog"],function(){
+        var theDialog = new dijit.Dialog({
+            title: PWM_STRINGS['Title_PasswordGuide'],
+            style: "border: 2px solid #D4D4D4;",
+            content: PWM_STRINGS['passwordGuideText'],
+            closable: true,
+            draggable: true,
+            id: "passwordGuideDialog"
+        });
+        theDialog.show();
     });
-    theDialog.show();
 }
 
 function closePasswordGuide() {
-    var dialog = dijit.byId('passwordGuideDialog');
-    if (dialog != null) {
-        dialog.hide();
-        dialog.destroyRecursive();
-    }
+    require(["dijit"],function(dijit){
+        var dialog = dijit.byId('passwordGuideDialog');
+        if (dialog != null) {
+            dialog.hide();
+            dialog.destroyRecursive();
+        }
+    });
 }
 
 function showRandomPasswordsDialog(randomConfig) {
-    dojo.require("dijit.Dialog");
     closeRandomPasswordsDialog();
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
-
     var centerBodyElement = getObject('centerbody');
 
-    var theDialog = new dijit.Dialog({
-        title: titleString,
-        style: "width: 300px; border: 2px solid #D4D4D4;",
-        content: randomConfig['dialogBody'],
-        closable: false,
-        draggable: true,
-        autofocus: false,
-        containerNode: centerBodyElement,
-        id: "randomPasswordDialog"
+    require(["dijit/Dialog"],function(){
+        var theDialog = new dijit.Dialog({
+            title: titleString,
+            style: "width: 300px; border: 2px solid #D4D4D4;",
+            content: randomConfig['dialogBody'],
+            closable: false,
+            draggable: true,
+            autofocus: false,
+            containerNode: centerBodyElement,
+            id: "randomPasswordDialog"
 
+        });
+        theDialog.setAttribute('class','tundra');
+        theDialog.show();
+        beginFetchRandoms(randomConfig);
     });
-    theDialog.setAttribute('class','tundra');
-    theDialog.show();
 }
 
 function closeRandomPasswordsDialog() {
-    var dialog = dijit.byId('randomPasswordDialog');
-    if (dialog != null) {
-        dialog.hide();
-        dialog.destroyRecursive();
-    }
+    require(["dijit"],function(dijit){
+        var dialog = dijit.byId('randomPasswordDialog');
+        if (dialog != null) {
+            dialog.hide();
+            dialog.destroyRecursive();
+        }
+    });
 }
 
 function toggleMaskPasswords()
@@ -338,7 +349,6 @@ function doRandomGeneration(randomConfig) {
     randomConfig['dialogBody'] = dialogBody;
     PWM_GLOBAL['lastRandomConfig'] = randomConfig;
     showRandomPasswordsDialog(randomConfig);
-    beginFetchRandoms(randomConfig);
 }
 
 function beginFetchRandoms(randomConfig) {
@@ -381,18 +391,20 @@ function fetchRandoms(randomConfig) {
 
         var dataInput = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
 
-        dojo.xhrPost({
-            url: PWM_GLOBAL['url-restservice'] + "/randompassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            headers: {"Accept":"application/json"},
-            content: dataInput,
-            preventCache: true,
-            timeout: 15000,
-            sync: false,
-            handleAs: "json",
-            load: successFunction,
-            error: function(errorObj){
-                showError("unexpected randomgen version string from server: " + errorObj);
-            }
+        require(["dojo"],function(dojo){
+            dojo.xhrPost({
+                url: PWM_GLOBAL['url-restservice'] + "/randompassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept":"application/json"},
+                content: dataInput,
+                preventCache: true,
+                timeout: 15000,
+                sync: false,
+                handleAs: "json",
+                load: successFunction,
+                error: function(errorObj){
+                    showError("unexpected randomgen version string from server: " + errorObj);
+                }
+            });
         });
     }
 }
@@ -439,8 +451,7 @@ function startupChangePasswordPage(initialPrompt)
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
     // setup tooltips
-    dojo.require("dijit.Tooltip");
-    dojo.addOnLoad(function() {
+    require(["dijit/Tooltip"],function(){
         var strengthTooltip = new dijit.Tooltip({
             connectId: ["strengthBox"],
             label: PWM_STRINGS['Tooltip_PasswordStrength']

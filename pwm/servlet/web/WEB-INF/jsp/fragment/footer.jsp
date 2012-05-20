@@ -52,12 +52,10 @@
     <% String currentLocaleName = sessionStateBean.getLocale() != null && !sessionStateBean.getLocale().getDisplayName().equals("") ? sessionStateBean.getLocale().getDisplayName() : new Locale("en").getDisplayName(); %>
     | <span id="localeSelectionMenu"><%=currentLocaleName%></span>
     <script type="text/javascript">
-        dojo.addOnLoad(function(){setTimeout(function(){
+        require(["dojo/ready"],function(){
+            initLocaleSelectorMenu('localeSelectionMenu');
             initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
-        },100);});
-        dojo.addOnLoad(function(){setTimeout(function(){
-            startupLocaleSelectorMenu('localeSelectionMenu');
-        },500);});
+        });
     </script>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>

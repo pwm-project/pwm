@@ -54,10 +54,11 @@
         <% if (isDefault) { %>
         <button id="loadButton-localeBundle-<%=bundleName%>-<%=key%>">Edit Text</button>
         <script type="text/javascript">
-            dojo.require("dijit/form/Button");
-            new dijit.form.Button({
-                onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
-            },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
+            require(["dijit/form/Button"],function(){
+                new dijit.form.Button({
+                    onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
+                },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
+            });
         </script>
         <% } %>
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>

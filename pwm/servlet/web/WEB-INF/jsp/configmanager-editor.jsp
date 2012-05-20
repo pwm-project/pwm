@@ -64,13 +64,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
-    dojo.require("dijit.Menu");
-    dojo.require("dijit.MenuBar");
-    dojo.require("dijit.MenuItem");
-    dojo.require("dijit.MenuBarItem");
-    dojo.require("dijit.PopupMenuBarItem");
-    dojo.require("dijit.CheckedMenuItem");
-
+    require(["dojo","dijit","dijit/Menu","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem"],function(dojo,dijit){
     var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
     { // Settings Menu
         var settingsMenu = new dijit.Menu({});
@@ -333,6 +327,8 @@ function buildMenuBar() {
     }
     topMenuBar.placeAt("TopMenu");
     topMenuBar.startup();
+
+    });
 }
 </script>
 <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
@@ -352,7 +348,7 @@ function buildMenuBar() {
     <textarea style="height:10px" cols="40" rows="1" id="notesTextarea"></textarea>
 </div>
 <script type="text/javascript">
-    dojo.require("dijit.form.Textarea");
+    require(["dojo","dijit","dijit/Form/Textarea"],function(dojo,dijit){
     var notesTextarea = new dijit.form.Textarea({
         disabled: false,
         style: "width: 600px",
@@ -382,23 +378,22 @@ function buildMenuBar() {
             notesTextarea.set('value',value);
         }
     });
+    });
 </script>
 <br/>
 <% } %>
 <div id="mainContentPane" style="width: 600px">
 </div>
 <script type="text/javascript">
-    var mainPane = dojo.addOnLoad(function() {
-        dojo.require("dojox.layout.ContentPane");
+    require(["dojo","dijit","dojox/layout/ContentPane"],function(dojo,dijit){
         new dojox.layout.ContentPane({
             executeScripts: true
         }, "mainContentPane");
-    });
-</script>
-<script type="text/javascript">
-    dojo.addOnLoad(function() { <%-- select the first category --%>
         dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel');
         buildMenuBar();
+        if(dojo.isIE <= 8){ // only IE8 and below
+            alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
+        }
     });
 </script>
 </div>
@@ -412,9 +407,4 @@ function buildMenuBar() {
     }
 </script>
 </body>
-<script type="text/javascript">
-    if(dojo.isIE <= 8){ // only IE8 and below
-        alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
-    }
-</script>
 </html>

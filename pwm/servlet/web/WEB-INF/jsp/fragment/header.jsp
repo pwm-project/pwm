@@ -46,8 +46,7 @@
           href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/>
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/tundra/tundra.css'/>" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/dijit.js'/>"></script>
+    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?nonce=<%=Helper.calcEtagUserString(pwmApplicationHeader, pwmSessionHeader)%>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
     <% if (pwmApplicationHeader.getConfig() != null) { %>

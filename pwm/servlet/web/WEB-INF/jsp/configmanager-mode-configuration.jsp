@@ -66,7 +66,7 @@
                 <td colspan="10" style="border:0; margin:0; padding:0">
                     <div id="healthBody" style="border:0; margin:0; padding:0"></div>
                     <script type="text/javascript">
-                        dojo.addOnLoad(function() {
+                        require(["dojo/ready"],function(){
                             showPwmHealth('healthBody', false);
                         });
                     </script>
