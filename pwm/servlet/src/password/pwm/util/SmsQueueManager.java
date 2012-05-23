@@ -26,7 +26,9 @@ import com.google.gson.Gson;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
@@ -304,18 +306,18 @@ public class SmsQueueManager implements PwmService {
         final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
         LOGGER.trace("SMS data: " + requestData);
         try {
-            final HttpPost httpRequest;
+            final HttpRequestBase httpRequest;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
                 // POST request
                 httpRequest = new HttpPost(gatewayUrl);
                 if (contentType != null && contentType.length()>0) {
                     httpRequest.setHeader("Content-Type", contentType);
                 }
-                httpRequest.setEntity(new StringEntity(requestData));
+                ((HttpPost) httpRequest).setEntity(new StringEntity(requestData));
             } else {
                 // GET request
                 final String fullUrl = gatewayUrl.endsWith("?") ? gatewayUrl + requestData : gatewayUrl + "?" + requestData;
-                httpRequest = new HttpPost(fullUrl);
+                httpRequest = new HttpGet(fullUrl);
             }
 
             if (extraHeaders != null) {

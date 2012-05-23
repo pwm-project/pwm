@@ -41,7 +41,7 @@ v1.6.2
 - Email address destination token not being inserted (issue #177)
 - Double nested form tags on ActiveUser data entry page (issue #175)
 - PwmMacro engine broken when multiple macros used in a single string (issue #200)
-- Incorrect email encoding for non-latin charachtersets (issue #190)
+- Incorrect email encoding for non-latin character sets (issue #190)
 - Novell UserApp responses rejected when using random responses (issue #188)
 
 

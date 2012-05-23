@@ -277,8 +277,10 @@ public class UserStatusHelper {
 
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
-            LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
-            return chaiReadDate;
+            if (chaiReadDate != null) {
+            	LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
+            	return chaiReadDate;
+            }
         } catch (ChaiOperationException e) {
             LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
         }
