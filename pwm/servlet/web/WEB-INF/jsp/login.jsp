@@ -81,7 +81,6 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenPassword" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
             <script type="text/javascript">
-
                 require(["dijit/Tooltip"],function(){
                     var strengthTooltip = new dijit.Tooltip({
                         connectId: ["Title_ForgottenPassword"],

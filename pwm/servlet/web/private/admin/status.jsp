@@ -20,15 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.pwmdb.PwmDB" %>
+<%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="password.pwm.util.pwmdb.PwmDB" %>
-<%@ page import="password.pwm.servlet.ResourceFileServlet" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
-<%@ page import="java.math.BigDecimal" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -498,7 +495,9 @@
         <td>
             <span id="dojoVersionSpan"></span>
             <script type="text/javascript">
-                dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
+                require(["dojo"],function(dojo){
+                    dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
+                });
             </script>
         </td>
     </tr>

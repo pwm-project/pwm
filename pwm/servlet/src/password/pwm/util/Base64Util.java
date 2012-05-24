@@ -1303,10 +1303,12 @@ public class Base64Util
                     bytes = baos.toByteArray();
 
                 }   // end try
+                /* jdr
                 catch( java.io.IOException e ) {
                     e.printStackTrace();
                     // Just return originally-decoded bytes
                 }   // end catch
+                */
                 finally {
                     try{ baos.close(); } catch( Exception e ){}
                     try{ gzis.close(); } catch( Exception e ){}

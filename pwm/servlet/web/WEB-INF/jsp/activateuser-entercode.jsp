@@ -41,7 +41,7 @@
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-            <textarea rows="6" cols="100" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
+            <textarea style="height: 150px; width: 500px; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"

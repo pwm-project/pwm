@@ -27,6 +27,7 @@ import com.novell.ldapchai.cr.ChaiResponseSet;
 import org.apache.log4j.*;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.TokenManager;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
@@ -64,6 +65,7 @@ public class MainClass {
             out("  | UserReport      [outputFile]  Dump a user report to the output file (csv format)");
             out("  | ExportPwmDB     [outputFile]  Export the entire PwmDB contents to a backup file");
             out("  | ImportPwmDB     [inputFile]   Import the entire PwmDB contents from a backup file");
+            out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
         } else {
             if ("PwmDbInfo".equalsIgnoreCase(args[0])) {
                 handlePwmDbInfo();
@@ -81,6 +83,8 @@ public class MainClass {
                 handleExportPwmDB(args);
             } else if ("ImportPwmDB".equalsIgnoreCase(args[0])) {
                 handleImportPwmDB(args);
+            } else if ("TokenInfo".equalsIgnoreCase(args[0])) {
+                handleTokenKey(args);
             } else {
                 out("unknown command '" + args[0] + "'");
             }
@@ -501,5 +505,52 @@ public class MainClass {
 
         out("restore complete, restored " + staticCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
-}
 
+    static void handleTokenKey(final String[] args)
+            throws Exception
+    {
+        if (args.length < 2) {
+            out("first argument must be tokenKey");
+            return;
+        }
+
+        final String tokenKey = args[1];
+
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+
+        final TokenManager tokenManager = pwmApplication.getTokenManager();
+        TokenManager.TokenPayload tokenPayload = null;
+        Exception lookupError = null;
+        try {
+            tokenPayload = tokenManager.retrieveTokenData(tokenKey);
+        } catch (Exception e) {
+            lookupError = e;
+        }
+
+        pwmApplication.shutdown();
+        Helper.pause(1000);
+
+        final StringBuilder output = new StringBuilder();
+        output.append("\n");
+        output.append("token: ").append(tokenKey);
+        output.append("\n");
+
+        if (lookupError != null) {
+            output.append("result: error during token lookup: ").append(lookupError.toString());
+        } else if (tokenPayload == null) {
+            output.append("result: token not found");
+            return;
+        } else {
+            output.append("  name: ").append(tokenPayload.getName());
+            output.append("userDN: ").append(tokenPayload.getUserDN());
+            output.append("issued: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getIssueDate()));
+            for (final String key : tokenPayload.getPayloadData().keySet()) {
+                final String value = tokenPayload.getPayloadData().get(key);
+                output.append("  payload key: ").append(key).append(", value:").append(value);
+            }
+        }
+        out(output.toString());
+    }
+}

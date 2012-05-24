@@ -1065,7 +1065,14 @@ public class Helper {
     }
 
     public static class SimpleTextCrypto {
+
         public static String encryptValue(final String value, final SecretKey key)
+                throws PwmUnrecoverableException
+        {
+            return encryptValue(value, key, false);
+        }
+
+        public static String encryptValue(final String value, final SecretKey key, final boolean urlSafe)
                 throws PwmUnrecoverableException
         {
             try {
@@ -1076,11 +1083,11 @@ public class Helper {
                 final Cipher cipher = Cipher.getInstance("AES");
                 cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
                 final byte[] encrypted = cipher.doFinal(value.getBytes());
-                return Base64Util.encodeBytes(encrypted);
+                return urlSafe ?  Base64Util.encodeBytes(encrypted, Base64Util.URL_SAFE | Base64Util.GZIP) : Base64Util.encodeBytes(encrypted);
             } catch (Exception e) {
                 final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                LOGGER.error(errorInformation.toDebugStr(),e);
+                LOGGER.error(errorInformation.toDebugStr());
                 throw new PwmUnrecoverableException(errorInformation);
             }
         }
@@ -1088,20 +1095,26 @@ public class Helper {
         public static String decryptValue(final String value, final SecretKey key)
                 throws PwmUnrecoverableException
         {
+            return decryptValue(value, key, false);
+        }
+
+        public static String decryptValue(final String value, final SecretKey key, final boolean urlSafe)
+                throws PwmUnrecoverableException
+        {
             try {
                 if (value == null || value.length() < 1) {
-                return "";
-            }
+                    return "";
+                }
 
-            final byte[] decoded = Base64Util.decode(value);
-            final Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, key);
-            final byte[] decrypted = cipher.doFinal(decoded);
-            return new String(decrypted);
+                final byte[] decoded = urlSafe ? Base64Util.decode(value, Base64Util.URL_SAFE | Base64Util.GZIP): Base64Util.decode(value);
+                final Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.DECRYPT_MODE, key);
+                final byte[] decrypted = cipher.doFinal(decoded);
+                return new String(decrypted);
             } catch (Exception e) {
                 final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                LOGGER.error(errorInformation.toDebugStr(),e);
+                LOGGER.error(errorInformation.toDebugStr());
                 throw new PwmUnrecoverableException(errorInformation);
             }
         }

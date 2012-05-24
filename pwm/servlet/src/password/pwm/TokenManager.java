@@ -348,19 +348,14 @@ public class TokenManager implements PwmService {
         {
             final Gson gson = new Gson();
             final String jsonPayload = gson.toJson(this);
-            final String encryptedPayload = Helper.SimpleTextCrypto.encryptValue(jsonPayload,tokenManager.secretKey);
-            final StringBuilder returnString = new StringBuilder(encryptedPayload);
-            for (int i = PwmConstants.TOKEN_WRAP_LENGTH - 1; i < returnString.length(); i += PwmConstants.TOKEN_WRAP_LENGTH) {
-                returnString.insert(i,"\n");
-            }
-            return returnString.toString();
+            return Helper.SimpleTextCrypto.encryptValue(jsonPayload,tokenManager.secretKey, true);
         }
 
         private static TokenPayload fromEncryptedString(final TokenManager tokenManager, final String inputString)
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
-            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken,tokenManager.secretKey);
+            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken,tokenManager.secretKey, true);
             final Gson gson = new Gson();
             return gson.fromJson(decryptedString,TokenPayload.class);
         }

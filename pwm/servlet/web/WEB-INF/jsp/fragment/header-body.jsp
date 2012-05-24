@@ -1,6 +1,6 @@
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmSession" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -38,12 +38,20 @@
 <div id="header">
     <div id="header-company-logo"></div>
     <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
-    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px">
+    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px" id="logoutDiv">
         <a id="LogoutButton" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
            title="<pwm:Display key="Button_Logout"/>">
         </a>
     </div>
-    <%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
+    <script type="text/javascript">
+        require(["dijit/Tooltip"],function(){
+            new dijit.Tooltip({
+                connectId: ["logoutDiv"],
+                label: '<pwm:Display key="Long_Title_Logout"/>'
+            });
+        });
+    </script>
+<%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
     <div style="align:left; float:left; border-width:0; padding-top: 21px; padding-left:18px">
         <img src="<%=request.getContextPath()%>/resources/spacer.gif" alt="" border="0"
              style="width:26px; height:26px"/>

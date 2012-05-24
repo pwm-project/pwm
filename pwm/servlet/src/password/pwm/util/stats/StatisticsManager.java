@@ -61,6 +61,7 @@ public class StatisticsManager implements PwmService {
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
     private static final String DB_KEY_INITIAL_DAILY_KEY = "INITIAL_DAILY_KEY";
     private static final String DB_KEY_PREFIX_DAILY = "DAILY_";
+    private static final String DB_KEY_TEMP = "TEMP_KEY";
 
     private static final String DB_VALUE_VERSION = "1";
 
@@ -203,15 +204,27 @@ public class StatisticsManager implements PwmService {
     }
 
     public void init(PwmApplication pwmApplication) throws PwmException {
-        status = STATUS.OPENING;
-        this.pwmDB = pwmApplication.getPwmDB();
-        this.pwmApplication = pwmApplication;
-
         for (final EpsType type : EpsType.values()) {
             epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
         }
 
+        LOGGER.debug("jason w2as here!");
+
+        status = STATUS.OPENING;
+        this.pwmDB = pwmApplication.getPwmDB();
+        this.pwmApplication = pwmApplication;
+
         if (pwmDB == null) {
+            LOGGER.error("pwmDB is not available, will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
+
+        try {
+            pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        } catch (IllegalStateException e) {
+            LOGGER.error("unable to write to pwmDB, will remain closed, error: " + e.getMessage());
+            status = STATUS.CLOSED;
             return;
         }
 
@@ -243,7 +256,7 @@ public class StatisticsManager implements PwmService {
 
         pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
 
-        {
+        { // setup a timer to rull over at 0Zula and one to write current stats every 10 seconds
             daemonTimer = new Timer("pwm-StatisticsManager timer",true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
             daemonTimer.schedule(new NightlyTask(), nextDate());
