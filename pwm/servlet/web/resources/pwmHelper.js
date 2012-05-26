@@ -25,6 +25,7 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
+    require(["dijit/Dialog"]);
 }
 
 function checkForCapsLock(e) {

@@ -65,268 +65,268 @@
 <script type="text/javascript">
 function buildMenuBar() {
     require(["dojo","dijit","dijit/Menu","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem"],function(dojo,dijit){
-    var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
-    { // Settings Menu
-        var settingsMenu = new dijit.Menu({});
-    <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
-    <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-        settingsMenu.addChild(new dijit.CheckedMenuItem({
-            label: '<%=loopCategory.getLabel(locale)%>',
-            checked: true,
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } else { %>
-        settingsMenu.addChild(new dijit.MenuItem({
-            label: '<%=loopCategory.getLabel(locale)%>',
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } %>
-    <% } %>
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Settings",
-            popup: settingsMenu
-        }));
-    }
-    { // Modules Menu
-        var modulesMenu = new dijit.Menu({});
-    <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
-    <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-        modulesMenu.addChild(new dijit.CheckedMenuItem({
-            label: '<%=loopCategory.getLabel(locale)%>',
-            checked: true,
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } else { %>
-        modulesMenu.addChild(new dijit.MenuItem({
-            label: '<%=loopCategory.getLabel(locale)%>',
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } %>
-    <% } %>
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Modules",
-            popup: modulesMenu
-        }));
-    }
-    { // Display menu
-        var displayMenu = new dijit.Menu({});
-
-    <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
-    <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
-        displayMenu.addChild(new dijit.CheckedMenuItem({
-            label: '<%=localeBundle.getTheClass().getSimpleName()%>',
-            checked: true,
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error loading " + keyName + ", reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } else { %>
-        displayMenu.addChild(new dijit.MenuItem({
-            label: '<%=localeBundle.getTheClass().getSimpleName()%>',
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error loading " + keyName + ", reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-    <% } %>
-    <% } %>
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Display Text",
-            popup: displayMenu
-        }));
-    }
-    { // view
-        var viewMenu = new dijit.Menu({});
-        viewMenu.addChild(new dijit.CheckedMenuItem({
-            label: "Show Advanced Settings",
-            checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
-                    sync: true,
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-        viewMenu.addChild(new dijit.CheckedMenuItem({
-            label: "Display Help Text",
-            checked: <%=showDesc ? "true" : "false"%>,
-            onClick: function() {
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
-                    sync: true,
-                    load: function(data) {
-                        loadMainPageBody();
-                    }
-                });
-            }
-        }));
-        viewMenu.addChild(new dijit.CheckedMenuItem({
-            label: "Show Configuration Notes",
-            checked: <%=showNotes ? "true" : "false"%>,
-            onClick: function() {
-                showWaitDialog('Loading...');
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showNotes=<%=showNotes ? "false" : "true"%>",
-                    sync: true,
-                    load: function(data) {
-                        window.location = "ConfigManager";
-                    }
-                });
-            }
-        }));
-        viewMenu.addChild(new dijit.MenuItem({
-            label: "Show PWM Macro Help",
-            onClick: function() {
-                var idName = 'macroHelpDialog';
-                clearDigitWidget(idName);
-                dojo.require("dijit.Dialog");
-                var theDialog = new dijit.Dialog({
-                    id: idName,
-                    title: 'PWM Macro Help',
-                    style: "width: 550px",
-                    href: "<pwm:url url="/pwm/resources/macroHelp.html"/>"
-                });
-                theDialog.show();
-            }
-        }));
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "View",
-            popup: viewMenu
-        }));
-    }
-    { // Templates
-        var templateMenu = new dijit.Menu({});
-    <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-    <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().template() == template; %>
-        templateMenu.addChild(new dijit.CheckedMenuItem({
-            label: "<%=template.getDescription()%>",
-            checked: <%=isCurrentTemplate ? "true" : "false"%>,
-            onClick: function() {
-                if (!confirm('Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.')) {
-                    return;
+        var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
+        { // Settings Menu
+            var settingsMenu = new dijit.Menu({});
+        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
+        <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+            settingsMenu.addChild(new dijit.CheckedMenuItem({
+                label: '<%=loopCategory.getLabel(locale)%>',
+                checked: true,
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
                 }
-                showWaitDialog('Loading...');
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error loading " + keyName + ", reason: " + errorObj)
-                    },
-                    load: function(data) {
-                        window.location = "ConfigManager";
-                    }
-                });
-            }
-        }));
-    <% } %>
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Template",
-            popup: templateMenu
-        }));
-    }
-    { // Actions
-        var actionsMenu = new dijit.Menu({});
-
-    <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
-        actionsMenu.addChild(new dijit.MenuItem({
-            label: "Finish Editing",
-            onClick: function() {
-                showWaitDialog('Updating Configuration');
-                setTimeout(function() {
-                    document.forms['completeEditing'].submit();
-                }, 1000)
-            }
-        }));
-    <% } else { %>
-        actionsMenu.addChild(new dijit.MenuItem({
-            label: "Save",
-            iconClass: "dijitEditorIcon dijitEditorIconSave",
-            onClick: function() {
-                if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
-                    saveConfiguration();
+            }));
+        <% } else { %>
+            settingsMenu.addChild(new dijit.MenuItem({
+                label: '<%=loopCategory.getLabel(locale)%>',
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
                 }
-            }
-        }));
-    <% } %>
-        actionsMenu.addChild(new dijit.MenuItem({
-            label: "Cancel",
-            iconClass: "dijitEditorIcon dijitEditorIconCancel",
-            onClick: function() {
-                document.forms['cancelEditing'].submit();
-            }
-        }));
+            }));
+        <% } %>
+        <% } %>
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "Settings",
+                popup: settingsMenu
+            }));
+        }
+        { // Modules Menu
+            var modulesMenu = new dijit.Menu({});
+        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
+        <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+            modulesMenu.addChild(new dijit.CheckedMenuItem({
+                label: '<%=loopCategory.getLabel(locale)%>',
+                checked: true,
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+        <% } else { %>
+            modulesMenu.addChild(new dijit.MenuItem({
+                label: '<%=loopCategory.getLabel(locale)%>',
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+        <% } %>
+        <% } %>
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "Modules",
+                popup: modulesMenu
+            }));
+        }
+        { // Display menu
+            var displayMenu = new dijit.Menu({});
 
-        topMenuBar.addChild(new dijit.PopupMenuBarItem({
-            label: "Actions",
-            popup: actionsMenu
-        }));
-    }
-    topMenuBar.placeAt("TopMenu");
-    topMenuBar.startup();
+        <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
+        <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
+            displayMenu.addChild(new dijit.CheckedMenuItem({
+                label: '<%=localeBundle.getTheClass().getSimpleName()%>',
+                checked: true,
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error loading " + keyName + ", reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+        <% } else { %>
+            displayMenu.addChild(new dijit.MenuItem({
+                label: '<%=localeBundle.getTheClass().getSimpleName()%>',
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error loading " + keyName + ", reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+        <% } %>
+        <% } %>
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "Display Text",
+                popup: displayMenu
+            }));
+        }
+        { // view
+            var viewMenu = new dijit.Menu({});
+            viewMenu.addChild(new dijit.CheckedMenuItem({
+                label: "Show Advanced Settings",
+                checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
+                        sync: true,
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+            viewMenu.addChild(new dijit.CheckedMenuItem({
+                label: "Display Help Text",
+                checked: <%=showDesc ? "true" : "false"%>,
+                onClick: function() {
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
+                        sync: true,
+                        load: function(data) {
+                            loadMainPageBody();
+                        }
+                    });
+                }
+            }));
+            viewMenu.addChild(new dijit.CheckedMenuItem({
+                label: "Show Configuration Notes",
+                checked: <%=showNotes ? "true" : "false"%>,
+                onClick: function() {
+                    showWaitDialog('Loading...');
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showNotes=<%=showNotes ? "false" : "true"%>",
+                        sync: true,
+                        load: function(data) {
+                            window.location = "ConfigManager";
+                        }
+                    });
+                }
+            }));
+            viewMenu.addChild(new dijit.MenuItem({
+                label: "Show PWM Macro Help",
+                onClick: function() {
+                    var idName = 'macroHelpDialog';
+                    clearDigitWidget(idName);
+                    dojo.require("dijit.Dialog");
+                    var theDialog = new dijit.Dialog({
+                        id: idName,
+                        title: 'PWM Macro Help',
+                        style: "width: 550px",
+                        href: "<pwm:url url="/pwm/resources/macroHelp.html"/>"
+                    });
+                    theDialog.show();
+                }
+            }));
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "View",
+                popup: viewMenu
+            }));
+        }
+        { // Templates
+            var templateMenu = new dijit.Menu({});
+        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+        <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().template() == template; %>
+            templateMenu.addChild(new dijit.CheckedMenuItem({
+                label: "<%=template.getDescription()%>",
+                checked: <%=isCurrentTemplate ? "true" : "false"%>,
+                onClick: function() {
+                    if (!confirm('Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.')) {
+                        return;
+                    }
+                    showWaitDialog('Loading...');
+                    dojo.xhrGet({
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
+                        sync: true,
+                        error: function(errorObj) {
+                            showError("error loading " + keyName + ", reason: " + errorObj)
+                        },
+                        load: function(data) {
+                            window.location = "ConfigManager";
+                        }
+                    });
+                }
+            }));
+        <% } %>
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "Template",
+                popup: templateMenu
+            }));
+        }
+        { // Actions
+            var actionsMenu = new dijit.Menu({});
+
+        <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
+            actionsMenu.addChild(new dijit.MenuItem({
+                label: "Finish Editing",
+                onClick: function() {
+                    showWaitDialog('Updating Configuration');
+                    setTimeout(function() {
+                        document.forms['completeEditing'].submit();
+                    }, 1000)
+                }
+            }));
+        <% } else { %>
+            actionsMenu.addChild(new dijit.MenuItem({
+                label: "Save",
+                iconClass: "dijitEditorIcon dijitEditorIconSave",
+                onClick: function() {
+                    if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
+                        saveConfiguration();
+                    }
+                }
+            }));
+        <% } %>
+            actionsMenu.addChild(new dijit.MenuItem({
+                label: "Cancel",
+                iconClass: "dijitEditorIcon dijitEditorIconCancel",
+                onClick: function() {
+                    document.forms['cancelEditing'].submit();
+                }
+            }));
+
+            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+                label: "Actions",
+                popup: actionsMenu
+            }));
+        }
+        topMenuBar.placeAt("TopMenu");
+        topMenuBar.startup();
 
     });
 }
@@ -349,35 +349,35 @@ function buildMenuBar() {
 </div>
 <script type="text/javascript">
     require(["dojo","dijit","dijit/Form/Textarea"],function(dojo,dijit){
-    var notesTextarea = new dijit.form.Textarea({
-        disabled: false,
-        style: "width: 600px",
-        onChange: function() {
-            dojo.xhrPost({
-                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
-                postData: dojo.toJson(this.value),
-                contentType: "application/json;charset=utf-8",
-                dataType: "json",
-                handleAs: "text",
-                sync: true,
-                error: function(errorObj) {
-                    showError("error saving notes text, reason: " + errorObj)
-                }
-            });
-        }
-    }, "notesTextarea");
-    dojo.xhrGet({
-        url:"ConfigManager?processAction=getOptions&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        dataType: "json",
-        handleAs: "json",
-        error: function(errorObj) {
-            showError("error reading notes text, reason: " + errorObj)
-        },
-        load: function(data){
-            var value = data['notesText'];
-            notesTextarea.set('value',value);
-        }
-    });
+        var notesTextarea = new dijit.form.Textarea({
+            disabled: false,
+            style: "width: 600px",
+            onChange: function() {
+                dojo.xhrPost({
+                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
+                    postData: dojo.toJson(this.value),
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    handleAs: "text",
+                    sync: true,
+                    error: function(errorObj) {
+                        showError("error saving notes text, reason: " + errorObj)
+                    }
+                });
+            }
+        }, "notesTextarea");
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=getOptions&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            dataType: "json",
+            handleAs: "json",
+            error: function(errorObj) {
+                showError("error reading notes text, reason: " + errorObj)
+            },
+            load: function(data){
+                var value = data['notesText'];
+                notesTextarea.set('value',value);
+            }
+        });
     });
 </script>
 <br/>

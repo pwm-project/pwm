@@ -152,12 +152,10 @@
             }
         }, "select_<%=loopSetting.getKey()%>");
         readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
-            require(["dijit"],function(dijit){
-                var selectElement = getObject('select_' + '<%=loopSetting.getKey()%>');
-                selectElement.disabled = false;
-                dijit.byId('select_<%=loopSetting.getKey()%>').setDisabled(false);
-                dijit.byId('select_<%=loopSetting.getKey()%>').set('value',dataValue);
-            });
+            var selectElement = getObject('select_' + '<%=loopSetting.getKey()%>');
+            selectElement.disabled = false;
+            dijit.byId('select_<%=loopSetting.getKey()%>').setDisabled(false);
+            dijit.byId('select_<%=loopSetting.getKey()%>').set('value',dataValue);
         });
     });
 </script>
@@ -248,14 +246,12 @@
             value: "<%=ConfigManagerServlet.DEFAULT_PW%>",
             type: 'password',
             onKeyDown: function() {
-                require(["dojo","dijit"],function(dojo,dijit){
-                    var currentValue = dojo.byId('value_<%=loopSetting.getKey()%>').value;
-                    if (currentValue == '<%=ConfigManagerServlet.DEFAULT_PW%>') {
-                        dojo.byId('value_<%=loopSetting.getKey()%>').value = '';
-                    }
-                    dojo.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
-                    dijit.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
-                });
+                var currentValue = dojo.byId('value_<%=loopSetting.getKey()%>').value;
+                if (currentValue == '<%=ConfigManagerServlet.DEFAULT_PW%>') {
+                    dojo.byId('value_<%=loopSetting.getKey()%>').value = '';
+                }
+                dojo.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
+                dijit.byId('value_verify_<%=loopSetting.getKey()%>').value = '';
             }
         }, "value_<%=loopSetting.getKey()%>");
         new dijit.form.ValidationTextBox({
@@ -265,19 +261,17 @@
             value: "<%=ConfigManagerServlet.DEFAULT_PW%>",
             type: 'password',
             onChange: function() {
-                require(["dojo","dijit"],function(dojo,dijit){
-                    var v = dijit.byId('value_verify_<%=loopSetting.getKey()%>');
-                    if (v.isValid()) {
-                        writeSetting('<%=loopSetting.getKey()%>', this.value);
-                    }
-                });
+                var v = dijit.byId('value_verify_<%=loopSetting.getKey()%>');
+                if (v.isValid()) {
+                    writeSetting('<%=loopSetting.getKey()%>', this.value);
+                }
             },
             validator: function() {
-                require(["dojo","dijit"],function(dojo,dijit){
-                    var password = dojo.byId('value_<%=loopSetting.getKey()%>').value;
-                    var verifyPassword = dojo.byId('value_verify_<%=loopSetting.getKey()%>').value;
-                    return password == verifyPassword;
-                });
+                var password = dojo.byId('value_<%=loopSetting.getKey()%>').value;
+                var verifyPassword = dojo.byId('value_verify_<%=loopSetting.getKey()%>').value;
+                var passwordsAreSame = password == verifyPassword;
+                console.log('check2 password=' + password + ', verifyPassword=' + verifyPassword + ", passwordsAreSame=" + passwordsAreSame);
+                return passwordsAreSame;
             }
         }, "value_verify_<%=loopSetting.getKey()%>");
         readInitialTextBasedValue('<%=loopSetting.getKey()%>');
