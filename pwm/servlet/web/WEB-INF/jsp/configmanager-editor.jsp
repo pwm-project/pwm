@@ -383,18 +383,19 @@ function buildMenuBar() {
 <br/>
 <% } %>
 <div id="mainContentPane" style="width: 600px">
+    <% if (configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+    <jsp:include page="configmanager-editor-settings.jsp"/>
+    <% } else if (configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
+    <jsp:include page="configmanager-editor-localeBundle.jsp"/>
+    <% } %>
 </div>
 <script type="text/javascript">
-    require(["dojo","dijit","dojox/layout/ContentPane"],function(dojo,dijit){
-        new dojox.layout.ContentPane({
-            executeScripts: true
-        }, "mainContentPane");
-        dijit.byId('mainContentPane').set('href', 'ConfigManager?processAction=editorPanel');
-        buildMenuBar();
+    require(["dojo","dojo/ready"],function(dojo){
         if(dojo.isIE <= 8){ // only IE8 and below
             alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
         }
     });
+    buildMenuBar();
 </script>
 </div>
 </div>

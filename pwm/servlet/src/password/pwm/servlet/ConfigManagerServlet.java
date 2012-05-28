@@ -72,17 +72,6 @@ public class ConfigManagerServlet extends TopServlet {
             if ("getOptions".equalsIgnoreCase(processActionParam)) {
                 doGetOptions(req, resp);
                 return;
-            } else if ("editorPanel".equalsIgnoreCase(processActionParam)) {
-                switch (configManagerBean.getEditMode()) {
-                    case SETTINGS:
-                        req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS).forward(req, resp);
-                        break;
-
-                    case LOCALEBUNDLE:
-                        req.getSession().getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE).forward(req, resp);
-                        break;
-                }
-                return;
             } else if ("viewLog".equalsIgnoreCase(processActionParam)) {
                 doViewLog(req, resp);
                 return;

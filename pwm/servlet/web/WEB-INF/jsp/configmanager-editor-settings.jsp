@@ -33,20 +33,6 @@
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
-<script type="text/javascript">
-    function readInitialTextBasedValue(key) {
-        require(["dijit"],function(dijit){
-            readSetting(key, function(dataValue) {
-                getObject('value_' + key).value = dataValue;
-                getObject('value_' + key).disabled = false;
-                dijit.byId('value_' + key).set('disabled', false);
-                dijit.byId('value_' + key).startup();
-                try {dijit.byId('value_' + key).validate(false);} catch (e) {}
-                try {dijit.byId('value_verify_' + key).validate(false);} catch (e) {}
-            });
-        });
-    }
-</script>
 <% if (showDesc) { %><span><%= category.getDescription(locale)%></span><br/><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p>
@@ -114,7 +100,7 @@
     [Loading...]
 </button>
 <script type="text/javascript">
-    require(["dijit","dijit/form/Button"],function(dijit){
+    require(["dijit","dijit/form/Button","dijit/registry"],function(dijit){
         new dijit.form.Button({
             disabled: true,
             onClick: function() {
@@ -144,7 +130,7 @@
     <% } %>
 </select>
 <script type="text/javascript">
-    require(["dijit","dijit/form/FilteringSelect"],function(dijit){
+    require(["dijit","dijit/form/FilteringSelect","dijit/registry"],function(dijit){
         new dijit.form.FilteringSelect({
             disabled: true,
             onChange: function() {
@@ -199,7 +185,7 @@
 <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
 <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
 <script type="text/javascript">
-    require(["dijit/form/NumberSpinner"],function(dijit){
+    require(["dijit/form/NumberSpinner"],function(){
         new dijit.form.NumberSpinner({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -238,7 +224,7 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo","dijit","dijit/form/ValidationTextBox"],function(dojo,dijit){
+    require(["dojo","dijit","dijit/form/ValidationTextBox","dijit/registry"],function(dojo,dijit){
         new dijit.form.ValidationTextBox({
             required: <%=loopSetting.isRequired()%>,
             invalidMessage: "The password is not valid.",
@@ -269,9 +255,7 @@
             validator: function() {
                 var password = dojo.byId('value_<%=loopSetting.getKey()%>').value;
                 var verifyPassword = dojo.byId('value_verify_<%=loopSetting.getKey()%>').value;
-                var passwordsAreSame = password == verifyPassword;
-                console.log('check2 password=' + password + ', verifyPassword=' + verifyPassword + ", passwordsAreSame=" + passwordsAreSame);
-                return passwordsAreSame;
+                return password == verifyPassword;
             }
         }, "value_verify_<%=loopSetting.getKey()%>");
         readInitialTextBasedValue('<%=loopSetting.getKey()%>');

@@ -30,6 +30,7 @@ function readSetting(keyName, valueWriter) {
         dojo.xhrGet({
             url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
             contentType: "application/json;charset=utf-8",
+            preventCache: true,
             dataType: "json",
             handleAs: "json",
             error: function(errorObj) {
@@ -188,8 +189,8 @@ function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
         });
 
         clientSettingCache[keyName] = resultValue;
-        require(["dojo","dijit/form/Button","dijit/form/TextArea"],function(dojo){
-            dojo.parser.parse(parentDiv);
+        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
+            dojoParser.parse(parentDiv);
         });
     });
 }
@@ -275,7 +276,7 @@ function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
 }
 
 function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
-    require(["dijit"],function(dijit){
+    require(["dijit","dijit/registry"],function(dijit){
         var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
         try {
             var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
@@ -321,14 +322,14 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
             parentDivElement.appendChild(newTableRow);
         }
         clientSettingCache[keyName] = counter;
-        require(["dojo","dijit/form/Button","dijit/form/TextArea"],function(dojo){
-            dojo.parser.parse(parentDiv);
+        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
+            dojoParser.parse(parentDiv);
         });
     });
 }
 
 function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern) {
-    require(["dijit"],function(dijit){
+    require(["dijit","dijit/registry"],function(dijit){
         var inputID = 'value-' + settingKey + '-' + iteration;
 
         // clear the old dijit node (if it exists)
@@ -406,7 +407,7 @@ function addMultiSetting(keyName, parentDiv, regExPattern) {
 // -------------------------- multi locale table handler ------------------------------------
 
 function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
-    require(["dojo","dijit","dijit/form/Button","dijit/form/TextArea"],function(dojo,dijit){
+    require(["dojo","dijit","dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
         clearDivElements(parentDiv, true);
         readSetting(keyName, function(resultValue) {
             clearDivElements(parentDiv, false);
@@ -515,7 +516,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
             }
 
             var addLocaleFunction = function() {
-                require(["dijit"],function(dijit){
+                require(["dijit","dijit/registry"],function(dijit){
                     writeMultiLocaleSetting(keyName, dijit.byId(keyName + "-addLocaleValue").value, 0, '');
                     initMultiLocaleTable(parentDiv, keyName, regExPattern);
                 });
@@ -523,7 +524,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
 
             addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
             clientSettingCache[keyName] = resultValue;
-            dojo.parser.parse(parentDiv);
+            dojoParser.parse(parentDiv);
         });
     });
 }
@@ -566,12 +567,14 @@ function saveConfiguration() {
         showWaitDialog('Saving Configuration...', null);
         dojo.xhrGet({
             url:"ConfigManager?processAction=getOptions",
+            preventCache: true,
             sync: true,
             dataType: "json",
             handleAs: "json",
             load: function(data) {
                 dojo.xhrGet({
-                    url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID']
+                    url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    preventCache: true
                 });
                 var oldEpoch = data != null ? data['configEpoch'] : null;
                 var currentTime = new Date().getTime();
@@ -594,13 +597,15 @@ function finalizeConfiguration() {
 
         dojo.xhrGet({
             url:"ConfigManager?processAction=getOptions",
+            preventCache: true,
             sync: false,
             dataType: "json",
             handleAs: "json",
             load: function(data) {
                 dojo.xhrGet({
                     url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    sync:true
+                    sync:true,
+                    preventCache: true
                 });
                 var oldEpoch = data['configEpoch'];
                 var currentTime = new Date().getTime();
@@ -623,6 +628,7 @@ function waitForRestart(startTime, oldEpoch) {
         var currentTime = new Date().getTime();
         dojo.xhrGet({
             url:"ConfigManager?processAction=getOptions",
+            preventCache: true,
             sync: true,
             dataType: "json",
             handleAs: "json",
@@ -675,6 +681,7 @@ function startNewConfigurationEditor(template) {
         showWaitDialog('Loading...','');
         dojo.xhrGet({
             url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+            preventCache: true,
             sync: true,
             error: function(errorObj) {
                 showError("error starting configuration editor: " + errorObj)
@@ -707,4 +714,17 @@ function getCookie(c_name)
             return unescape(y);
         }
     }
+}
+
+function readInitialTextBasedValue(key) {
+    require(["dijit","dijit/registry"],function(dijit){
+        readSetting(key, function(dataValue) {
+            getObject('value_' + key).value = dataValue;
+            getObject('value_' + key).disabled = false;
+            dijit.byId('value_' + key).set('disabled', false);
+            dijit.byId('value_' + key).startup();
+            try {dijit.byId('value_' + key).validate(false);} catch (e) {}
+            try {dijit.byId('value_verify_' + key).validate(false);} catch (e) {}
+        });
+    });
 }

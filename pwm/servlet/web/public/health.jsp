@@ -60,66 +60,69 @@
         PWM_GLOBAL['pwm-health'] = 'GOOD';
 
         function displayRandomFloat(text) {
-            var floatParent = getObject("floatparent");
-            dojo.require("dojo.window");
-            var vs = dojo.window.getBox();
+            require(["dojo","dojo/window"],function(dojo){
+                var floatParent = getObject("floatparent");
+                var vs = dojo.window.getBox();
 
-            var topPos = Math.floor((Math.random() * vs.h));
-            var leftPos = Math.floor((Math.random() * vs.w));
-            var bottomPos = vs.h - topPos;
-            var rightPos = vs.w - leftPos;
+                var topPos = Math.floor((Math.random() * vs.h));
+                var leftPos = Math.floor((Math.random() * vs.w));
+                var bottomPos = vs.h - topPos;
+                var rightPos = vs.w - leftPos;
 
-            var styleText = "position: absolute; ";
-            if (topPos > (vs.h / 2)) {
-                styleText = styleText + "bottom: " + bottomPos + "px; ";
-            } else {
-                styleText = styleText + "top: " + topPos + "px; ";
-            }
-            if (leftPos > (vs.w / 2)) {
-                styleText = styleText + "right: " + rightPos +"px; ";
-            } else {
-                styleText = styleText + "left: " + leftPos +"px; ";
-            }
-
-
-            styleText = styleText + "padding: 4px; z-index:2; border-radius: 5px;";
-            var divId = "randomPwDiv" + splatCount % MAX_NODES;
-
-            { // remove old node
-                var existingDiv = getObject(divId);
-                if (existingDiv != null) {
-                    floatParent.removeChild(existingDiv);
+                var styleText = "position: absolute; ";
+                if (topPos > (vs.h / 2)) {
+                    styleText = styleText + "bottom: " + bottomPos + "px; ";
+                } else {
+                    styleText = styleText + "top: " + topPos + "px; ";
                 }
-            }
+                if (leftPos > (vs.w / 2)) {
+                    styleText = styleText + "right: " + rightPos +"px; ";
+                } else {
+                    styleText = styleText + "left: " + leftPos +"px; ";
+                }
 
-            var div = document.createElement('div');
-            div.innerHTML = text;
-            div.id = divId;
-            div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
 
-            div.setAttribute("style",styleText);
-            floatParent.appendChild(div);
+                styleText = styleText + "padding: 4px; z-index:2; border-radius: 5px;";
+                var divId = "randomPwDiv" + splatCount % MAX_NODES;
+
+                { // remove old node
+                    var existingDiv = getObject(divId);
+                    if (existingDiv != null) {
+                        floatParent.removeChild(existingDiv);
+                    }
+                }
+
+                var div = document.createElement('div');
+                div.innerHTML = text;
+                div.id = divId;
+                div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
+
+                div.setAttribute("style",styleText);
+                floatParent.appendChild(div);
+            });
         }
 
         function fetchRandomPassword() {
-            dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
-                headers: {"Accept":"application/json"},
-                dataType: "json",
-                timeout: 15000,
-                sync: false,
-                preventCache: true,
-                handleAs: "json",
-                load:  function(resultInfo) {
-                    var password = resultInfo["password"];
-                    displayRandomFloat(password);
-                    doNext();
-                },
-                error: function(errorObj){
-                    var password = "server unreachable";
-                    displayRandomFloat(password);
-                    doNext();
-                }
+            require(["dojo"],function(dojo){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-restservice'] + "/randompassword" + "?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    headers: {"Accept":"application/json"},
+                    dataType: "json",
+                    timeout: 15000,
+                    sync: false,
+                    preventCache: true,
+                    handleAs: "json",
+                    load:  function(resultInfo) {
+                        var password = resultInfo["password"];
+                        displayRandomFloat(password);
+                        doNext();
+                    },
+                    error: function(errorObj){
+                        var password = "server unreachable";
+                        displayRandomFloat(password);
+                        doNext();
+                    }
+                });
             });
         }
 
@@ -131,11 +134,10 @@
             },randomInterval);
         }
 
-        dojo.addOnLoad(function(){
+        require(["dojo","dojo/ready"],function(){
             showPwmHealth('healthBody', false);
             setTimeout(function(){ doNext(); },60 * 1000);
         });
-
     </script>
 </div>
 </body>

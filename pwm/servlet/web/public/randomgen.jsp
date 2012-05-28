@@ -38,30 +38,31 @@
     <script type="text/javascript">
         var cellCount = 0;
         function makeTable() {
-            dojo.require("dojo.window");
-            var vs = dojo.window.getBox();
-            var cellHeight = 20;
-            var cellWidth = 150;
+            require(["dojo","dojo/window"],function(dojo){
+                var vs = dojo.window.getBox();
+                var cellHeight = 20;
+                var cellWidth = 150;
 
-            var rows = Math.floor(vs.w / cellWidth);
-            var columns = Math.floor((vs.h - 70 - 20) / cellHeight); //70 for header, 50 for footer
+                var rows = Math.floor(vs.w / cellWidth);
+                var columns = Math.floor((vs.h - 70 - 20) / cellHeight); //70 for header, 50 for footer
 
-            var innerHtmlText = "";
-            var position = 0;
-            var fetchList = new Array();
-            for (var columnCounter = 0; columnCounter < columns; columnCounter++) {
-                innerHtmlText = innerHtmlText + '<tr>';
-                for (var rowCounter = 0; rowCounter < rows; rowCounter++) {
-                    position = position + 1;
-                    var idString = "randomGen" + position;
-                    fetchList[position] = idString;
-                    innerHtmlText = innerHtmlText + '<td id="' + idString + '" style="text-align: center;" width="'+cellWidth+'">&nbsp;</td>';
+                var innerHtmlText = "";
+                var position = 0;
+                var fetchList = new Array();
+                for (var columnCounter = 0; columnCounter < columns; columnCounter++) {
+                    innerHtmlText = innerHtmlText + '<tr>';
+                    for (var rowCounter = 0; rowCounter < rows; rowCounter++) {
+                        position = position + 1;
+                        var idString = "randomGen" + position;
+                        fetchList[position] = idString;
+                        innerHtmlText = innerHtmlText + '<td id="' + idString + '" style="text-align: center;" width="'+cellWidth+'">&nbsp;</td>';
+                    }
+                    innerHtmlText = innerHtmlText + '</tr>';
                 }
-                innerHtmlText = innerHtmlText + '</tr>';
-            }
-            getObject('mastertable').innerHTML = innerHtmlText;
-            initFetchProcess(fetchList);
-            cellCount = position;
+                getObject('mastertable').innerHTML = innerHtmlText;
+                initFetchProcess(fetchList);
+                cellCount = position;
+            });
         }
 
         function initFetchProcess(fetchList) {
@@ -76,7 +77,7 @@
         }
 
 
-        dojo.addOnLoad(function(){
+        require(["dojo/ready"],function(){
             makeTable();
             window.onresize = function(event) {
                 makeTable();

@@ -217,8 +217,10 @@ public class TokenManager implements PwmService {
     public List<HealthRecord> healthCheck() {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 
-        if (errorInformation != null) {
-            returnRecords.add(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
+        if (tokensAreUsedInConfig(configuration)) {
+            if (errorInformation != null) {
+                returnRecords.add(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
+            }
         }
 
         if (storageMethod == StorageMethod.STORE_LDAP) {
@@ -682,5 +684,12 @@ public class TokenManager implements PwmService {
 
         public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
         }
+    }
+
+    private static boolean tokensAreUsedInConfig(final Configuration configuration) {
+        return configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) ||
+                configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION) ||
+                configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE);
+
     }
 }

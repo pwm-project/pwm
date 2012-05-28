@@ -21,10 +21,12 @@
   --%>
 
 <!DOCTYPE html>
+
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.bean.ActivateUserBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
+<html dir="<pwm:LocaleOrientation/>">
 <body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="tundra">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -41,7 +43,7 @@
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-            <textarea style="height: 150px; width: 500px; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
+            <textarea style="height: 130px; width: 500px; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"

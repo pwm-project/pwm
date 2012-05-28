@@ -62,7 +62,7 @@
         if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
     %>
     <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-    <select name="context">
+    <select id="context" name="context">
         <pwm:DisplayLocationOptions name="context"/>
     </select>
     <% } %>
@@ -85,7 +85,7 @@
 <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
 <div style="width: 100%; height: 400px">
 <div class="message message-info">
-<div style="text-align: center; width: 100%"><%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %></div>
+<div style="text-align: center; width: 100%; font-weight: bold; font-variant-caps: small-caps;"><%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %></div>
 <div dojoType="dijit.layout.TabContainer" style="width: 100%; height: 100%;" doLayout="false">
 <div dojoType="dijit.layout.ContentPane" title="Data">
     <table>
@@ -297,7 +297,7 @@
                 clearDigitWidget('changepassword-popup');
                 var theDialog = new dijit.Dialog({
                     id: 'changepassword-popup',
-                    title: 'Change Password for <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
+                    title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
                     style: "width: 450px",
                     content: bodyText,
                     hide: function(){
@@ -321,7 +321,9 @@
         }
         function doPasswordChange(password) {
             require(["dojo"],function(dojo){
-                showWaitDialog('Setting: <b>' + password + '</b>');
+                body = '<div id="WaitDialogBlank"/>';
+
+                showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
                 var inputValues = {};
                 inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
                 inputValues['password'] = password;
@@ -337,21 +339,21 @@
                         load: function(results){
                             var bodyText = "";
                             if (results['success'] == 'true') {
-                                bodyText += PWM_STRINGS['Message_SuccessUnknown'];
-                                bodyText += '<br/><br/><b>' + password + '</b><br/';
-                            <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
-                                bodyText += '<br/><br/><button onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
-                                bodyText += 'Clear Responses</button><br/>';
-                            <% } %>
+                                bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/>';
                             } else {
                                 bodyText += results['errorMsg'];
                             }
                             bodyText += '<br/><br/><button onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                            <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
+                            bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
+                            bodyText += '<button onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
+                            bodyText += 'Clear Responses</button>';
+                            <% } %>
                             clearDigitWidget('waitDialogID');
                             dojo.require("dijit.Dialog");
                             var theDialog = new dijit.Dialog({
                                 id: 'result-popup',
-                                //title: '',
+                                title: PWM_STRINGS['Message_SuccessUnknown'],
                                 style: "width: 450px",
                                 content: bodyText,
                                 hide: function(){
@@ -413,7 +415,7 @@
     </script>
 </div>
 </div>
-<div dojoType="dijit.layout.ContentPane" title="History">
+<div dojoType="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
     <table>
         <% for (final UserHistory.Record record : helpdeskBean.getUserHistory().getRecords()) { %>
         <tr>

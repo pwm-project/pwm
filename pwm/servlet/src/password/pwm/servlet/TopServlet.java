@@ -24,13 +24,13 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
-import password.pwm.util.ServletHelper;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Properties;
 import java.util.Set;
 
@@ -179,9 +180,9 @@ public abstract class TopServlet extends HttpServlet {
         redirectURL.append("?");
         redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
         redirectURL.append("&");
-        redirectURL.append("code=").append(aftPath);
+        redirectURL.append(PwmConstants.PARAM_TOKEN).append("=").append(URLEncoder.encode(aftPath,"UTF8"));
         redirectURL.append("&");
-        redirectURL.append("pwmFormID=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
+        redirectURL.append(PwmConstants.PARAM_FORM_ID).append("=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
 
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         resp.sendRedirect(redirectURL.toString());

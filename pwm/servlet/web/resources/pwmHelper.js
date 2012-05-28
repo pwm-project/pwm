@@ -219,9 +219,6 @@ function initLocaleSelectorMenu(attachNode) {
             var loopKey = localeKey == '' ? 'default' : localeKey;
             loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
         }
-
-        // open the menu (for this first execution, afterwords menu will open itself via attachment)
-        //pMenu._openMyself({target: getObject(attachNode)});
     });
 }
 
@@ -302,7 +299,7 @@ function showPwmHealth(parentDivID, refreshNow) {
 
                 htmlBody += '<br/>' + error + '<br/>';
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
-                htmlBody += '<a href=""; onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
+                htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
                 htmlBody += '</div>';
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
