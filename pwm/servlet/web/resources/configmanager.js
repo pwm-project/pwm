@@ -329,7 +329,7 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
 }
 
 function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern) {
-    require(["dijit","dijit/registry"],function(dijit){
+    require(["dijit/registry"],function(dijit){
         var inputID = 'value-' + settingKey + '-' + iteration;
 
         // clear the old dijit node (if it exists)
