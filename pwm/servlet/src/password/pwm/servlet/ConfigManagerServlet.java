@@ -154,11 +154,6 @@ public class ConfigManagerServlet extends TopServlet {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
                     break;
             }
-
-            {
-                final String notesText = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
-                configManagerBean.setShowNotes(notesText != null && notesText.length() > 0);
-            }
         }
     }
 
@@ -563,17 +558,6 @@ public class ConfigManagerServlet extends TopServlet {
                     LOGGER.trace("setting showDesc to: " + configManagerBean.isShowDescr());
                 } catch (Exception e) {
                     LOGGER.error("unknown showDesc set request: " + requestedShowDesc);
-                }
-            }
-        }
-        {
-            final String requestedShowNotes = Validator.readStringFromRequest(req, "showNotes", 255);
-            if (requestedShowNotes != null && requestedShowNotes.length() > 0) {
-                try {
-                    configManagerBean.setShowNotes(Boolean.valueOf(requestedShowNotes));
-                    LOGGER.trace("setting showDesc to: " + configManagerBean.isShowDescr());
-                } catch (Exception e) {
-                    LOGGER.error("unknown showDesc set request: " + requestedShowNotes);
                 }
             }
         }

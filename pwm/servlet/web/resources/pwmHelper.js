@@ -25,7 +25,10 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
-    require(["dijit/Dialog"]);
+
+    require(["dojo/ready"],function(){setTimeout(function(){
+        require(["dijit/Dialog"]);
+    },3000)});
 }
 
 function checkForCapsLock(e) {
@@ -166,7 +169,7 @@ function changeInputTypeField(object, type) {
 }
 
 function clearDigitWidget(widgetName) {
-    require(["dijit"],function(dijit){
+    require(["dijit/registry"],function(dijit){
         var oldDijitNode = dijit.byId(widgetName);
         if (oldDijitNode != null) {
             try {

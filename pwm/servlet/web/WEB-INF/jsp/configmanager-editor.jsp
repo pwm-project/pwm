@@ -35,10 +35,10 @@
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
-<% final boolean showNotes = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowNotes(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
+
 <body class="tundra">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
 <script type="text/javascript">
@@ -64,7 +64,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
-    require(["dojo","dijit","dijit/Menu","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem"],function(dojo,dijit){
+    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],function(dojo,dijit){
         var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
@@ -199,7 +199,7 @@ function buildMenuBar() {
         { // view
             var viewMenu = new dijit.Menu({});
             viewMenu.addChild(new dijit.CheckedMenuItem({
-                label: "Show Advanced Settings",
+                label: "Advanced Settings",
                 checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                 onClick: function() {
                     dojo.xhrGet({
@@ -224,26 +224,18 @@ function buildMenuBar() {
                     });
                 }
             }));
-            viewMenu.addChild(new dijit.CheckedMenuItem({
-                label: "Show Configuration Notes",
-                checked: <%=showNotes ? "true" : "false"%>,
+            viewMenu.addChild(new dijit.MenuSeparator());
+            viewMenu.addChild(new dijit.MenuItem({
+                label: "Configuration Notes",
                 onClick: function() {
-                    showWaitDialog('Loading...');
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showNotes=<%=showNotes ? "false" : "true"%>",
-                        sync: true,
-                        load: function(data) {
-                            window.location = "ConfigManager";
-                        }
-                    });
+                    showConfigurationNotes();
                 }
             }));
             viewMenu.addChild(new dijit.MenuItem({
-                label: "Show PWM Macro Help",
+                label: "PWM Macro Help",
                 onClick: function() {
                     var idName = 'macroHelpDialog';
                     clearDigitWidget(idName);
-                    dojo.require("dijit.Dialog");
                     var theDialog = new dijit.Dialog({
                         id: idName,
                         title: 'PWM Macro Help',
@@ -258,6 +250,7 @@ function buildMenuBar() {
                 popup: viewMenu
             }));
         }
+
         { // Templates
             var templateMenu = new dijit.Menu({});
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
@@ -330,6 +323,18 @@ function buildMenuBar() {
 
     });
 }
+buildMenuBar();
+
+require(["dojo","dojo/ready"],function(dojo){
+    if(dojo.isIE <= 8){ // only IE8 and below
+        alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
+    }
+});
+
+function loadMainPageBody() {
+    window.location = window.location;
+}
+
 </script>
 <form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
       enctype="application/x-www-form-urlencoded">
@@ -341,47 +346,6 @@ function buildMenuBar() {
     <input type="hidden" name="processAction" value="cancelEditing"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
-<% if (showNotes) { %>
-<br/>
-<div style="width:600px;">
-    <div style="width:600px; text-align:center;"><label for="notesTextarea"><h2>Configuration Notes</h2></label></div>
-    <textarea style="height:10px" cols="40" rows="1" id="notesTextarea"></textarea>
-</div>
-<script type="text/javascript">
-    require(["dojo","dijit","dijit/Form/Textarea"],function(dojo,dijit){
-        var notesTextarea = new dijit.form.Textarea({
-            disabled: false,
-            style: "width: 600px",
-            onChange: function() {
-                dojo.xhrPost({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
-                    postData: dojo.toJson(this.value),
-                    contentType: "application/json;charset=utf-8",
-                    dataType: "json",
-                    handleAs: "text",
-                    sync: true,
-                    error: function(errorObj) {
-                        showError("error saving notes text, reason: " + errorObj)
-                    }
-                });
-            }
-        }, "notesTextarea");
-        dojo.xhrGet({
-            url:"ConfigManager?processAction=getOptions&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            dataType: "json",
-            handleAs: "json",
-            error: function(errorObj) {
-                showError("error reading notes text, reason: " + errorObj)
-            },
-            load: function(data){
-                var value = data['notesText'];
-                notesTextarea.set('value',value);
-            }
-        });
-    });
-</script>
-<br/>
-<% } %>
 <div id="mainContentPane" style="width: 600px">
     <% if (configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
     <jsp:include page="configmanager-editor-settings.jsp"/>
@@ -389,23 +353,10 @@ function buildMenuBar() {
     <jsp:include page="configmanager-editor-localeBundle.jsp"/>
     <% } %>
 </div>
-<script type="text/javascript">
-    require(["dojo","dojo/ready"],function(dojo){
-        if(dojo.isIE <= 8){ // only IE8 and below
-            alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
-        }
-    });
-    buildMenuBar();
-</script>
 </div>
 </div>
 <br/>
 <br/>
 <div style="background:  black; color: white;"><%@ include file="fragment/footer.jsp" %></div>
-<script type="text/javascript">
-    function loadMainPageBody() {
-        window.location = "ConfigManager";
-    }
-</script>
 </body>
 </html>

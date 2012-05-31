@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -31,13 +32,21 @@
 <% final password.pwm.config.PwmSetting.Level level = configManagerBean.getLevel(); %>
 <% final boolean showDesc = configManagerBean.isShowDescr(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
+<% final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null; %>
+
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
 <% if (showDesc) { %><span><%= category.getDescription(locale)%></span><br/><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p>
     <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
-    <span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Show Advanced Options" from the View menu to show additional settings.
+    <span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Advanced Options" from the View menu to show all settings.
+</p>
+<% } %>
+<% if (hasNotes) { %>
+<p>
+    <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
+    <span style="font-weight: bold;">Notes for this configuration exist.</span>&nbsp;&nbsp;Select "Show Notes" from the View menu to see configuration notes.
 </p>
 <% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>

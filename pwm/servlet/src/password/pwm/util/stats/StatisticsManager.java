@@ -208,8 +208,6 @@ public class StatisticsManager implements PwmService {
             epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
         }
 
-        LOGGER.debug("jason w2as here!");
-
         status = STATUS.OPENING;
         this.pwmDB = pwmApplication.getPwmDB();
         this.pwmApplication = pwmApplication;

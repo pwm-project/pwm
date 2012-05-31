@@ -189,7 +189,7 @@ function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
         });
 
         clientSettingCache[keyName] = resultValue;
-        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
+        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
             dojoParser.parse(parentDiv);
         });
     });
@@ -276,7 +276,7 @@ function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
 }
 
 function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
-    require(["dijit","dijit/registry"],function(dijit){
+    require(["dijit/registry"],function(dijit){
         var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
         try {
             var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
@@ -728,3 +728,52 @@ function readInitialTextBasedValue(key) {
         });
     });
 }
+
+function writeConfigurationNotes() {
+    require(["dojo"],function(dojo){
+        var value = getObject('configNotesDialog').value;
+        dojo.xhrPost({
+            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
+            postData: dojo.toJson(value),
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "text",
+            sync: true,
+            error: function(errorObj) {
+                showError("error saving notes text: " + errorObj)
+            }
+        });
+    });
+}
+
+function showConfigurationNotes() {
+    require(["dojo","dijit/form/Textarea","dijit/Dialog"],function(dojo){
+
+        var idName = 'configNotesDialog';
+        var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
+        bodyText += '</textarea>';
+
+        clearDigitWidget(idName + 'Dialog');
+        var theDialog = new dijit.Dialog({
+            id: idName + 'Dialog',
+            title: 'Configuration Notes',
+            style: "width: 600px;",
+            content: bodyText
+        });
+        theDialog.show();
+
+        dojo.xhrGet({
+            url:"ConfigManager?processAction=getOptions&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            dataType: "json",
+            handleAs: "json",
+            error: function(errorObj) {
+                showError("error reading notes text: " + errorObj)
+            },
+            load: function(data){
+                var value = data['notesText'];
+                getObject(idName).value = value;
+            }
+        });
+    });
+}
+

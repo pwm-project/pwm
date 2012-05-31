@@ -38,7 +38,6 @@ public class ConfigManagerBean implements Serializable {
     private ErrorInformation errorInformation;
     private PwmSetting.Level level = PwmSetting.Level.BASIC;
     private boolean showDescr = true;
-    private boolean showNotes = true;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
 
@@ -99,14 +98,6 @@ public class ConfigManagerBean implements Serializable {
 
     public void setCategory(final PwmSetting.Category category) {
         this.category = category;
-    }
-
-    public boolean isShowNotes() {
-        return showNotes;
-    }
-
-    public void setShowNotes(final boolean showNotes) {
-        this.showNotes = showNotes;
     }
 
     public PwmConstants.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
