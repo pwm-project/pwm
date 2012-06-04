@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -28,7 +27,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();try {document.forms.verifyCaptcha.recaptcha_response_field.focus()} catch (e) {}"
-      class="tundra">
+      class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>

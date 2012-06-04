@@ -44,12 +44,12 @@
         </a>
     </div>
     <script type="text/javascript">
-        require(["dijit/Tooltip"],function(){
+        require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
             new dijit.Tooltip({
                 connectId: ["logoutDiv"],
                 label: '<pwm:Display key="Long_Title_Logout"/>'
             });
-        });
+        });},1000)});
     </script>
 <%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
     <div style="align:left; float:left; border-width:0; padding-top: 21px; padding-left:18px">

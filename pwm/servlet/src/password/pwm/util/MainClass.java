@@ -31,18 +31,11 @@ import password.pwm.TokenManager;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.csv.CsvReader;
-import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
-import password.pwm.util.pwmdb.PwmDBFactory;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.util.pwmdb.*;
 
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class MainClass {
 
@@ -53,7 +46,7 @@ public class MainClass {
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
-        out("PWM Command Line - " + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
+        out("PWM Command Line - v" + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
         if (args == null || args.length < 1) {
             out("");
             out(" [command] option option");
@@ -366,45 +359,12 @@ public class MainClass {
         }
 
         final File outputFile = new File(args[1]);
-        CsvWriter csvWriter = null;
-
-        out("counting lines...");
-        int lineCounter = 0;
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-            lineCounter += pwmDB.size(loopDB);
-        }
-        final int totalLines = lineCounter;
-        out(" total lines: " + lineCounter);
-
-        out("export beginning");
-        final long startTime = System.currentTimeMillis();
-        final Timer statTimer = new Timer(true);
-        statTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                final float percentComplete = ((float) staticCounter / (float) totalLines);
-                final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
-
-                out(" exported " + staticCounter + " records, " + percentStr + " complete");
-            }
-        },30 * 1000, 30 * 1000);
+        final PwmDBUtility pwmDBUtility = new PwmDBUtility(pwmDB);
         try {
-            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputFile))),',');
-            for (PwmDB.DB loopDB : PwmDB.DB.values()) {
-                for (final Iterator<String> iter = pwmDB.iterator(loopDB); iter.hasNext();) {
-                    final String key = iter.next();
-                    final String value = pwmDB.get(loopDB, key);
-                    csvWriter.writeRecord(new String[] {loopDB.toString(),key,value});
-                    staticCounter++;
-                }
-            }
-        } finally {
-            if (csvWriter != null) {
-                csvWriter.close();
-            }
+            pwmDBUtility.exportPwmDB(outputFile, System.out);
+        } catch (PwmOperationalException e) {
+            out("error during export: " + e.getMessage());
         }
-
-        out("export complete, exported " + staticCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
     static void handleImportPwmDB(final String[] args) throws Exception {
@@ -430,80 +390,13 @@ public class MainClass {
             return;
         }
 
+        final PwmDBUtility pwmDBUtility = new PwmDBUtility(pwmDB);
         final File inputFile = new File(args[1]);
-        CsvReader csvReader = null;
-
-        out("clearing PwmDB...");
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-            out(" truncating " + loopDB.toString());
-            pwmDB.truncate(loopDB);
-        }
-        out("PwmDB cleared");
-
-        out("counting lines...");
-        int lineCounter = 0;
         try {
-            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
-            while (csvReader.readRecord()) {
-                lineCounter++;
-            }
-        } finally {
-            if (csvReader != null) {csvReader.close();}
+            pwmDBUtility.importPwmDB(inputFile, System.out);
+        } catch (PwmOperationalException e) {
+            out("error during import: " + e.getMessage());
         }
-        final int totalLines = lineCounter;
-        out(" total lines: " + lineCounter);
-
-        out("beginning restore...");
-        final long startTime = System.currentTimeMillis();
-        final Timer statTimer = new Timer(true);
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 1100, 50, 50 * 1000);
-        statTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                final float percentComplete = ((float) staticCounter / (float) totalLines);
-                final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
-                out(" restored " + staticCounter + " records, " + percentStr + " complete, transactionSize=" + transactionCalculator.getTransactionSize());
-            }
-        },15 * 1000, 30 * 1000);
-
-        final Map<PwmDB.DB,Map<String,String>> transactionMap = new HashMap<PwmDB.DB, Map<String, String>>();
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-            transactionMap.put(loopDB,new HashMap<String, String>());
-        }
-
-        try {
-            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
-            while (csvReader.readRecord()) {
-                final PwmDB.DB db = PwmDB.DB.valueOf(csvReader.get(0));
-                final String key = csvReader.get(1);
-                final String value = csvReader.get(2);
-                pwmDB.put(db, key, value);
-                transactionMap.get(db).put(key,value);
-                int cachedTransactions = 0;
-                for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-                    cachedTransactions += transactionMap.get(loopDB).keySet().size();
-                }
-                if (cachedTransactions >= transactionCalculator.getTransactionSize()) {
-                    final long startTxnTime = System.currentTimeMillis();
-                    for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-                        pwmDB.putAll(loopDB,transactionMap.get(loopDB));
-                        staticCounter += transactionMap.get(loopDB).size();
-                        transactionMap.get(loopDB).clear();
-                    }
-                    transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startTxnTime));
-                }
-
-            }
-        } finally {
-            if (csvReader != null) {csvReader.close();}
-        }
-
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
-            pwmDB.putAll(loopDB,transactionMap.get(loopDB));
-            transactionMap.get(loopDB).clear();
-        }
-
-        out("restore complete, restored " + staticCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
     static void handleTokenKey(final String[] args)

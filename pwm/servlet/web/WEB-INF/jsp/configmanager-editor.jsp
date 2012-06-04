@@ -39,7 +39,7 @@
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
 
-<body class="tundra">
+<body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
 <script type="text/javascript">
     <% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
@@ -234,7 +234,7 @@ function buildMenuBar() {
             viewMenu.addChild(new dijit.MenuItem({
                 label: "PWM Macro Help",
                 onClick: function() {
-                    var idName = 'macroHelpDialog';
+                    var idName = 'dialogPopup';
                     clearDigitWidget(idName);
                     var theDialog = new dijit.Dialog({
                         id: idName,
@@ -332,7 +332,7 @@ require(["dojo","dojo/ready"],function(dojo){
 });
 
 function loadMainPageBody() {
-    window.location = window.location;
+    window.location = '<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>';
 }
 
 </script>

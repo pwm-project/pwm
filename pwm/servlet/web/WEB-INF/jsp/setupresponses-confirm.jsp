@@ -32,7 +32,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();"
-      class="tundra">
+      class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>

@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
@@ -117,7 +116,7 @@
                         <%= leftStat.getLabel(locale) %>
                     </td>
                     <td>
-                        <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
+                        <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE && leftStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
                     </td>
                     <% if (iter.hasNext()) { %>
                     <% Statistic rightStat = iter.next(); %>
@@ -125,7 +124,7 @@
                         <%= rightStat.getLabel(locale) %>
                     </td>
                     <td>
-                        <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE ? " ms" : "" %>
+                        <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE && rightStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
                     </td>
                     <% } else { %>
                     <td colspan="2">

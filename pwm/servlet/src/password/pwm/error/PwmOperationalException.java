@@ -30,4 +30,8 @@ public class PwmOperationalException extends PwmException {
     public PwmOperationalException(final PwmError error) {
         super(error);
     }
+
+    public PwmOperationalException(final PwmError error, final String detailedErrorMsg) {
+        super(new ErrorInformation(error, detailedErrorMsg));
+    }
 }

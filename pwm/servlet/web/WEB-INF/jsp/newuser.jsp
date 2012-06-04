@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="tundra">
+<body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="nihilo">
 <script type="text/javascript"
         src="<%=request.getContextPath()%>/resources/<pwm:url url='newuser.js'/>"></script>
 <div id="wrapper">

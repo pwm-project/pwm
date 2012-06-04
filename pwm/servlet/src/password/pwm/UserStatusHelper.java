@@ -314,7 +314,7 @@ public class UserStatusHelper {
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
         final Configuration config = pwmApplication.getConfig();
-        return convertUsernameFieldtoDN(username, pwmSession, context, provider, config);
+        return convertUsernameFieldtoDN(username, pwmSession, context, provider, config, true);
     }
 
     public static String convertUsernameFieldtoDN(
@@ -322,7 +322,8 @@ public class UserStatusHelper {
             final PwmSession pwmSession,
             final String context,
             final ChaiProvider provider,
-            final Configuration config
+            final Configuration config,
+            final boolean strictContext
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         // if no username supplied, just return empty string
@@ -341,7 +342,7 @@ public class UserStatusHelper {
             }
         }
 
-        final String searchDN = determineContextForSearch(pwmSession, context, config);
+        final String searchDN = determineContextForSearch(pwmSession, context, config, strictContext);
         LOGGER.trace(pwmSession, "attempting username search for '" + username + "'" + " in context " + searchDN);
 
         final SearchHelper searchHelper = new SearchHelper();
@@ -379,10 +380,20 @@ public class UserStatusHelper {
         }
     }
 
-    public static String determineContextForSearch(final PwmSession pwmSession, final String context, final Configuration config) {
+    public static String determineContextForSearch(
+            final PwmSession pwmSession,
+            final String context,
+            final Configuration config,
+            final boolean strictContext
+    )
+    {
         final String configuredLdapContextlessRoot = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         if (context == null || context.length() < 1) {
             return configuredLdapContextlessRoot;
+        }
+
+        if (!strictContext) {
+            return context;
         }
 
         // validate if supplied context is configured root

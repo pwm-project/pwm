@@ -165,7 +165,7 @@ public class HelpdeskServlet extends TopServlet {
         try {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final Configuration config = pwmApplication.getConfig();
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, searchContext, provider, config);
+            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, searchContext, provider, config, false);
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = PwmError.ERROR_CANT_MATCH_USER.toInfo();
             pwmSession.getSessionStateBean().setSessionError(errorInformation);

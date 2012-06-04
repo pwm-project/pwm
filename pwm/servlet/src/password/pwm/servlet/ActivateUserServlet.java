@@ -140,7 +140,7 @@ public class ActivateUserServlet extends TopServlet {
             final ChaiUser theUser;
             {
                 final String searchFilter = figureSearchFilterForParams(formValues, pwmApplication.getConfig());
-                final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmApplication.getConfig());
+                final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmApplication.getConfig(),true);
                 theUser = performUserSearch(pwmSession, pwmApplication, searchFilter, searchContext);
             }
 

@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="tundra">
+<body class="nihilo">
 <%
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     final boolean hasBeenModified = configManagerBean.getConfiguration() != null && configManagerBean.getConfiguration().hasBeenModified();

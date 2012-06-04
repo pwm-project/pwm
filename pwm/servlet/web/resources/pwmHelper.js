@@ -26,7 +26,7 @@ function pwmPageLoadHandler() {
         loopForm.setAttribute('autocomplete', 'off');
     }
 
-    require(["dojo/ready"],function(){setTimeout(function(){
+    require(["dojo/domReady!"],function(){setTimeout(function(){
         require(["dijit/Dialog"]);
     },3000)});
 }
@@ -89,7 +89,7 @@ function handleFormSubmit(buttonID, form) {
         }
     }
 
-    showWaitDialog(PWM_STRINGS['Display_PleaseWait'], "");
+    showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
 
     require(["dijit/Dialog"],function(){
         setTimeout(function() {
@@ -187,7 +187,7 @@ function initLocaleSelectorMenu(attachNode) {
         return;
     }
 
-    require(["dijit/Menu","dijit/MenuItem"],function(){
+    require(["dojo/domReady!","dijit/Menu","dijit/MenuItem"],function(){
         var pMenu = new dijit.Menu({
             targetNodeIds: [attachNode],
             leftClickToOpen: true
@@ -227,7 +227,7 @@ function initLocaleSelectorMenu(attachNode) {
 
 function showWaitDialog(title, body) {
     require(["dijit/Dialog"],function(){
-        var idName = 'waitDialogID';
+        var idName = 'dialogPopup';
         clearDigitWidget(idName);
         if (body == null || body.length < 1) {
             body = '<div id="WaitDialogBlank"/>';
@@ -545,6 +545,7 @@ function doShow(destClass, message) {
         return;
     }
     messageElement.firstChild.nodeValue = message;
+    messageElement.style.display = 'inherit';
 
     require(["dojo"],function(dojo){
         if(dojo.isIE <= 8){ // only IE7 and below

@@ -153,12 +153,14 @@ public class IntruderManager implements Serializable {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String addressString = ssBean.getSrcAddress();
 
-        final IntruderRecord record = addressLockTable.get(addressString);
-        if (record != null && record.isLocked()) {
-            LOGGER.warn(pwmSession, "address intruder limit exceeded for " + addressString + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_ADDRESS);
-            ssBean.setSessionError(error);
-            throw new PwmUnrecoverableException(error);
+        if (addressString != null) {
+            final IntruderRecord record = addressLockTable.get(addressString);
+            if (record != null && record.isLocked()) {
+                LOGGER.warn(pwmSession, "address intruder limit exceeded for " + addressString + " " + TimeDuration.asCompactString(record.timeRemaining()) + " remaining in lockout");
+                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_ADDRESS);
+                ssBean.setSessionError(error);
+                throw new PwmUnrecoverableException(error);
+            }
         }
     }
 
@@ -192,7 +194,7 @@ public class IntruderManager implements Serializable {
             LOGGER.debug(pwmSession, sb.toString());
         }
     }
-    
+
     public void delayPenalty(final String username, final PwmSession pwmSession) {
         Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
     }

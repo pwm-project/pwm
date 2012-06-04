@@ -36,7 +36,7 @@
 
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>
-<% if (showDesc) { %><span><%= category.getDescription(locale)%></span><br/><% } %>
+<% if (showDesc) { %><p><%= category.getDescription(locale)%></p><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
 <p>
     <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
@@ -44,10 +44,15 @@
 </p>
 <% } %>
 <% if (hasNotes) { %>
-<p>
+<p id="show-notes-warning">
     <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
     <span style="font-weight: bold;">Notes for this configuration exist.</span>&nbsp;&nbsp;Select "Show Notes" from the View menu to see configuration notes.
 </p>
+<script type="text/javascript">
+    if (getCookie("seen-notes") == "true") {
+        getObject('show-notes-warning').style.display = 'none';
+    }
+</script>
 <% } %>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
 <% final boolean showSetting = loopSetting.getCategory() == category && ((level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC) || !configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>

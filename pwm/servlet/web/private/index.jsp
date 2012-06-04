@@ -33,67 +33,68 @@
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
+        <br/>
         <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a>
         <p><pwm:Display key="Long_Title_ChangePassword"/></p>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.SETUP_RESPONSE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a>
         <p><pwm:Display key="Long_Title_SetupResponses"/></p>
         <% } %>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='UpdateProfile'/>" class="tablekey"><pwm:Display key="Title_UpdateProfile"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='UpdateProfile'/>" class="tablekey"><pwm:Display key="Title_UpdateProfile"/></a>
         <p><pwm:Display key="Long_Title_UpdateProfile"/></p>
         <% } %>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
-        <h2><a class="menubutton" href="<pwm:url url='history.jsp'/>" class="tablekey"><pwm:Display key="Title_UserEventHistory"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='history.jsp'/>" class="tablekey"><pwm:Display key="Title_UserEventHistory"/></a>
         <p><pwm:Display key="Long_Title_UserEventHistory"/></p>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
-        <h2><a class="menubutton" href="<pwm:url url='Shortcuts'/>" class="tablekey"><pwm:Display key="Title_Shortcuts"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='Shortcuts'/>" class="tablekey"><pwm:Display key="Title_Shortcuts"/></a>
         <p><pwm:Display key="Long_Title_Shortcuts"/></p>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.PEOPLE_SEARCH, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='PeopleSearch'/>" class="tablekey"><pwm:Display key="Title_PeopleSearch"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='PeopleSearch'/>" class="tablekey"><pwm:Display key="Title_PeopleSearch"/></a>
         <p><pwm:Display key="Long_Title_PeopleSearch"/></p>
         <% } %>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
-        <h2><a class="menubutton" href="<pwm:url url='userinfo.jsp'/>" class="tablekey"><pwm:Display key="Title_UserInformation"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='userinfo.jsp'/>" class="tablekey"><pwm:Display key="Title_UserInformation"/></a>
         <p><pwm:Display key="Long_Title_UserInformation"/></p>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.HELPDESK, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='Helpdesk'/>" class="tablekey"><pwm:Display key="Title_Helpdesk"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='Helpdesk'/>" class="tablekey"><pwm:Display key="Title_Helpdesk"/></a>
         <p><pwm:Display key="Long_Title_Helpdesk"/></p>
         <% } %>
         <% } %>
 
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
         <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/> & <pwm:Display key="Title_GuestUpdate"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='GuestRegistration'/>" class="tablekey"><pwm:Display key="Title_GuestRegistration"/> & <pwm:Display key="Title_GuestUpdate"/></a>
         <p><pwm:Display key="Long_Title_GuestRegistration"/></p>
         <% } %>
         <% } %>
 
         <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <h2><a class="menubutton" href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a>
         <p><pwm:Display key="Long_Title_Admin"/></p>
         <% } %>
 
-        <h2><a class="menubutton" href="<pwm:url url='../public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a></h2>
+        <a class="menubutton" href="<pwm:url url='../public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a>
         <p><pwm:Display key="Long_Title_Logout"/></p>
     </div>
 </div>

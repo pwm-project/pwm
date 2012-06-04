@@ -1,6 +1,5 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.error.PwmError" %>
-<%@ page import="java.io.PrintWriter" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -30,7 +29,7 @@
 <%@ page isErrorPage="true" %>
 <%@ include file="fragment/header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
-<body onload="pwmPageLoadHandler();" class="tundra">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Error"/>

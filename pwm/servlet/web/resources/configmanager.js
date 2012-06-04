@@ -693,11 +693,11 @@ function startNewConfigurationEditor(template) {
     });
 }
 
-function setCookie(c_name,value,exdays)
+function setCookie(c_name,value,exseconds)
 {
     var exdate=new Date();
-    exdate.setDate(exdate.getDate() + exdays);
-    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+    exdate.setTime(exdate.getTime + (exseconds * 1000));
+    var c_value=escape(value) + ((exseconds==null) ? "" : "; expires="+exdate.toUTCString());
     document.cookie=c_name+"=" + c_value;
 }
 
@@ -749,13 +749,14 @@ function writeConfigurationNotes() {
 function showConfigurationNotes() {
     require(["dojo","dijit/form/Textarea","dijit/Dialog"],function(dojo){
 
+        setCookie("seen-notes","true", 60 * 60);
         var idName = 'configNotesDialog';
         var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
         bodyText += '</textarea>';
 
-        clearDigitWidget(idName + 'Dialog');
+        clearDigitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
-            id: idName + 'Dialog',
+            id: 'dialogPopup',
             title: 'Configuration Notes',
             style: "width: 600px;",
             content: bodyText
@@ -777,3 +778,4 @@ function showConfigurationNotes() {
     });
 }
 
+N

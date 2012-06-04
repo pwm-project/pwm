@@ -221,7 +221,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     text = trimString(text);
 
 
-    closeRandomPasswordsDialog();
+    clearDigitWidget('dialogPopup');
 
     if (passwordsMasked) {
         toggleMaskPasswords();
@@ -233,7 +233,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
 }
 
 function showPasswordGuide() {
-    closePasswordGuide();
+    clearDigitWidget('clearDigitWidget');
     require(["dijit/Dialog"],function(){
         var theDialog = new dijit.Dialog({
             title: PWM_STRINGS['Title_PasswordGuide'],
@@ -241,24 +241,14 @@ function showPasswordGuide() {
             content: PWM_STRINGS['passwordGuideText'],
             closable: true,
             draggable: true,
-            id: "passwordGuideDialog"
+            id: "dialogPopup"
         });
         theDialog.show();
     });
 }
 
-function closePasswordGuide() {
-    require(["dijit"],function(dijit){
-        var dialog = dijit.byId('passwordGuideDialog');
-        if (dialog != null) {
-            dialog.hide();
-            dialog.destroyRecursive();
-        }
-    });
-}
-
 function showRandomPasswordsDialog(randomConfig) {
-    closeRandomPasswordsDialog();
+    clearDigitWidget('dialogPopup');
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
     var centerBodyElement = getObject('centerbody');
@@ -272,22 +262,12 @@ function showRandomPasswordsDialog(randomConfig) {
             draggable: true,
             autofocus: false,
             containerNode: centerBodyElement,
-            id: "randomPasswordDialog"
+            id: "dialogPopup"
 
         });
         theDialog.setAttribute('class','tundra');
         theDialog.show();
         beginFetchRandoms(randomConfig);
-    });
-}
-
-function closeRandomPasswordsDialog() {
-    require(["dijit"],function(dijit){
-        var dialog = dijit.byId('randomPasswordDialog');
-        if (dialog != null) {
-            dialog.hide();
-            dialog.destroyRecursive();
-        }
     });
 }
 

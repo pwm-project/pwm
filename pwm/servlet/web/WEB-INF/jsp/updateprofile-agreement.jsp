@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();updateContinueButton()" class="tundra">
+<body onload="pwmPageLoadHandler();updateContinueButton()" class="nihilo">
 <script type="text/javascript">
     function updateContinueButton() {
         var checkBox = getObject("agreeCheckBox");

@@ -73,6 +73,7 @@ public enum Statistic {
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),
+    AVG_PASSWORD_STRENGTH(Type.AVERAGE, "AvgPasswordStrength")
 
     ;
 

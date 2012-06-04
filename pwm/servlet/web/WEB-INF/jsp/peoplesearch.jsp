@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.servlet.PeopleSearchServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -28,7 +27,7 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="tundra">
+<body onload="pwmPageLoadHandler();getObject('username').focus();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>

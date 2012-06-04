@@ -38,7 +38,7 @@ in the body onload below, the true parameter toggles the hide button an extra ti
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
 --%>
 <body onload="pwmPageLoadHandler(); startupResponsesPage(); document.forms.responseForm.elements[0].focus();"
-      class="tundra">
+      class="nihilo">
 <div id="wrapper">
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>

@@ -349,8 +349,12 @@ div.progress-container > div {
 }
 
 
-#waitDialogID_underlay {
+#dialogPopup_underlay {
     background-color: #222222;
+}
+
+#idleDialog_underlay {
+    background-color: #111111;
 }
 
 #TopMenu {

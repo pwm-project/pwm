@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
-<body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="tundra">
+<body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>

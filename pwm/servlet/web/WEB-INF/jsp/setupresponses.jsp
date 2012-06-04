@@ -37,7 +37,7 @@
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="tundra"
+<body class="nihilo"
       onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms[0].elements[0].focus();">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/responses.js'/>"></script>
 <div id="wrapper">
@@ -66,10 +66,9 @@
             <h2><label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %>
             </label></h2>
             <% } else { %>
-            <label for="PwmResponse_R_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
-            <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
-                   value="<%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%>"
-                   onkeyup="validateResponses();"/>
+            <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
+            <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 410px"
+                   class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%></textarea>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
@@ -86,7 +85,7 @@
                     for (int i = 0; i < responseBean.getMinRandomSetup(); i++) {
             %>
             <h2>
-                <select name="PwmResponse_Q_Random_<%=i%>" id="PwmResponse_Q_Random_<%=i%>" style="font-weight:normal;"
+                <select name="PwmResponse_Q_Random_<%=i%>" id="PwmResponse_Q_Random_<%=i%>" style="font-weight:normal"
                         onchange="makeSelectOptionsDistinct();getObject('PwmResponse_R_Random_<%=i%>').value = '';validateResponses();getObject('PwmResponse_R_Random_<%=i%>').focus()">
                     <%
                         for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {
@@ -130,10 +129,9 @@
             <h2><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %>
             </h2>
             <% } else { %>
-            <pwm:Display key="Field_User_Supplied_Question"/>&nbsp;
-            <input type="text" name="PwmResponse_Q_<%=indexKey%>" class="inputfield"
-                   value="<%=StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%>"
-                   onkeyup="validateResponses();"/>
+            <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
+            <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 410px"
+                      class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%></textarea>
             <% } %>
             <p>
                 &nbsp;»&nbsp;
@@ -167,6 +165,11 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
+        <script type="text/javascript">
+            require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
+                dojoParser.parse(getObject('centerbody'));
+            });
+        </script>
     </div>
     <br class="clear"/>
 </div>

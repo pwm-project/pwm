@@ -58,6 +58,8 @@ public enum PwmSetting {
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
+    KNOWN_LOCALES(
+            "knownLocales", Syntax.STRING_ARRAY, Category.GENERAL, false, Level.ADVANCED),
 
     // change password
     LOGOUT_AFTER_PASSWORD_CHANGE(
@@ -117,8 +119,6 @@ public enum PwmSetting {
             "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
-    DISPLAY_KNOWN_LOCALES(
-            "display.knownLocales", Syntax.STRING_ARRAY, Category.USER_INTERFACE, false, Level.ADVANCED),
 
 
     //ldap directory

@@ -32,7 +32,7 @@
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="tundra">
+<body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">

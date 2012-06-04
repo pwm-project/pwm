@@ -164,8 +164,12 @@ public class PasswordUtility {
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmApplication.getProxyChaiProvider());
 
         // update statistics
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
-        pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES,1);
+        {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_CHANGES);
+            pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES,1);
+            final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, newPassword);
+            pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
+        }
 
         // add the old password to the global history list (if the old password is known)
         if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
@@ -235,8 +239,8 @@ public class PasswordUtility {
 
         // mark the event log
         {
-        final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-        UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_SET_PASSWORD, message);
+            final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
+            UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_SET_PASSWORD, message);
         }
 
         // update statistics
@@ -255,7 +259,7 @@ public class PasswordUtility {
             final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
             Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, configNameValuePairs, true);
         }
-        
+
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
             final String userGUID = Helper.readLdapGuidValue(pwmApplication, proxiedUser.getEntryDN());

@@ -20,8 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -29,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="tundra">
+<body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%>/resources/configmanager.js"></script>
 <div id="wrapper">
     <div id="header">

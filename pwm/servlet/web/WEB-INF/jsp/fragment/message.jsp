@@ -31,7 +31,7 @@
 <span id="message" class="message message-success"><pwm:SuccessMessage/></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); %>
 <% } else { %>
-<span id="message" class="message">&nbsp;</span>
+<span style="display:none" id="message" class="message">&nbsp;</span>
 <% } %>
 <div id="capslockwarning" style="display:none;"><pwm:Display key="Display_CapsLockIsOn"/></div>
 

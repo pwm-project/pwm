@@ -80,8 +80,9 @@ function makeValidationKey() {
         for (var i = 0; i < document.forms[j].length; i++) {
             var current = document.forms[j].elements[i];
             if (current.name.substring(0,PARAM_QUESTION_PREFIX.length) == PARAM_QUESTION_PREFIX || current.name.substring(0,PARAM_RESPONSE_PREFIX.length) == PARAM_RESPONSE_PREFIX) {
-                cacheKeyValue = cacheKeyValue + (current.name + '=' + current.value) + '&';
-                paramData[current.name] = current.value;
+                var currentValue = current.value;
+                cacheKeyValue = cacheKeyValue + (current.name + '=' + currentValue) + '&';
+                paramData[current.name] = currentValue;
             }
         }
     }

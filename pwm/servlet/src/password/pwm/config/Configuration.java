@@ -449,7 +449,7 @@ public class Configuration implements Serializable {
     public List<Locale> getKnownLocales() {
         if (knownLocales == null) {
             final List<Locale> returnList = new ArrayList<Locale>();
-            final List<String> localeList = readSettingAsStringArray(PwmSetting.DISPLAY_KNOWN_LOCALES);
+            final List<String> localeList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
             Collections.sort(localeList);
             if (localeList != null) {
                 for (final String localeString : localeList) {
