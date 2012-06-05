@@ -323,8 +323,8 @@ function doRandomGeneration(randomConfig) {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_STRINGS['Button_More'] + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button onclick="closeRandomPasswordsDialog()">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_STRINGS['Button_More'] + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="closeRandomPasswordsDialog()">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
     dialogBody += "</table>";
     randomConfig['dialogBody'] = dialogBody;
     PWM_GLOBAL['lastRandomConfig'] = randomConfig;

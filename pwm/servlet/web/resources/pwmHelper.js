@@ -89,12 +89,12 @@ function handleFormSubmit(buttonID, form) {
         }
     }
 
-    showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
-
     require(["dijit/Dialog"],function(){
+        showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
+
         setTimeout(function() {
             form.submit();
-        }, 100);
+        }, 300);
     });
 }
 

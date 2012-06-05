@@ -273,9 +273,11 @@ public class IntruderManager implements Serializable {
     }
 
     private static void doGoodAttempt(final Map table, final String key) {
-        final IntruderRecord record = (IntruderRecord) table.get(key);
-        if (record != null) {
-            record.clearAttemptCount();
+        if (key != null) {
+            final IntruderRecord record = (IntruderRecord) table.get(key);
+            if (record != null) {
+                record.clearAttemptCount();
+            }
         }
     }
 

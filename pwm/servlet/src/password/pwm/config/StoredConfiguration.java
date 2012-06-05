@@ -208,25 +208,31 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template) {
-        switch (pwmSetting.getSyntax()) {
-            case STRING:
-            case BOOLEAN:
-            case TEXT_AREA:
-            case SELECT:
-            case NUMERIC:
-                return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
-            case PASSWORD:
-                return StoredValue.StoredValuePassword.fromJsonString(pwmSetting.getDefaultValue(template));
-            case LOCALIZED_STRING:
-            case LOCALIZED_TEXT_AREA:
-                return StoredValue.StoredValueLocaleList.fromJsonString(pwmSetting.getDefaultValue(template));
-            case LOCALIZED_STRING_ARRAY:
-                return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue(template));
-            case STRING_ARRAY:
-                return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue(template));
+        try {
+            switch (pwmSetting.getSyntax()) {
+                case STRING:
+                case BOOLEAN:
+                case TEXT_AREA:
+                case SELECT:
+                case NUMERIC:
+                    return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
+                case PASSWORD:
+                    return StoredValue.StoredValuePassword.fromJsonString(pwmSetting.getDefaultValue(template));
+                case LOCALIZED_STRING:
+                case LOCALIZED_TEXT_AREA:
+                    return StoredValue.StoredValueLocaleList.fromJsonString(pwmSetting.getDefaultValue(template));
+                case LOCALIZED_STRING_ARRAY:
+                    return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue(template));
+                case STRING_ARRAY:
+                    return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue(template));
 
-            default:
-                throw new IllegalArgumentException("unable to read default value for: " + pwmSetting.toString());
+                default:
+                    throw new IllegalArgumentException("unable to read default value for: " + pwmSetting.toString());
+            }
+        } catch (Exception e) {
+            final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            throw new IllegalStateException(errorMsg,e);
         }
     }
 
@@ -882,8 +888,14 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
                 final Gson gson = new Gson();
                 final List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
-                }.getType());                               
-                return new StoredValueList(srcList == null ? Collections.<String>emptyList() : srcList);
+                }.getType());
+
+                if (srcList == null || srcList.isEmpty()) {
+                    return new StoredValueList(Collections.<String>emptyList());
+                }
+
+                srcList.removeAll(Collections.singletonList(null));
+                return new StoredValueList(srcList);
             }
 
             public String toJsonString() {

@@ -29,6 +29,7 @@ import password.pwm.util.PwmLogger;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 
 /**
@@ -735,6 +736,7 @@ public enum PwmSetting {
 
     private static class Static {
         private static final String RESOURCE_MISSING = "--RESOURCE MISSING--";
+        private static final Pattern DEFAULT_REGEX = Pattern.compile(".*",Pattern.DOTALL);
     }
 
     private final String key;
@@ -844,10 +846,16 @@ public enum PwmSetting {
         final String value = readProps("REGEX_" + this.getKey(), PwmConstants.DEFAULT_LOCALE);
 
         if (value == null || value.length() < 1 || Static.RESOURCE_MISSING.equals(value)) {
-            return Pattern.compile(".*",Pattern.DOTALL);
+            return Static.DEFAULT_REGEX;
         }
 
-        return Pattern.compile(value);
+        try {
+            return Pattern.compile(value);
+        } catch (PatternSyntaxException e) {
+            final String errorMsg = "error compiling regex constraints for setting " + this.toString() + ", error: " + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            throw new IllegalStateException(errorMsg,e);
+        }
     }
 
     private static String readProps(final String key, final Locale locale) {
