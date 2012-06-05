@@ -39,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -213,13 +212,13 @@ public class SessionFilter implements Filter {
             }
         }
 
-        final String forwardURLParam = readUrlParameterFromRequest(req, "forwardURL", pwmSession);
+        final String forwardURLParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_FORWARD_URL, 4096);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
             ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 
-        final String logoutURL = readUrlParameterFromRequest(req, "logoutURL", pwmSession);
+        final String logoutURL = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOGOUT_URL, 4096);
         if (logoutURL != null && logoutURL.length() > 0) {
             ssBean.setLogoutURL(logoutURL);
             LOGGER.debug(pwmSession, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
@@ -389,23 +388,6 @@ public class SessionFilter implements Filter {
         }
 
         return sb.toString();
-    }
-
-    private static String readUrlParameterFromRequest(final HttpServletRequest req, final String paramName, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final String paramValue = Validator.readStringFromRequest(req, paramName, 4096);
-        if (paramValue == null || paramValue.length() < 1) {
-            return null;
-        }
-
-        try {
-            final String decodedValue = URLDecoder.decode(paramValue, "UTF-8");
-            LOGGER.trace(pwmSession, "decoded value for " + paramName + " to " + decodedValue);
-            return decodedValue;
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.error(pwmSession, "unexpected error decoding " + paramName + " parameter: " + e.getMessage());
-        }
-
-        return paramValue;
     }
 
     private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException, PwmUnrecoverableException {

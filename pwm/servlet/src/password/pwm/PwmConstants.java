@@ -162,6 +162,8 @@ public abstract class PwmConstants {
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
+    public static final String PARAM_FORWARD_URL = readPwmConstantsBundle("paramName.forwardURL");
+    public static final String PARAM_LOGOUT_URL = readPwmConstantsBundle("paramName.logoutURL");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 
