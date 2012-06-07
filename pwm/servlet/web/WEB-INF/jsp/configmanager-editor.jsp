@@ -69,30 +69,20 @@ function buildMenuBar() {
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
         <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
+        <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().template() == PwmSetting.Template.DEFAULT) { %>
         <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-            settingsMenu.addChild(new dijit.CheckedMenuItem({
+            settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
-                checked: true,
-                onClick: function() {
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: true,
-                        error: function(errorObj) {
-                            showError("error reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
-                    });
-                }
+                disabled: true
             }));
         <% } else { %>
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
+                    showWaitDialog('Loading...');
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: true,
+                        sync: false,
                         error: function(errorObj) {
                             showError("error reason: " + errorObj)
                         },
@@ -102,6 +92,7 @@ function buildMenuBar() {
                     });
                 }
             }));
+        <% } %>
         <% } %>
         <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
@@ -113,29 +104,18 @@ function buildMenuBar() {
             var modulesMenu = new dijit.Menu({});
         <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
         <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-            modulesMenu.addChild(new dijit.CheckedMenuItem({
+            modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
-                checked: true,
-                onClick: function() {
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: true,
-                        error: function(errorObj) {
-                            showError("error reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
-                    });
-                }
+                disabled: true
             }));
         <% } else { %>
             modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
+                    showWaitDialog('Loading...');
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: true,
+                        sync: false,
                         error: function(errorObj) {
                             showError("error reason: " + errorObj)
                         },
@@ -157,29 +137,18 @@ function buildMenuBar() {
 
         <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
         <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
-            displayMenu.addChild(new dijit.CheckedMenuItem({
+            displayMenu.addChild(new dijit.MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
-                checked: true,
-                onClick: function() {
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
-                        sync: true,
-                        error: function(errorObj) {
-                            showError("error loading " + keyName + ", reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
-                    });
-                }
+                disabled: true
             }));
         <% } else { %>
             displayMenu.addChild(new dijit.MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 onClick: function() {
+                    showWaitDialog('Loading...');
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
-                        sync: true,
+                        sync: false,
                         error: function(errorObj) {
                             showError("error loading " + keyName + ", reason: " + errorObj)
                         },
@@ -192,7 +161,7 @@ function buildMenuBar() {
         <% } %>
         <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
-                label: "Display Text",
+                label: "Custom Text",
                 popup: displayMenu
             }));
         }
@@ -202,9 +171,10 @@ function buildMenuBar() {
                 label: "Advanced Settings",
                 checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                 onClick: function() {
+                    showWaitDialog('Loading...');
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
-                        sync: true,
+                        sync: false,
                         load: function(data) {
                             loadMainPageBody();
                         }
@@ -215,9 +185,10 @@ function buildMenuBar() {
                 label: "Display Help Text",
                 checked: <%=showDesc ? "true" : "false"%>,
                 onClick: function() {
+                    showWaitDialog('Loading...');
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
-                        sync: true,
+                        sync: false,
                         load: function(data) {
                             loadMainPageBody();
                         }

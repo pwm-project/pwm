@@ -32,6 +32,7 @@ v1.6.2
 * Improved page load performance for most pages
 * Config menu re-ordering and text improvements
 * Locale list is now configurable (issue #181)
+* Changed chai ResponseSet save format to exclude carriage returns in the ldap value (issue #197)
 
 - Changed servlet version to v2.5, v2.5 container (tomcat 6) is now minimum requirement
 - Resolved issue where newuser agreement screen could be bypassed (issue #165)
@@ -43,6 +44,7 @@ v1.6.2
 - PwmMacro engine broken when multiple macros used in a single string (issue #200)
 - Incorrect email encoding for non-latin character sets (issue #190)
 - Novell UserApp responses rejected when using random responses (issue #188)
+- Fixed issue with double-URLDecoding for logoutURL and forwardURL (issue #216)
 
 
 

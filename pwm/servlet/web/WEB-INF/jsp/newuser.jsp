@@ -46,7 +46,7 @@
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
               id="newUserForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
-              onkeyup="validateNewUserForm();" onkeypress="checkForCapsLock(event);"
+              onchange="validateNewUserForm();" onkeypress="checkForCapsLock(event);"
               >
             <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
             <% request.setAttribute("form_showPasswordFields","true"); %>

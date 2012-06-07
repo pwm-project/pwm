@@ -407,7 +407,7 @@ function addMultiSetting(keyName, parentDiv, regExPattern) {
 // -------------------------- multi locale table handler ------------------------------------
 
 function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
-    require(["dojo","dijit","dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
+    require(["dojo","dijit","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
         clearDivElements(parentDiv, true);
         readSetting(keyName, function(resultValue) {
             clearDivElements(parentDiv, false);

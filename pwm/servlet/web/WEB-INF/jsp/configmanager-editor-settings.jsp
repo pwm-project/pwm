@@ -147,6 +147,7 @@
     require(["dijit","dijit/form/FilteringSelect","dijit/registry"],function(dijit){
         new dijit.form.FilteringSelect({
             disabled: true,
+            style:"min-width:300px",
             onChange: function() {
                 writeSetting('<%=loopSetting.getKey()%>',this.value);
             }

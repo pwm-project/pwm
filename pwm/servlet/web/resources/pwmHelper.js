@@ -226,6 +226,9 @@ function initLocaleSelectorMenu(attachNode) {
 }
 
 function showWaitDialog(title, body) {
+    if (title == null) {
+        title=PWM_STRINGS['Display_PleaseWait'];
+    }
     require(["dijit/Dialog"],function(){
         var idName = 'dialogPopup';
         clearDigitWidget(idName);
