@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.PwmDBLogger" %>
 <%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
@@ -28,8 +27,6 @@
 <%@ page import="java.io.StringWriter" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.ConcurrentModificationException" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -38,7 +35,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
-<body onload="pwmPageLoadHandler();">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <script type="text/javascript">
     var advancedPanelVisible = false;
     function toggleAdvancedPanel() {

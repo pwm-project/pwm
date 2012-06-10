@@ -1,24 +1,25 @@
+<%@ page import="password.pwm.util.stats.Statistic" %>
 <%--
-  ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
-  ~
-  ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
-  ~
-  ~ This program is free software; you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation; either version 2 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  --%>
+~ Password Management Servlets (PWM)
+~ http://code.google.com/p/pwm/
+~
+~ Copyright (c) 2006-2009 Novell, Inc.
+~ Copyright (c) 2009-2012 The PWM Project
+~
+~ This program is free software; you can redistribute it and/or modify
+~ it under the terms of the GNU General Public License as published by
+~ the Free Software Foundation; either version 2 of the License, or
+~ (at your option) any later version.
+~
+~ This program is distributed in the hope that it will be useful,
+~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~ GNU General Public License for more details.
+~
+~ You should have received a copy of the GNU General Public License
+~ along with this program; if not, write to the Free Software
+~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+--%>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -34,7 +35,7 @@
 <div id="wrapper">
     <div id="centerbody">
         <div id style="z-index: 3; position: relative; background: white; opacity: 0.9">
-            <table class="tablemain">
+            <table id="form">
                 <tr>
                     <td class="title" colspan="10">
                         <pwm:Display key="Title_Application"/> Health
@@ -45,10 +46,18 @@
                         <div id="healthBody" style="border:0; margin:0; padding:0"></div>
                     </td>
                 </tr>
+                <tr>
+                    <td class="title" colspan="10">
+                        Password Changes
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10"  style="margin:0; padding:0">
+                        <div id="statsChart" style="height: 150px; z-index: 3; margin: 0; padding: 0">
+                        </div>
+                    </td>
+                </tr>
             </table>
-        </div>
-        <div id style="z-index: 3; position: relative; background: white; text-align: center; opacity: 0.8; margin-left: auto; margin-right: auto; white-space: nowrap;">
-            This page refreshes automatically.
         </div>
     </div>
     <div id="floatparent">
@@ -137,6 +146,10 @@
         require(["dojo","dojo/ready"],function(){
             showPwmHealth('healthBody', false);
             setTimeout(function(){ doNext(); },60 * 1000);
+            setInterval(function(){
+                showStatChart('<%=Statistic.PASSWORD_CHANGES%>',30,'statsChart');
+            },60 * 1000);
+            showStatChart('<%=Statistic.PASSWORD_CHANGES%>',30,'statsChart');
         });
     </script>
 </div>

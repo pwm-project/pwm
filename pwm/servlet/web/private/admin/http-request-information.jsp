@@ -1,9 +1,5 @@
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.Enumeration" %>
 <%@ page import="password.pwm.Validator" %>
+<%@ page import="java.util.Enumeration" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="HTTP Request Information"/>
 </jsp:include>

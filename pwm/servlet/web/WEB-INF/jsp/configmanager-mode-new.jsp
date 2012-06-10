@@ -40,14 +40,14 @@
         </div>
     </div>
     <div id="centerbody">
-        <p>Welcome to PWM.  We hope you enjoy using this software.</p>
-        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project Page</a></p>
+        <p><b>Welcome to PWM.</b>  We hope you enjoy using this software.</p>
+        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project Page</a>.</p>
         <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting a default
             template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
-        <p>After selecting a default template below configure PWM by setting the LDAP configuration options, and then saving the configuration.</p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <br/>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <h3><a href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')"> <%=template.getDescription()%></a></h3>
+        <p><a class="menubutton" href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')">New Configuration: <%=template.getDescription()%></a></p>
         <% } %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">
@@ -55,9 +55,10 @@
             <input type="hidden" name="mode" value="SETTINGS"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-
         <br/>
-        <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
+        <p>or...</p>
+        <br/>
+        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
 
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>

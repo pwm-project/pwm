@@ -75,7 +75,7 @@
         </table>
         <br class="clear"/>
 
-        <h2><a href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a></h2>
+        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
               enctype="application/x-www-form-urlencoded">
@@ -85,10 +85,10 @@
         </form>
         <p>Use the PWM configuration editor to edit the running configuration.</p>
 
-        <h2><a href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a></h2>
+        <a class="menubutton" href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
         <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
 
-        <h2><a href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a></h2>
+        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
               enctype="application/x-www-form-urlencoded">
@@ -97,7 +97,7 @@
         </form>
         <p>Download the current configuration XML file.</p>
 
-        <h2><a href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a></h2>
+        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
 
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
@@ -109,9 +109,7 @@
         <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
             the current configuration.</p>
 
-        <h2><a href="#"
-               onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock
-            Configuration</a></h2>
+        <a class="menubutton" href="#" onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock Configuration</a>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
               enctype="application/x-www-form-urlencoded">
@@ -122,9 +120,9 @@
         <p>Lock the configuration. Once the configuration is locked, you can no longer directly edit the running
             configuration using this interface.  If you wish to make changes
             after locking, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
-            file on the PWM server.
+            file on the PWM server.</p>
 
-        <h2><a href="<%=request.getContextPath()%>">PWM Main Menu</a></h2>
+        <a class="menubutton" href="<%=request.getContextPath()%>">PWM Main Menu</a>
 
         <p>Return to the main menu to test the configuration.</p>
     </div>

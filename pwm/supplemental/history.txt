@@ -45,6 +45,7 @@ v1.6.2
 - Incorrect email encoding for non-latin character sets (issue #190)
 - Novell UserApp responses rejected when using random responses (issue #188)
 - Fixed issue with double-URLDecoding for logoutURL and forwardURL (issue #216)
+- Attribute names with hyphen ("-") not working (issue #221)
 
 
 

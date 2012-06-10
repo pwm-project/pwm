@@ -39,50 +39,33 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Statistics"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <%!
-            static String makeGoogleChartImageUrl(Statistic stat, StatisticsManager statsManager) {
-                final Map<String, String> chartData = statsManager.getStatHistory(stat, 31);
-                int topValue = 0;
-                for (final String value : chartData.values())
-                    topValue = Integer.parseInt(value) > topValue ? Integer.parseInt(value) : topValue;
-                final StringBuilder imgURL = new StringBuilder();
-                imgURL.append("http://chart.apis.google.com/chart");
-                imgURL.append("?cht=bvs");
-                imgURL.append("&chs=590x150");
-                imgURL.append("&chds=0,").append(topValue);
-                imgURL.append("&chco=d20734");
-                imgURL.append("&chxt=x,y");
-                imgURL.append("&chxr=1,0,").append(topValue);
-                imgURL.append("&chbh=14");
-                imgURL.append("&chd=t:");
-                for (final String value : chartData.values()) imgURL.append(value).append(",");
-                imgURL.delete(imgURL.length() - 1, imgURL.length());
-                imgURL.append("&chl=");
-                int counter = 0;
-                for (final String value : chartData.keySet()) {
-                    if (counter % 3 == 0) {
-                        imgURL.append(value).append("|");
-                    } else {
-                        imgURL.append(" |");
-                    }
-                    counter++;
-                }
-                imgURL.delete(imgURL.length() - 1, imgURL.length());
-                return imgURL.toString();
-            }
-        %>
+        <br/>
+        <div id="statsChartOptionsDiv" style="width:600px; text-align: center; margin:0 auto;">
+        <label for="statsChartSelect">Key</label>
+        <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1"
+        onchange="refreshChart()">
+        <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
+            <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
+            <% } %>
+        </select>
+        <label for="statsChartDays" style="padding-left: 10px">Days</label>
+        <input id="statsChartDays" value="30" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
+        data-dojo-props="constraints:{min:7,max:120}" onclick="refreshChart()"/>
+        </div>
+        <div id="statsChart" style="height: 200px; width: 600px">
+        </div>
         <form action="<pwm:url url='statistics.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
               name="statsUpdateForm"
               id="statsUpdateForm"
               onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
-            <table class="tablemain">
+            <table class="tablemain" id="form">
                 <tr>
                     <td class="title" colspan="10">
                         Statistics
@@ -90,7 +73,8 @@
                 </tr>
                 <tr>
                     <td colspan="10" style="text-align: center">
-                        <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();">
+                        <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();"
+                                data-dojo-type="dijit.form.Select" style="width: 500px;" data-dojo-props="maxHeight: -1">
                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                 since installation - <%= dateFormat.format(pwmApplication.getInstallTime()) %>
                             </option>
@@ -134,35 +118,24 @@
                 </tr>
                 <% } %>
             </table>
-            <br class="clear"/>
-            <table class="tablemain">
-                <tr>
-                    <td class="title" colspan="10">
-                        Activity
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="10" style="text-align: center">
-                        <select name="statsChartSelect" id="statsChartSelect"
-                                onchange="getObject('googleChartImage').src=getObject('statsChartSelect').options[getObject('statsChartSelect').selectedIndex].title;">
-                            <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
-                            <option value="<%=loopStat %>" <%= loopStat.toString().equals(statsChartSelect) ? "selected=\"selected\"" : "" %>
-                                    title="<%=makeGoogleChartImageUrl(loopStat,statsManager)%>"><%=loopStat.getLabel(locale)%>
-                            </option>
-                            <% } %>
-                        </select>
-                        <br/>
-                        <noscript>
-                            <input type="submit" id="submit_button_chart" class="btn" value="Update"/>
-                        </noscript>
-                        <img id="googleChartImage"
-                             src="<%=makeGoogleChartImageUrl(Statistic.valueOf(statsChartSelect),statsManager)%>"
-                             alt="[ Google Chart Image ]"/>
-                    </td>
-                </tr>
-            </table>
         </form>
     </div>
+    <script type="text/javascript">
+        require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,dijit){
+            dojoParser.parse();
+            dijit.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+            setTimeout(function(){
+                refreshChart();
+            },60 * 1000)
+        });
+        function refreshChart() {
+            require(["dijit/registry"],function(dijit){
+                var keyName = dijit.byId('statsChartSelect').get('value');
+                var days = getObject('statsChartDays').value;
+                showStatChart(keyName,days,'statsChart');
+            });
+        }
+    </script>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

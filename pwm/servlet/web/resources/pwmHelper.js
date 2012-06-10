@@ -318,46 +318,46 @@ function showPwmHealth(parentDivID, refreshNow) {
     });
 }
 
+var IdleTimeoutHandler = {};
 
-// -- idle timeout handler  --
-var SETTING_LOOP_FREQUENCY = 1000;
-var SETTING_PING_FREQUENCY = 10;
-var SETTING_WARN_SECONDS = 30;
+IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000; // milliseconds
+IdleTimeoutHandler.SETTING_PING_FREQUENCY = 10;   // seconds
+IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;     // seconds
 
-function initCountDownTimer(secondsRemaining) {
+IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
     PWM_GLOBAL['idle_Timeout'] = secondsRemaining;
     PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (secondsRemaining * 1000));
     PWM_GLOBAL['idle_lastPingTime'] = new Date().getTime();
     PWM_GLOBAL['real-window-title'] = document.title;
-    resetIdleCounter();
-    setInterval("pollActivity()", SETTING_LOOP_FREQUENCY); //poll scrolling
-    document.onclick = resetIdleCounter;
-    document.onkeydown = resetIdleCounter;
-}
+    IdleTimeoutHandler.resetIdleCounter();
+    setInterval("IdleTimeoutHandler.pollActivity()", IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
+    document.onclick = IdleTimeoutHandler.resetIdleCounter;
+    document.onkeydown = IdleTimeoutHandler.resetIdleCounter;
+};
 
-function resetIdleCounter() {
-    var idleSeconds = calcIdleSeconds();
-    closeIdleWarning();
-    getObject("idle_status").firstChild.nodeValue = makeIdleDisplayString(idleSeconds);
+IdleTimeoutHandler.resetIdleCounter = function() {
+    var idleSeconds = IdleTimeoutHandler.calcIdleSeconds();
+    IdleTimeoutHandler.closeIdleWarning();
+    getObject("idle_status").firstChild.nodeValue = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
 
     PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (PWM_GLOBAL['idle_Timeout'] * 1000));
     {
         var dateNow = new Date().getTime();
         var amount = dateNow - PWM_GLOBAL['idle_lastPingTime'];
 
-        if (amount > SETTING_PING_FREQUENCY * 1000) { //calc milliseconds between dates
-            pingServer();
+        if (amount > IdleTimeoutHandler.SETTING_PING_FREQUENCY * 1000) { //calc milliseconds between dates
+            IdleTimeoutHandler.            pingServer();
             PWM_GLOBAL['idle_lastPingTime'] = dateNow;
             PWM_GLOBAL['idle_sendPing'] = false;
         }
     }
 
     PWM_GLOBAL['idle_warningDisplayed'] = false;
-}
+};
 
-function pollActivity() {
-    var idleSeconds = calcIdleSeconds();
-    var idleDisplayString = makeIdleDisplayString(idleSeconds);
+IdleTimeoutHandler.pollActivity = function() {
+    var idleSeconds = IdleTimeoutHandler.calcIdleSeconds();
+    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
     var idleStatusFooter = getObject("idle_status");
     if (idleStatusFooter != null) {
         idleStatusFooter.firstChild.nodeValue = idleDisplayString;
@@ -376,31 +376,31 @@ function pollActivity() {
         }
     }
 
-    if (idleSeconds < SETTING_WARN_SECONDS) {
-        showIdleWarning();
+    if (idleSeconds < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
+        IdleTimeoutHandler.showIdleWarning();
         if (idleSeconds % 2 == 0) {
             document.title = PWM_GLOBAL['real-window-title'];
         } else {
             document.title = idleDisplayString;
         }
     }
-}
+};
 
-function pingServer() {
+IdleTimeoutHandler.pingServer = function() {
     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     dojo.xhrPost({
         url: pingURL,
         sync: false
     });
-}
+};
 
-function calcIdleSeconds() {
+IdleTimeoutHandler.calcIdleSeconds = function() {
     var amount = PWM_GLOBAL['idle_dateFuture'].getTime() - (new Date()).getTime(); //calc milliseconds between dates
     amount = Math.floor(amount / 1000); //kill the "milliseconds" so just secs
     return amount;
-}
+};
 
-function makeIdleDisplayString(amount) {
+IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
     if (amount < 1) {
         return "";
     }
@@ -474,9 +474,9 @@ function makeIdleDisplayString(amount) {
 
     output = PWM_STRINGS['Display_IdleTimeout'] + " " + output;
     return output;
-}
+};
 
-function showIdleWarning() {
+IdleTimeoutHandler.showIdleWarning = function() {
     if (!PWM_GLOBAL['idle_warningDisplayed']) {
         PWM_GLOBAL['idle_warningDisplayed'] = true;
 
@@ -486,26 +486,19 @@ function showIdleWarning() {
                 title: PWM_STRINGS['Display_IdleWarningTitle'],
                 style: "width: 260px; border: 2px solid #D4D4D4;",
                 content: dialogBody,
-                closable: false,
+                closable: true,
                 draggable: false,
                 id: "idleDialog"
             });
-            theDialog.setAttribute('class', 'tundra');
             theDialog.show();
         });
     }
-}
+};
 
-function closeIdleWarning() {
-    require(["dijit"],["dijit/_base"],function(dijit){
-        var dialog = dijit.byId('idleDialog');
-        if (dialog != null) {
-            dialog.hide();
-            dialog.destroyRecursive();
-        }
-        document.title = PWM_GLOBAL['real-window-title'];
-    });
-}
+IdleTimeoutHandler.closeIdleWarning = function() {
+    clearDigitWidget('idleDialog');
+    document.title = PWM_GLOBAL['real-window-title'];
+};
 
 function clearError()
 {
@@ -580,4 +573,50 @@ function doShow(destClass, message) {
             }
         }
     });
+}
+
+function showStatChart(statName,days,divName) {
+    require(["dojo",
+        "dijit/registry",
+        "dojox/charting/Chart2D",
+        "dojox/charting/axis2d/Default",
+        "dojox/charting/plot2d/Default",
+        "dojox/charting/themes/Wetland",
+        "dojo/domReady!"],
+        function(dojo){
+            var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
+            statsGetUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            statsGetUrl += "&statName=" + statName;
+            statsGetUrl += "&days=" + days;
+
+            dojo.xhrGet({
+                url: statsGetUrl,
+                handleAs: "json",
+                headers: { "Accept": "application/json" },
+                timeout: 60 * 1000,
+                preventCache: true,
+                load: function(data) {
+                    var values = [];
+                    for(var key in data) {
+                        var value = data[key];
+                        values.push(parseInt(value));
+                    }
+
+                    if (PWM_GLOBAL[divName + '-stored-reference']) {
+                        var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
+                        existingChart.destroy();
+                    }
+                    var c = new dojox.charting.Chart2D(divName);
+                    PWM_GLOBAL[divName + '-stored-reference'] = c;
+                    c.addPlot("default", {type: "Columns", gap:'2'});
+                    //c.addAxis("x", {fixLower: "major", fixUpper: "major"});
+                    //c.addAxis("y", {vertical: true, fixLower: "major", fixUpper: "major", min: 0});
+                    c.addAxis("x", {});
+                    c.addAxis("y", {vertical: true});
+                    c.setTheme(dojox.charting.themes.Wetland);
+                    c.addSeries("Series 1", values);
+                    c.render();
+                }
+            });
+        });
 }

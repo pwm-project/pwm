@@ -23,6 +23,7 @@
 package password.pwm.ws.server.rest;
 
 import com.google.gson.Gson;
+import com.novell.ldapchai.util.StringHelper;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
@@ -53,34 +54,56 @@ public class RestStatisticsServer {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String doPwmStatisticJsonGet(
-            @QueryParam("key") String key
+            final @QueryParam("statKey") String statKey,
+            final @QueryParam("statName") String statName,
+            final @QueryParam("days") String days
     ) {
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
-
-            if (key == null || key.length() < 1) {
-                key = StatisticsManager.KEY_CUMULATIVE;
-            }
-
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-            final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey(key);
-            final Map<String,String> outputValueMap = new TreeMap<String,String>();
-            for (Statistic stat : Statistic.values()) {
-                outputValueMap.put(stat.getKey(),statisticsBundle.getStatistic(stat));
+
+            final String resultString;
+            if (statName != null && statName.length() > 0) {
+                resultString = doNameStat(statisticsManager, statName, days);
+            } else {
+                resultString = doKeyStat(statisticsManager, statKey);
             }
 
-            final Gson gson = new Gson();
-            final String resultString = gson.toJson(outputValueMap);
             if (isExternal) {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_STATISTICS);
             }
+
             return resultString;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }
         return "";
+    }
+
+    private String doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {
+        final Statistic statistic = Statistic.valueOf(statName);
+        final int historyDays = StringHelper.convertStrToInt(days, 30);
+
+        Map<String,String> results = statisticsManager.getStatHistory(statistic, historyDays);
+        final Gson gson = new Gson();
+        return gson.toJson(results);
+    }
+
+    private String doKeyStat(final StatisticsManager statisticsManager, String statKey) {
+        if (statKey == null || statKey.length() < 1) {
+            statKey = StatisticsManager.KEY_CUMULATIVE;
+        }
+
+        final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey(statKey);
+        final Map<String,String> outputValueMap = new TreeMap<String,String>();
+        for (Statistic stat : Statistic.values()) {
+            outputValueMap.put(stat.getKey(),statisticsBundle.getStatistic(stat));
+        }
+
+        final Gson gson = new Gson();
+        return gson.toJson(outputValueMap);
     }
 }

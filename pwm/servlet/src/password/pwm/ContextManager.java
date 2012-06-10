@@ -144,9 +144,9 @@ public class ContextManager implements Serializable {
         }
     }
 
-        public Set<PwmSession> getPwmSessions() {
-            return Collections.unmodifiableSet(activeSessions.keySet());
-        }
+    public Set<PwmSession> getPwmSessions() {
+        return Collections.unmodifiableSet(activeSessions.keySet());
+    }
 
     public void addPwmSession(final PwmSession pwmSession) {
         try {
@@ -166,20 +166,24 @@ public class ContextManager implements Serializable {
         public void run() {
             final Map<PwmSession, Object> copiedMap = new HashMap<PwmSession, Object>();
 
-            synchronized (activeSessions) {
-                copiedMap.putAll(activeSessions);
-            }
-
-            final Set<PwmSession> deadSessions = new HashSet<PwmSession>();
-
-            for (final PwmSession pwmSession : copiedMap.keySet()) {
-                if (!pwmSession.isValid()) {
-                    deadSessions.add(pwmSession);
+            try {
+                synchronized (activeSessions) {
+                    copiedMap.putAll(activeSessions);
                 }
-            }
 
-            synchronized (activeSessions) {
-                activeSessions.keySet().removeAll(deadSessions);
+                final Set<PwmSession> deadSessions = new HashSet<PwmSession>();
+
+                for (final PwmSession pwmSession : copiedMap.keySet()) {
+                    if (!pwmSession.isValid()) {
+                        deadSessions.add(pwmSession);
+                    }
+                }
+
+                synchronized (activeSessions) {
+                    activeSessions.keySet().removeAll(deadSessions);
+                }
+            } catch (Throwable e) {
+                LOGGER.error("error clearing sessions during restart: " + e.getMessage());
             }
         }
     }

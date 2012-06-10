@@ -54,7 +54,7 @@
     <script type="text/javascript">
         require(["dojo/ready"],function(){
             initLocaleSelectorMenu('localeSelectionMenu');
-            initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
+            IdleTimeoutHandler.initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
         });
     </script>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>

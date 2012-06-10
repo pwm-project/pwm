@@ -41,6 +41,7 @@
 
 <script type="text/javascript">
     var LOAD_TRACKER = new Array();
+    showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
 </script>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
 <% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
@@ -99,17 +100,19 @@
             },10); // time between element reads
         } else {
             setTimeout(function(){
-                var idName = 'waitDialogID';
+                var idName = 'dialogPopup';
                 clearDigitWidget(idName);
             },500); // time after element reads completed.
         }
     }
-    LOAD_TRACKER.reverse();
-    if (LOAD_TRACKER.length > 0) {
-        showWaitDialog('Please Wait','<div id="waitMsg">Loading display values.... ' + LOAD_TRACKER.length + ' remaining.</div>');
-        setTimeout(function(){
-            doLazyLoad(LOAD_TRACKER.pop());
-        },1000);
-    }
+
+    require(["dojo/domReady!","dijit/form/Button","dijit/Dialog"],function(){
+        LOAD_TRACKER.reverse();
+        if (LOAD_TRACKER.length > 0) {
+            setTimeout(function(){
+                doLazyLoad(LOAD_TRACKER.pop());
+            },1000);
+        }
+    });
 </script>
 

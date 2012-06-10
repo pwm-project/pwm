@@ -789,6 +789,10 @@ public enum PwmSetting {
 
         if (template != null) {
             switch (template){
+                case NOVL:
+                    keyName = "DEFLT-NOVL_" + this.getKey();
+                    break;
+
                 case AD:
                     keyName = "DEFLT-AD_" + this.getKey();
                     break;
@@ -961,9 +965,10 @@ public enum PwmSetting {
     }
 
     public enum Template {
-        DEFAULT("Novell, OpenLDAP, DirectoryServer389, Others"),
+        NOVL("Novell eDirectory"),
         ADDB("Active Directory - Store responses in a database"),
         AD("Active Directory - Store responses in Active Directory"),
+        DEFAULT("OpenLDAP, DirectoryServer389, Others"),
         ;
 
         private final String description;
