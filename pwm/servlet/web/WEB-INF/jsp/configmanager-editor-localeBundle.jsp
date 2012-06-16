@@ -100,8 +100,7 @@
             },10); // time between element reads
         } else {
             setTimeout(function(){
-                var idName = 'dialogPopup';
-                clearDigitWidget(idName);
+                clearDigitWidget('dialogPopup');
             },500); // time after element reads completed.
         }
     }
@@ -112,6 +111,10 @@
             setTimeout(function(){
                 doLazyLoad(LOAD_TRACKER.pop());
             },1000);
+        } else {
+            setTimeout(function(){
+                clearDigitWidget('dialogPopup');
+            },2000);
         }
     });
 </script>

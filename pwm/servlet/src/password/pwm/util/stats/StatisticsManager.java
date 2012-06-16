@@ -260,20 +260,22 @@ public class StatisticsManager implements PwmService {
             daemonTimer.schedule(new NightlyTask(), nextDate());
         }
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
-            long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
-            {
-                final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
-                if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
-                    try {
-                        lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
-                    } catch (Exception e) {
-                        LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
+                long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
+                {
+                    final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
+                    if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
+                        try {
+                            lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
+                        } catch (Exception e) {
+                            LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
+                        }
                     }
                 }
+                final Date nextPublishTime = new Date(lastPublishTimestamp + PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS + (long)PwmRandom.getInstance().nextInt(3600 * 1000));
+                daemonTimer.schedule(new PublishTask(), nextPublishTime, PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS);
             }
-            final Date nextPublishTime = new Date(lastPublishTimestamp + PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS + (long)PwmRandom.getInstance().nextInt(3600 * 1000));
-            daemonTimer.schedule(new PublishTask(), nextPublishTime, PwmConstants.STATISTICS_PUBLISH_FREQUENCY_MS);
         }
 
         if (pwmDB != null) {

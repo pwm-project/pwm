@@ -187,7 +187,7 @@ function initLocaleSelectorMenu(attachNode) {
         return;
     }
 
-    require(["dojo/domReady!","dijit/Menu","dijit/MenuItem"],function(){
+    require(["dojo/domReady!","dijit/Menu","dijit/MenuItem","dijit/Dialog"],function(){
         var pMenu = new dijit.Menu({
             targetNodeIds: [attachNode],
             leftClickToOpen: true
@@ -199,10 +199,11 @@ function initLocaleSelectorMenu(attachNode) {
                 label: localeDisplayName,
                 iconClass: localeIconClass,
                 onClick: function() {
+                    showWaitDialog();
                     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
                     dojo.xhrGet({
                         url: pingURL,
-                        sync: true,
+                        sync: false,
                         preventCache: true,
                         load: function() {
                             PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
@@ -541,7 +542,12 @@ function doShow(destClass, message) {
         return;
     }
     messageElement.firstChild.nodeValue = message;
-    messageElement.style.display = 'inherit';
+
+    try {
+        messageElement.style.display = 'inherit'; // doesn't work in older ie browsers
+    } catch (e) {
+        messageElement.style.display = 'block';
+    }
 
     require(["dojo"],function(dojo){
         if(dojo.isIE <= 8){ // only IE7 and below
@@ -609,8 +615,6 @@ function showStatChart(statName,days,divName) {
                     var c = new dojox.charting.Chart2D(divName);
                     PWM_GLOBAL[divName + '-stored-reference'] = c;
                     c.addPlot("default", {type: "Columns", gap:'2'});
-                    //c.addAxis("x", {fixLower: "major", fixUpper: "major"});
-                    //c.addAxis("y", {vertical: true, fixLower: "major", fixUpper: "major", min: 0});
                     c.addAxis("x", {});
                     c.addAxis("y", {vertical: true});
                     c.setTheme(dojox.charting.themes.Wetland);

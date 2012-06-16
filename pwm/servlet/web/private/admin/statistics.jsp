@@ -48,7 +48,7 @@
         <%@ include file="admin-nav.jsp" %>
         <br/>
         <div id="statsChartOptionsDiv" style="width:600px; text-align: center; margin:0 auto;">
-        <label for="statsChartSelect">Key</label>
+        <label for="statsChartSelect">Statistic</label>
         <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1"
         onchange="refreshChart()">
         <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>

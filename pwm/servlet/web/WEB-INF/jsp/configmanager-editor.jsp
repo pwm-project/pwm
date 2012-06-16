@@ -79,7 +79,7 @@ function buildMenuBar() {
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
                         sync: false,
@@ -112,7 +112,7 @@ function buildMenuBar() {
             modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
                         sync: false,
@@ -145,7 +145,7 @@ function buildMenuBar() {
             displayMenu.addChild(new dijit.MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 onClick: function() {
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
                         sync: false,
@@ -171,7 +171,7 @@ function buildMenuBar() {
                 label: "Advanced Settings",
                 checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
                 onClick: function() {
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
                         sync: false,
@@ -185,7 +185,7 @@ function buildMenuBar() {
                 label: "Display Help Text",
                 checked: <%=showDesc ? "true" : "false"%>,
                 onClick: function() {
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
                         sync: false,
@@ -233,7 +233,7 @@ function buildMenuBar() {
                     if (!confirm('Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.')) {
                         return;
                     }
-                    showWaitDialog('Loading...');
+                    showWaitDialog();
                     dojo.xhrGet({
                         url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
                         sync: true,

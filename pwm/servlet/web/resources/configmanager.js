@@ -777,5 +777,3 @@ function showConfigurationNotes() {
         });
     });
 }
-
-N
