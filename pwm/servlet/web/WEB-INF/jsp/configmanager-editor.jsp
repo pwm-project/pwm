@@ -58,12 +58,13 @@
         <% } %>
     </div>
 </div>
-<div id="TopMenu"><!-- style="width:620px; position: relative; margin-left: auto; margin-right: auto; margin-top: 0; clear: both;" -->
+<div id="TopMenu">
 </div>
 <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 <script type="text/javascript">
 function buildMenuBar() {
+    clearDijitWidget('topMenuBar');
     require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],function(dojo,dijit){
         var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
         { // Settings Menu
@@ -206,7 +207,7 @@ function buildMenuBar() {
                 label: "PWM Macro Help",
                 onClick: function() {
                     var idName = 'dialogPopup';
-                    clearDigitWidget(idName);
+                    clearDijitWidget(idName);
                     var theDialog = new dijit.Dialog({
                         id: idName,
                         title: 'PWM Macro Help',

@@ -46,16 +46,15 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
 
-        <span>
             <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-            <%= PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()) %>
-        </span>
+            <% final String expandedText = PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()); %>
+        <div class="agreementText"><%= expandedText %></div>
 
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()"
+                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
                     key="Button_Agree"/></label>
                 <input type="hidden"
@@ -66,8 +65,6 @@
                        id="button_continue"/>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <br/><br/>
-
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="submit" name="button" class="btn"
@@ -78,6 +75,11 @@
     </div>
     <br class="clear"/>
 </div>
+<script type="text/javascript">
+    require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

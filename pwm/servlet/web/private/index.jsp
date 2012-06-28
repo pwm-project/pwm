@@ -90,7 +90,7 @@
         <% } %>
 
         <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
-        <a class="menubutton" href="<pwm:url url='admin/status.jsp'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a>
+        <a class="menubutton" href="<pwm:url url='admin/'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a>
         <p><pwm:Display key="Long_Title_Admin"/></p>
         <% } %>
 

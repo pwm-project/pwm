@@ -76,7 +76,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (errorInfo != null) {
                     final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
-                    if (errorAge.isShorterThan(TimeDuration.HOUR.getTotalMilliseconds() * 3)) {
+                    if (errorAge.isShorterThan(PwmConstants.LDAP_CHECKER_RECENT_ERRORS_DURATION)) {
                         returnRecords.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
                     }
                 }
@@ -116,7 +116,9 @@ public class LDAPStatusChecker implements HealthChecker {
                 chaiProvider = Helper.createChaiProvider(
                         config,
                         proxyUserDN,
-                        proxyUserPW);
+                        proxyUserPW,
+                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT
+                        );
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
 
@@ -192,7 +194,8 @@ public class LDAPStatusChecker implements HealthChecker {
                         config,
                         Collections.singletonList(loopURL),
                         proxyDN,
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
+                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT);
                 final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
                 proxyUser.isValid();
             } catch (Exception e) {
@@ -216,7 +219,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 chaiProvider = Helper.createChaiProvider(
                         config,
                         config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD));
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
+                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT);
 
                 chaiProvider.getDirectoryVendor();
             } catch (Exception e) {

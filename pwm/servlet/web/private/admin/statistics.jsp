@@ -32,8 +32,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
-<% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect", 255); %>
-<% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255).length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect", 255) : Statistic.PASSWORD_CHANGES.toString(); %>
+<% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect"); %>
+<% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect").length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect") : Statistic.PASSWORD_CHANGES.toString(); %>
 <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); %>

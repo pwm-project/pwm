@@ -53,7 +53,7 @@ public class RestClearResponsesServer {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPostSetPassword(
+    public String doPostClearResponses(
             final @FormParam("username") String username
     ) {
         final Gson gson = new Gson();
@@ -63,6 +63,7 @@ public class RestClearResponsesServer {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            //final RestServerHelper.RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request,"username");
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {

@@ -160,12 +160,12 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     parentDivElement.appendChild(newTableRow);
 
     require(["dijit/form/ComboBox","dijit/form/Button"],function(){
-        clearDigitWidget(keyName + '-addLocaleValue');
+        clearDijitWidget(keyName + '-addLocaleValue');
         new dijit.form.ComboBox({
             id: keyName + '-addLocaleValue'
         }, keyName + '-addLocaleValue');
 
-        clearDigitWidget(keyName + '-addLocaleButton');
+        clearDijitWidget(keyName + '-addLocaleButton');
         new dijit.form.Button({
             id: keyName + '-addLocaleButton',
             onClick: addFunction
@@ -199,7 +199,7 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
     var inputID = 'value-' + settingKey + '-' + localeString;
 
     // clear the old dijit node (if it exists)
-    clearDigitWidget(inputID);
+    clearDijitWidget(inputID);
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -635,7 +635,7 @@ function waitForRestart(startTime, oldEpoch) {
             load: function(data) {
                 var error = data != null ? data['error'] : null;
                 if (error) {
-                    clearDigitWidget('waitDialogID');
+                    clearDijitWidget('waitDialogID');
                     showError(data['errorDetail']);
                     return;
                 }
@@ -747,19 +747,23 @@ function writeConfigurationNotes() {
 }
 
 function showConfigurationNotes() {
-    require(["dojo","dijit/form/Textarea","dijit/Dialog"],function(dojo){
+    require(["dojo","dijit/form/Textarea","dijit/Dialog","dojo/_base/connect"],function(dojo){
 
         setCookie("seen-notes","true", 60 * 60);
         var idName = 'configNotesDialog';
         var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
         bodyText += '</textarea>';
 
-        clearDigitWidget('dialogPopup');
+        clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Configuration Notes',
             style: "width: 600px;",
             content: bodyText
+        });
+        theDialog.connect(theDialog,"hide",function(){
+            writeConfigurationNotes();
+            buildMenuBar();
         });
         theDialog.show();
 

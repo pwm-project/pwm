@@ -24,6 +24,7 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
@@ -38,7 +39,7 @@ import java.util.*;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int BULK_EVENT_SIZE = 50 * 1000 * 1000;
+    private static final int BULK_EVENT_SIZE = 90 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
@@ -75,7 +76,7 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 20 * 1000;
+            final int randomLength = 200;
             while (randomValue.length() < randomLength) {
                 randomValue.append(String.valueOf(random.nextChar()));
             }
@@ -112,7 +113,7 @@ public class PwmDBLoggerTest extends TestCase {
         public void run() {
             final int loopCount = 100;
             while (eventsRemaining > 0) {
-                while (pwmDBLogger.getPendingEventCount() >= 2000) Helper.pause(5);
+                while (pwmDBLogger.getPendingEventCount() >= PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) Helper.pause(5);
                 final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
                 for (final PwmLogEvent logEvent : events) {
                     pwmDBLogger.writeEvent(logEvent);

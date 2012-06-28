@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="tundra">
+<body class="nihilo">
 <script type="text/javascript"
         src="<%=request.getContextPath()%>/resources/<pwm:url url='changepassword.js'/>"></script>
 <div id="wrapper">

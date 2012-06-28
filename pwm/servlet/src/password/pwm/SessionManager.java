@@ -107,14 +107,15 @@ public class SessionManager implements Serializable {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         LOGGER.trace(pwmSession, "attempting to open new ldap connection for " + userDN);
+        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ALWAYS_USE_PROXY)) {
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            return Helper.createChaiProvider(config, proxyDN, proxyPassword);
+            return Helper.createChaiProvider(config, proxyDN, proxyPassword, idleTimeoutMs);
         }
 
-        return Helper.createChaiProvider(config, userDN, userPassword);
+        return Helper.createChaiProvider(config, userDN, userPassword, idleTimeoutMs);
     }
 
 // ------------------------ CANONICAL METHODS ------------------------

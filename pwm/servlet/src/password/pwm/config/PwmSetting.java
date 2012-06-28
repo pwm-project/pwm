@@ -57,6 +57,8 @@ public enum PwmSetting {
             "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
+    DISPLAY_SHOW_DETAILED_ERRORS(
+            "display.showDetailedErrors", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
     KNOWN_LOCALES(
@@ -88,8 +90,6 @@ public enum PwmSetting {
     // user interface
     INTERFACE_THEME(
             "interface.theme", Syntax.SELECT, Category.USER_INTERFACE, true, Level.BASIC),
-    DISPLAY_SHOW_DETAILED_ERRORS(
-            "display.showDetailedErrors", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_AUTOGEN(
             "password.showAutoGen", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     PASSWORD_SHOW_STRENGTH_METER(

@@ -167,7 +167,7 @@ public class SessionFilter implements Filter {
         }
 
         //override session locale due to parameter
-        final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale", 255);
+        final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale");
         if (langReqParamter != null && langReqParamter.length() > 0) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
@@ -212,19 +212,19 @@ public class SessionFilter implements Filter {
             }
         }
 
-        final String forwardURLParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_FORWARD_URL, 4096);
+        final String forwardURLParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_FORWARD_URL);
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
             ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 
-        final String logoutURL = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOGOUT_URL, 4096);
+        final String logoutURL = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOGOUT_URL);
         if (logoutURL != null && logoutURL.length() > 0) {
             ssBean.setLogoutURL(logoutURL);
             LOGGER.debug(pwmSession, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
         }
 
-        final String skipCaptcha = Validator.readStringFromRequest(req, "skipCaptcha", 4096);
+        final String skipCaptcha = Validator.readStringFromRequest(req, "skipCaptcha");
         if (skipCaptcha != null && skipCaptcha.length() > 0) {
             final String configValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_PARAM);
             if (configValue != null && configValue.equals(skipCaptcha)) {
@@ -241,7 +241,7 @@ public class SessionFilter implements Filter {
 
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            ServletHelper.addPwmResponseHeaders(pwmApplication, resp);
+            ServletHelper.addPwmResponseHeaders(pwmApplication, resp, true);
         }
 
         try {
@@ -317,7 +317,7 @@ public class SessionFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATION_KEY, 255);
+        final String keyFromRequest = Validator.readStringFromRequest(req, PwmConstants.PARAM_VERIFICATION_KEY);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {

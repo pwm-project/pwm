@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.error.PwmException;
@@ -51,8 +52,6 @@ public class PwmDBLogger implements PwmService {
     private final static PwmLogger LOGGER = PwmLogger.getLogger(PwmDBLogger.class);
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
-
-    public final static int MAX_QUEUE_SIZE = 10 * 1000;
 
     private final PwmDB pwmDB;
 
@@ -406,12 +405,12 @@ public class PwmDBLogger implements PwmService {
     public synchronized void writeEvent(final PwmLogEvent event) {
         if (status == STATUS.OPEN) {
             if (setting_maxEvents > 0) {
-                if (eventQueue.size() < MAX_QUEUE_SIZE) { // if event queue isn't overflowed, simply add event to write queue
+                if (eventQueue.size() < PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE) { // if event queue isn't overflowed, simply add event to write queue
                     eventQueue.add(event);
                 } else { // wait for a bit for the event queue to shrink
                     final long startEventTime = System.currentTimeMillis();
                     while (TimeDuration.fromCurrent(startEventTime).isShorterThan(3000)) {
-                        if (eventQueue.size() < MAX_QUEUE_SIZE) {
+                        if (eventQueue.size() < PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE) {
                             eventQueue.add(event);
                             return;
                         }

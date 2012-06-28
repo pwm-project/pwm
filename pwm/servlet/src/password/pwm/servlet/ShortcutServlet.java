@@ -64,7 +64,7 @@ public class ShortcutServlet extends TopServlet {
         }
 
 
-        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("selectShortcut")) {
@@ -143,7 +143,7 @@ public class ShortcutServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final String link = Validator.readStringFromRequest(req, "link", 255);
+        final String link = Validator.readStringFromRequest(req, "link");
         final Map<String, ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
 
         if (link != null && visibleItems.keySet().contains(link)) {

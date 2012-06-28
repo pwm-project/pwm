@@ -171,7 +171,8 @@ public class PwmApplication {
             final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
             try {
-                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW);
+                final int idleTimeoutMs = PwmConstants.LDAP_PROXY_CONNECTION_TIMEOUT;
+                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleTimeoutMs);
             } catch (ChaiUnavailableException e) {
                 getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());

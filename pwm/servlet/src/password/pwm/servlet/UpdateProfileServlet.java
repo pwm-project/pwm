@@ -82,7 +82,7 @@ public class UpdateProfileServlet extends TopServlet {
             return;
         }
 
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         if (actionParam != null && actionParam.length() > 0) {
             Validator.validatePwmFormID(req);
             if ("updateProfile".equalsIgnoreCase(actionParam)) {

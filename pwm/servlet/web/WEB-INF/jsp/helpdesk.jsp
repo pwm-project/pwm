@@ -64,7 +64,7 @@
         if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
     %>
     <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-    <select id="context" name="context">
+    <select id="context" name="context" onchange="hideUserPanel()">
         <pwm:DisplayLocationOptions name="context"/>
     </select>
     <% } %>
@@ -72,6 +72,7 @@
     <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
 
     <input type="search" id="username" name="username" class="inputfield"
+           onkeypress="hideUserPanel()"
            value="<pwm:ParamValue name='username'/>"/>
     <input type="submit" class="btn"
            name="search"
@@ -85,12 +86,18 @@
 <br class="clear"/>
 <% if (helpdeskBean.isUserExists()) { %>
 <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
-<div style="width: 100%; height: 400px">
-<div class="message message-info">
-<div style="text-align: center; width: 100%; font-weight: bold; font-variant-caps: small-caps;"><%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %></div>
-<div dojoType="dijit.layout.TabContainer" style="width: 100%; height: 100%;" doLayout="false">
-<div dojoType="dijit.layout.ContentPane" title="Data">
+<div id="userPanel" style="display: none">
+<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
     <table>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_Username"/>
+            </td>
+            <td>
+                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
+            </td>
+        </tr>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_UserDN"/>
@@ -107,6 +114,9 @@
                 <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
             </td>
         </tr>
+    </table>
+
+    <table>
         <% for (Map.Entry<String, String> me : attrMap.entrySet()) { %>
         <tr>
             <td class="key">
@@ -120,299 +130,131 @@
         <%  } %>
     </table>
 </div>
-<div dojoType="dijit.layout.ContentPane" title="Status">
-<table>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_Username"/>
-        </td>
-        <td>
-            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_AccountEnabled"/>
-        </td>
-        <td>
-            <%if (helpdeskBean.isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_LastLoginTime"/>
-        </td>
-        <td>
-            <%= helpdeskBean.getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getLastLoginTime()) : ""%>
-        </td>
-    </tr>
-    <% if (helpdeskBean.getLastLoginTime() != null) { %>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_LastLoginTimeDelta"/>
-        </td>
-        <td>
-            <%= TimeDuration.fromCurrent(helpdeskBean.getLastLoginTime()).asLongString() + " ago"%>
-        </td>
-    </tr>
-    <% } %>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordExpired"/>
-        </td>
-        <td>
-            <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordPreExpired"/>
-        </td>
-        <td>
-            <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordViolatesPolicy"/>
-        </td>
-        <td>
-            <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
-        </td>
-        <td>
-            <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordSetTime"/>
-        </td>
-        <td>
-            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordExpirationTime"/>
-        </td>
-        <td>
-            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_PasswordLocked"/>
-        </td>
-        <% if (helpdeskBean.isIntruderLocked()) { %>
-        <td class="health-WARN">
-            <pwm:Display key="Value_True"/>
-        </td>
-        <% } else { %>
-        <td>
-            <pwm:Display key="Value_False"/>
-        </td>
+<div data-dojo-type="dijit.layout.ContentPane" title="Status">
+    <table>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_Username"/>
+            </td>
+            <td>
+                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_AccountEnabled"/>
+            </td>
+            <td>
+                <%if (helpdeskBean.isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_LastLoginTime"/>
+            </td>
+            <td>
+                <%= helpdeskBean.getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getLastLoginTime()) : ""%>
+            </td>
+        </tr>
+        <% if (helpdeskBean.getLastLoginTime() != null) { %>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_LastLoginTimeDelta"/>
+            </td>
+            <td>
+                <%= TimeDuration.fromCurrent(helpdeskBean.getLastLoginTime()).asLongString() + " ago"%>
+            </td>
+        </tr>
         <% } %>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_ResponsesStored"/>
-        </td>
-        <td>
-            <%= helpdeskBean.getResponseSet() != null %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_ResponsesNeeded"/>
-        </td>
-        <td>
-            <%= helpdeskBean.getUserInfoBean().isRequiresResponseConfig() %>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <pwm:Display key="Field_ResponsesTimestamp"/>
-        </td>
-        <td>
-            <%= helpdeskBean.getResponseSet() != null && helpdeskBean.getResponseSet().getTimestamp() != null ? dateFormatter.format(helpdeskBean.getResponseSet().getTimestamp()) : "n/a" %>
-        </td>
-    </tr>
-</table>
-<div id="buttonbar">
-    <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
-    <button class="btn" onclick="initiateChangePasswordDialog()">Change Password</button>
-    <% } %>
-    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-    <% if (helpdeskBean.isIntruderLocked()) { %>
-    <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
-    <% } else { %>
-    <button class="btn" disabled="disabled" onclick="alert('User is not locked');">Unlock</button>
-    <% } %>
-    <% } %>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
-        <input type="hidden" name="processAction" value="doUnlock"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-    <script type="text/javascript">
-        function initiateChangePasswordDialog() {
-        <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
-            generatePasswordPopup();
-        <% } else { %>
-            changePasswordPopup();
-        <% } %>
-        }
-
-        function changePasswordPopup() {
-            require(["dijit/Dialog"],function(){
-                var bodyText = '<span id="message" class="message message-info" style="width: 400"><pwm:Display key="Field_NewPassword"/></span>'
-                <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.both) { %>
-                bodyText += '<p>&nbsp;»&nbsp; <a href="#" onclick="clearDigitWidget(\'changepassword-popup\');generatePasswordPopup();"><pwm:Display key="Display_AutoGeneratedPassword"/></a></p>';
-                <% } %>
-                bodyText += '<table style="border: 0">';
-                bodyText += '<tr style="border: 0"><td style="border: 0"><input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');"/></td>';
-                <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
-                bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
-                bodyText += '<div id="strengthLabel"><pwm:Display key="Display_StrengthMeter"/></div>';
-                bodyText += '<div class="progress-container" style="margin-bottom:10px">';
-                bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
-                <% } %>
-                bodyText += '</tr><tr style="border: 0">';
-                bodyText += '<td style="border: 0"><input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');""/></td>';
-
-                bodyText += '<td style="border: 0"><div style="margin:0;">';
-                bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='greenCheck.png'/>">';
-                bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>">';
-                bodyText += '</div></td>';
-
-                bodyText += '</tr></table>';
-                bodyText += '<button name="change" class="btn" id="password_button" onclick="var pw=getObject(\'password1\').value;clearDigitWidget(\'changepassword-popup\');doPasswordChange(pw)" disabled="true"/><pwm:Display key="Button_ChangePassword"/></button>';
-                try { getObject('message').id = "base-message"; } catch (e) {}
-
-                clearDigitWidget('changepassword-popup');
-                var theDialog = new dijit.Dialog({
-                    id: 'dialogPopup',
-                    title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
-                    style: "width: 450px",
-                    content: bodyText,
-                    hide: function(){
-                        clearDigitWidget('dialogPopup');
-                        getObject('base-message').id = "message";
-                    }
-                });
-                theDialog.show();
-                setTimeout(function(){ getObject('password1').focus();},500);
-            });
-        }
-        function generatePasswordPopup() {
-            var dataInput = {};
-            dataInput['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
-            dataInput['strength'] = 0;
-
-            var randomConfig = {};
-            randomConfig['dataInput'] = dataInput;
-            randomConfig['finishAction'] = "clearDigitWidget('randomPasswordDialog');doPasswordChange(PWM_GLOBAL['SelectedRandomPassword'])";
-            doRandomGeneration(randomConfig);
-        }
-        function doPasswordChange(password) {
-            require(["dojo","dijit/Dialog"],function(dojo){
-                showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
-                var inputValues = {};
-                inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
-                inputValues['password'] = password;
-                setTimeout(function(){
-                    dojo.xhrPost({
-                        url: PWM_GLOBAL['url-restservice'] + "/setpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                        headers: {"Accept":"application/json"},
-                        content: inputValues,
-                        preventCache: true,
-                        timeout: 90000,
-                        sync: false,
-                        handleAs: "json",
-                        load: function(results){
-                            var bodyText = "";
-                            if (results['success'] == 'true') {
-                                bodyText += '<span class="message message-info">';
-                                bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
-                                bodyText += '</span></br>';
-                            } else {
-                                bodyText += results['errorMsg'];
-                            }
-                            bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
-                            <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
-                            bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
-                            bodyText += '<button class="btn" onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
-                            bodyText += 'Clear Responses</button>';
-                            <% } %>
-                            clearDigitWidget('dialogPopup');
-                            var theDialog = new dijit.Dialog({
-                                id: 'dialogPopup',
-                                title: PWM_STRINGS['Message_SuccessUnknown'],
-                                style: "width: 450px",
-                                content: bodyText,
-                                hide: function(){
-                                    clearDigitWidget('dialogPopup');
-                                }
-                            });
-                            theDialog.show();
-                        },
-                        error: function(errorObj){
-                            clearDigitWidget('dialogPopup');
-                            showError("unexpected set password error: " + errorObj);
-                        }
-                    });
-                },300);
-            });
-        }
-        function doResponseClear(username) {
-            require(["dojo","dijit/Dialog"],function(dojo){
-                clearDigitWidget('dialogPopup');
-                showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
-                var inputValues = { 'username':username };
-                setTimeout(function(){
-                    dojo.xhrPost({
-                        url: PWM_GLOBAL['url-restservice'] + "/clearresponses?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                        headers: {"Accept":"application/json"},
-                        content: inputValues,
-                        preventCache: true,
-                        timeout: 90000,
-                        sync: false,
-                        handleAs: "json",
-                        load: function(results){
-                            var bodyText = "";
-                            if (results['success'] == 'true') {
-                                bodyText += PWM_STRINGS['Message_SuccessUnknown'];
-                            } else {
-                                bodyText += results['errorMsg'];
-                            }
-                            bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
-                            clearDigitWidget('dialogPopup');
-                            var theDialog = new dijit.Dialog({
-                                id: 'dialogPopup',
-                                style: "width: 450px",
-                                content: bodyText,
-                                hide: function(){
-                                    clearDigitWidget('result-popup');
-                                }
-                            });
-                            theDialog.show();
-                        },
-                        error: function(errorObj){
-                            clearDigitWidget('dialogPopup');
-                            showError("unexpected clear responses error: " + errorObj);
-                        }
-                    });
-                },100);
-            });
-        }
-    </script>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordExpired"/>
+            </td>
+            <td>
+                <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordPreExpired"/>
+            </td>
+            <td>
+                <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordViolatesPolicy"/>
+            </td>
+            <td>
+                <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
+            </td>
+            <td>
+                <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordSetTime"/>
+            </td>
+            <td>
+                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordExpirationTime"/>
+            </td>
+            <td>
+                <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordLocked"/>
+            </td>
+            <% if (helpdeskBean.isIntruderLocked()) { %>
+            <td class="health-WARN">
+                <pwm:Display key="Value_True"/>
+            </td>
+            <% } else { %>
+            <td>
+                <pwm:Display key="Value_False"/>
+            </td>
+            <% } %>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_ResponsesStored"/>
+            </td>
+            <td>
+                <%= helpdeskBean.getResponseSet() != null %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_ResponsesNeeded"/>
+            </td>
+            <td>
+                <%= helpdeskBean.getUserInfoBean().isRequiresResponseConfig() %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_ResponsesTimestamp"/>
+            </td>
+            <td>
+                <%= helpdeskBean.getResponseSet() != null && helpdeskBean.getResponseSet().getTimestamp() != null ? dateFormatter.format(helpdeskBean.getResponseSet().getTimestamp()) : "n/a" %>
+            </td>
+        </tr>
+    </table>
 </div>
-</div>
-<div dojoType="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
     <table>
         <% for (final UserHistory.Record record : helpdeskBean.getUserHistory().getRecords()) { %>
         <tr>
@@ -427,7 +269,7 @@
         <% } %>
     </table>
 </div>
-<div dojoType="dijit.layout.ContentPane" title="Password Policy">
+<div data-dojo-type="dijit.layout.ContentPane" title="Password Policy">
     <table>
         <tr>
             <td class="key">
@@ -456,7 +298,7 @@
         </tr>
     </table>
 </div>
-<div dojoType="dijit.layout.ContentPane" title="ChallengeSet">
+<div data-dojo-type="dijit.layout.ContentPane" title="ChallengeSet">
     <table>
         <% if (searchedUserInfo.getChallengeSet() != null) { %>
         <tr>
@@ -516,20 +358,204 @@
     </table>
 </div>
 </div>
+<div id="buttonbar">
+    <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
+    <button class="btn" onclick="initiateChangePasswordDialog()"><pwm:Display key="Button_ChangePassword"/></button>
+    <% } %>
+    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+    <% if (helpdeskBean.isIntruderLocked()) { %>
+    <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
+    <% } else { %>
+    <button id="unlockBtn" class="btn" disabled="disabled">Unlock</button>
+    <script type="text/javascript">
+        require(["dojo/domReady!","dijit/Tooltip"],function(){
+            new dijit.Tooltip({
+                connectId: ["unlockBtn"],
+                label: 'User is not locked'
+            });
+        });
+    </script>
+
+    <% } %>
+    <% } %>
+    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="processAction" value="doUnlock"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
 </div>
 </div>
-<script type="text/javascript">
-    PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
-    require(["dojo","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojo){
-        dojo.parser.parse();
-    });
-</script>
 <% } else { %>
 <div>&nbsp;</div>
 <% } %>
 </div>
 </div>
-<div><br/><br/><br/><br/></div>
+<script type="text/javascript">
+    function initiateChangePasswordDialog() {
+    <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
+        generatePasswordPopup();
+    <% } else { %>
+        changePasswordPopup();
+    <% } %>
+    }
+
+    function changePasswordPopup() {
+        require(["dijit/Dialog"],function(){
+            var bodyText = '<span id="message" class="message message-info" style="width: 400"><pwm:Display key="Field_NewPassword"/></span>'
+            <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.both) { %>
+            bodyText += '<p>&nbsp;»&nbsp; <a href="#" onclick="clearDijitWidget(\'changepassword-popup\');generatePasswordPopup();"><pwm:Display key="Display_AutoGeneratedPassword"/></a></p>';
+            <% } %>
+            bodyText += '<table style="border: 0">';
+            bodyText += '<tr style="border: 0"><td style="border: 0"><input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');"/></td>';
+            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
+            bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
+            bodyText += '<div id="strengthLabel"><pwm:Display key="Display_StrengthMeter"/></div>';
+            bodyText += '<div class="progress-container" style="margin-bottom:10px">';
+            bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
+            <% } %>
+            bodyText += '</tr><tr style="border: 0">';
+            bodyText += '<td style="border: 0"><input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');""/></td>';
+
+            bodyText += '<td style="border: 0"><div style="margin:0;">';
+            bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='greenCheck.png'/>">';
+            bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>">';
+            bodyText += '</div></td>';
+
+            bodyText += '</tr></table>';
+            bodyText += '<button name="change" class="btn" id="password_button" onclick="var pw=getObject(\'password1\').value;clearDijitWidget(\'changepassword-popup\');doPasswordChange(pw)" disabled="true"/><pwm:Display key="Button_ChangePassword"/></button>';
+            try { getObject('message').id = "base-message"; } catch (e) {}
+
+            clearDijitWidget('changepassword-popup');
+            var theDialog = new dijit.Dialog({
+                id: 'dialogPopup',
+                title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
+                style: "width: 450px",
+                content: bodyText,
+                hide: function(){
+                    clearDijitWidget('dialogPopup');
+                    getObject('base-message').id = "message";
+                }
+            });
+            theDialog.show();
+            setTimeout(function(){ getObject('password1').focus();},500);
+        });
+    }
+    function generatePasswordPopup() {
+        var dataInput = {};
+        dataInput['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
+        dataInput['strength'] = 0;
+
+        var randomConfig = {};
+        randomConfig['dataInput'] = dataInput;
+        randomConfig['finishAction'] = "clearDijitWidget('randomPasswordDialog');doPasswordChange(PWM_GLOBAL['SelectedRandomPassword'])";
+        doRandomGeneration(randomConfig);
+    }
+    function doPasswordChange(password) {
+        require(["dojo","dijit/Dialog"],function(dojo){
+            showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
+            var inputValues = {};
+            inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
+            inputValues['password'] = password;
+            setTimeout(function(){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-restservice'] + "/setpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    headers: {"Accept":"application/json"},
+                    content: inputValues,
+                    preventCache: true,
+                    timeout: 90000,
+                    sync: false,
+                    handleAs: "json",
+                    load: function(results){
+                        var bodyText = "";
+                        if (results['success'] == 'true') {
+                            bodyText += '<span class="message message-info">';
+                            bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
+                            bodyText += '</span></br>';
+                        } else {
+                            bodyText += results['errorMsg'];
+                        }
+                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
+                        bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
+                        bodyText += '<button class="btn" onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
+                        bodyText += 'Clear Responses</button>';
+                        <% } %>
+                        clearDijitWidget('dialogPopup');
+                        var theDialog = new dijit.Dialog({
+                            id: 'dialogPopup',
+                            title: PWM_STRINGS['Message_SuccessUnknown'],
+                            style: "width: 450px",
+                            content: bodyText,
+                            closable: false,
+                            hide: function(){
+                                clearDijitWidget('dialogPopup');
+                            }
+                        });
+                        theDialog.show();
+                    },
+                    error: function(errorObj){
+                        clearDijitWidget('dialogPopup');
+                        showError("unexpected set password error: " + errorObj);
+                    }
+                });
+            },300);
+        });
+    }
+    function doResponseClear(username) {
+        require(["dojo","dijit/Dialog"],function(dojo){
+            clearDijitWidget('dialogPopup');
+            showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
+            var inputValues = { 'username':username };
+            setTimeout(function(){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-restservice'] + "/clearresponses?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    headers: {"Accept":"application/json"},
+                    content: inputValues,
+                    preventCache: true,
+                    timeout: 90000,
+                    sync: false,
+                    handleAs: "json",
+                    load: function(results){
+                        var bodyText = "";
+                        if (results['success'] == 'true') {
+                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                        } else {
+                            bodyText += results['errorMsg'];
+                        }
+                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        clearDijitWidget('dialogPopup');
+                        var theDialog = new dijit.Dialog({
+                            id: 'dialogPopup',
+                            style: "width: 450px",
+                            content: bodyText,
+                            closable: false,
+                            hide: function(){
+                                clearDijitWidget('result-popup');
+                            }
+                        });
+                        theDialog.show();
+                    },
+                    error: function(errorObj){
+                        clearDijitWidget('dialogPopup');
+                        showError("unexpected clear responses error: " + errorObj);
+                    }
+                });
+            },100);
+        });
+    }
+
+    function hideUserPanel() {
+        getObject('userPanel').style.display = 'none';
+    }
+
+    function startupPage() {
+        PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
+        require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+            getObject('userPanel').style.display = 'inline';
+            dojoParser.parse();
+        });
+    }
+    startupPage();
+</script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

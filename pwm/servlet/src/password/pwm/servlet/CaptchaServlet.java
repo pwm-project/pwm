@@ -78,7 +78,7 @@ public class CaptchaServlet extends TopServlet {
             return;
         }
 
-        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if (processRequestParam != null) {
             if (processRequestParam.equalsIgnoreCase("doVerify")) {
@@ -150,9 +150,9 @@ public class CaptchaServlet extends TopServlet {
         bodyText.append("&");
         bodyText.append("remoteip=").append(PwmSession.getPwmSession(req).getSessionStateBean().getSrcAddress());
         bodyText.append("&");
-        bodyText.append("challenge=").append(Validator.readStringFromRequest(req, "recaptcha_challenge_field", 1024));
+        bodyText.append("challenge=").append(Validator.readStringFromRequest(req, "recaptcha_challenge_field"));
         bodyText.append("&");
-        bodyText.append("response=").append(Validator.readStringFromRequest(req, "recaptcha_response_field", 1024));
+        bodyText.append("response=").append(Validator.readStringFromRequest(req, "recaptcha_response_field"));
 
         try {
             final URI requestURI = new URI(RECAPTCHA_VALIDATE_URL);

@@ -168,10 +168,16 @@ function changeInputTypeField(object, type) {
     return newObject;
 }
 
-function clearDigitWidget(widgetName) {
+function clearDijitWidget(widgetName) {
     require(["dijit/registry"],function(dijit){
         var oldDijitNode = dijit.byId(widgetName);
         if (oldDijitNode != null) {
+
+            try {
+                oldDijitNode.destroyRecursive();
+            } catch (error) {
+            }
+
             try {
                 oldDijitNode.destroy();
             } catch (error) {
@@ -232,7 +238,7 @@ function showWaitDialog(title, body) {
     }
     require(["dijit/Dialog"],function(){
         var idName = 'dialogPopup';
-        clearDigitWidget(idName);
+        clearDijitWidget(idName);
         if (body == null || body.length < 1) {
             body = '<div id="WaitDialogBlank"/>';
         }
@@ -248,7 +254,7 @@ function showWaitDialog(title, body) {
     });
 }
 
-function showPwmHealth(parentDivID, refreshNow) {
+function showPwmHealth(parentDivID, refreshNow, showRefresh) {
     require(["dojo"],function(dojo){
 
         var parentDiv = dojo.byId(parentDivID);
@@ -290,7 +296,9 @@ function showPwmHealth(parentDivID, refreshNow) {
 
                 htmlBody += '<tr><td colspan="3" style="text-align:center;">';
                 htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
-                htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true)">refresh</a>';
+                if (showRefresh) {
+                    htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true,true)">refresh</a>';
+                }
                 htmlBody += "</td></tr>";
 
                 htmlBody += '</table>';
@@ -303,14 +311,17 @@ function showPwmHealth(parentDivID, refreshNow) {
             error: function(error) {
                 var htmlBody = '<div style="text-align:center; background-color: #d20734">';
                 htmlBody += '<br/><span style="font-weight: bold;">unable to load health data</span></br>';
-
-                htmlBody += '<br/>' + error + '<br/>';
+                if (error != null) {
+                    htmlBody += '<br/>' + error + '<br/>';
+                }
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
-                htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',false)">retry</a><br/><br/>';
+                if (showRefresh) {
+                    htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',false,true)">retry</a><br/><br/>';
+                }
                 htmlBody += '</div>';
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
-                PWM_GLOBAL['pwm-health'] = 'UNKNOWN';
+                PWM_GLOBAL['pwm-health'] = 'WARN';
                 setTimeout(function() {
                     showPwmHealth(parentDivID, false);
                 }, 10 * 1000);
@@ -497,7 +508,7 @@ IdleTimeoutHandler.showIdleWarning = function() {
 };
 
 IdleTimeoutHandler.closeIdleWarning = function() {
-    clearDigitWidget('idleDialog');
+    clearDijitWidget('idleDialog');
     document.title = PWM_GLOBAL['real-window-title'];
 };
 

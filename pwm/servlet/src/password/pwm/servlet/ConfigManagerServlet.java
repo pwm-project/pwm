@@ -210,7 +210,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
-        final String key = Validator.readStringFromRequest(req, "key", 255);
+        final String key = Validator.readStringFromRequest(req, "key");
         final Object returnValue;
         final Map<String, Object> returnMap = new HashMap<String, Object>();
         final PwmSetting theSetting = PwmSetting.forKey(key);
@@ -540,7 +540,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
         {
-            final String requestedLevelstr = Validator.readStringFromRequest(req, "level", 255);
+            final String requestedLevelstr = Validator.readStringFromRequest(req, "level");
             if (requestedLevelstr != null && requestedLevelstr.length() > 0) {
                 try {
                     configManagerBean.setLevel(PwmSetting.Level.valueOf(requestedLevelstr));
@@ -551,7 +551,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedShowDesc = Validator.readStringFromRequest(req, "showDesc", 255);
+            final String requestedShowDesc = Validator.readStringFromRequest(req, "showDesc");
             if (requestedShowDesc != null && requestedShowDesc.length() > 0) {
                 try {
                     configManagerBean.setShowDescr(Boolean.valueOf(requestedShowDesc));
@@ -562,7 +562,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedTemplate = Validator.readStringFromRequest(req, "template", 255);
+            final String requestedTemplate = Validator.readStringFromRequest(req, "template");
             if (requestedTemplate != null && requestedTemplate.length() > 0) {
                 try {
                     final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
@@ -575,7 +575,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedCategory = Validator.readStringFromRequest(req, "category", 255);
+            final String requestedCategory = Validator.readStringFromRequest(req, "category");
             if (requestedCategory != null && requestedCategory.length() > 0) {
                 try {
                     configManagerBean.setCategory(PwmSetting.Category.valueOf(requestedCategory));
@@ -587,7 +587,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedLocaleBundle = Validator.readStringFromRequest(req, "localeBundle", 255);
+            final String requestedLocaleBundle = Validator.readStringFromRequest(req, "localeBundle");
             if (requestedLocaleBundle != null && requestedLocaleBundle.length() > 0) {
                 try {
                     configManagerBean.setLocaleBundle(PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(requestedLocaleBundle));
@@ -599,7 +599,7 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String updateDescriptionTextCmd = Validator.readStringFromRequest(req, "updateNotesText", 255);
+            final String updateDescriptionTextCmd = Validator.readStringFromRequest(req, "updateNotesText");
             if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
                 try {
                     final Gson gson = new Gson();

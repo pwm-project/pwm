@@ -179,7 +179,7 @@ public class ResourceFileServlet extends HttpServlet {
         response.setContentType(contentType);
 
         // set pwm headers
-        ServletHelper.addPwmResponseHeaders(pwmApplication, response);
+        ServletHelper.addPwmResponseHeaders(pwmApplication, response, false);
 
         try {
         try {

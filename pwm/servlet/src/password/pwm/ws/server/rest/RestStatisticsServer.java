@@ -63,6 +63,7 @@ public class RestStatisticsServer {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
 
             final String resultString;

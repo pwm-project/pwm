@@ -61,7 +61,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
         final Configuration config = ContextManager.getPwmApplication(req).getConfig();
 
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) {
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());

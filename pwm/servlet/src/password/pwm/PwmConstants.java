@@ -68,9 +68,11 @@ public abstract class PwmConstants {
     public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
     public static final DateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultTimeFormat"));
 
-
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
-    public static final int HTTP_PARAMETER_READ_LENGTH = 1024 * 10;
+    public static final int HTTP_PARAMETER_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpParameterMaxReadLength"));
+    public static final int HTTP_SESSION_VALIDATION_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpSessionValidationKeyLength"));
+    public static final int CONFIG_FILE_SCAN_FREQUENCY = Integer.parseInt(readPwmConstantsBundle("configFileScanFrequency"));
+    public static final int PWMDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
 
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
@@ -79,13 +81,13 @@ public abstract class PwmConstants {
     public static final boolean RESOURCE_SERVLET_ENABLE_PATH_NONCE = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnablePathNonce"));
     public static final String RESOURCE_SERVLET_NONCE_PATH_PREFIX = readPwmConstantsBundle("resourceServletNoncePathPrefix");
 
-
+    public static final int LDAP_PROXY_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapProxyConnectionTimeout"));
+    public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));
+    public static final int LDAP_CHECKER_RECENT_ERRORS_DURATION = Integer.parseInt(readPwmConstantsBundle("ldapCheckerRecentErrorDuration"));
 
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
-    static final int TOKEN_WRAP_LENGTH = Integer.parseInt(readPwmConstantsBundle("token.wrapLength"));
-
 
     public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
@@ -196,7 +198,11 @@ public abstract class PwmConstants {
             "Chuck Yeager's password is in plane text", // thx wk
             "Fruit flies have one time use passwords",
             "As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic password.",
-            "NOTICE: This header is protected by the Digital Millennium Copyright Act of 1996.  Reading this header is strictly forbidden."
+            "NOTICE: This header is protected by the Digital Millennium Copyright Act of 1996.  Reading this header is strictly forbidden.",
+            "Not sure if password == password, or I just think my password == password and any password will work.",
+            "This sure is a lot of code to change one measly string.",
+            "50,000 lines of code to change one stupid string.  Seems legit.",
+            "I don't always manage my passwords; but when I do, I use that password thingy amb developed."
     };
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY = 1000 * 2;  //milliseconds

@@ -41,7 +41,7 @@ public class LogoutServlet extends TopServlet {
     {
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("processing logout request from user");
-        final String idleParam = Validator.readStringFromRequest(req, "idle", 255);
+        final String idleParam = Validator.readStringFromRequest(req, "idle");
         if (Boolean.parseBoolean(idleParam)) {
             debugMsg.append(" due to client idle timeout");
         }

@@ -92,7 +92,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmApplication.getIntruderManager().checkUser(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
-        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
@@ -134,8 +134,8 @@ public class ForgottenPasswordServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
-        final String contextParam = Validator.readStringFromRequest(req, "context", 256);
+        final String usernameParam = Validator.readStringFromRequest(req, "username");
+        final String contextParam = Validator.readStringFromRequest(req, "context");
 
         // clear the bean
         pwmSession.clearForgottenPasswordBean();
@@ -558,7 +558,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         int counter = 0;
         for (final Challenge loopChallenge : challengeSet.getChallenges()) {
             counter++;
-            final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + counter, 1024);
+            final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + counter);
 
             responses.put(loopChallenge, answer.length() > 0 ? answer : "");
         }

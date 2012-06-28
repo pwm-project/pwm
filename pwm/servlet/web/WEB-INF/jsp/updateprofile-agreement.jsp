@@ -19,9 +19,7 @@
 ~ along with this program; if not, write to the Free Software
 ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
-
 <!DOCTYPE html>
-
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -46,14 +44,14 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
-
-        <span><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale())%></span>
-
+        <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+        <% final String expandedText = PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()); %>
+        <div class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='UpdateProfile'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()"
+                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
                     key="Button_Agree"/></label>
                 <input type="hidden"
@@ -64,8 +62,6 @@
                        id="button_continue"/>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <br/><br/>
-
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="submit" name="button" class="btn"
@@ -76,6 +72,11 @@
     </div>
     <br class="clear"/>
 </div>
+<script type="text/javascript">
+    require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

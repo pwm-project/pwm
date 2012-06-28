@@ -22,19 +22,44 @@
 
 package password.pwm.ws.server;
 
-import password.pwm.ContextManager;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.Validator;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
+
+    public static void initializeRestRequest(
+            final HttpServletRequest request,
+            final String username
+    )
+            throws PwmUnrecoverableException {
+        final boolean external = determineIfRestClientIsExternal(request);
+        handleBasicAuthentication(request);
+    }
+
+    private static void handleBasicAuthentication(HttpServletRequest request)
+            throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        if (!pwmSession.getSessionStateBean().isAuthenticated() && BasicAuthInfo.parseAuthHeader(request) != null) {
+            try {
+                AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(request));
+            } catch (PwmOperationalException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (ChaiUnavailableException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+    }
 
     public static boolean determineIfRestClientIsExternal(HttpServletRequest request)
             throws PwmUnrecoverableException
@@ -60,5 +85,44 @@ public abstract class RestServerHelper {
         }
 
         return !requestHasCorrectID;
+    }
+
+    public static class RestRequestBean implements Serializable {
+        private boolean authenticated;
+        private boolean external;
+        private boolean actorIsSelf;
+        private String username;
+
+        public boolean isAuthenticated() {
+            return authenticated;
+        }
+
+        public void setAuthenticated(boolean authenticated) {
+            this.authenticated = authenticated;
+        }
+
+        public boolean isExternal() {
+            return external;
+        }
+
+        public void setExternal(boolean external) {
+            this.external = external;
+        }
+
+        public boolean isActorIsSelf() {
+            return actorIsSelf;
+        }
+
+        public void setActorIsSelf(boolean actorIsSelf) {
+            this.actorIsSelf = actorIsSelf;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
     }
 }

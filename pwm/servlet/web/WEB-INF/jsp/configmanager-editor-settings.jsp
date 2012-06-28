@@ -32,7 +32,7 @@
 <% final password.pwm.config.PwmSetting.Level level = configManagerBean.getLevel(); %>
 <% final boolean showDesc = configManagerBean.isShowDescr(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null; %>
+<% final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0; %>
 
 <h1 style="text-align:center;"><%=category.getLabel(locale)%>
 </h1>

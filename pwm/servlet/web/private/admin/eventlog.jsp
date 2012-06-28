@@ -121,7 +121,7 @@
             </td>
             <td style="border: 0">
                 <input name="username" type="text"
-                       value="<%=password.pwm.Validator.readStringFromRequest(request,"username", 255)%>"/>
+                       value="<%=password.pwm.Validator.readStringFromRequest(request,"username")%>"/>
             </td>
         </tr>
         <tr style="border: 0">
@@ -130,7 +130,7 @@
             </td>
             <td style="border: 0">
                 <input name="text" type="text"
-                       value="<%=password.pwm.Validator.readStringFromRequest(request,"text", 255)%>"/>
+                       value="<%=password.pwm.Validator.readStringFromRequest(request,"text")%>"/>
             </td>
         </tr>
         <tr style="border: 0">
@@ -151,7 +151,7 @@
                     Maximum Count
                 </td>
                 <td style="border: 0">
-                    <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count", 255);%>
+                    <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count");%>
                     <select name="count">
                         <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
                         <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
@@ -171,7 +171,7 @@
                     Maximum Search Time
                 </td>
                 <td style="border: 0">
-                    <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime", 255);%>
+                    <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime");%>
                     <select name="maxTime">
                         <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
                         </option>
@@ -205,23 +205,23 @@
     PwmDBLogger.EventType logType = PwmDBLogger.EventType.Both;
     int eventCount = 100;
     long maxTime = 10000;
-    final String username = password.pwm.Validator.readStringFromRequest(request, "username", 255);
-    final String text = password.pwm.Validator.readStringFromRequest(request, "text", 255);
+    final String username = password.pwm.Validator.readStringFromRequest(request, "username");
+    final String text = password.pwm.Validator.readStringFromRequest(request, "text");
     final boolean displayAsText = Boolean.parseBoolean(displayText);
     try {
-        logLevel = PwmLogLevel.valueOf(password.pwm.Validator.readStringFromRequest(request, "level", 255));
+        logLevel = PwmLogLevel.valueOf(password.pwm.Validator.readStringFromRequest(request, "level"));
     } catch (Exception e) {
     }
     try {
-        logType = PwmDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request, "type", 255));
+        logType = PwmDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request, "type"));
     } catch (Exception e) {
     }
     try {
-        eventCount = Integer.parseInt(password.pwm.Validator.readStringFromRequest(request, "count", 255));
+        eventCount = Integer.parseInt(password.pwm.Validator.readStringFromRequest(request, "count"));
     } catch (Exception e) {
     }
     try {
-        maxTime = Long.parseLong(password.pwm.Validator.readStringFromRequest(request, "maxTime", 255));
+        maxTime = Long.parseLong(password.pwm.Validator.readStringFromRequest(request, "maxTime"));
     } catch (Exception e) {
     }
 

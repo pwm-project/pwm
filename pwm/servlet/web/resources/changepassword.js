@@ -221,7 +221,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     text = trimString(text);
 
 
-    clearDigitWidget('dialogPopup');
+    clearDijitWidget('dialogPopup');
 
     if (passwordsMasked) {
         toggleMaskPasswords();
@@ -233,7 +233,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
 }
 
 function showPasswordGuide() {
-    clearDigitWidget('clearDigitWidget');
+    clearDijitWidget('clearDigitWidget');
     require(["dijit/Dialog"],function(){
         var theDialog = new dijit.Dialog({
             title: PWM_STRINGS['Title_PasswordGuide'],
@@ -248,7 +248,7 @@ function showPasswordGuide() {
 }
 
 function showRandomPasswordsDialog(randomConfig) {
-    clearDigitWidget('dialogPopup');
+    clearDijitWidget('dialogPopup');
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
     var centerBodyElement = getObject('centerbody');

@@ -90,10 +90,11 @@ public class Helper {
             final Configuration config,
             final List<String> ldapURLs,
             final String userDN,
-            final String userPassword
+            final String userPassword,
+            final int idleTimeoutMs
     )
             throws ChaiUnavailableException {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -101,11 +102,12 @@ public class Helper {
     public static ChaiProvider createChaiProvider(
             final Configuration config,
             final String userDN,
-            final String userPassword
+            final String userPassword,
+            final int idleTimeoutMs
     )
             throws ChaiUnavailableException {
         final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -114,7 +116,8 @@ public class Helper {
             final Configuration config,
             final List<String> ldapURLs,
             final String userDN,
-            final String userPassword
+            final String userPassword,
+            final int idleTimeoutMs
     )
             throws ChaiUnavailableException {
 
@@ -131,8 +134,6 @@ public class Helper {
             final boolean encryptResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
             chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, encryptResponses ? ChaiResponseSet.FormatType.SHA1_SALT.toString() : ChaiResponseSet.FormatType.TEXT.toString());
         }
-
-        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
         // if possible, set the ldap timeout.
         if (idleTimeoutMs > 0) {

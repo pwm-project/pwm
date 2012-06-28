@@ -22,19 +22,14 @@
 
 package password.pwm.util;
  
-import java.util.Properties;
-import java.net.URLEncoder;
-
-import password.pwm.PwmApplication;
-import password.pwm.util.BasicUrlShortener;
-import password.pwm.util.Helper;
-
 import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import password.pwm.PwmApplication;
+
+import java.net.URLEncoder;
+import java.util.Properties;
 
 public class TinyUrlShortener extends BasicUrlShortener {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(TinyUrlShortener.class);

@@ -365,3 +365,13 @@ div.progress-container > div {
     margin-top: 0;
     clear: both;
 }
+
+.agreementText {
+    border: 2px solid #656565;
+    border-radius: 5px;
+    padding: 10px;
+    max-height: 300px;
+    overflow: auto;
+    font-family: monospace;
+    color: black;
+}

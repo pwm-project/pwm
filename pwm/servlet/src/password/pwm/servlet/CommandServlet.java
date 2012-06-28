@@ -63,7 +63,7 @@ public class CommandServlet extends TopServlet {
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("idleUpdate")) {
@@ -128,7 +128,7 @@ public class CommandServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!ssBean.isAuthenticated()) {
-            final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+            final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
             LOGGER.info(pwmSession, "authentication required for " + action);
             ssBean.setSessionError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());

@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.Message;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
@@ -70,7 +71,7 @@ public class SessionStateBean implements Serializable {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
-    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(32) + Long.toHexString(System.currentTimeMillis());
+    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(PwmConstants.HTTP_SESSION_VALIDATION_KEY_LENGTH) + Long.toHexString(System.currentTimeMillis());
 
     private boolean passedCaptcha;
     private boolean debugInitialized;

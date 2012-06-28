@@ -122,7 +122,7 @@ public abstract class TopServlet extends HttpServlet {
         final Properties newParamProperty = new Properties();
 
         for (final Object name : keyNames) {
-            final String value = Validator.readStringFromRequest(req, (String) name, 4096);
+            final String value = Validator.readStringFromRequest(req, (String) name);
             newParamProperty.setProperty((String) name, value);
         }
 

@@ -60,9 +60,9 @@ function initPwmLocaleVars() {
     var localeInfo = {};
 <% for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) { %>
 <% if ("".equals(loopLocale.toString())) { %>
-    createCSSClass('.flagLang_en','background-image: url(flags/languages/en.png)');
+    createCSSClass('.flagLang_en','background-image: url(flags/png/en.png)');
 <% } else { %>
-    createCSSClass('.flagLang_<%=loopLocale.toString()%>','background-image: url(flags/languages/<%=loopLocale.toString()%>.png)');
+    createCSSClass('.flagLang_<%=loopLocale.toString()%>','background-image: url(flags/png/<%=loopLocale.toString()%>.png)');
 <% } %>
     localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayName()%>';
 <% } %>

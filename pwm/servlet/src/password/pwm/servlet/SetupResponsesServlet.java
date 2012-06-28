@@ -84,7 +84,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         // read the action request parameter
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         // check to see if the user is permitted to setup responses
         if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
@@ -280,7 +280,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         for (Enumeration nameEnum = req.getParameterNames(); nameEnum.hasMoreElements();) {
             final String paramName = nameEnum.nextElement().toString();
-            final String paramValue = Validator.readStringFromRequest(req, paramName, 1024);
+            final String paramValue = Validator.readStringFromRequest(req, paramName);
             inputMap.put(paramName, paramValue);
         }
 

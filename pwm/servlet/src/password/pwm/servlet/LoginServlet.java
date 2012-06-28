@@ -62,13 +62,13 @@ public class
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 1024);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
             Validator.validatePwmFormID(req);
-            final String username = Validator.readStringFromRequest(req, "username", 255);
-            final String password = Validator.readStringFromRequest(req, "password", 255);
-            final String context = Validator.readStringFromRequest(req, "context", 255);
+            final String username = Validator.readStringFromRequest(req, "username");
+            final String password = Validator.readStringFromRequest(req, "password");
+            final String context = Validator.readStringFromRequest(req, "context");
 
             if (username.length() < 1 || password.length() < 1) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));

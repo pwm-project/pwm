@@ -77,7 +77,7 @@ public class ActivateUserServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final Configuration config = pwmApplication.getConfig();
-        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
@@ -185,12 +185,6 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        final String agreementMessage = config.readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,pwmSession.getSessionStateBean().getLocale());
-        if (agreementMessage != null && agreementMessage.length() > 0 && !activateUserBean.isAgreementPassed()) {
-            forwardToAgreementJSP(req,resp);
-            return;
-        }
-
         final boolean tokenRequired = config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION);
         if (tokenRequired) {
             if (!activateUserBean.isTokenIssued()) {
@@ -207,6 +201,12 @@ public class ActivateUserServlet extends TopServlet {
                 forwardToEnterCodeJSP(req,resp);
                 return;
             }
+        }
+
+        final String agreementMessage = config.readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,pwmSession.getSessionStateBean().getLocale());
+        if (agreementMessage != null && agreementMessage.length() > 0 && !activateUserBean.isAgreementPassed()) {
+            forwardToAgreementJSP(req,resp);
+            return;
         }
 
         try {

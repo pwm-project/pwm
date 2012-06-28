@@ -76,8 +76,8 @@ public class PeopleSearchServlet extends TopServlet {
         if (processRequestParam != null && processRequestParam.equalsIgnoreCase("search")) {
             Validator.validatePwmFormID(req);
 
-            final String username = Validator.readStringFromRequest(req, "username", 255);
-            final String context = Validator.readStringFromRequest(req, "context", 255);
+            final String username = Validator.readStringFromRequest(req, "username");
+            final String context = Validator.readStringFromRequest(req, "context");
 
             if (username.length() < 1) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));

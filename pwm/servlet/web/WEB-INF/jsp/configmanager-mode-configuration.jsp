@@ -67,7 +67,7 @@
                     <div id="healthBody" style="border:0; margin:0; padding:0"></div>
                     <script type="text/javascript">
                         require(["dojo/ready"],function(){
-                            showPwmHealth('healthBody', false);
+                            showPwmHealth('healthBody', false, true);
                         });
                     </script>
                 </td>

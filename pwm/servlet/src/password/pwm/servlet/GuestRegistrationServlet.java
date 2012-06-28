@@ -77,7 +77,7 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, 255);
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final Configuration config = pwmApplication.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) {
@@ -226,7 +226,7 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final String usernameParam = Validator.readStringFromRequest(req, "username", 256);
+        final String usernameParam = Validator.readStringFromRequest(req, "username");
         final String searchContext = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final GuestRegistrationBean guBean = pwmSession.getGuestRegistrationBean();

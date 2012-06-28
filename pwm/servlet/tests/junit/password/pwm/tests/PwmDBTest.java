@@ -24,6 +24,7 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.pwmdb.PwmDBFactory;
@@ -51,6 +52,15 @@ public class PwmDBTest extends TestCase {
         Assert.assertEquals(pwmDB.get(TEST_DB,"testKey1"),"testValue1");
     }
 
+    public void testSize() throws PwmDBException {
+        final long startTime = System.currentTimeMillis();
+        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+            final int size = pwmDB.size(loopDB);
+            System.out.println(loopDB + " size=" + size);
+        }
+        System.out.println("total duration: " + TimeDuration.fromCurrent(startTime).asLongString());
+    }
+
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
@@ -59,5 +69,6 @@ public class PwmDBTest extends TestCase {
             pwmDB = null;
         }
     }
+
 
 }

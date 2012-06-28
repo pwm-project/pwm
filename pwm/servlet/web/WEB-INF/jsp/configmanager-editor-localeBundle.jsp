@@ -100,7 +100,7 @@
             },10); // time between element reads
         } else {
             setTimeout(function(){
-                clearDigitWidget('dialogPopup');
+                clearDijitWidget('dialogPopup');
             },500); // time after element reads completed.
         }
     }
@@ -113,7 +113,7 @@
             },1000);
         } else {
             setTimeout(function(){
-                clearDigitWidget('dialogPopup');
+                clearDijitWidget('dialogPopup');
             },2000);
         }
     });
