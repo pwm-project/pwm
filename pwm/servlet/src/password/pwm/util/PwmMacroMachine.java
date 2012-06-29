@@ -43,10 +43,12 @@ public class PwmMacroMachine {
     static {
         MACROS.add(new LdapMacro());
         MACROS.add(new UserPwExpirationTimeMacro());
+        MACROS.add(new UserPwExpirationTimeDefaultMacro());
         MACROS.add(new UserDaysUntilPwExpireMacro());
         MACROS.add(new UserIDMacro());
         MACROS.add(new PwmInstanceIDMacro());
         MACROS.add(new PwmCurrentTimeMacro());
+        MACROS.add(new PwmCurrentTimeDefaultMacro());
         MACROS.add(new PwmSiteURLMacro());
         MACROS.add(new PwmSiteHostMacro());
     }
@@ -124,6 +126,16 @@ public class PwmMacroMachine {
         }
     }
 
+    private static class PwmCurrentTimeDefaultMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@PWM:CurrentTime@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+        }
+    }
+
     private static class UserPwExpirationTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
             return Pattern.compile("@User:PwExpireTime:.*?@");
@@ -149,6 +161,25 @@ public class PwmMacroMachine {
                 }
             } else {
                 LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
+            }
+
+            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
+        }
+    }
+
+    private static class UserPwExpirationTimeDefaultMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@User:PwExpireTime@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            if (uiBean == null) {
+                return "";
+            }
+
+            final Date pwdExpirationTime = uiBean.getPasswordExpirationTime();
+            if (pwdExpirationTime == null) {
+                return "";
             }
 
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);

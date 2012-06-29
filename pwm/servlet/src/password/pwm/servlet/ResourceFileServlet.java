@@ -175,7 +175,8 @@ public class ResourceFileServlet extends HttpServlet {
         // Initialize response.
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
-        response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
+        //response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
+        response.setHeader("Cache-Control","public, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS);
         response.setContentType(contentType);
 
         // set pwm headers

@@ -549,10 +549,16 @@
 
     function startupPage() {
         PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
-        require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-            getObject('userPanel').style.display = 'inline';
-            dojoParser.parse();
-        });
+        if (getObject('userPanel')) {
+            require(["dojo/parser","dijit/Dialog"],function(){
+                showWaitDialog();
+                require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+                    getObject('userPanel').style.display = 'inline';
+                    dojoParser.parse();
+                    clearDijitWidget('dialogPopup');
+                });
+            });
+        }
     }
     startupPage();
 </script>

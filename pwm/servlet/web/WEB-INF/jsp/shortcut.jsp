@@ -42,11 +42,9 @@
         <p>No shortcuts</p>
         <% } else { %>
         <% for (final ShortcutItem item : shortcutItems.values()) { %>
-        <h2>
-            <a href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>"
-               target="_blank" class="tablekey"><%= item.getLabel() %>
-            </a></h2>
-
+            <a class="menubutton" href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
+               <%= item.getLabel() %>
+            </a>
         <p><%= item.getDescription() %>
         </p>
         <% } %>

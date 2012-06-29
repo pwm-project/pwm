@@ -192,17 +192,32 @@ public abstract class CrUtility {
     {
         final Configuration config = pwmApplication.getConfig();
 
+        LOGGER.trace(pwmSession, "beginning read of user response sequence");
+
         final String novellUserAppWebServiceURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
         if (novellUserAppWebServiceURL != null && novellUserAppWebServiceURL.length() > 0) {
+            LOGGER.trace(pwmSession, "attempting read of responses via Novell UserApp SOAP service url: " + novellUserAppWebServiceURL);
             final ResponseSet responseSet = ResponseReaders.readResponsesFromNovellUA(pwmSession,pwmApplication,theUser);
             if (responseSet != null) {
                 LOGGER.debug(pwmSession,"returning responses read via Novell UserApp SOAP Service");
                 return responseSet;
+            } else {
+                LOGGER.trace("no responses returned from Novell UserApp SOAP service");
             }
         }
 
         final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseReadLocations();
-
+        {
+            final StringBuilder debugMsg = new StringBuilder("will attempt to read the following storage methods: ");
+            for (Iterator<Configuration.STORAGE_METHOD> iterator = readPreferences.iterator(); iterator.hasNext(); ) {
+                final Configuration.STORAGE_METHOD loopMethod = iterator.next();
+                debugMsg.append(loopMethod);
+                if (iterator.hasNext()) {
+                    debugMsg.append(", ");
+                }
+            }
+            LOGGER.debug(pwmSession, debugMsg);
+        }
         final String userGUID;
         if (readPreferences.contains(Configuration.STORAGE_METHOD.DB) || readPreferences.contains(Configuration.STORAGE_METHOD.PWMDB)) {
             userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
@@ -213,6 +228,7 @@ public abstract class CrUtility {
         for (final Configuration.STORAGE_METHOD storageMethod : readPreferences) {
             final ResponseSet readResponses;
 
+            LOGGER.trace(pwmSession, "attempting read of responses via storage method: " + storageMethod);
             switch (storageMethod) {
                 case DB:
                     final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
@@ -233,8 +249,10 @@ public abstract class CrUtility {
             }
 
             if (readResponses != null) {
-                LOGGER.debug(pwmSession,"returning responses read via " + storageMethod);
+                LOGGER.debug(pwmSession,"returning responses read via method " + storageMethod);
                 return readResponses;
+            } else {
+                LOGGER.trace(pwmSession, "no responses read using method " + storageMethod);
             }
         }
 
@@ -302,6 +320,8 @@ public abstract class CrUtility {
                     final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
                     LOGGER.debug(pwmSession, "found user responses in database: " + userResponseSet.toString());
                     return userResponseSet;
+                } else {
+                    LOGGER.trace(pwmSession, "user guid not found in database");
                 }
             } catch (ChaiValidationException e) {
                 final String errorMsg = "unexpected chai error reading responses from database: " + e.getMessage();
