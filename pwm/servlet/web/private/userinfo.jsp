@@ -41,7 +41,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();">
-<div id="wrapper" class="tundra">
+<div id="wrapper" class="nihilo">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>

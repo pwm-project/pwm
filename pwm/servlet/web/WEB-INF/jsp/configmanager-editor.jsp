@@ -41,9 +41,6 @@
 
 <body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
-<script type="text/javascript">
-    <% { for (final Locale loopLocale : localeList) { %>availableLocales['<%=loopLocale%>'] = '<%=loopLocale.getDisplayName()%>'; <% }
-} %></script>
 <div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
     <div id="header-company-logo"></div>

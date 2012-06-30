@@ -81,10 +81,12 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenPassword" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
             <script type="text/javascript">
-                require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
                     var strengthTooltip = new dijit.Tooltip({
                         connectId: ["Title_ForgottenPassword"],
-                        label: '<pwm:Display key="Long_Title_ForgottenPassword"/>'
+                        label: '<pwm:Display key="Long_Title_ForgottenPassword"/>',
+                        position: ['above']
+
                     });
                 });},1000)});
             </script>
@@ -92,10 +94,11 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <a class="menubutton" id="Title_ForgottenUsername" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
             <script type="text/javascript">
-                require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
                     new dijit.Tooltip({
                         connectId: ["Title_ForgottenUsername"],
-                        label: '<pwm:Display key="Long_Title_ForgottenUsername"/>'
+                        label: PWM_STRINGS["Long_Title_ForgottenUsername"],
+                        position: ['above']
                     });
                 });},1000)});
             </script>
@@ -103,10 +106,11 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
             <a class="menubutton" id="Title_ActivateUser" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
             <script type="text/javascript">
-                require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
                     new dijit.Tooltip({
                         connectId: ["Title_ActivateUser"],
-                        label: '<pwm:Display key="Long_Title_ActivateUser"/>'
+                        label: PWM_STRINGS["Long_Title_ActivateUser"],
+                        position: ['above']
                     });
                 });},1000)});
             </script>
@@ -115,10 +119,11 @@
             <p>
                 <a class="menubutton" id="Title_NewUser" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
                 <script type="text/javascript">
-                    require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                    require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
                         new dijit.Tooltip({
                             connectId: ["Title_NewUser"],
-                            label: '<pwm:Display key="Long_Title_NewUser"/>'
+                            label: PWM_STRINGS["Long_Title_NewUser"],
+                            position: ['above']
                         });
                     });},1000)});
                 </script>

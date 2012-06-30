@@ -28,6 +28,8 @@
   - which by default is a blue-gray gradieted and rounded block.
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final PwmSession pwmSessionHeaderBody = PwmSession.getPwmSession(session); %>
+<% final boolean loggedIn = pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
 <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
 <% if (!request.getRequestURI().contains("configmanager")) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
@@ -37,31 +39,41 @@
 <% } %>
 <div id="header">
     <div id="header-company-logo"></div>
-    <%-- this section handles the logout link (if user is logged in) --%><% if (PwmSession.getPwmSession(session).getSessionStateBean().isAuthenticated()) { %>
-    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px" id="logoutDiv">
-        <a id="LogoutButton" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
-           title="<pwm:Display key="Button_Logout"/>">
-        </a>
+    <%-- this section handles the logout link (if user is logged in) --%>
+    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px;">
+        <div style="text-align: center; visibility: <%=loggedIn ? "inline" : "hidden"%>"
+             id="logoutDiv">
+            <a id="LogoutButton" style="margin: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
+               title="<pwm:Display key="Button_Logout"/>">
+            </a>
+        </div>
+        <div style="font-size: 10px; color: white; text-align: right; width: 100%" id="localeSelectionMenu">
+            <%=pwmSessionHeaderBody.getSessionStateBean().getLocale().getDisplayLanguage(pwmSessionHeaderBody.getSessionStateBean().getLocale())%>
+        </div>
     </div>
-    <script type="text/javascript">
-        require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-            new dijit.Tooltip({
-                connectId: ["logoutDiv"],
-                label: '<pwm:Display key="Long_Title_Logout"/>'
-            });
-        });},1000)});
-    </script>
-<%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
+    <%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
     <div style="align:left; float:left; border-width:0; padding-top: 21px; padding-left:18px">
         <img src="<%=request.getContextPath()%>/resources/spacer.gif" alt="" border="0"
              style="width:26px; height:26px"/>
     </div>
-    <% } %>
     <div id="header-page">
         <pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/>
     </div>
     <div id="header-title">
         <pwm:Display key="Title_Application"/>
     </div>
+    <script type="text/javascript">
+        require(["dojo/domReady!"],function(){
+            initLocaleSelectorMenu('localeSelectionMenu');
+            setTimeout(function(){
+                require(["dijit/Tooltip"],function(){
+                    new dijit.Tooltip({
+                        connectId: ["logoutDiv"],
+                        label: PWM_STRINGS["Long_Title_Logout"],
+                        showDelay: 0
+                    });
+                });},1000)
+        });
+    </script>
 </div>
 

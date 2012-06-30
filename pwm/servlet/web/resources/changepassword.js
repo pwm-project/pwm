@@ -265,7 +265,7 @@ function showRandomPasswordsDialog(randomConfig) {
             id: "dialogPopup"
 
         });
-        theDialog.setAttribute('class','tundra');
+        theDialog.setAttribute('class','nihilo');
         theDialog.show();
         beginFetchRandoms(randomConfig);
     });
@@ -432,11 +432,10 @@ function startupChangePasswordPage(initialPrompt)
 
     // setup tooltips
     require(["dijit/Tooltip"],function(){
-        var strengthTooltip = new dijit.Tooltip({
+        new dijit.Tooltip({
             connectId: ["strengthBox"],
-            label: PWM_STRINGS['Tooltip_PasswordStrength']
+            label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
         });
-        strengthTooltip.setAttribute('style','width: 30em');
     });
 
     var messageElement = getObject("message");

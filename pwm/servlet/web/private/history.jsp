@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="password.pwm.UserHistory" %>
-<%@ page import="password.pwm.config.Message" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Date" %>
 <!DOCTYPE html>
@@ -30,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();" class="tundra">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <%
     UserHistory userHistory = new UserHistory(0);
     try {

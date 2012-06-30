@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();" class="tundra">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <%
     final String redirectURL = request.getContextPath() + "/private/";
     response.sendRedirect(redirectURL);

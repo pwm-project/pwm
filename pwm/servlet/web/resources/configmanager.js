@@ -21,7 +21,6 @@
  */
 
 var clientSettingCache = { };
-var availableLocales = new Array();
 var menuItems = new Array();
 var selectedCategory = "";
 
@@ -142,11 +141,6 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 
     var selectElement = document.createElement("select");
     selectElement.setAttribute('id', keyName + '-addLocaleValue');
-    for (var localeIter in availableLocales) {
-        var optionElement = document.createElement("option");
-        optionElement.innerHTML = localeIter;
-        selectElement.appendChild(optionElement);
-    }
     td1.appendChild(selectElement);
 
     var addButton = document.createElement("button");
@@ -159,10 +153,17 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
-    require(["dijit/form/ComboBox","dijit/form/Button"],function(){
+    require(["dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Button"],function(Memory){
+        var availableLocales = PWM_GLOBAL['localeInfo'];
+        var localeMenu = [];
+        for (var localeIter in availableLocales) {
+            localeMenu.push({name: localeIter + ": " + availableLocales[localeIter], id: localeIter})
+        }
+
         clearDijitWidget(keyName + '-addLocaleValue');
-        new dijit.form.ComboBox({
-            id: keyName + '-addLocaleValue'
+        new dijit.form.FilteringSelect({
+            id: keyName + '-addLocaleValue',
+            store: new Memory({data: localeMenu})
         }, keyName + '-addLocaleValue');
 
         clearDijitWidget(keyName + '-addLocaleButton');

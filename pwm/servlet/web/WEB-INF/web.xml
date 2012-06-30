@@ -147,10 +147,12 @@
         <url-pattern>/public/ForgottenPassword</url-pattern>
         <url-pattern>/public/ForgottenUsername</url-pattern>
         <url-pattern>/public/CommandServlet</url-pattern>
+        <url-pattern>/public/Logout</url-pattern>
         <url-pattern>/private/*</url-pattern>
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
         <url-pattern>*.jsp</url-pattern>
+        <url-pattern>/resources/pwmVariables.js</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>

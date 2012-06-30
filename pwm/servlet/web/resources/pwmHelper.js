@@ -213,7 +213,7 @@ function initLocaleSelectorMenu(attachNode) {
                         preventCache: true,
                         load: function() {
                             PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                            window.location.reload();
+                            setTimeout(function(){window.location.reload();},1000);
                         },
                         error: function(error) {
                             alert('unable to set locale: ' + error);
@@ -224,7 +224,7 @@ function initLocaleSelectorMenu(attachNode) {
         };
 
         for (var localeKey in localeData) {
-            var loopDisplayName = localeKey == '' ? 'English' : localeData[localeKey];
+            var loopDisplayName = localeData[localeKey];
             var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
             var loopKey = localeKey == '' ? 'default' : localeKey;
             loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);

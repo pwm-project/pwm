@@ -459,9 +459,6 @@ public class Configuration implements Serializable {
                     }
                 }
             }
-            if (!returnList.contains(new Locale(""))) {
-                returnList.add(0, new Locale(""));
-            }
 
             knownLocales = Collections.unmodifiableList(returnList);
         }
