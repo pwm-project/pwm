@@ -86,8 +86,19 @@ public class StatisticsManager implements PwmService {
     private STATUS status = STATUS.NEW;
 
     public enum EpsType {
-        PASSWORD_CHANGES,
-        AUTHENTICATION
+        PASSWORD_CHANGES_10(10 * 60 * 1000),
+        PASSWORD_CHANGES_60(60 * 60 * 1000),
+        PASSWORD_CHANGES_240(4 * 60 * 60 * 1000),
+        AUTHENTICATION_10(10 * 60 * 1000),
+        AUTHENTICATION_60(60 * 60 * 1000),
+        AUTHENTICATION_240(4 * 60 * 60 * 1000),
+        ;
+
+        private final long duration;
+
+        private EpsType(long duration) {
+            this.duration = duration;
+        }
     }
 
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
@@ -205,7 +216,7 @@ public class StatisticsManager implements PwmService {
 
     public void init(PwmApplication pwmApplication) throws PwmException {
         for (final EpsType type : EpsType.values()) {
-            epsMeterMap.put(type, new EventRateMeter(TimeDuration.HOUR));
+            epsMeterMap.put(type, new EventRateMeter(new TimeDuration(type.duration)));
         }
 
         status = STATUS.OPENING;
@@ -445,8 +456,8 @@ public class StatisticsManager implements PwmService {
         epsMeterMap.get(type).markEvents(itemCount);
     }
 
-    public BigDecimal readEps(final EpsType type, final TimeDuration duration) {
-        return epsMeterMap.get(type).readEventRate(duration,TimeDuration.MINUTE);
+    public BigDecimal readEps(final EpsType type) {
+        return epsMeterMap.get(type).readEventRate();
     }
 
     private void publishStatisticsToCloud()

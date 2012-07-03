@@ -155,6 +155,7 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 
     require(["dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Button"],function(Memory){
         var availableLocales = PWM_GLOBAL['localeInfo'];
+
         var localeMenu = [];
         for (var localeIter in availableLocales) {
             localeMenu.push({name: localeIter + ": " + availableLocales[localeIter], id: localeIter})

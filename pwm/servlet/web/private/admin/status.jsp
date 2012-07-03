@@ -24,6 +24,8 @@
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.pwmdb.PwmDB" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
+<%@ page import="java.math.BigDecimal" %>
+<%@ page import="java.math.RoundingMode" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html>
@@ -68,6 +70,14 @@
             </td>
             <td>
                 <%= dateFormat.format(pwmApplication.getStartupTime()) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Up Time
+            </td>
+            <td>
+                <%= TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString() %>
             </td>
         </tr>
         <tr>
@@ -187,13 +197,13 @@
             <td style="text-align: center">
             </td>
             <td style="text-align: center">
-                5 Minutes
-            </td>
-            <td style="text-align: center">
-                15 Minutes
+                10 Minutes
             </td>
             <td style="text-align: center">
                 1 Hour
+            </td>
+            <td style="text-align: center">
+                4 Hours
             </td>
         </tr>
         <tr>
@@ -201,13 +211,13 @@
                 Authentications / Minute
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION, new TimeDuration(5 * 60 * 1000)) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_10).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION, new TimeDuration(15 * 60 * 1000)) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION, TimeDuration.HOUR) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
         </tr>
         <tr>
@@ -215,13 +225,13 @@
                 Password Changes / Minute
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES, new TimeDuration(5 * 60 * 1000)) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_10).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES,new TimeDuration(15 * 60 * 1000)) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= ContextManager.getContextManager(session).getPwmApplication().getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES, TimeDuration.HOUR) %>
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
         </tr>
     </table>
@@ -382,16 +392,16 @@
             <td class="key">
                 Name
             </td>
-            <td style="white-space:nowrap;">
+            <td class="key" style="text-align: left">
                 Record Count
             </td>
         </tr>
         <% for (final PwmDB.DB loopDB : PwmDB.DB.values()) { %>
         <tr>
-            <td class="key">
+            <td style="text-align: right">
                 <%= loopDB %>
             </td>
-            <td style="white-space:nowrap;">
+            <td>
                 <%= pwmApplication.getPwmDB().size(loopDB) %>
             </td>
         </tr>
@@ -399,7 +409,7 @@
     </table>
     <% } else { %>
     <div style="text-align:center; width:100%; border: 0">
-        <a href="status.jsp?showPwmDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
+        <a onclick="showWaitDialog()" href="status.jsp?showPwmDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
     </div>
     <% } %>
 </div>

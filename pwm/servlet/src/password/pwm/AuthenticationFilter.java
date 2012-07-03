@@ -275,7 +275,9 @@ public class AuthenticationFilter implements Filter {
         debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
         LOGGER.info(pwmSession, debugMsg);
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
-        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION,1);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_10, 1);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_60, 1);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_240,1);
 
         // update the actor user info bean
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);

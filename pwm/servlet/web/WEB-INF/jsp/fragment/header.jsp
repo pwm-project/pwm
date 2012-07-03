@@ -33,6 +33,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="application-name" content="PWM Password Self Service" data-pwm-version="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-pwm-build="<%=PwmConstants.BUILD_NUMBER%>" data-pwm-instance="<%=pwmApplicationHeader.getInstanceID()%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon"
           href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/pwmStyle.css'/>"
@@ -47,8 +48,8 @@
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?nonce=<%=Helper.calcEtagUserString(pwmApplicationHeader, pwmSessionHeader)%>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?nonce=<%=Helper.calcEtagUserString(pwmApplicationHeader, pwmSessionHeader)%>"></script>
     <% if (pwmApplicationHeader.getConfig() != null) { %>
     <% } %>
     <script type="text/javascript">

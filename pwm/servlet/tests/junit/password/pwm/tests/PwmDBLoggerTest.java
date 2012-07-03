@@ -39,7 +39,7 @@ import java.util.*;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int BULK_EVENT_SIZE = 90 * 1000 * 1000;
+    private static final int BULK_EVENT_COUNT = 90 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
@@ -47,10 +47,10 @@ public class PwmDBLoggerTest extends TestCase {
 
     private int eventsAdded;
     private int eventsRemaining;
-    final StringBuilder randomValue = new StringBuilder();
-    final PwmRandom random = PwmRandom.getInstance();
+    final StringBuffer randomValue = new StringBuffer();
+    final Random random = new Random();
 
-    private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(2 * 60 * 1000));
+    private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(30 * 1000));
 
 
     @Override
@@ -76,21 +76,24 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 200;
+            final int randomLength = 50;
             while (randomValue.length() < randomLength) {
-                randomValue.append(String.valueOf(random.nextChar()));
+                randomValue.append(String.valueOf(random.nextInt(10)));
             }
         }
     }
 
     public void testBulkAddEvents() {
         final int startingSize = pwmDBLogger.getStoredEventCount();
-        eventsRemaining = BULK_EVENT_SIZE;
+        eventsRemaining = BULK_EVENT_COUNT;
         eventsAdded = 0;
         final Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new DebugOutputTimerTask(),10 * 1000, 30 * 1000);
-        final Thread populatorThread = new PopulatorThread();
-        populatorThread.start();
+        timer.scheduleAtFixedRate(new DebugOutputTimerTask(),5 * 1000, 5 * 1000);
+
+        for (int loopCount = 0; loopCount < 1; loopCount++) {
+            final Thread populatorThread = new PopulatorThread();
+            populatorThread.start();
+        }
 
         while (eventsRemaining > 0) {
             Helper.pause(500);
@@ -101,10 +104,10 @@ public class PwmDBLoggerTest extends TestCase {
             Helper.pause(500);
         }
 
-        if (startingSize + BULK_EVENT_SIZE >= maxSize) {
+        if (startingSize + BULK_EVENT_COUNT >= maxSize) {
             Assert.assertEquals(pwmDBLogger.getStoredEventCount(), maxSize);
         } else {
-            Assert.assertEquals(pwmDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_SIZE);
+            Assert.assertEquals(pwmDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_COUNT);
         }
         timer.cancel();
     }
@@ -113,7 +116,9 @@ public class PwmDBLoggerTest extends TestCase {
         public void run() {
             final int loopCount = 100;
             while (eventsRemaining > 0) {
-                while (pwmDBLogger.getPendingEventCount() >= PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) Helper.pause(5);
+                while (pwmDBLogger.getPendingEventCount() >= PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) {
+                    Helper.pause(5);
+                }
                 final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
                 for (final PwmLogEvent logEvent : events) {
                     pwmDBLogger.writeEvent(logEvent);
@@ -121,21 +126,22 @@ public class PwmDBLoggerTest extends TestCase {
                     eventsRemaining--;
                     eventsAdded++;
                 }
+                Helper.pause(1);
             }
         }
     }
 
-
     private Collection<PwmLogEvent> makeBulkEvents(final int count) {
-
+        //final long startTime = System.currentTimeMillis();
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
 
+
         for (int i = 0; i < count; i++) {
-            randomValue.deleteCharAt(random.nextInt(randomValue.length()));
-            randomValue.insert(random.nextInt(randomValue.length()),String.valueOf(random.nextInt(9)));
+            final int randomPos = random.nextInt(randomValue.length() - 1);
+            randomValue.replace(randomPos, randomPos + 1,String.valueOf(random.nextInt(9)));
 
             final StringBuilder description = new StringBuilder();
-            description.append("bulk insert event: ").append(System.currentTimeMillis()).append(" ");
+            description.append("bulk insert event").append(System.currentTimeMillis()).append(" ");
             description.append(randomValue);
 
             final PwmLogEvent event = new PwmLogEvent(
@@ -157,7 +163,8 @@ public class PwmDBLoggerTest extends TestCase {
             sb.append(", stored events: ").append(pwmDBLogger.getStoredEventCount());
             sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
             sb.append(", pending: ").append(pwmDBLogger.getPendingEventCount());
-            sb.append(", eps: ").append(eventRateMeter.readEventRate(new TimeDuration(2 * 60 * 1000),new TimeDuration(1000)));
+            sb.append(", txn size: ").append(pwmDBLogger.getTransactionSize());
+            sb.append(", eps: ").append(eventRateMeter.readEventRate());
             System.out.println(sb);
         }
     }

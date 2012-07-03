@@ -25,65 +25,89 @@ package password.pwm.util.stats;
 import password.pwm.util.TimeDuration;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class EventRateMeter {
-    final ConcurrentLinkedQueue<EventElement> tracker = new ConcurrentLinkedQueue<EventElement>();
-    private final TimeDuration maxDuration;
+    private MovingAverage movingAverage;
+    long lastUpdate = System.currentTimeMillis();
+    double remainder = 0;
 
     public EventRateMeter(final TimeDuration maxDuration) {
         if (maxDuration == null) {
             throw new NullPointerException("maxDuration cannot be null");
         }
-        this.maxDuration = maxDuration;
+        movingAverage = new MovingAverage(maxDuration.getTotalMilliseconds());
     }
 
-    public void markEvents(final int eventCount) {
-        tracker.add(new EventElement(eventCount,new Date()));
-        clean();
-    }
-
-    public BigDecimal readEventRate(final TimeDuration duration, final TimeDuration unit) {
-        if (duration == null || duration.isLongerThan(maxDuration)) {
-            throw new IllegalArgumentException("invalid duration (must be less than " + maxDuration.getTotalMilliseconds()+ "ms)");
-        }
-
-        long total = 0;
-        for (final EventElement element : tracker) {
-            final TimeDuration loopDuration = TimeDuration.fromCurrent(element.timestamp);
-            if (duration.isLongerThan(loopDuration)) {
-                total += element.eventCount;
-            }
-        }
-        if (unit != null && unit.getTotalMilliseconds() > 0) {
-            final int precision = 1;
-            final BigDecimal numerator = (new BigDecimal(duration.getTotalMilliseconds())).divide(new BigDecimal(unit.getTotalMilliseconds()), precision, RoundingMode.HALF_UP);
-            return (new BigDecimal(total)).divide(numerator, precision, RoundingMode.HALF_UP);
+    public synchronized void markEvents(final int eventCount) {
+        long timeSinceLastUpdate = System.currentTimeMillis() - lastUpdate;
+        if (timeSinceLastUpdate != 0) {
+            double eventRate  = (eventCount + remainder) / timeSinceLastUpdate;
+            movingAverage.update(eventRate * 1000);
+            lastUpdate = System.currentTimeMillis();
+            remainder = 0;
         } else {
-            return new BigDecimal(total);
+            remainder += eventCount;
         }
     }
 
-    private void clean() {
-        for (Iterator<EventElement> iterator = tracker.iterator(); iterator.hasNext(); ) {
-            final EventElement element = iterator.next();
-            if (maxDuration.isShorterThan(TimeDuration.fromCurrent(element.timestamp))) {
-                iterator.remove();
+    public BigDecimal readEventRate() {
+        return new BigDecimal(this.movingAverage.getAverage());
+    }
+
+    /** MovingAverage.java
+     *
+     * Copyright 2009-2010 Comcast Interactive Media, LLC.
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *      http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     *
+     *
+     *  This class implements an exponential moving average, using the
+     *  algorithm described at <a href="http://en.wikipedia.org/wiki/Moving_average">http://en.wikipedia.org/wiki/Moving_average</a>. The average does not
+     *  sample itself; it merely computes the new average when updated with
+     *  a sample by an external mechanism.
+     **/
+    private static class MovingAverage {
+        private long windowMillis;
+        private long lastMillis;
+        private double average;
+
+        /** Construct a {@link MovingAverage}, providing the time window
+         *  we want the average over. For example, providing a value of
+         *  3,600,000 provides a moving average over the last hour.
+         *  @param windowMillis the length of the sliding window in
+         *    milliseconds */
+        public MovingAverage(long windowMillis) {
+            this.windowMillis = windowMillis;
+        }
+
+        /** Updates the average with the latest measurement.
+         *  @param sample the latest measurement in the rolling average */
+        public synchronized void update(double sample) {
+            long now = System.currentTimeMillis();
+
+            if (lastMillis == 0) {  // first sample
+                average = sample;
+                lastMillis = now;
+                return;
             }
+            long deltaTime = now - lastMillis;
+            double coeff = Math.exp(-1.0 * ((double)deltaTime / windowMillis));
+            average = (1.0 - coeff) * sample + coeff * average;
+
+            lastMillis = now;
         }
+
+        /** Returns the last computed average value. */
+        public double getAverage() { return average; }
     }
-
-    private static class EventElement {
-        private final int eventCount;
-        private final Date timestamp;
-
-        private EventElement(final int eventCount, final Date timestamp) {
-            this.eventCount = eventCount;
-            this.timestamp = timestamp;
-        }
-    }
-
 }

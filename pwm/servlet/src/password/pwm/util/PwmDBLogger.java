@@ -36,7 +36,7 @@ import password.pwm.util.pwmdb.PwmDBStoredQueue;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -61,7 +61,7 @@ public class PwmDBLogger implements PwmService {
     private final int setting_maxEvents;
     private final long setting_maxAgeMs;
 
-    private final Queue<PwmLogEvent> eventQueue = new ConcurrentLinkedQueue<PwmLogEvent>();
+    private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
     private final PwmDBStoredQueue pwmDBListQueue;
 
@@ -166,19 +166,26 @@ public class PwmDBLogger implements PwmService {
         LOGGER.debug("PwmDBLogger close completed (" + debugStats() + ")");
     }
 
-    private void flushQueue() {
+    public int getTransactionSize() {
+        return transactionCalculator.getTransactionSize();
+    }
+
+    private int flushQueue() {
         final List<PwmLogEvent> tempList = new ArrayList<PwmLogEvent>();
-        while (!eventQueue.isEmpty() && tempList.size() < transactionCalculator.getTransactionSize()) {
-            final PwmLogEvent nextEvent = eventQueue.poll();
-            if (nextEvent != null) {
-                tempList.add(nextEvent);
-            }
+        final int desiredTransactionSize = transactionCalculator.getTransactionSize();
+        PwmLogEvent nextEvent = eventQueue.poll();
+        while (nextEvent != null && tempList.size() < desiredTransactionSize) {
+            tempList.add(nextEvent);
+            nextEvent = eventQueue.poll();
         }
 
         if (!tempList.isEmpty()) {
             doWrite(tempList);
             lastQueueFlushTimestamp = System.currentTimeMillis();
+            //System.out.println("flush size: " + tempList.size());
         }
+
+        return tempList.size();
     }
 
     private synchronized void doWrite(final Collection<PwmLogEvent> events) {
@@ -405,18 +412,16 @@ public class PwmDBLogger implements PwmService {
     public synchronized void writeEvent(final PwmLogEvent event) {
         if (status == STATUS.OPEN) {
             if (setting_maxEvents > 0) {
-                if (eventQueue.size() < PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE) { // if event queue isn't overflowed, simply add event to write queue
-                    eventQueue.add(event);
-                } else { // wait for a bit for the event queue to shrink
+                boolean success = eventQueue.offer(event);
+                if (!success) { // if event queue isn't overflowed, simply add event to write queue
                     final long startEventTime = System.currentTimeMillis();
-                    while (TimeDuration.fromCurrent(startEventTime).isShorterThan(3000)) {
-                        if (eventQueue.size() < PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE) {
-                            eventQueue.add(event);
-                            return;
-                        }
+                    while (TimeDuration.fromCurrent(startEventTime).isShorterThan(30 * 1000) && !success) {
                         Helper.pause(100);
+                        success = eventQueue.offer(event);
                     }
-                    LOGGER.warn("discarding event due to full write queue: " + event.toString());
+                    if (!success) {
+                        LOGGER.warn("discarding event due to full write queue: " + event.toString());
+                    }
                 }
             }
         }
@@ -438,14 +443,15 @@ public class PwmDBLogger implements PwmService {
 
         private void loop() throws PwmDBException {
             LOGGER.debug("starting writer thread loop");
-            final Sleeper sleeper = new Sleeper(50);
+            long lastFlushTime = System.currentTimeMillis();
 
             while (status == STATUS.OPEN) {
                 long startLoopTime = System.currentTimeMillis();
                 boolean workDone = false;
-                if (!eventQueue.isEmpty()) {
+                if (TimeDuration.fromCurrent(lastFlushTime).isLongerThan(PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS) || eventQueue.size() > transactionCalculator.getTransactionSize()) {
                     flushQueue();
                     workDone = true;
+                    lastFlushTime = System.currentTimeMillis();
                 }
 
                 final int purgeCount = determineTailRemovalCount();
@@ -458,10 +464,10 @@ public class PwmDBLogger implements PwmService {
 
                 if (workDone) {
                     transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startLoopTime));
-                    sleeper.sleep();
+                    //System.out.println("write tick");
                 } else {
                     Helper.pause(703);
-                    sleeper.reset();
+                    //System.out.println("sleep tick");
                 }
             }
             LOGGER.debug("exiting writer thread loop");

@@ -448,16 +448,19 @@ public class Configuration implements Serializable {
 
     public List<Locale> getKnownLocales() {
         if (knownLocales == null) {
-            final List<Locale> returnList = new ArrayList<Locale>();
             final List<String> localeList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
-            Collections.sort(localeList);
-            if (localeList != null) {
-                for (final String localeString : localeList) {
-                    final Locale theLocale = Helper.parseLocaleString(localeString);
-                    if (theLocale != null && !returnList.contains(theLocale)) {
-                        returnList.add(theLocale);
-                    }
+            final Map<String,Locale> tempMap = new TreeMap<String,Locale>();
+            final List<Locale> returnList = new ArrayList<Locale>();
+
+            for (final String localeString : localeList) {
+                final Locale theLocale = Helper.parseLocaleString(localeString);
+                if (theLocale != null) {
+                    tempMap.put(theLocale.getDisplayName(),theLocale);
                 }
+            }
+
+            for (final Locale loopLocale : tempMap.values()) {
+                returnList.add(loopLocale);
             }
 
             knownLocales = Collections.unmodifiableList(returnList);

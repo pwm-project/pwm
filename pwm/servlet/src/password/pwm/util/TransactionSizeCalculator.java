@@ -30,7 +30,7 @@ public class TransactionSizeCalculator {
     private final int setting_MaxTransactions;
     private final int setting_MinTransactions;
 
-    private int transactionSize;
+    private volatile int transactionSize;
 
     public TransactionSizeCalculator(
             final long lowTimeMS,

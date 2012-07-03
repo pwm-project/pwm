@@ -90,7 +90,7 @@ function handleFormSubmit(buttonID, form) {
     }
 
     require(["dijit/Dialog"],function(){
-        showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
+        showWaitDialog();
 
         setTimeout(function() {
             form.submit();
@@ -635,3 +635,87 @@ function showStatChart(statName,days,divName) {
             });
         });
 }
+
+function createCSSClass(selector, style)
+{
+    // using information found at: http://www.quirksmode.org/dom/w3c_css.html
+    // doesn't work in older versions of Opera (< 9) due to lack of styleSheets support
+    if(!document.styleSheets) return;
+    if(document.getElementsByTagName("head").length == 0) return;
+    var stylesheet;
+    var mediaType;
+    if(document.styleSheets.length > 0)
+    {
+        for(i = 0; i<document.styleSheets.length; i++)
+        {
+            if(document.styleSheets[i].disabled) continue;
+            var media = document.styleSheets[i].media;
+            mediaType = typeof media;
+            // IE
+            if(mediaType == "string")
+            {
+                if(media == "" || media.indexOf("screen") != -1)
+                {
+                    styleSheet = document.styleSheets[i];
+                }
+            }
+            else if(mediaType == "object")
+            {
+                if(media.mediaText == "" || media.mediaText.indexOf("screen") != -1)
+                {
+                    styleSheet = document.styleSheets[i];
+                }
+            }
+            // stylesheet found, so break out of loop
+            if(typeof styleSheet != "undefined") break;
+        }
+    }
+    // if no style sheet is found
+    if(typeof styleSheet == "undefined")
+    {
+        // create a new style sheet
+        var styleSheetElement = document.createElement("style");
+        styleSheetElement.type = "text/css";
+        // add to <head>
+        document.getElementsByTagName("head")[0].appendChild(styleSheetElement);
+        // select it
+        for(i = 0; i<document.styleSheets.length; i++)
+        {
+            if(document.styleSheets[i].disabled) continue;
+            styleSheet = document.styleSheets[i];
+        }
+        // get media type
+        var media = styleSheet.media;
+        mediaType = typeof media;
+    }
+    // IE
+    if(mediaType == "string")
+    {
+        for(i = 0;i<styleSheet.rules.length;i++)
+        {
+            // if there is an existing rule set up, replace it
+            if(styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase())
+            {
+                styleSheet.rules[i].style.cssText = style;
+                return;
+            }
+        }
+        // or add a new rule
+        styleSheet.addRule(selector,style);
+    }
+    else if(mediaType == "object")
+    {
+        for(i = 0;i<styleSheet.cssRules.length;i++)
+        {
+            // if there is an existing rule set up, replace it
+            if(styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase())
+            {
+                styleSheet.cssRules[i].style.cssText = style;
+                return;
+            }
+        }
+        // or insert new rule
+        styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
+    }
+}
+
