@@ -374,3 +374,10 @@ div.progress-container > div {
     overflow: auto;
     font-family: monospace;
 }
+
+#localeSelectionMenu {
+    color: white;
+    font-family: sans-serif;
+    font-size: 11px;
+
+}

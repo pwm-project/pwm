@@ -34,6 +34,7 @@ import password.pwm.util.pwmdb.PwmDBFactory;
 import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -50,7 +51,7 @@ public class PwmDBLoggerTest extends TestCase {
     final StringBuffer randomValue = new StringBuffer();
     final Random random = new Random();
 
-    private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(30 * 1000));
+    private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(5 * 60 * 1000));
 
 
     @Override
@@ -164,7 +165,7 @@ public class PwmDBLoggerTest extends TestCase {
             sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
             sb.append(", pending: ").append(pwmDBLogger.getPendingEventCount());
             sb.append(", txn size: ").append(pwmDBLogger.getTransactionSize());
-            sb.append(", eps: ").append(eventRateMeter.readEventRate());
+            sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
             System.out.println(sb);
         }
     }

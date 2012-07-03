@@ -39,22 +39,20 @@
 <% } %>
 <div id="header">
     <div id="header-company-logo"></div>
+    <div style="position: absolute; align:left; border-width:0; top: 19px; left:18px;">
+        <br/><%-- balance div for ie 6 --%>
+    </div>
     <%-- this section handles the logout link (if user is logged in) --%>
-    <div style="align:right; float:right; border-width:0; padding-top: 21px; padding-right:18px;">
-        <div style="text-align: center; visibility: <%=loggedIn ? "inline" : "hidden"%>"
+    <div style="position: absolute; align:right; border-width:0; top: 19px; right:18px;">
+        <div style="visibility: <%=loggedIn ? "inline" : "hidden"%>"
              id="logoutDiv">
-            <a id="LogoutButton" style="margin: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
+            <a id="LogoutButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
                title="<pwm:Display key="Button_Logout"/>">
             </a>
         </div>
-        <div style="font-size: 10px; color: white; text-align: right; width: 100%" id="localeSelectionMenu">
+        <div id="localeSelectionMenu">
             <%=pwmSessionHeaderBody.getSessionStateBean().getLocale().getDisplayLanguage(pwmSessionHeaderBody.getSessionStateBean().getLocale())%>
         </div>
-    </div>
-    <%-- this extra div is required to "balance" the header in IE, since css float alignment is broken in IE --%>
-    <div style="align:left; float:left; border-width:0; padding-top: 21px; padding-left:18px">
-        <img src="<%=request.getContextPath()%>/resources/spacer.gif" alt="" border="0"
-             style="width:26px; height:26px"/>
     </div>
     <div id="header-page">
         <pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/>
