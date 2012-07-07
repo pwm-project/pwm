@@ -39,7 +39,7 @@
         &nbsp;
     </span>
     <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
-    |
+    &nbsp;&nbsp;|&nbsp;&nbsp;
     <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
     <% } %>
     <script type="text/javascript">

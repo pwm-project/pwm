@@ -90,13 +90,17 @@
     </tr>
 </table>
 <script type="text/javascript">
-    initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
+    require(["dojo/domReady!"],function(){
+        initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
+    });
 </script>
 <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING_ARRAY) { %>
 <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
 </table>
 <script type="text/javascript">
-    initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+    require(["dojo/domReady!"],function(){
+        initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+    });
 </script>
 <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING_ARRAY) { %>
 <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
@@ -105,7 +109,9 @@
     </tr>
 </table>
 <script type="text/javascript">
-    initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+    require(["dojo/domReady!"],function(){
+        initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+    });
 </script>
 <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
 <br/>Current Value:
@@ -114,7 +120,7 @@
     [Loading...]
 </button>
 <script type="text/javascript">
-    require(["dijit","dijit/form/Button","dijit/registry"],function(dijit){
+    require(["dijit","dijit/form/Button","dijit/registry","dojo/domReady!"],function(dijit){
         new dijit.form.Button({
             disabled: true,
             onClick: function() {
@@ -144,7 +150,7 @@
     <% } %>
 </select>
 <script type="text/javascript">
-    require(["dijit","dijit/form/FilteringSelect","dijit/registry"],function(dijit){
+    require(["dijit","dijit/form/FilteringSelect","dijit/registry","dojo/domReady!"],function(dijit){
         new dijit.form.FilteringSelect({
             disabled: true,
             style:"min-width:300px",
@@ -164,7 +170,7 @@
 <% if (loopSetting.getSyntax() == PwmSetting.Syntax.TEXT_AREA) { %>
 <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
 <script type="text/javascript">
-    require(["dijit/form/Textarea"],function(){
+    require(["dijit/form/Textarea","dojo/domReady!"],function(){
         new dijit.form.Textarea({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -182,7 +188,7 @@
 <% } if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
 <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
 <script type="text/javascript">
-    require(["dijit/form/ValidationTextBox"],function(){
+    require(["dijit/form/ValidationTextBox","dojo/domReady!"],function(){
         new dijit.form.ValidationTextBox({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -200,7 +206,7 @@
 <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
 <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
 <script type="text/javascript">
-    require(["dijit/form/NumberSpinner"],function(){
+    require(["dijit/form/NumberSpinner","dojo/domReady!"],function(){
         new dijit.form.NumberSpinner({
             regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
             required: <%=loopSetting.isRequired()%>,
@@ -239,7 +245,7 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo","dijit","dijit/form/ValidationTextBox","dijit/registry"],function(dojo,dijit){
+    require(["dojo","dijit","dijit/form/ValidationTextBox","dijit/registry","dojo/domReady!"],function(dojo,dijit){
         new dijit.form.ValidationTextBox({
             required: <%=loopSetting.isRequired()%>,
             invalidMessage: "The password is not valid.",

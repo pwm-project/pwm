@@ -69,7 +69,7 @@ public class PwmDBLogger implements PwmService {
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
-    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(1049, 1607, 3, 5273);
+    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(5049, 1049, 3, PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE / 4);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -445,12 +445,11 @@ public class PwmDBLogger implements PwmService {
             LOGGER.debug("starting writer thread loop");
             long lastFlushTime = System.currentTimeMillis();
 
+            int workDone = 0;
             while (status == STATUS.OPEN) {
                 long startLoopTime = System.currentTimeMillis();
-                boolean workDone = false;
-                if (TimeDuration.fromCurrent(lastFlushTime).isLongerThan(PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS) || eventQueue.size() > transactionCalculator.getTransactionSize()) {
-                    flushQueue();
-                    workDone = true;
+                if (TimeDuration.fromCurrent(lastFlushTime).isLongerThan(PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS) || workDone == -1) {
+                    workDone = flushQueue();
                     lastFlushTime = System.currentTimeMillis();
                 }
 
@@ -459,15 +458,17 @@ public class PwmDBLogger implements PwmService {
                     final int removalCount = purgeCount > transactionCalculator.getTransactionSize() + 1 ? transactionCalculator.getTransactionSize() + 1 : purgeCount;
                     pwmDBListQueue.removeLast(removalCount);
                     tailTimestampMs = readTailTimestamp();
-                    workDone = true;
+                    workDone += removalCount;
                 }
 
-                if (workDone) {
+                if (workDone > 0) {
                     transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startLoopTime));
-                    //System.out.println("write tick");
+                    //System.out.println("write tick count=" + workDone + ", " + TimeDuration.fromCurrent(startLoopTime).asCompactString());
+                    workDone = -1;
                 } else {
-                    Helper.pause(703);
-                    //System.out.println("sleep tick");
+                    Helper.pause(103);
+                    //System.out.println(" sleep tick count=" + workDone + ", " + TimeDuration.fromCurrent(startLoopTime).asCompactString());
+                    workDone = 0;
                 }
             }
             LOGGER.debug("exiting writer thread loop");

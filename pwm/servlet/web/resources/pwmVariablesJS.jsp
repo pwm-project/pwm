@@ -40,8 +40,9 @@ function initPwmVariables() {
 
 function initPwmStringValues() {
     <% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
+    <% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
     <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
-    PWM_STRINGS['<%=key%>']='<%=StringEscapeUtils.escapeJavaScript(Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),key,pwmApplication.getConfig()))%>';
+    PWM_STRINGS['<%=key%>']='<%=StringEscapeUtils.escapeJavaScript(Display.getLocalizedMessage(userLocale,key,pwmApplication.getConfig()))%>';
     <% } %>
 }
 
@@ -59,7 +60,7 @@ function initPwmGlobalValues() {
 function initPwmLocaleVars() {
     var localeInfo = {};
 <% for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) { %>
-    <% final String flagCode = "en".equals(loopLocale.getLanguage()) ? "us" : loopLocale.getLanguage(); %>
+    <% final String flagCode = loopLocale.getLanguage(); %>
     createCSSClass('.flagLang_<%=flagCode%>','background-image: url(flags/png/<%=flagCode%>.png)');
     localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayLanguage()%> - <%=loopLocale.getDisplayLanguage(loopLocale)%>';
 <% } %>

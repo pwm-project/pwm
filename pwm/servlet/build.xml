@@ -83,7 +83,7 @@
         </javadoc>
     </target>
 
-    <target name="makeZIP" depends="updateBuildInfo,makeWAR">
+    <target name="makeZIP" depends="makeWAR">
         <zip zipfile="${destination}/pwm.zip" filesonly="true">
             <zipfileset file="${destination.war}"/>
             <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
@@ -92,6 +92,9 @@
             <zipfileset dir="${src.root}/../supplemental" prefix="supplemental"/>
             <zipfileset dir="${src.root}/." includes="build.**" prefix="servlet"/>
         </zip>
+    </target>
+
+    <target name="makeRelease" depends="updateBuildInfo,makeZIP">
     </target>
 
     <target name="updateBuildInfo" depends="init">

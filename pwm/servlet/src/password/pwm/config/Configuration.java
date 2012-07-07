@@ -126,7 +126,7 @@ public class Configuration implements Serializable {
 
     public List<String> readSettingAsLocalizedStringArray(final PwmSetting setting, final Locale locale) {
         final Map<String, List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
-        final Map<Locale, List<String>> availableLocaleMap = new HashMap<Locale, List<String>>();
+        final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
@@ -300,7 +300,7 @@ public class Configuration implements Serializable {
 
     public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
         final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
-        final Map<Locale, String> availableLocaleMap = new HashMap<Locale, String>();
+        final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
         for (final String localeStr : availableValues.keySet()) {
             availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
         }

@@ -152,7 +152,6 @@
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
         <url-pattern>*.jsp</url-pattern>
-        <url-pattern>/resources/pwmVariables.js</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>

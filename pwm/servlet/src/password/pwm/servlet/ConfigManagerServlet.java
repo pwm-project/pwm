@@ -165,7 +165,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String, Object> returnMap = new HashMap<String, Object>();
+        final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
         if (configEpoch != null && configEpoch.length() > 0) {
             returnMap.put("configEpoch", configEpoch);
         } else {
@@ -212,7 +212,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String key = Validator.readStringFromRequest(req, "key");
         final Object returnValue;
-        final Map<String, Object> returnMap = new HashMap<String, Object>();
+        final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
         final PwmSetting theSetting = PwmSetting.forKey(key);
 
         if (key.startsWith("localeBundle")) {
@@ -244,7 +244,7 @@ public class ConfigManagerServlet extends TopServlet {
             switch (theSetting.getSyntax()) {
                 case STRING_ARRAY: {
                     final List<String> values = storedConfig.readStringArraySetting(theSetting);
-                    final Map<String, String> outputMap = new TreeMap<String, String>();
+                    final Map<String, String> outputMap = new LinkedHashMap<String, String>();
                     for (int i = 0; i < values.size(); i++) {
                         outputMap.put(String.valueOf(i), values.get(i));
                     }
@@ -254,10 +254,10 @@ public class ConfigManagerServlet extends TopServlet {
 
                 case LOCALIZED_STRING_ARRAY: {
                     final Map<String, List<String>> values = storedConfig.readLocalizedStringArraySetting(theSetting);
-                    final Map<String, Map<String, String>> outputMap = new TreeMap<String, Map<String, String>>();
+                    final Map<String, Map<String, String>> outputMap = new LinkedHashMap<String, Map<String, String>>();
                     for (final String localeKey : values.keySet()) {
                         final List<String> loopValues = values.get(localeKey);
-                        final Map<String, String> loopMap = new TreeMap<String, String>();
+                        final Map<String, String> loopMap = new LinkedHashMap<String, String>();
                         for (int i = 0; i < loopValues.size(); i++) {
                             loopMap.put(String.valueOf(i), loopValues.get(i));
                         }
@@ -269,7 +269,7 @@ public class ConfigManagerServlet extends TopServlet {
 
                 case LOCALIZED_STRING:
                 case LOCALIZED_TEXT_AREA:
-                    returnValue = new TreeMap<String, String>(storedConfig.readLocalizedStringSetting(theSetting));
+                    returnValue = new LinkedHashMap<String, String>(storedConfig.readLocalizedStringSetting(theSetting));
                     break;
                 case PASSWORD:
                     returnValue = DEFAULT_PW;
@@ -306,7 +306,7 @@ public class ConfigManagerServlet extends TopServlet {
         final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
         final Gson gson = new Gson();
         final PwmSetting setting = PwmSetting.forKey(key);
-        final Map<String, Object> returnMap = new HashMap<String, Object>();
+        final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
 
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key,"-");

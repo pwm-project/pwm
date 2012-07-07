@@ -39,6 +39,7 @@ function validatePasswords(userDN)
 {
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
         updateDisplay(null);
+        getObject("password_button").disabled = true;
         return;
     }
 
@@ -411,7 +412,7 @@ function startupChangePasswordPage(initialPrompt)
         autoGenPasswordElement.style.visibility = 'visible';
     }
 
-    // show the auto generate password panel
+    // show the password guide panel
     var passwordGuideElement = getObject("passwordGuide");
     if (passwordGuideElement != null) {
         var passwordGuideText = PWM_STRINGS['passwordGuideText'];
@@ -445,6 +446,7 @@ function startupChangePasswordPage(initialPrompt)
         },100);
     }
 
+    getObject("password_button").disabled = true;
     setInputFocus();
 }
 

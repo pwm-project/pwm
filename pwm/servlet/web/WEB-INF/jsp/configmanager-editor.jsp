@@ -292,9 +292,9 @@ function buildMenuBar() {
 
     });
 }
-buildMenuBar();
 
-require(["dojo","dojo/ready"],function(dojo){
+require(["dojo","dojo/domReady!"],function(dojo){
+    buildMenuBar();
     if(dojo.isIE <= 8){ // only IE8 and below
         alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
     }

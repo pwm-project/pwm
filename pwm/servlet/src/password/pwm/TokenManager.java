@@ -687,9 +687,21 @@ public class TokenManager implements PwmService {
     }
 
     private static boolean tokensAreUsedInConfig(final Configuration configuration) {
-        return configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) ||
-                configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION) ||
-                configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE);
+        if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) &&
+                configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+            return true;
+        }
 
+        if (configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE) &&
+                configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION)) {
+            return true;
+        }
+
+        if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE) &&
+                configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
+            return true;
+        }
+
+        return false;
     }
 }

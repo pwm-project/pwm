@@ -77,7 +77,7 @@ public class PwmDBLoggerTest extends TestCase {
         pwmDBLogger = new PwmDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 50;
+            final int randomLength = 20;
             while (randomValue.length() < randomLength) {
                 randomValue.append(String.valueOf(random.nextInt(10)));
             }
@@ -142,7 +142,7 @@ public class PwmDBLoggerTest extends TestCase {
             randomValue.replace(randomPos, randomPos + 1,String.valueOf(random.nextInt(9)));
 
             final StringBuilder description = new StringBuilder();
-            description.append("bulk insert event").append(System.currentTimeMillis()).append(" ");
+            //description.append("bulk insert event").append(System.currentTimeMillis()).append(" ");
             description.append(randomValue);
 
             final PwmLogEvent event = new PwmLogEvent(
