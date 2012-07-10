@@ -45,7 +45,7 @@
 
     <target name="compileCode" depends="init">
         <mkdir dir="${destination}/bin"/>
-        <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.5" source="1.5">
+        <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.6" source="1.6">
             <classpath>
                 <fileset dir="${src.root}/web/WEB-INF/lib" includes="*.jar"/>
                 <fileset dir="${build_lib}" includes="*.jar"/>
@@ -72,8 +72,8 @@
         <javadoc packagenames="password.pwm.*"
                  sourcepath="${src.root}/src"
                  destdir="${destination}/javadoc"
-                 private="yes" source="1.5">
-            <link href="http://download.oracle.com/javase/1.5.0/docs/api/"/>
+                 private="yes" source="1.6">
+            <link href="http://docs.oracle.com/javase/6/docs/api/"/>
             <link href="http://download.oracle.com/docs/cd/E17802_01/products/products/servlet/2.3/javadoc/"/>
             <link href="http://ldapchai.googlecode.com/svn/trunk/javadoc/"/>
             <classpath>
@@ -83,7 +83,7 @@
         </javadoc>
     </target>
 
-    <target name="makeZIP" depends="makeWAR">
+    <target name="makeZIP" depends="makeWAR,javadoc">
         <zip zipfile="${destination}/pwm.zip" filesonly="true">
             <zipfileset file="${destination.war}"/>
             <zipfileset dir="${src.root}/build_lib" prefix="servlet/build_lib"/>
