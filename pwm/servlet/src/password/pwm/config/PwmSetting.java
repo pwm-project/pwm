@@ -280,7 +280,7 @@ public enum PwmSetting {
     SMS_PHONE_NUMBER_FORMAT(
             "sms.phoneNumberFormat", Syntax.SELECT, Category.SMS, true, Level.ADVANCED),
     SMS_DEFAULT_COUNTRY_CODE(
-            "sms.defaultCountryCode", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
+            "sms.defaultCountryCode", Syntax.NUMERIC, Category.SMS, false, Level.ADVANCED),
     SMS_REQUESTID_CHARS(
             "sms.requestId.characters", Syntax.STRING, Category.SMS, true, Level.ADVANCED),
     SMS_REQUESTID_LENGTH(

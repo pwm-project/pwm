@@ -409,7 +409,17 @@ public class SmsQueueManager implements PwmService {
 
     private String formatSmsNumber(final String smsNumber) {
         final Configuration config = theManager.getConfig();
-        final String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
+        String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
+        Integer ccnum;
+        try {
+          ccnum = Integer.parseInt(cc);
+          if (ccnum <= 0) {
+          	cc = "";
+          }
+        } catch (Exception e) {
+          LOGGER.error(e);
+          cc = "";
+        }
         final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
         String ret = smsNumber;
         // Remove (0)
