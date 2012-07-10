@@ -732,17 +732,23 @@ function readInitialTextBasedValue(key) {
 }
 
 function writeConfigurationNotes() {
-    require(["dojo"],function(dojo){
+    require(["dojo","dijit/Dialog"],function(dojo){
         var value = getObject('configNotesDialog').value;
+        showWaitDialog();
         dojo.xhrPost({
             url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
             postData: dojo.toJson(value),
             contentType: "application/json;charset=utf-8",
             dataType: "json",
             handleAs: "text",
-            sync: true,
+            load: function(data){
+                clearDijitWidget('dialogPopup');
+                buildMenuBar();
+            },
             error: function(errorObj) {
+                clearDijitWidget('dialogPopup');
                 showError("error saving notes text: " + errorObj)
+                buildMenuBar();
             }
         });
     });
@@ -753,8 +759,10 @@ function showConfigurationNotes() {
 
         setCookie("seen-notes","true", 60 * 60);
         var idName = 'configNotesDialog';
-        var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
+        var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" disabled="true" id="' + idName + '">';
+        bodyText += 'Loading...';
         bodyText += '</textarea>';
+        bodyText += '<button onclick="writeConfigurationNotes()" class="btn">OK</button>';
 
         clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
@@ -763,10 +771,6 @@ function showConfigurationNotes() {
             style: "width: 600px;",
             content: bodyText
         });
-        theDialog.connect(theDialog,"hide",function(){
-            writeConfigurationNotes();
-            buildMenuBar();
-        });
         theDialog.show();
 
         dojo.xhrGet({
@@ -774,11 +778,13 @@ function showConfigurationNotes() {
             dataType: "json",
             handleAs: "json",
             error: function(errorObj) {
+                clearDijitWidget('dialogPopup');
                 showError("error reading notes text: " + errorObj)
             },
             load: function(data){
                 var value = data['notesText'];
                 getObject(idName).value = value;
+                getObject(idName).disabled = false;
             }
         });
     });

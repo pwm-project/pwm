@@ -245,6 +245,25 @@ public class StatisticsManager implements PwmService {
         }
 
         {
+            final Gson gson = new Gson();
+            for (final EpsType loopEpsType : EpsType.values()) {
+                final String key = "EPS-" + loopEpsType.toString();
+                final String storedValue = pwmDB.get(PwmDB.DB.PWM_STATS,key);
+                if (storedValue != null && storedValue.length() > 0) {
+                    try {
+                        final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
+                        epsMeterMap.put(loopEpsType,eventRateMeter);
+                    } catch (Exception e) {
+                        LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from PwmDB: " + e.getMessage());
+                    }
+
+                }
+
+            }
+
+        }
+
+        {
             final String storedInitialString = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY);
 
             if (storedInitialString != null && storedInitialString.length() > 0) {
@@ -252,7 +271,6 @@ public class StatisticsManager implements PwmService {
             } else {
                 pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
             }
-
         }
 
         {
@@ -321,6 +339,13 @@ public class StatisticsManager implements PwmService {
             try {
                 pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
                 pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
+
+                final Gson gson = new Gson();
+                for (final EpsType loopEpsType : EpsType.values()) {
+                    final String key = "EPS-" + loopEpsType.toString();
+                    final String value = gson.toJson(this.epsMeterMap.get(loopEpsType));
+                    pwmDB.put(PwmDB.DB.PWM_STATS, key, value);
+                }
             } catch (PwmDBException e) {
                 LOGGER.error("error outputting pwm statistics: " + e.getMessage());
             }

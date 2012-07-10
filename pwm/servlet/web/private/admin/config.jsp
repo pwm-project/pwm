@@ -44,7 +44,9 @@
             to modify the configuration.  Values in <span style="color:blue;">blue</span> are modified from the default values.
         </p>
         <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
-        <p><%=pwmConfig.getNotes()%></p>
+        <p>
+            <textarea readonly="readonly" style="max-height: 200px;" rows="1" data-dojo-type="dijit.form.Textarea" id="configurationNotes"><%=StringEscapeUtils.escapeHtml(pwmConfig.getNotes())%></textarea>
+        </p>
         <% } %>
         <div id="content" style="display: none">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
@@ -123,9 +125,14 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dojo/domReady!"],function(dojoParser){
         getObject('content').style.display = 'inline';
         dojoParser.parse();
+        new dijit.Tooltip({
+            connectId: ["configurationNotes"],
+            label: 'Configuration Notes',
+            showDelay: 0
+        });
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

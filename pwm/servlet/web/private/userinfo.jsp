@@ -26,7 +26,6 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.util.operations.CrUtility" %>
 <%@ page import="java.text.DateFormat" %>
@@ -46,183 +45,185 @@
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>
 <div id="centerbody">
-    <table>
-        <tr>
-            <td colspan="10" class="title">
-                <pwm:Display key="Title_UserInformation"/>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_Username"/>
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUserID()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_UserDN"/>
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUserDN()) %>
-            </td>
-        </tr>
-    </table>
-    <br class="clear"/>
-    <table>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordExpired"/>
-            </td>
-            <td>
-                <%if (uiBean.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordPreExpired"/>
-            </td>
-            <td>
-                <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordViolatesPolicy"/>
-            </td>
-            <td>
-                <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
-            </td>
-            <td>
-                <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordSetTime"/>
-            </td>
-            <td>
-                <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : "n/a"%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordExpirationTime"/>
-            </td>
-            <td>
-                <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : "n/a"%>
-            </td>
-        </tr>
-    </table>
-    <br class="clear"/>
-    <table>
-        <%
-            ResponseSet userResponses = null;
-            try {
-                userResponses = CrUtility.readUserResponseSet(pwmSession, ContextManager.getPwmApplication(session), pwmSession.getSessionManager().getActor());
-            } catch (ChaiUnavailableException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (PwmUnrecoverableException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        %>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_ResponsesStored"/>
-            </td>
-            <td>
-                <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_ResponsesTimestamp"/>
-            </td>
-            <td>
-                <%= userResponses != null && userResponses.getTimestamp() != null ? dateFormatter.format(userResponses.getTimestamp()) : "n/a" %>
-            </td>
-        </tr>
-    </table>
-    <br class="clear"/>
-    <table>
-        <tr>
-            <td class="key">
-                Locale
-            </td>
-            <td>
-                <%= ssBean.getLocale() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                IP Address
-            </td>
-            <td>
-                <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                SessionID
-            </td>
-            <td>
-                <%= ssBean.getSessionID() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Session Verification Key
-            </td>
-            <td>
-                <%= ssBean.getSessionVerificationKey() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Auth is via unknown password
-            </td>
-            <td>
-                <%= PwmSession.getPwmSession(session).getUserInfoBean().isAuthFromUnknownPw() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Logout URL
-            </td>
-            <td>
-                <%= ssBean.getLogoutURL() == null ? ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Forward URL
-            </td>
-            <td>
-                <%= Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request) %>
-            </td>
-        </tr>
-    </table>
-    <br class="clear"/>
-    <table>
-        <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
-        <tr>
-            <td class="key">
-                <%= rule.name() %>
-            </td>
-            <td>
-                <%= uiBean.getPasswordPolicy().getValue(rule) != null ? uiBean.getPasswordPolicy().getValue(rule) : "" %>
-            </td>
-        </tr>
-        <% } %>
-    </table>
-    <br class="clear"/>
+    <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
+            <table>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_Username"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(uiBean.getUserID()) %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_UserDN"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(uiBean.getUserDN()) %>
+                    </td>
+                </tr>
+            </table>
+            <br class="clear"/>
+            <table>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordExpired"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordPreExpired"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordViolatesPolicy"/>
+                    </td>
+                    <td>
+                        <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordSetTime"/>
+                    </td>
+                    <td>
+                        <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : "n/a"%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordExpirationTime"/>
+                    </td>
+                    <td>
+                        <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : "n/a"%>
+                    </td>
+                </tr>
+            </table>
+            <br class="clear"/>
+            <table>
+                <%
+                    ResponseSet userResponses = null;
+                    try {
+                        userResponses = CrUtility.readUserResponseSet(pwmSession, ContextManager.getPwmApplication(session), pwmSession.getSessionManager().getActor());
+                    } catch (ChaiUnavailableException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    } catch (PwmUnrecoverableException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                %>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ResponsesStored"/>
+                    </td>
+                    <td>
+                        <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ResponsesTimestamp"/>
+                    </td>
+                    <td>
+                        <%= userResponses != null && userResponses.getTimestamp() != null ? dateFormatter.format(userResponses.getTimestamp()) : "n/a" %>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Session Information">
+            <table>
+                <tr>
+                    <td class="key">
+                        Locale
+                    </td>
+                    <td>
+                        <%= ssBean.getLocale() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        IP Address
+                    </td>
+                    <td>
+                        <%= ssBean.getSrcAddress() %> [ <%= ssBean.getSrcHostname() %> ]
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        SessionID
+                    </td>
+                    <td>
+                        <%= ssBean.getSessionID() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        Session Verification Key
+                    </td>
+                    <td>
+                        <%= ssBean.getSessionVerificationKey() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        Auth is via unknown password
+                    </td>
+                    <td>
+                        <%= pwmSession.getUserInfoBean().isAuthFromUnknownPw() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        Logout URL
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        Forward URL
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Password Policy">
+            <div style="height: 400px; overflow: auto;">
 
+                <table>
+                    <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+                    <tr>
+                        <td class="key">
+                            <%= rule.name() %>
+                        </td>
+                        <td>
+                            <%= uiBean.getPasswordPolicy().getValue(rule) != null ? StringEscapeUtils.escapeHtml(uiBean.getPasswordPolicy().getValue(rule)) : "" %>
+                        </td>
+                    </tr>
+                    <% } %>
+                </table>
+            </div>
+        </div>
+    </div>
     <div id="buttonbar">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
               enctype="application/x-www-form-urlencoded">
@@ -236,6 +237,12 @@
     </div>
     <br class="clear"/>
 </div>
+</div>
+<script type="text/javascript">
+    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>                   

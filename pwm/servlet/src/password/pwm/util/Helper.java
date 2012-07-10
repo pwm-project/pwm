@@ -1172,4 +1172,12 @@ public class Helper {
 
         return redirectURL;
     }
+
+    public static String figureLogoutURL(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    ) {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
+    }
 }

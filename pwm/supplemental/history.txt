@@ -27,6 +27,7 @@ v1.6.2
 + Improved token security by hashing stored keys and encrypting payloads
 + Disallow (configurable) challenge text from being used as response text
 + Added password strength meter check to helpdesk change password
++ Added language updates for most PWM localizations (issue #232)
 
 * Refactored all JSP pages to be HTML5 compliant (html tags and Doctypes)
 * Improved page load performance for most pages
@@ -46,8 +47,6 @@ v1.6.2
 - Novell UserApp responses rejected when using random responses (issue #188)
 - Fixed issue with double-URLDecoding for logoutURL and forwardURL (issue #216)
 - Attribute names with hyphen ("-") not working (issue #221)
-
-
 
 
 v1.6.1 (January 16, 2012) build 1123

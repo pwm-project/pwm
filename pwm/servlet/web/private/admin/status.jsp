@@ -235,6 +235,38 @@
             </td>
         </tr>
     </table>
+    <table class="tablemain">
+        <tr>
+            <td class="title" colspan="10">
+                Password Changes Per Minute
+            </td>
+        </tr>
+        <tr>
+            <td colspan="10" style="margin:0; padding:0">
+                <div style="max-width: 600px; text-align: center">
+                    <div id="EPS-GAUGE-PASSWORD_CHANGES_10" style="float: left; width: 33%">Last 10 Minutes</div>
+                    <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Last 1 Hour</div>
+                    <div id="EPS-GAUGE-PASSWORD_CHANGES_240" style="float: left; width: 33%">Last 4 Hours</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="tablemain">
+        <tr>
+            <td class="title" colspan="10">
+                Authentications Per Minute
+            </td>
+        </tr>
+        <tr>
+            <td colspan="10" style="margin:0; padding:0">
+                <div style="max-width: 600px; text-align: center">
+                    <div id="EPS-GAUGE-AUTHENTICATION_10" style="float: left; width: 33%">Last 10 Minutes</div>
+                    <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Last 1 Hour</div>
+                    <div id="EPS-GAUGE-AUTHENTICATION_240" style="float: left; width: 33%">Last 4 Hours</div>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Health">
     <div id="healthBody">&nbsp;</div>
@@ -571,6 +603,12 @@
     require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
         getObject('content').style.display = 'inline';
         dojoParser.parse();
+
+        showStatChart('PASSWORD_CHANGES',14,'statsChart');
+        setInterval(function(){
+            showStatChart('PASSWORD_CHANGES',14,'statsChart');
+        }, 60 * 1000);
+
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

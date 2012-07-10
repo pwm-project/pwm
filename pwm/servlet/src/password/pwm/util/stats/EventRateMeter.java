@@ -24,11 +24,11 @@ package password.pwm.util.stats;
 
 import password.pwm.util.TimeDuration;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class EventRateMeter {
+public class EventRateMeter implements Serializable {
     private MovingAverage movingAverage;
-    long lastUpdate = System.currentTimeMillis();
     double remainder = 0;
 
     public EventRateMeter(final TimeDuration maxDuration) {
@@ -39,11 +39,10 @@ public class EventRateMeter {
     }
 
     public synchronized void markEvents(final int eventCount) {
-        long timeSinceLastUpdate = System.currentTimeMillis() - lastUpdate;
+        long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
         if (timeSinceLastUpdate != 0) {
             double eventRate  = (eventCount + remainder) / timeSinceLastUpdate;
             movingAverage.update(eventRate * 1000);
-            lastUpdate = System.currentTimeMillis();
             remainder = 0;
         } else {
             remainder += eventCount;
@@ -76,7 +75,7 @@ public class EventRateMeter {
      *  sample itself; it merely computes the new average when updated with
      *  a sample by an external mechanism.
      **/
-    private static class MovingAverage {
+    private static class MovingAverage implements Serializable {
         private long windowMillis;
         private long lastMillis;
         private double average;
@@ -108,6 +107,13 @@ public class EventRateMeter {
         }
 
         /** Returns the last computed average value. */
-        public double getAverage() { return average; }
+        public double getAverage() {
+            update(0);
+            return average;
+        }
+
+        public long getLastMillis() {
+            return lastMillis;
+        }
     }
 }

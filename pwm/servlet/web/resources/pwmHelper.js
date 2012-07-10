@@ -25,10 +25,6 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
-
-    require(["dojo/domReady!"],function(){setTimeout(function(){
-        require(["dijit/Dialog"]);
-    },3000)});
 }
 
 function checkForCapsLock(e) {
@@ -236,7 +232,7 @@ function showWaitDialog(title, body) {
     if (title == null) {
         title=PWM_STRINGS['Display_PleaseWait'];
     }
-    require(["dijit/Dialog"],function(){
+    require(["dojo","dijit/Dialog"],function(dojo){
         var idName = 'dialogPopup';
         clearDijitWidget(idName);
         if (body == null || body.length < 1) {
@@ -246,10 +242,9 @@ function showWaitDialog(title, body) {
             id: idName,
             title: title,
             style: "width: 300px",
-            content: body,
-            closable: false
-
+            content: body
         });
+        dojo.style(theDialog.closeButtonNode,"display","none");
         theDialog.show();
     });
 }
@@ -593,14 +588,18 @@ function doShow(destClass, message) {
 }
 
 function showStatChart(statName,days,divName) {
+    var epsTypes = ["PASSWORD_CHANGES_10","PASSWORD_CHANGES_60","PASSWORD_CHANGES_240","AUTHENTICATION_10","AUTHENTICATION_60","AUTHENTICATION_240"];
     require(["dojo",
+        "dijit",
         "dijit/registry",
         "dojox/charting/Chart2D",
         "dojox/charting/axis2d/Default",
         "dojox/charting/plot2d/Default",
         "dojox/charting/themes/Wetland",
+        "dijit/form/Button",
+        "dojox/gauges/GlossyCircularGauge",
         "dojo/domReady!"],
-        function(dojo){
+        function(dojo,dijit){
             var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
             statsGetUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             statsGetUrl += "&statName=" + statName;
@@ -610,27 +609,69 @@ function showStatChart(statName,days,divName) {
                 url: statsGetUrl,
                 handleAs: "json",
                 headers: { "Accept": "application/json" },
-                timeout: 60 * 1000,
+                timeout: 15 * 1000,
                 preventCache: true,
+                error: function(data) {
+                    for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) { // clear all the gauges
+                        var loopEpsName = epsTypes[loopEpsIndex] + '';
+                        var loopEpsID = "EPS-GAUGE-" + loopEpsName;
+                        if (getObject(loopEpsID) != null) {
+                            if (dijit.byId(loopEpsID)) {
+                                dijit.byId(loopEpsID).setAttribute('value',0);
+                            }
+                        }
+                    }
+                },
                 load: function(data) {
-                    var values = [];
-                    for(var key in data) {
-                        var value = data[key];
-                        values.push(parseInt(value));
+                    {// gauges
+                        for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
+                            var loopEpsName = epsTypes[loopEpsIndex] + '';
+                            var loopEpsID = "EPS-GAUGE-" + loopEpsName;
+                            var loopEpsValue = (data['EPS'])[loopEpsName] * 60;
+                            var loopTop = (data['EPS'])[loopEpsName.substring(0,4) == 'AUTH' ? 'AUTHENTICATION_TOP' : "PASSWORD_CHANGES_TOP"];
+                            if (getObject(loopEpsID) != null) {
+                                console.log('loopEps=' + loopEpsName);
+                                if (dijit.byId(loopEpsID)) {
+                                    dijit.byId(loopEpsID).setAttribute('value',loopEpsValue);
+                                    dijit.byId(loopEpsID).setAttribute('max',loopTop);
+                                } else {
+                                    var glossyCircular = new dojox.gauges.GlossyCircularGauge({
+                                        background: [255, 255, 255, 0],
+                                        noChange: true,
+                                        value: loopEpsValue,
+                                        max: loopTop,
+                                        needleColor: 'yellow',
+                                        //majorTicksInterval: 200,
+                                        //minorTicksInterval: 50,
+                                        id: loopEpsID,
+                                        width: 200,
+                                        height: 150
+                                    }, dojo.byId(loopEpsID));
+                                    glossyCircular.startup();
+                                }
+                            }
+                        }
                     }
+                    if (divName != null && getObject(divName)) { // stats chart
+                        var values = [];
+                        for(var key in data) {
+                            var value = data[key];
+                            values.push(parseInt(value));
+                        }
 
-                    if (PWM_GLOBAL[divName + '-stored-reference']) {
-                        var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
-                        existingChart.destroy();
+                        if (PWM_GLOBAL[divName + '-stored-reference']) {
+                            var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
+                            existingChart.destroy();
+                        }
+                        var c = new dojox.charting.Chart2D(divName);
+                        PWM_GLOBAL[divName + '-stored-reference'] = c;
+                        c.addPlot("default", {type: "Columns", gap:'2'});
+                        c.addAxis("x", {});
+                        c.addAxis("y", {vertical: true});
+                        c.setTheme(dojox.charting.themes.Wetland);
+                        c.addSeries("Series 1", values);
+                        c.render();
                     }
-                    var c = new dojox.charting.Chart2D(divName);
-                    PWM_GLOBAL[divName + '-stored-reference'] = c;
-                    c.addPlot("default", {type: "Columns", gap:'2'});
-                    c.addAxis("x", {});
-                    c.addAxis("y", {vertical: true});
-                    c.setTheme(dojox.charting.themes.Wetland);
-                    c.addSeries("Series 1", values);
-                    c.render();
                 }
             });
         });

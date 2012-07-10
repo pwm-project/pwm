@@ -83,8 +83,10 @@ public class RestSetPasswordServer {
                     }
 
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
+                    outputMap.put("username", chaiUser.readCanonicalDN());
                     PasswordUtility.helpdeskSetUserPassword(pwmSession, chaiUser, pwmApplication, password);
                 } else {
+                    outputMap.put("username",pwmSession.getUserInfoBean().getUserDN());
                     PasswordUtility.setUserPassword(pwmSession, pwmApplication, password);
                 }
                 outputMap.put("success", "true");
