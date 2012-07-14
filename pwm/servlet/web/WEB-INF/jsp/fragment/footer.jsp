@@ -27,6 +27,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final Locale userLocale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
 <div id="footer">
     <br/>
@@ -35,16 +36,23 @@
         <pwm:Display key="Display_FooterInfoText"/>&nbsp;
     </span>
     <br/>
-    <span class="idle_status" id="idle_status">
+    <div>
+        <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
+        <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
+        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        <% } %>
+    <span id="idle_status">
         &nbsp;
     </span>
-    <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-    <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
-    <% } %>
+        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    <span id="localeSelectionMenu" style="white-space: nowrap">
+        <%=userLocale == null ? "" : userLocale.getDisplayLanguage(userLocale)%>
+    </span>
+    </div>
     <script type="text/javascript">
         require(["dojo/domReady!"],function(){
             IdleTimeoutHandler.initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
+            initLocaleSelectorMenu('localeSelectionMenu');
         });
     </script>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>

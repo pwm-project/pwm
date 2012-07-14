@@ -268,8 +268,19 @@ public class ForgottenPasswordServlet extends TopServlet {
         // retrieve the responses for the user from ldap
         final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
         final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
+        final ChallengeSet presentableChallengeSet;
 
         if (responseSet != null) {
+            try {
+                if (responseSet.getPresentableChallengeSet() != null) {
+                    presentableChallengeSet = responseSet.getPresentableChallengeSet();
+                } else {
+                    presentableChallengeSet = responseSet.getChallengeSet();
+                }
+            } catch (ChaiValidationException e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            }
+
             LOGGER.trace("loaded responseSet from user: " + responseSet.toString());
 
             Locale responseSetLocale = pwmSession.getSessionStateBean().getLocale();
@@ -287,6 +298,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
                         forgottenPasswordBean.setResponseSet(responseSet);
                         forgottenPasswordBean.setProxiedUser(theUser);
+                        forgottenPasswordBean.setChallengeSet(presentableChallengeSet);
                         return;
                     } else {
                         final String errorMsg = "configured challenge set policy for " + theUser.getEntryDN() + " is empty, user not qualified to recover password";
@@ -302,6 +314,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         forgottenPasswordBean.setResponseSet(null);
+        forgottenPasswordBean.setChallengeSet(null);
         forgottenPasswordBean.setProxiedUser(null);
 
         final String errorMsg = "could not find a response set for " + theUser.getEntryDN();
@@ -357,7 +370,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
             try {
                 // read the supplied responses from the user
-                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getResponseSet().getChallengeSet());
+                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getChallengeSet());
 
                 final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
 

@@ -314,15 +314,11 @@ div.progress-container > div {
     text-align: center;
     bottom: 0;
     width: 100%;
-    color: #999999;
+    color: #555555;
     font-size: 11px;
     height: 60px;
     margin: 0;
     margin-top: -60px
-}
-
-#footer .idle_status {
-    color: #777777;
 }
 
 #footer .infotext {
@@ -373,11 +369,4 @@ div.progress-container > div {
     max-height: 300px;
     overflow: auto;
     font-family: monospace;
-}
-
-#localeSelectionMenu {
-    color: white;
-    font-family: sans-serif;
-    font-size: 11px;
-
 }

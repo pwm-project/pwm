@@ -183,49 +183,50 @@ function clearDijitWidget(widgetName) {
 }
 
 function initLocaleSelectorMenu(attachNode) {
-    var localeData = PWM_GLOBAL['localeInfo'];
-
     if (getObject(attachNode) == null) {
         return;
     }
 
-    require(["dojo/domReady!","dijit/Menu","dijit/MenuItem","dijit/Dialog"],function(){
-        var pMenu = new dijit.Menu({
-            targetNodeIds: [attachNode],
-            leftClickToOpen: true
+    require(["dojo/domReady!"],function(){setTimeout(function(){
+        require(["dijit/Menu","dijit/MenuItem","dijit/Dialog"],function(){
+            var localeData = PWM_GLOBAL['localeInfo'];
+            var pMenu = new dijit.Menu({
+                targetNodeIds: [attachNode],
+                leftClickToOpen: true
+            });
+            pMenu.startup();
+
+            var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
+                pMenu.addChild(new dijit.MenuItem({
+                    label: localeDisplayName,
+                    iconClass: localeIconClass,
+                    onClick: function() {
+                        showWaitDialog();
+                        var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
+                        dojo.xhrGet({
+                            url: pingURL,
+                            sync: false,
+                            preventCache: true,
+                            load: function() {
+                                PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+                                setTimeout(function(){window.location.reload();},1000);
+                            },
+                            error: function(error) {
+                                alert('unable to set locale: ' + error);
+                            }
+                        });
+                    }
+                }));
+            };
+
+            for (var localeKey in localeData) {
+                var loopDisplayName = localeData[localeKey];
+                var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
+                var loopKey = localeKey == '' ? 'default' : localeKey;
+                loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
+            }
         });
-        pMenu.startup();
-
-        var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
-            pMenu.addChild(new dijit.MenuItem({
-                label: localeDisplayName,
-                iconClass: localeIconClass,
-                onClick: function() {
-                    showWaitDialog();
-                    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
-                    dojo.xhrGet({
-                        url: pingURL,
-                        sync: false,
-                        preventCache: true,
-                        load: function() {
-                            PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                            setTimeout(function(){window.location.reload();},1000);
-                        },
-                        error: function(error) {
-                            alert('unable to set locale: ' + error);
-                        }
-                    });
-                }
-            }));
-        };
-
-        for (var localeKey in localeData) {
-            var loopDisplayName = localeData[localeKey];
-            var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
-            var loopKey = localeKey == '' ? 'default' : localeKey;
-            loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
-        }
-    });
+    },1000);});
 }
 
 function showWaitDialog(title, body) {

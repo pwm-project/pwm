@@ -1,8 +1,6 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
-<%@ page import="java.util.Locale" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +30,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSessionHeaderBody = PwmSession.getPwmSession(session); %>
 <% final boolean loggedIn = pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
-<% final Locale userLocale = pwmSessionHeaderBody.getSessionStateBean().getLocale(); %>
 <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
 <% if (!request.getRequestURI().contains("configmanager")) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
@@ -53,9 +50,6 @@
                title="<pwm:Display key="Button_Logout"/>">
             </a>
         </div>
-        <div id="localeSelectionMenu" style="position: absolute; align:right; border-width:0; top: 30px; right:5px; white-space: nowrap">
-            <%=userLocale == null ? PwmConstants.DEFAULT_LOCALE.getDisplayLanguage() : userLocale.getDisplayLanguage(userLocale)%>
-        </div>
     </div>
     <div id="header-page">
         <pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/>
@@ -66,7 +60,6 @@
     <script type="text/javascript">
         require(["dojo/domReady!"],function(){
             setTimeout(function(){
-                initLocaleSelectorMenu('localeSelectionMenu');
                 require(["dijit/Tooltip"],function(){
                     new dijit.Tooltip({
                         connectId: ["logoutDiv"],

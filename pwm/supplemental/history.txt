@@ -9,7 +9,7 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.6.2 (July 10, 2012) build 1173
+v1.6.2 (July 14, 2012) build 1174
 ---
 + Added token (email and sms) support for user activation
 + Added new user agreement support for user activation
