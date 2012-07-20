@@ -27,7 +27,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final Locale userLocale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
+<% final Locale userLocaleFooter = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
 <div id="footer">
     <br/>
@@ -46,7 +46,7 @@
     </span>
         &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
     <span id="localeSelectionMenu" style="white-space: nowrap">
-        <%=userLocale == null ? "" : userLocale.getDisplayLanguage(userLocale)%>
+        <%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>
     </div>
     <script type="text/javascript">
