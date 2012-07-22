@@ -241,8 +241,7 @@ public class AuthenticationFilter implements Filter {
         try {
             userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
         } catch (PwmOperationalException e) {
-            intruderManager.addBadAddressAttempt(pwmSession);
-            intruderManager.addBadUserAttempt(username, pwmSession);
+            intruderManager.addIntruderAttempt(username, pwmSession);
             intruderManager.checkUser(username, pwmSession);
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
             pwmApplication.getIntruderManager().delayPenalty(username, pwmSession);
@@ -257,8 +256,7 @@ public class AuthenticationFilter implements Filter {
         } catch (PwmOperationalException e) {
             // auth failed, presumably due to wrong password.
             ssBean.setAuthenticated(false);
-            intruderManager.addBadAddressAttempt(pwmSession);
-            intruderManager.addBadUserAttempt(userDN, pwmSession);
+            intruderManager.addIntruderAttempt(userDN, pwmSession);
             LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
             pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
@@ -275,9 +273,9 @@ public class AuthenticationFilter implements Filter {
         debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
         LOGGER.info(pwmSession, debugMsg);
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
-        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_10, 1);
         statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_60, 1);
-        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_240,1);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_240, 1);
+        statisticsManager.updateEps(StatisticsManager.EpsType.AUTHENTICATION_1440,1);
 
         // update the actor user info bean
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);
@@ -350,7 +348,7 @@ public class AuthenticationFilter implements Filter {
                     final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                     LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                    pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
+                    pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
                     if (!PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT.equals(password)) {
                         pwmSession.getSessionStateBean().setSessionError(errorInformation);
                     }
@@ -375,7 +373,7 @@ public class AuthenticationFilter implements Filter {
                 final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                 LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
+                pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
             }

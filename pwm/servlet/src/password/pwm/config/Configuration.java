@@ -402,13 +402,13 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<STORAGE_METHOD> getResponseReadLocations() {
-        final String readRawValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
-        final List<STORAGE_METHOD> readPreferences = new ArrayList<STORAGE_METHOD>();
-        for (final String rawValue : readRawValue.split("-")) {
-            readPreferences.add(STORAGE_METHOD.valueOf(rawValue));
+    public List<STORAGE_METHOD> getResponseStorageLocations(final PwmSetting setting) {
+        final String input = readSettingAsString(setting);
+        final List<STORAGE_METHOD> storageMethods = new ArrayList<STORAGE_METHOD>();
+        for (final String rawValue : input.split("-")) {
+            storageMethods.add(STORAGE_METHOD.valueOf(rawValue));
         }
-        return readPreferences;
+        return storageMethods;
     }
 
     public PwmPasswordPolicy getNewUserPasswordPolicy(final PwmApplication pwmApplication, final Locale userLocale)

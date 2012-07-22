@@ -60,7 +60,6 @@ public abstract class PwmConstants {
     public static final int MAX_EMAIL_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxEmailQueueSize"));
     public static final int MAX_SMS_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxSmsQueueSize"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
-    public static final int MAX_INTRUDER_TABLE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxIntruderTableSize"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
 
@@ -85,6 +84,10 @@ public abstract class PwmConstants {
     public static final int LDAP_PROXY_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapProxyConnectionTimeout"));
     public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));
     public static final int LDAP_CHECKER_RECENT_ERRORS_DURATION = Integer.parseInt(readPwmConstantsBundle("ldapCheckerRecentErrorDuration"));
+
+    public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
+    public static final int INTRUDER_RETENTION_TIME_MS = Integer.parseInt(readPwmConstantsBundle("intruderRetentionTimeMS"));
+    public static final int INTRUDER_CLEANUP_FREQUENCY_MS = Integer.parseInt(readPwmConstantsBundle("intruderCleanupFrequencyMS"));
 
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));

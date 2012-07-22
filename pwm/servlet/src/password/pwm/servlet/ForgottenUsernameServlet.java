@@ -101,7 +101,7 @@ public class ForgottenUsernameServlet extends TopServlet {
 
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
-                pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
+                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
                 pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
                 forwardToJSP(req, resp);
@@ -129,7 +129,7 @@ public class ForgottenUsernameServlet extends TopServlet {
         } catch (PwmDataValidationException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
             ssBean.setSessionError(errorInfo);
-            pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
+            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);

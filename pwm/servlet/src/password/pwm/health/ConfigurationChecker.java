@@ -206,26 +206,33 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (!hasDbConfiguration) {
-            if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.RESPONSE_STORAGE_DB.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.RESPONSE_STORAGE_DB.getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" is enabled, but database connection settings are not set");
-                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
+            for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
+                if (config.getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.DB)) {
+                    final StringBuilder errorMsg = new StringBuilder();
+                    errorMsg.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" -> ");
+                    errorMsg.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" includes database storage, but database connection settings are not set");
+                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
+                }
             }
+        }
 
-            {
-                final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseReadLocations();
-
-                if (readPreferences.contains(Configuration.STORAGE_METHOD.DB)) {
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE.getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" includes database storage, but database connection settings are not set");
-                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
-            }
+        final boolean hasResponseAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE) != null && config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE).length() > 0;
+        if (!hasResponseAttribute) {
+            for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
+                if (config.getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.LDAP)) {
+                    final StringBuilder errorMsg = new StringBuilder();
+                    errorMsg.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" -> ");
+                    errorMsg.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" includes ldap storage, but ");
+                    errorMsg.append(PwmSetting.CHALLENGE_USER_ATTRIBUTE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" -> ");
+                    errorMsg.append(PwmSetting.CHALLENGE_USER_ATTRIBUTE.getLabel(PwmConstants.DEFAULT_LOCALE));
+                    errorMsg.append(" is not configured");
+                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, errorMsg.toString()));
+                }
             }
         }
 

@@ -123,7 +123,7 @@ public class CaptchaServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
-            pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
+            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
             forwardToJSP(req, resp);
         }
     }

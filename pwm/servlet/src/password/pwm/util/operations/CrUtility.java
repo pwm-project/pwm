@@ -206,7 +206,7 @@ public abstract class CrUtility {
             }
         }
 
-        final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseReadLocations();
+        final List<Configuration.STORAGE_METHOD> readPreferences = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
         {
             final StringBuilder debugMsg = new StringBuilder("will attempt to read the following storage methods: ");
             for (Iterator<Configuration.STORAGE_METHOD> iterator = readPreferences.iterator(); iterator.hasNext(); ) {
@@ -400,67 +400,80 @@ public abstract class CrUtility {
                 responseInfoBean.getCsIdentifier()
         );
 
-        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
-            attempts++;
-            if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to remote database, user does not have a pwmGUID"));
-            }
-
-            try {
-                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-                databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, chaiResponseSet.stringValue());
-                LOGGER.info(pwmSession, "saved responses for user in remote database");
-                successes++;
-            } catch (PwmUnrecoverableException e) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
-            }
-        }
-
-        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
-            attempts++;
-            if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
-            }
-
-            if (pwmApplication.getPwmDB() == null) {
-                final String errorMsg = "pwmDB is not available, unable to write user responses";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
-
-            try {
-                pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, chaiResponseSet.stringValue());
-                LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
-                successes++;
-            } catch (PwmDBException e) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
-            }
-        }
-
-        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
-        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
-            try {
-                attempts++;
-                ChaiCrFactory.writeChaiResponseSet(chaiResponseSet, theUser);
-                LOGGER.info(pwmSession, "saved responses for user to chai-ldap format");
-                successes++;
-            } catch (ChaiOperationException e) {
-                final String errorMsg;
-                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                    errorMsg = "permission error writing user responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
-                } else {
-                    errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+        final List<Configuration.STORAGE_METHOD> writeMethods = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
+        for (final Configuration.STORAGE_METHOD loopWriteMethod : writeMethods) {
+            switch (loopWriteMethod) {
+                case LDAP: {
+                    final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+                    if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
+                        final String errorMsg = "ldap storage attribute is not configured, unable to write user responses";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
+                        throw new PwmOperationalException(errorInformation);
+                    }
+                    try {
+                        attempts++;
+                        ChaiCrFactory.writeChaiResponseSet(chaiResponseSet, theUser);
+                        LOGGER.info(pwmSession, "saved responses for user to chai-ldap format");
+                        successes++;
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg;
+                        if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+                            errorMsg = "permission error writing user responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
+                        } else {
+                            errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+                        }
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
                 }
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
+                break;
+
+                case PWMDB: {
+                    attempts++;
+                    if (userGUID == null || userGUID.length() < 1) {
+                        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+                    }
+
+                    if (pwmApplication.getPwmDB() == null) {
+                        final String errorMsg = "pwmDB is not available, unable to write user responses";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+                        throw new PwmOperationalException(errorInformation);
+                    }
+
+                    try {
+                        pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, chaiResponseSet.stringValue());
+                        LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
+                        successes++;
+                    } catch (PwmDBException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
+                }
+                break;
+
+                case DB: {
+                    attempts++;
+                    if (userGUID == null || userGUID.length() < 1) {
+                        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to remote database, user does not have a pwmGUID"));
+                    }
+
+                    try {
+                        final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+                        databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, chaiResponseSet.stringValue());
+                        LOGGER.info(pwmSession, "saved responses for user in remote database");
+                        successes++;
+                    } catch (PwmUnrecoverableException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
+                }
+                break;
             }
         }
 
@@ -515,70 +528,84 @@ public abstract class CrUtility {
 
         LOGGER.trace(pwmSession, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
 
-        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_DB)) {
-            attempts++;
-            if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to remote database, user does not have a pwmGUID"));
-            }
+        final List<Configuration.STORAGE_METHOD> writeMethods = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
+        for (final Configuration.STORAGE_METHOD loopWriteMethod : writeMethods) {
+            switch (loopWriteMethod) {
+                case LDAP: {
+                    final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+                    if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
+                        final String errorMsg = "ldap storage attribute is not configured, unable to clear user responses";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
+                        throw new PwmOperationalException(errorInformation);
 
-            try {
-                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-                databaseAccessor.remove(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
-                LOGGER.info(pwmSession, "cleared responses for user " + theUser.getEntryDN() + " in remote database");
-                successes++;
-            } catch (PwmUnrecoverableException e) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected error clearing responses to remote database: " + e.getMessage());
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
-            }
-        }
-
-        if (config.readSettingAsBoolean(PwmSetting.RESPONSE_STORAGE_PWMDB)) {
-            attempts++;
-            if (userGUID == null || userGUID.length() < 1) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to pwmDB, user does not have a pwmGUID"));
-            }
-
-            if (pwmApplication.getPwmDB() == null) {
-                final String errorMsg = "pwmDB is not available, unable to write user responses";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
-
-            try {
-                pwmApplication.getPwmDB().remove(PwmDB.DB.RESPONSE_STORAGE, userGUID);
-                LOGGER.info(pwmSession, "cleared responses for user in local pwmDB");
-                successes++;
-            } catch (PwmDBException e) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected pwmDB error clearing responses to pwmDB: " + e.getMessage());
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
-            }
-        }
-
-        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
-        if (ldapStorageAttribute != null && ldapStorageAttribute.length() > 0) {
-            try {
-                attempts++;
-                final String currentValue = theUser.readStringAttribute(ldapStorageAttribute);
-                if (currentValue != null && currentValue.length() > 0) {
-                    theUser.deleteAttribute(ldapStorageAttribute, null);
+                    }
+                    try {
+                        attempts++;
+                        final String currentValue = theUser.readStringAttribute(ldapStorageAttribute);
+                        if (currentValue != null && currentValue.length() > 0) {
+                            theUser.deleteAttribute(ldapStorageAttribute, null);
+                        }
+                        LOGGER.info(pwmSession, "cleared responses for user to chai-ldap format");
+                        successes++;
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg;
+                        if (e.getErrorCode() == ChaiError.NO_ACCESS) {
+                            errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
+                        } else {
+                            errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+                        }
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
                 }
-                LOGGER.info(pwmSession, "cleared responses for user to chai-ldap format");
-                successes++;
-            } catch (ChaiOperationException e) {
-                final String errorMsg;
-                if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                    errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
-                } else {
-                    errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+                break;
+
+                case PWMDB: {
+                    attempts++;
+                    if (userGUID == null || userGUID.length() < 1) {
+                        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to pwmDB, user does not have a pwmGUID"));
+                    }
+
+                    if (pwmApplication.getPwmDB() == null) {
+                        final String errorMsg = "pwmDB is not available, unable to write user responses";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+                        throw new PwmOperationalException(errorInformation);
+                    }
+
+                    try {
+                        pwmApplication.getPwmDB().remove(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                        LOGGER.info(pwmSession, "cleared responses for user in local pwmDB");
+                        successes++;
+                    } catch (PwmDBException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected pwmDB error clearing responses to pwmDB: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
                 }
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
+                break;
+
+                case DB: {
+                    attempts++;
+                    if (userGUID == null || userGUID.length() < 1) {
+                        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to remote database, user does not have a pwmGUID"));
+                    }
+
+                    try {
+                        final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+                        databaseAccessor.remove(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
+                        LOGGER.info(pwmSession, "cleared responses for user " + theUser.getEntryDN() + " in remote database");
+                        successes++;
+                    } catch (PwmUnrecoverableException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected error clearing responses to remote database: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    }
+                }
+                break;
             }
         }
 
@@ -725,7 +752,7 @@ public abstract class CrUtility {
             }
 
             try {
-                pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
+                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
             } catch (PwmUnrecoverableException e) {
                 // nothing to be done
             }

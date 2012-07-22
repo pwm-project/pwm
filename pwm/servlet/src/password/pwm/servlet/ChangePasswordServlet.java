@@ -168,7 +168,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             if (!passed) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmApplication.getIntruderManager().addBadUserAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                pwmApplication.getIntruderManager().addIntruderAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
                 this.forwardToJSP(req, resp);
                 return;

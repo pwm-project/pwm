@@ -147,7 +147,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             userDN = UserStatusHelper.convertUsernameFieldtoDN(usernameParam, pwmSession, pwmApplication, contextParam);
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
-            pwmApplication.getIntruderManager().addBadUserAttempt(usernameParam, pwmSession);
+            pwmApplication.getIntruderManager().addIntruderAttempt(usernameParam, pwmSession);
             pwmApplication.getIntruderManager().checkUser(usernameParam, pwmSession);
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
@@ -251,8 +251,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().addBadUserAttempt(userDN, pwmSession);
-        pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
+        pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
         simulateBadLogin(pwmApplication, pwmSession, userDN);
         pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
@@ -352,8 +351,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, "incorrect attribute value during check for " + theUser.getEntryDN());
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-            pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-            pwmApplication.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().addIntruderAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
             simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
             this.forwardToResponsesJSP(req, resp);
             return;
@@ -387,8 +385,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     ssBean.setSessionError(errorInformation);
                     LOGGER.debug(pwmSession,errorInformation.toDebugStr());
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                    pwmApplication.getIntruderManager().addBadAddressAttempt(pwmSession);
-                    pwmApplication.getIntruderManager().addBadUserAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+                    pwmApplication.getIntruderManager().addIntruderAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
                     simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
                     pwmApplication.getIntruderManager().delayPenalty(theUser.getEntryDN(), pwmSession);
                     this.forwardToResponsesJSP(req, resp);

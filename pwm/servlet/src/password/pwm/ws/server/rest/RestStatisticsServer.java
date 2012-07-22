@@ -94,7 +94,6 @@ public class RestStatisticsServer {
         results.putAll(statisticsManager.getStatHistory(statistic, historyDays));
         results.put("EPS",addEpsStats(statisticsManager));
 
-
         final Gson gson = new Gson();
         return gson.toJson(results);
     }
@@ -117,49 +116,72 @@ public class RestStatisticsServer {
     }
 
     private Map<String,String> addEpsStats(final StatisticsManager statisticsManager){
-        final int dailyReduceFactor = (24 * 10);
         final Map<String,String> outputMap = new TreeMap<String,String>();
         for (final StatisticsManager.EpsType loopEps : StatisticsManager.EpsType.values()) {
             outputMap.put(loopEps.toString(),statisticsManager.readEps(loopEps).toPlainString());
         }
 
         {
-            Map<String,String> values = statisticsManager.getStatHistory(Statistic.AUTHENTICATIONS, 30);
-            int counter = 50;
-            for (final String key : values.keySet()) {
-                final int loopValue = Integer.valueOf(values.get(key)) / dailyReduceFactor;
-                if (loopValue > counter) {
-                    counter = loopValue;
-                }
-            }
-
-            for (final StatisticsManager.EpsType loopEps : new StatisticsManager.EpsType[]{StatisticsManager.EpsType.AUTHENTICATION_10, StatisticsManager.EpsType.AUTHENTICATION_60, StatisticsManager.EpsType.AUTHENTICATION_240}) {
-                if (statisticsManager.readEps(loopEps).multiply(BigDecimal.valueOf(60)).compareTo(BigDecimal.valueOf(counter)) > 0) {
-                    counter = statisticsManager.readEps(loopEps).multiply(BigDecimal.valueOf(60)).intValue();
-                }
-            }
-
-            outputMap.put("AUTHENTICATION_TOP",String.valueOf(counter));
+            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.AUTHENTICATIONS, 30);
+            final BigDecimal[] epsStats = new BigDecimal[]{
+                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_60),
+                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_240),
+                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_1440),
+            };
+            outputMap.put("AUTHENTICATION_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
         }
 
         {
-            Map<String,String> values = statisticsManager.getStatHistory(Statistic.PASSWORD_CHANGES, 30);
-            int counter = 50;
-            for (final String key : values.keySet()) {
-                final int loopValue = Integer.valueOf(values.get(key)) / dailyReduceFactor;
-                if (loopValue > counter) {
-                    counter = loopValue;
-                }
-            }
+            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.PASSWORD_CHANGES, 30);
+            final BigDecimal[] epsStats = new BigDecimal[]{
+                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60),
+                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240),
+                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440),
+            };
+            outputMap.put("PASSWORD_CHANGES_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
+        }
 
-            for (final StatisticsManager.EpsType loopEps : new StatisticsManager.EpsType[]{StatisticsManager.EpsType.PASSWORD_CHANGES_10, StatisticsManager.EpsType.PASSWORD_CHANGES_60, StatisticsManager.EpsType.PASSWORD_CHANGES_240}) {
-                if (statisticsManager.readEps(loopEps).multiply(BigDecimal.valueOf(60)).compareTo(BigDecimal.valueOf(counter)) > 0) {
-                    counter = statisticsManager.readEps(loopEps).multiply(BigDecimal.valueOf(60)).intValue();
-                }
-            }
-            outputMap.put("PASSWORD_CHANGES_TOP",String.valueOf(counter));
+        {
+            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.INTRUDER_ATTEMPTS, 30);
+            final BigDecimal[] epsStats = new BigDecimal[]{
+                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60),
+                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240),
+                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440),
+            };
+            outputMap.put("INTRUDER_ATTEMPTS_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
         }
 
         return outputMap;
+    }
+
+    private int figureTopValue(final Map<String, String> statistics, final BigDecimal[] inputEpsStats) {
+        final int dailyReduceFactor = (24 * 10);
+        final int epsMultiplier = 60 * 60; // hour
+
+        int counter = 100; // minimum
+        for (final String key : statistics.keySet()) {
+            final int loopValue = Integer.valueOf(statistics.get(key)) / dailyReduceFactor;
+            if (loopValue > counter) {
+                counter = loopValue;
+            }
+        }
+
+        for (final BigDecimal loopEps : inputEpsStats) {
+            if (loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).compareTo(BigDecimal.valueOf(counter)) > 0) {
+                counter = loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).intValue();
+            }
+        }
+
+        if (counter < 200) {
+            while(counter % 20 != 0) {
+                counter++;
+            }
+        } else {
+            while(counter % 200 != 0) {
+                counter++;
+            }
+        }
+
+        return counter;
     }
 }

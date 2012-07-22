@@ -132,6 +132,8 @@ public interface PwmDB {
         SMS_QUEUE,
         RESPONSE_STORAGE,
         TOKENS,
+        INTRUDER_USER,
+        INTRUDER_ADDRESS,
         TEMP // cleared on each initializtaion of the pwmDB.
     }
 

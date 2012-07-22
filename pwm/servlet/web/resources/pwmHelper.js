@@ -260,7 +260,7 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
             if (PWM_GLOBAL['healthCheckInProgress']) {
                 parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
             }
-        }, 1000);
+        }, refreshNow ? 1000 : 30 * 1000);
 
         var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
         if (refreshNow) {
@@ -589,7 +589,7 @@ function doShow(destClass, message) {
 }
 
 function showStatChart(statName,days,divName) {
-    var epsTypes = ["PASSWORD_CHANGES_10","PASSWORD_CHANGES_60","PASSWORD_CHANGES_240","AUTHENTICATION_10","AUTHENTICATION_60","AUTHENTICATION_240"];
+    var epsTypes = PWM_GLOBAL['epsTypes'];
     require(["dojo",
         "dijit",
         "dijit/registry",
@@ -625,11 +625,15 @@ function showStatChart(statName,days,divName) {
                 },
                 load: function(data) {
                     {// gauges
+                        var activityCount = 0;
                         for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
                             var loopEpsName = epsTypes[loopEpsIndex] + '';
                             var loopEpsID = "EPS-GAUGE-" + loopEpsName;
-                            var loopEpsValue = (data['EPS'])[loopEpsName] * 60;
-                            var loopTop = (data['EPS'])[loopEpsName.substring(0,4) == 'AUTH' ? 'AUTHENTICATION_TOP' : "PASSWORD_CHANGES_TOP"];
+                            var loopEpsValue = (data['EPS'])[loopEpsName] * 60 * 60;
+                            var loopTop = (data['EPS'])[loopEpsName.substring(0,4) == 'AUTH' ? 'AUTHENTICATION_TOP' : loopEpsName.substring(0,4) == 'PASS' ? "PASSWORD_CHANGES_TOP" : "INTRUDER_ATTEMPTS_TOP"];
+                            if (loopEpsName.substring(loopEpsName.length-2,loopEpsName.length) == "60") {
+                                activityCount += loopEpsValue;
+                            }
                             if (getObject(loopEpsID) != null) {
                                 console.log('loopEps=' + loopEpsName);
                                 if (dijit.byId(loopEpsID)) {
@@ -639,11 +643,11 @@ function showStatChart(statName,days,divName) {
                                     var glossyCircular = new dojox.gauges.GlossyCircularGauge({
                                         background: [255, 255, 255, 0],
                                         noChange: true,
-                                        value: loopEpsValue,
-                                        max: loopTop,
-                                        needleColor: 'yellow',
-                                        //majorTicksInterval: 200,
-                                        //minorTicksInterval: 50,
+                                        value: Math.abs(loopEpsValue),
+                                        max: Math.abs(loopTop),
+                                        needleColor: '#FFDC8B',
+                                        majorTicksInterval: Math.abs(loopTop / 10),
+                                        minorTicksInterval: Math.abs(loopTop / 10),
                                         id: loopEpsID,
                                         width: 200,
                                         height: 150
@@ -652,6 +656,7 @@ function showStatChart(statName,days,divName) {
                                 }
                             }
                         }
+                        PWM_GLOBAL['epsActivityCount'] = activityCount;
                     }
                     if (divName != null && getObject(divName)) { // stats chart
                         var values = [];

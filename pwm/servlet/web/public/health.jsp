@@ -30,7 +30,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html dir="<pwm:LocaleOrientation/>">
+<html dir="<pwm:LocaleOrientation/>" manifest="health.manifest">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% try { password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <%
@@ -52,34 +52,19 @@
             </tr>
             <tr>
                 <td colspan="10"  style="margin:0; padding:0">
-                    <div id="healthBody" style="border:0; margin:0; padding:0"></div>
-                </td>
-            </tr>
-            <!--
-            <tr>
-                <td class="title" colspan="10">
-                    Password Changes
-                </td>
-            </tr>
-            <tr>
-                <td colspan="10"  style="margin:0; padding:0">
-                    <div id="statsChart" style="height: 150px; z-index: 3; margin: 0; padding: 0">
+                    <div id="healthBody" style="border:0; margin:0; padding:0">
+                        <div id="WaitDialogBlank"></div>
                     </div>
-                </td>
-            </tr>
-            -->
-            <tr>
-                <td class="title" colspan="10">
-                    Password Changes Per Minute
                 </td>
             </tr>
             <tr>
                 <td colspan="10" style="margin:0; padding:0">
                     <div style="max-width: 600px; text-align: center">
-                        <div id="EPS-GAUGE-PASSWORD_CHANGES_10" style="float: left; width: 33%">Last 10 Minutes</div>
-                        <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Last 1 Hour</div>
-                        <div id="EPS-GAUGE-PASSWORD_CHANGES_240" style="float: left; width: 33%">Last 4 Hours</div>
+                        <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Authentications</div>
+                        <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Password Changes</div>
+                        <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_60" style="float: left; width: 33%">Intruder Attempts</div>
                     </div>
+                    <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">Events Per Hour</div>
                 </td>
             </tr>
         </table>
@@ -88,157 +73,190 @@
 <div id="floatparent">
 </div>
 <script type="text/javascript">
-var MAX_NODES = 5 * 1000;
-var splatCount = 0;
-var errorColor = '#d20734';
+    var H_RANGE = 20;
+    var V_RANGE = 20;
+    var MAX_NODES = 150;
 
-PWM_GLOBAL['pwm-health'] = 'GOOD';
-
-function displayRandomFloat(text) {
-    require(["dojo","dojo/window"],function(dojo){
-        var floatParent = getObject("floatparent");
-        var vs = dojo.window.getBox();
-
-        var topPos = Math.floor((Math.random() * vs.h));
-        var leftPos = Math.floor((Math.random() * vs.w));
-        var bottomPos = vs.h - topPos;
-        var rightPos = vs.w - leftPos;
-
-        var styleText = "position: absolute; ";
-        if (topPos > (vs.h / 2)) {
-            styleText = styleText + "bottom: " + bottomPos + "px; ";
-        } else {
-            styleText = styleText + "top: " + topPos + "px; ";
-        }
-        if (leftPos > (vs.w / 2)) {
-            styleText = styleText + "right: " + rightPos +"px; ";
-        } else {
-            styleText = styleText + "left: " + leftPos +"px; ";
-        }
+    var splatCount = 0;
+    var errorColor = '#d20734';
+    var posV = 0;
+    var posH = 0;
+    var deltaV = Math.floor((Math.random() * V_RANGE * 2)) - V_RANGE;
+    var deltaH = Math.floor((Math.random() * H_RANGE * 2)) - H_RANGE;
+    var passwordValue = null;
 
 
-        styleText = styleText + "padding: 4px; z-index:2; border-radius: 5px;";
-        var divId = "randomPwDiv" + splatCount % MAX_NODES;
+    PWM_GLOBAL['pwm-health'] = 'GOOD';
 
-        { // remove old node
-            var existingDiv = getObject(divId);
-            if (existingDiv != null) {
-                floatParent.removeChild(existingDiv);
+    function drawNextSprite() {
+        require(["dojo","dojo/window"],function(dojo){
+            if (passwordValue) {
+                var floatParent = getObject("floatparent");
+                var vs = dojo.window.getBox();
+
+                posV += deltaV;
+                posH += deltaH;
+
+                var styleText = "position: absolute; ";
+                styleText += "top: " + posV + "px; ";
+                styleText += "left: " + posH +"px; ";
+                styleText += "padding: 4px; z-index:2; border-radius: 5px; ";
+                styleText += "filter:alpha(opacity=30); opacity: 0.3; ";
+
+
+                splatCount++;
+                var divId = "randomPwDiv" + splatCount % MAX_NODES;
+                { // remove old node
+                    var existingDiv = getObject(divId);
+                    if (existingDiv != null) {
+                        floatParent.removeChild(existingDiv);
+                    }
+                }
+
+                var div = document.createElement('div');
+                div.innerHTML = passwordValue;
+                div.id = divId;
+                div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
+
+                div.setAttribute("style",styleText);
+                floatParent.appendChild(div);
+
+                var change = false;
+                if (posV < 0) {
+                    posV += deltaV * -1;
+                    deltaV = Math.floor((Math.random() * V_RANGE));
+                    change = true;
+                } else if (posV + div.offsetHeight > vs.h) {
+                    posV += deltaV * -1;
+                    deltaV = Math.floor((Math.random() * V_RANGE)) * -1;
+                    change = true;
+                }
+                if (posH < 0) {
+                    posH += deltaH * -1;
+                    deltaH = Math.floor((Math.random() * H_RANGE));
+                    change = true;
+                } else if (posH + div.offsetWidth > vs.w) {
+                    posH += deltaH * -1;
+                    deltaH = Math.floor((Math.random() * H_RANGE)) * -1;
+                    change = true;
+                }
+                if (change) {
+                    splatCount--;
+                    deltaV = deltaV == 0 ? 1 : deltaV;
+                    deltaH = deltaH == 0 ? 1 : deltaH;
+                    drawNextSprite();
+                    return;
+                }
             }
+            var timeOutTime = 1000 - (PWM_GLOBAL['epsActivityCount'] != null ? Math.floor(PWM_GLOBAL['epsActivityCount']) : 0);
+            timeOutTime = timeOutTime < 100 ? 100 : timeOutTime;
+            setTimeout(function(){
+                drawNextSprite();
+            },timeOutTime);
+        });
+    }
+
+    function fetchRandomPassword() {
+        require(["dojo"],function(dojo){
+            dojo.xhrPost({
+                url: PWM_GLOBAL['url-restservice'] + "/randompassword" + "?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept":"application/json"},
+                dataType: "json",
+                timeout: 15000,
+                sync: false,
+                preventCache: true,
+                handleAs: "json",
+                load:  function(resultInfo) {
+                    passwordValue = resultInfo["password"];
+                },
+                error: function(errorObj){
+                    passwordValue = "server unreachable";
+                }
+            });
+        });
+    }
+
+    function handleWarnFlash() {
+        if (PWM_GLOBAL['pwm-health'] == "WARN") {
+            flashScreen(errorColor);
         }
+    }
 
-        var div = document.createElement('div');
-        div.innerHTML = text;
-        div.id = divId;
-        div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
-
-        div.setAttribute("style",styleText);
-        floatParent.appendChild(div);
-    });
-}
-
-function fetchRandomPassword() {
-    require(["dojo"],function(dojo){
-        dojo.xhrPost({
-            url: PWM_GLOBAL['url-restservice'] + "/randompassword" + "?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            headers: {"Accept":"application/json"},
-            dataType: "json",
-            timeout: 15000,
-            sync: false,
-            preventCache: true,
-            handleAs: "json",
-            load:  function(resultInfo) {
-                var password = resultInfo["password"];
-                displayRandomFloat(password);
-                doNext();
-            },
-            error: function(errorObj){
-                var password = "server unreachable";
-                displayRandomFloat(password);
-                doNext();
+    function verticalCenter(divName) {
+        require(["dojo","dojo/window"],function(dojo){
+            var vs = dojo.window.getBox();
+            if (document.getElementById) {
+                var windowHeight = vs.h;
+                if (windowHeight > 0) {
+                    var contentElement = document.getElementById(divName);
+                    var contentHeight = contentElement.offsetHeight;
+                    if (windowHeight - contentHeight > 0) {
+                        contentElement.style.position = 'relative';
+                        contentElement.style.top = ((windowHeight / 2) - (contentHeight / 2)) + 'px';
+                    }
+                    else {
+                        contentElement.style.position = 'static';
+                    }
+                }
             }
         });
-    });
-}
-
-function doNext() {
-    splatCount++;
-    var randomInterval = 15 * 1000;
-    setTimeout(function(){
-        fetchRandomPassword();
-    },randomInterval);
-
-    if (PWM_GLOBAL['pwm-health'] == "WARN") {
-        flashScreen(errorColor);
     }
-}
 
-function verticalCenter(divName) {
-    require(["dojo","dojo/window"],function(dojo){
-        var vs = dojo.window.getBox();
-        if (document.getElementById) {
-            var windowHeight = vs.h;
-            if (windowHeight > 0) {
-                var contentElement = document.getElementById(divName);
-                var contentHeight = contentElement.offsetHeight;
-                if (windowHeight - contentHeight > 0) {
-                    contentElement.style.position = 'relative';
-                    contentElement.style.top = ((windowHeight / 2) - (contentHeight / 2)) + 'px';
+    function flashScreen(flashColor) {
+        require(["dojo"],function(dojo){
+            var htmlElement = document.getElementById('body');
+            var originalColor = htmlElement.style.backgroundColor;
+            var zIndex = htmlElement.style.zIndex;
+
+            htmlElement.style.backgroundColor = flashColor;
+            htmlElement.style.backgroundColor = 5;
+
+            dojo.animateProperty({
+                node:"body",
+                duration: 3000,
+                properties: {
+                    zIndex: 0,
+                    backgroundColor: originalColor
                 }
-                else {
-                    contentElement.style.position = 'static';
-                }
-            }
-        }
-    });
-}
+            }).play();
+        });
+    }
 
-function flashScreen(flashColor) {
-    require(["dojo"],function(dojo){
-        var htmlElement = document.getElementById('body');
-        var originalColor = htmlElement.style.backgroundColor;
-        var zIndex = htmlElement.style.zIndex;
+    function startup() {
+        require(["dojo","dojo/domReady!","dojo/window"],function(){
+            flashScreen('white');
 
-        htmlElement.style.backgroundColor = flashColor;
-        htmlElement.style.backgroundColor = 5;
+            var vs = dojo.window.getBox();
+            posH = Math.floor((Math.random() * (vs.w - 30)));
+            posV = Math.floor((Math.random() * (vs.h - 100)));
 
-        dojo.animateProperty({
-            node:"body",
-            duration: 3000,
-            properties: {
-                zIndex: 0,
-                backgroundColor: originalColor
-            }
-        }).play();
-    });
-}
+            fetchRandomPassword();
+            setInterval(function(){
+                fetchRandomPassword();
+            },30 * 1000);
 
-function startup() {
-    require(["dojo","dojo/domReady!","dojo/window"],function(){
-        flashScreen('white');
+            setInterval(function(){
+                handleWarnFlash();
+            },30 * 1000);
 
-        showPwmHealth('healthBody', false, false);
-        setTimeout(function(){ doNext(); }, 15 * 1000);
+            drawNextSprite();
 
+            showPwmHealth('healthBody', false, false);
 
-        showStatChart('<%=Statistic.PASSWORD_CHANGES%>',14,'statsChart');
-        setInterval(function(){
             showStatChart('<%=Statistic.PASSWORD_CHANGES%>',14,'statsChart');
-        }, 30 * 1000);
+            setInterval(function(){
+                showStatChart('<%=Statistic.PASSWORD_CHANGES%>',14,'statsChart');
+            }, 61 * 1000);
 
-
-        verticalCenter('centerbody');
-        setInterval(function(){
             verticalCenter('centerbody');
-        }, 1000);
+            setInterval(function(){
+                verticalCenter('centerbody');
+            }, 1000);
 
-    });
-}
+        });
+    }
 
-startup();
-
-
-
+    startup();
 </script>
 </body>
 </html>

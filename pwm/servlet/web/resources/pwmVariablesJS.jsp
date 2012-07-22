@@ -24,7 +24,7 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.config.Display"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.config.Display"%><%@ page import="password.pwm.util.stats.StatisticsManager"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
@@ -36,6 +36,7 @@ function initPwmVariables() {
     initPwmGlobalValues();
     initPwmStringValues();
     initPwmLocaleVars();
+    initEpsTypes();
 }
 
 function initPwmStringValues() {
@@ -65,6 +66,13 @@ function initPwmLocaleVars() {
     localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayLanguage()%> - <%=loopLocale.getDisplayLanguage(loopLocale)%>';
 <% } %>
     PWM_GLOBAL['localeInfo'] = localeInfo;
+}
+
+function initEpsTypes() {
+    PWM_GLOBAL['epsTypes'] = [];
+    <% for (final StatisticsManager.EpsType loopEpsType : StatisticsManager.EpsType.values()) { %>
+    PWM_GLOBAL['epsTypes'].push('<%=loopEpsType%>');
+    <% } %>
 }
 
 initPwmVariables();

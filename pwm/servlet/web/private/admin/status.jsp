@@ -45,7 +45,7 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div id="content" style="display:none">
-<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="Status">
     <table>
         <tr>
@@ -148,6 +148,19 @@
             </td>
         </tr>
     </table>
+    <table>
+        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
+        <tr>
+            <td class="key">
+                <%= loopService.getClass().getSimpleName() %>
+            </td>
+            <td>
+                <%= loopService.status() %>
+            </td>
+        </tr>
+        <% } %>
+
+    </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Activity">
     <table class="tablemain">
@@ -163,10 +176,10 @@
                 </a>
             </td>
             <td class="key">
-                Stored Tokens
+                Active LDAP Connections
             </td>
             <td>
-                <%= pwmApplication.getTokenManager().size() < 0 ? "n/a" : pwmApplication.getTokenManager().size() %>
+                <%= Helper.figureLdapConnectionCount(pwmApplication,ContextManager.getContextManager(session)) %>
             </td>
         </tr>
         <tr>
@@ -194,16 +207,16 @@
     </table>
     <table class="tablemain">
         <tr>
-            <td style="text-align: center">
+            <td>
             </td>
-            <td style="text-align: center">
-                10 Minutes
+            <td style="text-align: center; font-weight: bold;">
+                Last 1 Hour
             </td>
-            <td style="text-align: center">
-                1 Hour
+            <td style="text-align: center; font-weight: bold;">
+                Last 4 Hours
             </td>
-            <td style="text-align: center">
-                4 Hours
+            <td style="text-align: center; font-weight: bold;">
+                Last 24 Hours
             </td>
         </tr>
         <tr>
@@ -211,13 +224,13 @@
                 Authentications / Minute
             </td>
             <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_10).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
                 <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
                 <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
         </tr>
         <tr>
@@ -225,58 +238,134 @@
                 Password Changes / Minute
             </td>
             <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_10).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
                 <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
                 <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Intruder Attempts / Minute
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="key">
+                Authentications / Hour
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Password Changes / Hour
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Intruder Attempts / Hour
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
+            <td style="text-align: center">
+                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            </td>
         </tr>
     </table>
-    <table class="tablemain">
-        <tr>
-            <td class="title" colspan="10">
-                Password Changes Per Minute
-            </td>
-        </tr>
-        <tr>
-            <td colspan="10" style="margin:0; padding:0">
-                <div style="max-width: 600px; text-align: center">
-                    <div id="EPS-GAUGE-PASSWORD_CHANGES_10" style="float: left; width: 33%">Last 10 Minutes</div>
-                    <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Last 1 Hour</div>
-                    <div id="EPS-GAUGE-PASSWORD_CHANGES_240" style="float: left; width: 33%">Last 4 Hours</div>
-                </div>
-            </td>
-        </tr>
-    </table>
-    <table class="tablemain">
-        <tr>
-            <td class="title" colspan="10">
-                Authentications Per Minute
-            </td>
-        </tr>
-        <tr>
-            <td colspan="10" style="margin:0; padding:0">
-                <div style="max-width: 600px; text-align: center">
-                    <div id="EPS-GAUGE-AUTHENTICATION_10" style="float: left; width: 33%">Last 10 Minutes</div>
-                    <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Last 1 Hour</div>
-                    <div id="EPS-GAUGE-AUTHENTICATION_240" style="float: left; width: 33%">Last 4 Hours</div>
-                </div>
-            </td>
-        </tr>
-    </table>
+    <br/>
+    <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+        <div data-dojo-type="dijit.layout.ContentPane" title="Authentications">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Last 1 Hour</div>
+                            <div id="EPS-GAUGE-AUTHENTICATION_240" style="float: left; width: 33%">Last 4 Hours</div>
+                            <div id="EPS-GAUGE-AUTHENTICATION_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Password Changes">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Last 1 Hour</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_240" style="float: left; width: 33%">Last 4 Hours</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Intruder Attempts">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_60" style="float: left; width: 33%">Last 1 Hour</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_240" style="float: left; width: 33%">Last 4 Hours</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per hour, this content is dynamically refreshed</div>
+    </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Health">
-    <div id="healthBody">&nbsp;</div>
+    <div id="healthBody">
+        <div id="WaitDialogBlank"></div>
+    </div>
     <script type="text/javascript">
         dojo.addOnLoad(function() {
             showPwmHealth('healthBody', false);
         });
     </script>
-    <div style="text-align:center; width:100%; border: 0">Public PWM Health Page is at <a
-            href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a></div>
+    <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
+        public health page at
+        <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
+        , this content is dynamically refreshed
+    </div>
+
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Local PwmDB">
     <table class="tablemain">
@@ -348,6 +437,20 @@
             </td>
             <td>
                 <%= pwmApplication.getSmsQueue().queueSize() %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Intruder Address Table Size
+            </td>
+            <td>
+                <%= pwmApplication.getIntruderManager().currentAddressTableSize() %>
+            </td>
+            <td class="key">
+                Intruder User Table Size
+            </td>
+            <td>
+                <%= pwmApplication.getIntruderManager().currentUserTableSize() %>
             </td>
         </tr>
         <tr>
@@ -607,7 +710,7 @@
         showStatChart('PASSWORD_CHANGES',14,'statsChart');
         setInterval(function(){
             showStatChart('PASSWORD_CHANGES',14,'statsChart');
-        }, 60 * 1000);
+        }, 61 * 1000);
 
     });
 </script>

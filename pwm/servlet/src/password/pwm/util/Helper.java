@@ -1180,4 +1180,24 @@ public class Helper {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
+
+    public static int figureLdapConnectionCount(final PwmApplication pwmApplication, final ContextManager contextManager) {
+        int counter = 0;
+        try {
+            if (pwmApplication.getProxyChaiProvider().isConnected()) {
+                counter++;
+            }
+
+            for (final PwmSession loopSession : contextManager.getPwmSessions()) {
+                if (loopSession != null) {
+                    if (loopSession.getSessionManager().hasActiveLdapConnection()) {
+                        counter++;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("unexpected error counting ldap connections: " + e.getMessage());
+        }
+        return counter;
+    }
 }

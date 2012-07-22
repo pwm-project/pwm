@@ -86,13 +86,16 @@ public class StatisticsManager implements PwmService {
     private STATUS status = STATUS.NEW;
 
     public enum EpsType {
-        PASSWORD_CHANGES_10(10 * 60 * 1000),
         PASSWORD_CHANGES_60(60 * 60 * 1000),
         PASSWORD_CHANGES_240(4 * 60 * 60 * 1000),
-        AUTHENTICATION_10(10 * 60 * 1000),
+        PASSWORD_CHANGES_1440(24 * 60 * 60 * 1000),
         AUTHENTICATION_60(60 * 60 * 1000),
         AUTHENTICATION_240(4 * 60 * 60 * 1000),
-        ;
+        AUTHENTICATION_1440(24 * 60 * 60 * 1000),
+        INTRUDER_ATTEMPTS_60(60 * 60 * 1000),
+        INTRUDER_ATTEMPTS_240(4 * 60 * 60 * 1000),
+        INTRUDER_ATTEMPTS_1440(24 * 60 * 60 * 1000),
+                ;
 
         private final long duration;
 

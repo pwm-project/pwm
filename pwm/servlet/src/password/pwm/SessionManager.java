@@ -127,20 +127,23 @@ public class SessionManager implements Serializable {
     }
 
     public void closeConnections() {
-        synchronized (providerLock) {
-            closeConnectionImpl();
-        }
+        closeConnectionImpl();
     }
 
     private void closeConnectionImpl() {
-        if (chaiProvider != null) {
-            try {
-                LOGGER.debug(pwmSession, "closing user ldap connection");
-                chaiProvider.close();
-                chaiProvider = null;
-            } catch (Exception e) {
-                LOGGER.error(pwmSession, "error while closing user connection: " + e.getMessage());
+        try {
+            providerLock.lock();
+            if (chaiProvider != null) {
+                try {
+                    LOGGER.debug(pwmSession, "closing user ldap connection");
+                    chaiProvider.close();
+                    chaiProvider = null;
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "error while closing user connection: " + e.getMessage());
+                }
             }
+        } finally {
+            providerLock.unlock();
         }
     }
 
@@ -155,5 +158,14 @@ public class SessionManager implements Serializable {
         }
 
         return ChaiFactory.createChaiUser(userDN, this.getChaiProvider());
+    }
+
+    public boolean hasActiveLdapConnection() {
+        try {
+            providerLock.lock();
+            return this.chaiProvider != null && this.chaiProvider.isConnected();
+        } finally {
+            providerLock.unlock();
+        }
     }
 }

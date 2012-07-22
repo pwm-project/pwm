@@ -70,6 +70,7 @@ public enum Statistic {
     REST_CLEARRESPONSE(Type.INCREMENTOR, "RestClearResponses"),
     REST_HEALTH(Type.INCREMENTOR, "RestHealth"),
     REST_STATISTICS(Type.INCREMENTOR, "RestStatistics"),
+    INTRUDER_ATTEMPTS(Type.INCREMENTOR, "IntruderAttempts"),
 
     AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
     AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),

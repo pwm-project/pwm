@@ -138,7 +138,7 @@ public class TokenManager implements PwmService {
             return;
         }
 
-        timer = new Timer("pwm-TokenManager",true);
+        timer = new Timer("pwm-TokenManager timer",true);
         final TimerTask cleanerTask = new CleanerTask();
 
         final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);

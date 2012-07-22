@@ -131,6 +131,16 @@ public class ContextManager implements Serializable {
             this.pwmApplication = null;
             methodLocalPwmApp.shutdown();
             taskMaster.cancel();
+
+            try {
+                for (final PwmSession pwmSession : this.getPwmSessions()) {
+                    pwmSession.getSessionManager().closeConnections();
+                }
+            } catch (Exception e) {
+                LOGGER.error("unexpected error attempting to close ldap connections: " + e.getMessage());
+            }
+
+
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
         }

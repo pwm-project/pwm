@@ -494,12 +494,10 @@ public enum PwmSetting {
             "recovery.queryMatch", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
     FORGOTTEN_PASSWORD_READ_PREFERENCE(
             "recovery.response.readPreference", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
+    FORGOTTEN_PASSWORD_WRITE_PREFERENCE(
+            "recovery.response.writePreference", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
-    RESPONSE_STORAGE_DB(
-            "responses.storage.db", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
-    RESPONSE_STORAGE_PWMDB(
-            "responses.storage.pwmDB", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_STORAGE_HASHED(

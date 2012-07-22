@@ -94,7 +94,7 @@
 <% if (helpdeskBean.isUserExists()) { %>
 <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
 <div id="userPanel" style="display: none">
-<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
     <table>
         <tr>

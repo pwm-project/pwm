@@ -78,10 +78,8 @@ public class PwmApplication {
 
     private String instanceID = DEFAULT_INSTANCE_ID;
     private String autoSiteUrl;
-    private final IntruderManager intruderManager = new IntruderManager(this);
     private final Configuration configuration;
 
-    private Timer taskMaster;
     private PwmDB pwmDB;
     private PwmDBLogger pwmDBLogger;
     private volatile ChaiProvider proxyChaiProvider;
@@ -105,7 +103,8 @@ public class PwmApplication {
             SmsQueueManager.class,
             UrlShortenerService.class,
             TokenManager.class,
-            VersionChecker.class
+            VersionChecker.class,
+            IntruderManager.class
     ));
 
 
@@ -133,7 +132,7 @@ public class PwmApplication {
     }
 
     public IntruderManager getIntruderManager() {
-        return intruderManager;
+        return (IntruderManager)pwmServices.get(IntruderManager.class);
     }
 
     public ChaiProvider getProxyChaiProvider()
@@ -153,12 +152,12 @@ public class PwmApplication {
         return (HealthMonitor)pwmServices.get(HealthMonitor.class);
     }
 
-    public Set<PwmService> getPwmServices() {
-        final Set<PwmService> pwmServices = new HashSet<PwmService>();
+    public List<PwmService> getPwmServices() {
+        final List<PwmService> pwmServices = new ArrayList<PwmService>();
         pwmServices.add(this.pwmDBLogger);
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
-        return Collections.unmodifiableSet(pwmServices);
+        return Collections.unmodifiableList(pwmServices);
     }
 
     private void openProxyChaiProvider() throws ChaiUnavailableException {
@@ -327,10 +326,6 @@ public class PwmApplication {
             pwmServices.put(serviceClass,newServiceInstance);
         }
 
-        taskMaster = new Timer("pwm-PwmApplication timer", true);
-        taskMaster.schedule(new IntruderManager.CleanerTask(intruderManager), 90 * 1000, 90 * 1000);
-
-
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
         getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
@@ -496,15 +491,6 @@ public class PwmApplication {
     public void shutdown() {
         LOGGER.warn("shutting down");
         AlertHandler.alertShutdown(this);
-
-        if (taskMaster != null) {
-            try {
-                taskMaster.cancel();
-            } catch (Exception e) {
-                LOGGER.error("error closing taskMaster: " + e.getMessage(),e);
-            }
-            taskMaster = null;
-        }
 
         {
             final List<Class> reverseServiceList = new ArrayList<Class>(PWM_SERVICE_CLASSES);
