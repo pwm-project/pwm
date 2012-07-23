@@ -55,7 +55,8 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ForgottenPasswordServlet extends TopServlet {
+public class
+        ForgottenPasswordServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
@@ -357,15 +358,16 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
-        if (forgottenPasswordBean.getResponseSet() == null) {
-            final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            LOGGER.error(pwmSession,errorInformation);
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-            return;
-        }
-
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+            if (forgottenPasswordBean.getResponseSet() == null) {
+                final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                ssBean.setSessionError(errorInformation);
+                LOGGER.error(pwmSession, errorInformation.toDebugStr());
+                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+                return;
+            }
+
             try {
                 // read the supplied responses from the user
                 final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getChallengeSet());
