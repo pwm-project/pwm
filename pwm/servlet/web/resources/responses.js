@@ -111,7 +111,7 @@ function toggleHideResponses()
     for (var j = 0; j < document.forms.length; j++) {
         for (var i = 0; i < document.forms[j].length; i++) {
             var current = document.forms[j].elements[i];
-            if (current.name != null && current.name.indexOf("PwmResponse_R") == 0) {
+            if (current.id != null && (current.id.indexOf("PwmResponse_R") == 0 || current.id.indexOf("attribute-") == 0)) {
                 if (current.type == "text" || current.type == "password") {
                     if (responsesHidden) {
                         changeInputTypeField(current,"text");
