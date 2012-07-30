@@ -9,6 +9,18 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.6.3
+---
++ Improvements in monitoring and gauge presentation on PWM Admin and health pages.
+
+- Change language on UpdateProfile no longer clears form values (issue #243)
+- Show/Hide Response button now toggles attribute values as well as responses (issue #246)
+- Forgotten Password not working when user attributes required but no responses are required (issue #245)
+- Password History not working (duplicate local variable error) (issue #240)
+
+! Intruder lockout now backed by PwmDB instead of memory to prevent OOM under DDOS attack.
+
+
 v1.6.2 (July 14, 2012) build 1175
 ---
 + Added token (email and sms) support for user activation

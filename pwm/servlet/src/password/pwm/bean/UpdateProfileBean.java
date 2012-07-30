@@ -30,7 +30,6 @@ import java.util.Map;
 public class UpdateProfileBean implements Serializable {
 
     private boolean agreementPassed;
-    private boolean formDataInitialized;
     private boolean confirmationPassed;
 
     private Map<FormConfiguration,String> formData;
@@ -41,14 +40,6 @@ public class UpdateProfileBean implements Serializable {
 
     public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isFormDataInitialized() {
-        return formDataInitialized;
-    }
-
-    public void setFormDataInitialized(final boolean formDataInitialized) {
-        this.formDataInitialized = formDataInitialized;
     }
 
     public Map<FormConfiguration, String> getFormData() {

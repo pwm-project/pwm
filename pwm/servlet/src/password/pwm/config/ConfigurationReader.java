@@ -30,7 +30,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -156,8 +157,39 @@ public class ConfigurationReader {
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
         }
 
+        rotateBackups(configFile);
         Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
         LOGGER.info("saved configuration " + storedConfiguration.toString());
+    }
+
+    private void rotateBackups(final File configFile) {
+        final int maxRotations = PwmConstants.CONFIG_BACKUP_ROTATIONS;
+        if (maxRotations < 1) {
+            return;
+        }
+
+        for (int i = maxRotations; i >= 0; i--) {
+            final File loopFile = new File(configFile + "-backup-" + i + ".xml");
+            final File destinationFileName = new File(configFile + "-backup-" + (i+1) + ".xml");
+
+            if (i == maxRotations) {
+                if (loopFile.exists()) {
+                    if (loopFile.delete()) {
+                        LOGGER.debug("deleted old backup file: " + loopFile.getAbsolutePath());
+                    }
+                }
+            } else if (i == 0) {
+                if (configFile.exists()) {
+                    if (configFile.renameTo(destinationFileName)) {
+                        LOGGER.debug("current config file " + configFile.getAbsolutePath() + " renamed to " + destinationFileName.getAbsolutePath());
+                    }
+                }
+            } else {
+                if (loopFile.renameTo(destinationFileName)) {
+                    LOGGER.debug("backup file " + loopFile.getAbsolutePath() + " renamed to " + destinationFileName.getAbsolutePath());
+                }
+            }
+        }
     }
 
     public boolean modifiedSinceLoad() {

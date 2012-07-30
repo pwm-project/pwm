@@ -320,6 +320,7 @@ public class NewUserServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final long startTime = System.currentTimeMillis();
+        LOGGER.debug(pwmSession,"beginning createUser process for " + newUserDN);
 
         // re-perform verification before proceeding
         verifyFormAttributes(formValues, pwmSession, pwmApplication);
@@ -344,7 +345,8 @@ public class NewUserServlet extends TopServlet {
             LOGGER.info(pwmSession, "created user entry: " + newUserDN);
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error creating user entry: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage);
+            throw new PwmOperationalException(errorInformation);
         }
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
@@ -356,19 +358,11 @@ public class NewUserServlet extends TopServlet {
 
         try { //set password
             theUser.setPassword(temporaryPassword);
-
             LOGGER.debug(pwmSession, "set temporary password for new user entry: " + newUserDN);
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error setting password for new user entry: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
-        }
-
-
-        {  // write out configured attributes.
-            LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
-            final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
-            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage);
+            throw new PwmOperationalException(errorInformation);
         }
 
         LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user to PWM using temporary password");
@@ -378,6 +372,13 @@ public class NewUserServlet extends TopServlet {
 
         //set user requested password
         PasswordUtility.setUserPassword(pwmSession, pwmApplication, userPassword);
+
+        {  // write out configured attributes.
+            LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
+            final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
+            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
+            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
+        }
 
         //everything good so forward to change password page.
         sendNewUserEmailConfirmation(pwmSession, pwmApplication);

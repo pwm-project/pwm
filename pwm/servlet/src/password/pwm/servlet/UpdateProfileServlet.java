@@ -135,38 +135,25 @@ public class UpdateProfileServlet extends TopServlet {
             }
         }
 
-        if (!updateProfileBean.isFormDataInitialized()) {
-                    populateFormFromLdap(req);
-        }
-
-        if (updateProfileBean.getFormData() == null) {
-            forwardToJSP(req, resp);
-            return;
-        }
-
         final boolean requireConfirmation = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
         if (requireConfirmation && !updateProfileBean.isConfirmationPassed()) {
             this.forwardToConfirmationJSP(req,resp);
             return;
         }
 
-        if (updateProfileBean.getFormData() == null) {
-            forwardToJSP(req,resp);
-            return;
-        }
-
         try {
             doProfileUpdate(pwmApplication, pwmSession, updateProfileBean, req, resp);
+            return;
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req,resp);
         } catch (ChaiException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE,e.toString());
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            this.forwardToJSP(req, resp);
         }
+
+        this.forwardToJSP(req, resp);
     }
 
 
@@ -191,7 +178,6 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
-        updateProfileBean.setFormDataInitialized(true);
     }
 
     private Map<FormConfiguration,String> readFormParametersFromRequest(
@@ -285,7 +271,9 @@ public class UpdateProfileServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, ServletException {
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        populateFormFromLdap(req);
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES).forward(req, resp);
     }
 

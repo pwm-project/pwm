@@ -64,9 +64,11 @@
             </tr>
             <tr>
                 <td colspan="10" style="border:0; margin:0; padding:0">
-                    <div id="healthBody" style="border:0; margin:0; padding:0"></div>
+                    <div id="healthBody" style="border:0; margin:0; padding:0">
+                        <div id="WaitDialogBlank"></div>
+                    </div>
                     <script type="text/javascript">
-                        require(["dojo/ready"],function(){
+                        require(["dojo/domReady!"],function(){
                             showPwmHealth('healthBody', false, true);
                         });
                     </script>
