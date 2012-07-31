@@ -1200,4 +1200,24 @@ public class Helper {
         }
         return counter;
     }
+
+    public static HashMap splitStringToMap(final String input) {
+        HashMap result = new HashMap();
+        if (input != null) {
+            final List<String> items = Arrays.asList(input.split(";"));
+            for (final Iterator<String> it = items.iterator(); it.hasNext(); ) {
+                String item = it.next();
+                String[] parts = item.split(":", 2);
+                if (parts.length > 0) {
+                    String left = parts[0];
+                    String right = null;
+                    if (parts.length == 2) {
+                        right = parts[1];
+                    }
+                    result.put(left, right);
+                }
+            }
+        }
+        return result;
+    }
 }
