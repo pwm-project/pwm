@@ -9,7 +9,7 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.6.3
+v1.6.3 (August 6, 2012) build 1181
 ---
 + Improvements in monitoring and gauge presentation on PWM Admin and health pages.
 + Backup backup files.  Saving config now keeps 5 previous PwmConfiguration.xml files as backups.
