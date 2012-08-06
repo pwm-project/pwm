@@ -106,16 +106,8 @@ public class UpdateProfileServlet extends TopServlet {
             final PwmSession pwmSession,
             final UpdateProfileBean updateProfileBean
     ) {
-        final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
-        final Map<FormConfiguration, String> currentFormValues = updateProfileBean.getFormData();
-
-        // put the form values back into the session state bean.
-        for (final FormConfiguration formConfiguration : currentFormValues.keySet()) {
-            final String attrName = formConfiguration.getAttributeName();
-            formProps.setProperty(attrName, currentFormValues.get(formConfiguration));
-        }
-
-        updateProfileBean.setFormData(null);
+        updateProfileBean.setFormSubmitted(false);
+        updateProfileBean.setConfirmationPassed(false);
     }
 
     private void advanceToNextStep(
@@ -133,6 +125,12 @@ public class UpdateProfileServlet extends TopServlet {
                 this.forwardToAgreementJSP(req,resp);
                 return;
             }
+        }
+
+        if (!updateProfileBean.isFormSubmitted()) {
+            populateFormFromLdap(req);
+            forwardToJSP(req,resp);
+            return;
         }
 
         final boolean requireConfirmation = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
@@ -221,6 +219,8 @@ public class UpdateProfileServlet extends TopServlet {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
         }
+
+        updateProfileBean.setFormSubmitted(true);
     }
 
     private void doProfileUpdate(
@@ -273,7 +273,6 @@ public class UpdateProfileServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        populateFormFromLdap(req);
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES).forward(req, resp);
     }
 

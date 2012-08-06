@@ -17,6 +17,7 @@ v1.6.3
 + Added export of statistics via CSV from PWM Admin GUI and PwmCommand utility.
 
 * Changed packaging structure to place pwm binaries in pwm-servlet.jar instead of WEB-INF/classes
+* Refactored response save configuration settings to allow more flexibility and clarity
 
 - Change language on UpdateProfile no longer clears form values (issue #243)
 - Show/Hide Response button now toggles attribute values as well as responses (issue #246)

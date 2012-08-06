@@ -31,6 +31,7 @@ public class UpdateProfileBean implements Serializable {
 
     private boolean agreementPassed;
     private boolean confirmationPassed;
+    private boolean formSubmitted;
 
     private Map<FormConfiguration,String> formData;
 
@@ -56,5 +57,13 @@ public class UpdateProfileBean implements Serializable {
 
     public void setConfirmationPassed(final boolean confirmationPassed) {
         this.confirmationPassed = confirmationPassed;
+    }
+
+    public boolean isFormSubmitted() {
+        return formSubmitted;
+    }
+
+    public void setFormSubmitted(boolean formSubmitted) {
+        this.formSubmitted = formSubmitted;
     }
 }

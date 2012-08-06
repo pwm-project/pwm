@@ -135,7 +135,7 @@
             <% } %>
             <p>
                 &nbsp;»&nbsp;
-                <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
+                <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
                        value="<%=StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + indexKey,""))%>"
                        onkeyup="validateResponses();"/>
             </p>

@@ -526,12 +526,12 @@ public class StatisticsManager implements PwmService {
         httpPost.setEntity(new StringEntity(jsonDataString));
         httpPost.setHeader("Accept", "application/json");
         httpPost.setHeader("Content-Type", "application/json");
-        LOGGER.debug("preparing to send anonymous statics to " + requestURI.toString() + ", data to send: " + jsonDataString);
+        LOGGER.debug("preparing to send anonymous statistics to " + requestURI.toString() + ", data to send: " + jsonDataString);
         final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }
-        LOGGER.info("published anonymous statics to " + requestURI.toString());
+        LOGGER.info("published anonymous statistics to " + requestURI.toString());
         try {
             pwmDB.put(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP,String.valueOf(System.currentTimeMillis()));
         } catch (PwmDBException e) {
