@@ -42,6 +42,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.*;
 
 /**
@@ -111,6 +112,16 @@ public class IntruderManager implements Serializable, PwmService {
         if (configAddressMaxAttempts <= 0 || configAddressResetTime <= 0) {
             return;
         }
+
+        try {
+            final InetAddress address = InetAddress.getByName(addressString);
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()) {
+                LOGGER.trace(pwmSession, "disregarding local intruder attempt from: " + addressString);
+            }
+        } catch(Exception e) {
+            LOGGER.error(pwmSession, "error examining address: " + addressString);
+        }
+
         markBadAttempt(DB_ADDRESS, addressString, configAddressResetTime);
         final IntruderRecord record = readIntruderRecord(DB_ADDRESS, addressString);
 
@@ -313,7 +324,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     public Map<String, IntruderRecord> getAddressLockTable() {
-        if (status != STATUS.OPENING) {
+        if (status != STATUS.OPEN) {
             return Collections.emptyMap();
         }
         return getViewableRecordTable(DB_ADDRESS);
@@ -370,7 +381,7 @@ public class IntruderManager implements Serializable, PwmService {
         configAddressResetTime = config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_RESET_TIME) * 1000;
         configAddressMaxAttempts = (int)config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS);
 
-        if (pwmDB == null || pwmDB.getStatus() != PwmDB.Status.OPEN) {
+        if (pwmDB == null || pwmDB.status() != PwmDB.Status.OPEN) {
             healthError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "IntruderManager can not open, pwmDB is not open");
             this.close();
             return;
@@ -456,7 +467,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private Map<String,IntruderRecord> getViewableRecordTable(final PwmDB.DB table) {
         final int maxSize = PwmConstants.INTRUDER_TABLE_SIZE_VIEW_MAX;
-        final Map<String,IntruderRecord> returnTable = new HashMap<String,IntruderRecord>();
+        final Map<String,IntruderRecord> returnTable = new TreeMap<String,IntruderRecord>();
         final long startTime = System.currentTimeMillis();
 
         int counter = 0;
@@ -486,7 +497,7 @@ public class IntruderManager implements Serializable, PwmService {
         return Collections.unmodifiableMap(returnTable);
     }
 
-    private boolean isLocked(IntruderRecord record, PwmDB.DB table) {
+    public boolean isLocked(IntruderRecord record, PwmDB.DB table) {
         if (table == DB_USER) {
             return isLocked(record, configUserResetTime, configUserMaxAttempts);
         } else if (table == DB_ADDRESS) {

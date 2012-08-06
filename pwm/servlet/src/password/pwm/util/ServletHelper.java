@@ -82,8 +82,14 @@ public class ServletHelper {
     )
             throws IOException, ServletException {
         try {
-            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_ERROR, req, resp);
-            req.getSession().getServletContext().getRequestDispatcher(url).forward(req, resp);
+            String errorPageURL = '/' + PwmConstants.URL_JSP_ERROR;
+            try {
+                errorPageURL = SessionFilter.rewriteURL(errorPageURL, req, resp);
+            } catch (PwmUnrecoverableException e) {
+                /* system must not be up enough to handle the rewrite */
+            }
+
+            req.getSession().getServletContext().getRequestDispatcher(errorPageURL).forward(req, resp);
             if (forceLogout) {
                 PwmSession.getPwmSession(req).unauthenticateUser();
             }

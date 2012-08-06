@@ -29,6 +29,7 @@ import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.Display;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmMacroMachine;
 
@@ -102,6 +103,10 @@ public class DisplayTag extends PwmAbstractTag {
             displayMessage = PwmMacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
 
             pageContext.getOut().write(displayMessage);
+        } catch (PwmUnrecoverableException e) { {
+            LOGGER.debug("error while executing jsp display tag: " + e.getMessage(), e);
+            return EVAL_PAGE;
+        }
         } catch (Exception e) {
             LOGGER.debug("error while executing jsp display tag: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());

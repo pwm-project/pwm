@@ -110,6 +110,8 @@ public enum PwmSetting {
             "display.accountInformation", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_LOGIN_PAGE_OPTIONS(
             "display.showLoginPageOptions", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
+    DISPLAY_LOGOUT_BUTTON(
+            "display.logoutButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(

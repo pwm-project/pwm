@@ -12,6 +12,11 @@ http://code.google.com/p/pwm
 v1.6.3
 ---
 + Improvements in monitoring and gauge presentation on PWM Admin and health pages.
++ Backup backup files.  Saving config now keeps 5 previous PwmConfiguration.xml files as backups.
++ Added setting for show logout button.
++ Added export of statistics via CSV from PWM Admin GUI and PwmCommand utility.
+
+* Changed packaging structure to place pwm binaries in pwm-servlet.jar instead of WEB-INF/classes
 
 - Change language on UpdateProfile no longer clears form values (issue #243)
 - Show/Hide Response button now toggles attribute values as well as responses (issue #246)

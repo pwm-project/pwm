@@ -222,7 +222,7 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     text = trimString(text);
 
 
-    clearDijitWidget('dialogPopup');
+    closeWaitDialog();
 
     if (passwordsMasked) {
         toggleMaskPasswords();
@@ -249,7 +249,7 @@ function showPasswordGuide() {
 }
 
 function showRandomPasswordsDialog(randomConfig) {
-    clearDijitWidget('dialogPopup');
+    closeWaitDialog();
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
     var centerBodyElement = getObject('centerbody');

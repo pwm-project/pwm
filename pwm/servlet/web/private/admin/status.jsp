@@ -38,6 +38,9 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
+<script type="text/javascript">
+    showWaitDialog();
+</script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="PWM Status"/>
@@ -650,7 +653,7 @@
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Java Threads">
-    <div style="height: 480px; overflow: auto;">
+    <div style="max-height: 400px; overflow: auto;">
         <table class="tablemain">
             <tr>
                 <td style="font-weight:bold;">
@@ -703,16 +706,22 @@
 </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-        getObject('content').style.display = 'inline';
-        dojoParser.parse();
+    function startupPage() {
+        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
+            getObject('content').style.display = 'inline';
+            dojoParser.parse();
 
-        showStatChart('PASSWORD_CHANGES',14,'statsChart');
-        setInterval(function(){
             showStatChart('PASSWORD_CHANGES',14,'statsChart');
-        }, 61 * 1000);
+            setInterval(function(){
+                showStatChart('PASSWORD_CHANGES',14,'statsChart');
+            }, 61 * 1000);
 
-    });
+            setTimeout(function(){
+                closeWaitDialog();
+            },300);
+        });
+    }
+    startupPage();
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

@@ -33,6 +33,7 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.pwmdb.*;
+import password.pwm.util.stats.StatisticsManager;
 
 import java.io.*;
 import java.util.*;
@@ -59,6 +60,8 @@ public class MainClass {
             out("  | ExportPwmDB     [outputFile]  Export the entire PwmDB contents to a backup file");
             out("  | ImportPwmDB     [inputFile]   Import the entire PwmDB contents from a backup file");
             out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
+            out("  | ExportStats     [outputFile]  Dump all statistics in the PwmDB to a csv file");
+            out("");
         } else {
             if ("PwmDbInfo".equalsIgnoreCase(args[0])) {
                 handlePwmDbInfo();
@@ -78,6 +81,8 @@ public class MainClass {
                 handleImportPwmDB(args);
             } else if ("TokenInfo".equalsIgnoreCase(args[0])) {
                 handleTokenKey(args);
+            } else if ("ExportStats".equalsIgnoreCase(args[0])) {
+                handleExportStats(args);
             } else {
                 out("unknown command '" + args[0] + "'");
             }
@@ -445,5 +450,31 @@ public class MainClass {
             }
         }
         out(output.toString());
+    }
+
+    static void handleExportStats(final String[] args) throws Exception {
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+        StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        Helper.pause(1000);
+
+        if (args.length < 2) {
+            out("must specify file to write stats data to");
+            return;
+        }
+
+        final File outputFile = new File(args[1]);
+        if (outputFile.exists()) {
+            out("outputFile '" + outputFile.getAbsolutePath() + "' already exists");
+            return;
+        }
+
+        final long startTime = System.currentTimeMillis();
+        out("beginning output to " + outputFile.getAbsolutePath());
+        final FileWriter fileWriter = new FileWriter(outputFile,true);
+        final int counter = statsManger.outputStatsToCsv(fileWriter,false);
+        fileWriter.close();
+        out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 }

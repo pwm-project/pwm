@@ -29,6 +29,7 @@ import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,12 +51,14 @@ public class ErrorMessageTag extends PwmAbstractTag {
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException
     {
+        final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
+
+
         try {
-            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final Configuration config = pwmApplication.getConfig();
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
 
             if (error != null) {
                 final String errorMsg;
@@ -68,6 +71,8 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 final String escapedErrorMsg = StringEscapeUtils.escapeHtml(errorMsg);
                 pageContext.getOut().write(escapedErrorMsg);
             }
+        } catch (PwmUnrecoverableException e) {
+            /* app not running */
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

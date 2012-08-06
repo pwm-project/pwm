@@ -411,10 +411,12 @@ public class SessionFilter implements Filter {
                 return true;
             }
         } else if (mode == PwmApplication.MODE.ERROR) {
-            final ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getConfigReader().getConfigFileError();
-            final ErrorInformation displayError = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,rootError.getDetailedErrorMsg(),rootError.getFieldValues());
-            ssBean.setSessionError(displayError);
-            ServletHelper.forwardToErrorPage(req,resp, true);
+            ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getStartupErrorInformation();
+            if (rootError == null) {
+                rootError = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "PWM Application startup failed.");
+            }
+            ssBean.setSessionError(rootError);
+            ServletHelper.forwardToErrorPage(req, resp, true);
             return true;
         }
 

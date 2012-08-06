@@ -69,7 +69,7 @@ public interface PwmDB {
     void putAll(DB db, Map<String, String> keyValueMap)
             throws PwmDBException;
 
-    Status getStatus();
+    Status status();
 
     /**
      * Put a key/value into a database.  This operation inserts a new key/value pair

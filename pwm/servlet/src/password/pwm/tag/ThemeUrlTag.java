@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.PwmLogger;
 
@@ -57,6 +58,8 @@ public class ThemeUrlTag extends PwmAbstractTag {
             final PwmSession pwmSession = PwmSession.getPwmSession(pageContext.getSession());
             final String themeURL = figureThemeURL(pwmApplication, pwmSession, pageContext.getServletContext(), type);
             pageContext.getOut().write(SessionFilter.rewriteURL(themeURL, pageContext.getRequest(), pageContext.getResponse()));
+        } catch (PwmUnrecoverableException e) {
+            /* pwm app unavailable */
         } catch (Exception e) {
             LOGGER.error("error while executing theme name tag: " + e.getMessage(), e);
             throw new JspTagException(e.getMessage());

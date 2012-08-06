@@ -93,9 +93,10 @@
         <a class="menubutton" href="<pwm:url url='admin/'/>" class="tablekey"><pwm:Display key="Title_Admin"/></a>
         <p><pwm:Display key="Long_Title_Admin"/></p>
         <% } %>
-
+        <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON)) { %>
         <a class="menubutton" href="<pwm:url url='../public/Logout'/>" class="tablekey"><pwm:Display key="Title_Logout"/></a>
         <p><pwm:Display key="Long_Title_Logout"/></p>
+        <% } %>
     </div>
 </div>
 <%@ include file="../WEB-INF/jsp/fragment/footer.jsp" %>

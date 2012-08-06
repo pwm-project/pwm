@@ -25,6 +25,7 @@ package password.pwm.tag;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.SessionFilter;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.ResourceFileServlet;
 
 import javax.servlet.jsp.JspTagException;
@@ -57,6 +58,8 @@ public class URLRewriter extends PwmAbstractTag {
             }
             
             pageContext.getOut().write(newURL);
+        } catch (PwmUnrecoverableException e) {
+            /* application unavailable */
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

@@ -321,7 +321,7 @@ public class PwmApplication {
             } catch (Exception e) {
                 final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', pwm cannot load, error: " + e.getMessage();
                 LOGGER.fatal(errorMsg);
-                throw new IllegalStateException(errorMsg);
+                throw new IllegalStateException(errorMsg,e);
             }
             pwmServices.put(serviceClass,newServiceInstance);
         }

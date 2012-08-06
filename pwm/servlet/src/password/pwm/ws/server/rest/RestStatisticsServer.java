@@ -35,9 +35,11 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +52,9 @@ public class RestStatisticsServer {
 
     @Context
     HttpServletRequest request;
+
+    @Context
+    HttpServletResponse response;
 
     // This method is called if TEXT_PLAIN is request
     @GET
@@ -184,4 +189,24 @@ public class RestStatisticsServer {
 
         return counter;
     }
+
+    @GET
+    @Produces("text/csv")
+    @Path("/file")
+    public String doPwmStatisticFileGet() {
+        try {
+            RestServerHelper.determineIfRestClientIsExternal(request);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
+            final StringWriter stringWriter = new StringWriter();
+            statsManager.outputStatsToCsv(stringWriter,true);
+            response.setHeader("Content-Disposition","attachment; fileName=statistics.csv");
+            return stringWriter.toString();
+        } catch (Exception e) {
+            LOGGER.error("unexpected error building response for /statistics/file rest service: " + e.getMessage());
+        }
+        return "";
+
+    }
+
 }

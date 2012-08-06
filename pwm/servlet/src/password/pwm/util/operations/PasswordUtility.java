@@ -305,13 +305,13 @@ public class PasswordUtility {
             LOGGER.trace(pwmSession, "beginning password replication checking");
             // if the last password update worked, test that it is replicated across all ldap servers.
             boolean isReplicated = false;
-            Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY);
+            Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY_MS);
             try {
                 long timeSpentTrying = 0;
                 while (!isReplicated && timeSpentTrying < (maxWaitTime)) {
                     timeSpentTrying = System.currentTimeMillis() - passwordSetTimestamp;
                     isReplicated = ChaiUtility.testAttributeReplication(theUser, pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
-                    Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY);
+                    Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY_MS);
                 }
             } catch (ChaiOperationException e) {
                 //oh well, give up.
@@ -413,7 +413,7 @@ public class PasswordUtility {
         boolean isReplicated = false;
         try {
             isReplicated = ChaiUtility.testAttributeReplication(user, pwmSession.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
-            Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY);
+            Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY_MS);
         } catch (ChaiOperationException e) {
             //oh well, give up.
             LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());

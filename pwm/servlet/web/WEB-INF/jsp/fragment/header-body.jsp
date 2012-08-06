@@ -1,6 +1,8 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,14 +30,23 @@
   - which by default is a blue-gray gradieted and rounded block.
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmSession pwmSessionHeaderBody = PwmSession.getPwmSession(session); %>
-<% final boolean loggedIn = pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
-<% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
-<% if (!request.getRequestURI().contains("configmanager")) { %>
+<%
+    PwmSession pwmSessionHeaderBody = null;
+    PwmApplication pwmApplictionHeaderBody = null;
+    try {
+        pwmApplictionHeaderBody = ContextManager.getPwmApplication(session);
+        pwmSessionHeaderBody = PwmSession.getPwmSession(session);
+    } catch (PwmUnrecoverableException e) {
+        /* application must be unavailable */
+    }
+%>
+<% final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
+<% final boolean showLogout = loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
+<% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION; %>
+<% if (showConfigHeader) { %>
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
     to modify or lock the configuration.
 </div>
-<% } %>
 <% } %>
 <div id="header">
     <div id="header-company-logo"></div>
@@ -44,7 +55,7 @@
     </div>
     <%-- this section handles the logout link (if user is logged in) --%>
     <div style="position: absolute; align:right; border-width:0; top: 19px; right:18px;">
-        <div style="visibility: <%=loggedIn ? "inline" : "hidden"%>"
+        <div style="visibility: <%=showLogout ? "inline" : "hidden"%>"
              id="logoutDiv">
             <a id="LogoutButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
                title="<pwm:Display key="Button_Logout"/>">

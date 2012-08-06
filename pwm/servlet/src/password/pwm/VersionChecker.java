@@ -63,7 +63,7 @@ public class VersionChecker implements PwmService {
 
     public void init(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().getStatus() == PwmDB.Status.OPEN) {
+        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
             try {
                 final String versionChkInfoJson = pwmApplication.getPwmDB().get(PwmDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
@@ -130,7 +130,7 @@ public class VersionChecker implements PwmService {
             versionCheckInfoCache = new VersionCheckInfoCache(errorInformation,"","");
         }
 
-        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().getStatus() == PwmDB.Status.OPEN) {
+        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
             try {
                 final Gson gson = new Gson();
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);

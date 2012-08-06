@@ -25,11 +25,12 @@ package password.pwm;
 import password.pwm.config.Display;
 import password.pwm.config.Message;
 import password.pwm.error.PwmError;
-import password.pwm.util.Helper;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 /**
  * Constant values used throughout the servlet.
@@ -66,6 +67,7 @@ public abstract class PwmConstants {
     public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateTimeFormat"));
     public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
     public static final DateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultTimeFormat"));
+    public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpParameterMaxReadLength"));
@@ -93,6 +95,13 @@ public abstract class PwmConstants {
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
+
+    public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
+    public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
+
+    public static final String TOKEN_KEY_PWD_CHG_DATE = "pwm_lastPwdChange";
+    public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
+    public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
     public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
@@ -164,7 +173,7 @@ public abstract class PwmConstants {
     public static final String URL_THEMES = "/resources/themes/";
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
-    public static final String PARAM_VERIFICATION_KEY = "session_verificiation_key";
+    public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
@@ -207,16 +216,19 @@ public abstract class PwmConstants {
             "Not sure if password == password, or I just think my password == password and any password will work.",
             "This sure is a lot of code to change one measly string.",
             "50,000 lines of code to change one stupid string.  Seems legit.",
-            "I don't always manage my passwords; but when I do, I use that password thingy amb developed."
+            "I don't always manage my passwords; but when I do, I use that password thingy amb developed.",
+            "My password is but an egg.",
+            "Your password must be scanned by the TSA to ensure the safety of your fellow travelers.  Please take off your password's shoes to continue.",
+            "That password really tied the room together dude.",
+            "Bite my shiny metal password!",
+            "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.", //nick helm
+            "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
     };
 
-    public static final int PASSWORD_UPDATE_CYCLE_DELAY = 1000 * 2;  //milliseconds
-    public static final int PASSWORD_UPDATE_INITIAL_DELAY = 1000; //milliseconds
-    public static final String TOKEN_KEY_PWD_CHG_DATE = "attribute_passwordChangeDate";
-    public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
-
     static {
-        DEFAULT_DATETIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+        DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
+        DEFAULT_DATE_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
+        DEFAULT_TIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
     }
 
     private static String readPwmConstantsBundle(final String key) {
@@ -246,25 +258,5 @@ public abstract class PwmConstants {
             return theClass;
         }
     }
-
-    private static List<Locale> calculateKnownLocales() {
-        final List<Locale> returnList = new ArrayList<Locale>();
-        final String localeList = readPwmConstantsBundle("locale.knownLocales");
-        if (localeList != null) {
-            final String[] splitLocales = localeList.split(";;;");
-            for (final String localeString : splitLocales) {
-                final Locale theLocale = Helper.parseLocaleString(localeString);
-                if (theLocale != null && !returnList.contains(theLocale)) {
-                    returnList.add(theLocale);
-                }
-            }
-        }
-        if (!returnList.contains(new Locale(""))) {
-            returnList.add(0, new Locale(""));
-        }
-
-        return Collections.unmodifiableList(returnList);
-    }
-
 }
 

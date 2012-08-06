@@ -258,7 +258,7 @@ public class PwmDBAdaptor implements PwmDB {
 
     }
 
-    public Status getStatus() {
+    public Status status() {
         if (innerDB == null) {
             return Status.CLOSED;
         }

@@ -43,12 +43,12 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (PwmDB.Status.NEW == pwmDB.getStatus()) {
+        if (PwmDB.Status.NEW == pwmDB.status()) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled"));
             return healthRecords;
         }
 
-        if (PwmDB.Status.CLOSED == pwmDB.getStatus()) {
+        if (PwmDB.Status.CLOSED == pwmDB.status()) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot"));
             return healthRecords;
         }

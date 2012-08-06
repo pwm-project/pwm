@@ -91,8 +91,15 @@ public class EmailQueueManager implements PwmService {
 
         final PwmDB pwmDB = this.pwmApplication.getPwmDB();
 
-        if (pwmDB == null) {
+        if (pwmDB == null || pwmDB.status() != PwmDB.Status.OPEN) {
             status = STATUS.CLOSED;
+            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, PwmDB is not open");
+            return;
+        }
+
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+            status = STATUS.CLOSED;
+            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, Application is in read-only mode");
             return;
         }
 

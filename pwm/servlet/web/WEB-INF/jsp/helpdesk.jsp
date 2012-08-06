@@ -438,7 +438,7 @@
                 style: "width: 450px",
                 content: bodyText,
                 hide: function(){
-                    clearDijitWidget('dialogPopup');
+                    closeWaitDialog();
                     getObject('base-message').id = "message";
                 }
             });
@@ -486,7 +486,7 @@
                         bodyText += '<button class="btn" onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
                         bodyText += 'Clear Responses</button>';
                         <% } %>
-                        clearDijitWidget('dialogPopup');
+                        closeWaitDialog();
                         var theDialog = new dijit.Dialog({
                             id: 'dialogPopup',
                             title: PWM_STRINGS['Message_SuccessUnknown'],
@@ -494,13 +494,13 @@
                             content: bodyText,
                             closable: false,
                             hide: function(){
-                                clearDijitWidget('dialogPopup');
+                                closeWaitDialog();
                             }
                         });
                         theDialog.show();
                     },
                     error: function(errorObj){
-                        clearDijitWidget('dialogPopup');
+                        closeWaitDialog();
                         showError("unexpected set password error: " + errorObj);
                     }
                 });
@@ -509,7 +509,7 @@
     }
     function doResponseClear(username) {
         require(["dojo","dijit/Dialog"],function(dojo){
-            clearDijitWidget('dialogPopup');
+            closeWaitDialog();
             showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
             var inputValues = { 'username':username };
             setTimeout(function(){
@@ -529,7 +529,7 @@
                             bodyText += results['errorMsg'];
                         }
                         bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
-                        clearDijitWidget('dialogPopup');
+                        closeWaitDialog();
                         var theDialog = new dijit.Dialog({
                             id: 'dialogPopup',
                             style: "width: 450px",
@@ -542,7 +542,7 @@
                         theDialog.show();
                     },
                     error: function(errorObj){
-                        clearDijitWidget('dialogPopup');
+                        closeWaitDialog();
                         showError("unexpected clear responses error: " + errorObj);
                     }
                 });
@@ -564,7 +564,7 @@
                 require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
                     getObject('userPanel').style.display = 'inline';
                     dojoParser.parse();
-                    clearDijitWidget('dialogPopup');
+                    closeWaitDialog();
                 });
             });
         }

@@ -76,8 +76,7 @@
 <br class="clear"/>
 
 <form action="<pwm:url url='eventlog.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
-      name="eventlogParameters"
-      onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
+      name="eventlogParameters" onsubmit="handleFormSubmit('submit_button',this)">
     <table style="border: 0; max-width:600px; width:600px">
         <tr style="border: 0">
             <td class="key" style="border: 0">

@@ -40,10 +40,12 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -232,14 +234,6 @@ public class StatisticsManager implements PwmService {
             return;
         }
 
-        try {
-            pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-        } catch (IllegalStateException e) {
-            LOGGER.error("unable to write to pwmDB, will remain closed, error: " + e.getMessage());
-            status = STATUS.CLOSED;
-            return;
-        }
-
         {
             final String storedCummulativeBundleStr = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE);
             if (storedCummulativeBundleStr != null && storedCummulativeBundleStr.length() > 0) {
@@ -268,11 +262,8 @@ public class StatisticsManager implements PwmService {
 
         {
             final String storedInitialString = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY);
-
             if (storedInitialString != null && storedInitialString.length() > 0) {
                 initialDailyKey = new DailyKey(storedInitialString);
-            } else {
-                pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
             }
         }
 
@@ -284,7 +275,16 @@ public class StatisticsManager implements PwmService {
             }
         }
 
+        try {
+            pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        } catch (IllegalStateException e) {
+            LOGGER.error("unable to write to pwmDB, will remain closed, error: " + e.getMessage());
+            status = STATUS.CLOSED;
+            return;
+        }
+
         pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
+        pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to rull over at 0Zula and one to write current stats every 10 seconds
             daemonTimer = new Timer("pwm-StatisticsManager timer",true);
@@ -537,5 +537,37 @@ public class StatisticsManager implements PwmService {
         } catch (PwmDBException e) {
             LOGGER.error("unexpected error trying to save last statistics published time to PwmDB: " + e.getMessage());
         }
+    }
+
+    public int outputStatsToCsv(final Writer writer, final boolean includeHeader)
+            throws IOException
+    {
+        CsvWriter csvWriter = new CsvWriter(writer,',');
+
+        StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+
+        if (includeHeader) {
+            final List<String> headers = new ArrayList<String>();
+            headers.add("DATE");
+            for (Statistic stat : Statistic.values()) {
+                headers.add(stat.getKey());
+            }
+            csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
+        }
+
+        int counter = 0;
+        final Map<StatisticsManager.DailyKey, String> keys = statsManger.getAvailableKeys(PwmConstants.DEFAULT_LOCALE);
+        for (final StatisticsManager.DailyKey loopKey : keys.keySet()) {
+            counter++;
+            final StatisticsBundle bundle = statsManger.getStatBundleForKey(loopKey.toString());
+            final List<String> lineOutput = new ArrayList<String>();
+            lineOutput.add(loopKey.toString());
+            for (final Statistic stat : Statistic.values()) {
+                lineOutput.add(bundle.getStatistic(stat));
+            }
+            csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
+        }
+
+        return counter;
     }
 }

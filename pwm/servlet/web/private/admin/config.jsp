@@ -44,9 +44,10 @@
             to modify the configuration.  Values in <span style="color:blue;">blue</span> are modified from the default values.
         </p>
         <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
-        <p>
-            <textarea readonly="readonly" style="max-height: 200px;" rows="1" data-dojo-type="dijit.form.Textarea" id="configurationNotes"><%=StringEscapeUtils.escapeHtml(pwmConfig.getNotes())%></textarea>
-        </p>
+        <div data-dojo-type="dijit.TitlePane" data-dojo-props="title: 'Configuration Notes', open:false" style="width: 100%">
+            <textarea readonly="readonly" style="max-height: 200px;border:0" rows="1" data-dojo-type="dijit.form.Textarea"><%=StringEscapeUtils.escapeHtml(pwmConfig.getNotes())%></textarea>
+        </div>
+        <br/>
         <% } %>
         <div id="content" style="display: none">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
@@ -58,11 +59,11 @@
                      style="max-height: 500px; overflow: auto">
                     <table>
                         <% for (final PwmSetting loopSetting : loopSettings) { %>
+                        <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
                         <tr>
-                            <td class="key" style="width:100px; text-align:center;" id="<%=loopSetting.getKey()%>">
+                            <td class="key" style="width:100px; text-align:center; <%=defaultValue?"":"color:blue;"%>" id="<%=loopSetting.getKey()%>">
                                 <%= loopSetting.getLabel(pwmSession.getSessionStateBean().getLocale()) %>
                             </td>
-                            <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
                             <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>
                                 <%
                                     if (loopSetting.isConfidential()) {
@@ -125,14 +126,9 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dojo/domReady!"],function(dojoParser){
+    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
         getObject('content').style.display = 'inline';
         dojoParser.parse();
-        new dijit.Tooltip({
-            connectId: ["configurationNotes"],
-            label: 'Configuration Notes',
-            showDelay: 0
-        });
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

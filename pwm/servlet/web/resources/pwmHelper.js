@@ -250,6 +250,10 @@ function showWaitDialog(title, body) {
     });
 }
 
+function closeWaitDialog() {
+    clearDijitWidget('dialogPopup');
+}
+
 function showPwmHealth(parentDivID, refreshNow, showRefresh) {
     require(["dojo"],function(dojo){
 

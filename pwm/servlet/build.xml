@@ -33,11 +33,6 @@
         <echo> build lib: ${build_lib}</echo>
     </target>
 
-    <target name="all" depends="init,clean,javadoc,makeZIP">
-        <delete dir="${destination}"/>
-        <delete file="${destination.war}"/>
-    </target>
-
     <target name="clean" depends="init">
         <delete dir="${destination}"/>
         <delete file="${destination.war}"/>
@@ -45,7 +40,7 @@
 
     <target name="compileCode" depends="init">
         <mkdir dir="${destination}/bin"/>
-        <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.6" source="1.6">
+        <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.5" source="1.5">
             <classpath>
                 <fileset dir="${src.root}/web/WEB-INF/lib" includes="*.jar"/>
                 <fileset dir="${build_lib}" includes="*.jar"/>
@@ -60,11 +55,17 @@
         </copy>
     </target>                                                                                                          
 
-    <target name="makeWAR" depends="compileCode,copyResources">
+    <target name="makeWAR" depends="compileCode,copyResources,makeJAR">
         <war zipfile="${destination.war}" webxml="${src.root}/web/WEB-INF/web.xml">
-            <zipfileset dir="${destination}/bin" prefix="WEB-INF/classes"/>
             <zipfileset dir="${src.root}/web"/>
+            <zipfileset file="${destination}/pwm-servlet.jar" prefix="WEB-INF/lib"/>
         </war>
+    </target>
+
+    <target name="makeJAR" depends="compileCode,copyResources">
+        <jar destfile="${destination}/pwm-servlet.jar">
+            <fileset dir="${destination}/bin"/>
+        </jar>
     </target>
 
     <target name="javadoc" depends="init">

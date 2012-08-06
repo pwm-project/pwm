@@ -97,13 +97,18 @@ public class ContextManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     void initialize() {
+        javaVersionCheck();
         try {
             final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
             final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
             configReader = new ConfigurationReader(configurationFile);
             final Configuration configuration = configReader.getConfiguration();
             final File pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
-            pwmApplication = new PwmApplication(configuration, configReader.getConfigMode(), pwmApplicationPath);
+            final PwmApplication.MODE mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplication.MODE.ERROR;
+            if (startupErrorInformation == null) {
+                startupErrorInformation = configReader.getConfigFileError();
+            }
+            pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath);
         } catch (OutOfMemoryError e) {
             final String errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage();
             startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
@@ -128,7 +133,6 @@ public class ContextManager implements Serializable {
         startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "shutting down");
         try {
             final PwmApplication methodLocalPwmApp = this.getPwmApplication();
-            this.pwmApplication = null;
             methodLocalPwmApp.shutdown();
             taskMaster.cancel();
 
@@ -144,6 +148,8 @@ public class ContextManager implements Serializable {
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
         }
+        this.pwmApplication = null;
+        startupErrorInformation = null;
     }
 
     public void reinitialize() {
@@ -232,5 +238,22 @@ public class ContextManager implements Serializable {
             LOGGER.info("application restart completed");
             restartRequestedFlag = false;
         }
+    }
+
+    private void javaVersionCheck() {
+        String sVersion = java.lang.System.getProperty("java.version");
+        sVersion = sVersion.substring(0, 3);
+        final Float f = Float.valueOf(sVersion);
+        if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
+            final String errorMsg = "The minimum version required for PWM is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
+            System.out.println(errorMsg);
+            System.err.println(errorMsg);
+            LOGGER.fatal(errorMsg);
+            startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+        }
+    }
+
+    public ErrorInformation getStartupErrorInformation() {
+        return startupErrorInformation;
     }
 }

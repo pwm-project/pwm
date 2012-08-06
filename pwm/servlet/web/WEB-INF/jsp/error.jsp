@@ -25,7 +25,12 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ErrorInformation errorInfo = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError(); %>
+<% ErrorInformation errorInfo;
+    try {
+        errorInfo = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError();
+    } catch (PwmUnrecoverableException e) {
+        errorInfo = e.getErrorInformation();
+    } %>
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">

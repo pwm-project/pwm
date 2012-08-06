@@ -742,11 +742,11 @@ function writeConfigurationNotes() {
             dataType: "json",
             handleAs: "text",
             load: function(data){
-                clearDijitWidget('dialogPopup');
+                closeWaitDialog();
                 buildMenuBar();
             },
             error: function(errorObj) {
-                clearDijitWidget('dialogPopup');
+                closeWaitDialog();
                 showError("error saving notes text: " + errorObj)
                 buildMenuBar();
             }
@@ -764,7 +764,7 @@ function showConfigurationNotes() {
         bodyText += '</textarea>';
         bodyText += '<button onclick="writeConfigurationNotes()" class="btn">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        closeWaitDialog();
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Configuration Notes',
@@ -778,7 +778,7 @@ function showConfigurationNotes() {
             dataType: "json",
             handleAs: "json",
             error: function(errorObj) {
-                clearDijitWidget('dialogPopup');
+                closeWaitDialog();
                 showError("error reading notes text: " + errorObj)
             },
             load: function(data){

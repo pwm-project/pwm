@@ -48,31 +48,31 @@
         <%@ include file="admin-nav.jsp" %>
         <br/>
         <div id="statsChartOptionsDiv" style="width:600px; text-align: center; margin:0 auto;">
-        <label for="statsChartSelect">Statistic</label>
-        <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1"
-        onchange="refreshChart()">
-        <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
-            <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
-            <% } %>
-        </select>
-        <label for="statsChartDays" style="padding-left: 10px">Days</label>
-        <input id="statsChartDays" value="30" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
-        data-dojo-props="constraints:{min:7,max:120}" onclick="refreshChart()"/>
+            <label for="statsChartSelect">Statistic</label>
+            <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1"
+                    onchange="refreshChart()">
+                <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
+                <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
+                <% } %>
+            </select>
+            <label for="statsChartDays" style="padding-left: 10px">Days</label>
+            <input id="statsChartDays" value="30" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
+                   data-dojo-props="constraints:{min:7,max:120}" onclick="refreshChart()"/>
         </div>
         <div id="statsChart" style="height: 200px; width: 600px">
         </div>
-        <form action="<pwm:url url='statistics.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
-              name="statsUpdateForm"
-              id="statsUpdateForm"
-              onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
-            <table class="tablemain" id="form">
-                <tr>
-                    <td class="title" colspan="10">
-                        Statistics
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="10" style="text-align: center">
+        <table class="tablemain" id="form">
+            <tr>
+                <td class="title" colspan="10">
+                    Statistics
+                </td>
+            </tr>
+            <tr>
+                <td colspan="10" style="text-align: center">
+                    <form action="<pwm:url url='statistics.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
+                          name="statsUpdateForm"
+                          id="statsUpdateForm"
+                          onsubmit="getObject('submit_button').value = ' Please Wait ';getObject('submit_button').disabled = true">
                         <select name="statsPeriodSelect" onchange="getObject('statsUpdateForm').submit();"
                                 data-dojo-type="dijit.form.Select" style="width: 500px;" data-dojo-props="maxHeight: -1">
                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
@@ -88,37 +88,34 @@
                             </option>
                             <% } %>
                         </select>
-                        <noscript>
-                            <input type="submit" id="submit_button_period" class="btn" value="Update"/>
-                        </noscript>
-                    </td>
-                </tr>
-                <% for (Iterator<Statistic> iter = Statistic.sortedValues(locale).iterator(); iter.hasNext();) { %>
-                <% Statistic leftStat = iter.next(); %>
-                <tr>
-                    <td class="key">
-                        <%= leftStat.getLabel(locale) %>
-                    </td>
-                    <td>
-                        <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE && leftStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
-                    </td>
-                    <% if (iter.hasNext()) { %>
-                    <% Statistic rightStat = iter.next(); %>
-                    <td class="key">
-                        <%= rightStat.getLabel(locale) %>
-                    </td>
-                    <td>
-                        <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE && rightStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
-                    </td>
-                    <% } else { %>
-                    <td colspan="2">
-                        &nbsp;
-                    </td>
-                    <% } %>
-                </tr>
+                    </form>
+                </td>
+            </tr>
+            <% for (Iterator<Statistic> iter = Statistic.sortedValues(locale).iterator(); iter.hasNext();) { %>
+            <% Statistic leftStat = iter.next(); %>
+            <tr>
+                <td class="key">
+                    <%= leftStat.getLabel(locale) %>
+                </td>
+                <td>
+                    <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE && leftStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                </td>
+                <% if (iter.hasNext()) { %>
+                <% Statistic rightStat = iter.next(); %>
+                <td class="key">
+                    <%= rightStat.getLabel(locale) %>
+                </td>
+                <td>
+                    <%= stats.getStatistic(rightStat) %><%= rightStat.getType() == Statistic.Type.AVERAGE && rightStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                </td>
+                <% } else { %>
+                <td colspan="2">
+                    &nbsp;
+                </td>
                 <% } %>
-            </table>
-        </form>
+            </tr>
+            <% } %>
+        </table>
     </div>
     <script type="text/javascript">
         require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,dijit){
@@ -135,8 +132,17 @@
                 showStatChart(keyName,days,'statsChart');
             });
         }
+        function downloadCsv() {
+            window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>&pwmFormID=<pwm:FormID/>';
+        }
     </script>
 </div>
+<div id="buttonbar">
+    <button type="button" onclick="downloadCsv()"name="button" class="btn">
+        Download Statistics CSV File
+    </button>
+</div>
+<br/><br/><br/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

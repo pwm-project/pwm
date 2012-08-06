@@ -466,7 +466,7 @@ public class PwmDBStoredQueue implements Queue<String>  //, Deque<String>
                     throw new NullPointerException("PwmDB cannot be null");
                 }
 
-                if (pwmDB.getStatus() != PwmDB.Status.OPEN) {
+                if (pwmDB.status() != PwmDB.Status.OPEN) {
                     throw new IllegalStateException("PwmDB must hae a status of " + PwmDB.Status.OPEN);
                 }
 
