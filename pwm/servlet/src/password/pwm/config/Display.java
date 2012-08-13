@@ -22,9 +22,9 @@
 
 package password.pwm.config;
 
-import password.pwm.util.Helper;
-
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * Empty class to facilitate easy resourcebundle loading of "Display" resource bundle.
@@ -50,7 +50,7 @@ public abstract class Display {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Display.class.getName(),key);
             if (configuredBundle != null) {
-                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
+                final Locale resolvedLocale = PwmLocale.localeResolver(locale, configuredBundle.keySet());
                 return configuredBundle.get(resolvedLocale);
             }
         }

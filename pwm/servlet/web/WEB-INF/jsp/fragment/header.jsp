@@ -58,7 +58,7 @@
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%>/resources/<pwm:url url='pwmVariables.js'/>?nonce=<%=Helper.calcEtagUserString(pwmApplicationHeader, pwmSessionHeader)%>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmVariables.js'/>?sid=<%=pwmSessionHeader!=null?Helper.md5sum(pwmSessionHeader.getSessionStateBean().getSessionID() + pwmSessionHeader.getUserInfoBean().getUserGuid()):""%>"></script>
     <script type="text/javascript">
         <% if (pwmApplicationHeader != null) { pwmSessionHeader.getSessionStateBean().incrementRequestCounter(); }%>
         PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';

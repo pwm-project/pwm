@@ -830,68 +830,6 @@ public class Helper {
         return NumberFormat.getInstance().format(diskSize) + " bytes";
     }
 
-    public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
-        if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
-            return null;
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
-                    if (loopLocale.getVariant().equalsIgnoreCase(desiredLocale.getVariant())) {
-                        return loopLocale;
-                    }
-                }
-            }
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
-                    return loopLocale;
-                }
-            }
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                return loopLocale;
-            }
-        }
-
-        final Locale emptyLocale = parseLocaleString("");
-        if (localePool.contains(emptyLocale)) {
-            return emptyLocale;
-        }
-
-        return null;
-    }
-
-    public static Locale parseLocaleString(final String localeString) {
-        if (localeString == null) {
-            return new Locale("");
-        }
-
-        final StringTokenizer st = new StringTokenizer(localeString, "_");
-
-        if (!st.hasMoreTokens()) {
-            return new Locale("");
-        }
-
-        final String language = st.nextToken();
-        if (!st.hasMoreTokens()) {
-            return new Locale(language);
-        }
-
-        final String country = st.nextToken();
-        if (!st.hasMoreTokens()) {
-            return new Locale(language, country);
-        }
-
-        final String variant = st.nextToken("");
-        return new Locale(language, country, variant);
-    }
-
 
     public static File figureFilepath(final String filename, final File suggestedPath)
     {

@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.config.PwmLocale" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
@@ -30,8 +31,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
-<% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
+<% final Collection<PwmLocale> localeList = new ArrayList<PwmLocale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
+<% localeList.remove(PwmLocale.pwmLocaleResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>

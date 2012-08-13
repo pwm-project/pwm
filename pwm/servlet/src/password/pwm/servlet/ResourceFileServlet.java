@@ -70,6 +70,7 @@ public class ResourceFileServlet extends HttpServlet {
     private static final Pattern NONCE_PATTERN = Pattern.compile(PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + "[^/]*?/");
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
+    private final Map<String,String> jspResources = new HashMap<String,String>();
 
     public void init()
             throws ServletException
@@ -92,6 +93,19 @@ public class ResourceFileServlet extends HttpServlet {
                     } catch (IOException e) {
                         LOGGER.warn("unable to load zip file resource for " + loopInitParam + ", error: " + e.getMessage());
                     }
+                }
+            }
+        }
+
+        final String jspFileResourceParam = this.getInitParameter("jspFileResources");
+        if (jspFileResourceParam != null) {
+            for (final String loopPathName : jspFileResourceParam.split(";")) {
+                if (!loopPathName.contains("=")) {
+                    LOGGER.warn("jspFileResources must have an '=' separator");
+                } else {
+                    final String uriPath = loopPathName.split("=")[0];
+                    final String jspResource = loopPathName.split("=")[1];
+                    jspResources.put(uriPath,jspResource);
                 }
             }
         }
@@ -183,27 +197,27 @@ public class ResourceFileServlet extends HttpServlet {
         ServletHelper.addPwmResponseHeaders(pwmApplication, response, false);
 
         try {
-        try {
-            final boolean fromCache = handleCacheableResponse(response, file, acceptsGzip);
-            if (fromCache || acceptsGzip) {
+            try {
+                final boolean fromCache = handleCacheableResponse(response, file, acceptsGzip);
+                if (fromCache || acceptsGzip) {
+                    final StringBuilder debugText = new StringBuilder();
+                    debugText.append("(");
+                    if (fromCache) debugText.append("cached");
+                    if (fromCache && acceptsGzip) debugText.append(", ");
+                    if (acceptsGzip) debugText.append("gzip");
+                    debugText.append(")");
+                    LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
+                } else {
+                    LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(not cached)"));
+                }
+            } catch (UncacheableResourceException e) {
+                handleUncachedResponse(response, file, acceptsGzip);
                 final StringBuilder debugText = new StringBuilder();
-                debugText.append("(");
-                if (fromCache) debugText.append("cached");
-                if (fromCache && acceptsGzip) debugText.append(", ");
-                if (acceptsGzip) debugText.append("gzip");
+                debugText.append("(uncacheable");
+                if (acceptsGzip) debugText.append(", gzip");
                 debugText.append(")");
                 LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
-            } else {
-                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(not cached)"));
             }
-        } catch (UncacheableResourceException e) {
-            handleUncachedResponse(response, file, acceptsGzip);
-            final StringBuilder debugText = new StringBuilder();
-            debugText.append("(uncacheable");
-            if (acceptsGzip) debugText.append(", gzip");
-            debugText.append(")");
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
-        }
         } catch (Exception e) {
             LOGGER.error(pwmSession, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
         }
@@ -425,13 +439,12 @@ public class ResourceFileServlet extends HttpServlet {
         return null;
     }
 
-    private static boolean handleSpecialURIs(
+    private boolean handleSpecialURIs(
             final String requestURI,
             final HttpServletRequest request,
             final HttpServletResponse response
     )
-            throws PwmUnrecoverableException, IOException
-    {
+            throws PwmUnrecoverableException, IOException, ServletException {
         if (requestURI != null) {
             if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmStyle.css")) {
                 writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response);
@@ -439,6 +452,14 @@ public class ResourceFileServlet extends HttpServlet {
             } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmMobileStyle.css")) {
                 writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response);
                 return true;
+            } else {
+                for (final String loopUri : jspResources.keySet()) {
+                    if (requestURI.endsWith(loopUri)) {
+                        final String jspURI = jspResources.get(loopUri);
+                        this.getServletContext().getRequestDispatcher(jspURI).forward(request,response);
+                        return true;
+                    }
+                }
             }
         }
         return false;

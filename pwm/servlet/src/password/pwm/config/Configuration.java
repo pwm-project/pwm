@@ -62,7 +62,7 @@ public class Configuration implements Serializable {
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
-    private List<Locale> knownLocales = null;
+    private List<PwmLocale> knownLocales = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -128,9 +128,9 @@ public class Configuration implements Serializable {
         final Map<String, List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
         final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
         for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+            availableLocaleMap.put(PwmLocale.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = PwmLocale.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }
@@ -302,9 +302,9 @@ public class Configuration implements Serializable {
         final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
         final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
         for (final String localeStr : availableValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
+            availableLocaleMap.put(PwmLocale.parseLocaleString(localeStr), availableValues.get(localeStr));
         }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = PwmLocale.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }
@@ -348,13 +348,13 @@ public class Configuration implements Serializable {
             case LOCALIZED_TEXT_AREA:
             case LOCALIZED_STRING:
                 for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                    returnCollection.add(PwmLocale.parseLocaleString(localeStr));
                 }
                 break;
 
             case LOCALIZED_STRING_ARRAY:
                 for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                    returnCollection.add(PwmLocale.parseLocaleString(localeStr));
                 }
                 break;
         }
@@ -446,20 +446,22 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<Locale> getKnownLocales() {
+    public List<PwmLocale> getKnownLocales() {
         if (knownLocales == null) {
-            final List<String> localeList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
-            final Map<String,Locale> tempMap = new TreeMap<String,Locale>();
-            final List<Locale> returnList = new ArrayList<Locale>();
+            final List<String> inputList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
+            final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
+            final Map<String,PwmLocale> tempMap = new TreeMap<String,PwmLocale>();
 
-            for (final String localeString : localeList) {
-                final Locale theLocale = Helper.parseLocaleString(localeString);
+            for (final String localeString : inputMap.keySet()) {
+                final Locale theLocale = PwmLocale.parseLocaleString(localeString);
+                final String countryString = inputMap.get(localeString);
                 if (theLocale != null) {
-                    tempMap.put(theLocale.getDisplayName(),theLocale);
+                    tempMap.put(theLocale.getDisplayName(),new PwmLocale(theLocale,countryString));
                 }
             }
 
-            for (final Locale loopLocale : tempMap.values()) {
+            final List<PwmLocale> returnList = new ArrayList<PwmLocale>();
+            for (final PwmLocale loopLocale : tempMap.values()) {
                 returnList.add(loopLocale);
             }
 

@@ -63,6 +63,7 @@ public class SessionStateBean implements Serializable {
     private String logoutURL;
     private Locale locale;
     private String sessionID;
+    private String theme;
 
     private int incorrectLogins;
 
@@ -265,6 +266,14 @@ public class SessionStateBean implements Serializable {
 
     public void incrementRequestCounter() {
         requestCounter = requestCounter++;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.util.Helper;
+import password.pwm.config.PwmLocale;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -94,7 +94,7 @@ public class SmsItemBean implements Serializable {
     }
 
     public Locale getLocale() {
-    	return Helper.parseLocaleString(localeString);
+    	return PwmLocale.parseLocaleString(localeString);
     }
 
     public String toString() {

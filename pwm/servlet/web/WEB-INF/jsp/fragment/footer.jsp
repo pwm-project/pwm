@@ -39,12 +39,12 @@
     <div>
         <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
         <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
-        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
         <% } %>
     <span id="idle_status">
         &nbsp;
     </span>
-        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
     <span id="localeSelectionMenu" style="white-space: nowrap">
         <%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>

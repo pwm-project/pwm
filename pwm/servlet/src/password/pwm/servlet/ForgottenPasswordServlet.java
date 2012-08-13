@@ -555,7 +555,7 @@ public class
             // redirect user to change password screen.
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         } catch (PwmUnrecoverableException e) {
-            LOGGER.warn("unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
+            LOGGER.warn(pwmSession,"unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }

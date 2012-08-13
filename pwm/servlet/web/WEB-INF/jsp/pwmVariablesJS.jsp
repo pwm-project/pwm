@@ -24,7 +24,14 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %><%@ page import="password.pwm.config.Display"%><%@ page import="password.pwm.util.stats.StatisticsManager"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.config.Display"%>
+<%@ page import="password.pwm.config.PwmLocale"%>
+<%@ page import="password.pwm.util.stats.StatisticsManager"%>
+<%@ page import="java.util.Collections"%>
+<%@ page import="java.util.Locale"%>
+<%@ page import="java.util.ResourceBundle"%>
+<%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
@@ -40,11 +47,11 @@ function initPwmVariables() {
 }
 
 function initPwmStringValues() {
-    <% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
-    <% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
-    <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
+<% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
+<% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
+<% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
     PWM_STRINGS['<%=key%>']='<%=StringEscapeUtils.escapeJavaScript(Display.getLocalizedMessage(userLocale,key,pwmApplication.getConfig()))%>';
-    <% } %>
+<% } %>
 }
 
 function initPwmGlobalValues() {
@@ -60,19 +67,20 @@ function initPwmGlobalValues() {
 
 function initPwmLocaleVars() {
     var localeInfo = {};
-<% for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) { %>
-    <% final String flagCode = loopLocale.getLanguage(); %>
-    createCSSClass('.flagLang_<%=flagCode%>','background-image: url(flags/png/<%=flagCode%>.png)');
-    localeInfo['<%=loopLocale.toString()%>'] = '<%=loopLocale.getDisplayLanguage()%> - <%=loopLocale.getDisplayLanguage(loopLocale)%>';
+<% for (final PwmLocale pwmLocale : pwmApplication.getConfig().getKnownLocales()) { %>
+<% final Locale locale = pwmLocale.getLocale(); %>
+<% final String flagCode = pwmLocale.getFlagCountryCode(); %>
+    createCSSClass('.flagLang_<%=locale.toString()%>','background-image: url(flags/png/<%=flagCode%>.png)');
+    localeInfo['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%> - <%=locale.getDisplayLanguage(locale)%>';
 <% } %>
     PWM_GLOBAL['localeInfo'] = localeInfo;
 }
 
 function initEpsTypes() {
     PWM_GLOBAL['epsTypes'] = [];
-    <% for (final StatisticsManager.EpsType loopEpsType : StatisticsManager.EpsType.values()) { %>
+<% for (final StatisticsManager.EpsType loopEpsType : StatisticsManager.EpsType.values()) { %>
     PWM_GLOBAL['epsTypes'].push('<%=loopEpsType%>');
-    <% } %>
+<% } %>
 }
 
 initPwmVariables();

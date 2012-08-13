@@ -26,6 +26,7 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.ResourceFileServlet;
@@ -67,6 +68,23 @@ public class ThemeUrlTag extends PwmAbstractTag {
         return EVAL_PAGE;
     }
 
+    private static String figureThemeName(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+    {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        if (ssBean.getTheme() != null) {
+            return ssBean.getTheme();
+        }
+
+        if (pwmApplication != null && pwmApplication.getConfig() != null) {
+            return pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
+        } else {
+            return "default";
+        }
+    }
+
     private static String figureThemeURL(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
@@ -74,12 +92,7 @@ public class ThemeUrlTag extends PwmAbstractTag {
             final String type
     )
     {
-        final String themeName;
-        if (pwmApplication != null && pwmApplication.getConfig() != null) {
-            themeName = pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
-        } else {
-            themeName = "default";
-        }
+        final String themeName = figureThemeName(pwmApplication, pwmSession);
 
         final boolean isMobile = type != null && "mobile".equalsIgnoreCase(type);
 

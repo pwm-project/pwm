@@ -237,20 +237,17 @@
         <servlet-class>password.pwm.servlet.ConfigUploadServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>pwmVariablesJS</servlet-name>
-        <jsp-file>/resources/pwmVariablesJS.jsp</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>pwmVariablesJS</servlet-name>
-        <url-pattern>/resources/pwmVariables.js</url-pattern>
-    </servlet-mapping>
-    <servlet>
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
         <init-param>
             <description>zip files to treat as resource paths, seperated by semi-colons (;), must end in .zip</description>
             <param-name>zipFileResources</param-name>
             <param-value>/resources/dojo.zip;/resources/flags.zip</param-value>
+        </init-param>
+        <init-param>
+            <description>jsp resources</description>
+            <param-name>jspFileResources</param-name>
+            <param-value>/resources/pwmVariables.js=/WEB-INF/jsp/pwmVariablesJS.jsp</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
