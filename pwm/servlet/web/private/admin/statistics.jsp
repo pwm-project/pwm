@@ -133,7 +133,7 @@
             });
         }
         function downloadCsv() {
-            window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>&pwmFormID=<pwm:FormID/>';
+            window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>?pwmFormID=<pwm:FormID/>';
         }
     </script>
 </div>

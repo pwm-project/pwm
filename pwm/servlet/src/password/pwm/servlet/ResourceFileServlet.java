@@ -311,8 +311,8 @@ public class ResourceFileServlet extends HttpServlet {
 
         try {
             // Open streams.
-            input = file.getInputStream();
-            output = response.getOutputStream();
+            input = new BufferedInputStream(file.getInputStream());
+            output = new BufferedOutputStream(response.getOutputStream());
 
             if (acceptsGzip) {
                 // The browser accepts GZIP, so GZIP the content.

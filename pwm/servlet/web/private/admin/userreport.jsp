@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.util.UserReport" %>
+<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Iterator" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -28,15 +29,16 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
+<% DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mmm:ss"); %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Event Log"/>
     </jsp:include>
+    <%@ include file="admin-nav.jsp" %>
+    <% if ("true".equalsIgnoreCase(request.getParameter("doReport"))) { %>
     <div id="centerbody" style="width:98%">
-        <%@ include file="admin-nav.jsp" %>
         <br class="clear"/>
-        <% if ("true".equalsIgnoreCase(request.getParameter("doReport"))) { %>
         <% final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session)); %>
         <br class="clear"/>
         <table id="form">
@@ -83,14 +85,14 @@
                 <td>
                     <%= userInformation.getGuid() %>
                 </td>
-                <td>
-                    <%= userInformation.getPasswordExpirationTime() == null ? "n/a" : userInformation.getPasswordExpirationTime() %>
+                <td style="white-space: nowrap;">
+                    <%= userInformation.getPasswordExpirationTime() == null ? "n/a" : dateFormat.format(userInformation.getPasswordExpirationTime()) %>
                 </td>
-                <td>
-                    <%= userInformation.getPasswordChangeTime() == null ? "n/a" : userInformation.getPasswordChangeTime() %>
+                <td style="white-space: nowrap;">
+                    <%= userInformation.getPasswordChangeTime() == null ? "n/a" : dateFormat.format(userInformation.getPasswordChangeTime()) %>
                 </td>
-                <td>
-                    <%= userInformation.getResponseSetTime() == null ? "n/a" : userInformation.getResponseSetTime() %>
+                <td style="white-space: nowrap;">
+                    <%= userInformation.getResponseSetTime() == null ? "n/a" : dateFormat.format(userInformation.getResponseSetTime()) %>
                 </td>
                 <td>
                     <%= userInformation.isHasValidResponses() ? "yes" : "no" %>
@@ -110,19 +112,35 @@
             </tr>
             <% } %>
         </table>
-        <% } else { %>
-        <div>
-                <p>This report may take a long time to generate depending on the number of users in the search.  Also be sure PWM has been given adequate
-                    Java memory (heap) size to run the report.
-                </p>
-                <div id="buttonbar" style="align: center">
-                    <form action="userreport.jsp?doReport=true" method="POST">
-                        <button type="submit">Run Report</button>
-                    </form>
-                </div>
+        <div id="buttonbar" style="align: center">
+            <form action="userreport.jsp" method="GET">
+                <button type="submit" class="btn">Continue</button>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
         </div>
-        <% } %>
     </div>
-    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+    <% } else { %>
+    <div id="centerbody">
+        <br/><br/>
+        <p>This report may take a long time to generate depending on the number of users in the search.</p>
+        <p>If the user count is large, PWM may need large sizes of Java memory (heap size) to run the report.  It is also possible to run
+            this report from the <i>PwmCommand</i> command line utility.
+        </p>
+        <div id="buttonbar" style="align: center">
+            <form action="userreport.jsp" onclick="showWaitDialog()" method="GET">
+                <input type="hidden" name="doReport" value="true"/>
+                <button type="submit" class="btn">Run Report</button>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                <button type="submit" class="btn">Download Report as CSV</button>
+                <input type="hidden" name="processAction" value="outputUserReportCsv"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+        </div>
+    </div>
+    <% } %>
+</div>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

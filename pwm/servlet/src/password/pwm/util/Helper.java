@@ -944,27 +944,6 @@ public class Helper {
         return httpClient;
     }
 
-    public static String toCsvLine(final String... strings) {
-        if (strings == null || strings.length < 1) {
-            return "";
-        }
-
-        final StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < strings.length; i++) {
-            sb.append("\"");
-            sb.append(strings[i]);
-            sb.append("\"");
-
-            if (i != strings.length) {
-                sb.append(",");
-            }
-        }
-
-
-        return sb.toString();
-    }
-
     static public String buildPwmFormID(final SessionStateBean ssBean) {
         return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
     }

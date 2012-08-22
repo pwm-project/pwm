@@ -38,16 +38,12 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
-<script type="text/javascript">
-    showWaitDialog();
-</script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="PWM Status"/>
 </jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
-<div id="content" style="display:none">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="Status">
     <table>
@@ -699,8 +695,6 @@
             <% } catch (Exception e) { /* */ } %>
         </table>
     </div>
-
-</div>
 </div>
 </div>
 </div>
@@ -708,17 +702,12 @@
 <script type="text/javascript">
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
-            getObject('content').style.display = 'inline';
             dojoParser.parse();
 
             showStatChart('PASSWORD_CHANGES',14,'statsChart');
             setInterval(function(){
                 showStatChart('PASSWORD_CHANGES',14,'statsChart');
             }, 61 * 1000);
-
-            setTimeout(function(){
-                closeWaitDialog();
-            },300);
         });
     }
     startupPage();

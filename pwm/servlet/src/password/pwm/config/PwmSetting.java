@@ -644,10 +644,13 @@ public enum PwmSetting {
             "ldap.edirectory.enableNmas", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_STORE_NMAS_RESPONSES(
             "ldap.edirectory.storeNmasResponses", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
+    EDIRECTORY_READ_USER_PWD(
+            "ldap.edirectory.readUserPwd", Syntax.BOOLEAN, Category.EDIRECTORY, false, Level.ADVANCED),
     EDIRECTORY_READ_CHALLENGE_SET(
             "ldap.edirectory.readChallengeSets", Syntax.BOOLEAN, Category.EDIRECTORY, true, Level.BASIC),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
             "ldap.edirectory.ws.pwdMgtURL", Syntax.STRING, Category.EDIRECTORY, false, Level.BASIC),
+
 
     // helpdesk
     HELPDESK_ENABLE(

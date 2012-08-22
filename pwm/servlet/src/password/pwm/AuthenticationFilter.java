@@ -445,17 +445,19 @@ public class AuthenticationFilter implements Filter {
         String currentPass = null;
 
         // use chai (nmas) to retrieve user password
-        try {
-            final String readPassword = theUser.readPassword();
-            if (readPassword != null && readPassword.length() > 0) {
-                currentPass = readPassword;
-                LOGGER.debug(pwmSession, "successfully retrieved password from directory");
-            }
-        } catch (Exception e) {
-            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS) && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
+        if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
+                try {
+                    final String readPassword = theUser.readPassword();
+                    if (readPassword != null && readPassword.length() > 0) {
+                        currentPass = readPassword;
+                        LOGGER.debug(pwmSession, "successfully retrieved user's current password from ldap");
+                    }
+                } catch (Exception e) {
+                    LOGGER.debug(pwmSession, "unable to retrieve user password from ldap; " + e.getMessage());
+                }
             } else {
-                LOGGER.debug(pwmSession, "unable to retrieve user password from directory; " + e.getMessage());
+                LOGGER.trace(pwmSession, "skipping attempt to read user password, option disabled");
             }
         }
 
@@ -473,7 +475,7 @@ public class AuthenticationFilter implements Filter {
                 try {
                     theUser.setPassword(currentPass);
                     LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " password has been set to random value for pwm to use for user authentication");
-
+                    Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY_MS);
                 } catch (ChaiPasswordPolicyException e) {
                     final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);

@@ -22,6 +22,7 @@
 
 package password.pwm.servlet;
 
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
@@ -29,18 +30,22 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.UserReport;
 import password.pwm.util.operations.CrUtility;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +83,8 @@ public class CommandServlet extends TopServlet {
             processCheckAll(req, resp);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(req, resp);
+        } else if (action.equalsIgnoreCase("outputUserReportCsv")) {
+            outputUserReportCsv(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -343,6 +350,42 @@ public class CommandServlet extends TopServlet {
         final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+    }
+
+    private void outputUserReportCsv(final HttpServletRequest req, final HttpServletResponse resp)
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        Validator.validatePwmFormID(req);
+        if (!preCheckUser(req, resp)) {
+            return;
+        }
+
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+            LOGGER.info(pwmSession, "unable to execute output user csv report, user unauthorized");
+            return;
+        }
+
+        resp.setHeader("content-disposition", "attachment;filename=UserReport.csv");
+        resp.setContentType("text/csv;charset=utf-8");
+
+        final OutputStream outputStream = new BufferedOutputStream(resp.getOutputStream());
+
+        final UserReport userReport = new UserReport(pwmApplication);
+
+        try {
+            userReport.outputToCsv(outputStream, true);
+        } catch (ChaiOperationException e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
+            ssBean.setSessionError(errorInformation);
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+        }
+
+        outputStream.flush();
+        outputStream.close();
     }
 }
 

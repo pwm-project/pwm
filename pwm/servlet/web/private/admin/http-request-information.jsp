@@ -35,131 +35,123 @@
 <div id="wrapper">
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    Request Information
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Request Method
-                </td>
-                <td>
-                    <%= request.getMethod() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Path Info
-                </td>
-                <td>
-                    <%= request.getPathInfo() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Path Translated
-                </td>
-                <td>
-                    <%= request.getPathTranslated() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Query String
-                </td>
-                <td>
-                    <%= request.getQueryString() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Request URI
-                </td>
-                <td>
-                    <%= request.getRequestURI() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Servlet Path
-                </td>
-                <td>
-                    <%= request.getServletPath() %>
-                </td>
-            </tr>
-        </table>
-        <br class="clear"/>
-        <% if (request.getCookies() != null && request.getCookies().length > 0) { %>
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    Cookies
-                </td>
-            </tr>
-            <% for (final Cookie cookie : request.getCookies()) { %>
-            <tr>
-                <td class="key">
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getName(), 1024) %>
-                </td>
-                <td>
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getValue(), 1024) %>
-                </td>
-            </tr>
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Request Information">
+                <table>
+                    <tr>
+                        <td class="key">
+                            Request Method
+                        </td>
+                        <td>
+                            <%= request.getMethod() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            Path Info
+                        </td>
+                        <td>
+                            <%= request.getPathInfo() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            Path Translated
+                        </td>
+                        <td>
+                            <%= request.getPathTranslated() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            Query String
+                        </td>
+                        <td>
+                            <%= request.getQueryString() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            Request URI
+                        </td>
+                        <td>
+                            <%= request.getRequestURI() %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            Servlet Path
+                        </td>
+                        <td>
+                            <%= request.getServletPath() %>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <% if (request.getCookies() != null && request.getCookies().length > 0) { %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Cookies">
+                <table>
+                    <% for (final Cookie cookie : request.getCookies()) { %>
+                    <tr>
+                        <td class="key">
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getName(), 1024) %>
+                        </td>
+                        <td>
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), cookie.getValue(), 1024) %>
+                        </td>
+                    </tr>
+                    <% } %>
+                </table>
+                <br class="clear"/>
+            </div>
             <% } %>
-        </table>
-        <br class="clear"/>
-        <% } %>
-        <% if (request.getHeaderNames() != null && request.getHeaderNames().hasMoreElements()) { %>
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    Headers
-                </td>
-            </tr>
-            <% for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements();) { %>
-            <% final String loopHeader = (String) headerEnum.nextElement(); %>
-            <% for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements();) { %>
-            <% final String loopValue = (String) valueEnum.nextElement(); %>
-            <tr>
-                <td class="key">
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopHeader, 1024) %>
-                </td>
-                <td>
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
-                </td>
-            </tr>
+            <% if (request.getHeaderNames() != null && request.getHeaderNames().hasMoreElements()) { %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Headers">
+                <table>
+                    <% for (final Enumeration headerEnum = request.getHeaderNames(); headerEnum.hasMoreElements();) { %>
+                    <% final String loopHeader = (String) headerEnum.nextElement(); %>
+                    <% for (final Enumeration valueEnum = request.getHeaders(loopHeader); valueEnum.hasMoreElements();) { %>
+                    <% final String loopValue = (String) valueEnum.nextElement(); %>
+                    <tr>
+                        <td class="key">
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopHeader, 1024) %>
+                        </td>
+                        <td>
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
+                        </td>
+                    </tr>
+                    <% } %>
+                    <% } %>
+                </table>
+            </div>
             <% } %>
+            <% if (request.getParameterNames() != null && request.getParameterNames().hasMoreElements()) { %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Parameters">
+                <table>
+                    <% for (final Enumeration parameterEnum = request.getParameterNames(); parameterEnum.hasMoreElements();) { %>
+                    <% final String loopParameter = (String) parameterEnum.nextElement(); %>
+                    <% for (final String loopValue : Validator.readStringsFromRequest(request, loopParameter, 1024)) { %>
+                    <tr>
+                        <td class="key">
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopParameter, 1024) %>
+                        </td>
+                        <td>
+                            <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
+                        </td>
+                    </tr>
+                    <% } %>
+                    <% } %>
+                </table>
+            </div>
             <% } %>
-        </table>
-        <br class="clear"/>
-        <% } %>
-        <% if (request.getParameterNames() != null && request.getParameterNames().hasMoreElements()) { %>
-        <table>
-            <tr>
-                <td colspan="10" class="title">
-                    Parameters
-                </td>
-            </tr>
-            <% for (final Enumeration parameterEnum = request.getParameterNames(); parameterEnum.hasMoreElements();) { %>
-            <% final String loopParameter = (String) parameterEnum.nextElement(); %>
-            <% for (final String loopValue : Validator.readStringsFromRequest(request, loopParameter, 1024)) { %>
-            <tr>
-                <td class="key">
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopParameter, 1024) %>
-                </td>
-                <td>
-                    <%= Validator.sanatizeInputValue(ContextManager.getPwmApplication(session).getConfig(), loopValue, 1024) %>
-                </td>
-            </tr>
-            <% } %>
-            <% } %>
-        </table>
-        <% } %>
+        </div>
     </div>
-</div>
-<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+    <script type="text/javascript">
+        require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dojo/domReady!"],function(dojoParser){
+            dojoParser.parse();
+        });
+    </script>
+    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

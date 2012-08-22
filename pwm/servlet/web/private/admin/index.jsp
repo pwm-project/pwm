@@ -26,8 +26,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
-<body class="nihilo" onload="pwmPageLoadHandler();">
-<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>"/>
+<body class="nihilo" onload="showWaitDialog();pwmPageLoadHandler()">
+<meta http-equiv="refresh" content="1;url=<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Administration"/>

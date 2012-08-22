@@ -23,9 +23,15 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <p id="admin-menu-bar" style="text-align:center;">
-    <a href="status.jsp">Status</a> | <a href="statistics.jsp">Statistics</a> | <a
-        href="intruderstatus.jsp">Intruders</a> | <a href="activesessions.jsp">Sessions</a> | <a href="eventlog.jsp">Event Log</a>
+    <a onclick="showWaitDialog()" href="status.jsp">Status</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="statistics.jsp">Statistics</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="intruderstatus.jsp">Intruders</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="activesessions.jsp">Sessions</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="eventlog.jsp">Event Log</a>
     <br/>
-    <a href="userreport.jsp">User Report</a> | <a href="config.jsp">Configuration</a> | <a href="http-request-information.jsp">Http Debug</a> | <a
-        href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a> | <a href="<%=request.getContextPath()%>">Main Menu</a>
+    <a onclick="showWaitDialog()" href="userreport.jsp">User Report</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="config.jsp">Configuration</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="http-request-information.jsp">Http Debug</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>&nbsp;&#x2022;&nbsp
+    <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>">Main Menu</a>
 </p>

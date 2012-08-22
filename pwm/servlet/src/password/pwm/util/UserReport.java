@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.util.operations.CrUtility;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.UserStatusHelper;
@@ -37,7 +36,12 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.csv.CsvWriter;
+import password.pwm.util.operations.CrUtility;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class UserReport {
@@ -204,5 +208,46 @@ public class UserReport {
         public void setUserInfoBean(UserInfoBean userInfoBean) {
             this.userInfoBean = userInfoBean;
         }
+    }
+
+    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader)
+            throws IOException, ChaiUnavailableException, ChaiOperationException
+    {
+        final CsvWriter csvWriter = new CsvWriter(outputStream, ',', Charset.forName("UTF8"));
+
+        if (includeHeader) {
+            final List<String> headerRow = new ArrayList<String>();
+            headerRow.add("UserDN");
+            headerRow.add("UserGuid");
+            headerRow.add("Password Expiration Time");
+            headerRow.add("Password Change Time");
+            headerRow.add("Response Save Time");
+            headerRow.add("Has Valid Responses");
+            headerRow.add("Password Expired");
+            headerRow.add("Password Pre-Expired");
+            headerRow.add("Password Violates Policy");
+            headerRow.add("Password In Warn Period");
+            csvWriter.writeRecord(headerRow.toArray(new String[headerRow.size()]));
+        }
+
+        for (final Iterator<UserReport.UserInformation> resultIterator = this.resultIterator(); resultIterator.hasNext(); ) {
+            final UserReport.UserInformation userInformation = resultIterator.next();
+            final List<String> csvRow = new ArrayList<String>();
+
+            csvRow.add(userInformation.getUserDN());
+            csvRow.add(userInformation.getGuid());
+            csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordExpirationTime()));
+            csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordChangeTime()));
+            csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getResponseSetTime()));
+            csvRow.add(Boolean.toString(userInformation.isHasValidResponses()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isExpired()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isPreExpired()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isViolatesPolicy()));
+            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isWarnPeriod()));
+
+            csvWriter.writeRecord(csvRow.toArray(new String[csvRow.size()]));
+        }
+
+        csvWriter.flush();
     }
 }

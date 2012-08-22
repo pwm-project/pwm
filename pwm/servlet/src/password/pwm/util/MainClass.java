@@ -36,7 +36,10 @@ import password.pwm.util.pwmdb.*;
 import password.pwm.util.stats.StatisticsManager;
 
 import java.io.*;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 public class MainClass {
 
@@ -95,10 +98,10 @@ public class MainClass {
             System.exit(-1);
         }
 
-        final Writer outputWriter;
+        final OutputStream outputFileStream;
         try {
             final File outputFile = new File(args[1]).getCanonicalFile();
-            outputWriter = new BufferedWriter(new FileWriter(outputFile));
+            outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile));
         } catch (Exception e) {
             out("unable to open file '" + args[1] + "' for writing");
             System.exit(-1);
@@ -108,45 +111,11 @@ public class MainClass {
         final Configuration config = loadConfiguration();
         final File workingFolder = new File(".").getCanonicalFile();
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+
         final UserReport userReport = new UserReport(pwmApplication);
+        userReport.outputToCsv(outputFileStream,true);
 
-        {
-            final List<String> headerRow = new ArrayList<String>();
-            headerRow.add("UserDN");
-            headerRow.add("UserGuid");
-            headerRow.add("Password Expiration Time");
-            headerRow.add("Password Change Time");
-            headerRow.add("Response Save Time");
-            headerRow.add("Has Valid Responses");
-            headerRow.add("Password Expired");
-            headerRow.add("Password Pre-Expired");
-            headerRow.add("Password Violates Policy");
-            headerRow.add("Password In Warn Period");
-            outputWriter.append(Helper.toCsvLine(headerRow.toArray(new String[headerRow.size()])));
-            outputWriter.append("\n");
-        }
-
-        for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(); resultIterator.hasNext(); ) {
-            final UserReport.UserInformation userInformation = resultIterator.next();
-            final List<String> csvRow = new ArrayList<String>();
-
-            csvRow.add(userInformation.getUserDN());
-            csvRow.add(userInformation.getGuid());
-            csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordExpirationTime()));
-            csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordChangeTime()));
-            csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getResponseSetTime()));
-            csvRow.add(Boolean.toString(userInformation.isHasValidResponses()));
-            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isExpired()));
-            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isPreExpired()));
-            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isViolatesPolicy()));
-            csvRow.add(Boolean.toString(userInformation.getPasswordStatus().isWarnPeriod()));
-
-            outputWriter.append(Helper.toCsvLine(csvRow.toArray(new String[csvRow.size()])));
-            outputWriter.append("\n");
-        }
-
-        try { outputWriter.close(); } catch (Exception e) { /* nothing */ }
-
+        try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report complete.");
     }
 

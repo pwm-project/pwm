@@ -43,28 +43,28 @@
         <%@ include file="admin-nav.jsp" %>
         <table>
             <tr>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Label
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Creation Time
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Idle
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Address
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Locale
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     User DN
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Bad Auths
                 </td>
-                <td class="title">
+                <td class="key" style="text-align: left">
                     Last Error
                 </td>
             </tr>
