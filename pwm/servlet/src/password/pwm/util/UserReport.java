@@ -64,14 +64,17 @@ public class UserReport {
             throws ChaiUnavailableException, ChaiOperationException
     {
         final String baseDN = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        final String usernameSearchFilter = "(objectClass=inetOrgPerson)";
+        final String usernameSearchFilter = "(objectClass=User)";
 
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setAttributes(Collections.<String>emptyList());
         searchHelper.setFilter(usernameSearchFilter);
         searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
 
+        LOGGER.debug("beginning UserReport user search using parameters: " + searchHelper.toString());
+
         final Map<String,Map<String,String>> searchResults = pwmApplication.getProxyChaiProvider().search(baseDN, searchHelper);
+        LOGGER.debug("UserReport user search found " + searchResults.size() + " users for reporting");
         return searchResults.keySet();
     }
 

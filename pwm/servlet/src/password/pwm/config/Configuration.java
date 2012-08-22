@@ -62,7 +62,8 @@ public class Configuration implements Serializable {
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
-    private List<PwmLocale> knownLocales = null;
+    private List<PwmLocale> knownPwmLocales = null;
+    private List<Locale> knownLocales = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -446,8 +447,8 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<PwmLocale> getKnownLocales() {
-        if (knownLocales == null) {
+    public List<PwmLocale> getKnownPwmLocales() {
+        if (knownPwmLocales == null) {
             final List<String> inputList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
             final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
             final Map<String,PwmLocale> tempMap = new TreeMap<String,PwmLocale>();
@@ -465,11 +466,22 @@ public class Configuration implements Serializable {
                 returnList.add(loopLocale);
             }
 
+            knownPwmLocales = Collections.unmodifiableList(returnList);
+        }
+        return knownPwmLocales;
+    }
+
+    public List<Locale> getKnownLocales() {
+        if (knownLocales == null) {
+            final List<PwmLocale> pwmLocales = getKnownPwmLocales();
+            final List<Locale> returnList = new ArrayList<Locale>();
+            for (final PwmLocale loopLocale : pwmLocales) {
+                returnList.add(loopLocale.getLocale());
+            }
             knownLocales = Collections.unmodifiableList(returnList);
         }
         return knownLocales;
     }
-
 
     public enum STORAGE_METHOD { DB, LDAP, PWMDB }
 }

@@ -160,8 +160,8 @@ public class SessionFilter implements Filter {
 
         //set the session's locale
         if (ssBean.getLocale() == null) {
-            final List<PwmLocale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = PwmLocale.pwmLocaleResolver(req.getLocale(), knownLocales);
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+            final Locale userLocale = PwmLocale.localeResolver(req.getLocale(), knownLocales);
             ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
         }
@@ -169,7 +169,7 @@ public class SessionFilter implements Filter {
         //override session locale due to parameter
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale");
         if (langReqParamter != null && langReqParamter.length() > 0) {
-            final List<PwmLocale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             final Locale requestedLocale = PwmLocale.parseLocaleString(langReqParamter);
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");

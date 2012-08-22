@@ -67,7 +67,7 @@ function initPwmGlobalValues() {
 
 function initPwmLocaleVars() {
     var localeInfo = {};
-<% for (final PwmLocale pwmLocale : pwmApplication.getConfig().getKnownLocales()) { %>
+<% for (final PwmLocale pwmLocale : pwmApplication.getConfig().getKnownPwmLocales()) { %>
 <% final Locale locale = pwmLocale.getLocale(); %>
 <% final String flagCode = pwmLocale.getFlagCountryCode(); %>
     createCSSClass('.flagLang_<%=locale.toString()%>','background-image: url(flags/png/<%=flagCode%>.png)');

@@ -27,7 +27,10 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -220,8 +223,8 @@ public class ConfigManagerServlet extends TopServlet {
             final Map<String,String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(),keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
                 final Map<String,String> defaultValueMap = new LinkedHashMap<String, String>();
-                for (final PwmLocale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
-                    final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale.getLocale());
+                for (final Locale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
+                    final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
                     final String localeStr = locale.toString().equalsIgnoreCase("en") ? "" : locale.toString();
                     defaultValueMap.put(localeStr,localeBundle.getString(keyName));
                 }
