@@ -47,7 +47,8 @@
         <%@ include file="fragment/message.jsp" %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
         <% final String expandedText = PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()); %>
-        <div class="agreementText"><%= expandedText %></div>
+        <br/><br/>
+        <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='ChangePassword'/>" method="post"
                   enctype="application/x-www-form-urlencoded">

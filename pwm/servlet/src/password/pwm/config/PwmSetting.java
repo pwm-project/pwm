@@ -362,7 +362,7 @@ public enum PwmSetting {
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.policy.disallowedAttributes", Syntax.STRING_ARRAY, Category.PASSWORD_POLICY, false, Level.ADVANCED),
     PASSWORD_SHAREDHISTORY_ENABLE(
-            "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.ADVANCED),
+            "password.sharedHistory.enable", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
             "password.sharedHistory.age", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.ADVANCED),
     PASSWORD_POLICY_MINIMUM_STRENGTH(

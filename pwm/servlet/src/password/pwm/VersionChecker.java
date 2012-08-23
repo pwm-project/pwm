@@ -84,6 +84,22 @@ public class VersionChecker implements PwmService {
         }
     }
 
+    public String currentVersion() {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+            return "n/a";
+        }
+
+        try {
+            final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
+            if (versionCheckInfo != null) {
+                return versionCheckInfo.getCurrentVersion();
+            }
+        } catch (Exception e) {
+            LOGGER.error("unable to retrieve current version data from cloud: " + e.toString());
+        }
+        return "n/a";
+    }
+
     public boolean isVersionCurrent() {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
             return true;

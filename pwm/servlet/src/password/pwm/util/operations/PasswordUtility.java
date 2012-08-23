@@ -286,7 +286,7 @@ public class PasswordUtility {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         //update the current last password update field in ldap
-        final boolean successfullyWrotePwdUpdateAttr = Helper.updateLastUpdateAttribute(pwmSession, pwmApplication, theUser);
+        final boolean successfullyWrotePwdUpdateAttr = UserStatusHelper.updateLastUpdateAttribute(pwmSession, pwmApplication, theUser);
         boolean doReplicaCheck = true;
 
         if (!successfullyWrotePwdUpdateAttr) {

@@ -178,7 +178,7 @@
 
     function handleWarnFlash() {
         if (PWM_GLOBAL['pwm-health'] == "WARN") {
-            flashScreen(errorColor);
+            flashDomElement(errorColor,'body',3000);
         }
     }
 
@@ -202,29 +202,9 @@
         });
     }
 
-    function flashScreen(flashColor) {
-        require(["dojo"],function(dojo){
-            var htmlElement = document.getElementById('body');
-            var originalColor = htmlElement.style.backgroundColor;
-            var zIndex = htmlElement.style.zIndex;
-
-            htmlElement.style.backgroundColor = flashColor;
-            htmlElement.style.backgroundColor = 5;
-
-            dojo.animateProperty({
-                node:"body",
-                duration: 3000,
-                properties: {
-                    zIndex: 0,
-                    backgroundColor: originalColor
-                }
-            }).play();
-        });
-    }
-
     function startup() {
         require(["dojo","dojo/domReady!","dojo/window"],function(){
-            flashScreen('white');
+            flashDomElement('red','body',5000);
 
             var vs = dojo.window.getBox();
             posH = Math.floor((Math.random() * (vs.w - 30)));

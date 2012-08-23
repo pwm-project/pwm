@@ -23,16 +23,13 @@
 package password.pwm.wordlist;
 
 import password.pwm.PwmApplication;
-import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
-import password.pwm.util.Helper;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.Sleeper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 
@@ -53,7 +50,7 @@ public class SharedHistoryManager implements Wordlist {
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
 
-    private static final String VALUE_VERSION = "1";
+    private static final String VALUE_VERSION = "2" + "_" + PwmConstants.SHARED_HISTORY_HASH_LOOP_COUNT;
 
     private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60; // 1 hour
     private static final int MAX_CLENAER_FREQUENCY = 1000 * 60 * 60 * 24; // 1 day
@@ -154,7 +151,7 @@ public class SharedHistoryManager implements Wordlist {
         if (salt == null || salt.length() < 1) {
             LOGGER.info("no salt found in DB, creating new salt and clearing global history");
             pwmDB.truncate(WORDS_DB);
-            salt = PwmRandom.getInstance().nextLongHex() + PwmRandom.getInstance().nextLongHex();
+            salt = PwmRandom.getInstance().alphaNumericString(64);
             pwmDB.put(META_DB, KEY_SALT, salt);
             pwmDB.remove(META_DB, KEY_OLDEST_ENTRY);
         }
@@ -324,7 +321,12 @@ public class SharedHistoryManager implements Wordlist {
     private String hashWord(final String word) throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("SHA1");
         final String wordWithSalt = salt + word;
-        final byte[] hashedAnswer = md.digest((wordWithSalt).getBytes());
+        final int hashLoopCount = PwmConstants.SHARED_HISTORY_HASH_LOOP_COUNT;
+        byte[] hashedAnswer = md.digest((wordWithSalt).getBytes());
+
+        for (int i = 0; i < hashLoopCount; i++) {
+            hashedAnswer = md.digest(hashedAnswer);
+        }
 
         return Helper.binaryArrayToHex(hashedAnswer);
     }

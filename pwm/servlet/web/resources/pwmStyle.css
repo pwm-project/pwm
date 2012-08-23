@@ -363,8 +363,9 @@ div.progress-container > div {
 }
 
 .agreementText {
-    border: 1px solid #656565;
-    border-radius: 5px;
+    border: 0;
+    background-color: #DDDDDD;
+    border-radius: 7px;
     padding: 10px;
     max-height: 300px;
     overflow: auto;

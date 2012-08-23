@@ -202,6 +202,10 @@ public class PwmApplication {
         return (UrlShortenerService)pwmServices.get(UrlShortenerService.class);
     }
 
+    public VersionChecker getVersionChecker() {
+        return (VersionChecker)pwmServices.get(VersionChecker.class);
+    }
+
     public ErrorInformation getLastLdapFailure() {
         return lastLdapFailure;
     }

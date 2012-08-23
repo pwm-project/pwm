@@ -28,7 +28,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
@@ -363,35 +362,6 @@ public class Helper {
         }
 
         return out.toString();
-    }
-
-    /**
-     * Update the user's "lastUpdated" attribute.  By default this is "pwmLastUpdate" attribute
-     *
-     * @param pwmSession to lookup session info
-     * @param theUser    ldap user to operate on
-     * @return true if successful;
-     * @throws ChaiUnavailableException if the directory is unavailable
-     */
-    public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser)
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        boolean success = false;
-
-        final String updateAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
-
-        if (updateAttribute != null && updateAttribute.length() > 0) {
-            final String currentTimestamp = EdirEntries.convertDateToZulu(new Date(System.currentTimeMillis()));
-            try {
-                final String pwdLastModifiedAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
-                theUser.writeStringAttribute(pwdLastModifiedAttr, currentTimestamp);
-                LOGGER.debug(pwmSession, "wrote pwdLastModified update attribute for " + theUser.getEntryDN());
-                success = true;
-            } catch (ChaiOperationException e) {
-                LOGGER.debug(pwmSession, "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage());
-            }
-        }
-
-        return success;
     }
 
     /**
@@ -1136,5 +1106,23 @@ public class Helper {
             }
         }
         return result;
+    }
+
+    public static String makePwmVariableJsNonce(final PwmSession pwmSession)
+            throws IOException
+    {
+        final StringBuilder inputString = new StringBuilder();
+        inputString.append(PwmConstants.BUILD_NUMBER);
+        if (pwmSession != null) {
+            inputString.append(pwmSession.getSessionStateBean().getSessionID());
+            if (pwmSession.getSessionStateBean().getLocale() != null) {
+                inputString.append(pwmSession.getSessionStateBean().getLocale());
+            }
+            if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                inputString.append(pwmSession.getUserInfoBean().getUserGuid());
+                inputString.append(pwmSession.getUserInfoBean().getAuthTime());
+            }
+        }
+        return md5sum(inputString.toString());
     }
 }

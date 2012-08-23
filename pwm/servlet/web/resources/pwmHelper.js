@@ -770,3 +770,31 @@ function createCSSClass(selector, style)
     }
 }
 
+function flashDomElement(flashColor,elementName,durationMS) {
+    if (!getObject(elementName)) {
+        return;
+    }
+
+    require(["dojo","dojo/window","dojo/domReady!"],function(dojo) {
+        var originalBGColor = getRenderedStyle(elementName,'background-color');
+        getObject(elementName).style.backgroundColor = flashColor;
+        dojo.animateProperty({
+            node:elementName,
+            duration: durationMS,
+            properties: { backgroundColor: originalBGColor}
+        }).play();
+    });
+}
+
+function getRenderedStyle(el,styleProp) {
+    var x = document.getElementById(el);
+    if (x.currentStyle) {
+        return x.currentStyle[styleProp];
+    }
+
+    if (window.getComputedStyle) {
+        return document.defaultView.getComputedStyle(x,null).getPropertyValue(styleProp);
+    }
+
+    return null;
+}

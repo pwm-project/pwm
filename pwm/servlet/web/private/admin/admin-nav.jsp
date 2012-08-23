@@ -32,6 +32,6 @@
     <a onclick="showWaitDialog()" href="userreport.jsp">User Report</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="config.jsp">Configuration</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="http-request-information.jsp">Http Debug</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>&nbsp;&#x2022;&nbsp
+    <a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>">Main Menu</a>
 </p>

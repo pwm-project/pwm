@@ -522,11 +522,6 @@ public class PwmDBLogger implements PwmService {
             healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "PwmDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
         }
 
-
-        if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(HealthStatus.GOOD, "PwmDBLogger", "PwmDBLogger is running normally"));
-        }
-
         return healthRecords;
     }
 

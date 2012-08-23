@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.pwmdb.PwmDB" %>
@@ -28,6 +29,7 @@
 <%@ page import="java.math.RoundingMode" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -45,7 +47,7 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="Status">
+<div data-dojo-type="dijit.layout.ContentPane" title="About">
     <table>
         <tr>
             <td class="key">
@@ -54,6 +56,23 @@
             <td>
                 <%= PwmConstants.SERVLET_VERSION %>
             </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Current Published Version
+            </td>
+            <td>
+                <%
+                    String publishedVersion = "n/a";
+                    if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
+                        publishedVersion = pwmApplication.getVersionChecker().currentVersion();
+                    }
+                %>
+                <%= publishedVersion %>
+                &nbsp;&nbsp;&nbsp;
+                (<a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>)
+            </td>
+
         </tr>
         <tr>
             <td class="key">
@@ -146,19 +165,6 @@
                 </script>
             </td>
         </tr>
-    </table>
-    <table>
-        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
-        <tr>
-            <td class="key">
-                <%= loopService.getClass().getSimpleName() %>
-            </td>
-            <td>
-                <%= loopService.status() %>
-            </td>
-        </tr>
-        <% } %>
-
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Activity">
@@ -546,6 +552,42 @@
         <a onclick="showWaitDialog()" href="status.jsp?showPwmDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
     </div>
     <% } %>
+</div>
+<div data-dojo-type="dijit.layout.ContentPane" title="Services">
+    <table>
+        <tr>
+            <td style="font-weight:bold;">
+                Service
+            </td>
+            <td style="font-weight:bold;">
+                Status
+            </td>
+            <td style="font-weight:bold;">
+                Health
+            </td>
+        </tr>
+        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
+        <tr>
+            <td>
+                <%= loopService.getClass().getSimpleName() %>
+            </td>
+            <td>
+                <%= loopService.status() %>
+                <% List<HealthRecord> healthRecords = loopService.healthCheck(); %>
+            </td>
+            <td>
+                <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
+                <% for (HealthRecord loopRecord : healthRecords) { %>
+                <%= loopRecord.getTopic() %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail() %>
+                <br/>
+                <% } %>
+                <% } else { %>
+                No Issues
+                <% } %>
+            </td>
+        </tr>
+        <% } %>
+    </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Java">
     <table>

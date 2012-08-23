@@ -258,32 +258,29 @@ public class UserStatusHelper {
     )
             throws ChaiUnavailableException
     {
-        // fetch last password modification time out of the uiBean
-        final String pwmLastSetAttr = config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
-        if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0 && userInfoBean != null) {
-            final String pwdLastModifiedStr = userInfoBean.getAllUserAttributes().get(pwmLastSetAttr);
-            if (pwdLastModifiedStr != null && pwdLastModifiedStr.length() > 0) {
-                try {
-                    final Date pwmPasswordChangeTime = EdirEntries.convertZuluToDate(pwdLastModifiedStr);
-                    LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPasswordChangeTime);
-                    return pwmPasswordChangeTime;
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
-                    return null;
-                }
-            }
-        }
-
-
+        // fetch last password modification time from pwm last update attribute operation
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
-            	LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
-            	return chaiReadDate;
+                LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
+                return chaiReadDate;
             }
         } catch (ChaiOperationException e) {
             LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
         }
+
+        final String pwmLastSetAttr = config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
+            try {
+                final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
+                LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPwdLastModified);
+                return pwmPwdLastModified;
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
+            }
+        }
+
+        LOGGER.debug(pwmSession, "unable to determine time of user's last password modification");
         return null;
     }
 
@@ -411,6 +408,33 @@ public class UserStatusHelper {
 
         LOGGER.warn(pwmSession, "attempt to use '" + context + "' context for search, but is not a configured context, changing search base to default context");
         return configuredLdapContextlessRoot;
+    }
+
+    /**
+     * Update the user's "lastUpdated" attribute.  By default this is "pwmLastUpdate" attribute
+     *
+     * @param pwmSession to lookup session info
+     * @param theUser    ldap user to operate on
+     * @return true if successful;
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the directory is unavailable
+     */
+    public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser)
+            throws ChaiUnavailableException, PwmUnrecoverableException {
+        boolean success = false;
+
+        final String updateAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+
+        if (updateAttribute != null && updateAttribute.length() > 0) {
+            try {
+                theUser.writeDateAttribute(updateAttribute, new Date());
+                LOGGER.debug(pwmSession, "wrote pwdLastModified update attribute for " + theUser.getEntryDN());
+                success = true;
+            } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession, "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage());
+            }
+        }
+
+        return success;
     }
 
     public static class UsernameSearchRequest implements Serializable {

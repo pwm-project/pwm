@@ -95,7 +95,6 @@ public class Configuration implements Serializable {
         returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
         returnSet.addAll(this.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE).getRuleHelper().getDisallowedAttributes());
-        returnSet.add(this.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));
         returnSet.add(this.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE));
