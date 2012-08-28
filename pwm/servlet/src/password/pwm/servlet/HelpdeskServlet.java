@@ -38,7 +38,6 @@ import password.pwm.UserHistory.Record;
 import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -48,6 +47,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -148,25 +148,21 @@ public class HelpdeskServlet extends TopServlet {
         final String username = Validator.readStringFromRequest(req, "username");
         final String context = Validator.readStringFromRequest(req, "context");
 
-
         if (username.length() < 1) {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
             return;
         }
 
-        final String configuredContext = pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CONTEXT);
-        final String searchContext;
-        if (configuredContext != null && configuredContext.length() > 0) {
-            searchContext = configuredContext;
-        } else {
-            searchContext = context;
-        }
-
         final String userDN;
         try {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final Configuration config = pwmApplication.getConfig();
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, searchContext, provider, config, false);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+            searchConfiguration.setContext(context);
+            searchConfiguration.setUsername(username);
+            searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
+            searchConfiguration.setChaiProvider(pwmSession.getSessionManager().getChaiProvider());
+            final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+            userDN = theUser == null ? null : theUser.getEntryDN();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = PwmError.ERROR_CANT_MATCH_USER.toInfo();
             pwmSession.getSessionStateBean().setSessionError(errorInformation);

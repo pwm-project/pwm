@@ -25,7 +25,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();document.forms.searchForm.elements[0].focus();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
@@ -45,11 +45,11 @@
             <select name="context" id="context">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
+            <br/>
             <% } %>
-
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="search" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
+            <br/>
+            <% request.setAttribute("form",PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM); %>
+            <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">
                 <input type="hidden"

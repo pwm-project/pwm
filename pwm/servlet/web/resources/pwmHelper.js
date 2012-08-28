@@ -305,7 +305,7 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
                 setTimeout(function() {
-                    showPwmHealth(parentDivID, false);
+                    showPwmHealth(parentDivID, false, showRefresh);
                 }, 10 * 1000);
             },
             error: function(error) {

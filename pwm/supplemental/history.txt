@@ -9,6 +9,12 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
+v1.6.5 (August 23, 2012) build 1185
+---
++ Forgotten password search form now has multiple fields available (issue #207)
++ Multiple ldap root contexts are now possible for login, helpdesk and other functions (issue #227)
+
+
 v1.6.4 (August 23, 2012) build 1185
 ---
 + Norwegian language support; thanks Izaz! (issue #261)

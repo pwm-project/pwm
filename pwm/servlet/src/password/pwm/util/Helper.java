@@ -209,7 +209,7 @@ public class Helper {
 
         LOGGER.trace("assigning new GUID to user " + userDN);
 
-        final String baseContext = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+        final List<String> baseContexts = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         int attempts = 0;
         while (attempts < 10) {
             // generate a guid
@@ -231,16 +231,18 @@ public class Helper {
                 searchHelper.setFilter(GUIDattributeName, newGUID);
                 searchHelper.setMaxResults(1);
                 searchHelper.setAttributes(GUIDattributeName);
-                final Map<String, Map<String,String>> result = proxyChaiProvider.search(baseContext, searchHelper);
-                if (result.isEmpty()) {
-                    try {
-                        // write it to the directory
-                        proxyChaiProvider.writeStringAttribute(userDN, GUIDattributeName, Collections.singleton(newGUID), false);
-                        LOGGER.info("added GUID value '" + newGUID + "' to user " + userDN);
-                        return newGUID;
-                    } catch (ChaiOperationException e) {
-                        LOGGER.warn("error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userDN);
-                        return null;
+                for (final String baseContext : baseContexts) {
+                    final Map<String, Map<String,String>> result = proxyChaiProvider.search(baseContext, searchHelper);
+                    if (result.isEmpty()) {
+                        try {
+                            // write it to the directory
+                            proxyChaiProvider.writeStringAttribute(userDN, GUIDattributeName, Collections.singleton(newGUID), false);
+                            LOGGER.info("added GUID value '" + newGUID + "' to user " + userDN);
+                            return newGUID;
+                        } catch (ChaiOperationException e) {
+                            LOGGER.warn("error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userDN);
+                            return null;
+                        }
                     }
                 }
             } catch (ChaiOperationException e) {
@@ -918,40 +920,6 @@ public class Helper {
         return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
     }
 
-    /**
-     * Based on {@link https://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java}.
-     *
-     * @param input
-     * @return ldap escaped script
-     *
-     */
-    public static String escapeLdapString(final String input) {
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char curChar = input.charAt(i);
-            switch (curChar) {
-                case '\\':
-                    sb.append("\\5c");
-                    break;
-                case '*':
-                    sb.append("\\2a");
-                    break;
-                case '(':
-                    sb.append("\\28");
-                    break;
-                case ')':
-                    sb.append("\\29");
-                    break;
-                case '\u0000':
-                    sb.append("\\00");
-                    break;
-                default:
-                    sb.append(curChar);
-            }
-        }
-        return sb.toString();
-    }
-
     public static class SimpleTextCrypto {
 
         public static String encryptValue(final String value, final SecretKey key)
@@ -1125,4 +1093,5 @@ public class Helper {
         }
         return md5sum(inputString.toString());
     }
+
 }

@@ -46,6 +46,7 @@
             <select name="context" id="context">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
+            <br/><br/>
             <% } %>
             <% request.setAttribute("form",PwmSetting.ACTIVATE_USER_FORM); %>
             <jsp:include page="fragment/form.jsp"/>

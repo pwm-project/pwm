@@ -78,7 +78,7 @@ public class CaptchaFilter implements Filter {
                 return;
             }
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "error during captcha filter: " + e.getMessage());
+            LOGGER.warn(pwmSession, "error during captcha filter: " + e.getMessage(),e);
         }
 
         LOGGER.debug(pwmSession, "session requires captcha verification, redirecting to Captcha servlet");

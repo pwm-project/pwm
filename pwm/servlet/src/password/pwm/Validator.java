@@ -22,7 +22,6 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
@@ -862,23 +861,32 @@ public class Validator {
             final Map<FormConfiguration,String> formValues,
             final List<String> uniqueAttributes
     )
-            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException {
+            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
+    {
+        final Map<String,String> objectClasses = new HashMap<String,String>();
+        for (final String loopStr : config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
+            objectClasses.put("objectClass",loopStr);
+        }
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             if (uniqueAttributes.contains(formConfiguration.getAttributeName())) {
                 final String value = formValues.get(formConfiguration);
 
                 final Map<String, String> filterClauses = new HashMap<String, String>();
-                filterClauses.put(ChaiConstant.ATTR_LDAP_OBJECTCLASS, ChaiConstant.OBJECTCLASS_BASE_LDAP_USER);
                 filterClauses.put(formConfiguration.getAttributeName(), value);
+                filterClauses.putAll(objectClasses);
                 final SearchHelper searchHelper = new SearchHelper();
                 searchHelper.setFilterAnd(filterClauses);
-                final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT), searchHelper).keySet());
 
-                if (resultDNs.size() > 0) {
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, formConfiguration.getLabel());
-                    throw new PwmDataValidationException(error);
+                final List<String> searchBases = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+                for (final String loopBase : searchBases) {
+                    final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(loopBase, searchHelper).keySet());
+                    if (resultDNs.size() > 0) {
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, formConfiguration.getLabel());
+                        throw new PwmDataValidationException(error);
+                    }
                 }
+
             }
         }
     }

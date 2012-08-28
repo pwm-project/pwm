@@ -38,6 +38,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.pwmdb.PwmDB;
 
 import javax.crypto.SecretKey;
@@ -602,26 +603,28 @@ public class TokenManager implements PwmService {
         public TokenPayload retrieveToken(String tokenKey)
                 throws PwmOperationalException, PwmUnrecoverableException
         {
-            final String md5sumToken = makeTokenHash(tokenKey);
-            try {
-                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-                final SearchHelper searchHelper = new SearchHelper();
-                searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-                searchHelper.setFilter(tokenAttribute, md5sumToken + "*");
-                searchHelper.setAttributes(tokenAttribute);
-                searchHelper.setMaxResults(2);
-                final String baseDN = configuration.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-                final Map<String,Map<String,String>> results = chaiProvider.search(baseDN, searchHelper);
-                if (results.isEmpty()) {
-                    return null;
-                } else if (results.keySet().size() > 1) {
-                    final String errorMsg = "multiple search results found for token key";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
-                    throw new PwmOperationalException(errorInformation);
+            final String searchFilter;
+            {
+                final String md5sumToken = makeTokenHash(tokenKey);
+                final SearchHelper tempSearchHelper = new SearchHelper();
+                final Map<String,String> filterAttributes = new HashMap<String,String>();
+                for (final String loopStr : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
+                    filterAttributes.put("objectClass", loopStr);
                 }
-                final String userDNresult = results.keySet().iterator().next();
-                final Map<String,String> attributeValues = results.get(userDNresult);
-                final String tokenAttributeValue = attributeValues.get(attributeValues.get(tokenAttribute));
+                filterAttributes.put(tokenAttribute,md5sumToken + "*");
+                tempSearchHelper.setFilterAnd(filterAttributes);
+                searchFilter = tempSearchHelper.getFilter();
+            }
+
+            try {
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setFilter(searchFilter);
+                final ChaiUser user = userSearchEngine.performUserSearch(null, searchConfiguration);
+                if (user == null) {
+                    return null;
+                }
+                final String tokenAttributeValue = user.readStringAttribute(tokenAttribute);
                 if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
                     final String splitString[] = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
                     if (splitString.length != 2) {

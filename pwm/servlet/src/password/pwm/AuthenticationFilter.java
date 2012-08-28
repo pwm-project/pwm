@@ -34,6 +34,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -236,10 +237,20 @@ public class AuthenticationFilter implements Filter {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
 
-        //see if we need to a contextless search.
         final String userDN;
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, context);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+
+            //see if we need to a contextless search.
+            if (userSearchEngine.checkIfStringIsDN(pwmSession, username)) {
+                userDN = username;
+            } else {
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setUsername(username);
+                searchConfiguration.setContext(context);
+                final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+                userDN = theUser.getEntryDN();
+            }
         } catch (PwmOperationalException e) {
             intruderManager.addIntruderAttempt(username, pwmSession);
             intruderManager.checkUser(username, pwmSession);

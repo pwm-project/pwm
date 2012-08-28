@@ -27,8 +27,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
-import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.*;
 import password.pwm.config.Configuration;
@@ -40,6 +38,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -136,16 +135,19 @@ public class ActivateUserServlet extends TopServlet {
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
 
+            // see if the values meet the configured form requirements.
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+
             // get an ldap user object based on the params
             final ChaiUser theUser;
             {
-                final String searchFilter = figureSearchFilterForParams(formValues, pwmApplication.getConfig());
-                final String searchContext = UserStatusHelper.determineContextForSearch(pwmSession, contextParam, pwmApplication.getConfig(),true);
-                theUser = performUserSearch(pwmSession, pwmApplication, searchFilter, searchContext);
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setContext(contextParam);
+                searchConfiguration.setFilter(config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER));
+                searchConfiguration.setFormValues(formValues);
+                theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
             }
-
-            // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
             validateParamsAgainstLDAP(formValues, pwmSession, theUser, config);
 
@@ -297,64 +299,6 @@ public class ActivateUserServlet extends TopServlet {
             throw new PwmOperationalException(info);
         }
     }
-
-    private static String figureSearchFilterForParams(
-            final Map<FormConfiguration,String> formValues,
-            final Configuration config
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        String searchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
-
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = "%" + formConfiguration.getAttributeName() + "%";
-            searchFilter = searchFilter.replaceAll(attrName, formValues.get(formConfiguration));
-        }
-
-        return searchFilter;
-    }
-
-    private static ChaiUser performUserSearch(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String searchFilter,
-            final String searchBase
-    )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
-    {
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setMaxResults(2);
-        searchHelper.setFilter(searchFilter);
-        searchHelper.setAttributes("");
-
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-
-        LOGGER.debug(pwmSession, "performing ldap search for user activation, base=" + searchBase + " filter=" + searchFilter);
-
-        try {
-            final Map<String, Map<String,String>> results = chaiProvider.search(searchBase, searchHelper);
-
-            if (results.isEmpty()) {
-                final String errorMsg = "user not found using search filter " + searchFilter + ", in " + searchBase;
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            } else if (results.size() > 1) {
-                final String errorMsg = "multiple matches results for activation search";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
-
-            final String userDN = results.keySet().iterator().next();
-            LOGGER.debug(pwmSession, "found userDN: " + userDN);
-            return ChaiFactory.createChaiUser(userDN, chaiProvider);
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "ldap error during activation search: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg);
-            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-            newException.initCause(e);
-            throw newException;
-        }
-    }
-
 
     public static void validateParamsAgainstLDAP(
             final Map<FormConfiguration, String> formValues,
@@ -541,7 +485,7 @@ public class ActivateUserServlet extends TopServlet {
         final Map<String,String> tokenMapData = new HashMap<String, String>();
 
         try {
-            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), activateUserBean.getTheUser(), null);
+            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), activateUserBean.getTheUser());
             if (userLastPasswordChange != null) {
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userLastPasswordChange.toString());
             }
@@ -606,7 +550,7 @@ public class ActivateUserServlet extends TopServlet {
             if (tokenPayload != null) {
                 try {
                     final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
                     final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
                         tokenPass = false;

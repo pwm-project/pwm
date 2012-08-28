@@ -134,7 +134,7 @@ public enum PwmSetting {
     LDAP_PROXY_USER_PASSWORD(
             "ldap.proxy.password", Syntax.PASSWORD, Category.LDAP, true, Level.BASIC),
     LDAP_CONTEXTLESS_ROOT(
-            "ldap.rootContexts", Syntax.STRING, Category.LDAP, false, Level.BASIC),
+            "ldap.rootContexts", Syntax.STRING_ARRAY, Category.LDAP, false, Level.BASIC),
     LDAP_LOGIN_CONTEXTS(
             "ldap.selectableContexts", Syntax.STRING_ARRAY, Category.LDAP, false, Level.ADVANCED),
     LDAP_TEST_USER_DN(
@@ -492,8 +492,10 @@ public enum PwmSetting {
     // recovery settings
     FORGOTTEN_PASSWORD_ENABLE(
             "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
-    FORGOTTEN_PASSWORD_QUERY_MATCH(
-            "recovery.queryMatch", Syntax.STRING, Category.RECOVERY, false, Level.BASIC),
+    FORGOTTEN_PASSWORD_SEARCH_FORM(
+            "recovery.form", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, true, Level.BASIC),
+    FORGOTTEN_PASSWORD_SEARCH_FILTER(
+            "recovery.searchFilter", Syntax.STRING, Category.RECOVERY, true, Level.BASIC),
     FORGOTTEN_PASSWORD_READ_PREFERENCE(
             "recovery.response.readPreference", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
     FORGOTTEN_PASSWORD_WRITE_PREFERENCE(
@@ -655,18 +657,18 @@ public enum PwmSetting {
     // helpdesk
     HELPDESK_ENABLE(
             "helpdesk.enable", Syntax.BOOLEAN, Category.HELPDESK, false, Level.BASIC),
-    HELPDESK_ENFORCE_PASSWORD_POLICY(
-            "helpdesk.enforcePasswordPolicy", Syntax.BOOLEAN, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_QUERY_MATCH(
             "helpdesk.queryMatch", Syntax.STRING, Category.HELPDESK, true, Level.BASIC),
+    HELPDESK_SEARCH_FILTER(
+            "helpdesk.filter", Syntax.STRING, Category.HELPDESK, false, Level.ADVANCED),
     HELPDESK_DISPLAY_ATTRIBUTES(
             "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_SET_PASSWORD_MODE(
             "helpdesk.setPassword.mode", Syntax.SELECT, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
-    HELPDESK_CONTEXT(
-            "helpdesk.context", Syntax.STRING, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_ENFORCE_PASSWORD_POLICY(
+            "helpdesk.enforcePasswordPolicy", Syntax.BOOLEAN, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_IDLE_TIMEOUT_SECONDS(
             "helpdesk.idleTimeout", Syntax.NUMERIC, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_CLEAR_RESPONSES(

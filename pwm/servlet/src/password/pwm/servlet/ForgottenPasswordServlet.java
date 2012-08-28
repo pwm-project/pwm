@@ -37,11 +37,11 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -142,10 +142,37 @@ public class
         pwmSession.clearForgottenPasswordBean();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
-        // convert the username field to a DN.
-        final String userDN;
+        final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM, pwmSession.getSessionStateBean().getLocale());
+
         try {
-            userDN = UserStatusHelper.convertUsernameFieldtoDN(usernameParam, pwmSession, pwmApplication, contextParam);
+            //read the values from the request
+            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm);
+
+            // see if the values meet the configured form requirements.
+            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+
+            // convert the username field to a DN.
+            final ChaiUser theUser;
+            {
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FILTER));
+                searchConfiguration.setFormValues(formValues);
+                searchConfiguration.setContext(contextParam);
+                theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+            }
+
+            if (theUser == null) {
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
+                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
+                pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+                forwardToSearchJSP(req,resp);
+                return;
+            }
+
+            forgottenPasswordBean.setProxiedUser(theUser);
+            pwmSession.getSessionStateBean().setLastParameterValues(new Properties());
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
             pwmApplication.getIntruderManager().addIntruderAttempt(usernameParam, pwmSession);
@@ -157,19 +184,6 @@ public class
             return;
         }
 
-        final String forgottenPasswordQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_QUERY_MATCH);
-        if (forgottenPasswordQueryMatch != null && forgottenPasswordQueryMatch.length() > 0) {
-            if (!Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, forgottenPasswordQueryMatch)) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"does not match forgotten password query match");
-                LOGGER.info(pwmSession, errorInfo.toDebugStr());
-                pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                ServletHelper.forwardToErrorPage(req,resp,true);
-                return;
-            }
-        }
-
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-        forgottenPasswordBean.setProxiedUser(proxiedUser);
         this.advancedToNextStage(req, resp);
     }
 
@@ -217,7 +231,7 @@ public class
             if (tokenPayload != null) {
                 try {
                     final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
                     final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
                         tokenPass = false;
@@ -638,7 +652,7 @@ public class
         final Map<String,String> tokenMapData = new HashMap<String, String>();
 
         try {
-            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser, null);
+            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
             if (userLastPasswordChange != null) {
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userLastPasswordChange.toString());
             }
@@ -843,5 +857,6 @@ public class
 
         return returnList;
     }
+
 }
 

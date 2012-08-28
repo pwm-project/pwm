@@ -29,13 +29,13 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.CommandServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -43,7 +43,6 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
 
-import java.io.Serializable;
 import java.util.*;
 
 public class UserStatusHelper {
@@ -244,7 +243,7 @@ public class UserStatusHelper {
         uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));
 
         // fetch last password modification time;
-        final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, config, theUser, uiBean);
+        final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, config, theUser);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
@@ -253,8 +252,7 @@ public class UserStatusHelper {
     public static Date determinePwdLastModified(
             final PwmSession pwmSession,
             final Configuration config,
-            final ChaiUser theUser,
-            final UserInfoBean userInfoBean
+            final ChaiUser theUser
     )
             throws ChaiUnavailableException
     {
@@ -284,131 +282,6 @@ public class UserStatusHelper {
         return null;
     }
 
-    /**
-     * For a given username, find an appropriate objectDN.  Uses parameters in the PWM
-     * configuration to specify how the search should be performed.
-     * <p/>
-     * If exactly one match is discovered, then that value is returned.  Otherwise if
-     * no matches or if multiple matches are discovered then null is returned.  Multiple
-     * matches are considered an error condition.
-     * <p/>
-     * If the username appears to already be a valid DN, then the context search is not performed
-     * and instead the username value is returned.
-     *
-     * @param username   username to search for
-     * @param pwmSession for grabbing required beans
-     * @param context    specify context to use to search, or null to use pwm configured attribute
-     * @return the discovered objectDN of the user, or null if none found.
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *          of directory is unavailable
-     */
-    public static String convertUsernameFieldtoDN(
-            final String username,
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String context
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
-        final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
-        final Configuration config = pwmApplication.getConfig();
-        return convertUsernameFieldtoDN(username, pwmSession, context, provider, config, true);
-    }
-
-    public static String convertUsernameFieldtoDN(
-            final String username,
-            final PwmSession pwmSession,
-            final String context,
-            final ChaiProvider provider,
-            final Configuration config,
-            final boolean strictContext
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
-        // if no username supplied, just return empty string
-        if (username == null || username.length() < 1) {
-            final String errorMessage = "an ldap user for for username value '" + username + "' was not found";
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
-        }
-
-        {   //if supplied user name starts with username attr assume its the full dn and skip the search
-            final String usernameAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-            if (username.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
-                LOGGER.trace(pwmSession, "username appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
-                return username;
-            } else {
-                LOGGER.trace(pwmSession, "username does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
-            }
-        }
-
-        final String searchDN = determineContextForSearch(pwmSession, context, config, strictContext);
-        LOGGER.trace(pwmSession, "attempting username search for '" + username + "'" + " in context " + searchDN);
-
-        final SearchHelper searchHelper = new SearchHelper();
-        {
-            final String filterSetting = config.readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
-            final String filter = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, Helper.escapeLdapString(username));
-            searchHelper.setFilter(filter);
-            searchHelper.setAttributes("");
-            searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-        }
-
-        LOGGER.trace(pwmSession, "search for username: " + searchHelper.getFilter() + ", searchDN: " + searchDN);
-
-        try {
-
-            final Map<String, Map<String,String>> results = provider.search(searchDN, searchHelper);
-
-            if (results == null || results.size() == 0) {
-                LOGGER.trace(pwmSession, "no matches found");
-                final String errorMessage = "an ldap user for for username value '" + username + "' was not found";
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
-            } else if (results.size() > 1) {
-                final String errorMessage = "multiple ldap users for for username value '" + username + "' was not found";
-                LOGGER.warn(pwmSession, errorMessage);
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
-            } else {
-                final String userDN = results.keySet().iterator().next();
-                LOGGER.trace(pwmSession, "username match found: " + userDN);
-                return userDN;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error during username search: " + e.getMessage());
-            final String errorDetail = "error during contextless login username search, setting 'LDAP Directory-LDAP Contextless Login Root' value does not appear to be correct: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorDetail));
-        }
-    }
-
-    public static String determineContextForSearch(
-            final PwmSession pwmSession,
-            final String context,
-            final Configuration config,
-            final boolean strictContext
-    )
-    {
-        final String configuredLdapContextlessRoot = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        if (context == null || context.length() < 1) {
-            return configuredLdapContextlessRoot;
-        }
-
-        if (!strictContext) {
-            return context;
-        }
-
-        // validate if supplied context is configured root
-        if (context.equals(configuredLdapContextlessRoot)) {
-            return context;
-        }
-
-        // see if the baseDN is one of the configured login contexts.
-        final Map<String, String> contextsSettings = config.getLoginContexts();
-        if (contextsSettings.containsKey(context)) {
-            if (contextsSettings.keySet().contains(context)) {
-                return context;
-            }
-        }
-
-        LOGGER.warn(pwmSession, "attempt to use '" + context + "' context for search, but is not a configured context, changing search base to default context");
-        return configuredLdapContextlessRoot;
-    }
 
     /**
      * Update the user's "lastUpdated" attribute.  By default this is "pwmLastUpdate" attribute
@@ -437,51 +310,4 @@ public class UserStatusHelper {
         return success;
     }
 
-    public static class UsernameSearchRequest implements Serializable {
-        private String filter;
-        private String username;
-        private String context;
-        private ChaiProvider chaiProvider;
-        private PwmApplication pwmApplication;
-
-        public String getFilter() {
-            return filter;
-        }
-
-        public void setFilter(String filter) {
-            this.filter = filter;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getContext() {
-            return context;
-        }
-
-        public void setContext(String context) {
-            this.context = context;
-        }
-
-        public ChaiProvider getChaiProvider() {
-            return chaiProvider;
-        }
-
-        public void setChaiProvider(ChaiProvider chaiProvider) {
-            this.chaiProvider = chaiProvider;
-        }
-
-        public PwmApplication getPwmApplication() {
-            return pwmApplication;
-        }
-
-        public void setPwmApplication(PwmApplication pwmApplication) {
-            this.pwmApplication = pwmApplication;
-        }
-    }
 }

@@ -22,12 +22,8 @@
 
 package password.pwm.servlet;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
@@ -35,11 +31,12 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -94,10 +91,11 @@ public class ForgottenUsernameServlet extends TopServlet {
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
 
-            // get an ldap user object based on the params
-            final String searchFilter = figureSearchFilterForParams(formValues, pwmApplication);
-
-            final ChaiUser theUser = performUserSearch(pwmSession, pwmApplication, searchFilter);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+            searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER));
+            searchConfiguration.setFormValues(formValues);
+            final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
 
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
@@ -108,25 +106,25 @@ public class ForgottenUsernameServlet extends TopServlet {
                 return;
             }
 
-        // make sure the user isn't locked.
-        pwmApplication.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
+            // make sure the user isn't locked.
+            pwmApplication.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
 
-        // redirect user to success page.
-        LOGGER.info(pwmSession, "found user " + theUser.getEntryDN());
-        try {
-            final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE);
-            final String username = theUser.readStringAttribute(usernameAttribute);
-            LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
-            ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
-            pwmApplication.getIntruderManager().addGoodAddressAttempt(pwmSession);
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
-            ServletHelper.forwardToSuccessPage(req, resp);
-            return;
-        } catch (Exception e) {
-            LOGGER.error("error reading username value for " + theUser.getEntryDN() + ", " + e.getMessage());
-        }
+            // redirect user to success page.
+            LOGGER.info(pwmSession, "found user " + theUser.getEntryDN());
+            try {
+                final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE);
+                final String username = theUser.readStringAttribute(usernameAttribute);
+                LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
+                ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
+                pwmApplication.getIntruderManager().addGoodAddressAttempt(pwmSession);
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
+                ServletHelper.forwardToSuccessPage(req, resp);
+                return;
+            } catch (Exception e) {
+                LOGGER.error("error reading username value for " + theUser.getEntryDN() + ", " + e.getMessage());
+            }
 
-        } catch (PwmDataValidationException e) {
+        } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
             ssBean.setSessionError(errorInfo);
             pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
@@ -135,55 +133,6 @@ public class ForgottenUsernameServlet extends TopServlet {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
         pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
         forwardToJSP(req, resp);
-    }
-
-    private static String figureSearchFilterForParams(
-            final Map<FormConfiguration, String> formValues,
-            final PwmApplication pwmApplication
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
-        String searchFilter = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER);
-
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = "%" + formConfiguration.getAttributeName() + "%";
-            searchFilter = searchFilter.replaceAll(attrName, formValues.get(formConfiguration));
-        }
-
-        return searchFilter;
-    }
-
-    private static ChaiUser performUserSearch(final PwmSession pwmSession, final PwmApplication pwmApplication, final String searchFilter)
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setMaxResults(2);
-        searchHelper.setFilter(searchFilter);
-        searchHelper.setAttributes("");
-
-        final String searchBase = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-
-        LOGGER.debug(pwmSession, "performing ldap search for user, base=" + searchBase + " filter=" + searchFilter);
-
-        try {
-            final Map<String, Map<String,String>> results = chaiProvider.search(searchBase, searchHelper);
-
-            if (results.isEmpty()) {
-                LOGGER.debug(pwmSession, "no users found in username search");
-                return null;
-            } else if (results.size() > 1) {
-                LOGGER.debug(pwmSession, "multiple search results for activation search, discarding");
-                return null;
-            }
-
-            final String userDN = results.keySet().iterator().next();
-            LOGGER.debug(pwmSession, "found userDN: " + userDN);
-            return ChaiFactory.createChaiUser(userDN, chaiProvider);
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error searching for user: " + e.getMessage());
-            return null;
-        }
     }
 
     private void forwardToJSP(

@@ -118,7 +118,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         proxyUserDN,
                         proxyUserPW,
                         PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT
-                        );
+                );
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
 
@@ -231,18 +231,19 @@ public class LDAPStatusChecker implements HealthChecker {
             }
 
 
-            try {
-                final String usernameContext = config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-                final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(usernameContext,chaiProvider);
-                final Set<String> objectClasses = contextEntry.readObjectClass();
+            for (final String loopContext : config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
+                try {
+                    final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
+                    final Set<String> objectClasses = contextEntry.readObjectClass();
 
-                if (objectClasses == null || objectClasses.isEmpty()) {
-                    final String errorString = "ldap root context setting is not valid";
+                    if (objectClasses == null || objectClasses.isEmpty()) {
+                        final String errorString = "ldap context setting '" + loopContext + "' is not valid";
+                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                    }
+                } catch (Exception e) {
+                    final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
                     returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
                 }
-            } catch (Exception e) {
-                final String errorString = "ldap root context setting is not valid: " + e.getMessage();
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
             }
         } finally {
             if (chaiProvider != null) {

@@ -36,6 +36,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.stats.Statistic;
@@ -237,13 +238,21 @@ public class IntruderManager implements Serializable, PwmService {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
 
         try {
-            final String userDN = UserStatusHelper.convertUsernameFieldtoDN(username, pwmSession, pwmApplication, null);
-            final ChaiUser user = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
-            LOGGER.debug(pwmSession, "updated user history for " + userDN + " with intruder lock event");
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final ChaiUser user;
+            if (userSearchEngine.checkIfStringIsDN(pwmSession,username)) {
+                user =ChaiFactory.createChaiUser(username, pwmApplication.getProxyChaiProvider());
+            } else {
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setUsername(username);
+                user = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+            }
+            if (user != null) {
+                UserHistory.updateUserHistory(pwmSession, pwmApplication, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
+                LOGGER.debug(pwmSession, "updated user history for " + user.getEntryDN() + " with intruder lock event");
+            }
         } catch (ChaiUnavailableException e) {
             LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
-
         } catch (PwmException e) {
             LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
         }

@@ -21,8 +21,6 @@
  */
 
 var clientSettingCache = { };
-var menuItems = new Array();
-var selectedCategory = "";
 
 function readSetting(keyName, valueWriter) {
     require(["dojo"],function(dojo){
@@ -747,7 +745,7 @@ function writeConfigurationNotes() {
             },
             error: function(errorObj) {
                 closeWaitDialog();
-                showError("error saving notes text: " + errorObj)
+                showError("error saving notes text: " + errorObj);
                 buildMenuBar();
             }
         });
@@ -789,3 +787,86 @@ function showConfigurationNotes() {
         });
     });
 }
+
+var ChangePasswordHandler = {};
+
+ChangePasswordHandler.validatePasswordPopupFields = function() {
+    var password1 = getObject('password1').value;
+    var password2 = getObject('password2').value;
+
+    var matchStatus = "";
+
+    getObject('password_button').disabled = true;
+    if (password2.length > 0) {
+        if (password1 == password2) {
+            matchStatus = "MATCH";
+            getObject('password_button').disabled = false;
+        } else {
+            matchStatus = "NO_MATCH";
+        }
+    }
+
+    ChangePasswordHandler.markConfirmationCheck(matchStatus);
+};
+
+ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
+    if (matchStatus == "MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'visible';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '15';
+        getObject("confirmCrossMark").width = '0';
+    } else if (matchStatus == "NO_MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'visible';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '15';
+    } else {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '0';
+    }
+};
+
+ChangePasswordHandler.doChange = function(settingKey) {
+    var password1 = getObject('password1').value;
+    clearDijitWidget('changepassword-popup');
+    writeSetting(settingKey,password1);
+};
+
+ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
+    require(["dijit/Dialog","dijit/form/Textarea"],function(){
+        var bodyText = '<span id="message" class="message message-info">' + settingName + '</span><br/>';
+        bodyText += '<table style="border: 0">';
+        bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
+        bodyText += '</tr><tr style="border: 0">';
+        bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
+
+        bodyText += '<td style="border: 0"><div style="margin:0;">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="../resources/greenCheck.png">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="../resources/redX.png">';
+        bodyText += '</div></td>';
+
+        bodyText += '</tr></table>';
+        bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
+        bodyText += 'Set Password</button>';
+
+        clearDijitWidget('changepassword-popup');
+        var theDialog = new dijit.Dialog({
+            id: 'changepassword-popup',
+            title: 'Set Password',
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('changepassword-popup');
+            }
+        });
+        theDialog.show();
+
+        require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
+            dojoParser.parse();
+        });
+
+        setTimeout(function(){ getObject('password1').focus();},500);
+    });
+};
