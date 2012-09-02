@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.queue;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -41,15 +41,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthRecord;
+import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,21 +57,12 @@ import java.util.regex.Pattern;
 /**
  * @author Menno Pieters, Jason D. Rivard
  */
-public class SmsQueueManager implements PwmService {
+public class SmsQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final int ERROR_RETRY_WAIT_TIME_MS = 60 * 1000;
+    static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
+    static String SERVICE_NAME = "SmsQueueManager";
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
-
-    private PwmDBStoredQueue smsSendQueue;
-    private PwmApplication theManager;
-
-    private STATUS status = PwmService.STATUS.NEW;
-    private volatile boolean threadActive;
-    private long maxErrorWaitTimeMS = 5 * 60 * 1000;
-
-    private HealthRecord lastSendFailure;
 
     public enum SmsNumberFormat {
         PLAIN,
@@ -99,78 +90,18 @@ public class SmsQueueManager implements PwmService {
 // --------------------- Interface PwmService ---------------------
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        this.theManager = pwmApplication;
-        this.maxErrorWaitTimeMS = theManager.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
-
-        final PwmDB pwmDB = theManager.getPwmDB();
-
-        if (pwmDB == null) {
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        smsSendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.SMS_QUEUE);
-
-        status = PwmService.STATUS.OPEN;
-
-        {
-            final SmsSendThread smsSendThread = new SmsSendThread();
-            smsSendThread.setDaemon(true);
-            smsSendThread.setName("pwm-SmsQueueManager");
-            smsSendThread.start();
-            threadActive = true;
-        }
+        super.init(pwmApplication, PwmDB.DB.SMS_QUEUE);
+        this.maxErrorWaitTimeMS = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
     }
 
-    public STATUS status() {
-        return status;
-    }
-
-    public void close() {
-        status = PwmService.STATUS.CLOSED;
-
-        {
-            final long startTime = System.currentTimeMillis();
-            while (threadActive && (System.currentTimeMillis() - startTime) < 300) {
-                Helper.pause(100);
-            }
-        }
-
-        if (threadActive) {
-            final long startTime = System.currentTimeMillis();
-            LOGGER.info("waiting up to 30 seconds for sms sender thread to close....");
-
-            while (threadActive && (System.currentTimeMillis() - startTime) < 30 * 1000) {
-                Helper.pause(100);
-            }
-
-            try {
-                if (!smsSendQueue.isEmpty()) {
-                    LOGGER.warn("closing sms queue with " + smsSendQueue.size() + " message(s) in queue");
-                }
-            } catch (Exception e) {
-                LOGGER.error("unexpected exception while shutting down: " + e.getMessage());
-            }
-        }
-
-        LOGGER.debug("closed");
-    }
-
-    public List<HealthRecord> healthCheck() {
-        if (lastSendFailure == null) {
-            return null;
-        }
-
-        return Collections.singletonList(lastSendFailure);
-    }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public void shortenMessageIfNeeded(final SmsItemBean smsItem) {
-        final Boolean shorten = theManager.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
+        final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();
-            smsItem.setMessage(theManager.getUrlShortener().shortenUrlInText(message));
+            smsItem.setMessage(pwmApplication.getUrlShortener().shortenUrlInText(message));
         }
     }
 
@@ -180,25 +111,26 @@ public class SmsQueueManager implements PwmService {
         }
 
         shortenMessageIfNeeded(smsItem);
-        if (!determineIfSmsCanBeDelivered(smsItem)) {
+        if (!determineIfItemCanBeDelivered(smsItem)) {
             return;
         }
 
-        final SmsEvent event = new SmsEvent(smsItem, System.currentTimeMillis());
-        if (smsSendQueue.size() < PwmConstants.MAX_SMS_QUEUE_SIZE) {
+        if (sendQueue.size() >= PwmConstants.MAX_SMS_QUEUE_SIZE) {
+            LOGGER.warn("sms queue full, discarding sms send request: " + smsItem);
+        }
+
+        final String smsItemGson = (new Gson()).toJson(smsItem);
+        final QueueEvent event = new QueueEvent(smsItemGson, System.currentTimeMillis());
             try {
                 final String jsonEvent = (new Gson()).toJson(event);
-                smsSendQueue.addLast(jsonEvent);
+                sendQueue.addLast(jsonEvent);
             } catch (Exception e) {
                 LOGGER.error("error writing to pwmDB queue, discarding sms send request: " + e.getMessage());
             }
-        } else {
-            LOGGER.warn("sms queue full, discarding sms send request: " + smsItem);
-        }
     }
 
-    private boolean determineIfSmsCanBeDelivered(final SmsItemBean smsItem) {
-        final Configuration config = theManager.getConfig();
+    boolean determineIfItemCanBeDelivered(final SmsItemBean smsItem) {
+        final Configuration config = pwmApplication.getConfig();
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
         final String gatewayPass = config.readSettingAsString(PwmSetting.SMS_GATEWAY_PASSWORD);
@@ -226,44 +158,8 @@ public class SmsQueueManager implements PwmService {
         return true;
     }
 
-    public int queueSize() {
-        if (smsSendQueue == null || status != STATUS.OPEN) {
-            return 0;
-        }
-
-        return this.smsSendQueue.size();
-    }
-
-    private boolean processQueue() {
-        while (smsSendQueue.peekFirst() != null) {
-            final String jsonEvent = smsSendQueue.peekFirst();
-            if (jsonEvent != null) {
-                final SmsEvent event = (new Gson()).fromJson(jsonEvent, SmsEvent.class);
-
-                if ((System.currentTimeMillis() - maxErrorWaitTimeMS) > event.getQueueInsertTimestamp()) {
-                    LOGGER.debug("discarding sms event due to maximum retry age: " + event.getSmsItem().toString());
-                    smsSendQueue.pollFirst();
-                } else {
-                    final SmsItemBean smsItem = event.getSmsItem();
-                    if (!determineIfSmsCanBeDelivered(smsItem)) {
-                        smsSendQueue.pollFirst();
-                        return true;
-                    }
-
-                    final boolean success = sendSms(smsItem);
-                    if (!success) {
-                        LOGGER.error("Error sending SMS");
-                        return false;
-                    }
-                    LOGGER.info("SMS sent");
-                    smsSendQueue.pollFirst();
-                }
-            }
-        }
-        return true;
-    }
-
-    private boolean sendSms(final SmsItemBean smsItemBean) {
+    boolean sendItem(final String item) {
+        final SmsItemBean smsItemBean = (new Gson()).fromJson(item, SmsItemBean.class);
         boolean success = true;
         while (success && smsItemBean.hasNextPart()) {
             success = sendSmsPart(smsItemBean);
@@ -272,7 +168,7 @@ public class SmsQueueManager implements PwmService {
     }
 
     private boolean sendSmsPart(final SmsItemBean smsItemBean) {
-        final Configuration config = theManager.getConfig();
+        final Configuration config = pwmApplication.getConfig();
 
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
         final String gatewayPass = config.readSettingAsString(PwmSetting.SMS_GATEWAY_PASSWORD);
@@ -408,7 +304,7 @@ public class SmsQueueManager implements PwmService {
     }
 
     private String formatSmsNumber(final String smsNumber) {
-        final Configuration config = theManager.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         Integer ccnum;
         try {
@@ -466,63 +362,4 @@ public class SmsQueueManager implements PwmService {
         }
         return ret;
     }
-
-    // -------------------------- INNER CLASSES --------------------------
-    private class SmsSendThread extends Thread {
-        public void run() {
-            LOGGER.trace("starting up sms queue processing thread, queue size is " + smsSendQueue.size());
-
-            while (status == PwmService.STATUS.OPEN) {
-
-                boolean success = false;
-                try {
-                    success = processQueue();
-                    if (success) {
-                        lastSendFailure = null;
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("unexpected exception while processing sms queue: " + e.getMessage(), e);
-                    LOGGER.error("unable to process sms queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));
-                }
-
-                final long startTime = System.currentTimeMillis();
-                final long sleepTime = success ? 1000 : ERROR_RETRY_WAIT_TIME_MS;
-                while (PwmService.STATUS.OPEN == status && (System.currentTimeMillis() - startTime) < sleepTime) {
-                    Helper.pause(100);
-                }
-            }
-
-            // try to clear out the queue before the thread exits...
-            try {
-                processQueue();
-            } catch (Exception e) {
-                LOGGER.error("unexpected exception while processing sms queue: " + e.getMessage(), e);
-            }
-
-            threadActive = false;
-            LOGGER.trace("closing sms queue processing thread");
-        }
-    }
-
-    private static class SmsEvent implements Serializable {
-        private SmsItemBean smsItem;
-        private long queueInsertTimestamp;
-
-        private SmsEvent() {
-        }
-
-        private SmsEvent(final SmsItemBean smsItem, final long queueInsertTimestamp) {
-            this.smsItem = smsItem;
-            this.queueInsertTimestamp = queueInsertTimestamp;
-        }
-
-        public SmsItemBean getSmsItem() {
-            return smsItem;
-        }
-
-        public long getQueueInsertTimestamp() {
-            return queueInsertTimestamp;
-        }
-    }
-
 }

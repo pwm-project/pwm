@@ -9,7 +9,7 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
-v1.6.5 (August 23, 2012) build 1185
+v1.6.5
 ---
 + Forgotten password search form now has multiple fields available (issue #207)
 + Multiple ldap root contexts are now possible for login, helpdesk and other functions (issue #227)
@@ -20,7 +20,7 @@ v1.6.4 (August 23, 2012) build 1185
 + Norwegian language support; thanks Izaz! (issue #261)
 + Configuration option to enable/disable eDirectory NMAS password reading
 
-- Workaround for Apace Tomcat v7.0.29 deployment bug (issue #244)
+- Workaround for Apache Tomcat v7.0.29 deployment bug (issue #244)
 
 ! increased hash loop count for credentials stored in shared history
 
