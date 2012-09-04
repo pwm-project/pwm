@@ -60,7 +60,7 @@ public class BasicAuthInfo implements Serializable {
 
                 try {
                     // ***** Decode the username/chpass string
-                    final String decoded = new String(Base64Util.decode(encoded));
+                    final String decoded = new String(Base64Util.decode(encoded),PwmConstants.HTTP_BASIC_AUTH_DECODE_CHARSET);
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"

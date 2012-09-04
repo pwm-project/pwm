@@ -108,6 +108,7 @@ public abstract class PwmConstants {
     public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
     public static final String HTTP_HEADER_X_FORWARDED_FOR = readPwmConstantsBundle("httpHeaderXForwardedFor");
+    public static final String HTTP_BASIC_AUTH_DECODE_CHARSET = readPwmConstantsBundle("httpBasicAuthDecodeCharset");
 
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 
