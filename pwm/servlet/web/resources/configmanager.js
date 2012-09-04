@@ -205,10 +205,10 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
     newTableRow.setAttribute("style", "border-width: 0");
     {
         var td1 = document.createElement("td");
-        td1.setAttribute("style", "border-width: 0;");
+        td1.setAttribute("style", "border-width: 0; -webkit-transform: rotate(270deg);-moz-transform: rotate(270deg);-o-transform: rotate(270deg); max-width:10px");
 
         if (localeString == null || localeString.length < 1) {
-            td1.innerHTML = "Default";
+            td1.innerHTML = "default";
         } else {
             td1.innerHTML = localeString;
         }

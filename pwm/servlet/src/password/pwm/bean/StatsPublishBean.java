@@ -39,7 +39,8 @@ public class StatsPublishBean implements Serializable {
     public enum KEYS {
         SITE_URL,
         SITE_DESCRIPTION,
-        INSTALL_DATE
+        INSTALL_DATE,
+        LDAP_VENDOR
     }
 
     public StatsPublishBean() {

@@ -204,7 +204,7 @@
 
     function startup() {
         require(["dojo","dojo/domReady!","dojo/window"],function(){
-            flashDomElement('red','body',5000);
+            flashDomElement('white','body',9000);
 
             var vs = dojo.window.getBox();
             posH = Math.floor((Math.random() * (vs.w - 30)));

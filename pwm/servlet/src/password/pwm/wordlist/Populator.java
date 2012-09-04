@@ -54,7 +54,6 @@ class Populator {
     private static final NumberFormat PERCENT_FORMAT = DecimalFormat.getPercentInstance();
 
     private final ZipReader zipFileReader;
-    private final boolean caseSensitive;
 
     private volatile boolean abortFlag;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
@@ -97,7 +96,6 @@ class Populator {
         this.wordlistDB = rootWordlist.WORD_DB;
         this.wordlistMetaDB = rootWordlist.META_DB;
         this.sleeper = sleeper;
-        this.caseSensitive = rootWordlist.wordlistConfiguration.isCaseSensitive();
         this.DEBUG_LABEL = rootWordlist.DEBUG_LABEL;
         this.rootWordlist = rootWordlist;
 
@@ -268,26 +266,18 @@ class Populator {
             throws IOException
     {
         // check for word suitability
-        if (line == null) {
+        line = rootWordlist.normalizeWord(line);
+
+        if (line == null || line.length() < 1 || line.startsWith(COMMENT_PREFIX)) {
             return;
         }
-
-        line = line.trim();
-
-        if (line.length() < 1 || line.startsWith(COMMENT_PREFIX)) {
-            return;
-        }
-
-        if (!caseSensitive) line = line.toLowerCase();
 
         if (line.length() > MAX_LINE_LENGTH) {
             line = line.substring(0,MAX_LINE_LENGTH);
         }
 
-        //if (!rootWordlist.containsWord(null,line)) {
-            final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
-            bufferedWords.putAll(wordTxn);
-        //}
+        final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
+        bufferedWords.putAll(wordTxn);
     }
 
     private void flushBuffer()

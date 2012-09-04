@@ -233,12 +233,13 @@ function copyToPasswordFields(text)  // used to copy auto-generated passwords to
     getObject("password2").focus();
 }
 
+
 function showPasswordGuide() {
-    clearDijitWidget('clearDigitWidget');
-    require(["dijit/Dialog"],function(){
+    clearDijitWidget('dialogPopup');
+    require(["dojo","dijit/Dialog"],function(){
         var theDialog = new dijit.Dialog({
             title: PWM_STRINGS['Title_PasswordGuide'],
-            style: "border: 2px solid #D4D4D4;",
+            style: "border: 2px solid #D4D4D4; style: 300px",
             content: PWM_STRINGS['passwordGuideText'],
             closable: true,
             draggable: true,
@@ -248,21 +249,17 @@ function showPasswordGuide() {
     });
 }
 
+
 function showRandomPasswordsDialog(randomConfig) {
     closeWaitDialog();
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
-    var centerBodyElement = getObject('centerbody');
 
-    require(["dijit/Dialog"],function(){
+    require(["dojo","dijit/Dialog"],function(){
         var theDialog = new dijit.Dialog({
             title: titleString,
             style: "width: 300px; border: 2px solid #D4D4D4;",
             content: randomConfig['dialogBody'],
-            closable: false,
-            draggable: true,
-            autofocus: false,
-            containerNode: centerBodyElement,
             id: "dialogPopup"
 
         });

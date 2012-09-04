@@ -233,13 +233,14 @@ function showWaitDialog(title, body) {
     if (title == null) {
         title=PWM_STRINGS['Display_PleaseWait'];
     }
-    require(["dojo","dijit/Dialog"],function(dojo){
+    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         var idName = 'dialogPopup';
         clearDijitWidget(idName);
         if (body == null || body.length < 1) {
-            body = '<div id="WaitDialogBlank"/>';
+            //body = '<div id="WaitDialogBlank"/>';
+            body = '<div id="progressBar" style="background: purple; margin: 8px; width: 100%"/>'
         }
-        var theDialog = new dijit.Dialog({
+        var theDialog = new Dialog({
             id: idName,
             title: title,
             style: "width: 300px",
@@ -247,6 +248,11 @@ function showWaitDialog(title, body) {
         });
         dojo.style(theDialog.closeButtonNode,"display","none");
         theDialog.show();
+        var progressBar = new ProgressBar({
+            style: '',
+            indeterminate:true
+        },"progressBar");
+
     });
 }
 

@@ -140,7 +140,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         }
     }
 
-    private String normalizeWord(final String input) {
+    String normalizeWord(final String input) {
         if (input == null) {
             return null;
         }

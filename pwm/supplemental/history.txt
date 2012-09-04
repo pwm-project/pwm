@@ -13,6 +13,9 @@ v1.6.5
 ---
 + Forgotten password search form now has multiple fields available (issue #207)
 + Multiple ldap root contexts are now possible for login, helpdesk and other functions (issue #227)
++ HTTP BasicAuth header default decoding is now "UTF-8"; exposed decoding charset in PwmConstants.properties (issue #34)
+
+
 
 
 v1.6.4 (August 23, 2012) build 1185

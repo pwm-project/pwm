@@ -37,7 +37,7 @@ public class ConfigManagerBean implements Serializable {
     private java.util.Date configurationLoadTime;
     private ErrorInformation errorInformation;
     private PwmSetting.Level level = PwmSetting.Level.BASIC;
-    private boolean showDescr = true;
+    private boolean showDescr = false;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
 

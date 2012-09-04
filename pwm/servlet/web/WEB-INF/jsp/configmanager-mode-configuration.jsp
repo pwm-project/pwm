@@ -56,79 +56,104 @@
             <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime()%>.
             (Epoch <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()%>)
         </p>
-        <table class="tablemain">
-            <tr>
-                <td class="title" colspan="10">
-                    PWM Health
+        <div data-dojo-type="dijit.TitlePane" title="PWM Health" style="border:0; margin:0; padding:0">
+            <div id="healthBody" style="border:0; margin:0; padding:0">
+                <div id="WaitDialogBlank"></div>
+            </div>
+            <script type="text/javascript">
+                require(["dojo/domReady!"],function(){
+                    showPwmHealth('healthBody', false, true);
+                });
+            </script>
+        </div>
+        <br class="clear"/>
+
+        <table style="border:0">
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a>
+                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="processAction" value="editMode"/>
+                        <input type="hidden" name="mode" value="SETTINGS"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </td>
+                <td style="border:0">
+                    <p>Use the PWM configuration editor to edit the running configuration.</p>
                 </td>
             </tr>
-            <tr>
-                <td colspan="10" style="border:0; margin:0; padding:0">
-                    <div id="healthBody" style="border:0; margin:0; padding:0">
-                        <div id="WaitDialogBlank"></div>
-                    </div>
-                    <script type="text/javascript">
-                        require(["dojo/domReady!"],function(){
-                            showPwmHealth('healthBody', false, true);
-                        });
-                    </script>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
+                </td>
+                <td style="border:0">
+                    <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a>
+
+                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="processAction" value="generateXml"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </td>
+                <td style="border:0">
+                    <p>Download the current configuration XML file.</p>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
+
+                </td>
+                <td style="border:0">
+                    <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
+                        the current configuration.</p>
+                    <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
+                        <input type="hidden" name="processAction" value="uploadXml"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                        <input type="file" name="uploadFile" size="50" style="width: 350px"/>
+                        <%--<input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
+                               onclick="document.forms['uploadXml'].submit();"/>--%>
+                    </form>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="#" onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock Configuration</a>
+                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
+                          enctype="application/x-www-form-urlencoded">
+                        <input type="hidden" name="processAction" value="lockConfiguration"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </td>
+                <td style="border:0">
+                    <p>Lock the configuration. Once the configuration is locked, you can no longer directly edit the running
+                        configuration using this interface.  If you wish to make changes
+                        after locking, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
+                        file on the PWM server.</p>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" href="<%=request.getContextPath()%>">PWM Main Menu</a>
+                </td>
+                <td style="border:0">
+                    <p>Return to the main menu to test the configuration.</p>
                 </td>
             </tr>
         </table>
-        <br class="clear"/>
-
-        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a>
-
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="editMode"/>
-            <input type="hidden" name="mode" value="SETTINGS"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
-        <p>Use the PWM configuration editor to edit the running configuration.</p>
-
-        <a class="menubutton" href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
-        <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
-
-        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a>
-
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="generateXml"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
-        <p>Download the current configuration XML file.</p>
-
-        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
-
-        <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
-            <input type="hidden" name="processAction" value="uploadXml"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" name="uploadFile" size="50"/>
-            <input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
-                   onclick="document.forms['uploadXml'].submit();"/>
-        </form>
-        <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
-            the current configuration.</p>
-
-        <a class="menubutton" href="#" onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock Configuration</a>
-
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="lockConfiguration"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
-
-        <p>Lock the configuration. Once the configuration is locked, you can no longer directly edit the running
-            configuration using this interface.  If you wish to make changes
-            after locking, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
-            file on the PWM server.</p>
-
-        <a class="menubutton" href="<%=request.getContextPath()%>">PWM Main Menu</a>
-
-        <p>Return to the main menu to test the configuration.</p>
     </div>
 </div>
+<script type="text/javascript">
+    require(["dojo/parser","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

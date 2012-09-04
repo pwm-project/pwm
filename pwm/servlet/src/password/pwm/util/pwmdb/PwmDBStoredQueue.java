@@ -496,7 +496,7 @@ public class PwmDBStoredQueue implements Queue<String>  //, Deque<String>
 
             empty = headPosition.equals(tailPosition) && pwmDB.get(DB, headPosition.toString()) == null;
 
-            LOGGER.debug("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
+            LOGGER.trace("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
 
             repair();
 
