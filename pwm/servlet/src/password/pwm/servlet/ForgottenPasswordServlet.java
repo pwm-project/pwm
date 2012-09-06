@@ -43,6 +43,7 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;

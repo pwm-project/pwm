@@ -191,18 +191,18 @@
         </tr>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordViolatesPolicy"/>
-            </td>
-            <td>
-                <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
                 <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
             </td>
             <td>
                 <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_PasswordViolatesPolicy"/>
+            </td>
+            <td>
+                <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
         <tr>

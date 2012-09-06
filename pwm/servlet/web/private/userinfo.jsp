@@ -26,7 +26,6 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
-<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.util.operations.CrUtility" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
@@ -85,18 +84,18 @@
                 </tr>
                 <tr>
                     <td class="key">
-                        <pwm:Display key="Field_PasswordViolatesPolicy"/>
-                    </td>
-                    <td>
-                        <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="key">
                         <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
                     </td>
                     <td>
                         <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordViolatesPolicy"/>
+                    </td>
+                    <td>
+                        <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
                     </td>
                 </tr>
                 <tr>

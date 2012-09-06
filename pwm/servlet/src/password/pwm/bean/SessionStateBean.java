@@ -30,7 +30,6 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -78,9 +77,6 @@ public class SessionStateBean implements Serializable {
     private boolean debugInitialized;
     private boolean sessionVerified;
 
-    private Date lastAccessTime = new Date();
-
-
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
 
@@ -104,14 +100,6 @@ public class SessionStateBean implements Serializable {
 
     public int getIncorrectLogins() {
         return incorrectLogins;
-    }
-
-    public Date getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public void setLastAccessTime(final Date lastAccessTime) {
-        this.lastAccessTime = lastAccessTime;
     }
 
     public Properties getLastParameterValues() {

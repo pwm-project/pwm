@@ -31,13 +31,13 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.UserStatusHelper;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.UserStatusHelper;
 
 import java.io.IOException;
 import java.io.OutputStream;

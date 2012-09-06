@@ -275,6 +275,7 @@ div.progress-container > div {
     font-family: Trebuchet MS, sans-serif;
     font-size: 14px;
     color: #FFFFFF;
+    -webkit-box-reflect: below 10px
 }
 
 #header-warning {

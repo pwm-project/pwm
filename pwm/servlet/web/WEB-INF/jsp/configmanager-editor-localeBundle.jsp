@@ -31,62 +31,60 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
-<div id="settingContents">
-    <script type="text/javascript">
-        var LOAD_TRACKER = new Array();
-        getObject('settingContents').style.visibility = 'hidden';
-        showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
-    </script>
-    <h1 style="text-align:center; color: gray">Custom Text - <%=bundleName.getTheClass().getSimpleName()%></h1>
-    <p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
-        value of the current pwm defaults.</p>
-    <p>If your modifications are to correct missing non-english locale values, please consider sharing your translations with the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>.
-            <% if (PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY.equals(bundleName)) { %>
-    <p>All display settings may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>
-    <% } %>
-    <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
-    <% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
-    <% if (!isDefault) { %>
-    <script type="text/javascript">
-        LOAD_TRACKER.push('<%=key%>');
-    </script>
-    <% } %>
-    <div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
-        <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
-            <% if (isDefault) { %>
-            <button id="loadButton-localeBundle-<%=bundleName%>-<%=key%>">Edit Text</button>
-            <script type="text/javascript">
-                require(["dijit/form/Button"],function(){
-                    new dijit.form.Button({
-                        onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
-                    },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
-                });
-            </script>
-            <% } %>
-            <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
-            <img src="<%=request.getContextPath()%>/resources/reset.gif" alt="Reset" title="Reset to default value"
-                 id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
-                 style="visibility:hidden; vertical-align:bottom; float: right"
-                 onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>
-        </div>
-        <div class="message message-info" style="width: 580px; background: white;">
-            <table id="table_<%=key%>" style="border-width:0" width="500">
-                <% for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) { %>
-                <tr style="border-width:0">
-                    <td style="border-width:0">
-                        <%= "".equals(loopLocale.toString()) ? "Default" : loopLocale.toString() %>
-                    </td>
-                    <td style="border-width:1px; width: 100%; color: #808080; margin: 2px">
-                        <%= StringEscapeUtils.escapeHtml(ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key)) %>
-                    </td>
-                </tr>
-                <% } %>
-            </table>
-        </div>
+<script type="text/javascript">
+    var LOAD_TRACKER = new Array();
+    getObject('mainContentPane').style.display = 'none';
+    showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
+</script>
+<h1 style="text-align:center; color: gray">Custom Text - <%=bundleName.getTheClass().getSimpleName()%></h1>
+<p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
+    value of the current pwm defaults.</p>
+<p>If your modifications are to correct missing non-english locale values, please consider sharing your translations with the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>.
+        <% if (PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY.equals(bundleName)) { %>
+<p>All display settings may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>
+<% } %>
+<% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
+<% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
+<% if (!isDefault) { %>
+<script type="text/javascript">
+    LOAD_TRACKER.push('<%=key%>');
+</script>
+<% } %>
+<div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
+    <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
+        <% if (isDefault) { %>
+        <button id="loadButton-localeBundle-<%=bundleName%>-<%=key%>">Edit Text</button>
+        <script type="text/javascript">
+            require(["dijit/form/Button"],function(){
+                new dijit.form.Button({
+                    onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
+                },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
+            });
+        </script>
+        <% } %>
+        <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
+        <img src="<%=request.getContextPath()%>/resources/reset.png" alt="Reset" title="Reset to default value"
+             id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
+             style="visibility:hidden; vertical-align:bottom; float: right"
+             onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>
     </div>
-    <br/>
-    <% } %>
+    <div class="message message-info" style="width: 580px; background: white;">
+        <table id="table_<%=key%>" style="border-width:0" width="500">
+            <% for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) { %>
+            <tr style="border-width:0">
+                <td style="border-width:0">
+                    <%= "".equals(loopLocale.toString()) ? "Default" : loopLocale.toString() %>
+                </td>
+                <td style="border-width:1px; width: 100%; color: #808080; margin: 2px">
+                    <%= StringEscapeUtils.escapeHtml(ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key)) %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
 </div>
+<br/>
+<% } %>
 <script type="text/javascript">
     function doLazyLoad(key) {
         var waitMsg = getObject('waitMsg');
@@ -103,6 +101,7 @@
         } else {
             setTimeout(function(){
                 closeWaitDialog();
+                getObject('mainContentPane').style.display = 'inline';
             },500); // time after element reads completed.
         }
     }
@@ -115,8 +114,8 @@
             },1000);
         } else {
             setTimeout(function(){
-                getObject('settingContents').style.visibility = 'visible';
                 closeWaitDialog();
+                getObject('mainContentPane').style.display = 'inline';
             },2000);
         }
     });

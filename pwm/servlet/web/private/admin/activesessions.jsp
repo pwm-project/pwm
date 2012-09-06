@@ -86,7 +86,7 @@
                     <%= DateFormat.getDateTimeInstance().format(new Date(loopSession.getCreationTime())) %>
                 </td>
                 <td>
-                    <%= TimeDuration.fromCurrent(loopSsBean.getLastAccessTime()).asCompactString() %>
+                    <%= TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString() %>
                 </td>
                 <td>
                     <%=loopSsBean.getSrcAddress() %>

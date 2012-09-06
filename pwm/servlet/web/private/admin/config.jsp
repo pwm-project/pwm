@@ -43,13 +43,17 @@
             can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
             to modify the configuration.  Values in <span style="color:blue;">blue</span> are modified from the default values.
         </p>
-        <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
+        <div id="content">
+            <script type="text/javascript">
+                getObject('content').style.display = 'none';
+                showWaitDialog();
+            </script>
+            <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
         <div data-dojo-type="dijit.TitlePane" data-dojo-props="title: 'Configuration Notes', open:false" style="width: 100%">
             <textarea readonly="readonly" style="max-height: 200px;border:0" rows="1" data-dojo-type="dijit.form.Textarea"><%=StringEscapeUtils.escapeHtml(pwmConfig.getNotes())%></textarea>
         </div>
         <br/>
         <% } %>
-        <div id="content" style="display: none">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
                 <%
                     for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) {
@@ -127,8 +131,9 @@
 </div>
 <script type="text/javascript">
     require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
-        getObject('content').style.display = 'inline';
         dojoParser.parse();
+        getObject('content').style.display = 'inline';
+        closeWaitDialog();
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

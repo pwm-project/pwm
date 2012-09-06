@@ -55,6 +55,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.operations.UserStatusHelper;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;

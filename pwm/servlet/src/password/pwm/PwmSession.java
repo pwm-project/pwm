@@ -172,7 +172,7 @@ public class PwmSession implements Serializable {
     public void clearActivateUserBean() {
         userBeans.remove(ActivateUserBean.class);
     }
-    
+
     public boolean clearUserBean(final Class userBeanClass) {
         final boolean exists = userBeans.containsKey(userBeanClass);
         userBeans.remove(userBeanClass);
@@ -300,4 +300,49 @@ public class PwmSession implements Serializable {
         }
         return userBeans.get(theClass);
     }
+
+    public long getLastAccessedTime() {
+        if (httpSession != null) {
+            return httpSession.getLastAccessedTime();
+        } else {
+            return 0;
+        }
+    }
+
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        try {
+            sb.append("sessionID=").append(getSessionStateBean().getSessionID());
+            sb.append(", ");
+            sb.append("auth=").append(getSessionStateBean().isAuthenticated());
+            if (getSessionStateBean().isAuthenticated()) {
+                sb.append(", ");
+                sb.append("passwordStatus=").append(getUserInfoBean().getPasswordState());
+                sb.append(", ");
+                sb.append("guid=").append(getUserInfoBean().getUserGuid());
+                sb.append(", ");
+                sb.append("dn=").append(getUserInfoBean().getUserDN());
+                sb.append(", ");
+                sb.append("knownPassword=").append(!getUserInfoBean().isAuthFromUnknownPw());
+                sb.append(", ");
+                sb.append("needsNewPW=").append(getUserInfoBean().isRequiresNewPassword());
+                sb.append(", ");
+                sb.append("needsNewCR=").append(getUserInfoBean().isRequiresResponseConfig());
+                sb.append(", ");
+                sb.append("needsNewProfile=").append(getUserInfoBean().isRequiresUpdateProfile());
+                sb.append(", ");
+                sb.append("hasCRPolicy=").append(getUserInfoBean().getChallengeSet() != null);
+            }
+            sb.append(", ");
+            sb.append("locale=").append(getSessionStateBean().getLocale());
+            sb.append(", ");
+            sb.append("theme=").append(getSessionStateBean().getTheme());
+        } catch (Exception e) {
+            sb.append("exception generating PwmSession.toString(): ").append(e.getMessage());
+        }
+
+        return sb.toString();
+    }
+
+
 }

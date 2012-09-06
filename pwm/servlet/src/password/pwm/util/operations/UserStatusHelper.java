@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
@@ -29,6 +29,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmSession;
+import password.pwm.Validator;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
@@ -40,8 +44,6 @@ import password.pwm.servlet.CommandServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.operations.CrUtility;
-import password.pwm.util.operations.PasswordUtility;
 
 import java.util.*;
 

@@ -35,6 +35,7 @@ import password.pwm.error.*;
 import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 

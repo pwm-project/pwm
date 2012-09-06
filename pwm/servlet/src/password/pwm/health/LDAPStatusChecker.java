@@ -32,7 +32,6 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.UserStatusHelper;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -44,6 +43,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserStatusHelper;
 
 import java.util.*;
 

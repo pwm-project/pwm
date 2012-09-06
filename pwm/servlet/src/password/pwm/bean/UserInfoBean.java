@@ -41,7 +41,7 @@ import java.util.*;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.UserStatusHelper#populateActorUserInfoBean(password.pwm.PwmSession, String, String)
+ * @see password.pwm.util.operations.UserStatusHelper#populateActorUserInfoBean(password.pwm.PwmSession, String, String)
  */
 public class UserInfoBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------

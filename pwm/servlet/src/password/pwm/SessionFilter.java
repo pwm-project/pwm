@@ -250,6 +250,14 @@ public class SessionFilter implements Filter {
             ServletHelper.addPwmResponseHeaders(pwmApplication, resp, true);
         }
 
+        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING || pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+            try {
+                resp.setHeader("X-Pwm-Debug", pwmSession.toString());
+            } catch(Exception e) {
+                LOGGER.debug(pwmSession, "error adding debug header: " + e.getMessage());
+            }
+        }
+
         try {
             filterChain.doFilter(req, resp);
         } catch (Exception e) {
@@ -264,7 +272,6 @@ public class SessionFilter implements Filter {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
 
-        ssBean.setLastAccessTime(new Date());
     }
 
     public void destroy() {
