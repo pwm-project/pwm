@@ -23,7 +23,6 @@
 package password.pwm.util.stats;
 
 import com.google.gson.Gson;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
@@ -300,7 +299,7 @@ public class StatisticsManager implements PwmService {
                     final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                     if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
                         try {
-                            //lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
+                            lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
                         } catch (Exception e) {
                             LOGGER.error("unexpected error reading last publish timestamp from PwmDB: " + e.getMessage());
                         }
@@ -512,7 +511,7 @@ public class StatisticsManager implements PwmService {
 
             try {
                 otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString());
-            } catch (ChaiUnavailableException e) {
+            } catch (Exception e) {
                 LOGGER.trace("unable to read ldap vendor type for stats publication: " + e.getMessage());
             }
 

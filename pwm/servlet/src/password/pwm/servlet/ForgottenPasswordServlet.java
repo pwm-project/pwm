@@ -38,6 +38,7 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.PasswordUtility;
@@ -490,6 +491,12 @@ public class
         }
 
         forgottenPasswordBean.setAllPassed(true);
+        LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
+
+        if (config.getRecoveryAction() == Configuration.RECOVERY_ACTION.SENDNEW) {
+            this.processSendNewPassword(req,resp);
+            return;
+        }
 
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, forgottenPasswordBean.getProxiedUser(), pwmSession.getSessionStateBean().getLocale());
@@ -572,6 +579,63 @@ public class
             LOGGER.warn(pwmSession,"unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+        }
+    }
+
+    private void processSendNewPassword(final HttpServletRequest req, final HttpServletResponse resp)
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+
+        LOGGER.trace(pwmSession,"beginning process to send new password to user");
+
+        if (!forgottenPasswordBean.isAllPassed()) {
+            this.advancedToNextStage(req, resp);
+            return;
+        }
+
+        final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
+
+        try { // try unlocking user
+            theUser.unlock();
+            LOGGER.trace(pwmSession, "unlock account succeeded");
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.error(pwmSession, errorInformation.toDebugStr());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
+        try {
+            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
+            final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+
+            LOGGER.info(pwmSession, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
+
+            // create newpassword
+            final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
+
+            // set the password
+            PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
+
+            // mark the event log
+            UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.RECOVER_PASSWORD, "new password sent to " + pwmSession.getUserInfoBean().getUserEmailAddress());
+
+            // send email
+            this.sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toAddress);
+            ServletHelper.forwardToSuccessPage(req, resp);
+        } catch (PwmException e) {
+            LOGGER.warn(pwmSession,"unexpected error setting new password during recovery process for user: " + e.getMessage());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+        } finally {
+            pwmSession.unauthenticateUser();
         }
     }
 
@@ -760,8 +824,8 @@ public class
             return false;
         }
 
-        plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
-        htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
+        plainBody = plainBody.replace("%TOKEN%", tokenKey);
+        htmlBody = htmlBody.replace("%TOKEN%", tokenKey);
 
         final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
         pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
@@ -784,13 +848,37 @@ public class
             return false;
         }
 
-        message = message.replaceAll("%TOKEN%", token);
+        message = message.replace("%TOKEN%", token);
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         theManager.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         return true;
+    }
+
+    private void sendNewPasswordEmail(final PwmSession pwmSession, final PwmApplication pwmApplication, final String newPassword, final String toAddress)
+            throws PwmUnrecoverableException, PwmOperationalException {
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmApplication.getConfig();
+        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_FROM, userLocale);
+        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_SUBJECT, userLocale);
+        String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_BODY, userLocale);
+        String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_BODY_HTML, userLocale);
+
+        if (toAddress == null || toAddress.length() < 1) {
+            final String errorMsg = "unable to send new password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email address available in ldap";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            throw new PwmOperationalException(errorInformation);
+        }
+
+        plainBody = plainBody.replace("%PASSWORD%", newPassword);
+        htmlBody = htmlBody.replace("%PASSWORD%", newPassword);
+
+        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
+        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug(pwmSession, "new password email added to send queue for " + toAddress);
     }
 
     private static void simulateBadLogin(

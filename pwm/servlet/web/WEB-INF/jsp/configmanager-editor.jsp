@@ -290,11 +290,10 @@ function buildMenuBar() {
         }
         topMenuBar.placeAt("TopMenu");
         topMenuBar.startup();
-
     });
 }
 
-require(["dojo","dojo/domReady!"],function(dojo){
+require(["dojo"],function(dojo){
     buildMenuBar();
     if(dojo.isIE <= 8){ // only IE8 and below
         alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');

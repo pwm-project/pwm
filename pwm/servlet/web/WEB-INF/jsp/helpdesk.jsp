@@ -270,7 +270,7 @@
             </td>
             <td>
                 <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                <%= record.getMessage() != null ? record.getMessage() : "" %>
+                <%= record.getMessage() != null && record.getMessage().length() > 1 ? " (" + record.getMessage() + ") " : "" %>
             </td>
         </tr>
         <% } %>

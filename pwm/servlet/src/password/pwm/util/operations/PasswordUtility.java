@@ -241,7 +241,7 @@ public class PasswordUtility {
 
         // mark the event log
         {
-            final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
+            final String message = "set by " + pwmSession.getUserInfoBean().getUserID();
             UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_SET_PASSWORD, message);
         }
 

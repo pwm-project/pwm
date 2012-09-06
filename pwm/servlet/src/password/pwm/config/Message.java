@@ -51,6 +51,7 @@ public enum Message {
     SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
     SUCCESS_CONFIG_UPLOAD("Success_ConfigFileUpload"),
     SUCCESS_PASSWORDRESET("Success_PasswordReset"),
+    SUCCESS_PASSWORDSEND("Success_PasswordSend"),
 
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),

@@ -116,6 +116,7 @@ public class ConfigManagerServlet extends TopServlet {
                             )
             throws PwmUnrecoverableException
     {
+        pwmSession.getSessionStateBean().setLocale(PwmConstants.DEFAULT_LOCALE);
         final Date configurationLoadTime = configReader.getConfigurationReadTime();
         if (configReader.getConfigMode() != PwmApplication.MODE.RUNNING) {
             if (configurationLoadTime != configManagerBean.getConfigurationLoadTime()) {

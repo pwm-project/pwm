@@ -74,6 +74,7 @@ function initPwmLocaleVars() {
     localeInfo['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%> - <%=locale.getDisplayLanguage(locale)%>';
 <% } %>
     PWM_GLOBAL['localeInfo'] = localeInfo;
+    PWM_GLOBAL['defaultLocale'] = '<%=PwmConstants.DEFAULT_LOCALE.toString()%>';
 }
 
 function initEpsTypes() {

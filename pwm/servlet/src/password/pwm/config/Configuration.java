@@ -66,6 +66,10 @@ public class Configuration implements Serializable {
     private List<Locale> knownLocales = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
+    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
+
+    public enum RECOVERY_ACTION { RESETPW, SENDNEW }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfiguration storedConfiguration) {
@@ -482,5 +486,9 @@ public class Configuration implements Serializable {
         return knownLocales;
     }
 
-    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
+    public RECOVERY_ACTION getRecoveryAction() {
+        final String stringValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_ACTION);
+        return RECOVERY_ACTION.valueOf(stringValue);
+    }
+
 }

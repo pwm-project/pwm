@@ -247,6 +247,14 @@ public enum PwmSetting {
             "email.updateguest.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_UPDATEGUEST_BODY_HTML(
             "email.updateguest.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_SENDPASSWORD_SUBJECT(
+            "email.sendpassword.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_SENDPASSWORD_FROM(
+            "email.sendpassword.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_SENDPASSWORD_BODY(
+            "email.sendpassword.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_SENDPASSWORD_BODY_HTML(
+            "email.sendpassword.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", Syntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
 
@@ -514,6 +522,8 @@ public enum PwmSetting {
             "challenge.token.enable", Syntax.BOOLEAN, Category.RECOVERY, true, Level.BASIC),
     CHALLENGE_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
+    FORGOTTEN_PASSWORD_ACTION(
+            "recovery.action", Syntax.SELECT, Category.RECOVERY, true, Level.BASIC),
 
 
     // forgotten username

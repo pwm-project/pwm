@@ -156,7 +156,9 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 
         var localeMenu = [];
         for (var localeIter in availableLocales) {
-            localeMenu.push({name: localeIter + ": " + availableLocales[localeIter], id: localeIter})
+            if (localeIter != PWM_GLOBAL['defaultLocale']) {
+                localeMenu.push({name: localeIter + ": " + availableLocales[localeIter], id: localeIter})
+            }
         }
 
         clearDijitWidget(keyName + '-addLocaleValue');
@@ -208,7 +210,7 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
         td1.setAttribute("style", "border-width: 0; -webkit-transform: rotate(270deg);-moz-transform: rotate(270deg);-o-transform: rotate(270deg); max-width:10px");
 
         if (localeString == null || localeString.length < 1) {
-            td1.innerHTML = "default";
+            td1.innerHTML = "";
         } else {
             td1.innerHTML = localeString;
         }
@@ -413,19 +415,19 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
             clearDivElements(parentDiv, false);
             for (var localeName in resultValue) {
                 var localeTableRow = document.createElement("tr");
-                localeTableRow.setAttribute("style", "border-width: 0");
+                localeTableRow.setAttribute("style", "border-width: 0;");
 
                 var localeTdName = document.createElement("td");
-                localeTdName.setAttribute("style", "border-width: 0; text-align: right; vertical-align: top;");
-                localeTdName.innerHTML = localeName == "" ? "Default" : localeName;
+                localeTdName.setAttribute("style", "border-width: 0; width:15px");
+                localeTdName.innerHTML = localeName;
                 localeTableRow.appendChild(localeTdName);
 
                 var localeTdContent = document.createElement("td");
-                localeTdContent.setAttribute("style", "border-width: 0;");
+                localeTdContent.setAttribute("style", "border-width: 0; width: 495px");
                 localeTableRow.appendChild(localeTdContent);
 
                 var localeTableElement = document.createElement("table");
-                localeTableElement.setAttribute("style", "border-width: 1");
+                localeTableElement.setAttribute("style", "border-width: 1px; width:490px; margin:0");
                 localeTdContent.appendChild(localeTableElement);
 
                 var multiValues = resultValue[localeName];
@@ -490,7 +492,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
 
                 if (localeName != '') { // add remove locale x
                     var imgElement2 = document.createElement("img");
-                    imgElement2.setAttribute("style", "width: 15px; height: 15px");
+                    imgElement2.setAttribute("style", "width: 15px; height: 15px;");
                     imgElement2.setAttribute("src", "../resources/redX.png");
                     imgElement2.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
                     var tdElement = document.createElement("td");

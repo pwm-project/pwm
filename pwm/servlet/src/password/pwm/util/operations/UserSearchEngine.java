@@ -188,7 +188,7 @@ public class UserSearchEngine {
             final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
 
             if (results.isEmpty()) {
-                LOGGER.debug(pwmSession, "no users found in context " + context);
+                LOGGER.debug(pwmSession, "user not found in context " + context);
                 return null;
             } else if (results.size() > 1) {
                 final String errorMessage = "multiple user matches found in context '" + context + "'";
