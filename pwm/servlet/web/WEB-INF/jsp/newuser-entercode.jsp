@@ -31,8 +31,11 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
+<% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase().toString().equals("EMAIL")) { %>
         <p><pwm:Display key="Display_RecoverEnterCode"/></p>
-
+<% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase().toString().equals("SMS")) { %>
+        <p><pwm:Display key="Display_RecoverEnterCodeSMS"/></p>
+<% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">

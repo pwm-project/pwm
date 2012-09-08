@@ -297,6 +297,8 @@ public enum PwmSetting {
             "sms.requestId.length", Syntax.NUMERIC, Category.SMS, true, Level.ADVANCED),
     SMS_CHALLENGE_TOKEN_TEXT(
             "sms.challenge.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
+    SMS_NEWUSER_TOKEN_TEXT(
+            "sms.newUser.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
     SMS_ACTIVATION_VERIFICATION_TEXT(
             "sms.activation.token.message", Syntax.LOCALIZED_STRING, Category.SMS, true, Level.BASIC),
     SMS_ACTIVATION_TEXT(
@@ -557,6 +559,8 @@ public enum PwmSetting {
             "newUser.username.length", Syntax.NUMERIC, Category.NEWUSER, false, Level.ADVANCED),
     NEWUSER_EMAIL_VERIFICATION(
             "newUser.email.verification", Syntax.BOOLEAN, Category.NEWUSER, false, Level.BASIC),
+    NEWUSER_SMS_VERIFICATION(
+            "newUser.sms.verification", Syntax.BOOLEAN, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_PASSWORD_POLICY_USER(
             "newUser.passwordPolicy.user", Syntax.STRING, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_MINIMUM_WAIT_TIME(

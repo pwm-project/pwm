@@ -27,22 +27,34 @@ import java.util.Map;
 
 public class NewUserBean implements Serializable {
     private String tokenEmailAddress;
+    private String tokenSmsNumber;
     private Map<String,String> formData;
 
     private boolean agreementPassed;
-    private boolean tokenIssued;
-    private boolean tokenPassed;
+    private boolean emailTokenIssued;
+    private boolean emailTokenPassed;
+    private boolean smsTokenIssued;
+    private boolean smsTokenPassed;
     private boolean allPassed;
+    private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
 
     public NewUserBean() {
     }
 
-    public boolean isTokenIssued() {
-        return tokenIssued;
+    public boolean isEmailTokenIssued() {
+        return emailTokenIssued;
     }
 
-    public void setTokenIssued(final boolean tokenIssued) {
-        this.tokenIssued = tokenIssued;
+    public void setEmailTokenIssued(final boolean emailTokenIssued) {
+        this.emailTokenIssued = emailTokenIssued;
+    }
+
+    public boolean isSmsTokenIssued() {
+        return smsTokenIssued;
+    }
+
+    public void setSmsTokenIssued(final boolean smsTokenIssued) {
+        this.smsTokenIssued = smsTokenIssued;
     }
 
     public String getTokenEmailAddress() {
@@ -51,6 +63,14 @@ public class NewUserBean implements Serializable {
 
     public void setTokenEmailAddress(String tokenEmailAddress) {
         this.tokenEmailAddress = tokenEmailAddress;
+    }
+
+    public String getTokenSmsNumber() {
+        return tokenSmsNumber;
+    }
+
+    public void setTokenSmsNumber(String tokenSmsNumber) {
+        this.tokenSmsNumber = tokenSmsNumber;
     }
 
     public Map<String, String> getFormData() {
@@ -69,12 +89,20 @@ public class NewUserBean implements Serializable {
         this.agreementPassed = agreementPassed;
     }
 
-    public boolean isTokenPassed() {
-        return tokenPassed;
+    public boolean isEmailTokenPassed() {
+        return emailTokenPassed;
     }
 
-    public void setTokenPassed(final boolean tokenPassed) {
-        this.tokenPassed = tokenPassed;
+    public void setEmailTokenPassed(final boolean emailTokenPassed) {
+        this.emailTokenPassed = emailTokenPassed;
+    }
+
+    public boolean isSmsTokenPassed() {
+        return smsTokenPassed;
+    }
+
+    public void setSmsTokenPassed(final boolean smsTokenPassed) {
+        this.smsTokenPassed = smsTokenPassed;
     }
 
     public boolean isAllPassed() {
@@ -83,5 +111,19 @@ public class NewUserBean implements Serializable {
 
     public void setAllPassed(final boolean allPassed) {
         this.allPassed = allPassed;
+    }
+    
+    public void setVerificationPhase(NewUserVerificationPhase verificationPhase) {
+    	this.verificationPhase = verificationPhase;
+    }
+    
+    public NewUserVerificationPhase getVerificationPhase() {
+    	return verificationPhase;
+    }
+    
+    public enum NewUserVerificationPhase {
+    	NONE,
+    	EMAIL,
+    	SMS
     }
 }
