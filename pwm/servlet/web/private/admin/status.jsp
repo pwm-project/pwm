@@ -46,7 +46,12 @@
 </jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
+<div id="content" style="">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+<script type="text/javascript">
+    getObject('content').style.visibility = 'hidden';
+    showWaitDialog();
+</script>
 <div data-dojo-type="dijit.layout.ContentPane" title="About">
     <table>
         <tr>
@@ -69,8 +74,6 @@
                     }
                 %>
                 <%= publishedVersion %>
-                &nbsp;&nbsp;&nbsp;
-                (<a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>)
             </td>
 
         </tr>
@@ -163,6 +166,14 @@
                         dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
                     });
                 </script>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Website
+            </td>
+            <td>
+                <a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>
             </td>
         </tr>
     </table>
@@ -741,6 +752,7 @@
 </div>
 </div>
 </div>
+</div>
 <script type="text/javascript">
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
@@ -750,6 +762,9 @@
             setInterval(function(){
                 showStatChart('PASSWORD_CHANGES',14,'statsChart');
             }, 61 * 1000);
+
+            getObject('content').style.visibility = 'visible';
+            closeWaitDialog();
         });
     }
     startupPage();

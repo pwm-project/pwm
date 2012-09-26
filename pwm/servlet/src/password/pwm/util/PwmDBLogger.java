@@ -69,7 +69,7 @@ public class PwmDBLogger implements PwmService {
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
-    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(5049, 1049, 3, PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE / 4);
+    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(349, 2049, 3, PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

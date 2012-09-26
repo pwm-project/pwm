@@ -24,6 +24,7 @@
   ~ This file is imported by most JSPs, it shows the error/success message bar.
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<div id="message_wrapper">
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
 <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); %>
@@ -34,4 +35,10 @@
 <span style="display:none" id="message" class="message">&nbsp;</span>
 <% } %>
 <div id="capslockwarning" style="display:none;"><pwm:Display key="Display_CapsLockIsOn"/></div>
-
+</div>
+<script type="text/javascript">
+    require(["dojo/domReady!"],function(){
+        PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
+        setInterval(function(){ messageDivFloatHandler() },100);
+    });
+</script>

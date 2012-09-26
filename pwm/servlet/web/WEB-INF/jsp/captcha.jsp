@@ -44,11 +44,13 @@
             <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
             <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
             <script type="text/javascript">
-                var RecaptchaOptions = { theme : 'clean' };
+                var RecaptchaOptions = { theme : 'white' };
             </script>
-            <script type="text/javascript"
-                    src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>">
-            </script>
+            <div style="margin-left: auto; margin-right: auto; width: 322px">
+                <script type="text/javascript"
+                        src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>">
+                </script>
+            </div>
             <noscript>
                 <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProtocol%>"
                         height="300" width="500" frameborder="0"></iframe>

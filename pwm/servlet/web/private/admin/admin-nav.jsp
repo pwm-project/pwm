@@ -19,7 +19,6 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
-<%@ page import="password.pwm.PwmConstants" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <p id="admin-menu-bar" style="text-align:center;">
@@ -32,6 +31,5 @@
     <a onclick="showWaitDialog()" href="userreport.jsp">User Report</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="config.jsp">Configuration</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="http-request-information.jsp">Http Debug</a>&nbsp;&#x2022;&nbsp
-    <a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>&nbsp;&#x2022;&nbsp
     <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>">Main Menu</a>
 </p>

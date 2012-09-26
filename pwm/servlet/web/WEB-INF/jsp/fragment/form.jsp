@@ -5,6 +5,7 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,66 +28,47 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<table id="form">
-    <%
-        final PwmSession pwmSession = PwmSession.getPwmSession(session);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
-        for (FormConfiguration loopConfiguration : formConfigurationList) {
-            final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),""));
-        %>
-    <% if (!loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
-    <tr>
-        <td class="key">
-            <label for="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
-        </td>
-        <td>
-            <% if ("true".equalsIgnoreCase((String)request.getAttribute("form-readonly")) || loopConfiguration.getType().equals(FormConfiguration.Type.readonly)) { %>
-            <%= currentValue %>
-            <% } else { %>
-            <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>"
-                   name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"
-                    <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
-            />
-            <% } %>
-        </td>
-    </tr>
-    <% if (loopConfiguration.isConfirmationRequired()) { %>
-    <tr>
-        <td class="key">
-            <label id="<%=loopConfiguration.getAttributeName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %></label>
-        </td>
-        <td>
-            <input style="border:0; width: 100%" id="<%=loopConfiguration.getAttributeName()%>_confirm"
-                   <%-- type="<%=loopConfiguration.getType()%>" --%> type="time"
-                   name="<%=loopConfiguration.getAttributeName()%>_confirm"
-                   value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
-                   <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
-                   <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
-         </td>
-    </tr>
-    <% } %>
-    <% } else { %>
-    <input style="border:0; width: 100%; text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="hidden"
-           name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"/>
-    <% } %>
-    <% } %>
-    <% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
-    <tr>
-        <td class="key">
-            <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
-        </td>
-        <td>
-            <input style="border:0; width: 100%" type="password" name="password1" id="password1"/>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">
-            <label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label>
-        </td>
-        <td>
-            <input style="border:0; width: 100%" type="password" name="password2" id="password2"/>
-        </td>
-    </tr>
-    <% } %>
-</table>
+<%
+    final PwmSession pwmSession = PwmSession.getPwmSession(session);
+    final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+    List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
+    for (FormConfiguration loopConfiguration : formConfigurationList) {
+        final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),""));
+%>
+<% if (!loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
+<h1>
+    <label for="<%=loopConfiguration.getAttributeName()%>"><%= loopConfiguration.getLabel() %></label>
+</h1>
+<% if ("true".equalsIgnoreCase((String)request.getAttribute("form-readonly")) || loopConfiguration.getType().equals(FormConfiguration.Type.readonly)) { %>
+<%= currentValue %>
+<% } else { %>
+<input style="text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
+       name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"
+        <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
+        />
+<% } %>
+<% if (loopConfiguration.isConfirmationRequired()) { %>
+<h1>
+<label id="<%=loopConfiguration.getAttributeName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %></label>
+</h1>
+<input style="" id="<%=loopConfiguration.getAttributeName()%>_confirm" class="inputfield"
+<%-- type="<%=loopConfiguration.getType()%>" --%> type="time"
+       name="<%=loopConfiguration.getAttributeName()%>_confirm"
+       value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getAttributeName(),"") %>"
+        <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
+        <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+<% } %>
+<% } else { %>
+<input style="text-align: left;" id="<%=loopConfiguration.getAttributeName()%>" type="hidden" class="inputfield"
+       name="<%=loopConfiguration.getAttributeName()%>" value="<%= currentValue %>"/>
+<% } %>
+<% } %>
+<% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
+<h1>
+    <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
+</h1>
+<input type="password" name="password1" id="password1" class="inputfield"/>
+
+<h1><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h1>
+<input type="password" name="password2" id="password2" class="inputfield"/>
+<% } %>

@@ -52,8 +52,8 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% if (!hasBeenModified) { %>
-        <p><b>The configuration for this server has been locked.</b></p>
-        <p>For security reasons, to edit the configuration, you must upload the <span style="font-style: italic;">PwmConfiguration.xml</span>
+        <p><b>The configuration for this server has been locked.  However you can still edit the configuration.</b></p>
+        <p>For security reasons, to edit the configuration, you must upload (and then download) the <span style="font-style: italic;">PwmConfiguration.xml</span>
             file.
         </p>
         <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration Menu</a>
@@ -78,7 +78,8 @@
             the <span style="font-style: italic;">PwmConfiguration.xml</span> file.  This option will not modify the running configuration.
         </p>
         <% } else { %>
-        <p>Your modified configuration is currently in memory.  Please choose an option below to continue.</p>
+        <p>Your modified configuration is currently in memory, but has not yet been saved.  Please choose an option below to continue.</p>
+        <br/>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="generateXml"/>
@@ -88,6 +89,7 @@
         <p>Download the in memory configuration to an XML file. Save the <span style="font-style: italic;">PwmConfiguration.xml</span> to PWM's <span
                 style="font-style: italic;">WEB-INF </span> directory to change the configuration.  In most cases, PWM will automatically restart and load the new configuration immediately.</p>
 
+        <br/>
         <a class="menubutton" href="#" onclick="document.forms['editMode'].submit()">Return to Editor</a>
         <p>Continue editing the in memory configuration.</p>
 
@@ -96,6 +98,8 @@
             <input type="hidden" name="processAction" value="cancelEditing"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
+
+        <br/>
         <a class="menubutton" href="#" onclick="document.forms['cancelEditing'].submit()">Cancel Edits</a>
         <p>Cancel all changes you have made to the in-memory configuration.</p>
         <% } %>

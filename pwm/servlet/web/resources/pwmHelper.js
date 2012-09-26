@@ -28,48 +28,50 @@ function pwmPageLoadHandler() {
 }
 
 function checkForCapsLock(e) {
-    var capsLockWarningElement = getObject('capslockwarning');
-    if (capsLockWarningElement == null) {
-        return;
-    }
+    require(["dojo/_base/fx","dojo/domReady!"],function(fx){
+        var capsLockWarningElement = getObject('capslockwarning');
+        if (capsLockWarningElement == null) {
+            return;
+        }
 
-    var capsLockKeyDetected = false;
-    var elementTarget = null;
-    if (e.target != null) {
-        elementTarget = e.target;
-    } else if (e.srcElement != null) {
-        elementTarget = e.srcElement;
-    }
-    if (elementTarget != null) {
-        if (elementTarget.nodeName == 'input' || elementTarget.nodeName == 'INPUT') {
-            var kc = e.keyCode ? e.keyCode : e.which;
-            var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
-            if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
-                capsLockKeyDetected = true;
+        var capsLockKeyDetected = false;
+        var elementTarget = null;
+        if (e.target != null) {
+            elementTarget = e.target;
+        } else if (e.srcElement != null) {
+            elementTarget = e.srcElement;
+        }
+        if (elementTarget != null) {
+            if (elementTarget.nodeName == 'input' || elementTarget.nodeName == 'INPUT') {
+                var kc = e.keyCode ? e.keyCode : e.which;
+                var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
+                if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
+                    capsLockKeyDetected = true;
+                }
             }
         }
-    }
 
-    var displayDuration = 5 * 1000;
-    var fadeOutArgs = { node: "capslockwarning", duration: 3 * 1000 };
-    var fadeInArgs = { node: "capslockwarning", duration: 200 };
-    if (capsLockKeyDetected) {
-        capsLockWarningElement.style.display = null;
-        dojo.fadeIn(fadeInArgs).play();
-        PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
-        setTimeout(function(){
-            if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                dojo.fadeOut(fadeOutArgs).play();
-                setTimeout(function(){
-                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                        capsLockWarningElement.style.display = 'none';
-                    }
-                },5 * 1000);
-            }
-        },displayDuration + 500);
-    } else {
-        dojo.fadeOut(fadeOutArgs).play();
-    }
+        var displayDuration = 5 * 1000;
+        var fadeOutArgs = { node: "capslockwarning", duration: 3 * 1000 };
+        var fadeInArgs = { node: "capslockwarning", duration: 200 };
+        if (capsLockKeyDetected) {
+            capsLockWarningElement.style.display = null;
+            fx.fadeIn(fadeInArgs).play();
+            PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
+            setTimeout(function(){
+                if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                    dojo.fadeOut(fadeOutArgs).play();
+                    setTimeout(function(){
+                        if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                            capsLockWarningElement.style.display = 'none';
+                        }
+                    },5 * 1000);
+                }
+            },displayDuration + 500);
+        } else {
+            fx.fadeOut(fadeOutArgs).play();
+        }
+    });
 }
 
 function handleFormSubmit(buttonID, form) {
@@ -257,7 +259,9 @@ function showWaitDialog(title, body) {
 }
 
 function closeWaitDialog() {
-    clearDijitWidget('dialogPopup');
+    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
+        clearDijitWidget('dialogPopup');
+    });
 }
 
 function showPwmHealth(parentDivID, refreshNow, showRefresh) {
@@ -803,4 +807,58 @@ function getRenderedStyle(el,styleProp) {
     }
 
     return null;
+}
+
+function elementInViewport(el) {
+    var top = el.offsetTop;
+    var left = el.offsetLeft;
+    var width = el.offsetWidth;
+    var height = el.offsetHeight;
+
+    while(el.offsetParent) {
+        el = el.offsetParent;
+        top += el.offsetTop;
+        left += el.offsetLeft;
+    }
+
+    return (
+        top >= window.pageYOffset &&
+            left >= window.pageXOffset &&
+            (top + height) <= (window.pageYOffset + window.innerHeight) &&
+            (left + width) <= (window.pageXOffset + window.innerWidth)
+        );
+}
+
+function messageDivFloatHandler() { // called by message.jsp
+    require(["dojo/dom", "dojo/_base/fx", "dojo/on", "dojo/dom-style", "dojo/domReady!"],function(dom, fx, on, style){
+            var messageObj = getObject('message');
+            var messageWrapperObj = getObject('message_wrapper');
+            if (!messageObj || !messageWrapperObj) {
+                return;
+            }
+
+            if (messageObj.style.display == 'none') {
+                return;
+            }
+
+            if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj)) {
+                PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
+
+                if (elementInViewport(messageWrapperObj)) {
+                    messageObj.style.position = null;
+                    messageObj.style.top = null;
+                    messageObj.style.left = null;
+                    messageObj.style.width = null;
+                    messageObj.style.zIndex = null;
+                    messageObj.style.textAlign = null;
+                } else {
+                    messageObj.style.position = 'fixed';
+                    messageObj.style.top = '-3px';
+                    messageObj.style.left = '0';
+                    messageObj.style.width = '100%';
+                    messageObj.style.zIndex = "100";
+                    messageObj.style.textAlign = "center";
+                }
+            }
+        });
 }

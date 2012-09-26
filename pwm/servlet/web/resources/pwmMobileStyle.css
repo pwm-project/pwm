@@ -39,11 +39,13 @@ html, body {
 
 #header-page {
     width: 100%;
+    margin-left: 3px;
     text-align: center;
 }
 
 #header-title {
     width: 100%;
+    margin-left: 3px;
     text-align: center;
 }
 
