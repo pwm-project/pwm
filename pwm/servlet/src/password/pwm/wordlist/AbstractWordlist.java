@@ -23,7 +23,6 @@
 package password.pwm.wordlist;
 
 import password.pwm.PwmService;
-import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -255,7 +254,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         pwmDB.put(META_DB, KEY_CHECKSUM, checksum);
     }
 
-    public boolean containsWord(final PwmSession pwmSession, final String word) {
+    public boolean containsWord(final String word) {
         if (wlStatus != STATUS.OPEN) {
             return false;
         }
@@ -270,10 +269,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             final long startTime = System.currentTimeMillis();
             final boolean result = pwmDB.contains(WORD_DB, testWord);
             final long totalTime = (System.currentTimeMillis() - startTime);
-
-            if (pwmSession != null) {
-                LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + TimeDuration.asCompactString(totalTime));
-            }
 
             return result;
         } catch (Exception e) {

@@ -66,18 +66,19 @@
             <p>
                 <label for="__expirationDate__"><pwm:Display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/> </label>
                 <input name="__expirationDate__" id="__expirationDate__"
-                                               type="date" required="true" value="<%=selectedDate%>"/>
+                       type="date" required="true" value="<%=selectedDate%>"/>
             </p>
             <script type="text/javascript">
-                dojo.require("dijit.form.DateTextBox");
-                new dijit.form.DateTextBox({
-                    name: "__expirationDate__",
-                    constraints: {
-                        min: new Date(),
-                        max: '<%=maxValidDateString%>'
-                    },
-                    value: '<%=selectedDate%>'
-                }, "__expirationDate__");
+                require(["dijit/form/DateTextBox"],function(dojo){
+                    new dijit.form.DateTextBox({
+                        name: "__expirationDate__",
+                        constraints: {
+                            min: new Date(),
+                            max: '<%=maxValidDateString%>'
+                        },
+                        value: '<%=selectedDate%>'
+                    }, "__expirationDate__");
+                });
             </script>
             <% } %>
 

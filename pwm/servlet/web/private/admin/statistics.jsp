@@ -118,16 +118,16 @@
         </table>
     </div>
     <script type="text/javascript">
-        require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,dijit){
+        require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,registry){
             dojoParser.parse();
-            dijit.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+            registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
             setTimeout(function(){
                 refreshChart();
             },60 * 1000)
         });
         function refreshChart() {
-            require(["dijit/registry"],function(dijit){
-                var keyName = dijit.byId('statsChartSelect').get('value');
+            require(["dijit/registry"],function(registry){
+                var keyName = registry.byId('statsChartSelect').get('value');
                 var days = getObject('statsChartDays').value;
                 showStatChart(keyName,days,'statsChart');
             });

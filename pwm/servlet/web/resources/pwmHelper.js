@@ -167,8 +167,8 @@ function changeInputTypeField(object, type) {
 }
 
 function clearDijitWidget(widgetName) {
-    require(["dijit/registry"],function(dijit){
-        var oldDijitNode = dijit.byId(widgetName);
+    require(["dijit/registry"],function(registry){
+        var oldDijitNode = registry.byId(widgetName);
         if (oldDijitNode != null) {
 
             try {
@@ -614,7 +614,7 @@ function showStatChart(statName,days,divName) {
         "dijit/form/Button",
         "dojox/gauges/GlossyCircularGauge",
         "dojo/domReady!"],
-        function(dojo,dijit){
+        function(dojo,dijit,registry){
             var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
             statsGetUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             statsGetUrl += "&statName=" + statName;
@@ -631,8 +631,8 @@ function showStatChart(statName,days,divName) {
                         var loopEpsName = epsTypes[loopEpsIndex] + '';
                         var loopEpsID = "EPS-GAUGE-" + loopEpsName;
                         if (getObject(loopEpsID) != null) {
-                            if (dijit.byId(loopEpsID)) {
-                                dijit.byId(loopEpsID).setAttribute('value',0);
+                            if (registry.byId(loopEpsID)) {
+                                registry.byId(loopEpsID).setAttribute('value',0);
                             }
                         }
                     }
@@ -650,9 +650,9 @@ function showStatChart(statName,days,divName) {
                             }
                             if (getObject(loopEpsID) != null) {
                                 console.log('loopEps=' + loopEpsName);
-                                if (dijit.byId(loopEpsID)) {
-                                    dijit.byId(loopEpsID).setAttribute('value',loopEpsValue);
-                                    dijit.byId(loopEpsID).setAttribute('max',loopTop);
+                                if (registry.byId(loopEpsID)) {
+                                    registry.byId(loopEpsID).setAttribute('value',loopEpsValue);
+                                    registry.byId(loopEpsID).setAttribute('max',loopTop);
                                 } else {
                                     var glossyCircular = new dojox.gauges.GlossyCircularGauge({
                                         background: [255, 255, 255, 0],
@@ -831,34 +831,34 @@ function elementInViewport(el) {
 
 function messageDivFloatHandler() { // called by message.jsp
     require(["dojo/dom", "dojo/_base/fx", "dojo/on", "dojo/dom-style", "dojo/domReady!"],function(dom, fx, on, style){
-            var messageObj = getObject('message');
-            var messageWrapperObj = getObject('message_wrapper');
-            if (!messageObj || !messageWrapperObj) {
-                return;
-            }
+        var messageObj = getObject('message');
+        var messageWrapperObj = getObject('message_wrapper');
+        if (!messageObj || !messageWrapperObj) {
+            return;
+        }
 
-            if (messageObj.style.display == 'none') {
-                return;
-            }
+        if (messageObj.style.display == 'none') {
+            return;
+        }
 
-            if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj)) {
-                PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
+        if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj)) {
+            PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
 
-                if (elementInViewport(messageWrapperObj)) {
-                    messageObj.style.position = null;
-                    messageObj.style.top = null;
-                    messageObj.style.left = null;
-                    messageObj.style.width = null;
-                    messageObj.style.zIndex = null;
-                    messageObj.style.textAlign = null;
-                } else {
-                    messageObj.style.position = 'fixed';
-                    messageObj.style.top = '-3px';
-                    messageObj.style.left = '0';
-                    messageObj.style.width = '100%';
-                    messageObj.style.zIndex = "100";
-                    messageObj.style.textAlign = "center";
-                }
+            if (elementInViewport(messageWrapperObj)) {
+                messageObj.style.position = null;
+                messageObj.style.top = null;
+                messageObj.style.left = null;
+                messageObj.style.width = null;
+                messageObj.style.zIndex = null;
+                messageObj.style.textAlign = null;
+            } else {
+                messageObj.style.position = 'fixed';
+                messageObj.style.top = '-3px';
+                messageObj.style.left = '0';
+                messageObj.style.width = '100%';
+                messageObj.style.zIndex = "100";
+                messageObj.style.textAlign = "center";
             }
-        });
+        }
+    });
 }

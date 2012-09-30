@@ -278,8 +278,8 @@ function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
 }
 
 function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
-    require(["dijit/registry"],function(dijit){
-        var inputValue = dijit.byId(keyName + '-addLocaleValue').value;
+    require(["dijit/registry"],function(registry){
+        var inputValue = registry.byId(keyName + '-addLocaleValue').value;
         try {
             var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
             if (existingElementForLocale == null) {
@@ -331,12 +331,12 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
 }
 
 function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern) {
-    require(["dijit/registry"],function(dijit){
+    require(["dijit/registry"],function(registry){
         var inputID = 'value-' + settingKey + '-' + iteration;
 
         // clear the old dijit node (if it exists)
 
-        var oldDijitNode = dijit.byId(inputID);
+        var oldDijitNode = registry.byId(inputID);
         if (oldDijitNode != null) {
             try {
                 oldDijitNode.destroy();
@@ -409,7 +409,7 @@ function addMultiSetting(keyName, parentDiv, regExPattern) {
 // -------------------------- multi locale table handler ------------------------------------
 
 function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
-    require(["dojo","dijit","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
+    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
         clearDivElements(parentDiv, true);
         readSetting(keyName, function(resultValue) {
             clearDivElements(parentDiv, false);
@@ -441,7 +441,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
 
                     // clear the old dijit node (if it exists)
                     var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
-                    var oldDijitNode = dijit.byId(inputID);
+                    var oldDijitNode = registry.byId(inputID);
                     if (oldDijitNode != null) {
                         try {
                             oldDijitNode.destroy();
@@ -518,8 +518,8 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
             }
 
             var addLocaleFunction = function() {
-                require(["dijit","dijit/registry"],function(dijit){
-                    writeMultiLocaleSetting(keyName, dijit.byId(keyName + "-addLocaleValue").value, 0, '');
+                require(["dijit","dijit/registry"],function(registry){
+                    writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '');
                     initMultiLocaleTable(parentDiv, keyName, regExPattern);
                 });
             };
@@ -719,14 +719,14 @@ function getCookie(c_name)
 }
 
 function readInitialTextBasedValue(key) {
-    require(["dijit","dijit/registry"],function(dijit){
+    require(["dijit","dijit/registry"],function(registry){
         readSetting(key, function(dataValue) {
             getObject('value_' + key).value = dataValue;
             getObject('value_' + key).disabled = false;
-            dijit.byId('value_' + key).set('disabled', false);
-            dijit.byId('value_' + key).startup();
-            try {dijit.byId('value_' + key).validate(false);} catch (e) {}
-            try {dijit.byId('value_verify_' + key).validate(false);} catch (e) {}
+            registry.byId('value_' + key).set('disabled', false);
+            registry.byId('value_' + key).startup();
+            try {registry.byId('value_' + key).validate(false);} catch (e) {}
+            try {registry.byId('value_verify_' + key).validate(false);} catch (e) {}
         });
     });
 }

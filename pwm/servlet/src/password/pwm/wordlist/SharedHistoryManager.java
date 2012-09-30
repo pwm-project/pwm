@@ -86,7 +86,7 @@ public class SharedHistoryManager implements Wordlist {
         pwmDB = null;
     }
 
-    public boolean containsWord(final PwmSession pwmSession, final String word) {
+    public boolean containsWord(final String word) {
         if (status != STATUS.OPEN) {
             return false;
         }
@@ -112,10 +112,10 @@ public class SharedHistoryManager implements Wordlist {
             }
 
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "error checking global history list: " + e.getMessage());
+            LOGGER.warn("error checking global history list: " + e.getMessage());
         }
 
-        LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
+        //LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
         return result;
     }
 

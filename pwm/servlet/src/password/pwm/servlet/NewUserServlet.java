@@ -29,11 +29,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SmsItemBean;
-import password.pwm.bean.NewUserBean;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
@@ -452,8 +448,8 @@ public class NewUserServlet extends TopServlet {
         }
 
         final PwmPasswordPolicy passwordPolicy = pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
-
-        Validator.testPasswordAgainstPolicy(password, null, pwmSession, pwmApplication, passwordPolicy, false);
+        final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
+        pwmPasswordRuleValidator.testPassword(password, null, null, null);
 
         if (passwordConfirm == null || passwordConfirm.length() <1 ) {
             throw new PwmOperationalException(PwmError.PASSWORD_MISSING_CONFIRM);

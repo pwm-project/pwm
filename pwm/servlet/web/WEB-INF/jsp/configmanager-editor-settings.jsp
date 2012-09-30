@@ -117,7 +117,7 @@
         [Loading...]
     </button>
     <script type="text/javascript">
-        require(["dijit","dijit/form/Button","dijit/registry"],function(dijit){
+        require(["dijit","dijit/registry","dijit/form/Button"],function(dijit,registry){
             new dijit.form.Button({
                 disabled: true,
                 onClick: function() {
@@ -136,7 +136,7 @@
                     buttonElement.innerHTML = '\u00A0\u00A0\u00A0False\u00A0\u00A0\u00A0';
                 }
                 buttonElement.disabled = false;
-                dijit.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
+                registry.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
             });
         });
     </script>
@@ -148,12 +148,12 @@
         <% } %>
     </select>
     <script type="text/javascript">
-        require(["dijit","dijit/form/FilteringSelect","dijit/registry"],function(dijit){
+        require(["dijit","dijit/registry","dijit/form/FilteringSelect"],function(dijit,registry){
             readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
                 var selectElement = getObject('setting_' + '<%=loopSetting.getKey()%>');
                 selectElement.disabled = false;
-                dijit.byId('setting_<%=loopSetting.getKey()%>').setDisabled(false);
-                dijit.byId('setting_<%=loopSetting.getKey()%>').set('value',dataValue);
+                registry.byId('setting_<%=loopSetting.getKey()%>').setDisabled(false);
+                registry.byId('setting_<%=loopSetting.getKey()%>').set('value',dataValue);
             });
         });
     </script>

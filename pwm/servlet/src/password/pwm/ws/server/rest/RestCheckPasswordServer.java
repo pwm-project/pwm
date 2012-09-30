@@ -27,13 +27,18 @@ import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmSession;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -144,19 +149,21 @@ public class RestCheckPasswordServer {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final String userDN,
-            final String password1
+            final String password
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         boolean pass = false;
         String userMessage;
 
-        if (password1.length() < 0) {
+        if (password.length() < 0) {
             userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(pwmSession, pwmApplication);
         } else {
             try {
                 if (userDN.equals(pwmSession.getUserInfoBean().getUserDN())) {
-                    Validator.testPasswordAgainstPolicy(password1, pwmSession, pwmApplication);
+                    final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
+                    pwmPasswordRuleValidator.testPassword(password, userInfoBean.getUserCurrentPassword(), userInfoBean, pwmApplication.getProxyChaiUserActor(pwmSession));
                 } else {
                     final ChaiUser user = ChaiFactory.createChaiUser(userDN,pwmSession.getSessionManager().getChaiProvider());
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
@@ -165,7 +172,8 @@ public class RestCheckPasswordServer {
                             user,
                             pwmSession.getSessionStateBean().getLocale()
                     );
-                    Validator.testPasswordAgainstPolicy(password1,null,pwmSession, pwmApplication, passwordPolicy, false);
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
+                    pwmPasswordRuleValidator.testPassword(password, null, null, user);
                 }
                 userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession, pwmApplication);
                 pass = true;
@@ -175,7 +183,7 @@ public class RestCheckPasswordServer {
             }
         }
 
-        final int strength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, password1);
+        final int strength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password);
         return new PasswordCheckInfo(userMessage, pass, strength);
     }
 

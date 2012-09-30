@@ -152,7 +152,7 @@ public abstract class CrUtility {
             if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
                 for (final Challenge loopChallenge : responseMap.keySet()) {
                     final String answer = responseMap.get(loopChallenge);
-                    if (wordlistManager.containsWord(null, answer)) {
+                    if (wordlistManager.containsWord(answer)) {
                         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, loopChallenge.getChallengeText());
                         throw new PwmDataValidationException(errorInfo);
                     }

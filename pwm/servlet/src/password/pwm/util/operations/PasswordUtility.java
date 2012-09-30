@@ -37,10 +37,7 @@ import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.servlet.HelpdeskServlet;
-import password.pwm.util.Helper;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -110,7 +107,8 @@ public class PasswordUtility {
         // have been done before setUserPassword() is invoked, so it should be redundant
         // but we do it just in case.
         try {
-            Validator.testPasswordAgainstPolicy(newPassword, pwmSession, pwmApplication);
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,uiBean.getPasswordPolicy());
+            pwmPasswordRuleValidator.testPassword(newPassword,null,uiBean,pwmSession.getSessionManager().getActor());
         } catch (PwmDataValidationException e) {
             final String errorMsg = "attempt to setUserPassword, but password does not pass PWM validator";
             final ErrorInformation errorInformation = new ErrorInformation(e.getErrorInformation().getError(), errorMsg);
@@ -158,7 +156,7 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy()));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(),uiBean));
 
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmApplication.getProxyChaiProvider());
@@ -169,7 +167,7 @@ public class PasswordUtility {
             pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60,1);
             pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240,1);
             pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440,1);
-            final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, newPassword);
+            final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), newPassword);
             pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_STRENGTH,passwordStrength);
         }
 
@@ -430,10 +428,10 @@ public class PasswordUtility {
 
     public static int checkPasswordStrength(
             final Configuration config,
-            final PwmSession pwmSession,
             final String password
-    )  {
-        final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(config, pwmSession, password);
+    )
+    {
+        final List<Integer> judgeResults = Helper.invokeExternalJudgeMethods(config, password);
 
         // strip invalid values
         for (final Iterator<Integer> iter = judgeResults.iterator(); iter.hasNext();) {

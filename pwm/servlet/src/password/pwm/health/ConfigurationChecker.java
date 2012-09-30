@@ -145,7 +145,7 @@ public class ConfigurationChecker implements HealthChecker {
         for (final PwmSetting setting : PwmSetting.values()) {
             if (PwmSetting.Syntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(setting)) {
                 final String passwordValue = config.readSettingAsString(setting);
-                final int strength = PasswordUtility.checkPasswordStrength(config, null, passwordValue);
+                final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
                 if (strength < 50) {
                     final StringBuilder errorMsg = new StringBuilder();
                     errorMsg.append(setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));

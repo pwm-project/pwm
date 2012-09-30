@@ -24,7 +24,6 @@ package password.pwm.wordlist;
 
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
-import password.pwm.PwmSession;
 
 
 public interface Wordlist extends PwmService {
@@ -39,7 +38,7 @@ public interface Wordlist extends PwmService {
     // string used as pwmdb version checksum, if different then value in pwmdb, pwmdb will be cleared.
     static final String VALUE_VERSION = "pwm-wordlist-db-11" + "_" + PwmConstants.SERVLET_VERSION;
 
-    public boolean containsWord(final PwmSession pwmSession, final String word);
+    public boolean containsWord(final String word);
 
     int size();
 }

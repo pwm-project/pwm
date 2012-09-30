@@ -32,7 +32,6 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
-import password.pwm.Validator;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
@@ -43,6 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.CommandServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
@@ -71,7 +71,8 @@ public class UserStatusHelper {
             final String currentPassword,
             final PwmApplication pwmApplication,
             final ChaiUser theUser,
-            final PwmPasswordPolicy passwordPolicy
+            final PwmPasswordPolicy passwordPolicy,
+            final UserInfoBean userInfoBean
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -86,7 +87,8 @@ public class UserStatusHelper {
         if (passwordPolicy.getRuleHelper().readBooleanValue(PwmPasswordRule.EnforceAtLogin)) {
             if (currentPassword != null && currentPassword.length() > 0) {
                 try {
-                    Validator.testPasswordAgainstPolicy(currentPassword, null, pwmSession, pwmApplication, passwordPolicy, true);
+                    PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
+                    passwordRuleValidator.testPassword(currentPassword, null, userInfoBean, theUser);
                 } catch (PwmDataValidationException e) {
                     LOGGER.info(pwmSession, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     returnState.setViolatesPolicy(true);
@@ -235,7 +237,7 @@ public class UserStatusHelper {
         }
 
         // read  password state
-        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy()));
+        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
 
         final String userPasswordExpireTime = uiBean.getAllUserAttributes().get(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
         if (userPasswordExpireTime != null && userPasswordExpireTime.length() > 0) {

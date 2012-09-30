@@ -203,7 +203,7 @@
     }
 
     function startup() {
-        require(["dojo","dojo/domReady!","dojo/window"],function(){
+        require(["dojo","dojo/domReady!","dojo/window"],function(dojo){
             flashDomElement('white','body',9000);
 
             var vs = dojo.window.getBox();

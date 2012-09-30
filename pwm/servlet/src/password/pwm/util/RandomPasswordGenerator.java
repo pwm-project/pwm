@@ -23,7 +23,10 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
-import password.pwm.*;
+import password.pwm.PwmApplication;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmService;
+import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
@@ -94,26 +97,28 @@ public class RandomPasswordGenerator {
     }
 
 
-    /**
-     * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
-     * reason the RANDOM algorithm can not generate a valid password, null will be returned.
-     * <p/>
-     * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
-     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
-     *
-     * @param pwmSession A valid pwmSession
-     * @param randomGeneratorConfig Policy to be used during generation
-     * @param pwmApplication Used to get configuration, seedmanager and other services.
-     * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
-     * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
-     *          If there is no way to create a password using the configured rules and
-     *          default seed phrase
-     */
+        /**
+        * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
+        * reason the RANDOM algorithm can not generate a valid password, null will be returned.
+        * <p/>
+        * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
+        * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
+        *
+        * @param pwmSession A valid pwmSession
+        * @param randomGeneratorConfig Policy to be used during generation
+        * @param pwmApplication Used to get configuration, seedmanager and other services.
+        * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
+        * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
+        *          If there is no way to create a password using the configured rules and
+        *          default seed phrase
+        */
     public static String createRandomPassword(
             final PwmSession pwmSession,
             final RandomGeneratorConfig randomGeneratorConfig,
             final PwmApplication pwmApplication
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
         final long startTimeMS = System.currentTimeMillis();
 
         if (randomGeneratorConfig.getSeedlistPhrases() == null || randomGeneratorConfig.getSeedlistPhrases().isEmpty()) {
@@ -160,12 +165,16 @@ public class RandomPasswordGenerator {
         // initial creation
         password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
 
+        // get a rule validator
+        final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, randomGenPolicy);
+
         // modify until it passes all the rules
         boolean validPassword = false;
         while (!validPassword && tryCount < randomGeneratorConfig.getMaximumTryCount()) {
             tryCount++;
             validPassword = true;
-            final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), null, pwmSession, randomGenPolicy, pwmApplication);
+
+            final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null);
             if (errors != null && !errors.isEmpty()) {
                 validPassword = false;
                 modifyPasswordBasedOnErrors(password, errors, seedMachine);
@@ -183,8 +192,8 @@ public class RandomPasswordGenerator {
             if (validPassword) {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
-                final List<ErrorInformation> errors = Validator.pwmPasswordPolicyValidator(password.toString(), null, pwmSession, randomGenPolicy, pwmApplication);
-                final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), pwmSession, password.toString());
+                final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null);
+                final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);

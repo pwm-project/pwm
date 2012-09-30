@@ -34,6 +34,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 
@@ -178,7 +179,8 @@ public class ChangePasswordServlet extends TopServlet {
         // check the password meets the requirements
         {
             try {
-                Validator.testPasswordAgainstPolicy(password1, pwmSession, pwmApplication);
+                final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,pwmSession.getUserInfoBean().getPasswordPolicy());
+                pwmPasswordRuleValidator.testPassword(password1,null,pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getActor());
             } catch (PwmDataValidationException e) {
                 ssBean.setSessionError(e.getErrorInformation());
                 LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());

@@ -30,12 +30,11 @@ public interface ExternalRuleMethod {
 
     /**
      *
-     * @param pwmSession A reference to the user's PwmSession.  May be null in some cases.
      * @param policy The policy to be used for evaluation.
      * @param password The password to be                                      
      * @return A RuleValidatorResult object.
      */
-    public RuleValidatorResult validatePasswordRules(final PwmSession pwmSession, final PwmPasswordPolicy policy, final String password);
+    public RuleValidatorResult validatePasswordRules(final PwmPasswordPolicy policy, final String password);
 
 
     /**
