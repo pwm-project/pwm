@@ -123,7 +123,10 @@
         <url-pattern>/proxyCallback</url-pattern>
     </filter-mapping>
     -->
-
+    <filter>
+        <filter-name>GZIPFilter</filter-name>
+        <filter-class>password.pwm.GZIPFilter</filter-class>
+    </filter>
     <filter>
         <filter-name>SessionFilter</filter-name>
         <filter-class>password.pwm.SessionFilter</filter-class>
@@ -140,6 +143,14 @@
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>password.pwm.AuthorizationFilter</filter-class>
     </filter>
+    <filter-mapping>
+        <filter-name>GZIPFilter</filter-name>
+        <url-pattern>/public/*</url-pattern>
+        <url-pattern>/private/*</url-pattern>
+        <url-pattern>/config/*</url-pattern>
+        <url-pattern>/</url-pattern>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
         <url-pattern>/public/NewUser</url-pattern>

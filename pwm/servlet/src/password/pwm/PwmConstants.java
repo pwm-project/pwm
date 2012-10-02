@@ -84,6 +84,7 @@ public abstract class PwmConstants {
     public static final boolean RESOURCE_SERVLET_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnableGzip"));
     public static final boolean RESOURCE_SERVLET_ENABLE_PATH_NONCE = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnablePathNonce"));
     public static final String RESOURCE_SERVLET_NONCE_PATH_PREFIX = readPwmConstantsBundle("resourceServletNoncePathPrefix");
+    public static final boolean SERVLET_FILTER_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("servletFilterEnableGzip"));
 
     public static final int LDAP_PROXY_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapProxyConnectionTimeout"));
     public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));

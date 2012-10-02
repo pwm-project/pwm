@@ -87,7 +87,7 @@ function handleFormSubmit(buttonID, form) {
         }
     }
 
-    require(["dijit/Dialog"],function(){
+    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
         showWaitDialog();
 
         setTimeout(function() {

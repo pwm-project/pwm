@@ -29,7 +29,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmPasswordRule;
@@ -41,6 +40,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -166,14 +166,10 @@ public class RestCheckPasswordServer {
                     pwmPasswordRuleValidator.testPassword(password, userInfoBean.getUserCurrentPassword(), userInfoBean, pwmApplication.getProxyChaiUserActor(pwmSession));
                 } else {
                     final ChaiUser user = ChaiFactory.createChaiUser(userDN,pwmSession.getSessionManager().getChaiProvider());
-                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                            pwmApplication,
-                            pwmSession,
-                            user,
-                            pwmSession.getSessionStateBean().getLocale()
-                    );
-                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
-                    pwmPasswordRuleValidator.testPassword(password, null, null, user);
+                    final UserInfoBean userInfoBean = new UserInfoBean();
+                    UserStatusHelper.populateUserInfoBean(pwmSession, userInfoBean, pwmApplication, pwmSession.getSessionStateBean().getLocale(),userDN,null,pwmSession.getSessionManager().getChaiProvider());
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
+                    pwmPasswordRuleValidator.testPassword(password, null, userInfoBean, user);
                 }
                 userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(pwmSession, pwmApplication);
                 pass = true;

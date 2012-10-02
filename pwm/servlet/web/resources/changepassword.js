@@ -157,21 +157,23 @@ function updateDisplay(resultInfo) {
 }
 
 function markConfirmationCheck(matchStatus) {
-    if (matchStatus == "MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'visible';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '15';
-        getObject("confirmCrossMark").width = '0';
-    } else if (matchStatus == "NO_MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'visible';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '15';
-    } else {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '0';
+    if (getObject("confirmCheckMark") && getObject("confirmCrossMark")) {
+        if (matchStatus == "MATCH") {
+            getObject("confirmCheckMark").style.visibility = 'visible';
+            getObject("confirmCrossMark").style.visibility = 'hidden';
+            getObject("confirmCheckMark").width = '15';
+            getObject("confirmCrossMark").width = '0';
+        } else if (matchStatus == "NO_MATCH") {
+            getObject("confirmCheckMark").style.visibility = 'hidden';
+            getObject("confirmCrossMark").style.visibility = 'visible';
+            getObject("confirmCheckMark").width = '0';
+            getObject("confirmCrossMark").width = '15';
+        } else {
+            getObject("confirmCheckMark").style.visibility = 'hidden';
+            getObject("confirmCrossMark").style.visibility = 'hidden';
+            getObject("confirmCheckMark").width = '0';
+            getObject("confirmCrossMark").width = '0';
+        }
     }
 }
 
@@ -251,17 +253,16 @@ function showPasswordGuide() {
 
 
 function showRandomPasswordsDialog(randomConfig) {
-    closeWaitDialog();
 
     var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
 
-    require(["dojo","dijit/Dialog"],function(){
+    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
+        closeWaitDialog();
         var theDialog = new dijit.Dialog({
             title: titleString,
             style: "width: 300px; border: 2px solid #D4D4D4;",
             content: randomConfig['dialogBody'],
             id: "dialogPopup"
-
         });
         theDialog.setAttribute('class','nihilo');
         theDialog.show();

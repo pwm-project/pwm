@@ -373,7 +373,7 @@
     </div>
     <script type="text/javascript">
         dojo.addOnLoad(function() {
-            showPwmHealth('healthBody', false);
+            showPwmHealth('healthBody', false, true);
         });
     </script>
     <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
