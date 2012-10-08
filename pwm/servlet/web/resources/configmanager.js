@@ -34,6 +34,7 @@ function readSetting(keyName, valueWriter) {
                 showError("error loading " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
+                console.log('read data for ' + keyName);
                 var resultValue = data.value;
                 valueWriter(resultValue);
                 var isDefault = data['isDefault'];
@@ -63,6 +64,7 @@ function writeSetting(keyName, valueData) {
                 showError("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
+                console.log('wrote data for ' + keyName);
                 var isDefault = data['isDefault'];
                 var resetImageButton = getObject('resetButton-' + keyName);
                 if (!isDefault) {
@@ -88,6 +90,9 @@ function resetSetting(keyName) {
             sync: true,
             error: function(errorObj) {
                 showError("error resetting setting " + keyName + ", reason: " + errorObj)
+            },
+            load: function() {
+                console.log('reset data for ' + keyName);
             }
         });
     });
@@ -178,26 +183,28 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 }
 
 // -------------------------- locale table handler ------------------------------------
+var LocaleTableHandler = {};
 
-function initLocaleTable(parentDiv, keyName, regExPattern, syntax) {
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
-        clearDivElements(parentDiv, false);
-        for (var i in resultValue) {
-            addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
-        }
-        addAddLocaleButtonRow(parentDiv, keyName, function() {
-            addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
-        });
+LocaleTableHandler.initLocaleTable = function(parentDiv, keyName, regExPattern, syntax) {
+    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
+        console.log('LocaleTableHandler init for ' + keyName);
+        clearDivElements(parentDiv, true);
+        readSetting(keyName, function(resultValue) {
+            clearDivElements(parentDiv, false);
+            for (var i in resultValue) {
+                LocaleTableHandler.addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
+            }
+            addAddLocaleButtonRow(parentDiv, keyName, function() {
+                LocaleTableHandler.addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
+            });
 
-        clientSettingCache[keyName] = resultValue;
-        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
+            clientSettingCache[keyName] = resultValue;
             dojoParser.parse(parentDiv);
         });
     });
-}
+};
 
-function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPattern, syntax) {
+LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeString, value, regExPattern, syntax) {
     var inputID = 'value-' + settingKey + '-' + localeString;
 
     // clear the old dijit node (if it exists)
@@ -207,7 +214,7 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
     newTableRow.setAttribute("style", "border-width: 0");
     {
         var td1 = document.createElement("td");
-        td1.setAttribute("style", "border-width: 0; -webkit-transform: rotate(270deg);-moz-transform: rotate(270deg);-o-transform: rotate(270deg); max-width:10px");
+        td1.setAttribute("style", "border-width: 0; max-width:10px");
 
         if (localeString == null || localeString.length < 1) {
             td1.innerHTML = "";
@@ -225,18 +232,18 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
             var textAreaElement = document.createElement("textarea");
             textAreaElement.setAttribute("id", inputID);
             textAreaElement.setAttribute("value", "[Loading....]");
-            textAreaElement.setAttribute("onchange", "writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+            textAreaElement.setAttribute("onchange", "LocaleTableHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
             textAreaElement.setAttribute("style", "width: 500px;");
-            textAreaElement.setAttribute("dojoType", "dijit.form.Textarea");
+            textAreaElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
             textAreaElement.setAttribute("value", value);
             td2.appendChild(textAreaElement);
         } else {
             var inputElement = document.createElement("input");
             inputElement.setAttribute("id", inputID);
             inputElement.setAttribute("value", "[Loading....]");
-            inputElement.setAttribute("onchange", "writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+            inputElement.setAttribute("onchange", "LocaleTableHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
             inputElement.setAttribute("style", "width: 500px");
-            inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
+            inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
             inputElement.setAttribute("regExp", regExPattern);
             inputElement.setAttribute("value", value);
             td2.appendChild(inputElement);
@@ -247,15 +254,15 @@ function addLocaleTableRow(parentDiv, settingKey, localeString, value, regExPatt
             var imgElement = document.createElement("img");
             imgElement.setAttribute("style", "width: 15px; height: 15px");
             imgElement.setAttribute("src", "../resources/redX.png");
-            imgElement.setAttribute("onclick", "removeLocaleSetting('" + settingKey + "','" + localeString + "','" + parentDiv + "','" + regExPattern + "')");
+            imgElement.setAttribute("onclick", "LocaleTableHandler.removeLocaleSetting('" + settingKey + "','" + localeString + "','" + parentDiv + "','" + regExPattern + "','" + syntax + "')");
             td2.appendChild(imgElement);
         }
     }
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
-}
+};
 
-function writeLocaleSetting(settingKey, locale, value) {
+LocaleTableHandler.writeLocaleSetting = function(settingKey, locale, value) {
     var existingValues = clientSettingCache[settingKey];
     var currentValues = { };
     for (var i in existingValues) {
@@ -269,39 +276,40 @@ function writeLocaleSetting(settingKey, locale, value) {
     }
     writeSetting(settingKey, currentValues);
     clientSettingCache[settingKey] = currentValues;
-}
+};
 
-function removeLocaleSetting(keyName, locale, parentDiv, regExPattern, syntax) {
-    writeLocaleSetting(keyName, locale, null);
-    clearDivElements(parentDiv, true);
-    initLocaleTable(parentDiv, keyName, regExPattern, syntax);
-}
+LocaleTableHandler.removeLocaleSetting = function(keyName, locale, parentDiv, regExPattern, syntax) {
+    LocaleTableHandler.writeLocaleSetting(keyName, locale, null);
+    LocaleTableHandler.initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+};
 
-function addLocaleSetting(keyName, parentDiv, regExPattern, syntax) {
+LocaleTableHandler.addLocaleSetting = function(keyName, parentDiv, regExPattern, syntax) {
     require(["dijit/registry"],function(registry){
         var inputValue = registry.byId(keyName + '-addLocaleValue').value;
         try {
             var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
             if (existingElementForLocale == null) {
-                writeLocaleSetting(keyName, inputValue, '');
-                clearDivElements(parentDiv, true);
-                initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+                LocaleTableHandler.writeLocaleSetting(keyName, inputValue, '');
+                LocaleTableHandler.initLocaleTable(parentDiv, keyName, regExPattern, syntax);
             }
         } finally {
         }
     });
-}
+};
 
 // -------------------------- multivalue table handler ------------------------------------
 
-function initMultiTable(parentDiv, keyName, regExPattern) {
+var MultiTableHandler = {};
+
+MultiTableHandler.initMultiTable = function(parentDiv, keyName, regExPattern) {
+    console.log('MultiTableHandler init for ' + keyName);
     clearDivElements(parentDiv, true);
 
     readSetting(keyName, function(resultValue) {
         clearDivElements(parentDiv, false);
         var counter = 0;
         for (var i in resultValue) {
-            addMultiValueRow(parentDiv, keyName, i, resultValue[i], regExPattern);
+            MultiTableHandler.addMultiValueRow(parentDiv, keyName, i, resultValue[i], regExPattern);
             counter++;
         }
         {
@@ -314,8 +322,8 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
 
             var addItemButton = document.createElement("button");
             addItemButton.setAttribute("type", "[button");
-            addItemButton.setAttribute("onclick", "addMultiSetting('" + keyName + "','" + parentDiv + "','" + regExPattern + "');");
-            addItemButton.setAttribute("dojoType", "dijit.form.Button");
+            addItemButton.setAttribute("onclick", "MultiTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "','" + regExPattern + "');");
+            addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
             addItemButton.innerHTML = "Add Value";
             newTableData.appendChild(addItemButton);
 
@@ -328,9 +336,9 @@ function initMultiTable(parentDiv, keyName, regExPattern) {
             dojoParser.parse(parentDiv);
         });
     });
-}
+};
 
-function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern) {
+MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, value, regExPattern) {
     require(["dijit/registry"],function(registry){
         var inputID = 'value-' + settingKey + '-' + iteration;
 
@@ -355,9 +363,9 @@ function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern)
             var inputElement = document.createElement("input");
             inputElement.setAttribute("id", inputID);
             inputElement.setAttribute("value", value);
-            inputElement.setAttribute("onchange", "writeMultiSetting('" + settingKey + "','" + iteration + "',this.value)");
+            inputElement.setAttribute("onchange", "MultiTableHandler.writeMultiSetting('" + settingKey + "','" + iteration + "',this.value)");
             inputElement.setAttribute("style", "width: 450px");
-            inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
+            inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
             inputElement.setAttribute("regExp", regExPattern);
             inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
             td1.appendChild(inputElement);
@@ -368,16 +376,16 @@ function addMultiValueRow(parentDiv, settingKey, iteration, value, regExPattern)
                 var imgElement = document.createElement("img");
                 imgElement.setAttribute("style", "width: 15px; height: 15px");
                 imgElement.setAttribute("src", "../resources/redX.png");
-                imgElement.setAttribute("onclick", "removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
+                imgElement.setAttribute("onclick", "MultiTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
                 td1.appendChild(imgElement);
             }
         }
         var parentDivElement = getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
     });
-}
+};
 
-function writeMultiSetting(settingKey, iteration, value) {
+MultiTableHandler.writeFormSetting = function(settingKey, iteration, value) {
     var size = clientSettingCache[settingKey];
     var currentValues = { };
     for (var i = 0; i < size; i++) {
@@ -390,26 +398,27 @@ function writeMultiSetting(settingKey, iteration, value) {
         currentValues[iteration] = value;
     }
     writeSetting(settingKey, currentValues);
-}
+};
 
-function removeMultiSetting(keyName, iteration, regExPattern) {
+MultiTableHandler.removeMultiSetting = function(keyName, iteration, regExPattern) {
     var parentDiv = 'table_setting_' + keyName;
-    writeMultiSetting(keyName, iteration, null);
-    clearDivElements(parentDiv, true);
-    initMultiTable(parentDiv, keyName, regExPattern);
-}
+    MultiTableHandler.writeFormSetting(keyName, iteration, null);
+    MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern);
+};
 
-function addMultiSetting(keyName, parentDiv, regExPattern) {
+MultiTableHandler.addMultiSetting = function(keyName, parentDiv, regExPattern) {
     var size = clientSettingCache[keyName];
-    writeMultiSetting(keyName, size + 1, "");
-    clearDivElements(parentDiv, true);
-    initMultiTable(parentDiv, keyName, regExPattern)
-}
+    MultiTableHandler.writeFormSetting(keyName, size + 1, "");
+    MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern)
+};
 
 // -------------------------- multi locale table handler ------------------------------------
 
-function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
-    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,dijit,dojoParser){
+var MultiLocaleTableHandler = {};
+
+MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regExPattern) {
+    console.log('MultiLocaleTableHandler init for ' + keyName);
+    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
         clearDivElements(parentDiv, true);
         readSetting(keyName, function(resultValue) {
             clearDivElements(parentDiv, false);
@@ -452,9 +461,9 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
                     var inputElement = document.createElement("input");
                     inputElement.setAttribute("id", inputID);
                     inputElement.setAttribute("value", multiValues[iteration]);
-                    inputElement.setAttribute("onchange", "writeMultiLocaleSetting('" + keyName + "')");
+                    inputElement.setAttribute("onchange", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "')");
                     inputElement.setAttribute("style", "width: 450px");
-                    inputElement.setAttribute("dojoType", "dijit.form.ValidationTextBox");
+                    inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
                     inputElement.setAttribute("regExp", regExPattern);
                     inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
                     valueTd1.appendChild(inputElement);
@@ -465,7 +474,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
                         var imgElement = document.createElement("img");
                         imgElement.setAttribute("style", "width: 15px; height: 15px");
                         imgElement.setAttribute("src", "../resources/redX.png");
-                        imgElement.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                        imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
                         valueTd1.appendChild(imgElement);
                     }
                 }
@@ -480,8 +489,8 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
 
                     var addItemButton = document.createElement("button");
                     addItemButton.setAttribute("type", "[button");
-                    addItemButton.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + (multiValues.size + 1) + "','');initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                    addItemButton.setAttribute("dojoType", "dijit.form.Button");
+                    addItemButton.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + (multiValues.size + 1) + "','');MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                    addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
                     addItemButton.innerHTML = "Add Value";
                     newTableData.appendChild(addItemButton);
 
@@ -494,7 +503,7 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
                     var imgElement2 = document.createElement("img");
                     imgElement2.setAttribute("style", "width: 15px; height: 15px;");
                     imgElement2.setAttribute("src", "../resources/redX.png");
-                    imgElement2.setAttribute("onclick", "writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
+                    imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
                     var tdElement = document.createElement("td");
                     tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
 
@@ -518,9 +527,9 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
             }
 
             var addLocaleFunction = function() {
-                require(["dijit","dijit/registry"],function(registry){
-                    writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '');
-                    initMultiLocaleTable(parentDiv, keyName, regExPattern);
+                require(["dijit/registry"],function(registry){
+                    MultiLocaleTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '');
+                    MultiLocaleTableHandler.initMultiLocaleTable(parentDiv, keyName, regExPattern);
                 });
             };
 
@@ -529,9 +538,9 @@ function initMultiLocaleTable(parentDiv, keyName, regExPattern) {
             dojoParser.parse(parentDiv);
         });
     });
-}
+};
 
-function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
+MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value) {
     var results = clientSettingCache[settingKey];
     var currentValues = { };
     for (var loopLocale in results) {
@@ -562,7 +571,375 @@ function writeMultiLocaleSetting(settingKey, locale, iteration, value) {
     }
 
     writeSetting(settingKey, currentValues);
-}
+};
+
+// -------------------------- form table handler ------------------------------------
+
+var FormTableHandler = {};
+
+FormTableHandler.init = function(parentDiv, keyName) {
+    console.log('FormTableHandler init for ' + keyName);
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        FormTableHandler.redraw(parentDiv, keyName);
+    });
+};
+
+FormTableHandler.redraw = function(parentDiv, keyName) {
+    var resultValue = clientSettingCache[keyName];
+    clearDivElements(parentDiv, false);
+    var parentDivElement = getObject(parentDiv);
+
+    {
+        var headerRow = document.createElement("tr");
+        headerRow.setAttribute("style", "border-width: 0");
+
+        var header1 = document.createElement("td");
+        header1.setAttribute("style", "border-width: 0;");
+        header1.innerHTML = "Name";
+        headerRow.appendChild(header1);
+
+        var header2 = document.createElement("td");
+        header2.setAttribute("style", "border-width: 0;");
+        header2.innerHTML = "Label";
+        headerRow.appendChild(header2);
+
+        parentDivElement.appendChild(headerRow);
+    }
+
+    for (var i in resultValue) {
+        FormTableHandler.addFormRow(parentDiv, keyName, i, resultValue[i]);
+    }
+
+    {
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
+        newTableRow.setAttribute("colspan", "5");
+
+        var newTableData = document.createElement("td");
+        newTableData.setAttribute("style", "border-width: 0;");
+
+        var addItemButton = document.createElement("button");
+        addItemButton.setAttribute("type", "[button");
+        addItemButton.setAttribute("onclick", "FormTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "');");
+        addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+        addItemButton.innerHTML = "Add Value";
+        newTableData.appendChild(addItemButton);
+
+        newTableRow.appendChild(newTableData);
+        parentDivElement.appendChild(newTableRow);
+    }
+    require(["dojo/parser","dijit/form/Button","dijit/form/FilteringSelect"],function(dojoParser){
+        dojoParser.parse(parentDiv);
+    });
+};
+
+FormTableHandler.addFormRow = function(parentDiv, settingKey, iteration, value) {
+    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+
+    // clear the old dijit node (if it exists)
+    clearDijitWidget(inputID + "name");
+    clearDijitWidget(inputID + "label");
+    clearDijitWidget(inputID + "type");
+    clearDijitWidget(inputID + "optionsButton");
+
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
+    {
+        {
+            var td1 = document.createElement("td");
+            td1.setAttribute("style", "border-width: 0");
+            var nameInput = document.createElement("input");
+            nameInput.setAttribute("id", inputID + "name");
+            nameInput.setAttribute("value", value['name']);
+            nameInput.setAttribute("onchange","clientSettingCache['" + settingKey + "'][" + iteration + "]['name'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
+            nameInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+            nameInput.setAttribute("data-dojo-props", "required: true");
+
+            td1.appendChild(nameInput);
+            newTableRow.appendChild(td1);
+        }
+
+        {
+            var td2 = document.createElement("td");
+            td2.setAttribute("style", "border-width: 0");
+            var labelInput = document.createElement("input");
+            labelInput.setAttribute("id", inputID + "label");
+            labelInput.setAttribute("value", value['label']);
+            labelInput.setAttribute("readonly", "true");
+            labelInput.setAttribute("onclick","FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
+            labelInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+            td2.appendChild(labelInput);
+            newTableRow.appendChild(td2);
+        }
+
+        {
+            var td3 = document.createElement("td");
+            td3.setAttribute("style", "border-width: 0");
+            var optionList = ["text","email","number","password","random","readonly","tel","hidden"];
+            var typeSelect = document.createElement("select");
+            typeSelect.setAttribute("data-dojo-type", "dijit.form.FilteringSelect");
+            typeSelect.setAttribute("id", inputID + "type");
+            typeSelect.setAttribute("style","width: 80px");
+            typeSelect.setAttribute("onchange","clientSettingCache['" + settingKey + "'][" + iteration + "]['type'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
+            for (var optionItem in optionList) {
+                var optionElement = document.createElement("option");
+                optionElement.value = optionList[optionItem];
+                optionElement.innerHTML = optionList[optionItem];
+                if (optionList[optionItem] == clientSettingCache[settingKey][iteration]['type']) {
+                    optionElement.setAttribute("selected","true");
+                }
+                typeSelect.appendChild(optionElement);
+            }
+
+            td3.appendChild(typeSelect);
+            newTableRow.appendChild(td3);
+        }
+
+        {
+            var td4 = document.createElement("td");
+            td4.setAttribute("style", "border-width: 0");
+            var labelButton = document.createElement("button");
+            labelButton.setAttribute("id", inputID + "optionsButton");
+            labelButton.setAttribute("data-dojo-type", "dijit.form.Button");
+            labelButton.setAttribute("onclick","FormTableHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
+            labelButton.innerHTML = "Options";
+            td4.appendChild(labelButton);
+            newTableRow.appendChild(td4);
+        }
+
+        if (iteration != 0) {
+            var tdFinal = document.createElement("td");
+            tdFinal.setAttribute("style", "border-width: 0");
+
+            var imgElement = document.createElement("img");
+            imgElement.setAttribute("style", "width: 15px; height: 15px");
+            imgElement.setAttribute("src", "../resources/redX.png");
+            imgElement.setAttribute("onclick", "FormTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "')");
+            tdFinal.appendChild(imgElement);
+            newTableRow.appendChild(tdFinal);
+        }
+    }
+    var parentDivElement = getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+};
+
+FormTableHandler.writeFormSetting = function(settingKey) {
+    var cachedSetting = clientSettingCache[settingKey];
+    writeSetting(settingKey, cachedSetting);
+};
+
+FormTableHandler.removeMultiSetting = function(keyName, iteration) {
+    var parentDiv = 'table_setting_' + keyName;
+    delete clientSettingCache[keyName][iteration];
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.redraw(parentDiv, keyName);
+};
+
+FormTableHandler.addMultiSetting = function(keyName, parentDiv) {
+    var currentSize = 0;
+    for (var loopVar in clientSettingCache[keyName]) {
+        currentSize++;
+    }
+    clientSettingCache[keyName][currentSize + 1] = {};
+    clientSettingCache[keyName][currentSize + 1]['name'] = '';
+    clientSettingCache[keyName][currentSize + 1]['label'] = '';
+    clientSettingCache[keyName][currentSize + 1]['minimumLength'] = '0';
+    clientSettingCache[keyName][currentSize + 1]['maximumLength'] = '255';
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.redraw(parentDiv, keyName)
+};
+
+FormTableHandler.showOptionsDialog = function(keyName, iteration) {
+    require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
+        var inputID = 'value_' + keyName + '_' + iteration + "_";
+        var bodyText = '<table style="border:0">';
+        bodyText += '<tr>';
+        bodyText += '<td style="border:0; text-align: right">Required</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Confirm</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Minimum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Maximum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Regular Expression</td><td style="border:0;"><input type="text" id="' + inputID + 'regex' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Placeholder</td><td style="border:0;"><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+        bodyText += '</tr></table>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Options for ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+            }
+        });
+        theDialog.show();
+
+        clearDijitWidget(inputID + "required");
+        new dijit.form.CheckBox({
+            checked: clientSettingCache[keyName][iteration]['required'],
+            onChange: function(){clientSettingCache[keyName][iteration]['required'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
+        },inputID + "required");
+
+        clearDijitWidget(inputID + "confirmationRequired");
+        new dijit.form.CheckBox({
+            checked: clientSettingCache[keyName][iteration]['confirmationRequired'],
+            onChange: function(){clientSettingCache[keyName][iteration]['confirmationRequired'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
+        },inputID + "confirmationRequired");
+
+        clearDijitWidget(inputID + "minimumLength");
+        new dijit.form.NumberSpinner({
+            value: clientSettingCache[keyName][iteration]['minimumLength'],
+            onChange: function(){clientSettingCache[keyName][iteration]['minimumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
+            constraints: { min:0, max:5000 },
+            style: "width: 70px"
+        },inputID + "minimumLength");
+
+        clearDijitWidget(inputID + "maximumLength");
+        new dijit.form.NumberSpinner({
+            value: clientSettingCache[keyName][iteration]['maximumLength'],
+            onChange: function(){clientSettingCache[keyName][iteration]['maximumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
+            constraints: { min:0, max:5000 },
+            style: "width: 70px"
+        },inputID + "maximumLength");
+
+        clearDijitWidget(inputID + "regex");
+        new dijit.form.Textarea({
+            value: clientSettingCache[keyName][iteration]['regex'],
+            onChange: function(){clientSettingCache[keyName][iteration]['regex'] = this.value;FormTableHandler.writeFormSetting(keyName)}
+        },inputID + "regex");
+
+        clearDijitWidget(inputID + "placeholder");
+        new dijit.form.Textarea({
+            value: clientSettingCache[keyName][iteration]['placeholder'],
+            onChange: function(){clientSettingCache[keyName][iteration]['placeholder'] = this.value;FormTableHandler.writeFormSetting(keyName)}
+        },inputID + "placeholder");
+    });
+};
+
+FormTableHandler.showLabelDialog = function(keyName, iteration) {
+    require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
+        var bodyText = '<table style="border:0">';
+        bodyText += '<tr>';
+        bodyText += '<td style="border:0; text-align: right">Default</td><td style="border:0;"><input type="text" id="' + inputID + '' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">fr</td><td style="border:0;"><input type="text" id="' + inputID + 'fr' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '</tr></table>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Labels for ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+            }
+        });
+        theDialog.show();
+
+    });
+};
+
+// -------------------------- change password handler ------------------------------------
+
+var ChangePasswordHandler = {};
+
+ChangePasswordHandler.validatePasswordPopupFields = function() {
+    var password1 = getObject('password1').value;
+    var password2 = getObject('password2').value;
+
+    var matchStatus = "";
+
+    getObject('password_button').disabled = true;
+    if (password2.length > 0) {
+        if (password1 == password2) {
+            matchStatus = "MATCH";
+            getObject('password_button').disabled = false;
+        } else {
+            matchStatus = "NO_MATCH";
+        }
+    }
+
+    ChangePasswordHandler.markConfirmationCheck(matchStatus);
+};
+
+ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
+    if (matchStatus == "MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'visible';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '15';
+        getObject("confirmCrossMark").width = '0';
+    } else if (matchStatus == "NO_MATCH") {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'visible';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '15';
+    } else {
+        getObject("confirmCheckMark").style.visibility = 'hidden';
+        getObject("confirmCrossMark").style.visibility = 'hidden';
+        getObject("confirmCheckMark").width = '0';
+        getObject("confirmCrossMark").width = '0';
+    }
+};
+
+ChangePasswordHandler.doChange = function(settingKey) {
+    var password1 = getObject('password1').value;
+    clearDijitWidget('changepassword-popup');
+    writeSetting(settingKey,password1);
+};
+
+ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
+    require(["dijit/Dialog","dijit/form/Textarea"],function(){
+        var bodyText = '<span id="message" class="message message-info">' + settingName + '</span><br/>';
+        bodyText += '<table style="border: 0">';
+        bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
+        bodyText += '</tr><tr style="border: 0">';
+        bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
+
+        bodyText += '<td style="border: 0"><div style="margin:0;">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="../resources/greenCheck.png">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="../resources/redX.png">';
+        bodyText += '</div></td>';
+
+        bodyText += '</tr></table>';
+        bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
+        bodyText += 'Set Password</button>';
+
+        clearDijitWidget('changepassword-popup');
+        var theDialog = new dijit.Dialog({
+            id: 'changepassword-popup',
+            title: 'Set Password',
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('changepassword-popup');
+            }
+        });
+        theDialog.show();
+
+        require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
+            dojoParser.parse();
+        });
+
+        setTimeout(function(){ getObject('password1').focus();},500);
+    });
+};
+
+
+
 
 function saveConfiguration() {
     require(["dojo"],function(dojo){
@@ -719,7 +1096,7 @@ function getCookie(c_name)
 }
 
 function readInitialTextBasedValue(key) {
-    require(["dijit","dijit/registry"],function(registry){
+    require(["dijit/registry"],function(registry){
         readSetting(key, function(dataValue) {
             getObject('value_' + key).value = dataValue;
             getObject('value_' + key).disabled = false;
@@ -790,85 +1167,3 @@ function showConfigurationNotes() {
     });
 }
 
-var ChangePasswordHandler = {};
-
-ChangePasswordHandler.validatePasswordPopupFields = function() {
-    var password1 = getObject('password1').value;
-    var password2 = getObject('password2').value;
-
-    var matchStatus = "";
-
-    getObject('password_button').disabled = true;
-    if (password2.length > 0) {
-        if (password1 == password2) {
-            matchStatus = "MATCH";
-            getObject('password_button').disabled = false;
-        } else {
-            matchStatus = "NO_MATCH";
-        }
-    }
-
-    ChangePasswordHandler.markConfirmationCheck(matchStatus);
-};
-
-ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
-    if (matchStatus == "MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'visible';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '15';
-        getObject("confirmCrossMark").width = '0';
-    } else if (matchStatus == "NO_MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'visible';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '15';
-    } else {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '0';
-    }
-};
-
-ChangePasswordHandler.doChange = function(settingKey) {
-    var password1 = getObject('password1').value;
-    clearDijitWidget('changepassword-popup');
-    writeSetting(settingKey,password1);
-};
-
-ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
-    require(["dijit/Dialog","dijit/form/Textarea"],function(){
-        var bodyText = '<span id="message" class="message message-info">' + settingName + '</span><br/>';
-        bodyText += '<table style="border: 0">';
-        bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
-        bodyText += '</tr><tr style="border: 0">';
-        bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
-
-        bodyText += '<td style="border: 0"><div style="margin:0;">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="../resources/greenCheck.png">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="../resources/redX.png">';
-        bodyText += '</div></td>';
-
-        bodyText += '</tr></table>';
-        bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
-        bodyText += 'Set Password</button>';
-
-        clearDijitWidget('changepassword-popup');
-        var theDialog = new dijit.Dialog({
-            id: 'changepassword-popup',
-            title: 'Set Password',
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                clearDijitWidget('changepassword-popup');
-            }
-        });
-        theDialog.show();
-
-        require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
-            dojoParser.parse();
-        });
-
-        setTimeout(function(){ getObject('password1').focus();},500);
-    });
-};

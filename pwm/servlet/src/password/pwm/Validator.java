@@ -103,12 +103,12 @@ public class Validator {
         }
 
         for (final FormConfiguration formConfiguration : formConfigurations) {
-            final String keyName = formConfiguration.getAttributeName();
+            final String keyName = formConfiguration.getName();
             final String value = inputMap.get(keyName);
 
             if (formConfiguration.isRequired()) {
                 if (value == null || value.length() < 0) {
-                    final String errorMsg = "missing required value for field '" + formConfiguration.getAttributeName() + "'";
+                    final String errorMsg = "missing required value for field '" + formConfiguration.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, formConfiguration.getLabel());
                     throw new PwmDataValidationException(error);
                 }
@@ -117,7 +117,7 @@ public class Validator {
             if (formConfiguration.isConfirmationRequired()) {
                 final String confirmValue = inputMap.get(keyName + PARAM_CONFIRM_SUFFIX);
                 if (!confirmValue.equals(value)) {
-                    final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getAttributeName() + "'";
+                    final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, formConfiguration.getLabel());
                     throw new PwmDataValidationException(error);
                 }
@@ -289,37 +289,9 @@ public class Validator {
     {
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String value = formValues.get(formConfiguration);
-            formConfiguration.checkValue(pwmApplication, value);
+            formConfiguration.checkValue(value);
         }
     }
-
-    public static void validateNumericString(
-            final String numstr,
-            final Integer lowerbound,
-            final Integer upperbound,
-            final PwmSession pwmSession
-    ) throws PwmUnrecoverableException, NumberFormatException, PwmDataValidationException {
-        final Integer num;
-        try {
-            num = Integer.parseInt(numstr);
-        } catch (Exception e) {
-            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_INVALIDNUMER, null, numstr);
-            LOGGER.trace(pwmSession, "value \""+numstr+"\" is not a valid number");
-            throw new PwmDataValidationException(error);
-        }
-        if (num < lowerbound) {
-            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_LOWERBOUND, null, lowerbound.toString());
-            LOGGER.trace(pwmSession, "value "+numstr+" below lower bound ("+lowerbound.toString()+")");
-            throw new PwmDataValidationException(error);
-        }
-        if (num > upperbound) {
-            final ErrorInformation error = new ErrorInformation(PwmError.NUMBERVALIDATION_UPPERBOUND, null, upperbound.toString());
-            LOGGER.trace(pwmSession, "value "+numstr+" above upper bound ("+upperbound.toString()+")");
-            throw new PwmDataValidationException(error);
-        }
-    }
-
-
 
 
     public static void validateAttributeUniqueness(
@@ -336,11 +308,11 @@ public class Validator {
         }
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            if (uniqueAttributes.contains(formConfiguration.getAttributeName())) {
+            if (uniqueAttributes.contains(formConfiguration.getName())) {
                 final String value = formValues.get(formConfiguration);
 
                 final Map<String, String> filterClauses = new HashMap<String, String>();
-                filterClauses.put(formConfiguration.getAttributeName(), value);
+                filterClauses.put(formConfiguration.getName(), value);
                 filterClauses.putAll(objectClasses);
                 final SearchHelper searchHelper = new SearchHelper();
                 searchHelper.setFilterAnd(filterClauses);

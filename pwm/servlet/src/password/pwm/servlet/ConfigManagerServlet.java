@@ -27,10 +27,7 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.ConfigurationReader;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -243,6 +240,19 @@ public class ConfigManagerServlet extends TopServlet {
             returnValue = "UNKNOWN KEY";
         } else {
             switch (theSetting.getSyntax()) {
+                case FORM: {
+                    final List<FormConfiguration> values = storedConfig.readFormSetting(theSetting);
+                    //final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
+                    //values.add(new FormConfiguration(0,10, FormConfiguration.Type.email,true,true,"label0","name0"));
+                    //values.add(new FormConfiguration(0,10, FormConfiguration.Type.email,true,true,"label1","name1"));
+                    final Map<String, FormConfiguration> outputMap = new LinkedHashMap<String, FormConfiguration>();
+                    for (int i = 0; i < values.size(); i++) {
+                        outputMap.put(String.valueOf(i),values.get(i));
+                    }
+                    returnValue = outputMap;
+                }
+                break;
+
                 case STRING_ARRAY: {
                     final List<String> values = storedConfig.readStringArraySetting(theSetting);
                     final Map<String, String> outputMap = new LinkedHashMap<String, String>();
@@ -324,6 +334,14 @@ public class ConfigManagerServlet extends TopServlet {
             returnMap.put("syntax", PwmSetting.Syntax.LOCALIZED_TEXT_AREA.toString());
         } else {
             switch (setting.getSyntax()) {
+                case FORM:{
+                    final Map<String, FormConfiguration> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, FormConfiguration>>() {
+                    }.getType());
+                    final List<FormConfiguration> outputMap = new ArrayList<FormConfiguration>(valueMap.values());
+                    storedConfig.writeFormSetting(setting, outputMap);
+                }
+                break;
+
                 case STRING_ARRAY: {
                     final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
                     }.getType());

@@ -63,7 +63,7 @@ public class UserSearchEngine {
         String newSearchFilter = searchFilter;
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = "%" + formConfiguration.getAttributeName() + "%";
+            final String attrName = "%" + formConfiguration.getName() + "%";
             String value = escapeLdapString(formValues.get(formConfiguration));
             newSearchFilter = newSearchFilter.replace(attrName, value);
         }

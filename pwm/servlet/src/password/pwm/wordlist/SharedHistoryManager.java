@@ -375,7 +375,7 @@ public class SharedHistoryManager implements Wordlist {
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 
                     if (entryAge > maxAgeMs) {
-                        iter.remove();
+                        pwmDB.remove(WORDS_DB, key);
                         removeCount++;
 
                         if (removeCount % 1000 == 0) {

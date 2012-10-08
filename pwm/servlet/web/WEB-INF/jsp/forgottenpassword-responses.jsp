@@ -55,11 +55,11 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
                 for (final FormConfiguration paramConfig : requiredAttrParams) {
             %>
-            <h2><label for="attribute-<%= paramConfig.getAttributeName()%>"><%= paramConfig.getLabel() %>
+            <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel() %>
             </label></h2>
-            <input type="password" name="<%= paramConfig.getAttributeName()%>" class="inputfield" maxlength="255"
-                   id="attribute-<%= paramConfig.getAttributeName()%>"
-                   value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getAttributeName(),"") %>"/>
+            <input type="password" name="<%= paramConfig.getName()%>" class="inputfield" maxlength="255"
+                   id="attribute-<%= paramConfig.getName()%>"
+                   value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getName(),"") %>"/>
             <% } %>
 
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>

@@ -310,20 +310,6 @@ public class StatisticsManager implements PwmService {
             }
         }
 
-        if (pwmDB != null) {
-            final PwmDB.PwmDBEventListener statsEventListener = new PwmDB.PwmDBEventListener() {
-                public void processAction(final PwmDB.PwmDBEvent event) {
-                    if (event != null && event.getEventType() != null) {
-                        if (event.getEventType() == PwmDB.EventType.READ) {
-                            StatisticsManager.this.incrementValue(Statistic.PWMDB_READS);
-                        } else if (event.getEventType() == PwmDB.EventType.WRITE) {
-                            StatisticsManager.this.incrementValue(Statistic.PWMDB_WRITES);
-                        }
-                    }
-                }
-            };
-            pwmDB.addEventListener(statsEventListener);
-        }
         status = STATUS.OPEN;
     }
 

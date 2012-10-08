@@ -612,7 +612,7 @@ public class Helper {
         final Map<String,String> tempMap = new HashMap<String,String>();
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            tempMap.put(formConfiguration.getAttributeName(),formValues.get(formConfiguration));
+            tempMap.put(formConfiguration.getName(),formValues.get(formConfiguration));
         }
 
         writeMapToLdap(pwmApplication, pwmSession, theUser, tempMap, expandPwmMacros);

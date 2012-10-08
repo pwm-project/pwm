@@ -121,7 +121,7 @@ public class PeopleSearchServlet extends TopServlet {
         final List<String> attributes = new ArrayList<String>();
         for (final FormConfiguration formConfiguration : configuredForm) {
             headers.add(formConfiguration.getLabel());
-            attributes.add(formConfiguration.getAttributeName());
+            attributes.add(formConfiguration.getName());
         }
 
         final SearchHelper searchHelper = new SearchHelper();

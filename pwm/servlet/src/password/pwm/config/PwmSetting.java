@@ -547,6 +547,8 @@ public enum PwmSetting {
             "display.newuser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_FORM(
             "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.BASIC),
+    TEST_FORM(
+            "testForm", Syntax.FORM, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_UNIQUE_ATTRIBUES(
             "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_WRITE_ATTRIBUTES(
@@ -900,7 +902,8 @@ public enum PwmSetting {
         PASSWORD,
         NUMERIC,
         BOOLEAN,
-        SELECT
+        SELECT,
+        FORM
     }
 
     public enum Category {

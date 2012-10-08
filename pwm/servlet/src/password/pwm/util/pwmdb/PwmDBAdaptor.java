@@ -26,7 +26,9 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,8 +36,6 @@ public class PwmDBAdaptor implements PwmDB {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBAdaptor.class);
 
     private final PwmDBProvider innerDB;
-
-    private final Set<PwmDBEventListener> EVENT_LISTENERS = new HashSet<PwmDBEventListener>();
 
     private final SizeCacheManager SIZE_CACHE_MANAGER = new SizeCacheManager();
 
@@ -61,9 +61,7 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        final boolean value = innerDB.contains(db, key);
-        notifyEvent(EventType.READ, db, key, null);
-        return value;
+        return innerDB.contains(db, key);
     }
 
 
@@ -71,9 +69,7 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        final String value = innerDB.get(db, key);
-        notifyEvent(EventType.READ, db, key, value);
-        return value;
+        return innerDB.get(db, key);
     }
 
     @WriteOperation
@@ -113,11 +109,6 @@ public class PwmDBAdaptor implements PwmDB {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            try {
-                notifyEvent(EventType.WRITE, db, key.toString(), null);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
@@ -140,11 +131,6 @@ public class PwmDBAdaptor implements PwmDB {
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
-
-        for (final String loopKey : keyValueMap.keySet()) {
-            notifyEvent(EventType.WRITE, db, loopKey, keyValueMap.get(loopKey));
-        }
-
     }
 
     @WriteOperation
@@ -158,8 +144,6 @@ public class PwmDBAdaptor implements PwmDB {
             SIZE_CACHE_MANAGER.incrementSize(db);
         }
 
-        notifyEvent(EventType.WRITE, db, key, value);
-
         return preExisting;
     }
 
@@ -172,8 +156,6 @@ public class PwmDBAdaptor implements PwmDB {
         if (result) {
             SIZE_CACHE_MANAGER.decrementSize(db);
         }
-
-        notifyEvent(EventType.WRITE, db, key, null);
 
         return result;
     }
@@ -198,10 +180,6 @@ public class PwmDBAdaptor implements PwmDB {
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
-
-        for (final String key : keys) {
-            notifyEvent(EventType.WRITE, db, key, null);
-        }
     }
 
     public void returnIterator(final DB db) throws PwmDBException {
@@ -222,40 +200,6 @@ public class PwmDBAdaptor implements PwmDB {
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
-    }
-
-    public void addEventListener(final PwmDBEventListener eventListener) {
-        EVENT_LISTENERS.add(eventListener);
-    }
-
-    public void removeEventListener(final PwmDBEventListener eventListener) {
-        EVENT_LISTENERS.remove(eventListener);
-    }
-
-    private void notifyEvent(final EventType eventType, final DB DB, final String key, final String value) {
-
-        final PwmDBEvent eventInfo = new PwmDBEvent() {
-            public EventType getEventType() {
-                return eventType;
-            }
-
-            public DB getDB() {
-                return DB;
-            }
-
-            public String getKey() {
-                return key;
-            }
-
-            public String getValue() {
-                return value;
-            }
-        };
-
-        for (final PwmDBEventListener eventListener : EVENT_LISTENERS) {
-            eventListener.processAction(eventInfo);
-        }
-
     }
 
     public Status status() {

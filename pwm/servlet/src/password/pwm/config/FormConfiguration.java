@@ -23,10 +23,8 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -38,10 +36,10 @@ import java.util.StringTokenizer;
  * <p/>
  * Takes a parameter configuration string in the following form:
  * <p/>
- * <i>attributeName:label:type:minimumLength;maximumLength;required:confirm</i>
+ * <i>name:label:type:minimumLength;maximumLength;required:confirm</i>
  * <p/>
  * <table border="1">
- * <tr><td>attributeName</td><td>Name of ldap attribute</td></tr>
+ * <tr><td>name</td><td>Name of ldap attribute</td></tr>
  * <tr><td>label</td><td>Label to show to user (in error messages)</td></tr>
  * <tr><td>type</td><td>One of the following strings:
  * <ul>
@@ -66,15 +64,15 @@ public class FormConfiguration implements Serializable {
 
     public enum Type {text, email, number, password, random, readonly, tel, hidden}
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(FormConfiguration.class);
-
-    private final int minimumLength;
-    private final int maximumLength;
-    private final Type type;
-    private final boolean required;
-    private final boolean confirmationRequired;
-    private final String label;
-    private final String attributeName;
+    private int minimumLength;
+    private int maximumLength;
+    private Type type;
+    private boolean required;
+    private boolean confirmationRequired;
+    private String label;
+    private String name;
+    private String regex;
+    private String placeholder;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -126,34 +124,39 @@ public class FormConfiguration implements Serializable {
         //confirmation
         final boolean confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
-        return new FormConfiguration(
-                minimumLength,
-                maximumLength,
-                type,
-                required,
-                confirmationRequired,
-                label,
-                attributeName
-        );
+        final FormConfiguration formConfiguration = new FormConfiguration();
+        formConfiguration.minimumLength = minimumLength;
+        formConfiguration.maximumLength = maximumLength;
+        formConfiguration.type = type;
+        formConfiguration.required = required;
+        formConfiguration.confirmationRequired = confirmationRequired;
+        formConfiguration.label = label;
+        formConfiguration.name = attributeName;
+        return formConfiguration;
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public FormConfiguration(final int minimumLength, final int maximumLength, final Type type, final boolean required, final boolean confirmationRequired, final String label, final String attributeName) {
+    public FormConfiguration() {
+
+    }
+
+    public FormConfiguration(final int minimumLength, final int maximumLength, final Type type, final boolean required, final boolean confirmationRequired, final String label, final String name, final String regex) {
         this.minimumLength = minimumLength;
         this.maximumLength = maximumLength;
         this.type = type;
         this.required = required;
         this.confirmationRequired = confirmationRequired;
         this.label = label;
-        this.attributeName = attributeName;
+        this.name = name;
+        this.regex = regex;
     }
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getAttributeName() {
-        return attributeName;
+    public String getName() {
+        return name;
     }
 
     public String getLabel() {
@@ -180,7 +183,15 @@ public class FormConfiguration implements Serializable {
         return required;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    public String getRegex() {
+        return regex;
+    }
+
+    public String getPlaceholder() {
+        return placeholder;
+    }
+
+    // ------------------------ CANONICAL METHODS ------------------------
 
     public boolean equals(final Object o) {
         if (this == o) {
@@ -192,17 +203,17 @@ public class FormConfiguration implements Serializable {
 
         final FormConfiguration parameterConfig = (FormConfiguration) o;
 
-        return !(attributeName != null ? !attributeName.equals(parameterConfig.attributeName) : parameterConfig.attributeName != null);
+        return !(name != null ? !name.equals(parameterConfig.name) : parameterConfig.name != null);
     }
 
     public int hashCode() {
-        return (attributeName != null ? attributeName.hashCode() : 0);
+        return (name != null ? name.hashCode() : 0);
     }
 
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("FormConfiguration (attrName=").append(this.getAttributeName());
+        sb.append("FormConfiguration (attrName=").append(this.getName());
         sb.append(", label=").append(this.getLabel());
         sb.append(", type=").append(this.getType());
         sb.append(", minLength=").append(this.getMinimumLength());
@@ -216,7 +227,7 @@ public class FormConfiguration implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void checkValue(final PwmApplication pwmApplication, final String value)
+    public void checkValue(final String value)
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
@@ -246,21 +257,6 @@ public class FormConfiguration implements Serializable {
                 }
                 break;
 
-            /*
-            case tel:
-                if (value != null && value.length() > 0) {
-                    try {
-                        final String patternString = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_TEL_REGEX);
-                        if (!value.matches(patternString)) {
-                            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, null, this.label);
-                            throw new PwmDataValidationException(error);
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("unexpected error validating telephone number field: " + e.getMessage());
-                    }
-                }
-                break;
-                */
         }
 
         if (value != null && (this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {

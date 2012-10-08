@@ -93,7 +93,7 @@
         }
 
         var settingKey = 'localeBundle-' + '<%=bundleName%>' + '-' + key;
-        initLocaleTable('table_' + key, settingKey, '.*', 'LOCALIZED_TEXT_AREA');
+        LocaleTableHandler.initLocaleTable('table_' + key, settingKey, '.*', 'LOCALIZED_TEXT_AREA');
         if (LOAD_TRACKER.length > 0) {
             setTimeout(function(){
                 doLazyLoad(LOAD_TRACKER.pop());

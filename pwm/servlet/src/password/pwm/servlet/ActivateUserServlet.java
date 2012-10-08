@@ -311,7 +311,7 @@ public class ActivateUserServlet extends TopServlet {
     {
         final String searchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = formConfiguration.getAttributeName();
+            final String attrName = formConfiguration.getName();
             final String tokenizedAttrName = "%" + attrName + "%";
             if (searchFilter.contains(tokenizedAttrName)) {
                 LOGGER.trace(pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter");

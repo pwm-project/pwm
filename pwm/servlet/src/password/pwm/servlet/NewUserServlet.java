@@ -351,7 +351,7 @@ public class NewUserServlet extends TopServlet {
         // set up the user creation attributes
         final Map<String,String> createAttributes = new HashMap<String,String>();
         for (final FormConfiguration formConfiguration : newUserForm) {
-            final String attributeName = formConfiguration.getAttributeName();
+            final String attributeName = formConfiguration.getName();
             createAttributes.put(attributeName, formValues.get(attributeName));
         }
 
@@ -579,7 +579,7 @@ public class NewUserServlet extends TopServlet {
         {
             boolean namingIsInForm = false;
             for (final FormConfiguration formConfiguration : formConfigurations) {
-                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getAttributeName())) {
+                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getName())) {
                     namingIsInForm = true;
                 }
             }

@@ -225,6 +225,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue(template));
                 case STRING_ARRAY:
                     return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue(template));
+                case FORM:
+                    return StoredValue.StoredFormList.fromJsonString(pwmSetting.getDefaultValue(template));
 
                 default:
                     throw new IllegalArgumentException("unable to read default value for: " + pwmSetting.toString());
@@ -381,6 +383,13 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 }
                 break;
 
+                case FORM: {
+                    /* //todo
+
+                     */
+                }
+                break;
+
                 default: {
                     final String value = readSetting(loopSetting);
                     if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
@@ -401,12 +410,21 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public List<String> readStringArraySetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax()) {
+        if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax() && PwmSetting.Syntax.FORM != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
         }
 
         final StoredValue value = settingMap.get(setting);
         return (List<String>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
+    }
+
+    public List<FormConfiguration> readFormSetting(final PwmSetting setting) {
+        if (PwmSetting.Syntax.FORM != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = settingMap.get(setting);
+        return (List<FormConfiguration>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
     }
 
     public Map<String, String> readLocalizedStringSetting(final PwmSetting setting) {
@@ -450,6 +468,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 theBundle = ResourceBundle.getBundle(bundleName);
             }
         }
+
 
         if (theBundle == null) {
             LOGGER.info("ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName);
@@ -529,6 +548,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
         settingMap.put(setting, new StoredValue.StoredValueList(values));
+    }
+
+    public void writeFormSetting(final PwmSetting setting, final List<FormConfiguration> values) {
+        preModifyActions();
+        if (PwmSetting.Syntax.FORM != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not write FORM value to setting: " + setting.toString());
+        }
+
+        settingMap.put(setting, new StoredValue.StoredFormList(values));
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -682,6 +710,19 @@ public class StoredConfiguration implements Serializable, Cloneable {
                                         values.put(localeString == null ? "" : localeString, value);
                                     }
                                     newConfiguration.writeLocalizedSetting(pwmSetting, values);
+                                }
+                                break;
+
+                                case FORM: {
+                                    final List valueElements = settingElement.getChildren("value");
+                                    final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
+                                    for (final Object loopValue : valueElements) {
+                                        final Element loopValueElement = (Element) loopValue;
+                                        final String value = loopValueElement.getText();
+                                        final Gson gson = new Gson();
+                                        values.add(gson.fromJson(value,FormConfiguration.class));
+                                    }
+                                    newConfiguration.writeFormSetting(pwmSetting, values);
                                 }
                                 break;
 
@@ -867,6 +908,58 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
             public Map<String, String> toNativeObject() {
                 return Collections.unmodifiableMap(values);
+            }
+
+            public String toString() {
+                return toJsonString();
+            }
+        }
+
+        static class StoredFormList implements StoredValue {
+            final List<FormConfiguration> values;
+
+            public StoredFormList(final List<FormConfiguration> values) {
+                this.values = values;
+            }
+
+            public static StoredFormList fromJsonString(final String input) {
+                if (input == null) {
+                    return new StoredFormList(Collections.<FormConfiguration>emptyList());
+                }
+
+                final Gson gson = new Gson();
+                final List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
+                }.getType());
+
+                if (srcList == null || srcList.isEmpty()) {
+                    return new StoredFormList(Collections.<FormConfiguration>emptyList());
+                }
+
+                srcList.removeAll(Collections.singletonList(null));
+                return new StoredFormList(srcList);
+            }
+
+            public String toJsonString() {
+                final Gson gson = new Gson();
+                if (values == null) {
+                    return gson.toJson(Collections.emptyList());
+                }
+                return gson.toJson(values);
+            }
+
+            public List<Element> toXmlValues(final String valueElementName) {
+                final List<Element> returnList = new ArrayList<Element>();
+                final Gson gson = new Gson();
+                for (final FormConfiguration value : values) {
+                    final Element valueElement = new Element(valueElementName);
+                    valueElement.addContent(gson.toJson(value));
+                    returnList.add(valueElement);
+                }
+                return returnList;
+            }
+
+            public List<FormConfiguration> toNativeObject() {
+                return Collections.unmodifiableList(values);
             }
 
             public String toString() {

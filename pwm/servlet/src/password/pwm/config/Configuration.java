@@ -91,7 +91,7 @@ public class Configuration implements Serializable {
         final Set<String> returnSet = new HashSet<String>();
         for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
             for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting, PwmConstants.DEFAULT_LOCALE)) {
-                returnSet.add(formConfiguration.getAttributeName());
+                returnSet.add(formConfiguration.getName());
             }
         }
         returnSet.add(this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));

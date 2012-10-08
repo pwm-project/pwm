@@ -147,7 +147,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final Map<String, String> updateAttrs = new HashMap<String, String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
                 if ( formConfiguration.getType() != FormConfiguration.Type.readonly) {
-                    final String attrName = formConfiguration.getAttributeName();
+                    final String attrName = formConfiguration.getName();
                     updateAttrs.put(attrName, formValues.get(formConfiguration));
                     notifyAttrs.put(attrName, formValues.get(formConfiguration));
                 }
@@ -157,7 +157,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final Map<String, String> currentValues = theGuest.readStringAttributes(updateAttrs.keySet());
             for (Iterator<FormConfiguration> iterator = formValues.keySet().iterator(); iterator.hasNext(); ) {
                 FormConfiguration formConfiguration = iterator.next();
-                final String attrName = formConfiguration.getAttributeName();
+                final String attrName = formConfiguration.getName();
                 if (updateAttrs.get(attrName) == null || updateAttrs.get(attrName).equals(currentValues.get(attrName))) {
                     updateAttrs.remove(attrName);
                     iterator.remove();
@@ -259,8 +259,8 @@ public class GuestRegistrationServlet extends TopServlet {
                 final List<FormConfiguration> updateParams = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM,ssBean.getLocale());
                 final Set<String> involvedAttrs = new HashSet<String>();
                 for (final FormConfiguration formConfiguration : updateParams) {
-                    if (!formConfiguration.getAttributeName().equalsIgnoreCase("__accountDuration__")) {
-                        involvedAttrs.add(formConfiguration.getAttributeName());
+                    if (!formConfiguration.getName().equalsIgnoreCase("__accountDuration__")) {
+                        involvedAttrs.add(formConfiguration.getName());
                     }
                 }
                 final Map<String,String> userAttrValues = provider.readStringAttributes(userDN, involvedAttrs);
@@ -286,7 +286,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 }
 
                 for (final FormConfiguration formConfiguration : updateParams) {
-                    final String key = formConfiguration.getAttributeName();
+                    final String key = formConfiguration.getName();
                     final String value = userAttrValues.get(key);
                     if (value != null) {
                         formProps.setProperty(key, value);
@@ -345,8 +345,8 @@ public class GuestRegistrationServlet extends TopServlet {
             // set up the user creation attributes
             final Map<String,String> createAttributes = new HashMap<String, String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                LOGGER.debug(pwmSession, "Attribute from form: "+formConfiguration.getAttributeName()+" = "+formValues.get(formConfiguration));
-                final String n = formConfiguration.getAttributeName();
+                LOGGER.debug(pwmSession, "Attribute from form: "+formConfiguration.getName()+" = "+formValues.get(formConfiguration));
+                final String n = formConfiguration.getName();
                 final String v = formValues.get(formConfiguration);
                 if (n != null && n.length() > 0 && v != null && v.length() > 0) {
                     createAttributes.put(n, v);
@@ -452,7 +452,7 @@ public class GuestRegistrationServlet extends TopServlet {
     {
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            if (namingAttribute.equals(formConfiguration.getAttributeName())) {
+            if (namingAttribute.equals(formConfiguration.getName())) {
                 final String namingValue = formValues.get(formConfiguration);
                 final String gestUserContextDN = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
                 return namingAttribute + "=" + namingValue + "," + gestUserContextDN;
@@ -515,7 +515,7 @@ public class GuestRegistrationServlet extends TopServlet {
         {
             boolean namingIsInForm = false;
             for (final FormConfiguration formConfiguration : formConfigurations) {
-                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getAttributeName())) {
+                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getName())) {
                     namingIsInForm = true;
                 }
             }

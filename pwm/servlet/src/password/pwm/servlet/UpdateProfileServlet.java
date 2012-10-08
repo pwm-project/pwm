@@ -167,7 +167,7 @@ public class UpdateProfileServlet extends TopServlet {
         final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
         for (final FormConfiguration formConfiguration : formFields) {
-            final String attrName = formConfiguration.getAttributeName();
+            final String attrName = formConfiguration.getName();
             if (!formProps.containsKey(attrName)) {
                 final String userCurrentValue = currentUserAttributes.get(attrName);
                 if (userCurrentValue != null) {

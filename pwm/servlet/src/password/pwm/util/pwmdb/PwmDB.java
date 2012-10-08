@@ -109,10 +109,6 @@ public interface PwmDB {
 
     File getFileLocation();
 
-    void addEventListener(PwmDBEventListener eventListener);
-
-    void removeEventListener(PwmDBEventListener eventListener);
-
 // -------------------------- ENUMERATIONS --------------------------
 
     enum DB {
@@ -135,24 +131,6 @@ public interface PwmDB {
         INTRUDER_USER,
         INTRUDER_ADDRESS,
         TEMP // cleared on each initializtaion of the pwmDB.
-    }
-
-    interface PwmDBEventListener {
-        void processAction(PwmDBEvent event);
-    }
-
-    interface PwmDBEvent {
-        EventType getEventType();
-
-        DB getDB();
-
-        String getKey();
-
-        String getValue();
-    }
-
-    enum EventType {
-        READ, WRITE
     }
 
 

@@ -694,7 +694,7 @@ public class
 
         final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm);
         for (final FormConfiguration paramConfig : formValues.keySet()) {
-            final String attrName = paramConfig.getAttributeName();
+            final String attrName = paramConfig.getName();
 
             try {
                 if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
@@ -928,14 +928,14 @@ public class
                 returnList.add(formConfiguration);
             } else {
                 try {
-                    final String currentValue = theUser.readStringAttribute(formConfiguration.getAttributeName());
+                    final String currentValue = theUser.readStringAttribute(formConfiguration.getName());
                     if (currentValue != null && currentValue.length() > 0) {
                         returnList.add(formConfiguration);
                     } else {
-                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formConfiguration.getAttributeName() + "), user has no value");
+                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formConfiguration.getName() + "), user has no value");
                     }
                 } catch (ChaiOperationException e) {
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formConfiguration.getAttributeName()));
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formConfiguration.getName()));
                 }
             }
         }
