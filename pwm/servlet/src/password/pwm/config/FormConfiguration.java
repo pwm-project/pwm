@@ -43,7 +43,7 @@ import java.util.regex.PatternSyntaxException;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, week, month, url}
+    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url}
 
     private String name;
     private int minimumLength;
@@ -56,6 +56,7 @@ public class FormConfiguration implements Serializable {
     private Map<String,String> regexErrors = Collections.singletonMap("","");
     private String regex;
     private String placeholder;
+    private String javascript;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -181,6 +182,10 @@ public class FormConfiguration implements Serializable {
 
     public String getPlaceholder() {
         return placeholder;
+    }
+
+    public String getJavascript() {
+        return javascript;
     }
 
     // ------------------------ CANONICAL METHODS ------------------------

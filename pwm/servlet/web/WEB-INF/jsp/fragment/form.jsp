@@ -65,11 +65,13 @@
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
 <% } %>
-<% if (loopConfiguration.getType() == FormConfiguration.Type.date) { %>
+<% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
 <script type="text/javascript">
-    require(["dijit/form/DateTextBox"],function(){
-        new dijit.form.DateTextBox({},"<%=loopConfiguration.getName()%>")
-    });
+    try {
+        <%=loopConfiguration.getJavascript()%>
+    } catch (e) {
+        console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
+    }
 </script>
 <% } %>
 <% } %>

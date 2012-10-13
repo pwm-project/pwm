@@ -775,6 +775,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '<td style="border:0; text-align: right">Regular Expression<br/>Error Message</td><td style="border:0;"><input type="text" id="' + inputID + 'regexErrors' + '"/></td>';
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Placeholder</td><td style="border:0;"><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">JavaScript</td><td style="border:0;"><input type="text" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr></table>';
         bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
@@ -844,6 +846,12 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             value: clientSettingCache[keyName][iteration]['placeholder'],
             onChange: function(){clientSettingCache[keyName][iteration]['placeholder'] = this.value;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "placeholder");
+
+        clearDijitWidget(inputID + "javascript");
+        new dijit.form.Textarea({
+            value: clientSettingCache[keyName][iteration]['javascript'],
+            onChange: function(){clientSettingCache[keyName][iteration]['javascript'] = this.value;FormTableHandler.writeFormSetting(keyName)}
+        },inputID + "javascript");
     });
 };
 

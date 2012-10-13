@@ -517,7 +517,7 @@ public enum PwmSetting {
     CHALLENGE_STORAGE_HASHED(
             "challenge.storageHashed", Syntax.BOOLEAN, Category.RECOVERY, true, Level.ADVANCED),
     CHALLENGE_REQUIRED_ATTRIBUTES(
-            "challenge.requiredAttributes", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, false, Level.BASIC),
+            "challenge.requiredAttributes", Syntax.FORM, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_REQUIRE_RESPONSES(
             "challenge.requireResponses", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     CHALLENGE_TOKEN_ENABLE(

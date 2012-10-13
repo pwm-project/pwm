@@ -14,7 +14,15 @@ v1.6.5
 + Forgotten password search form now has multiple fields available (issue #207)
 + Multiple ldap root contexts are now possible for login, helpdesk and other functions (issue #227)
 + HTTP BasicAuth header default decoding is now "UTF-8"; exposed decoding charset in PwmConstants.properties (issue #34)
-+ Added forgotten password action option to send new password via email (issue 143)
++ Added forgotten password action option to send new password via email (issue #143);
++ Refactored and improved UI for managing "form" configuration settings.
++ regex validation of form field values and custom error messages (issue #260)
++ html5 placeholder form values
++ most html5 stype input form types (url, date, datetime, number, tel, time, week, month)
++ custom javascript support per form field
+
+- Shortcut order is sometimes randomized (issue #277)
+- Null pointer (and other issues) when using ldap token storage method (issue #281)
 
 
 
