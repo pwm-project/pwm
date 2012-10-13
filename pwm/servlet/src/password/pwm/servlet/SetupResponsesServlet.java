@@ -328,7 +328,7 @@ public class SetupResponsesServlet extends TopServlet {
                 final String paramValue = inputMap.get(paramName);
                 if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(PwmConstants.PARAM_QUESTION_PREFIX)) {
                     if (questionTexts.contains(paramValue.toLowerCase())) {
-                        errorInformations.add(new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE,null,paramName));
+                        errorInformations.add(new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE,null,new String[]{paramName}));
                     } else {
                         questionTexts.add(paramValue.toLowerCase());
                     }
@@ -447,23 +447,23 @@ public class SetupResponsesServlet extends TopServlet {
     ) {
         switch (e.getErrorCode()) {
             case CR_TOO_FEW_CHALLENGES:
-                return new ErrorInformation(PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, new String[]{e.getFieldName()});
 
             case CR_TOO_FEW_RANDOM_RESPONSES:
-                return new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, new String[]{e.getFieldName()});
 
             case CR_MISSING_REQUIRED_CHALLENGE_TEXT:
-                return new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, new String[]{e.getFieldName()});
 
             case CR_RESPONSE_TOO_LONG:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_LONG, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_LONG, null, new String[]{e.getFieldName()});
 
             case CR_RESPONSE_TOO_SHORT:
             case CR_MISSING_REQUIRED_RESPONSE_TEXT:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_SHORT, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_TOO_SHORT, null, new String[]{e.getFieldName()});
 
             case CR_DUPLICATE_RESPONSES:
-                return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, e.getFieldName());
+                return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, new String[]{e.getFieldName()});
 
             default:
                 return new ErrorInformation(PwmError.ERROR_UNKNOWN);

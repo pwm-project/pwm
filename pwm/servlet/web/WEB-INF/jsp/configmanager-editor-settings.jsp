@@ -115,7 +115,7 @@
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
     <script type="text/javascript">
-        FormTableHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
+        FormTableHandler.init('<%=loopSetting.getKey()%>');
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>

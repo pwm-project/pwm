@@ -24,6 +24,7 @@ package password.pwm;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -97,7 +98,15 @@ public class ContextManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     void initialize() {
-        javaVersionCheck();
+
+        final EnvironmentTest[] tests = new EnvironmentTest[]{
+                new JavaVersionCheck(),
+                new PwmSettingDefaults()
+        };
+        for (final EnvironmentTest doTest : tests) {
+            startupErrorInformation = doTest.doTest();
+        }
+
         try {
             final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
             final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
@@ -107,6 +116,10 @@ public class ContextManager implements Serializable {
             final PwmApplication.MODE mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplication.MODE.ERROR;
             if (startupErrorInformation == null) {
                 startupErrorInformation = configReader.getConfigFileError();
+            }
+            if (PwmApplication.MODE.ERROR == mode) {
+                System.err.println("PWM Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
+                System.out.println("PWM Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
             }
             pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath);
         } catch (OutOfMemoryError e) {
@@ -242,20 +255,46 @@ public class ContextManager implements Serializable {
         }
     }
 
-    private void javaVersionCheck() {
-        String sVersion = java.lang.System.getProperty("java.version");
-        sVersion = sVersion.substring(0, 3);
-        final Float f = Float.valueOf(sVersion);
-        if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
-            final String errorMsg = "The minimum version required for PWM is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
-            System.out.println(errorMsg);
-            System.err.println(errorMsg);
-            LOGGER.fatal(errorMsg);
-            startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+    public ErrorInformation getStartupErrorInformation() {
+        return startupErrorInformation;
+    }
+
+    private void testCodebase() {
+    }
+
+    private static interface EnvironmentTest {
+        ErrorInformation doTest();
+    }
+
+    private static class JavaVersionCheck implements EnvironmentTest {
+        public ErrorInformation doTest() {
+            String sVersion = java.lang.System.getProperty("java.version");
+            sVersion = sVersion.substring(0, 3);
+            final Float f = Float.valueOf(sVersion);
+            if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
+                final String errorMsg = "The minimum version required for PWM is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
+                System.out.println(errorMsg);
+                System.err.println(errorMsg);
+                LOGGER.fatal(errorMsg);
+                return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+            }
+            return null;
         }
     }
 
-    public ErrorInformation getStartupErrorInformation() {
-        return startupErrorInformation;
+    private static class PwmSettingDefaults implements EnvironmentTest  {
+        public ErrorInformation doTest() {
+            for (final PwmSetting pwmSetting : PwmSetting.values()) {
+                for (final PwmSetting.Template template : PwmSetting.Template.values()) {
+                    try {
+                        pwmSetting.getDefaultValue(template);
+                    } catch (Throwable e)  {
+                        final String errorMsg = "error reading default value for PwmSetting key=" + pwmSetting.getKey() + ", template=" + template.toString() + ", error: " + e.getMessage();
+                        return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+                    }
+                }
+            }
+            return null;
+        }
     }
 }

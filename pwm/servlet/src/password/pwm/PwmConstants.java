@@ -218,7 +218,7 @@ public abstract class PwmConstants {
             "Fruit flies have one time use passwords",
             "As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic password.",
             "NOTICE: This header is protected by the Digital Millennium Copyright Act of 1996.  Reading this header is strictly forbidden.",
-            "Not sure if password == password, or I just think my password == password and any password will work.",
+            "Not sure if password == password, or I just _think_ my password == password and any password will work.",
             "This sure is a lot of code to change one measly string.",
             "50,000 lines of code to change one stupid string.  Seems legit.",
             "I don't always manage my passwords; but when I do, I use that password thingy amb developed.",

@@ -129,24 +129,24 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
 
-        final List<FormConfiguration> formConfigurations = pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM,ssBean.getLocale());
+        final List<FormConfiguration> formConfigurations = pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
         Validator.validatePwmFormID(req);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations);
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations, ssBean.getLocale());
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
             //read current values from user.
             final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
 
             final Map<String, String> updateAttrs = new HashMap<String, String>();
             for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                if ( formConfiguration.getType() != FormConfiguration.Type.readonly) {
+                if ( !formConfiguration.isReadonly()) {
                     final String attrName = formConfiguration.getName();
                     updateAttrs.put(attrName, formValues.get(formConfiguration));
                     notifyAttrs.put(attrName, formValues.get(formConfiguration));
@@ -166,7 +166,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             // check unique fields against ldap
             final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, uniqueAttributes);
+            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, uniqueAttributes, ssBean.getLocale());
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
@@ -240,13 +240,13 @@ public class GuestRegistrationServlet extends TopServlet {
 
             final Set<String> resultDNs = new HashSet<String>(provider.search(searchContext, searchHelper).keySet());
             if (resultDNs.size() > 1) {
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_MULTI_USERNAME, null, usernameParam);
+                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_MULTI_USERNAME, null, new String[]{usernameParam});
                 ssBean.setSessionError(error);
                 this.forwardToJSP(req, resp);
                 return;
             }
             if (resultDNs.size() == 0) {
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, null, usernameParam);
+                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, null, new String[]{usernameParam});
                 ssBean.setSessionError(error);
                 this.forwardToJSP(req, resp);
                 return;
@@ -256,7 +256,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final ChaiUser theGuest = ChaiFactory.createChaiUser(userDN, provider);
             final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
             try {
-                final List<FormConfiguration> updateParams = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM,ssBean.getLocale());
+                final List<FormConfiguration> updateParams = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<String>();
                 for (final FormConfiguration formConfiguration : updateParams) {
                     if (!formConfiguration.getName().equalsIgnoreCase("__accountDuration__")) {
@@ -318,23 +318,23 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final Configuration config = pwmApplication.getConfig();
-        final Locale locale = Locale.getDefault();
+        final Locale locale = ssBean.getLocale();
         Properties notifyAttrs = new Properties();
 
-        final List<FormConfiguration> guestUserForm = config.readSettingAsForm(PwmSetting.GUEST_FORM, ssBean.getLocale());
+        final List<FormConfiguration> guestUserForm = config.readSettingAsForm(PwmSetting.GUEST_FORM);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, guestUserForm);
+            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, guestUserForm, locale);
 
             //read the expiration date from the request.
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
             // see if the values meet form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues, locale);
 
             // check unique fields against ldap
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES));
+            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES),locale);
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);
@@ -509,7 +509,7 @@ public class GuestRegistrationServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.GUEST_FORM,locale);
+        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
         final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES);
 
         {
@@ -522,7 +522,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             if (!namingIsInForm) {
                 final String errorMsg = "ldap naming attribute '" + ldapNamingattribute + "' is not in form configuration, but is required";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, ldapNamingattribute);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, new String[]{ldapNamingattribute});
                 throw new PwmUnrecoverableException(errorInformation);
             }
         }
@@ -537,7 +537,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             if (!namingIsInUnique) {
                 final String errorMsg = "ldap naming attribute '" + ldapNamingattribute + "' is not in unique attribute configuration, but is required";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, ldapNamingattribute);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, new String[]{ldapNamingattribute});
                 throw new PwmUnrecoverableException(errorInformation);
             }
         }

@@ -41,6 +41,7 @@ public class ErrorInformation implements Serializable {
 
     private final PwmError error;
     private final String detailedErrorMsg;
+    private final String userStrOverride;
     private final String[] fieldValues;
     private final Date date = new Date();
 
@@ -51,23 +52,34 @@ public class ErrorInformation implements Serializable {
         error = PwmError.ERROR_UNKNOWN;
         detailedErrorMsg = null;
         fieldValues = null;
+        userStrOverride = null;
     }
 
     public ErrorInformation(final PwmError error) {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = null;
+        this.userStrOverride = null;
         this.fieldValues = new String[0];
     }
 
     public ErrorInformation(final PwmError error, final String detailedErrorMsg) {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = detailedErrorMsg;
+        this.userStrOverride = null;
         this.fieldValues = new String[0];
     }
 
-    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String... fields) {
+    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String[] fields) {
         this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
         this.detailedErrorMsg = detailedErrorMsg;
+        this.userStrOverride = null;
+        this.fieldValues = fields == null ? new String[0] : fields;
+    }
+
+    public ErrorInformation(final PwmError error, final String detailedErrorMsg, final String userStrOverride, final String[] fields) {
+        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.detailedErrorMsg = detailedErrorMsg;
+        this.userStrOverride = userStrOverride;
         this.fieldValues = fields == null ? new String[0] : fields;
     }
 
@@ -108,6 +120,10 @@ public class ErrorInformation implements Serializable {
 
     public String toUserStr(final PwmSession pwmSession, final PwmApplication pwmApplication) {
 
+        if (userStrOverride != null) {
+            return userStrOverride;
+        }
+
         Configuration config = null;
         Locale userLocale = null;
 
@@ -123,6 +139,10 @@ public class ErrorInformation implements Serializable {
     }
 
     public String toUserStr(final Locale userLocale, final Configuration config) {
+        if (userStrOverride != null) {
+            return userStrOverride;
+        }
+
         if (fieldValues != null && fieldValues.length > 0) {
             return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]);
         } else {

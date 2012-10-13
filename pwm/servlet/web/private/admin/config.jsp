@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -43,97 +44,99 @@
             can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
             to modify the configuration.  Values in <span style="color:blue;">blue</span> are modified from the default values.
         </p>
-        <div id="content">
-            <script type="text/javascript">
-                getObject('content').style.display = 'none';
-                showWaitDialog();
-            </script>
-            <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
-        <div data-dojo-type="dijit.TitlePane" data-dojo-props="title: 'Configuration Notes', open:false" style="width: 100%">
+        <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>
+        <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Configuration Notes', open:false" style="width: 100%">
             <textarea readonly="readonly" style="max-height: 200px;border:0" rows="1" data-dojo-type="dijit.form.Textarea"><%=StringEscapeUtils.escapeHtml(pwmConfig.getNotes())%></textarea>
         </div>
         <br/>
         <% } %>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-                <%
-                    for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) {
-                        final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory(null).get(loopCategory);
-                %>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<%= loopCategory.getLabel(pwmSession.getSessionStateBean().getLocale())%>"
-                     style="max-height: 500px; overflow: auto">
-                    <table>
-                        <% for (final PwmSetting loopSetting : loopSettings) { %>
-                        <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
-                        <tr>
-                            <td class="key" style="width:100px; text-align:center; <%=defaultValue?"":"color:blue;"%>" id="<%=loopSetting.getKey()%>">
-                                <%= loopSetting.getLabel(pwmSession.getSessionStateBean().getLocale()) %>
-                            </td>
-                            <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>
-                                <%
-                                    if (loopSetting.isConfidential()) {
-                                        out.write("<span style=\"color:gray;\">" + PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + "</span>");
-                                    } else {
-                                        switch (loopSetting.getSyntax()) {
-                                            case STRING_ARRAY: {
-                                                final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
-                                                for (final String value : values) {
-                                                    out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
-                                                }
+        <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+            <%
+                for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) {
+                    final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory(null).get(loopCategory);
+            %>
+            <div data-dojo-type="dijit/layout/ContentPane" title="<%= loopCategory.getLabel(pwmSession.getSessionStateBean().getLocale())%>"
+                 style="max-height: 500px; overflow: auto">
+                <table>
+                    <% for (final PwmSetting loopSetting : loopSettings) { %>
+                    <% final boolean defaultValue = pwmConfig.isDefaultValue(loopSetting); %>
+                    <tr>
+                        <td class="key" style="width:100px; text-align:center; <%=defaultValue?"":"color:blue;"%>" id="<%=loopSetting.getKey()%>">
+                            <%= loopSetting.getLabel(pwmSession.getSessionStateBean().getLocale()) %>
+                        </td>
+                        <td <%= !defaultValue ? "style=\"color:blue;\"" : ""%>>
+                            <%
+                                if (loopSetting.isConfidential()) {
+                                    out.write("<span style=\"color:gray;\">" + PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + "</span>");
+                                } else {
+                                    switch (loopSetting.getSyntax()) {
+                                        case STRING_ARRAY: {
+                                            final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
+                                            for (final String value : values) {
+                                                out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
                                             }
-                                            break;
-
-                                            case LOCALIZED_STRING:
-                                            case LOCALIZED_TEXT_AREA: {
-                                                for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
-                                                    final String value = StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsLocalizedString(loopSetting, locale));
-                                                    out.write("<b>" + locale + "</b>" + value + "<br/>");
-                                                }
-
-                                            }
-                                            break;
-
-                                            case LOCALIZED_STRING_ARRAY: {
-                                                for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
-                                                    out.write("<table><tr><td>");
-                                                    out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
-                                                    out.write("</td><td>");
-                                                    for (String value : pwmConfig.readSettingAsLocalizedStringArray(loopSetting, locale)) {
-                                                        value = StringEscapeUtils.escapeHtml(value);
-                                                        out.write(value + "<br/>");
-                                                    }
-                                                    out.write("</td></tr></table>");
-                                                }
-                                            }
-                                            break;
-
-                                            default:
-                                                out.write(StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsString(loopSetting)));
                                         }
+                                        break;
+
+                                        case LOCALIZED_STRING:
+                                        case LOCALIZED_TEXT_AREA: {
+                                            for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
+                                                final String value = StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsLocalizedString(loopSetting, locale));
+                                                out.write("<b>" + locale + "</b>" + value + "<br/>");
+                                            }
+
+                                        }
+                                        break;
+
+                                        case LOCALIZED_STRING_ARRAY: {
+                                            for (final Locale locale : pwmConfig.localesForSetting(loopSetting)) {
+                                                out.write("<table><tr><td>");
+                                                out.write((locale == null || locale.toString().length() < 1) ? "Default" : locale.toString());
+                                                out.write("</td><td>");
+                                                for (String value : pwmConfig.readSettingAsLocalizedStringArray(loopSetting, locale)) {
+                                                    value = StringEscapeUtils.escapeHtml(value);
+                                                    out.write(value + "<br/>");
+                                                }
+                                                out.write("</td></tr></table>");
+                                            }
+                                        }
+                                        break;
+
+                                        case FORM: {
+                                            System.out.println(loopSetting.getKey());
+                                            final List<FormConfiguration> formValues = pwmConfig.readSettingAsForm(loopSetting);
+                                            for (final FormConfiguration formConfiguration : formValues) {
+                                                out.write(StringEscapeUtils.escapeHtml(formConfiguration.toString()));
+                                                out.write("br/>");
+                                            }
+                                        }
+                                        break;
+
+                                        default:
+                                            out.write(StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsString(loopSetting)));
                                     }
-                                %>
-                            </td>
-                        </tr>
-                        <script type="text/javascript">
-                            require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-                                var strengthTooltip = new dijit.Tooltip({
-                                    connectId: ["<%=loopSetting.getKey()%>"],
-                                    label: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(pwmSession.getSessionStateBean().getLocale()))%>'
-                                });
-                            });},1000)});
-                        </script>
-                        <% } %>
-                    </table>
-                </div>
-                <% } %>
+                                }
+                            %>
+                        </td>
+                    </tr>
+                    <script type="text/javascript">
+                        require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                            var strengthTooltip = new dijit.Tooltip({
+                                connectId: ["<%=loopSetting.getKey()%>"],
+                                label: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(pwmSession.getSessionStateBean().getLocale()))%>'
+                            });
+                        });},1000)});
+                    </script>
+                    <% } %>
+                </table>
             </div>
+            <% } %>
         </div>
     </div>
 </div>
 <script type="text/javascript">
     require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
         dojoParser.parse();
-        getObject('content').style.display = 'inline';
-        closeWaitDialog();
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

@@ -109,7 +109,7 @@ public class
 
             final boolean tokenEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE);
             final boolean tokenNeeded = tokenEnabled && !forgottenPasswordBean.isTokenSatisfied();
-            final boolean responsesEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES) || !config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, userLocale).isEmpty();
+            final boolean responsesEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES) || !config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES).isEmpty();
             final boolean responsesNeeded = responsesEnabled && !forgottenPasswordBean.isResponsesSatisfied();
 
             if (processAction.equalsIgnoreCase("search")) {
@@ -135,6 +135,7 @@ public class
     private void processSearch(final HttpServletRequest req, final HttpServletResponse resp)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
         final String usernameParam = Validator.readStringFromRequest(req, "username");
@@ -144,14 +145,14 @@ public class
         pwmSession.clearForgottenPasswordBean();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
-        final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM, pwmSession.getSessionStateBean().getLocale());
+        final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm);
+            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm, userLocale);
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues, userLocale);
 
             // convert the username field to a DN.
             final ChaiUser theUser;
@@ -469,7 +470,7 @@ public class
 
         // if responses aren't required, but attributes are, send to response screen anyway
         {
-            final List<FormConfiguration> requiredAttributesForm = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
+            final List<FormConfiguration> requiredAttributesForm = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
 
             if (!requiredAttributesForm.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
                 this.forwardToResponsesJSP(req, resp);
@@ -685,6 +686,7 @@ public class
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         final List<FormConfiguration> requiredAttributesForm = forgottenPasswordBean.getAttributeForm();
 
@@ -692,7 +694,7 @@ public class
             return;
         }
 
-        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm);
+        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm, userLocale);
         for (final FormConfiguration paramConfig : formValues.keySet()) {
             final String attrName = paramConfig.getName();
 
@@ -700,11 +702,11 @@ public class
                 if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
                     LOGGER.trace(pwmSession, "successful validation of ldap attribute value for '" + attrName + "'");
                 } else {
-                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", attrName));
+                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", new String[]{attrName}));
                 }
             } catch (ChaiOperationException e) {
                 LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", attrName));
+                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
             }
         }
     }
@@ -917,7 +919,7 @@ public class
     )
             throws ChaiUnavailableException, PwmOperationalException
     {
-        final List<FormConfiguration> requiredAttributesForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, pwmSession.getSessionStateBean().getLocale());
+        final List<FormConfiguration> requiredAttributesForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
         if (requiredAttributesForm.isEmpty()) {
             return requiredAttributesForm;
         }

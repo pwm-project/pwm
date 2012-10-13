@@ -82,14 +82,14 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         Validator.validatePwmFormID(req);
 
-        final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM, ssBean.getLocale());
+        final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenUsernameForm);
+            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenUsernameForm, ssBean.getLocale());
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();

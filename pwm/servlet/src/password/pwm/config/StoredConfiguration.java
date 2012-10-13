@@ -384,9 +384,16 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 break;
 
                 case FORM: {
-                    /* //todo
+                    final List<FormConfiguration> values = this.readFormSetting(loopSetting);
+                    for (final FormConfiguration loopConfig: values) {
+                        try {
+                            loopConfig.validate();
+                        } catch (PwmOperationalException e) {
+                            errorString.append("format error: ").append(e.getErrorInformation().toDebugStr());
+                            errorStrings.add(errorString.toString());
 
-                     */
+                        }
+                    }
                 }
                 break;
 
@@ -678,6 +685,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             final Set<PwmSetting> seenSettings = new HashSet<PwmSetting>();
 
             final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
+            String currentSettingName = "";
             try {
                 final Element rootElement = inputDocument.getRootElement();
                 final String createTimeString = rootElement.getAttributeValue("createTime");
@@ -691,6 +699,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 for (final Object loopSetting : settingElements) {
                     final Element settingElement = (Element) loopSetting;
                     final String keyName = settingElement.getAttributeValue("key");
+                    currentSettingName = keyName;
                     final PwmSetting pwmSetting = PwmSetting.forKey(keyName);
                     seenSettings.add(pwmSetting);
 
@@ -714,13 +723,18 @@ public class StoredConfiguration implements Serializable, Cloneable {
                                 break;
 
                                 case FORM: {
+                                    final boolean oldType = PwmSetting.Syntax.LOCALIZED_STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
+                                    final Gson gson = new Gson();
                                     final List valueElements = settingElement.getChildren("value");
                                     final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
                                     for (final Object loopValue : valueElements) {
                                         final Element loopValueElement = (Element) loopValue;
                                         final String value = loopValueElement.getText();
-                                        final Gson gson = new Gson();
-                                        values.add(gson.fromJson(value,FormConfiguration.class));
+                                        if (oldType) {
+                                            values.add(FormConfiguration.parseOldConfigString(value));
+                                        } else {
+                                            values.add(gson.fromJson(value,FormConfiguration.class));
+                                        }
                                     }
                                     newConfiguration.writeFormSetting(pwmSetting, values);
                                 }
@@ -818,7 +832,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             } catch (Exception e) {
-                final String errorMsg = "error reading configuration file format: " + e.getMessage();
+                final String errorMsg = "error reading configuration file format, setting=" + currentSettingName + ", error=" + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
                 throw new PwmUnrecoverableException(errorInfo);
             }

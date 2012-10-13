@@ -279,10 +279,24 @@ public class PwmApplication {
                     break;
 
                 default:
-                    LOGGER.trace("setting log level to TRACE because PWM is not in RUNNING mode.");
                     logLevel = PwmLogLevel.TRACE.toString();
+                    break;
             }
+
             PwmInitializer.initializeLogger(log4jFile, logLevel);
+
+            switch (getApplicationMode()) {
+                case RUNNING:
+                    break;
+
+                case ERROR:
+                    LOGGER.fatal("PWM starting up in ERROR mode! Check log or health check information for cause");
+                    break;
+
+                default:
+                    LOGGER.trace("setting log level to TRACE because PWM is not in RUNNING mode.");
+                    break;
+            }
         }
 
         PwmInitializer.initializePwmDB(this);

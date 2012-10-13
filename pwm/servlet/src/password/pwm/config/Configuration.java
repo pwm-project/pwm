@@ -48,9 +48,6 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Simple data object, contains configuration information defined in the servlet .properties
- * configuration file.
- *
  * @author Jason D. Rivard
  */
 public class Configuration implements Serializable {
@@ -62,6 +59,7 @@ public class Configuration implements Serializable {
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
+    private Map<PwmSetting,Object> renderedConfigurationCache = new HashMap<PwmSetting,Object>();
     private List<PwmLocale> knownPwmLocales = null;
     private List<Locale> knownLocales = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
@@ -90,7 +88,7 @@ public class Configuration implements Serializable {
     public Set<String> getAllUsedLdapAttributes() {
         final Set<String> returnSet = new HashSet<String>();
         for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
-            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting, PwmConstants.DEFAULT_LOCALE)) {
+            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting)) {
                 returnSet.add(formConfiguration.getName());
             }
         }
@@ -106,26 +104,8 @@ public class Configuration implements Serializable {
         return returnSet;
     }
 
-    public List<FormConfiguration> readSettingAsForm(final PwmSetting setting, final Locale locale) {
-        final List<String> input = readSettingAsLocalizedStringArray(setting, locale);
-
-        if (input == null) {
-            return Collections.emptyList();
-        }
-
-        final List<FormConfiguration> returnList = new LinkedList<FormConfiguration>();
-        for (final String loopString : input) {
-            if (loopString != null && loopString.length() > 0) {
-                final FormConfiguration formConfig;
-                try {
-                    formConfig = FormConfiguration.parseConfigString(loopString);
-                    returnList.add(formConfig);
-                } catch (PwmOperationalException e) {
-                    LOGGER.error("error parsing form configuration: " + e.getMessage());
-                }
-            }
-        }
-        return returnList;
+    public List<FormConfiguration> readSettingAsForm(final PwmSetting setting) {
+        return storedConfiguration.readFormSetting(setting);
     }
 
     public List<String> readSettingAsLocalizedStringArray(final PwmSetting setting, final Locale locale) {
@@ -451,22 +431,35 @@ public class Configuration implements Serializable {
     }
 
     public List<PwmLocale> getKnownPwmLocales() {
+        final String defaultLocaleAsString = PwmConstants.DEFAULT_LOCALE.toString();
         if (knownPwmLocales == null) {
             final List<String> inputList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
             final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
-            final Map<String,PwmLocale> tempMap = new TreeMap<String,PwmLocale>();
 
+            // Sort the map by display name
+            Map<String,PwmLocale> sortedMap = new TreeMap<String,PwmLocale>();
             for (final String localeString : inputMap.keySet()) {
                 final Locale theLocale = PwmLocale.parseLocaleString(localeString);
                 final String countryString = inputMap.get(localeString);
                 if (theLocale != null) {
-                    tempMap.put(theLocale.getDisplayName(),new PwmLocale(theLocale,countryString));
+                    sortedMap.put(theLocale.getDisplayName(), new PwmLocale(theLocale, countryString));
                 }
             }
 
             final List<PwmLocale> returnList = new ArrayList<PwmLocale>();
-            for (final PwmLocale loopLocale : tempMap.values()) {
-                returnList.add(loopLocale);
+
+            //ensure default is first.
+            if (sortedMap.containsKey(defaultLocaleAsString)) {
+                returnList.add(sortedMap.get(defaultLocaleAsString));
+            } else {
+                returnList.add(new PwmLocale(new Locale(defaultLocaleAsString),""));
+            }
+
+            // add the rest of the configured locales
+            for (final String key : sortedMap.keySet()) {
+                if (!key.equals(defaultLocaleAsString)) {
+                    returnList.add(sortedMap.get(key));
+                }
             }
 
             knownPwmLocales = Collections.unmodifiableList(returnList);

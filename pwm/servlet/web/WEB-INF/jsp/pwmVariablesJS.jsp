@@ -26,12 +26,12 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.Display"%>
+<%@ page import="password.pwm.config.FormConfiguration"%>
 <%@ page import="password.pwm.config.PwmLocale"%>
 <%@ page import="password.pwm.util.stats.StatisticsManager"%>
 <%@ page import="java.util.Collections"%>
 <%@ page import="java.util.Locale"%>
-<%@ page import="java.util.ResourceBundle"%>
-<%@ page import="java.util.TreeSet"%>
+<%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
@@ -63,17 +63,26 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%><pwm:url url='/resources'/>";
     PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%><pwm:url url='/public/rest'/>";
     PWM_GLOBAL['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
+
+    PWM_GLOBAL['formTypeOptions'] = [];
+<% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
+    PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
+    <%}%>
+
 }
 
 function initPwmLocaleVars() {
     var localeInfo = {};
+    var localeDisplayNames = {};
 <% for (final PwmLocale pwmLocale : pwmApplication.getConfig().getKnownPwmLocales()) { %>
 <% final Locale locale = pwmLocale.getLocale(); %>
 <% final String flagCode = pwmLocale.getFlagCountryCode(); %>
     createCSSClass('.flagLang_<%=locale.toString()%>','background-image: url(flags/png/<%=flagCode%>.png)');
     localeInfo['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%> - <%=locale.getDisplayLanguage(locale)%>';
+    localeDisplayNames['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%>';
 <% } %>
     PWM_GLOBAL['localeInfo'] = localeInfo;
+    PWM_GLOBAL['localeDisplayNames'] = localeDisplayNames;
     PWM_GLOBAL['defaultLocale'] = '<%=PwmConstants.DEFAULT_LOCALE.toString()%>';
 }
 

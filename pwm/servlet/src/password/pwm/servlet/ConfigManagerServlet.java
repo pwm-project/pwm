@@ -92,7 +92,8 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != PwmApplication.MODE.RUNNING) {
                 doLockConfiguration(req);
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
-                doFinishEditing(req);
+                doFinishEditing(req,resp);
+                return;
             } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
                 doCancelEditing(req);
             } else if ("editMode".equalsIgnoreCase(processActionParam)) {
@@ -110,7 +111,7 @@ public class ConfigManagerServlet extends TopServlet {
     private void initialize(final PwmSession pwmSession,
                             final ConfigurationReader configReader,
                             final ConfigManagerBean configManagerBean
-                            )
+    )
             throws PwmUnrecoverableException
     {
         pwmSession.getSessionStateBean().setLocale(PwmConstants.DEFAULT_LOCALE);
@@ -242,9 +243,6 @@ public class ConfigManagerServlet extends TopServlet {
             switch (theSetting.getSyntax()) {
                 case FORM: {
                     final List<FormConfiguration> values = storedConfig.readFormSetting(theSetting);
-                    //final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
-                    //values.add(new FormConfiguration(0,10, FormConfiguration.Type.email,true,true,"label0","name0"));
-                    //values.add(new FormConfiguration(0,10, FormConfiguration.Type.email,true,true,"label1","name1"));
                     final Map<String, FormConfiguration> outputMap = new LinkedHashMap<String, FormConfiguration>();
                     for (int i = 0; i < values.size(); i++) {
                         outputMap.put(String.valueOf(i),values.get(i));
@@ -445,7 +443,7 @@ public class ConfigManagerServlet extends TopServlet {
         final List<String> errorStrings = configuration.validateValues();
         if (errorStrings != null && !errorStrings.isEmpty()) {
             final String errorString = errorStrings.get(0);
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
+            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
             return false;
         }
 
@@ -481,13 +479,16 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void doFinishEditing(
-            final HttpServletRequest req
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+
     )
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
+        final Map<String,String> returnMap = new HashMap<String,String>();
 
         if (configMode != PwmApplication.MODE.RUNNING) {
             configManagerBean.setErrorInformation(null);
@@ -495,19 +496,29 @@ public class ConfigManagerServlet extends TopServlet {
                 final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString);
                 configManagerBean.setErrorInformation(errorInfo);
-                return;
-            }
 
-            try {
-                saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
-            } catch (PwmUnrecoverableException e) {
-                final ErrorInformation errorInfo = e.getErrorInformation();
-                pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                configManagerBean.setErrorInformation(errorInfo);
-                LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
-                return;
+                returnMap.put("error","true");
+                returnMap.put("errorMessage", errorInfo.toDebugStr());
+            } else {
+                try {
+                    saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
+                    returnMap.put("error","false");
+                    returnMap.put("errorMessage","");
+                } catch (PwmUnrecoverableException e) {
+                    final ErrorInformation errorInfo = e.getErrorInformation();
+                    pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                    configManagerBean.setErrorInformation(errorInfo);
+                    LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
+                    returnMap.put("error","true");
+                    returnMap.put("errorMessage", errorInfo.toDebugStr());
+                }
             }
         }
+
+        final Gson gson = new Gson();
+        final String outputString = gson.toJson(returnMap);
+        resp.setContentType("application/json;charset=utf-8");
+        resp.getWriter().print(outputString);
 
         configManagerBean.setEditMode(EDIT_MODE.NONE);
         LOGGER.debug(pwmSession, "save configuration operation completed");
@@ -522,7 +533,7 @@ public class ConfigManagerServlet extends TopServlet {
             final List<String> errorStrings = storedConfiguration.validateValues();
             if (errorStrings != null && !errorStrings.isEmpty()) {
                 final String errorString = errorStrings.get(0);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
             }
         }
 
@@ -536,7 +547,7 @@ public class ConfigManagerServlet extends TopServlet {
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, errorString));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
         }
 
         resetInMemoryBean(pwmSession);

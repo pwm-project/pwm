@@ -127,17 +127,17 @@ public class ActivateUserServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         pwmSession.clearActivateUserBean();
-        final List<FormConfiguration> formConfiguration = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM, ssBean.getLocale());
+        final List<FormConfiguration> formConfiguration = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfiguration);
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfiguration, ssBean.getLocale());
 
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+            Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
             // get an ldap user object based on the params
             final ChaiUser theUser;
@@ -320,14 +320,14 @@ public class ActivateUserServlet extends TopServlet {
                 try {
                     if (!theUser.compareStringAttribute(attrName, value)) {
                         final String errorMsg = "incorrect value for '" + attrName + "'";
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg, attrName);
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg, new String[]{attrName});
                         LOGGER.debug(pwmSession, errorInfo.toDebugStr());
                         throw new PwmDataValidationException(errorInfo);
                     }
                     LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", attrName));
+                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
                 }
             }
         }

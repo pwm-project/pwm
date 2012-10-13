@@ -503,7 +503,7 @@ public enum PwmSetting {
     FORGOTTEN_PASSWORD_ENABLE(
             "recovery.enable", Syntax.BOOLEAN, Category.RECOVERY, false, Level.BASIC),
     FORGOTTEN_PASSWORD_SEARCH_FORM(
-            "recovery.form", Syntax.LOCALIZED_STRING_ARRAY, Category.RECOVERY, true, Level.BASIC),
+            "recovery.form", Syntax.FORM, Category.RECOVERY, true, Level.BASIC),
     FORGOTTEN_PASSWORD_SEARCH_FILTER(
             "recovery.searchFilter", Syntax.STRING, Category.RECOVERY, true, Level.BASIC),
     FORGOTTEN_PASSWORD_READ_PREFERENCE(
@@ -532,7 +532,7 @@ public enum PwmSetting {
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", Syntax.BOOLEAN, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_FORM(
-            "forgottenUsername.form", Syntax.LOCALIZED_STRING_ARRAY, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
+            "forgottenUsername.form", Syntax.FORM, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
             "forgottenUsername.searchFilter", Syntax.STRING, Category.FORGOTTEN_USERNAME, true, Level.BASIC),
     FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
@@ -546,9 +546,7 @@ public enum PwmSetting {
     NEWUSER_AGREEMENT_MESSAGE(
             "display.newuser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_FORM(
-            "newUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.NEWUSER, true, Level.BASIC),
-    TEST_FORM(
-            "testForm", Syntax.FORM, Category.NEWUSER, true, Level.BASIC),
+            "newUser.form", Syntax.FORM, Category.NEWUSER, true, Level.BASIC),
     NEWUSER_UNIQUE_ATTRIBUES(
             "newUser.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.NEWUSER, false, Level.BASIC),
     NEWUSER_WRITE_ATTRIBUTES(
@@ -579,9 +577,9 @@ public enum PwmSetting {
     GUEST_ADMIN_GROUP(
             "guest.adminGroup", Syntax.STRING, Category.GUEST, true, Level.BASIC),
     GUEST_FORM(
-            "guest.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.BASIC),
+            "guest.form", Syntax.FORM, Category.GUEST, true, Level.BASIC),
     GUEST_UPDATE_FORM(
-            "guest.update.form", Syntax.LOCALIZED_STRING_ARRAY, Category.GUEST, true, Level.BASIC),
+            "guest.update.form", Syntax.FORM, Category.GUEST, true, Level.BASIC),
     GUEST_UNIQUE_ATTRIBUTES(
             "guest.creationUniqueAttributes", Syntax.STRING_ARRAY, Category.GUEST, false, Level.BASIC),
     GUEST_WRITE_ATTRIBUTES(
@@ -603,7 +601,7 @@ public enum PwmSetting {
     ACTIVATE_AGREEMENT_MESSAGE(
             "display.activateUser.agreement", Syntax.LOCALIZED_TEXT_AREA, Category.ACTIVATION, false, Level.BASIC),
     ACTIVATE_USER_FORM(
-            "activateUser.form", Syntax.LOCALIZED_STRING_ARRAY, Category.ACTIVATION, true, Level.BASIC),
+            "activateUser.form", Syntax.FORM, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_SEARCH_FILTER(
             "activateUser.searchFilter", Syntax.STRING, Category.ACTIVATION, true, Level.BASIC),
     ACTIVATE_USER_QUERY_MATCH(
@@ -627,7 +625,7 @@ public enum PwmSetting {
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
             "updateAttributes.writeAttributes", Syntax.STRING_ARRAY, Category.UPDATE, false, Level.BASIC),
     UPDATE_PROFILE_FORM(
-            "updateAttributes.form", Syntax.LOCALIZED_STRING_ARRAY, Category.UPDATE, true, Level.BASIC),
+            "updateAttributes.form", Syntax.FORM, Category.UPDATE, true, Level.BASIC),
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
             "updateAttributes.check.queryMatch", Syntax.STRING, Category.UPDATE, false, Level.BASIC),
     UPDATE_PROFILE_SHOW_CONFIRMATION(
@@ -651,7 +649,7 @@ public enum PwmSetting {
     PEOPLE_SEARCH_SEARCH_BASE(
             "peopleSearch.searchBase", Syntax.STRING, Category.PEOPLE_SEARCH, false, Level.BASIC),
     PEOPLE_SEARCH_RESULT_FORM(
-            "peopleSearch.result.form", Syntax.LOCALIZED_STRING_ARRAY, Category.PEOPLE_SEARCH, true, Level.BASIC),
+            "peopleSearch.result.form", Syntax.FORM, Category.PEOPLE_SEARCH, true, Level.BASIC),
     PEOPLE_SEARCH_RESULT_LIMIT(
             "peopleSearch.result.limit", Syntax.NUMERIC, Category.PEOPLE_SEARCH, true, Level.BASIC),
     PEOPLE_SEARCH_USE_PROXY(

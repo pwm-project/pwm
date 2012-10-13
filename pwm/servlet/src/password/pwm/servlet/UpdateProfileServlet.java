@@ -162,7 +162,7 @@ public class UpdateProfileServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
+        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
         final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
@@ -186,21 +186,21 @@ public class UpdateProfileServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, PwmDataValidationException, ChaiUnavailableException
     {
-        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
+        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
         // remove read-only fields
         for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
             FormConfiguration loopFormConfig = iterator.next();
-            if (loopFormConfig.getType() == FormConfiguration.Type.readonly) {
+            if (loopFormConfig.isReadonly()) {
                 iterator.remove();
             }
         }
 
         //read the values from the request
-        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields);
+        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields, pwmSession.getSessionStateBean().getLocale());
 
         // see if the values meet requirements.
-        Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+        Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
 
         return formValues;
     }

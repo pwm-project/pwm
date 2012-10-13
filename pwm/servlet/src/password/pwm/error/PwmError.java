@@ -147,6 +147,7 @@ public enum PwmError {
     ERROR_FIELD_TOO_LONG("Error_FieldTooLong", 5104),
     ERROR_FIELD_DUPLICATE("Error_FieldDuplicate", 5105),
     ERROR_FIELD_BAD_CONFIRM("Error_FieldBadConfirm", 5106),
+    ERROR_FIELD_REGEX_NOMATCH("Error_FieldRegexNoMatch", 5107),
 
     CONFIG_UPLOAD_SUCCESS("Error_ConfigUploadSuccess", 5200),
     CONFIG_UPLOAD_FAILURE("Error_ConfigUploadFailure", 5201),

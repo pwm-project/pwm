@@ -31,38 +31,51 @@
 <%
     final PwmSession pwmSession = PwmSession.getPwmSession(session);
     final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-    List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"),ssBean.getLocale());
+    List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"));
     for (FormConfiguration loopConfiguration : formConfigurationList) {
         final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getName(),""));
 %>
 <% if (!loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
 <h1>
-    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel() %></label>
+    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %></label>
 </h1>
-<% if ("true".equalsIgnoreCase((String)request.getAttribute("form-readonly")) || loopConfiguration.getType().equals(FormConfiguration.Type.readonly)) { %>
+<% if ("true".equalsIgnoreCase((String)request.getAttribute("form-readonly"))) { %>
 <%= currentValue %>
 <% } else { %>
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
-        <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"
-        />
+        <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
+        <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
+        <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
+       maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% } %>
 <% if (loopConfiguration.isConfirmationRequired()) { %>
 <h1>
-<label id="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel() %></label>
+    <label id="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel(ssBean.getLocale()) %></label>
 </h1>
-<input style="" id="<%=loopConfiguration.getName()%>_confirm" class="inputfield"
-<%-- type="<%=loopConfiguration.getType()%>" --%> type="time"
+<input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>_confirm"
        value="<%= ssBean.getLastParameterValues().getProperty(loopConfiguration.getName(),"") %>"
-        <%if(loopConfiguration.getType().equals(FormConfiguration.Type.readonly)){%> readonly="true" disabled="true" <%}%>
-        <%if(loopConfiguration.isRequired()){%> required="true"<%}%> maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+        <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
+        <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
+        <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
+       maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% } %>
 <% } else { %>
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
 <% } %>
+<% if (loopConfiguration.getType() == FormConfiguration.Type.date) { %>
+<script type="text/javascript">
+    require(["dijit/form/DateTextBox"],function(){
+        new dijit.form.DateTextBox({},"<%=loopConfiguration.getName()%>")
+    });
+</script>
 <% } %>
+<% } %>
+
+
+
 <% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
 <h1>
     <label for="password1"><pwm:Display key="Field_NewPassword"/></label>

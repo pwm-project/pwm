@@ -22,6 +22,8 @@
 
 package password.pwm.config;
 
+import password.pwm.PwmConstants;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -41,6 +43,24 @@ public class PwmLocale implements Serializable {
         }
 
         return localeResolver(desiredLocale, tempList);
+    }
+
+    public static String resolveStringKeyLocaleMap(Locale desiredLocale, final Map<String,String> inputMap) {
+        if (inputMap == null || inputMap.isEmpty()) {
+            return null;
+        }
+
+        if (desiredLocale == null) {
+            desiredLocale = PwmConstants.DEFAULT_LOCALE;
+        }
+
+        final Map<Locale,String> localeMap = new LinkedHashMap<Locale, String>();
+        for (final String localeStringKey : inputMap.keySet()) {
+            localeMap.put(PwmLocale.parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
+        }
+
+        final Locale selectedLocale = PwmLocale.localeResolver(desiredLocale,localeMap.keySet());
+        return localeMap.get(selectedLocale);
     }
 
     public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {

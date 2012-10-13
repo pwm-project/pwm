@@ -115,12 +115,12 @@ public class PeopleSearchServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
         final String filter = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER).replaceAll("%USERNAME%", username);
         final String configuredBase = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE);
-        final List<FormConfiguration> configuredForm = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM, pwmSession.getSessionStateBean().getLocale());
+        final List<FormConfiguration> configuredForm = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
 
         final List<String> headers = new ArrayList<String>();
         final List<String> attributes = new ArrayList<String>();
         for (final FormConfiguration formConfiguration : configuredForm) {
-            headers.add(formConfiguration.getLabel());
+            headers.add(formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
             attributes.add(formConfiguration.getName());
         }
 

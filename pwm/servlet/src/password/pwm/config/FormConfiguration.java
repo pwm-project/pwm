@@ -22,136 +22,120 @@
 
 package password.pwm.config;
 
+import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmConstants;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
- * Stores a parameter, its properties and possibly its value.  Suitable for use
- * in forms.
- * <p/>
- * Takes a parameter configuration string in the following form:
- * <p/>
- * <i>name:label:type:minimumLength;maximumLength;required:confirm</i>
- * <p/>
- * <table border="1">
- * <tr><td>name</td><td>Name of ldap attribute</td></tr>
- * <tr><td>label</td><td>Label to show to user (in error messages)</td></tr>
- * <tr><td>type</td><td>One of the following strings:
- * <ul>
- * <li>int - interger value</li>
- * <li>str - normal string (default)</li>
- * <li>email - normal string with email validation</li>
- * <li>randomstring - normal string prefilled with a random value from password generator</li>
- * </ul>
- * <tr><td>minimumLength</td><td>Minimum length</td></tr>
- * <tr><td>maximumLength</td><td>Maximum length</td></tr>
- * <tr><td>required</td><td>Parameter is required (true/false)</td></tr>
- * <tr><td>confirm</td><td>Parameter requires confirmation (true/false)</td></tr>
- * </td></tr>
- * </table>
- * <br/><br/>
- * Example: <i>givenName:First Name:str:1:40:true:false:</i>
- *
  * @author Jason D. Rivard
  */
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, readonly, tel, hidden}
+    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, week, month, url}
 
+    private String name;
     private int minimumLength;
     private int maximumLength;
-    private Type type;
+    private Type type = Type.text;
     private boolean required;
     private boolean confirmationRequired;
-    private String label;
-    private String name;
+    private boolean readonly;
+    private Map<String,String> labels = Collections.singletonMap("","");
+    private Map<String,String> regexErrors = Collections.singletonMap("","");
     private String regex;
     private String placeholder;
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static FormConfiguration parseConfigString(final String config)
+    public static FormConfiguration parseOldConfigString(final String config)
             throws PwmOperationalException
     {
         if (config == null) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"input cannot be null"));
         }
 
+        final FormConfiguration formConfiguration = new FormConfiguration();
         final StringTokenizer st = new StringTokenizer(config, ":");
 
         // attribute name
-        final String attributeName = st.nextToken();
+        formConfiguration.name = st.nextToken();
 
         // label
-        final String label = st.nextToken();
+        formConfiguration.labels = Collections.singletonMap("",st.nextToken());
 
         // type
-        final Type type;
         {
             final String typeStr = st.nextToken();
             try {
-                type = Type.valueOf(typeStr.toLowerCase());
+                formConfiguration.type = Type.valueOf(typeStr.toLowerCase());
             } catch (IllegalArgumentException e) {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"unknown type for form config: " + typeStr));
             }
         }
 
         //minimum length
-        final int minimumLength;
         try {
-            minimumLength = Integer.parseInt(st.nextToken());
+            formConfiguration.minimumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid minimum length type for form config: " + e.getMessage()));
         }
 
         //maximum length
-        final int maximumLength;
         try {
-            maximumLength = Integer.parseInt(st.nextToken());
+            formConfiguration.maximumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid maximum length type for form config: " + e.getMessage()));
         }
 
         //required
-        final boolean required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formConfiguration.required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
         //confirmation
-        final boolean confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formConfiguration.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
-        final FormConfiguration formConfiguration = new FormConfiguration();
-        formConfiguration.minimumLength = minimumLength;
-        formConfiguration.maximumLength = maximumLength;
-        formConfiguration.type = type;
-        formConfiguration.required = required;
-        formConfiguration.confirmationRequired = confirmationRequired;
-        formConfiguration.label = label;
-        formConfiguration.name = attributeName;
         return formConfiguration;
+    }
+
+    public void validate() throws PwmOperationalException {
+        if (this.getName() == null || this.getName().length() < 1) {
+            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," form field name is required");
+        }
+
+        if (this.getType() == null) {
+            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," type is required for field " + this.getName());
+        }
+
+        if (labels == null || this.labels.isEmpty() || this.getLabel(PwmConstants.DEFAULT_LOCALE) == null || this.getLabel(PwmConstants.DEFAULT_LOCALE).length() < 1) {
+            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," a default label value is required for " + this.getName());
+        }
+
+        if (this.getRegex() != null && this.getRegex().length() > 0) {
+            try {
+                Pattern.compile(this.getRegex());
+            } catch (PatternSyntaxException e) {
+                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage());
+            }
+        }
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public FormConfiguration() {
-
+        labels = Collections.singletonMap("","");
+        regexErrors = Collections.singletonMap("","");
     }
-
-    public FormConfiguration(final int minimumLength, final int maximumLength, final Type type, final boolean required, final boolean confirmationRequired, final String label, final String name, final String regex) {
-        this.minimumLength = minimumLength;
-        this.maximumLength = maximumLength;
-        this.type = type;
-        this.required = required;
-        this.confirmationRequired = confirmationRequired;
-        this.label = label;
-        this.name = name;
-        this.regex = regex;
-    }
-
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -159,8 +143,12 @@ public class FormConfiguration implements Serializable {
         return name;
     }
 
-    public String getLabel() {
-        return label;
+    public String getLabel(final Locale locale) {
+        return PwmLocale.resolveStringKeyLocaleMap(locale,labels);
+    }
+
+    public String getRegexError(final Locale locale) {
+        return PwmLocale.resolveStringKeyLocaleMap(locale,regexErrors);
     }
 
     public int getMaximumLength() {
@@ -181,6 +169,10 @@ public class FormConfiguration implements Serializable {
 
     public boolean isRequired() {
         return required;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
     }
 
     public String getRegex() {
@@ -213,25 +205,21 @@ public class FormConfiguration implements Serializable {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("FormConfiguration (attrName=").append(this.getName());
-        sb.append(", label=").append(this.getLabel());
-        sb.append(", type=").append(this.getType());
-        sb.append(", minLength=").append(this.getMinimumLength());
-        sb.append(", maxLength=").append(this.getMaximumLength());
-        sb.append(", confirm=").append(String.valueOf(this.isConfirmationRequired()));
-        sb.append(", required=").append(String.valueOf(this.isRequired()));
-        sb.append(")");
+        sb.append("FormConfiguration: ");
+        sb.append(new Gson().toJson(this));
 
         return sb.toString();
     }
 
+
+
 // -------------------------- OTHER METHODS --------------------------
 
-    public void checkValue(final String value)
+    public void checkValue(final String value, final Locale locale)
             throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, this.label);
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, new String[]{getLabel(locale)});
             throw new PwmDataValidationException(error);
         }
 
@@ -241,7 +229,7 @@ public class FormConfiguration implements Serializable {
                     try {
                         new BigInteger(value);
                     } catch (NumberFormatException e) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER, null, this.label);
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_NOT_A_NUMBER, null, new String[]{getLabel(locale)});
                         throw new PwmDataValidationException(error);
                     }
                 }
@@ -251,7 +239,7 @@ public class FormConfiguration implements Serializable {
             case email:
                 if (value != null && value.length() > 0) {
                     if (!Helper.testEmailAddress(value)) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, this.label);
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, new String[]{getLabel(locale)});
                         throw new PwmDataValidationException(error);
                     }
                 }
@@ -259,14 +247,22 @@ public class FormConfiguration implements Serializable {
 
         }
 
-        if (value != null && (this.minimumLength > 0) && (value.length() > 0) && (value.length() < this.minimumLength)) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_SHORT, null, this.label);
+        if (value != null && (this.getMinimumLength() > 0) && (value.length() > 0) && (value.length() < this.getMinimumLength())) {
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_SHORT, null, new String[]{getLabel(locale)});
             throw new PwmDataValidationException(error);
         }
 
-        if (value != null && value.length() > this.maximumLength) {
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_LONG, null, this.label);
+        if (value != null && value.length() > this.getMaximumLength()) {
+            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_TOO_LONG, null, new String[]{getLabel(locale)});
             throw new PwmDataValidationException(error);
+        }
+
+        if (value != null && this.getRegex() != null && this.getRegex().length() > 0) {
+            if (!value.matches(this.getRegex())) {
+                final String configuredErrorMessage = this.getRegexError(locale);
+                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REGEX_NOMATCH, null, configuredErrorMessage, new String[]{getLabel(locale)});
+                throw new PwmDataValidationException(error);
+            }
         }
     }
 }

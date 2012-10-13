@@ -75,18 +75,20 @@ public class Validator {
 
     public static Map<FormConfiguration, String> readFormValuesFromRequest(
             final HttpServletRequest req,
-            final Collection<FormConfiguration> formConfigurations
+            final Collection<FormConfiguration> formConfigurations,
+            final Locale locale
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final Map<String,String> tempMap = readRequestParametersAsMap(req);
-        return readFormValuesFromMap(tempMap, formConfigurations);
+        return readFormValuesFromMap(tempMap, formConfigurations, locale);
     }
 
 
     public static Map<FormConfiguration, String> readFormValuesFromMap(
             final Map<String,String> inputMap,
-            final Collection<FormConfiguration> formConfigurations
+            final Collection<FormConfiguration> formConfigurations,
+            final Locale locale
     )
             throws PwmDataValidationException, PwmUnrecoverableException {
         if (formConfigurations == null || formConfigurations.isEmpty()) {
@@ -109,7 +111,7 @@ public class Validator {
             if (formConfiguration.isRequired()) {
                 if (value == null || value.length() < 0) {
                     final String errorMsg = "missing required value for field '" + formConfiguration.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, formConfiguration.getLabel());
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formConfiguration.getLabel(locale)});
                     throw new PwmDataValidationException(error);
                 }
             }
@@ -118,7 +120,7 @@ public class Validator {
                 final String confirmValue = inputMap.get(keyName + PARAM_CONFIRM_SUFFIX);
                 if (!confirmValue.equals(value)) {
                     final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, formConfiguration.getLabel());
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formConfiguration.getLabel(locale)});
                     throw new PwmDataValidationException(error);
                 }
             }
@@ -274,6 +276,7 @@ public class Validator {
      * Validates each of the parameters in the supplied map against the vales in the embedded config
      * and checks to make sure the ParamConfig value meets the requiremetns of the ParamConfig itself.
      *
+     *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
@@ -282,14 +285,13 @@ public class Validator {
      *                             if an unexpected error occurs
      */
     public static void validateParmValuesMeetRequirements(
-            final PwmApplication pwmApplication,
-            final Map<FormConfiguration, String> formValues
+            final Map<FormConfiguration, String> formValues, final Locale locale
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
     {
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String value = formValues.get(formConfiguration);
-            formConfiguration.checkValue(value);
+            formConfiguration.checkValue(value,locale);
         }
     }
 
@@ -298,7 +300,8 @@ public class Validator {
             final ChaiProvider chaiProvider,
             final Configuration config,
             final Map<FormConfiguration,String> formValues,
-            final List<String> uniqueAttributes
+            final List<String> uniqueAttributes,
+            final Locale locale
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
@@ -321,7 +324,7 @@ public class Validator {
                 for (final String loopBase : searchBases) {
                     final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(loopBase, searchHelper).keySet());
                     if (resultDNs.size() > 0) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, formConfiguration.getLabel());
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{formConfiguration.getLabel(locale)});
                         throw new PwmDataValidationException(error);
                     }
                 }

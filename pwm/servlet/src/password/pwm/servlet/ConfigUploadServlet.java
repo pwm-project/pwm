@@ -70,17 +70,17 @@ public class ConfigUploadServlet extends TopServlet {
                         success = true;
                     }
                 } catch (PwmUnrecoverableException e) {
-                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", e.getMessage()));
+                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: " + e.getMessage()));
                     LOGGER.error(pwmSession, "error reading config input file: " + e.getMessage());
                 }
             } else {
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", "unable to read config file"));
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file"));
             }
         }
 
         if (!success) {
             if (pwmSession.getSessionStateBean().getSessionError() == null) {
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file", "unknown error"));
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file"));
             }
             LOGGER.info(pwmSession, "unable to read uploaded file");
             ConfigManagerServlet.forwardToJSP(req,resp);

@@ -255,7 +255,7 @@ public class CommandServlet extends TopServlet {
             }
         } else {
             LOGGER.trace("no checkProfiles query match configured, will check to see if form attributes have values");
-            final List<FormConfiguration> updateFormFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM, pwmSession.getSessionStateBean().getLocale());
+            final List<FormConfiguration> updateFormFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             // populate the map with attribute values from the uiBean, which was populated through ldap.
             final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
@@ -264,7 +264,7 @@ public class CommandServlet extends TopServlet {
             }
 
             try {
-                Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+                Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
                 LOGGER.debug(pwmSession, "checkProfile: " + userDN + " has value for attributes, update profile will not be required");
                 return false;
             } catch (PwmDataValidationException e) {

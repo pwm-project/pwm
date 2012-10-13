@@ -345,7 +345,7 @@ public class NewUserServlet extends TopServlet {
         verifyFormAttributes(formValues, pwmSession, pwmApplication);
 
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final List<FormConfiguration> newUserForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM, ssBean.getLocale());
+        final List<FormConfiguration> newUserForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM);
         final String userPassword = formValues.get(FIELD_PASSWORD);
 
         // set up the user creation attributes
@@ -425,19 +425,19 @@ public class NewUserServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
-        final List<FormConfiguration> newUserForm = config.readSettingAsForm(PwmSetting.NEWUSER_FORM, userLocale);
-        final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromMap(userValues, newUserForm);
+        final List<FormConfiguration> newUserForm = config.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromMap(userValues, newUserForm,userLocale);
 
         // check unique fields against ldap
         try {
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES));
+            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES),userLocale);
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
         }
 
         // see if the values meet form requirements.
-        Validator.validateParmValuesMeetRequirements(pwmApplication, formValues);
+        Validator.validateParmValuesMeetRequirements(formValues, userLocale);
 
         // test the password
         final String password = userValues.get(FIELD_PASSWORD);
@@ -571,7 +571,7 @@ public class NewUserServlet extends TopServlet {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM,locale);
+        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
         final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
 
         boolean usernameIsGenerated = isUsernameRandomGenerated(configuration);

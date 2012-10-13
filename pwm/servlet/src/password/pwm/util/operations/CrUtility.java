@@ -135,7 +135,7 @@ public abstract class CrUtility {
                                 for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
                                     final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
                                     if (responseTextLower.contains(wordPart)) {
-                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",challengeText);
+                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
                                         throw new PwmDataValidationException(errorInformation);
                                     }
                                 }
@@ -153,7 +153,7 @@ public abstract class CrUtility {
                 for (final Challenge loopChallenge : responseMap.keySet()) {
                     final String answer = responseMap.get(loopChallenge);
                     if (wordlistManager.containsWord(answer)) {
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, loopChallenge.getChallengeText());
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, new String[]{loopChallenge.getChallengeText()});
                         throw new PwmDataValidationException(errorInfo);
                     }
                 }
