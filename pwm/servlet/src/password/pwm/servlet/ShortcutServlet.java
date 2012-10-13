@@ -114,7 +114,7 @@ public class ShortcutServlet extends TopServlet {
             configuredItems.add(item);
         }
 
-        final Map<String, ShortcutItem> visibleItems = new HashMap<String, ShortcutItem>();
+        final Map<String, ShortcutItem> visibleItems = new LinkedHashMap<String, ShortcutItem>();
 
         if (!labelsFromHeader.isEmpty()) {
             LOGGER.trace("detected the following labels from headers: " + StringHelper.stringCollectionToString(labelsFromHeader, ","));
