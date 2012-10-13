@@ -162,7 +162,7 @@ public class UserSearchEngine {
             if (searchConfiguration.getUsername() != null && searchConfiguration.getUsername().length() > 0) {
                 errorMessage = "an ldap user for username value '" + searchConfiguration.getUsername() + "' was not found";
             } else {
-                errorMessage = "an ldap user for was not found";
+                errorMessage = "an ldap user was not found";
             }
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
         }

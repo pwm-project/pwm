@@ -634,6 +634,11 @@ public class TokenManager implements PwmService {
                     }
                     return TokenPayload.fromEncryptedString(TokenManager.this,splitString[1]);
                 }
+            } catch (PwmOperationalException e) {
+                if (e.getError() == PwmError.ERROR_CANT_MATCH_USER) {
+                    return null;
+                }
+                throw e;
             } catch (ChaiException e) {
                 final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
