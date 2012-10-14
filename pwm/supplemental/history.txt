@@ -20,6 +20,7 @@ v1.6.5
 + html5 placeholder form values
 + most html5 stype input form types (url, date, datetime, number, tel, time, week, month)
 + custom javascript support per form field
++ select type forms with configurable option values (issue #273)
 
 - Shortcut order is sometimes randomized (issue #277)
 - Null pointer (and other issues) when using ldap token storage method (issue #281)

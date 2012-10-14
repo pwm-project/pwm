@@ -68,6 +68,8 @@ public class Configuration implements Serializable {
 
     public enum RECOVERY_ACTION { RESETPW, SENDNEW }
 
+    public enum TokenStorageMethod {PWMDB, DB, CRYPTO, LDAP}
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfiguration storedConfiguration) {
@@ -484,4 +486,14 @@ public class Configuration implements Serializable {
         return RECOVERY_ACTION.valueOf(stringValue);
     }
 
+    public TokenStorageMethod getTokenStorageMethod() {
+        try {
+            return TokenStorageMethod.valueOf(readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
+        } catch (Exception e) {
+            final String errorMsg = "unknown storage method specified: " + readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD);
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+            LOGGER.warn(errorInformation.toDebugStr());
+            return null;
+        }
+    }
 }

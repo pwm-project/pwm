@@ -60,17 +60,10 @@ public class TokenManager implements PwmService {
     private static final long MAX_CLEANER_INTERVAL_MS = 24 * 60 * 60 * 1000; // one day
     private static final long MIN_CLEANER_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
-    private enum StorageMethod {
-        STORE_PWMDB,
-        STORE_DB,
-        STORE_CRYPTO,
-        STORE_LDAP
-    }
-
     private Timer timer;
 
     private Configuration configuration;
-    private StorageMethod storageMethod;
+    private Configuration.TokenStorageMethod storageMethod;
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
     private TokenMachine tokenMachine;
@@ -92,10 +85,9 @@ public class TokenManager implements PwmService {
         status = STATUS.OPENING;
 
         this.configuration = pwmApplication.getConfig();
-        try {
-            storageMethod = StorageMethod.valueOf(configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
-        } catch (Exception e) {
-            final String errorMsg = "unknown storage method specified: " + configuration.readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD);
+            storageMethod = configuration.getTokenStorageMethod();
+        if (storageMethod == null) {
+            final String errorMsg = "no storage method specified";
             errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
             status = STATUS.CLOSED;
             throw new PwmOperationalException(errorInformation);
@@ -114,19 +106,19 @@ public class TokenManager implements PwmService {
             secretKey = configuration.getSecurityKey();
 
             switch (storageMethod) {
-                case STORE_PWMDB:
+                case PWMDB:
                     tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
                     break;
 
-                case STORE_DB:
+                case DB:
                     tokenMachine = new DBTokenMachine(pwmApplication.getDatabaseAccessor());
                     break;
 
-                case STORE_CRYPTO:
+                case CRYPTO:
                     tokenMachine = new CryptoTokenMachine();
                     break;
 
-                case STORE_LDAP:
+                case LDAP:
                     tokenMachine = new LdapTokenMachine(pwmApplication);
                     break;
             }
@@ -152,7 +144,7 @@ public class TokenManager implements PwmService {
 
     public boolean supportsName() {
         switch (storageMethod) {
-            case STORE_LDAP:
+            case LDAP:
                 return false;
 
             default:
@@ -224,7 +216,7 @@ public class TokenManager implements PwmService {
             }
         }
 
-        if (storageMethod == StorageMethod.STORE_LDAP) {
+        if (storageMethod == Configuration.TokenStorageMethod.LDAP) {
             if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
                 if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
                     returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to LDAP, this configuration is not supported."));
@@ -295,7 +287,7 @@ public class TokenManager implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
-            if (keyIterator != null && storageMethod == StorageMethod.STORE_PWMDB) {
+            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.PWMDB) {
                 try {((PwmDBTokenMachine)tokenMachine).returnIterator(keyIterator); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
             }
         }

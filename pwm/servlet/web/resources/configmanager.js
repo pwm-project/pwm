@@ -738,7 +738,7 @@ FormTableHandler.removeMultiSetting = function(keyName, iteration) {
     FormTableHandler.redraw(keyName);
 };
 
-FormTableHandler.addMultiSetting = function(keyName, parentDiv) {
+FormTableHandler.addMultiSetting = function(keyName) {
     var currentSize = 0;
     for (var loopVar in clientSettingCache[keyName]) {
         currentSize++;
@@ -751,6 +751,8 @@ FormTableHandler.addMultiSetting = function(keyName, parentDiv) {
     clientSettingCache[keyName][currentSize + 1]['labels'][''] = '';
     clientSettingCache[keyName][currentSize + 1]['regexErrors'] = {};
     clientSettingCache[keyName][currentSize + 1]['regexErrors'][''] = '';
+    clientSettingCache[keyName][currentSize + 1]['selectOptions'] = {};
+    clientSettingCache[keyName][currentSize + 1]['selectOptions'][''] = '';
     FormTableHandler.writeFormSetting(keyName);
     FormTableHandler.redraw(keyName)
 };
@@ -777,7 +779,12 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '<td style="border:0; text-align: right">Placeholder</td><td style="border:0;"><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">JavaScript</td><td style="border:0;"><input type="text" id="' + inputID + 'javascript' + '"/></td>';
-        bodyText += '</tr></table>';
+        bodyText += '</tr><tr>';
+        if (clientSettingCache[keyName][iteration]['type'] == 'select') {
+            bodyText += '<td style="border:0; text-align: right">Select Options</td><td style="border:0;"><input class="btn" type="button" id="' + inputID + 'selectOptions' + '" value="Edit Options" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
+            bodyText += '</tr>';
+        }
+        bodyText += '</table>';
         bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
 
@@ -985,10 +992,109 @@ FormTableHandler.addRegexErrorLocale = function(keyName, iteration, localeName) 
 };
 
 FormTableHandler.removeRegexErrorLocale = function(keyName, iteration, localeName) {
-    alert('remoiv');
     delete clientSettingCache[keyName][iteration]['regexErrors'][localeName];
     FormTableHandler.writeFormSetting(keyName);
     FormTableHandler.showRegexErrorsDialog(keyName, iteration);
+};
+
+FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
+    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button"],function(){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+
+        var bodyText = '';
+        bodyText += '<table style="border:0" id="' + inputID + 'table">';
+        bodyText += '<tr>';
+        bodyText += '<td style="border:0"><b>Name</b></td><td style="border:0"><b>Display Value</b></td>';
+        bodyText += '</tr><tr>';
+        for (var optionName in clientSettingCache[keyName][iteration]['selectOptions']) {
+            var value = clientSettingCache[keyName][iteration]['selectOptions'][optionName];
+            var optionID = inputID + optionName;
+            bodyText += '<td style="border:1px">' + optionName + '</td><td style="border:1px">' + value + '</td>';
+                bodyText += '<td style="border:0">';
+                bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+                bodyText += ' onclick="FormTableHandler.removeSelectOptionsOption(\'' + keyName + '\',' + iteration + ',\'' + optionName + '\')" />';
+                bodyText += '</td>';
+            bodyText += '</tr><tr>';
+        }
+        bodyText += '</tr></table>';
+        bodyText += '<br/>';
+        bodyText += '<br/>';
+        bodyText += '<input type="text" id="addSelectOptionName"/>';
+        bodyText += '<input type="text" id="addSelectOptionValue"/>';
+        bodyText += '<input type="button" id="addSelectOptionButton" value="Add"/>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Select Options for ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+                FormTableHandler.showOptionsDialog(keyName,iteration);
+            }
+        });
+        theDialog.show();
+
+        for (var optionName in clientSettingCache[keyName][iteration]['selectOptions']) {
+            var value = clientSettingCache[keyName][iteration]['selectOptions'][optionName];
+            var loopID = inputID + optionName;
+            clearDijitWidget(loopID);
+            new dijit.form.TextBox({
+                onChange: function(){clientSettingCache[keyName][iteration]['selectOptions'][optionName] = this.value;FormTableHandler.writeFormSetting(keyName)}
+            },loopID);
+        }
+
+        clearDijitWidget("addSelectOptionName");
+        new dijit.form.ValidationTextBox({
+            placeholder: "Name",
+            id: "addSelectOptionName",
+            constraints: {min: 1}
+        },"addSelectOptionName");
+
+        clearDijitWidget("addSelectOptionValue");
+        new dijit.form.ValidationTextBox({
+            placeholder: "Display Value",
+            id: "addSelectOptionValue",
+            constraints: {min: 1}
+        },"addSelectOptionValue");
+
+        clearDijitWidget("addSelectOptionButton");
+        new dijit.form.Button({
+            label: "Add",
+            onClick: function() {
+                require(["dijit/registry"],function(registry){
+                    var name = registry.byId('addSelectOptionName').value;
+                    var value = registry.byId('addSelectOptionValue').value;
+                    FormTableHandler.addSelectOptionsOption(keyName, iteration, name, value);
+                });
+            }
+        },"addSelectOptionButton");
+    });
+};
+
+FormTableHandler.addSelectOptionsOption = function(keyName, iteration, optionName, optionValue) {
+    if (optionName == null || optionName.length < 1) {
+        alert('Name field is required');
+        return;
+    }
+
+    if (optionValue == null || optionValue.length < 1) {
+        alert('Value field is required');
+        return;
+    }
+
+    clientSettingCache[keyName][iteration]['selectOptions'][optionName] = optionValue;
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.showSelectOptionsDialog(keyName, iteration);
+};
+
+FormTableHandler.removeSelectOptionsOption = function(keyName, iteration, optionName) {
+    delete clientSettingCache[keyName][iteration]['selectOptions'][optionName];
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.showSelectOptionsDialog(keyName, iteration);
 };
 
 // -------------------------- change password handler ------------------------------------

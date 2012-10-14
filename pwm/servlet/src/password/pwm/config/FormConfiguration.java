@@ -43,7 +43,7 @@ import java.util.regex.PatternSyntaxException;
 public class FormConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url}
+    public enum Type {text, email, number, password, random, tel, hidden, date, datetime, time, week, month, url, select}
 
     private String name;
     private int minimumLength;
@@ -57,6 +57,7 @@ public class FormConfiguration implements Serializable {
     private String regex;
     private String placeholder;
     private String javascript;
+    private Map<String,String> selectOptions = Collections.emptyMap();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -129,6 +130,12 @@ public class FormConfiguration implements Serializable {
                 throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage());
             }
         }
+
+        if (this.getType() == Type.select) {
+            if (this.getSelectOptions() == null || this.getSelectOptions().isEmpty()) {
+                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," field '" + this.getName() + " ' is type select, but no select options are defined");
+            }
+        }
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -188,7 +195,11 @@ public class FormConfiguration implements Serializable {
         return javascript;
     }
 
-    // ------------------------ CANONICAL METHODS ------------------------
+    public Map<String,String> getSelectOptions() {
+        return Collections.unmodifiableMap(selectOptions);
+    }
+
+// ------------------------ CANONICAL METHODS ------------------------
 
     public boolean equals(final Object o) {
         if (this == o) {
