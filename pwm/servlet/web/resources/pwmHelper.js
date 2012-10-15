@@ -28,7 +28,11 @@ function pwmPageLoadHandler() {
 }
 
 function checkForCapsLock(e) {
-    require(["dojo/_base/fx","dojo/domReady!"],function(fx){
+    require(["dojo","dojo/_base/fx","dojo/domReady!"],function(dojo,fx){
+        if(dojo.isIE){
+            return;
+        }
+
         var capsLockWarningElement = getObject('capslockwarning');
         if (capsLockWarningElement == null) {
             return;
