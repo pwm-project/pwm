@@ -444,7 +444,6 @@ function startupChangePasswordPage(initialPrompt)
         },100);
     }
 
-    getObject("password_button").disabled = true;
     setInputFocus();
 }
 
