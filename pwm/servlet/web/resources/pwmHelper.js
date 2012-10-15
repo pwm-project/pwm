@@ -544,16 +544,19 @@ function clearError()
 
 function showInfo(infoMsg)
 {
-    doShow('message-info',infoMsg)
+    PWM_GLOBAL['messageStatus'] = 'message-info';
+    doShow('message-info',infoMsg);
 }
 
 function showError(errorMsg)
 {
+    PWM_GLOBAL['messageStatus'] = 'message-error';
     doShow('message-error',errorMsg);
 }
 
 function showSuccess(successMsg)
 {
+    PWM_GLOBAL['messageStatus'] = 'message-success';
     doShow('message-success',successMsg);
 }
 
@@ -821,16 +824,23 @@ function elementInViewport(el) {
         left += el.offsetLeft;
     }
 
+    var pageY = (typeof(window.pageYOffset)=='number') ? window.pageYOffset : document.documentElement.scrollTop;
+    var pageX = (typeof(window.pageXOffset)=='number') ? window.pageXOffset : document.documentElement.scrollLeft;
+
     return (
-        top >= window.pageYOffset &&
-            left >= window.pageXOffset &&
-            (top + height) <= (window.pageYOffset + window.innerHeight) &&
-            (left + width) <= (window.pageXOffset + window.innerWidth)
+        top >= pageY &&
+            left >= pageX &&
+            (top + height) <= (pageY + window.innerHeight) &&
+            (left + width) <= (pageX + window.innerWidth)
         );
 }
 
 function messageDivFloatHandler() { // called by message.jsp
-    require(["dojo/dom", "dojo/_base/fx", "dojo/on", "dojo/dom-style", "dojo/domReady!"],function(dom, fx, on, style){
+    require(["dojo","dojo/dom", "dojo/_base/fx", "dojo/on", "dojo/dom-style", "dojo/domReady!"],function(dojo){
+        if(dojo.isIE <= 8){
+            return;
+        }
+
         var messageObj = getObject('message');
         var messageWrapperObj = getObject('message_wrapper');
         if (!messageObj || !messageWrapperObj) {
@@ -845,12 +855,8 @@ function messageDivFloatHandler() { // called by message.jsp
             PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
 
             if (elementInViewport(messageWrapperObj)) {
-                messageObj.style.position = null;
-                messageObj.style.top = null;
-                messageObj.style.left = null;
-                messageObj.style.width = null;
-                messageObj.style.zIndex = null;
-                messageObj.style.textAlign = null;
+                messageObj.style.cssText = '';
+                doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
             } else {
                 messageObj.style.position = 'fixed';
                 messageObj.style.top = '-3px';

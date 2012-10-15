@@ -62,7 +62,7 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event);"
+              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event)"
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
               onreset="handleFormClear();validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">

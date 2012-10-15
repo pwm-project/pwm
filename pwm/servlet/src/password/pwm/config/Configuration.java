@@ -68,7 +68,7 @@ public class Configuration implements Serializable {
 
     public enum RECOVERY_ACTION { RESETPW, SENDNEW }
 
-    public enum TokenStorageMethod {PWMDB, DB, CRYPTO, LDAP}
+    public enum TokenStorageMethod {STORE_PWMDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

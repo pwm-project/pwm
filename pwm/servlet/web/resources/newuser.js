@@ -27,6 +27,7 @@ var validationInProgress = false;
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateNewUserForm() {
+    console.log('entering validateNewUserForm');
     if (validationInProgress) {
         return;
     }

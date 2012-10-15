@@ -175,10 +175,10 @@ public class EmailQueueManager extends AbstractQueueManager {
                 message.saveChanges();
                 tr.sendMessage(message, message.getAllRecipients());
                 tr.close();
-                logText = "authenticated";
+                logText = "authenticated ";
             }
 
-            LOGGER.debug("successfully sent " + logText + " email: " + emailItemBean.toString());
+            LOGGER.debug("successfully sent " + logText + "email: " + emailItemBean.toString());
             if (statsMgr != null) {
                 statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
             }

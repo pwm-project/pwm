@@ -39,6 +39,8 @@
 <script type="text/javascript">
     require(["dojo/domReady!"],function(){
         PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
-        setInterval(function(){ messageDivFloatHandler() },200);
+        setTimeout(function(){
+            setInterval(function(){messageDivFloatHandler()},250);
+        },2000);
     });
 </script>

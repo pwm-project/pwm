@@ -656,8 +656,8 @@ public class NewUserServlet extends TopServlet {
 
     public void initializeToken(final PwmSession pwmSession, final PwmApplication pwmApplication, final String tokenPurpose)
             throws PwmUnrecoverableException {
-        if (pwmApplication.getConfig().getTokenStorageMethod() == Configuration.TokenStorageMethod.LDAP) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"cannot generate new user tokens when storage type is configured as LDAP."));
+        if (pwmApplication.getConfig().getTokenStorageMethod() == Configuration.TokenStorageMethod.STORE_LDAP) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"cannot generate new user tokens when storage type is configured as STORE_LDAP."));
         }
 
         final NewUserBean newUserBean = pwmSession.getNewUserBean();

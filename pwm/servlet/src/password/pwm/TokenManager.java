@@ -106,19 +106,19 @@ public class TokenManager implements PwmService {
             secretKey = configuration.getSecurityKey();
 
             switch (storageMethod) {
-                case PWMDB:
+                case STORE_PWMDB:
                     tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
                     break;
 
-                case DB:
+                case STORE_DB:
                     tokenMachine = new DBTokenMachine(pwmApplication.getDatabaseAccessor());
                     break;
 
-                case CRYPTO:
+                case STORE_CRYPTO:
                     tokenMachine = new CryptoTokenMachine();
                     break;
 
-                case LDAP:
+                case STORE_LDAP:
                     tokenMachine = new LdapTokenMachine(pwmApplication);
                     break;
             }
@@ -144,7 +144,7 @@ public class TokenManager implements PwmService {
 
     public boolean supportsName() {
         switch (storageMethod) {
-            case LDAP:
+            case STORE_LDAP:
                 return false;
 
             default:
@@ -216,10 +216,10 @@ public class TokenManager implements PwmService {
             }
         }
 
-        if (storageMethod == Configuration.TokenStorageMethod.LDAP) {
+        if (storageMethod == Configuration.TokenStorageMethod.STORE_LDAP) {
             if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
                 if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
-                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to LDAP, this configuration is not supported."));
+                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to STORE_LDAP, this configuration is not supported."));
                 }
             }
         }
@@ -287,7 +287,7 @@ public class TokenManager implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
-            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.PWMDB) {
+            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.STORE_PWMDB) {
                 try {((PwmDBTokenMachine)tokenMachine).returnIterator(keyIterator); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
             }
         }
