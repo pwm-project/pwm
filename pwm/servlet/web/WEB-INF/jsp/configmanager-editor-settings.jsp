@@ -32,10 +32,6 @@
 <% final boolean showDesc = configManagerBean.isShowDescr(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <% final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0; %>
-<script type="text/javascript">
-    getObject('mainContentPane').style.display = 'none';
-    showWaitDialog();
-</script>
 <h1 style="color:#435174; text-align: center;">
     <%=category.getGroup() == 0 ? "Settings - " : "Modules - "%>
     <%=category.getLabel(locale)%>
@@ -76,14 +72,6 @@
 <div data-dojo-type="dijit.TitlePane" title="<%=title%>" data-dojo-props="open:<%=showDesc%>" style="width:580px" id="title_<%=loopSetting.getKey()%>">
     <div><%=loopSetting.getDescription(locale)%></div>
 </div>
-<script type="text/javascript">
-    require(["dijit/Tooltip"],function(){
-        new dijit.Tooltip({
-            connectId: ["title_<%=loopSetting.getKey()%>"],
-            label: 'Click to show help text.'
-        });
-    });
-</script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
 
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
@@ -240,7 +228,6 @@
         "dojo/domReady!"],function(dojoParser){
         dojoParser.parse();
         setTimeout(function(){
-            getObject('mainContentPane').style.display = 'inline';
             closeWaitDialog();
 
             <% if (hasNotes) { %>

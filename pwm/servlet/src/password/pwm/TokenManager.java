@@ -85,7 +85,7 @@ public class TokenManager implements PwmService {
         status = STATUS.OPENING;
 
         this.configuration = pwmApplication.getConfig();
-            storageMethod = configuration.getTokenStorageMethod();
+        storageMethod = configuration.getTokenStorageMethod();
         if (storageMethod == null) {
             final String errorMsg = "no storage method specified";
             errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
@@ -189,8 +189,8 @@ public class TokenManager implements PwmService {
                 return storedToken;
             }
         } catch (PwmException e) {
-            final String errorMsg = "unexpected error trying to retrieve token from datastore: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(e.getError(),errorMsg);
+            final String errorMsg = "error trying to retrieve token from datastore: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
             throw new PwmOperationalException(errorInformation);
         }
         return null;

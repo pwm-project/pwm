@@ -33,123 +33,118 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
-<script type="text/javascript">
-    showWaitDialog();
-</script>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Intruder Lockouts"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <div id="content" style="display:none">
-            <% final Map<String, IntruderManager.IntruderRecord> userLockTable = intruderManager.getUserLockTable(); %>
-            <br/>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-                <div data-dojo-type="dijit.layout.ContentPane" title="Users">
-                    <% if (userLockTable.isEmpty()) { %>
-                    <div style="font-weight: bold; text-align:center; width:100%">No user accounts are currently locked.</div>
-                    <% } else { %>
-                    <div style="max-height: 400px; overflow: auto;">
-                        <table>
-                            <tr>
-                                <td class="key" style="text-align: left">
-                                    Username
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Status
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Last Activity
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Attempts
-                                </td>
-                            </tr>
-                            <%
-                                for (final String key : userLockTable.keySet()) {
-                                    final IntruderManager.IntruderRecord record = userLockTable.get(key);
-                            %>
-                            <tr>
-                                <td>
-                                    <%= StringEscapeUtils.escapeHtml(key) %>
-                                </td>
-                                <td>
-                                    <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_USER)) { %>
-                                    locked
-                                    <% } else { %>
-                                    watching
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_USER)) { %>
-                                    n/a
-                                    <% } else { %>
-                                    <%= TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString() %>
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <%= record.getAttemptCount() %>
-                                </td>
+        <% final Map<String, IntruderManager.IntruderRecord> userLockTable = intruderManager.getUserLockTable(); %>
+        <br/>
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Users">
+                <% if (userLockTable.isEmpty()) { %>
+                <div style="font-weight: bold; text-align:center; width:100%">No user accounts are currently locked.</div>
+                <% } else { %>
+                <div style="max-height: 400px; overflow: auto;">
+                    <table>
+                        <tr>
+                            <td class="key" style="text-align: left">
+                                Username
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Status
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Last Activity
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Attempts
+                            </td>
+                        </tr>
+                        <%
+                            for (final String key : userLockTable.keySet()) {
+                                final IntruderManager.IntruderRecord record = userLockTable.get(key);
+                        %>
+                        <tr>
+                            <td>
+                                <%= StringEscapeUtils.escapeHtml(key) %>
+                            </td>
+                            <td>
+                                <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_USER)) { %>
+                                locked
+                                <% } else { %>
+                                watching
                                 <% } %>
-                            </tr>
-                        </table>
-                    </div>
-                    <% } %>
-                </div>
-                <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getPwmApplication(session).getIntruderManager().getAddressLockTable(); %>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Addresses">
-                    <% if (addressLockTable.isEmpty()) { %>
-                    <div style="font-weight: bold; text-align:center; width:100%">No network addresses are currently locked.</div>
-                    <% } else { %>
-                    <div style="max-height: 400px; overflow: auto;">
-
-                        <table>
-                            <tr>
-                                <td class="key" style="text-align: left">
-                                    Address
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Status
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Last Activity
-                                </td>
-                                <td class="key" style="text-align: left">
-                                    Attempts
-                                </td>
-                            </tr>
-                            <%
-                                for (final String key : addressLockTable.keySet()) {
-                                    final IntruderManager.IntruderRecord record = addressLockTable.get(key);
-                            %>
-                            <tr>
-                                <td>
-                                    <%= StringEscapeUtils.escapeHtml(key) %>
-                                </td>
-                                <td>
-                                    <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_ADDRESS)) { %>
-                                    locked
-                                    <% } else { %>
-                                    watching
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_ADDRESS)) { %>
-                                    n/a
-                                    <% } else { %>
-                                    <%= TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString() %>
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <%= record.getAttemptCount() %>
-                                </td>
-                            </tr>
+                            </td>
+                            <td>
+                                <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_USER)) { %>
+                                n/a
+                                <% } else { %>
+                                <%= TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString() %>
+                                <% } %>
+                            </td>
+                            <td>
+                                <%= record.getAttemptCount() %>
+                            </td>
                             <% } %>
-                        </table>
-                    </div>
-                    <% } %>
+                        </tr>
+                    </table>
                 </div>
+                <% } %>
+            </div>
+            <% final Map<String, IntruderManager.IntruderRecord> addressLockTable = ContextManager.getPwmApplication(session).getIntruderManager().getAddressLockTable(); %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Addresses">
+                <% if (addressLockTable.isEmpty()) { %>
+                <div style="font-weight: bold; text-align:center; width:100%">No network addresses are currently locked.</div>
+                <% } else { %>
+                <div style="max-height: 400px; overflow: auto;">
+
+                    <table>
+                        <tr>
+                            <td class="key" style="text-align: left">
+                                Address
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Status
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Last Activity
+                            </td>
+                            <td class="key" style="text-align: left">
+                                Attempts
+                            </td>
+                        </tr>
+                        <%
+                            for (final String key : addressLockTable.keySet()) {
+                                final IntruderManager.IntruderRecord record = addressLockTable.get(key);
+                        %>
+                        <tr>
+                            <td>
+                                <%= StringEscapeUtils.escapeHtml(key) %>
+                            </td>
+                            <td>
+                                <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_ADDRESS)) { %>
+                                locked
+                                <% } else { %>
+                                watching
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (intruderManager.isLocked(record, PwmDB.DB.INTRUDER_ADDRESS)) { %>
+                                n/a
+                                <% } else { %>
+                                <%= TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString() %>
+                                <% } %>
+                            </td>
+                            <td>
+                                <%= record.getAttemptCount() %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -157,7 +152,6 @@
 <script type="text/javascript">
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
-            getObject('content').style.display = 'inline';
             dojoParser.parse();
 
             setTimeout(function(){

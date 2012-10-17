@@ -96,7 +96,7 @@ public class UpdateProfileServlet extends TopServlet {
                 updateProfileBean.setConfirmationPassed(true);
             } else if ("unConfirm".equalsIgnoreCase(actionParam)) {       // go back and edit data
                 LOGGER.debug(pwmSession, "user requested to 'go back' and re-edit profile data");
-                handleUnconfirm(pwmSession, updateProfileBean);
+                handleUnconfirm(updateProfileBean);
             }
         }
 
@@ -104,7 +104,6 @@ public class UpdateProfileServlet extends TopServlet {
     }
 
     private void handleUnconfirm(
-            final PwmSession pwmSession,
             final UpdateProfileBean updateProfileBean
     ) {
         updateProfileBean.setFormSubmitted(false);
@@ -175,8 +174,6 @@ public class UpdateProfileServlet extends TopServlet {
                 }
             }
         }
-
-        final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
     }
 
     private Map<FormConfiguration,String> readFormParametersFromRequest(

@@ -46,12 +46,7 @@
 </jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
-<div id="content" style="">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<script type="text/javascript">
-    getObject('content').style.visibility = 'hidden';
-    showWaitDialog();
-</script>
 <div data-dojo-type="dijit.layout.ContentPane" title="About">
     <table>
         <tr>
@@ -748,7 +743,6 @@
             <% } catch (Exception e) { /* */ } %>
         </table>
     </div>
-</div>
 </div>
 </div>
 </div>

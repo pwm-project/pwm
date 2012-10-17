@@ -75,7 +75,7 @@
                 <td style="border-width:0">
                     <%= "".equals(loopLocale.toString()) ? "Default" : loopLocale.getDisplayName(loopLocale) %>
                 </td>
-                <td style="border-width:1px; width: 100%; color: #808080; margin: 2px">
+                <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
                     <%= StringEscapeUtils.escapeHtml(ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key)) %>
                 </td>
             </tr>

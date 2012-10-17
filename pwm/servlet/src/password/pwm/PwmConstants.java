@@ -90,6 +90,8 @@ public abstract class PwmConstants {
     public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));
     public static final int LDAP_CHECKER_RECENT_ERRORS_DURATION = Integer.parseInt(readPwmConstantsBundle("ldapCheckerRecentErrorDuration"));
 
+    public static final int CLIENT_AJAX_TYPING_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingTimeout"));
+
     public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
     public static final int INTRUDER_RETENTION_TIME_MS = Integer.parseInt(readPwmConstantsBundle("intruderRetentionTimeMS"));
     public static final int INTRUDER_CLEANUP_FREQUENCY_MS = Integer.parseInt(readPwmConstantsBundle("intruderCleanupFrequencyMS"));

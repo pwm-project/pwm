@@ -63,12 +63,11 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%><pwm:url url='/resources'/>";
     PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%><pwm:url url='/public/rest'/>";
     PWM_GLOBAL['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
-
+    PWM_GLOBAL['clientAjaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
     PWM_GLOBAL['formTypeOptions'] = [];
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
     <%}%>
-
 }
 
 function initPwmLocaleVars() {

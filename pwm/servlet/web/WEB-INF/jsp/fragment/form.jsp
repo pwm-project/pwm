@@ -83,13 +83,11 @@
 <% } %>
 <% } %>
 
-
-
 <% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
 <h1>
     <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
 </h1>
-<input type="password" name="password1" id="password1" class="inputfield"/>
+<input type="password" name="password1" id="password1" class="inputfield" onkeypress="getObject('password2').value=''"/>
 
 <h1><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h1>
 <input type="password" name="password2" id="password2" class="inputfield"/>

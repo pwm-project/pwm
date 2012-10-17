@@ -920,7 +920,6 @@ public class Helper {
             } catch (Exception e) {
                 final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                LOGGER.error(errorInformation.toDebugStr());
                 throw new PwmUnrecoverableException(errorInformation);
             }
         }

@@ -679,6 +679,8 @@ public enum PwmSetting {
             "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_SET_PASSWORD_MODE(
             "helpdesk.setPassword.mode", Syntax.SELECT, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
+            "helpdesk.setPassword.writeAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.ADVANCED),
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", Syntax.BOOLEAN, Category.HELPDESK, true, Level.BASIC),
     HELPDESK_ENFORCE_PASSWORD_POLICY(

@@ -36,9 +36,10 @@
         <p><pwm:Display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div id="buttonbar">
-        <div id="WaitDialogBlank"></div>
+            <div id="WaitDialogBlank"></div>
+        </div>
+        <br class="clear"/>
     </div>
-    <br class="clear"/>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

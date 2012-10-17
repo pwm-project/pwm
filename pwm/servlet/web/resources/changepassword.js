@@ -76,7 +76,7 @@ function validatePasswords(userDN)
             headers: {"Accept":"application/json"},
             handleAs: "json",
             preventCache: true,
-            timeout: 15000,
+            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
             error: function(errorObj) {
                 validationInProgress = false;
                 showInfo(PWM_STRINGS['Display_CommunicationError']);

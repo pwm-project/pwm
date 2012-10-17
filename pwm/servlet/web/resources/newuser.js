@@ -51,6 +51,7 @@ function validateNewUserForm() {
             contentType: "application/json;charset=utf-8",
             dataType: "json",
             handleAs: "json",
+            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
             error: function(errorObj) {
                 validationInProgress = false;
                 showSuccess(PWM_STRINGS['Display_CommunicationError']);
@@ -61,7 +62,7 @@ function validateNewUserForm() {
                     validationCache[parameterData.cacheKey] = data;
                     validationInProgress = false;
                     validateNewUserForm();
-                },500);
+                },350);
             }
         });
     });

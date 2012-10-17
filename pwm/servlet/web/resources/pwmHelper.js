@@ -244,7 +244,7 @@ function showWaitDialog(title, body) {
         clearDijitWidget(idName);
         if (body == null || body.length < 1) {
             //body = '<div id="WaitDialogBlank"/>';
-            body = '<div id="progressBar" style="background: purple; margin: 8px; width: 100%"/>'
+            body = '<div id="progressBar" style="margin: 8px; width: 100%"/>'
         }
         var theDialog = new Dialog({
             id: idName,
@@ -816,7 +816,7 @@ function getRenderedStyle(el,styleProp) {
     return null;
 }
 
-function elementInViewport(el) {
+function elementInViewport(el, includeWidth) {
     var top = el.offsetTop;
     var left = el.offsetLeft;
     var width = el.offsetWidth;
@@ -831,11 +831,12 @@ function elementInViewport(el) {
     var pageY = (typeof(window.pageYOffset)=='number') ? window.pageYOffset : document.documentElement.scrollTop;
     var pageX = (typeof(window.pageXOffset)=='number') ? window.pageXOffset : document.documentElement.scrollLeft;
 
-    return (
-        top >= pageY &&
+    return includeWidth ? (
+            top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
             left >= pageX &&
-            (top + height) <= (pageY + window.innerHeight) &&
             (left + width) <= (pageX + window.innerWidth)
+        ) : (
+            top >= pageY && (top + height) <= (pageY + window.innerHeight)
         );
 }
 
@@ -858,7 +859,7 @@ function messageDivFloatHandler() { // called by message.jsp
         if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj)) {
             PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
 
-            if (elementInViewport(messageWrapperObj)) {
+            if (elementInViewport(messageWrapperObj,false)) {
                 messageObj.style.cssText = '';
                 doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
             } else {
@@ -868,6 +869,8 @@ function messageDivFloatHandler() { // called by message.jsp
                 messageObj.style.width = '100%';
                 messageObj.style.zIndex = "100";
                 messageObj.style.textAlign = "center";
+                messageObj.style.backgroundColor = 'black';
+                doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
             }
         }
     });

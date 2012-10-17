@@ -385,7 +385,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
     });
 };
 
-MultiTableHandler.writeFormSetting = function(settingKey, iteration, value) {
+MultiTableHandler.writeMultiSetting = function(settingKey, iteration, value) {
     var size = clientSettingCache[settingKey];
     var currentValues = { };
     for (var i = 0; i < size; i++) {

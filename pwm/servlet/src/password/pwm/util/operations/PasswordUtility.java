@@ -262,6 +262,13 @@ public class PasswordUtility {
             Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, configNameValuePairs, true);
         }
 
+        {  // write out configured attributes for helpdesk change
+            LOGGER.debug(pwmSession, "writing helpdesk post password change writeAttributes to user " + proxiedUser.getEntryDN());
+            final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES);
+            final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
+            Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, writeAttributesSettings, true);
+        }
+
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
             final String userGUID = Helper.readLdapGuidValue(pwmApplication, proxiedUser.getEntryDN());
