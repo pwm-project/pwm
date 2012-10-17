@@ -222,6 +222,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
+    	LOGGER.trace("Enter: handleSearchRequest(...)");
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
@@ -230,6 +231,7 @@ public class GuestRegistrationServlet extends TopServlet {
         final String searchContext = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final GuestRegistrationBean guBean = pwmSession.getGuestRegistrationBean();
+        LOGGER.debug(String.format("Searching for username: '%s' in container '%s'", usernameParam, searchContext));
 
         try {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
