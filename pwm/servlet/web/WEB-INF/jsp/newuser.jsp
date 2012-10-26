@@ -36,11 +36,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_NewUser"/></p>
-        <div id="PasswordRequirements">
-            <ul>
-                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>" form="newuser"/>
-            </ul>
-        </div>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"

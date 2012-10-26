@@ -756,9 +756,6 @@
             setInterval(function(){
                 showStatChart('PASSWORD_CHANGES',14,'statsChart');
             }, 61 * 1000);
-
-            getObject('content').style.visibility = 'visible';
-            closeWaitDialog();
         });
     }
     startupPage();

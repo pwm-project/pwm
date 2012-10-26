@@ -41,6 +41,7 @@ import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -48,6 +49,7 @@ import java.util.*;
  */
 public class PasswordUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordUtility.class);
+
 
     enum PasswordPolicySource {
         MERGE,
@@ -526,5 +528,116 @@ public class PasswordUtility {
             LOGGER.warn("error reading password policy for user " + theUser.getEntryDN() + ", error: " + e.getMessage());
         }
         return PwmPasswordPolicy.defaultPolicy();
+    }
+
+    public static PasswordCheckInfo checkEnteredPassword(
+            final PwmApplication pwmApplication,
+            final Locale locale,
+            final ChaiUser user,
+            final UserInfoBean userInfoBean,
+            final String password,
+            final String confirmPassword
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        if (userInfoBean == null) {
+            throw new NullPointerException("userInfoBean cannot be null");
+        }
+
+        boolean pass = false;
+        String userMessage;
+        int errorCode = 0;
+
+        final boolean passwordIsCaseSensitive = userInfoBean.getPasswordPolicy() == null || userInfoBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive);
+        final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
+
+        if (password.length() < 0) {
+            userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(locale, pwmApplication.getConfig());
+        } else {
+            try {
+                final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
+                pwmPasswordRuleValidator.testPassword(password, null, userInfoBean, user);
+                pass = true;
+
+                switch (matchStatus) {
+                    case EMPTY:
+                        userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(locale, pwmApplication.getConfig());
+                        break;
+                    case MATCH:
+                        userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(locale, pwmApplication.getConfig());
+                        break;
+                    case NO_MATCH:
+                        userMessage = new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH).toUserStr(locale, pwmApplication.getConfig());
+                        break;
+                    default:
+                        userMessage = "";
+                }
+
+            } catch (PwmDataValidationException e) {
+                errorCode = e.getError().getErrorCode();
+                userMessage = e.getErrorInformation().toUserStr(locale, pwmApplication.getConfig());
+                pass = false;
+            }
+        }
+
+        final int strength = checkPasswordStrength(pwmApplication.getConfig(), password);
+        return new PasswordCheckInfo(userMessage, pass, strength, matchStatus, errorCode);
+    }
+
+
+    private static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(final boolean caseSensitive, final String password1, final String password2) {
+        final PasswordCheckInfo.MATCH_STATUS matchStatus;
+        if (password2.length() < 1) {
+            matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;
+        } else {
+            if (caseSensitive) {
+                matchStatus = password1.equals(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+            } else {
+                matchStatus = password1.equalsIgnoreCase(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+            }
+        }
+
+        return matchStatus;
+    }
+
+
+    public static class PasswordCheckInfo implements Serializable {
+        private final String message;
+        private final boolean passed;
+        private final int strength;
+        private final MATCH_STATUS match;
+        private final int errorCode;
+
+        public enum MATCH_STATUS {
+            MATCH, NO_MATCH, EMPTY
+        }
+
+        public PasswordCheckInfo(String message, boolean passed, int strength, MATCH_STATUS match, int errorCode) {
+            this.message = message;
+            this.passed = passed;
+            this.strength = strength;
+            this.match = match;
+            this.errorCode = errorCode;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public boolean isPassed() {
+            return passed;
+        }
+
+        public int getStrength() {
+            return strength;
+        }
+
+        public MATCH_STATUS getMatch() {
+            return match;
+        }
+
+        public int getErrorCode() {
+            return errorCode;
+        }
     }
 }

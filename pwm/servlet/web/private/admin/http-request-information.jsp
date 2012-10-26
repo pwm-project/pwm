@@ -35,7 +35,7 @@
 <div id="wrapper">
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit.layout.ContentPane" title="Request Information">
                 <table>
                     <tr>
@@ -102,7 +102,6 @@
                     </tr>
                     <% } %>
                 </table>
-                <br class="clear"/>
             </div>
             <% } %>
             <% if (request.getHeaderNames() != null && request.getHeaderNames().hasMoreElements()) { %>
@@ -146,12 +145,13 @@
             <% } %>
         </div>
     </div>
-    <script type="text/javascript">
-        require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dojo/domReady!"],function(dojoParser){
-            dojoParser.parse();
-        });
-    </script>
-    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+</div>
+<script type="text/javascript">
+    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dojo/domReady!"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

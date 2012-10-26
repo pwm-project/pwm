@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,8 @@ public class CommandServlet extends TopServlet {
             processContinue(req, resp);
         } else if (action.equalsIgnoreCase("outputUserReportCsv")) {
             outputUserReportCsv(req, resp);
+        } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
+            processPageLeaveNotice(req);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -386,6 +389,16 @@ public class CommandServlet extends TopServlet {
 
         outputStream.flush();
         outputStream.close();
+    }
+
+    private void processPageLeaveNotice(final HttpServletRequest req)
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final String referrer = req.getHeader("Referer");
+        final Date pageLeaveNoticeTime = new Date();
+        pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
+        LOGGER.debug("pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", Referer=" + referrer);
     }
 }
 

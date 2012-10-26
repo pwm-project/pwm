@@ -18,14 +18,14 @@ v1.6.5
 + Refactored and improved UI for managing "form" configuration settings.
 + regex validation of form field values and custom error messages (issue #260)
 + html5 placeholder form values
-+ most html5 stype input form types (url, date, datetime, number, tel, time, week, month)
++ most html5 type input form types (url, date, datetime, number, tel, time, week, month)
 + custom javascript support per form field
 + select type forms with configurable option values (issue #273)
 + all pages and content now gzip compressed when supported by browser
++ new user form password strength meter and validation check
 
 - Shortcut order is sometimes randomized (issue #277)
 - Null pointer (and other issues) when using ldap token storage method (issue #281)
-
 
 
 v1.6.4 (August 23, 2012) build 1185

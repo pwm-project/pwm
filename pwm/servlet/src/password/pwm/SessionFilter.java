@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -157,6 +158,14 @@ public class SessionFilter implements Filter {
 
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
+
+        // check the page leave notice
+        if (checkPageLeaveNotice(pwmSession, pwmApplication.getConfig())) {
+            LOGGER.warn("invalidating session due to dirty page leave time greater then configured timeout");
+            pwmSession.invalidate();
+            resp.sendRedirect(req.getRequestURI());
+            return;
+        }
 
         //set the session's locale
         if (ssBean.getLocale() == null) {
@@ -434,5 +443,24 @@ public class SessionFilter implements Filter {
         }
 
         return false;
+    }
+
+    private static boolean checkPageLeaveNotice(final PwmSession pwmSession, final Configuration config) {
+        final long configuredSeconds = config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT);
+        if (configuredSeconds <= 0) {
+            return false;
+        }
+
+        final Date currentPageLeaveNotice = pwmSession.getSessionStateBean().getPageLeaveNoticeTime();
+        pwmSession.getSessionStateBean().setPageLeaveNoticeTime(null);
+        if (currentPageLeaveNotice == null) {
+            return false;
+        }
+
+        if (TimeDuration.fromCurrent(currentPageLeaveNotice).getTotalSeconds() <= configuredSeconds) {
+            return false;
+        }
+
+        return true;
     }
 }

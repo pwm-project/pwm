@@ -25,6 +25,22 @@ function pwmPageLoadHandler() {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
     }
+
+    try {
+        window.addEventListener('beforeunload', function () {
+            require(["dojo"],function(dojo){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    headers: {"Accept":"application/json"},
+                    handleAs: "json",
+                    preventCache: true,
+                    sync: true
+                });
+            });
+        });
+    } catch (e) {
+        try {console.log('unable to register beforeunload pageLeaveNotice handler: ' + e);} catch (e2) {/*ignore*/}
+    }
 }
 
 function checkForCapsLock(e) {
@@ -193,17 +209,17 @@ function initLocaleSelectorMenu(attachNode) {
         return;
     }
 
-    require(["dojo/domReady!"],function(){setTimeout(function(){
-        require(["dijit/Menu","dijit/MenuItem","dijit/Dialog"],function(){
+    require(["dojo/domReady!"],function(){
+        require(["dijit/Menu","dijit/MenuItem"],function(dijitMenu, dijitMenuItem){
             var localeData = PWM_GLOBAL['localeInfo'];
-            var pMenu = new dijit.Menu({
+            var pMenu = new dijitMenu({
                 targetNodeIds: [attachNode],
                 leftClickToOpen: true
             });
             pMenu.startup();
 
             var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
-                pMenu.addChild(new dijit.MenuItem({
+                pMenu.addChild(new dijitMenuItem({
                     label: localeDisplayName,
                     iconClass: localeIconClass,
                     onClick: function() {
@@ -232,7 +248,7 @@ function initLocaleSelectorMenu(attachNode) {
                 loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
             }
         });
-    },1000);});
+    });
 }
 
 function showWaitDialog(title, body) {
@@ -832,11 +848,11 @@ function elementInViewport(el, includeWidth) {
     var pageX = (typeof(window.pageXOffset)=='number') ? window.pageXOffset : document.documentElement.scrollLeft;
 
     return includeWidth ? (
-            top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
+        top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
             left >= pageX &&
             (left + width) <= (pageX + window.innerWidth)
         ) : (
-            top >= pageY && (top + height) <= (pageY + window.innerHeight)
+        top >= pageY && (top + height) <= (pageY + window.innerHeight)
         );
 }
 

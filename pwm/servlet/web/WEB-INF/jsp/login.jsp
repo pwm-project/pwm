@@ -77,61 +77,52 @@
         </form>
         <br/>
         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)) { %>
-        <div style="text-align: center;">
+        <table style="border:0">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
-            <a class="menubutton" id="Title_ForgottenPassword" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
-            <script type="text/javascript">
-                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-                    var strengthTooltip = new dijit.Tooltip({
-                        connectId: ["Title_ForgottenPassword"],
-                        label: '<pwm:Display key="Long_Title_ForgottenPassword"/>',
-                        position: ['above']
+            <tr style="border:0">
+                <td style="border:0; text-align: right; width:10%">
+                    <a class="menubutton" id="Title_ForgottenPassword" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
+                </td>
+                <td style="border: 0">
+                    <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
+                </td>
+            </tr>
 
-                    });
-                });},1000)});
-            </script>
+
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
-            <a class="menubutton" id="Title_ForgottenUsername" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
-            <script type="text/javascript">
-                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-                    new dijit.Tooltip({
-                        connectId: ["Title_ForgottenUsername"],
-                        label: PWM_STRINGS["Long_Title_ForgottenUsername"],
-                        position: ['above']
-                    });
-                });},1000)});
-            </script>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" id="Title_ForgottenUsername" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
+                </td>
+                <td style="border: 0">
+                    <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
+                </td>
+            </tr>
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-            <a class="menubutton" id="Title_ActivateUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
-            <script type="text/javascript">
-                require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-                    new dijit.Tooltip({
-                        connectId: ["Title_ActivateUser"],
-                        label: PWM_STRINGS["Long_Title_ActivateUser"],
-                        position: ['above']
-                    });
-                });},1000)});
-            </script>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" id="Title_ActivateUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
+                </td>
+                <td style="border: 0">
+                    <p><pwm:Display key="Long_Title_ActivateUser"/></p>
+                </td>
+            </tr>
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-            <p>
-                <a class="menubutton" id="Title_NewUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
-                <script type="text/javascript">
-                    require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
-                        new dijit.Tooltip({
-                            connectId: ["Title_NewUser"],
-                            label: PWM_STRINGS["Long_Title_NewUser"],
-                            position: ['above']
-                        });
-                    });},1000)});
-                </script>
-            </p>
+            <tr style="border:0">
+                <td style="border:0; text-align: right">
+                    <a class="menubutton" id="Title_NewUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
+                </td>
+                <td style="border: 0">
+                    <p><pwm:Display key="Long_Title_NewUser"/></p>
+                </td>
+            </tr>
             <% } %>
-        </div>
-        <% } %>
+        </table>
     </div>
+    <% } %>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

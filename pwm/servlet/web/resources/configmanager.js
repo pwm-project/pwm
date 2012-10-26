@@ -671,6 +671,7 @@ FormTableHandler.addFormRow = function(parentDiv, settingKey, iteration, value) 
             labelInput.setAttribute("value", value['labels']['']);
             labelInput.setAttribute("readonly", "true");
             labelInput.setAttribute("onclick","FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
+            labelInput.setAttribute("onkeypress","FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
             labelInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
             td2.appendChild(labelInput);
             newTableRow.appendChild(td2);
@@ -753,6 +754,8 @@ FormTableHandler.addMultiSetting = function(keyName) {
     clientSettingCache[keyName][currentSize + 1]['regexErrors'][''] = '';
     clientSettingCache[keyName][currentSize + 1]['selectOptions'] = {};
     clientSettingCache[keyName][currentSize + 1]['selectOptions'][''] = '';
+    clientSettingCache[keyName][currentSize + 1]['description'] = {};
+    clientSettingCache[keyName][currentSize + 1]['description'][''] = '';
     FormTableHandler.writeFormSetting(keyName);
     FormTableHandler.redraw(keyName)
 };
@@ -762,6 +765,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         var inputID = 'value_' + keyName + '_' + iteration + "_";
         var bodyText = '<table style="border:0">';
         bodyText += '<tr>';
+        bodyText += '<td style="border:0; text-align: right">Description</td><td style="border:0;"><input type="text" id="' + inputID + 'description' + '"/></td>';
+        bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Required</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Confirm</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
@@ -800,6 +805,14 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             }
         });
         theDialog.show();
+
+        clearDijitWidget(inputID + "description");
+        new dijit.form.Textarea({
+            value: clientSettingCache[keyName][iteration]['description'][''],
+            readonly: true,
+            onClick: function(){FormTableHandler.showDescriptionDialog(keyName,iteration);},
+            onKeyPress: function(){FormTableHandler.showDescriptionDialog(keyName,iteration);}
+        },inputID + "description");
 
         clearDijitWidget(inputID + "required");
         new dijit.form.CheckBox({
@@ -845,7 +858,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['regexErrors'][''],
             readonly: true,
-            onClick: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);}
+            onClick: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);},
+            onKeyPress: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);}
         },inputID + "regexErrors");
 
         clearDijitWidget(inputID + "placeholder");
@@ -1095,6 +1109,73 @@ FormTableHandler.removeSelectOptionsOption = function(keyName, iteration, option
     delete clientSettingCache[keyName][iteration]['selectOptions'][optionName];
     FormTableHandler.writeFormSetting(keyName);
     FormTableHandler.showSelectOptionsDialog(keyName, iteration);
+};
+
+FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
+    require(["dijit/Dialog","dijit/form/Textarea"],function(){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "description_";
+
+        var bodyText = '';
+        bodyText += '<table style="border:0" id="' + inputID + 'table">';
+        bodyText += '<tr>';
+        for (var localeName in clientSettingCache[keyName][iteration]['description']) {
+            var value = clientSettingCache[keyName][iteration]['description'][localeName];
+            var localeID = inputID + localeName;
+            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
+            if (localeName != '') {
+                bodyText += '<td style="border:0">';
+                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+                bodyText += ' onclick="FormTableHandler.removeDescriptionLocale(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
+                bodyText += '</td>';
+            }
+            bodyText += '</tr><tr>';
+        }
+        bodyText += '</tr></table>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Description for ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+                FormTableHandler.showOptionsDialog(keyName,iteration);
+            }
+        });
+        theDialog.show();
+
+        for (var localeName in clientSettingCache[keyName][iteration]['description']) {
+            var value = clientSettingCache[keyName][iteration]['description'][localeName];
+            var loopID = inputID + localeName;
+            clearDijitWidget(loopID);
+            new dijit.form.Textarea({
+                onChange: function(){clientSettingCache[keyName][iteration]['description'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
+            },loopID);
+        }
+
+        var addLocaleFunction = function() {
+            require(["dijit/registry"],function(registry){
+                FormTableHandler.addDescriptionLocale(keyName, iteration, registry.byId(inputID + "-addLocaleValue").value);
+            });
+        };
+
+        addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
+    });
+};
+
+FormTableHandler.addDescriptionLocale = function(keyName, iteration, localeName) {
+    clientSettingCache[keyName][iteration]['description'][localeName] = '';
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.showDescriptionDialog(keyName, iteration);
+};
+
+FormTableHandler.removeDescriptionLocale = function(keyName, iteration, localeName) {
+    delete clientSettingCache[keyName][iteration]['description'][localeName];
+    FormTableHandler.writeFormSetting(keyName);
+    FormTableHandler.showDescriptionDialog(keyName, iteration);
 };
 
 // -------------------------- change password handler ------------------------------------

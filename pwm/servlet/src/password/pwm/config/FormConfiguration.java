@@ -54,6 +54,7 @@ public class FormConfiguration implements Serializable {
     private boolean readonly;
     private Map<String,String> labels = Collections.singletonMap("","");
     private Map<String,String> regexErrors = Collections.singletonMap("","");
+    private Map<String,String> description = Collections.singletonMap("","");
     private String regex;
     private String placeholder;
     private String javascript;
@@ -157,6 +158,10 @@ public class FormConfiguration implements Serializable {
 
     public String getRegexError(final Locale locale) {
         return PwmLocale.resolveStringKeyLocaleMap(locale,regexErrors);
+    }
+
+    public String getDescription(final Locale locale) {
+        return PwmLocale.resolveStringKeyLocaleMap(locale,description);
     }
 
     public int getMaximumLength() {

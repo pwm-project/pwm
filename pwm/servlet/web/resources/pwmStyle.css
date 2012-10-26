@@ -145,14 +145,11 @@ table td.key {
 }
 
 .menubutton {
-    padding: 4px;
+    padding: 4px 11px;
     white-space: nowrap;
     border-radius: 3px;
-    padding-right: 11px;
-    padding-left: 11px;
-    margin-right: 10px;
-    margin-top: 10px;
-    margin-left: 0;
+    border: 10px;
+    margin: 20px 10px 20px 0;
     text-decoration: none;
     color: black;
     background: #E8E1F6;

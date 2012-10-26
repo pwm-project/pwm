@@ -30,6 +30,7 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -76,6 +77,7 @@ public class SessionStateBean implements Serializable {
     private boolean passedCaptcha;
     private boolean debugInitialized;
     private boolean sessionVerified;
+    private Date pageLeaveNoticeTime;
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
@@ -262,6 +264,14 @@ public class SessionStateBean implements Serializable {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    public Date getPageLeaveNoticeTime() {
+        return pageLeaveNoticeTime;
+    }
+
+    public void setPageLeaveNoticeTime(final Date pageLeaveNoticeTime) {
+        this.pageLeaveNoticeTime = pageLeaveNoticeTime;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

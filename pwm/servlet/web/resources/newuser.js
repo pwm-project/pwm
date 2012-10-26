@@ -23,6 +23,8 @@
 var validationCache = { };
 var validationInProgress = false;
 
+var COLOR_BAR_TOP       = 0x8ced3f;
+var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
@@ -62,6 +64,8 @@ function validateNewUserForm() {
                     validationCache[parameterData.cacheKey] = data;
                     validationInProgress = false;
                     validateNewUserForm();
+                    markStrength(data['strength']);
+                    markConfirmationCheck(data['match']);
                 },350);
             }
         });
@@ -122,6 +126,44 @@ function markConfirmationCheck(matchStatus) {
             getObject("confirmCheckMark").width = '0';
             getObject("confirmCrossMark").width = '0';
         }
+    }
+}
+
+function markStrength(strength) { //strength meter
+    if (getObject("strengthBox") == null) {
+        return;
+    }
+
+    if (getObject("password1").value.length > 0) {
+        getObject("strengthBox").style.visibility = 'visible';
+    } else {
+        getObject("strengthBox").style.visibility = 'hidden';
+    }
+
+    var strengthLabel = "";
+    var barColor = "";
+
+    if (strength > 70) {
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthHigh'];
+    } else if (strength > 45) {
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthMedium'];
+    } else {
+        strengthLabel = PWM_STRINGS['Display_PasswordStrengthLow'];
+    }
+
+    var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
+    var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
+
+
+    var barObject = getObject("strengthBar");
+    if (barObject != null) {
+        barObject.style.width = strength + '%';
+        barObject.style.backgroundColor = '#' + gradColor;
+    }
+
+    var labelObject = getObject("strengthLabel");
+    if (labelObject != null) {
+        labelObject.innerHTML = strengthLabel == null ? "" : strengthLabel;
     }
 }
 

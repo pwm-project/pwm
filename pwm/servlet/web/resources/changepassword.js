@@ -429,14 +429,6 @@ function startupChangePasswordPage(initialPrompt)
 
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
-    // setup tooltips
-    require(["dijit/Tooltip"],function(){
-        new dijit.Tooltip({
-            connectId: ["strengthBox"],
-            label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
-        });
-    });
-
     var messageElement = getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){

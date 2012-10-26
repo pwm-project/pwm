@@ -201,24 +201,47 @@ public class NewUserServlet extends TopServlet {
     {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_NEWUSER_FORM, pwmApplication.getConfig());
+        PasswordUtility.PasswordCheckInfo passwordCheckInfo = null;
+        String userMessage = Message.getLocalizedMessage(locale, Message.SUCCESS_NEWUSER_FORM, pwmApplication.getConfig());
 
         final Map<String,String> userValues = readResponsesFromJsonRequest(req);
 
         try {
             verifyFormAttributes(userValues, pwmSession, pwmApplication);
+            { // no form errors, so check the password
+                final UserInfoBean uiBean = new UserInfoBean();
+                uiBean.setAllUserAttributes(userValues);
+                uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,locale));
+                passwordCheckInfo = PasswordUtility.checkEnteredPassword(
+                        pwmApplication,
+                        pwmSession.getSessionStateBean().getLocale(),
+                        null,
+                        uiBean,
+                        userValues.get("password1"),
+                        userValues.get("password2")
+                );
+                if (!passwordCheckInfo.isPassed()) {
+                    success = false;
+                    userMessage = passwordCheckInfo.getMessage();
+                }
+            }
         } catch (PwmOperationalException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
         }
 
+
+
         final Map<String, String> outputMap = new HashMap<String, String>();
         outputMap.put("version", "1");
         outputMap.put("message", userMessage);
-        //outputMap.put("strength", String.valueOf(checkInfo.getStrength()));
-        //outputMap.put("match", matchStatus.toString());
+        if (passwordCheckInfo != null) {
+            outputMap.put("strength", String.valueOf(passwordCheckInfo.getStrength()));
+            outputMap.put("match", passwordCheckInfo.getMatch().toString());
+        }
         outputMap.put("success", String.valueOf(success));
 
         final Gson gson = new Gson();
@@ -226,7 +249,6 @@ public class NewUserServlet extends TopServlet {
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);
-
         LOGGER.trace(pwmSession, "ajax validate responses: " + output);
     }
 
@@ -254,19 +276,19 @@ public class NewUserServlet extends TopServlet {
             final Map<String,String> formData = tokenPayload.getPayloadData();
             final NewUserBean newUserBean = pwmSession.getNewUserBean();
             newUserBean.setFormData(formData);
-            
+
             if (newUserBean.getVerificationPhase().equals(NewUserBean.NewUserVerificationPhase.EMAIL)) {
-            	LOGGER.debug("Email token");
-	            newUserBean.setEmailTokenIssued(true);
-    	        newUserBean.setEmailTokenPassed(true);
-    	        newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
-    	    }
+                LOGGER.debug("Email token");
+                newUserBean.setEmailTokenIssued(true);
+                newUserBean.setEmailTokenPassed(true);
+                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+            }
             if (newUserBean.getVerificationPhase().equals(NewUserBean.NewUserVerificationPhase.SMS)) {
-            	LOGGER.debug("SMS token");
-	            newUserBean.setSmsTokenIssued(true);
-    	        newUserBean.setSmsTokenPassed(true);
-    	        newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
-    	    }
+                LOGGER.debug("SMS token");
+                newUserBean.setSmsTokenIssued(true);
+                newUserBean.setSmsTokenPassed(true);
+                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+            }
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
@@ -440,6 +462,7 @@ public class NewUserServlet extends TopServlet {
         Validator.validateParmValuesMeetRequirements(formValues, userLocale);
 
         // test the password
+        /*
         final String password = userValues.get(FIELD_PASSWORD);
         final String passwordConfirm = userValues.get(FIELD_PASSWORD_CONFIRM);
 
@@ -458,6 +481,7 @@ public class NewUserServlet extends TopServlet {
         if (!password.equals(passwordConfirm)) {
             throw new PwmOperationalException(PwmError.PASSWORD_DOESNOTMATCH);
         }
+        */
     }
 
     private static void deleteUserAccount(final String userDN, PwmSession pwmSession, final PwmApplication pwmApplication)
@@ -668,21 +692,21 @@ public class NewUserServlet extends TopServlet {
         try {
             final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, formData,null);
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
-            LOGGER.trace(pwmSession, "generated new user tokenKey code "+tokenKey+" for session ("+tokenPurpose+")");
+            LOGGER.trace(pwmSession, "generated new user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-		if ("SMS".equals(tokenPurpose)) {
-		    final String toNum = formData.get(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+        if ("SMS".equals(tokenPurpose)) {
+            final String toNum = formData.get(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
 
             newUserBean.setSmsTokenIssued(true);
             newUserBean.setTokenSmsNumber(toNum);
             newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.SMS);
 
             sendSmsToken(pwmSession, pwmApplication, tokenKey);
-		} else if ("EMAIL".equals(tokenPurpose)) {
-		    final String toAddress = formData.get(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        } else if ("EMAIL".equals(tokenPurpose)) {
+            final String toAddress = formData.get(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
 
             newUserBean.setEmailTokenIssued(true);
             newUserBean.setTokenEmailAddress(toAddress);
@@ -740,7 +764,7 @@ public class NewUserServlet extends TopServlet {
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
-        
+
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token sms added to send queue for " + toSmsNumber);
     }

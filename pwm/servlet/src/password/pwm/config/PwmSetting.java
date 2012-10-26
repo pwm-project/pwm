@@ -426,6 +426,8 @@ public enum PwmSetting {
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     REVERSE_DNS_ENABLE(
             "network.reverseDNS.enable", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
+    SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
+            "security.page.leaveNoticeTimeout", Syntax.NUMERIC, Category.SECURITY, true, Level.ADVANCED),
 
     // token settings
     TOKEN_STORAGEMETHOD(

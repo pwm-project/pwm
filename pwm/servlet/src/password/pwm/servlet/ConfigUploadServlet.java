@@ -70,11 +70,11 @@ public class ConfigUploadServlet extends TopServlet {
                         success = true;
                     }
                 } catch (PwmUnrecoverableException e) {
-                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: " + e.getMessage()));
+                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, e.getMessage()));
                     LOGGER.error(pwmSession, "error reading config input file: " + e.getMessage());
                 }
             } else {
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file"));
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload"));
             }
         }
 

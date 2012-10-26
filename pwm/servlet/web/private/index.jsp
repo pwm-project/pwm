@@ -37,7 +37,7 @@
         <table style="border:0">
             <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
+                <td style="border:0; text-align: right; width:10%">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a>
                 </td>
                 <td style="border: 0">
@@ -57,7 +57,6 @@
             </tr>
             <% } %>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
@@ -70,7 +69,6 @@
             </tr>
             <% } %>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
@@ -81,7 +79,6 @@
                 </td>
             </tr>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
@@ -92,7 +89,6 @@
                 </td>
             </tr>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PEOPLE_SEARCH, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
@@ -105,7 +101,6 @@
             </tr>
             <% } %>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
@@ -116,7 +111,6 @@
                 </td>
             </tr>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.HELPDESK, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
@@ -129,7 +123,6 @@
             </tr>
             <% } %>
             <% } %>
-
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
@@ -142,7 +135,6 @@
             </tr>
             <% } %>
             <% } %>
-
             <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
@@ -163,7 +155,6 @@
                 </td>
             </tr>
             <% } %>
-
         </table>
     </div>
 </div>

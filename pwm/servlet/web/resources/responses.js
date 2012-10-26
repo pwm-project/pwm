@@ -55,6 +55,8 @@ function validateResponses() {
             contentType: "application/json;charset=utf-8",
             dataType: "json",
             handleAs: "json",
+            preventCache: true,
+            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
             error: function(errorObj) {
                 validationInProgress = false;
                 getObject("setresponses_button").disabled = false;
