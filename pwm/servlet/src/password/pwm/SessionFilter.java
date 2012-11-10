@@ -24,11 +24,11 @@ package password.pwm;
 
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmLocale;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
@@ -156,6 +156,9 @@ public class SessionFilter implements Filter {
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
 
+        // increment the page counter
+        ssBean.incrementRequestCounter();
+
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
 
@@ -170,7 +173,7 @@ public class SessionFilter implements Filter {
         //set the session's locale
         if (ssBean.getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = PwmLocale.localeResolver(req.getLocale(), knownLocales);
+            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
             ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
         }
@@ -179,7 +182,7 @@ public class SessionFilter implements Filter {
         final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale");
         if (langReqParamter != null && langReqParamter.length() > 0) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale requestedLocale = PwmLocale.parseLocaleString(langReqParamter);
+            final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
                 ssBean.setLocale(new Locale(langReqParamter.equalsIgnoreCase("default") ? "" : langReqParamter));

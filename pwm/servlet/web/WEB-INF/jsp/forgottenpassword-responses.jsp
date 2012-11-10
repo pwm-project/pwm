@@ -93,7 +93,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
-                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>

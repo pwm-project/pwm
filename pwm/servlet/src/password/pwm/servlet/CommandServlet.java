@@ -87,7 +87,7 @@ public class CommandServlet extends TopServlet {
         } else if (action.equalsIgnoreCase("outputUserReportCsv")) {
             outputUserReportCsv(req, resp);
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
-            processPageLeaveNotice(req);
+            processPageLeaveNotice(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -391,7 +391,7 @@ public class CommandServlet extends TopServlet {
         outputStream.close();
     }
 
-    private void processPageLeaveNotice(final HttpServletRequest req)
+    private void processPageLeaveNotice(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -399,6 +399,9 @@ public class CommandServlet extends TopServlet {
         final Date pageLeaveNoticeTime = new Date();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
         LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
+        final OutputStream outputStream = resp.getOutputStream();
+        outputStream.flush();
+        outputStream.close();
     }
 }
 

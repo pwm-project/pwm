@@ -45,16 +45,11 @@
         &nbsp;
     </span>
         &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
-    <span id="localeSelectionMenu" style="white-space: nowrap">
+        <span id="localeSelectionMenu" style="white-space: nowrap">
+        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
         <%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>
     </div>
-    <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            IdleTimeoutHandler.initCountDownTimer(<%= request.getSession().getMaxInactiveInterval() %>);
-            initLocaleSelectorMenu('localeSelectionMenu');
-        });
-    </script>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">

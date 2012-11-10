@@ -27,7 +27,6 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.Display"%>
 <%@ page import="password.pwm.config.FormConfiguration"%>
-<%@ page import="password.pwm.config.PwmLocale"%>
 <%@ page import="password.pwm.util.stats.Statistic"%>
 <%@ page import="java.util.Collections"%>
 <%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
@@ -39,6 +38,8 @@
 PWM_GLOBAL={};
 PWM_STRINGS={};
 function initPwmStringValues() {
+PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
+PWM_GLOBAL['MaxInactiveInterval']='<%=request.getSession().getMaxInactiveInterval()%>';
 <% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
 <% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
@@ -65,9 +66,8 @@ function initPwmGlobalValues() {
 function initPwmLocaleVars() {
     var localeInfo = {};
     var localeDisplayNames = {};
-<% for (final PwmLocale pwmLocale : pwmApplication.getConfig().getKnownPwmLocales()) { %>
-<% final Locale locale = pwmLocale.getLocale(); %>
-<% final String flagCode = pwmLocale.getFlagCountryCode(); %>
+<% for (final Locale locale : pwmApplication.getConfig().getKnownLocales()) { %>
+<% final String flagCode = pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale); %>
     createCSSClass('.flagLang_<%=locale.toString()%>','background-image: url(flags/png/<%=flagCode%>.png)');
     localeInfo['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%> - <%=locale.getDisplayLanguage(locale)%>';
     localeDisplayNames['<%=locale.toString()%>'] = '<%=locale.getDisplayLanguage()%>';

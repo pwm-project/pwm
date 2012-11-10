@@ -153,15 +153,15 @@ public class FormConfiguration implements Serializable {
     }
 
     public String getLabel(final Locale locale) {
-        return PwmLocale.resolveStringKeyLocaleMap(locale,labels);
+        return Helper.resolveStringKeyLocaleMap(locale, labels);
     }
 
     public String getRegexError(final Locale locale) {
-        return PwmLocale.resolveStringKeyLocaleMap(locale,regexErrors);
+        return Helper.resolveStringKeyLocaleMap(locale, regexErrors);
     }
 
     public String getDescription(final Locale locale) {
-        return PwmLocale.resolveStringKeyLocaleMap(locale,description);
+        return Helper.resolveStringKeyLocaleMap(locale, description);
     }
 
     public int getMaximumLength() {

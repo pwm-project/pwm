@@ -26,13 +26,15 @@ function pwmPageLoadHandler() {
         loopForm.setAttribute('autocomplete', 'off');
     }
 
-    try {
+    if (getObject('button_cancel')) {
+        getObject('button_cancel').style.visibility = 'visible';
+    }
+
+    try { //page leave notice
         window.addEventListener('beforeunload', function () {
             require(["dojo"],function(dojo){
                 dojo.xhrPost({
                     url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    headers: {"Accept":"application/json"},
-                    handleAs: "json",
                     preventCache: true,
                     sync: true
                 });
@@ -41,6 +43,35 @@ function pwmPageLoadHandler() {
     } catch (e) {
         try {console.log('unable to register beforeunload pageLeaveNotice handler: ' + e);} catch (e2) {/*ignore*/}
     }
+
+    if (getObject('message')) { // message div float handler
+        PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
+        try {
+            window.addEventListener('resize', function () {
+                messageDivFloatHandler();
+            });
+        } catch (e) {
+            try {console.log('unable to register resize messageFivFloatHandler: ' + e);} catch (e2) {/*ignore*/}
+        }
+
+        try {
+            window.addEventListener('scroll', function () {
+                messageDivFloatHandler();
+            });
+        } catch (e) {
+            try {console.log('unable to register scroll messageFivFloatHandler: ' + e);} catch (e2) {/*ignore*/}
+        }
+    }
+
+    if (getObject('header-warning')) {
+        setTimeout(function(){flashDomElement('white','header-warning',10*1000);},5*1000);
+        setInterval(function(){flashDomElement('white','header-warning',10*1000);},30*1000);
+    }
+
+    require(["dojo/domReady!"],function(){
+        IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
+        initLocaleSelectorMenu('localeSelectionMenu');
+    });
 }
 
 function checkForCapsLock(e) {

@@ -54,5 +54,4 @@
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(pwmSessionHeader)%>"></script>
-    <script type="text/javascript"><% if (pwmApplicationHeader != null) { pwmSessionHeader.getSessionStateBean().incrementRequestCounter(); }%>PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';</script>
 </head>

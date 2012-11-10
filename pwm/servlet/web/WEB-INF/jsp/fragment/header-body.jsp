@@ -47,11 +47,6 @@
 <div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
     to modify or lock the configuration.
 </div>
-<script type="text/javascript">
-    setInterval(function(){
-        flashDomElement('white','header-warning',10*1000);
-    },30*1000);
-</script>
 <% } %>
 <div id="header">
     <div id="header-company-logo"></div>

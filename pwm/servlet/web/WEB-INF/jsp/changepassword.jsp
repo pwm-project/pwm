@@ -94,7 +94,7 @@
                             </div>
                         </div>
                         <script type="text/javascript">
-                            require(["dijit/Tooltip"],function(Tooltip){
+                            require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
                                 new Tooltip({
                                     connectId: ["strengthBox"],
                                     label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
@@ -141,7 +141,6 @@
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
-                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
                 <% } %>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>

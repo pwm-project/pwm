@@ -24,7 +24,7 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmLocale;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
@@ -200,7 +200,7 @@ public enum PwmError {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(PwmError.class.getName(),key);
             if (configuredBundle != null) {
-                final Locale resolvedLocale = PwmLocale.localeResolver(locale, configuredBundle.keySet());
+                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
                 return configuredBundle.get(resolvedLocale);
             }
         }

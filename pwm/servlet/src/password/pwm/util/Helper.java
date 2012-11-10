@@ -870,6 +870,86 @@ public class Helper {
         return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
     }
 
+    public static String resolveStringKeyLocaleMap(Locale desiredLocale, final Map<String,String> inputMap) {
+        if (inputMap == null || inputMap.isEmpty()) {
+            return null;
+        }
+
+        if (desiredLocale == null) {
+            desiredLocale = PwmConstants.DEFAULT_LOCALE;
+        }
+
+        final Map<Locale,String> localeMap = new LinkedHashMap<Locale, String>();
+        for (final String localeStringKey : inputMap.keySet()) {
+            localeMap.put(parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
+        }
+
+        final Locale selectedLocale = localeResolver(desiredLocale, localeMap.keySet());
+        return localeMap.get(selectedLocale);
+    }
+
+    public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
+        if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
+            return null;
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
+                    if (loopLocale.getVariant().equalsIgnoreCase(desiredLocale.getVariant())) {
+                        return loopLocale;
+                    }
+                }
+            }
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
+                    return loopLocale;
+                }
+            }
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                return loopLocale;
+            }
+        }
+
+        final Locale emptyLocale = parseLocaleString("");
+        if (localePool.contains(emptyLocale)) {
+            return emptyLocale;
+        }
+
+        return null;
+    }
+
+    public static Locale parseLocaleString(final String localeString) {
+        if (localeString == null) {
+            return new Locale("");
+        }
+
+        final StringTokenizer st = new StringTokenizer(localeString, "_");
+
+        if (!st.hasMoreTokens()) {
+            return new Locale("");
+        }
+
+        final String language = st.nextToken();
+        if (!st.hasMoreTokens()) {
+            return new Locale(language);
+        }
+
+        final String country = st.nextToken();
+        if (!st.hasMoreTokens()) {
+            return new Locale(language, country);
+        }
+
+        final String variant = st.nextToken("");
+        return new Locale(language, country, variant);
+    }
+
     public static class SimpleTextCrypto {
 
         public static String encryptValue(final String value, final SecretKey key)

@@ -60,8 +60,7 @@ public class Configuration implements Serializable {
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<PwmSetting,Object> renderedConfigurationCache = new HashMap<PwmSetting,Object>();
-    private List<PwmLocale> knownPwmLocales = null;
-    private List<Locale> knownLocales = null;
+    private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
     public enum STORAGE_METHOD { DB, LDAP, PWMDB }
@@ -114,9 +113,9 @@ public class Configuration implements Serializable {
         final Map<String, List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
         final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
         for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(PwmLocale.parseLocaleString(localeStr), storedValues.get(localeStr));
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
-        final Locale matchedLocale = PwmLocale.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }
@@ -288,9 +287,9 @@ public class Configuration implements Serializable {
         final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
         final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
         for (final String localeStr : availableValues.keySet()) {
-            availableLocaleMap.put(PwmLocale.parseLocaleString(localeStr), availableValues.get(localeStr));
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
         }
-        final Locale matchedLocale = PwmLocale.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }
@@ -334,13 +333,13 @@ public class Configuration implements Serializable {
             case LOCALIZED_TEXT_AREA:
             case LOCALIZED_STRING:
                 for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
-                    returnCollection.add(PwmLocale.parseLocaleString(localeStr));
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
                 }
                 break;
 
             case LOCALIZED_STRING_ARRAY:
                 for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
-                    returnCollection.add(PwmLocale.parseLocaleString(localeStr));
+                    returnCollection.add(Helper.parseLocaleString(localeStr));
                 }
                 break;
         }
@@ -432,53 +431,55 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<PwmLocale> getKnownPwmLocales() {
-        final String defaultLocaleAsString = PwmConstants.DEFAULT_LOCALE.toString();
-        if (knownPwmLocales == null) {
-            final List<String> inputList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
-            final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
-
-            // Sort the map by display name
-            Map<String,PwmLocale> sortedMap = new TreeMap<String,PwmLocale>();
-            for (final String localeString : inputMap.keySet()) {
-                final Locale theLocale = PwmLocale.parseLocaleString(localeString);
-                final String countryString = inputMap.get(localeString);
-                if (theLocale != null) {
-                    sortedMap.put(theLocale.getDisplayName(), new PwmLocale(theLocale, countryString));
-                }
-            }
-
-            final List<PwmLocale> returnList = new ArrayList<PwmLocale>();
-
-            //ensure default is first.
-            if (sortedMap.containsKey(defaultLocaleAsString)) {
-                returnList.add(sortedMap.get(defaultLocaleAsString));
-            } else {
-                returnList.add(new PwmLocale(new Locale(defaultLocaleAsString),""));
-            }
-
-            // add the rest of the configured locales
-            for (final String key : sortedMap.keySet()) {
-                if (!key.equals(defaultLocaleAsString)) {
-                    returnList.add(sortedMap.get(key));
-                }
-            }
-
-            knownPwmLocales = Collections.unmodifiableList(returnList);
+    public List<Locale> getKnownLocales() {
+        if (localeFlagMap == null) {
+            localeFlagMap = figureLocaleFlagMap();
         }
-        return knownPwmLocales;
+        return Collections.unmodifiableList(new ArrayList<Locale>(localeFlagMap.keySet()));
     }
 
-    public List<Locale> getKnownLocales() {
-        if (knownLocales == null) {
-            final List<PwmLocale> pwmLocales = getKnownPwmLocales();
-            final List<Locale> returnList = new ArrayList<Locale>();
-            for (final PwmLocale loopLocale : pwmLocales) {
-                returnList.add(loopLocale.getLocale());
-            }
-            knownLocales = Collections.unmodifiableList(returnList);
+    public Map<Locale,String> getKnownLocaleFlagMap() {
+        if (localeFlagMap == null) {
+            localeFlagMap = figureLocaleFlagMap();
         }
-        return knownLocales;
+        return localeFlagMap;
+    }
+
+    private Map<Locale,String> figureLocaleFlagMap() {
+        final String defaultLocaleAsString = PwmConstants.DEFAULT_LOCALE.toString();
+
+        final List<String> inputList = readSettingAsStringArray(PwmSetting.KNOWN_LOCALES);
+        final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
+
+        // Sort the map by display name
+        Map<String,String> sortedMap = new TreeMap<String,String>();
+        for (final String localeString : inputMap.keySet()) {
+            final Locale theLocale = Helper.parseLocaleString(localeString);
+            if (theLocale != null) {
+                sortedMap.put(theLocale.getDisplayName(), localeString);
+            }
+        }
+
+        final List<String> returnList = new ArrayList<String>();
+
+        //ensure default is first.
+        returnList.add(defaultLocaleAsString);
+        for (final String localeDisplayString : sortedMap.keySet()) {
+            final String localeString = sortedMap.get(localeDisplayString);
+            if (!defaultLocaleAsString.equals(localeString)) {
+                returnList.add(localeString);
+            }
+        }
+
+        final Map<Locale,String> localeFlagMap = new LinkedHashMap<Locale, String>();
+        for (final String localeString : returnList) {
+            final Locale loopLocale = Helper.parseLocaleString(localeString);
+            if (loopLocale != null) {
+                final String flagCode = inputMap.containsKey(localeString) ? inputMap.get(localeString) : loopLocale.getCountry();
+                localeFlagMap.put(loopLocale, flagCode);
+            }
+        }
+        return Collections.unmodifiableMap(localeFlagMap);
     }
 
     public RECOVERY_ACTION getRecoveryAction() {

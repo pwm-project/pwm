@@ -75,7 +75,6 @@
                         onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
-                <script type="text/javascript">getObject('button_cancel').style.visibility = 'visible';</script>
                 <% } %>
             </div>
         </form>

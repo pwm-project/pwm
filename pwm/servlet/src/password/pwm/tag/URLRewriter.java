@@ -54,7 +54,7 @@ public class URLRewriter extends PwmAbstractTag {
             if (newURL.contains(resource_url)) {
                 final PwmApplication pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
                 final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
-                newURL = newURL.replace(resource_url, resource_url + nonce);
+                newURL = newURL.replaceFirst(resource_url, resource_url + nonce);
             }
             
             pageContext.getOut().write(newURL);
