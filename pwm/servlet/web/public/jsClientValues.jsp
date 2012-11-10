@@ -28,24 +28,16 @@
 <%@ page import="password.pwm.config.Display"%>
 <%@ page import="password.pwm.config.FormConfiguration"%>
 <%@ page import="password.pwm.config.PwmLocale"%>
-<%@ page import="password.pwm.util.stats.StatisticsManager"%>
+<%@ page import="password.pwm.util.stats.Statistic"%>
 <%@ page import="java.util.Collections"%>
-<%@ page import="java.util.Locale"%>
-<%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
-        <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
+<%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+<% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 PWM_GLOBAL={};
 PWM_STRINGS={};
-function initPwmVariables() {
-    initPwmGlobalValues();
-    initPwmStringValues();
-    initPwmLocaleVars();
-    initEpsTypes();
-}
-
 function initPwmStringValues() {
 <% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
 <% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
@@ -64,10 +56,10 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%><pwm:url url='/public/rest'/>";
     PWM_GLOBAL['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
     PWM_GLOBAL['clientAjaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
-    PWM_GLOBAL['formTypeOptions'] = [];
+            PWM_GLOBAL['formTypeOptions'] = [];
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
-    <%}%>
+<%}%>
 }
 
 function initPwmLocaleVars() {
@@ -87,9 +79,20 @@ function initPwmLocaleVars() {
 
 function initEpsTypes() {
     PWM_GLOBAL['epsTypes'] = [];
-<% for (final StatisticsManager.EpsType loopEpsType : StatisticsManager.EpsType.values()) { %>
+<% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
     PWM_GLOBAL['epsTypes'].push('<%=loopEpsType%>');
 <% } %>
+    PWM_GLOBAL['epsDurations'] = [];
+<% for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) { %>
+    PWM_GLOBAL['epsDurations'].push('<%=loopEpsDuration%>');
+<% } %>
+}
+
+function initPwmVariables() {
+    initPwmGlobalValues();
+    initPwmStringValues();
+    initPwmLocaleVars();
+    initEpsTypes();
 }
 
 initPwmVariables();

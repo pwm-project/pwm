@@ -660,7 +660,7 @@ public class PwmApplication {
                 final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
-                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly);
+                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly, pwmApplication);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
             }

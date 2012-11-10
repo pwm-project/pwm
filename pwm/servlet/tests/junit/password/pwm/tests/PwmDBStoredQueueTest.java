@@ -42,7 +42,7 @@ public class PwmDBStoredQueueTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
+        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false, null);
         storedQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.TEMP);
     }
 

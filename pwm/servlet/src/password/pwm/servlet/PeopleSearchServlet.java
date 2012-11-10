@@ -22,11 +22,14 @@
 
 package password.pwm.servlet;
 
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
+import password.pwm.bean.PeopleSearchBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -34,19 +37,18 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 
+import javax.crypto.SecretKey;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class PeopleSearchServlet extends TopServlet {
 
@@ -72,49 +74,81 @@ public class PeopleSearchServlet extends TopServlet {
             return;
         }
 
+        final String username = Validator.readStringFromRequest(req, "username");
+        if (username != null && username.length() > 0) {
+            ((PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class)).setSearchString(username);
+        }
+
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
-        if (processRequestParam != null && processRequestParam.equalsIgnoreCase("search")) {
+        if (processRequestParam != null && processRequestParam.length() > 0) {
             Validator.validatePwmFormID(req);
-
-            final String username = Validator.readStringFromRequest(req, "username");
-            final String context = Validator.readStringFromRequest(req, "context");
-
-            if (username.length() < 1) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
-                this.forwardToJSP(req, resp);
+            if (processRequestParam.equalsIgnoreCase("search")) {
+                processUserSearch(req,resp,pwmSession, pwmApplication);
+                return;
+            } else if (processRequestParam.equalsIgnoreCase("detail")) {
+                processDetailRequest(req,resp,pwmSession, pwmApplication);
                 return;
             }
-
-            processUserSearch(req, pwmSession, pwmApplication, username, context);
         }
 
         this.forwardToJSP(req,resp);
     }
 
-    private void processUserSearch(
-            final HttpServletRequest request,
+    private void processDetailRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
             final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String username,
-            final String context
+            final PwmApplication pwmApplication
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        final PeopleSearchResults searchResults = doSearch(pwmSession, pwmApplication, username,context);
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class);
+        final String userKey = Validator.readStringFromRequest(req,"userKey");
+        if (userKey.length() < 1) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing"));
+            return;
+        }
 
-        request.setAttribute("searchResults",searchResults);
+        final String decodedUserKey = decodeUserDetailKey(userKey, pwmSession);
+        peopleSearchBean.setSearchDetails(doDetailLookup(pwmApplication, pwmSession, decodedUserKey));
+        this.forwardToDetailJSP(req, resp);
+    }
+
+    private void processUserSearch(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class);
+        final String username = peopleSearchBean.getSearchString();
+        if (username.length() < 1) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
+            return;
+        }
+
+        final PeopleSearchResults searchResults = doSearch(pwmSession, pwmApplication, username);
+        peopleSearchBean.setSearchResults(searchResults);
+        if (searchResults != null && searchResults.getResults().size() == 1) {
+            final String userDN = searchResults.getResults().keySet().iterator().next();
+            peopleSearchBean.setSearchDetails(doDetailLookup(pwmApplication, pwmSession, userDN));
+            this.forwardToDetailJSP(req, resp);
+        } else {
+            peopleSearchBean.setSearchDetails(null);
+            this.forwardToJSP(req, resp);
+        }
     }
 
     private PeopleSearchResults doSearch(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
-            final String username,
-            final String context
+            final String username
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final String filter = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER).replaceAll("%USERNAME%", username);
-        final String configuredBase = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE);
         final List<FormConfiguration> configuredForm = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
 
         final List<String> headers = new ArrayList<String>();
@@ -124,22 +158,9 @@ public class PeopleSearchServlet extends TopServlet {
             attributes.add(formConfiguration.getName());
         }
 
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilter(filter);
-        searchHelper.setAttributes(attributes);
-        searchHelper.setMaxResults((int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT));
-
-        final String searchBase = context == null || context.length() < 1 ? (configuredBase == null || configuredBase.length() < 1 ? config.readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT) : configuredBase) : context;
-
-        LOGGER.trace(pwmSession,"about to perform search: " + searchHelper.toString() + ", at context: " + searchBase);
         try {
-            final ChaiProvider provider;
-            if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
-                provider = pwmApplication.getProxyChaiProvider();
-            } else {
-                provider = pwmSession.getSessionManager().getChaiProvider();
-            }
-            final Map<String,Map<String,String>> ldapResults = provider.search(searchBase,searchHelper);
+            final ChaiProvider provider = figureChaiProvider(pwmApplication, pwmSession);
+            final Map<String,Map<String,String>> ldapResults = doLdapSearch(pwmApplication, username,attributes, provider);
 
             LOGGER.trace(pwmSession,"search results: " + ldapResults.size());
             if (pwmApplication.getStatisticsManager() != null) {
@@ -147,8 +168,9 @@ public class PeopleSearchServlet extends TopServlet {
             }
 
             if (!ldapResults.isEmpty()) {
-                final Map<String,Map<String,String>> outputMap = new TreeMap<String, Map<String, String>>(ldapResults);
-                return new PeopleSearchResults(headers,attributes,outputMap);
+                final Map<String,Map<String,String>> outputMap = new LinkedHashMap<String, Map<String, String>>(ldapResults);
+                final int maxResults = (int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
+                return new PeopleSearchResults(headers,attributes,outputMap,outputMap.size() > maxResults);
             }
         } catch (ChaiOperationException e) {
             LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
@@ -156,6 +178,95 @@ public class PeopleSearchServlet extends TopServlet {
         return null;
     }
 
+    private static ChaiProvider figureChaiProvider(final PwmApplication pwmApplication, final PwmSession pwmSession)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final Configuration config = pwmApplication.getConfig();
+
+        if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
+            return pwmApplication.getProxyChaiProvider();
+        } else {
+            return pwmSession.getSessionManager().getChaiProvider();
+        }
+    }
+
+    private static PeopleSearchResults doDetailLookup(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final String userDN
+    ) throws PwmUnrecoverableException, ChaiUnavailableException {
+        final ChaiProvider chaiProvider = figureChaiProvider(pwmApplication, pwmSession);
+        final Configuration config = pwmApplication.getConfig();
+        final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
+        final List<String> headers = new ArrayList<String>();
+        final List<String> attributes = new ArrayList<String>();
+        for (final FormConfiguration formConfiguration : detailFormConfig) {
+            headers.add(formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
+            attributes.add(formConfiguration.getName());
+        }
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN,chaiProvider);
+        Map<String,String> values = null;
+        try {
+            values = theUser.readStringAttributes(new LinkedHashSet<String>(attributes));
+        } catch (ChaiOperationException e) {
+            LOGGER.error("unexpected error during detail lookup of '" + userDN + "', error: " + e.getMessage());
+        }
+        return new PeopleSearchResults(headers, attributes, Collections.singletonMap(userDN, values),false);
+    }
+
+    private static Map<String,Map<String,String>> doLdapSearch(
+            final PwmApplication pwmApplication,
+            final String username,
+            final List<String> returnAttributes,
+            final ChaiProvider chaiProvider
+    ) throws ChaiUnavailableException, ChaiOperationException {
+        final Configuration config = pwmApplication.getConfig();
+        final String filter;
+        {
+            final String peopleSearchSetting = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER);
+            if (peopleSearchSetting != null && peopleSearchSetting.length() > 0) {
+                filter = peopleSearchSetting.replaceAll("%USERNAME%", username);
+            } else {
+                filter = config.readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER).replace("%USERNAME%", username);
+            }
+        }
+
+        final List<String> searchContexts;
+        {
+            final List<String> peopleSearchSetting = config.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE);
+            if (!peopleSearchSetting.isEmpty() && peopleSearchSetting.get(0).length() > 0) {
+                searchContexts = peopleSearchSetting;
+            } else {
+                searchContexts = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+            }
+        }
+
+        final int maxResults = (int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
+        final SearchHelper searchHelper = new SearchHelper();
+        searchHelper.setFilter(filter);
+        searchHelper.setAttributes(returnAttributes);
+
+        final Map<String,Map<String,String>> searchResults = new LinkedHashMap<String,Map<String, String>>();
+
+        for (final String searchContext : searchContexts) {
+            final int remainingResults = (maxResults + 1) - searchResults.size();
+            if (remainingResults > 0) {
+                searchHelper.setMaxResults(remainingResults);
+
+                LOGGER.trace("about to perform people search: " + searchHelper.toString() + ", at context: " + searchContext);
+                final Map<String,Map<String,String>> ldapResults = chaiProvider.search(searchContext,searchHelper);
+                LOGGER.trace("people search results: " + ldapResults.size());
+
+                searchResults.putAll(ldapResults);
+            }
+        }
+
+        if (pwmApplication.getStatisticsManager() != null) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
+        }
+
+        return searchResults;
+    }
 
     private void forwardToJSP(
             final HttpServletRequest req,
@@ -166,16 +277,26 @@ public class PeopleSearchServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 
+    private void forwardToDetailJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException {
+        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PEOPLE_SEARCH_DETAIL, req, resp);
+        this.getServletContext().getRequestDispatcher(url).forward(req, resp);
+    }
 
     public static class PeopleSearchResults implements Serializable {
         private final List<String> headers;
         private final List<String> attributes;
         private final Map<String,Map<String,String>> results;
+        private boolean sizeExceeded;
 
-        public PeopleSearchResults(final List<String> headers, final List<String> attributes, final Map<String, Map<String, String>> results) {
+        public PeopleSearchResults(List<String> headers, List<String> attributes, Map<String, Map<String, String>> results, boolean sizeExceeded) {
             this.headers = headers;
-            this.attributes= attributes;
+            this.attributes = attributes;
             this.results = results;
+            this.sizeExceeded = sizeExceeded;
         }
 
         public List<String> getHeaders() {
@@ -189,5 +310,29 @@ public class PeopleSearchServlet extends TopServlet {
         public Map<String, Map<String, String>> getResults() {
             return results;
         }
+
+        public boolean isSizeExceeded() {
+            return sizeExceeded;
+        }
+    }
+
+    public static String makeUserDetailKey(final String userDN, final PwmSession pwmSession) {
+        try {
+            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
+            return Helper.SimpleTextCrypto.encryptValue(userDN, secretKey, true);
+        } catch (Exception e) {
+            LOGGER.error("unexpected error making user detail key: " + e.getMessage());
+        }
+        return "error";
+    }
+
+    public static String decodeUserDetailKey(final String userKey, final PwmSession pwmSession) {
+        try {
+            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
+            return Helper.SimpleTextCrypto.decryptValue(userKey, secretKey,true);
+        } catch (Exception e) {
+            LOGGER.error("unexpected error decoding user detail key: " + e.getMessage());
+        }
+        return "error";
     }
 }

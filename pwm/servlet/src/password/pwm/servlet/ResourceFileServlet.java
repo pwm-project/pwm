@@ -70,7 +70,6 @@ public class ResourceFileServlet extends HttpServlet {
     private static final Pattern NONCE_PATTERN = Pattern.compile(PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + "[^/]*?/");
 
     private final Map<String,ZipFile> zipResources = new HashMap<String,ZipFile>();
-    private final Map<String,String> jspResources = new HashMap<String,String>();
 
     public void init()
             throws ServletException
@@ -93,19 +92,6 @@ public class ResourceFileServlet extends HttpServlet {
                     } catch (IOException e) {
                         LOGGER.warn("unable to load zip file resource for " + loopInitParam + ", error: " + e.getMessage());
                     }
-                }
-            }
-        }
-
-        final String jspFileResourceParam = this.getInitParameter("jspFileResources");
-        if (jspFileResourceParam != null) {
-            for (final String loopPathName : jspFileResourceParam.split(";")) {
-                if (!loopPathName.contains("=")) {
-                    LOGGER.warn("jspFileResources must have an '=' separator");
-                } else {
-                    final String uriPath = loopPathName.split("=")[0];
-                    final String jspResource = loopPathName.split("=")[1];
-                    jspResources.put(uriPath,jspResource);
                 }
             }
         }
@@ -452,14 +438,6 @@ public class ResourceFileServlet extends HttpServlet {
             } else if (requestURI.startsWith(request.getContextPath() + "/resources/themes/embed/pwmMobileStyle.css")) {
                 writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response);
                 return true;
-            } else {
-                for (final String loopUri : jspResources.keySet()) {
-                    if (requestURI.endsWith(loopUri)) {
-                        final String jspURI = jspResources.get(loopUri);
-                        this.getServletContext().getRequestDispatcher(jspURI).forward(request,response);
-                        return true;
-                    }
-                }
             }
         }
         return false;

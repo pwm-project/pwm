@@ -141,7 +141,7 @@ public enum PwmSetting {
             "ldap.testuser.username", Syntax.STRING, Category.LDAP, false, Level.BASIC),
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", Syntax.STRING, Category.LDAP, true, Level.BASIC),
-    USERNAME_SEARCH_FILTER(
+    LDAP_USERNAME_SEARCH_FILTER(
             "ldap.usernameSearchFilter", Syntax.STRING, Category.LDAP, true, Level.ADVANCED),
     LDAP_READ_PASSWORD_POLICY(
             "ldap.readPasswordPolicies", Syntax.BOOLEAN, Category.LDAP, true, Level.ADVANCED),
@@ -649,9 +649,11 @@ public enum PwmSetting {
     PEOPLE_SEARCH_SEARCH_FILTER(
             "peopleSearch.searchFilter", Syntax.STRING, Category.PEOPLE_SEARCH, true, Level.BASIC),
     PEOPLE_SEARCH_SEARCH_BASE(
-            "peopleSearch.searchBase", Syntax.STRING, Category.PEOPLE_SEARCH, false, Level.BASIC),
+            "peopleSearch.searchBase", Syntax.STRING_ARRAY, Category.PEOPLE_SEARCH, false, Level.BASIC),
     PEOPLE_SEARCH_RESULT_FORM(
             "peopleSearch.result.form", Syntax.FORM, Category.PEOPLE_SEARCH, true, Level.BASIC),
+    PEOPLE_SEARCH_DETAIL_FORM(
+            "peopleSearch.detail.form", Syntax.FORM, Category.PEOPLE_SEARCH, true, Level.BASIC),
     PEOPLE_SEARCH_RESULT_LIMIT(
             "peopleSearch.result.limit", Syntax.NUMERIC, Category.PEOPLE_SEARCH, true, Level.BASIC),
     PEOPLE_SEARCH_USE_PROXY(

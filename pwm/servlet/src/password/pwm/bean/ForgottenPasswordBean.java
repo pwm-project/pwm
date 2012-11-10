@@ -27,13 +27,12 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.config.FormConfiguration;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author Jason D. Rivard
  */
-public class ForgottenPasswordBean implements Serializable {
+public class ForgottenPasswordBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private transient ChaiUser proxiedUser;

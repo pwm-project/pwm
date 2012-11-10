@@ -22,8 +22,10 @@
 
 package password.pwm.util.pwmdb;
 
+import password.pwm.PwmApplication;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.stats.Statistic;
 
 import java.io.File;
 import java.util.Collection;
@@ -38,8 +40,10 @@ public class PwmDBAdaptor implements PwmDB {
     private final PwmDBProvider innerDB;
 
     private final SizeCacheManager SIZE_CACHE_MANAGER = new SizeCacheManager();
+    private final PwmApplication pwmApplication;
 
-    PwmDBAdaptor(final PwmDBProvider innerDB) {
+    PwmDBAdaptor(final PwmDBProvider innerDB, final PwmApplication pwmApplication) {
+        this.pwmApplication = pwmApplication;
         if (innerDB == null) {
             throw new IllegalArgumentException("innerDB can not be null");
         }
@@ -61,7 +65,9 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        return innerDB.contains(db, key);
+        final boolean value = innerDB.contains(db, key);
+        markRead(1);
+        return value;
     }
 
 
@@ -69,7 +75,9 @@ public class PwmDBAdaptor implements PwmDB {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
-        return innerDB.get(db, key);
+        final String value = innerDB.get(db, key);
+        markRead(1);
+        return value;
     }
 
     @WriteOperation
@@ -131,6 +139,8 @@ public class PwmDBAdaptor implements PwmDB {
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
+
+        markWrite(keyValueMap.size());
     }
 
     @WriteOperation
@@ -144,6 +154,7 @@ public class PwmDBAdaptor implements PwmDB {
             SIZE_CACHE_MANAGER.incrementSize(db);
         }
 
+        markWrite(1);
         return preExisting;
     }
 
@@ -157,6 +168,7 @@ public class PwmDBAdaptor implements PwmDB {
             SIZE_CACHE_MANAGER.decrementSize(db);
         }
 
+        markWrite(1);
         return result;
     }
 
@@ -180,6 +192,8 @@ public class PwmDBAdaptor implements PwmDB {
         } finally {
             SIZE_CACHE_MANAGER.clearSize(db);
         }
+
+        markWrite(keys.size());
     }
 
     public void returnIterator(final DB db) throws PwmDBException {
@@ -316,6 +330,22 @@ public class PwmDBAdaptor implements PwmDB {
 
             if (value.length() > PwmDB.MAX_VALUE_LENGTH) {
                 throw new IllegalArgumentException("value length " + value.length() + " is greater than max " + PwmDB.MAX_VALUE_LENGTH);
+            }
+        }
+    }
+
+    private void markRead(final int events) {
+        if (pwmApplication != null) {
+            if (pwmApplication.getStatisticsManager() != null) {
+                pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PWMDB_READS,events);
+            }
+        }
+    }
+
+    private void markWrite(final int events) {
+        if (pwmApplication != null) {
+            if (pwmApplication.getStatisticsManager() != null) {
+                pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PWMDB_WRITES,events);
             }
         }
     }

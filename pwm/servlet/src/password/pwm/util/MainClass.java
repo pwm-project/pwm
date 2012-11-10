@@ -294,7 +294,7 @@ public class MainClass {
         final String classname = config.readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
         final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
         final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-        return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly);
+        return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly, null);
     }
 
     static Configuration loadConfiguration() throws Exception {

@@ -24,11 +24,10 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.cr.Challenge;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
-public class SetupResponsesBean implements Serializable {
+public class SetupResponsesBean implements PwmSessionBean {
     private Map<String, Challenge> challengeList = Collections.emptyMap();
     private boolean simpleMode;
     private Map<Challenge, String> responseMap = Collections.emptyMap();

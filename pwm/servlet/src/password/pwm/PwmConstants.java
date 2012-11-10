@@ -155,6 +155,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_WARN = "private/passwordwarn.jsp";
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
     public static final String URL_JSP_PEOPLE_SEARCH = "WEB-INF/jsp/peoplesearch.jsp";
+    public static final String URL_JSP_PEOPLE_SEARCH_DETAIL = "WEB-INF/jsp/peoplesearch-detail.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";

@@ -255,11 +255,6 @@
             <param-name>zipFileResources</param-name>
             <param-value>/resources/dojo.zip;/resources/flags.zip</param-value>
         </init-param>
-        <init-param>
-            <description>jsp resources</description>
-            <param-name>jspFileResources</param-name>
-            <param-value>/resources/pwmVariables.js=/WEB-INF/jsp/pwmVariablesJS.jsp</param-value>
-        </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet>
@@ -336,12 +331,10 @@
         <servlet-name>ConfigUploadServlet</servlet-name>
         <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
-<!-- temporarily changed (issue 169) -->
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>
         <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
-<!-- temporarily changed (issue 169) -->
     <servlet-mapping>
         <servlet-name>HelpdeskServlet</servlet-name>
         <url-pattern>/private/Helpdesk</url-pattern>
@@ -365,5 +358,9 @@
             <taglib-uri>pwm</taglib-uri>
             <taglib-location>/WEB-INF/pwm-taglib.tld</taglib-location>
         </taglib>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <trim-directive-whitespaces>true</trim-directive-whitespaces>
+        </jsp-property-group>
     </jsp-config>
 </web-app>

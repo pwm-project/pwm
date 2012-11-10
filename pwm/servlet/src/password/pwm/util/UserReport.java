@@ -64,7 +64,7 @@ public class UserReport {
             throws ChaiUnavailableException, ChaiOperationException
     {
         final String baseDN = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        final String rawSearchFilter = pwmApplication.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
+        final String rawSearchFilter = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER);
         final String usernameSearchFilter = rawSearchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME,"*");
 
         final SearchHelper searchHelper = new SearchHelper();

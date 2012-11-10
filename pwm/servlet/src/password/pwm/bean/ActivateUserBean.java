@@ -24,9 +24,7 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
 
-import java.io.Serializable;
-
-public class ActivateUserBean implements Serializable {
+public class ActivateUserBean implements PwmSessionBean {
     private boolean tokenIssued;
     private boolean tokenPassed;
     private boolean agreementPassed;

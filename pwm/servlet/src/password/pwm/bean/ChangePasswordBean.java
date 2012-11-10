@@ -22,12 +22,10 @@
 
 package password.pwm.bean;
 
-import java.io.Serializable;
-
 /**
  * @author Jason D. Rivard
  */
-public class ChangePasswordBean implements Serializable {
+public class ChangePasswordBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------

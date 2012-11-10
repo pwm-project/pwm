@@ -51,7 +51,7 @@ public class PwmSession implements Serializable {
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
 
-    private final Map<Class,Serializable> userBeans = new HashMap<Class, Serializable>();
+    private final Map<Class,PwmSessionBean> sessionBeans = new HashMap<Class, PwmSessionBean>();
 
     private Configuration config;
     private SessionManager sessionManager;
@@ -102,7 +102,7 @@ public class PwmSession implements Serializable {
         this.creationTime = System.currentTimeMillis();
         this.getSessionStateBean().setSessionID("");
         config = pwmApplication.getConfig();
-        clearAllUserBeans();
+        clearSessionBeans();
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         if (statisticsManager != null) {
@@ -118,7 +118,7 @@ public class PwmSession implements Serializable {
 
 
     public ChangePasswordBean getChangePasswordBean() {
-        return (ChangePasswordBean)getUserBean(ChangePasswordBean.class);
+        return (ChangePasswordBean) getSessionBean(ChangePasswordBean.class);
     }
 
     public long getCreationTime() {
@@ -126,19 +126,19 @@ public class PwmSession implements Serializable {
     }
 
     public ForgottenPasswordBean getForgottenPasswordBean() {
-        return (ForgottenPasswordBean)getUserBean(ForgottenPasswordBean.class);
+        return (ForgottenPasswordBean) getSessionBean(ForgottenPasswordBean.class);
     }
 
     public void clearForgottenPasswordBean() {
-        userBeans.remove(ForgottenPasswordBean.class);
+        sessionBeans.remove(ForgottenPasswordBean.class);
     }
 
     public ConfigManagerBean getConfigManagerBean() {
-        return (ConfigManagerBean)getUserBean(ConfigManagerBean.class);
+        return (ConfigManagerBean) getSessionBean(ConfigManagerBean.class);
     }
 
     public GuestRegistrationBean getGuestRegistrationBean() {
-        return (GuestRegistrationBean)getUserBean(GuestRegistrationBean.class);
+        return (GuestRegistrationBean) getSessionBean(GuestRegistrationBean.class);
     }
 
     public SessionManager getSessionManager() {
@@ -150,44 +150,44 @@ public class PwmSession implements Serializable {
     }
 
     public UserInfoBean getUserInfoBean() {
-        return (UserInfoBean)getUserBean(UserInfoBean.class);
+        return (UserInfoBean) getSessionBean(UserInfoBean.class);
     }
 
     public HelpdeskBean getHelpdeskBean() {
-        return (HelpdeskBean)getUserBean(HelpdeskBean.class);
+        return (HelpdeskBean) getSessionBean(HelpdeskBean.class);
     }
 
     public UpdateProfileBean getUpdateProfileBean() {
-        return (UpdateProfileBean)getUserBean(UpdateProfileBean.class);
+        return (UpdateProfileBean) getSessionBean(UpdateProfileBean.class);
     }
 
     public void clearUpdateProfileBean() {
-        userBeans.remove(UpdateProfileBean.class);
+        sessionBeans.remove(UpdateProfileBean.class);
     }
 
     public ActivateUserBean getActivateUserBean() {
-        return (ActivateUserBean)getUserBean(ActivateUserBean.class);
+        return (ActivateUserBean) getSessionBean(ActivateUserBean.class);
     }
 
     public void clearActivateUserBean() {
-        userBeans.remove(ActivateUserBean.class);
+        sessionBeans.remove(ActivateUserBean.class);
     }
 
     public boolean clearUserBean(final Class userBeanClass) {
-        final boolean exists = userBeans.containsKey(userBeanClass);
-        userBeans.remove(userBeanClass);
+        final boolean exists = sessionBeans.containsKey(userBeanClass);
+        sessionBeans.remove(userBeanClass);
         return exists;
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public void clearChangePasswordBean() {
-        userBeans.remove(ChangePasswordBean.class);
+        sessionBeans.remove(ChangePasswordBean.class);
     }
 
-    public void clearAllUserBeans() // clears all but the session state bean. 
+    public void clearSessionBeans() // clears all but the session state bean.
     {
-        userBeans.clear();
+        sessionBeans.clear();
 
         if (sessionManager != null) {
             sessionManager.closeConnections();
@@ -248,7 +248,7 @@ public class PwmSession implements Serializable {
             LOGGER.debug(this, sb.toString());
         }
 
-        clearAllUserBeans();
+        clearSessionBeans();
 
         // clear CAS session if it exists.
         try {
@@ -262,19 +262,15 @@ public class PwmSession implements Serializable {
     }
 
     public SetupResponsesBean getSetupResponseBean() {
-        return (SetupResponsesBean)getUserBean(SetupResponsesBean.class);
-    }
-
-    public UserInformationServletBean getUserInformationServletBean() {
-        return (UserInformationServletBean)getUserBean(UserInformationServletBean.class);
+        return (SetupResponsesBean) getSessionBean(SetupResponsesBean.class);
     }
 
     public NewUserBean getNewUserBean() {
-        return (NewUserBean)getUserBean(NewUserBean.class);
+        return (NewUserBean) getSessionBean(NewUserBean.class);
     }
 
     public void invalidate() {
-        clearAllUserBeans();
+        clearSessionBeans();
 
         try {
             this.unauthenticateUser();
@@ -288,17 +284,17 @@ public class PwmSession implements Serializable {
         }
     }
 
-    private Serializable getUserBean(final Class theClass) {
-        if (!userBeans.containsKey(theClass)) {
+    public PwmSessionBean getSessionBean(final Class theClass) {
+        if (!sessionBeans.containsKey(theClass)) {
             try {
                 final Object newBean = theClass.newInstance();
-                userBeans.put(theClass,(Serializable)newBean);
+                sessionBeans.put(theClass,(PwmSessionBean)newBean);
             } catch (Exception e) {
                 LOGGER.error("unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(),e);
             }
 
         }
-        return userBeans.get(theClass);
+        return sessionBeans.get(theClass);
     }
 
     public long getLastAccessedTime() {

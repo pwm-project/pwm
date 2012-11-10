@@ -39,7 +39,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
@@ -81,30 +80,13 @@ public class StatisticsManager implements PwmService {
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
-    private Map<EpsType, EventRateMeter> epsMeterMap = new HashMap<EpsType, EventRateMeter>();
+    private Map<String, EventRateMeter> epsMeterMap = new HashMap<String, EventRateMeter>();
 
     private PwmApplication pwmApplication;
 
     private STATUS status = STATUS.NEW;
 
-    public enum EpsType {
-        PASSWORD_CHANGES_60(60 * 60 * 1000),
-        PASSWORD_CHANGES_240(4 * 60 * 60 * 1000),
-        PASSWORD_CHANGES_1440(24 * 60 * 60 * 1000),
-        AUTHENTICATION_60(60 * 60 * 1000),
-        AUTHENTICATION_240(4 * 60 * 60 * 1000),
-        AUTHENTICATION_1440(24 * 60 * 60 * 1000),
-        INTRUDER_ATTEMPTS_60(60 * 60 * 1000),
-        INTRUDER_ATTEMPTS_240(4 * 60 * 60 * 1000),
-        INTRUDER_ATTEMPTS_1440(24 * 60 * 60 * 1000),
-                ;
 
-        private final long duration;
-
-        private EpsType(long duration) {
-            this.duration = duration;
-        }
-    }
 
     private final Map<String,StatisticsBundle> cachedStoredStats = new LinkedHashMap<String,StatisticsBundle>() {
         @Override
@@ -220,8 +202,10 @@ public class StatisticsManager implements PwmService {
     }
 
     public void init(PwmApplication pwmApplication) throws PwmException {
-        for (final EpsType type : EpsType.values()) {
-            epsMeterMap.put(type, new EventRateMeter(new TimeDuration(type.duration)));
+        for (final Statistic.EpsType type : Statistic.EpsType.values()) {
+            for (final Statistic.EpsDuration duration : Statistic.EpsDuration.values()) {
+                epsMeterMap.put(type.toString() + duration.toString(), new EventRateMeter(duration.getTimeDuration()));
+            }
         }
 
         status = STATUS.OPENING;
@@ -243,19 +227,19 @@ public class StatisticsManager implements PwmService {
 
         {
             final Gson gson = new Gson();
-            for (final EpsType loopEpsType : EpsType.values()) {
-                final String key = "EPS-" + loopEpsType.toString();
-                final String storedValue = pwmDB.get(PwmDB.DB.PWM_STATS,key);
-                if (storedValue != null && storedValue.length() > 0) {
-                    try {
-                        final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
-                        epsMeterMap.put(loopEpsType,eventRateMeter);
-                    } catch (Exception e) {
-                        LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from PwmDB: " + e.getMessage());
+            for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
+                for (final Statistic.EpsType loopEpsDuration : Statistic.EpsType.values()) {
+                    final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
+                    final String storedValue = pwmDB.get(PwmDB.DB.PWM_STATS,key);
+                    if (storedValue != null && storedValue.length() > 0) {
+                        try {
+                            final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
+                            epsMeterMap.put(loopEpsType.toString() + loopEpsDuration.toString(),eventRateMeter);
+                        } catch (Exception e) {
+                            LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from PwmDB: " + e.getMessage());
+                        }
                     }
-
                 }
-
             }
 
         }
@@ -330,10 +314,12 @@ public class StatisticsManager implements PwmService {
                 pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
 
                 final Gson gson = new Gson();
-                for (final EpsType loopEpsType : EpsType.values()) {
-                    final String key = "EPS-" + loopEpsType.toString();
-                    final String value = gson.toJson(this.epsMeterMap.get(loopEpsType));
-                    pwmDB.put(PwmDB.DB.PWM_STATS, key, value);
+                for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
+                    for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
+                        final String key = "EPS-" + loopEpsType.toString();
+                        final String value = gson.toJson(this.epsMeterMap.get(loopEpsType.toString() + loopEpsDuration.toString()));
+                        pwmDB.put(PwmDB.DB.PWM_STATS, key, value);
+                    }
                 }
             } catch (PwmDBException e) {
                 LOGGER.error("error outputting pwm statistics: " + e.getMessage());
@@ -466,12 +452,14 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    public void updateEps(final EpsType type, final int itemCount) {
-        epsMeterMap.get(type).markEvents(itemCount);
+    public void updateEps(final Statistic.EpsType type, final int itemCount) {
+        for (final Statistic.EpsDuration duration : Statistic.EpsDuration.values()) {
+            epsMeterMap.get(type.toString() + duration.toString()).markEvents(itemCount);
+        }
     }
 
-    public BigDecimal readEps(final EpsType type) {
-        return epsMeterMap.get(type).readEventRate();
+    public BigDecimal readEps(final Statistic.EpsType type, final Statistic.EpsDuration duration) {
+        return epsMeterMap.get(type.toString() + duration.toString()).readEventRate();
     }
 
     private void publishStatisticsToCloud()

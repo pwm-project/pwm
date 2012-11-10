@@ -43,24 +43,16 @@
     <meta name="application-name" content="PWM Password Self Service" data-pwm-version="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-pwm-build="<%=PwmConstants.BUILD_NUMBER%>" data-pwm-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7" />
-    <link rel="icon" type="image/x-icon"
-          href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>
-    <link href="<%=request.getContextPath()%><pwm:url url='/resources/pwmStyle.css'/>"
-          rel="stylesheet" type="text/css" media="screen"/>
-    <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
-          href="<%=request.getContextPath()%><pwm:url url='/resources/pwmMobileStyle.css'/>" type="text/css"
-          rel="stylesheet"/>
+    <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>
+    <link href="<%=request.getContextPath()%><pwm:url url='/resources/pwmStyle.css'/>" rel="stylesheet" type="text/css" media="screen"/>
+    <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/resources/pwmMobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
-    <link media="only screen and (max-device-width: 480px)" <%-- iphone css --%>
-          href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/>
+    <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmVariables.js'/>?nonce=<%=Helper.makePwmVariableJsNonce(pwmSessionHeader)%>"></script>
-    <script type="text/javascript">
-        <% if (pwmApplicationHeader != null) { pwmSessionHeader.getSessionStateBean().incrementRequestCounter(); }%>
-        PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
-    </script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(pwmSessionHeader)%>"></script>
+    <script type="text/javascript"><% if (pwmApplicationHeader != null) { pwmSessionHeader.getSessionStateBean().incrementRequestCounter(); }%>PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';</script>
 </head>

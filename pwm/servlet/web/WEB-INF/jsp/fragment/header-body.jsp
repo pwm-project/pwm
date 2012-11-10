@@ -60,31 +60,21 @@
     </div>
     <%-- this section handles the logout link (if user is logged in) --%>
     <div style="position: absolute; text-align:right; border-width:0; top: 19px; right:18px;">
-        <div style="visibility: <%=showLogout ? "inline" : "hidden"%>"
-             id="logoutDiv">
+        <div style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="logoutDiv">
             <a id="LogoutButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
                title="<pwm:Display key="Button_Logout"/>">
             </a>
         </div>
     </div>
-    <div id="header-page">
-        <pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/>
-    </div>
-    <div id="header-title">
-        <pwm:Display key="Title_Application"/>
-    </div>
+    <div id="header-page"><pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
+    <div id="header-title"><pwm:Display key="Title_Application"/></div>
     <% if (showLogout) { %>
     <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            setTimeout(function(){
-                require(["dijit/Tooltip"],function(){
-                    new dijit.Tooltip({
-                        connectId: ["logoutDiv"],
-                        label: PWM_STRINGS["Long_Title_Logout"],
-                        showDelay: 0
-                    });
-                });
-            },1000)
+        require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
+            new Tooltip({
+                connectId: ["logoutDiv"],
+                label: PWM_STRINGS["Long_Title_Logout"]
+            });
         });
     </script>
     <% } %>

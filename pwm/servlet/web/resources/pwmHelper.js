@@ -627,6 +627,7 @@ function doShow(destClass, message) {
 
 function showStatChart(statName,days,divName) {
     var epsTypes = PWM_GLOBAL['epsTypes'];
+    var epsDurations = PWM_GLOBAL['epsDurations'];
     require(["dojo",
         "dijit",
         "dijit/registry",
@@ -650,12 +651,15 @@ function showStatChart(statName,days,divName) {
                 timeout: 15 * 1000,
                 preventCache: true,
                 error: function(data) {
-                    for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) { // clear all the gauges
-                        var loopEpsName = epsTypes[loopEpsIndex] + '';
-                        var loopEpsID = "EPS-GAUGE-" + loopEpsName;
-                        if (getObject(loopEpsID) != null) {
-                            if (registry.byId(loopEpsID)) {
-                                registry.byId(loopEpsID).setAttribute('value',0);
+                    for (var loopEpsTypeIndex = 0; loopEpsTypeIndex < epsTypes.length; loopEpsTypeIndex++) { // clear all the gauges
+                        var loopEpsName = epsTypes[loopEpsTypeIndex] + '';
+                        for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
+                            var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
+                            var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                            if (getObject(loopEpsID) != null) {
+                                if (registry.byId(loopEpsID)) {
+                                    registry.byId(loopEpsID).setAttribute('value',0);
+                                }
                             }
                         }
                     }
@@ -665,31 +669,34 @@ function showStatChart(statName,days,divName) {
                         var activityCount = 0;
                         for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
                             var loopEpsName = epsTypes[loopEpsIndex] + '';
-                            var loopEpsID = "EPS-GAUGE-" + loopEpsName;
-                            var loopEpsValue = (data['EPS'])[loopEpsName] * 60 * 60;
-                            var loopTop = (data['EPS'])[loopEpsName.substring(0,4) == 'AUTH' ? 'AUTHENTICATION_TOP' : loopEpsName.substring(0,4) == 'PASS' ? "PASSWORD_CHANGES_TOP" : "INTRUDER_ATTEMPTS_TOP"];
-                            if (loopEpsName.substring(loopEpsName.length-2,loopEpsName.length) == "60") {
-                                activityCount += loopEpsValue;
-                            }
-                            if (getObject(loopEpsID) != null) {
-                                console.log('loopEps=' + loopEpsName);
-                                if (registry.byId(loopEpsID)) {
-                                    registry.byId(loopEpsID).setAttribute('value',loopEpsValue);
-                                    registry.byId(loopEpsID).setAttribute('max',loopTop);
-                                } else {
-                                    var glossyCircular = new dojox.gauges.GlossyCircularGauge({
-                                        background: [255, 255, 255, 0],
-                                        noChange: true,
-                                        value: Math.abs(loopEpsValue),
-                                        max: Math.abs(loopTop),
-                                        needleColor: '#FFDC8B',
-                                        majorTicksInterval: Math.abs(loopTop / 10),
-                                        minorTicksInterval: Math.abs(loopTop / 10),
-                                        id: loopEpsID,
-                                        width: 200,
-                                        height: 150
-                                    }, dojo.byId(loopEpsID));
-                                    glossyCircular.startup();
+                            for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
+                                var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
+                                var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration] * 60 * 60;
+                                var loopTop = data['EPS'][loopEpsName + "_TOP"];
+                                if (loopEpsDuration == "HOURLY") {
+                                    activityCount += loopEpsValue;
+                                }
+                                if (getObject(loopEpsID) != null) {
+                                    console.log('loopEps=' + loopEpsName);
+                                    if (registry.byId(loopEpsID)) {
+                                        registry.byId(loopEpsID).setAttribute('value',loopEpsValue);
+                                        registry.byId(loopEpsID).setAttribute('max',loopTop);
+                                    } else {
+                                        var glossyCircular = new dojox.gauges.GlossyCircularGauge({
+                                            background: [255, 255, 255, 0],
+                                            noChange: true,
+                                            value: Math.abs(loopEpsValue),
+                                            max: Math.abs(loopTop),
+                                            needleColor: '#FFDC8B',
+                                            majorTicksInterval: Math.abs(loopTop / 10),
+                                            minorTicksInterval: Math.abs(loopTop / 10),
+                                            id: loopEpsID,
+                                            width: 200,
+                                            height: 150
+                                        }, dojo.byId(loopEpsID));
+                                        glossyCircular.startup();
+                                    }
                                 }
                             }
                         }

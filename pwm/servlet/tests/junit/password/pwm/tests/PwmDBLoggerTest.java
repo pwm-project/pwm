@@ -68,7 +68,8 @@ public class PwmDBLoggerTest extends TestCase {
                 fileLocation,
                 reader.getConfiguration().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION),
                 initStrings,
-                false
+                false,
+                null
         );
 
         maxSize = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);

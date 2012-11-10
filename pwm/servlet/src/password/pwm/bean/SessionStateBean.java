@@ -29,7 +29,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -44,7 +43,7 @@ import java.util.Properties;
  *
  * @author Jason D. Rivard
  */
-public class SessionStateBean implements Serializable {
+public class SessionStateBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------

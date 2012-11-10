@@ -22,6 +22,7 @@
 
 package password.pwm.util.pwmdb;
 
+import password.pwm.PwmApplication;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -44,7 +45,8 @@ public class PwmDBFactory {
             final File dbDirectory,
             final String className,
             final Map<String, String> initParameters,
-            final boolean readonly
+            final boolean readonly,
+            final PwmApplication pwmApplication
     )
             throws Exception {
 
@@ -53,7 +55,7 @@ public class PwmDBFactory {
         final PwmDBProvider dbProvider = createInstance(theClass);
         LOGGER.debug("initializing " + theClass + " pwmDBProvider instance");
 
-        final PwmDB db = new PwmDBAdaptor(dbProvider);
+        final PwmDB db = new PwmDBAdaptor(dbProvider, pwmApplication);
 
         initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);

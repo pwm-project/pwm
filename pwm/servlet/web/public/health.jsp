@@ -60,9 +60,9 @@
             <tr>
                 <td colspan="10" style="margin:0; padding:0">
                     <div style="max-width: 600px; text-align: center">
-                        <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Authentications</div>
-                        <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Password Changes</div>
-                        <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_60" style="float: left; width: 33%">Intruder Attempts</div>
+                        <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
+                        <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
+                        <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Intruder Attempts</div>
                     </div>
                     <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">Events Per Hour</div>
                 </td>
@@ -223,9 +223,9 @@
 
             showPwmHealth('healthBody', false, false);
 
-            showStatChart('<%=Statistic.PASSWORD_CHANGES%>',14,'statsChart');
+            showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
             setInterval(function(){
-                showStatChart('<%=Statistic.PASSWORD_CHANGES%>',14,'statsChart');
+                showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
             }, 61 * 1000);
 
             verticalCenter('centerbody');

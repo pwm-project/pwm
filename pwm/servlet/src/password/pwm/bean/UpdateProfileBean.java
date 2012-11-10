@@ -24,10 +24,9 @@ package password.pwm.bean;
 
 import password.pwm.config.FormConfiguration;
 
-import java.io.Serializable;
 import java.util.Map;
 
-public class UpdateProfileBean implements Serializable {
+public class UpdateProfileBean implements PwmSessionBean {
 
     private boolean agreementPassed;
     private boolean confirmationPassed;

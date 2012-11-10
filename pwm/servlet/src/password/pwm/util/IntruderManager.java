@@ -40,7 +40,6 @@ import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -148,9 +147,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private void incrementStats() {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
-        pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60,1);
-        pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240,1);
-        pwmApplication.getStatisticsManager().updateEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440,1);
+        pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
     }
 
     private void markBadAttempt(final PwmDB.DB table, final String key, final long maxDuration) {

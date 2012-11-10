@@ -116,7 +116,7 @@ public class UserSearchEngine {
 
         final String input_searchFilter = searchConfiguration.getFilter() != null && searchConfiguration.getFilter().length() > 1 ?
                 searchConfiguration.getFilter() :
-                pwmApplication.getConfig().readSettingAsString(PwmSetting.USERNAME_SEARCH_FILTER);
+                pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER);
 
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {

@@ -398,7 +398,7 @@ public class CommandServlet extends TopServlet {
         final String referrer = req.getHeader("Referer");
         final Date pageLeaveNoticeTime = new Date();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
-        LOGGER.debug("pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", Referer=" + referrer);
+        LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
     }
 }
 

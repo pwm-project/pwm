@@ -24,7 +24,7 @@
 <%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.pwmdb.PwmDB" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
+<%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.math.RoundingMode" %>
 <%@ page import="java.text.DateFormat" %>
@@ -221,100 +221,34 @@
             <td>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last 1 Hour
+                Last Minute
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last 4 Hours
+                Last Hour
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last 24 Hours
+                Last Day
             </td>
         </tr>
+        <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
         <tr>
             <td class="key">
-                Authentications / Minute
+                <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
             </td>
             <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.MINUTE).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.HOUR).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
             <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.DAY).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
             </td>
         </tr>
+        <% } %>
         <tr>
-            <td class="key">
-                Password Changes / Minute
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Intruder Attempts / Minute
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-        </tr>
-        <tr>
-            <td class="key">
-                Authentications / Hour
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.AUTHENTICATION_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Password Changes / Hour
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Intruder Attempts / Hour
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
-            </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440).multiply(BigDecimal.valueOf(60*60)).setScale(3, RoundingMode.UP) %>
+            <td colspan="10" style="text-align: center">
+                <a onclick="location.reload()" href="#">refresh</a>
             </td>
         </tr>
     </table>
@@ -325,9 +259,9 @@
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-AUTHENTICATION_60" style="float: left; width: 33%">Last 1 Hour</div>
-                            <div id="EPS-GAUGE-AUTHENTICATION_240" style="float: left; width: 33%">Last 4 Hours</div>
-                            <div id="EPS-GAUGE-AUTHENTICATION_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                            <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                            <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Last Hour</div>
+                            <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Last Day</div>
                         </div>
                     </td>
                 </tr>
@@ -338,9 +272,9 @@
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_60" style="float: left; width: 33%">Last 1 Hour</div>
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_240" style="float: left; width: 33%">Last 4 Hours</div>
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Last Hour</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Last Day</div>
                         </div>
                     </td>
                 </tr>
@@ -351,9 +285,9 @@
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_60" style="float: left; width: 33%">Last 1 Hour</div>
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_240" style="float: left; width: 33%">Last 4 Hours</div>
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_1440" style="float: left; width: 33%">Last 24 Hours</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Last Hour</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Last Day</div>
                         </div>
                     </td>
                 </tr>

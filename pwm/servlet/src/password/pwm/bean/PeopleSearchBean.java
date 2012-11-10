@@ -22,42 +22,34 @@
 
 package password.pwm.bean;
 
-import java.util.Date;
+import password.pwm.servlet.PeopleSearchServlet;
 
-/**
- * @author Jason D. Rivard, Menno Pieters
- */
-public class GuestRegistrationBean implements PwmSessionBean {
-// ------------------------------ FIELDS ------------------------------
+public class PeopleSearchBean implements PwmSessionBean {
+    private String searchString;
+    private PeopleSearchServlet.PeopleSearchResults searchResults;
+    private PeopleSearchServlet.PeopleSearchResults searchDetails;
 
-    private String updateUserDN;
-    private Date updateUserExpirationDate;
-    private String menumode;
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getUpdateUserDN() {
-        return updateUserDN;
+    public String getSearchString() {
+        return searchString;
     }
 
-    public void setUpdateUserDN(String updateUserDN) {
-        this.updateUserDN = updateUserDN;
+    public void setSearchString(String searchString) {
+        this.searchString = searchString;
     }
 
-    public Date getUpdateUserExpirationDate() {
-        return updateUserExpirationDate;
+    public PeopleSearchServlet.PeopleSearchResults getSearchResults() {
+        return searchResults;
     }
 
-    public void setUpdateUserExpirationDate(Date updateUserExpirationDate) {
-        this.updateUserExpirationDate = updateUserExpirationDate;
+    public void setSearchResults(PeopleSearchServlet.PeopleSearchResults searchResults) {
+        this.searchResults = searchResults;
     }
 
-    public String getMenumode() {
-        return menumode;
+    public PeopleSearchServlet.PeopleSearchResults getSearchDetails() {
+        return searchDetails;
     }
 
-    public void setMenumode(String menumode) {
-        this.menumode = menumode;
+    public void setSearchDetails(PeopleSearchServlet.PeopleSearchResults searchDetails) {
+        this.searchDetails = searchDetails;
     }
 }
-

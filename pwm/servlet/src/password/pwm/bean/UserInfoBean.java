@@ -28,7 +28,6 @@ import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.PasswordStatus;
 import password.pwm.util.PostChangePasswordAction;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -41,9 +40,9 @@ import java.util.*;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.util.operations.UserStatusHelper#populateActorUserInfoBean(password.pwm.PwmSession, String, String)
+ * @see password.pwm.util.operations.UserStatusHelper#populateUserInfoBean(password.pwm.PwmSession, UserInfoBean, password.pwm.PwmApplication, java.util.Locale, String, String, com.novell.ldapchai.provider.ChaiProvider)
  */
-public class UserInfoBean implements Serializable {
+public class UserInfoBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private String userDN;

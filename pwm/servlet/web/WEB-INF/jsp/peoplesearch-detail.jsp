@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.bean.PeopleSearchBean" %>
 <%@ page import="password.pwm.servlet.PeopleSearchServlet" %>
+<%@ page import="java.util.Iterator" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -60,45 +61,28 @@
             <% } %>
         </form>
         <br class="clear"/>
-        <% final PeopleSearchServlet.PeopleSearchResults searchResults = peopleSearchBean.getSearchResults(); %>
-        <% if (searchResults != null) { %>
-        <div style="max-height: 400px; overflow: auto;">
-            <table>
-                <tr>
-                    <% for (final String keyName : searchResults.getHeaders()) { %>
-                    <td class="key" style="text-align: left; white-space: nowrap;">
-                        <%=keyName%>
-                    </td>
-                    <% } %>
-                </tr>
-                <% for (final String userDN: searchResults.getResults().keySet()) { %>
-                <tr>
-                    <% for (final String attribute : searchResults.getAttributes()) { %>
-                    <% final String value = searchResults.getResults().get(userDN).get(attribute); %>
-                    <% final String userKey = PeopleSearchServlet.makeUserDetailKey(userDN,pwmSession); %>
-                    <td id="userDN-<%=userDN%>">
-                        <span onclick="loadDetails('<%=userKey%>');">
-                        <%= value == null || value.length() < 1 ? "&nbsp;" : value %>
-                        </span>
-                    </td>
-                    <% } %>
-                </tr>
-                <% } %>
-            </table>
-        </div>
-        <div style="width:100%; text-align: center">
-            <%=searchResults.isSizeExceeded()?"Search Results exceeded maximum search size.":""%>
-        </div>
+        <% final PeopleSearchServlet.PeopleSearchResults searchDetails = peopleSearchBean.getSearchDetails(); %>
+        <% if (searchDetails != null && !searchDetails.getResults().isEmpty()) { %>
+        <% final String userDN = searchDetails.getResults().keySet().iterator().next(); %>
+        <% final Iterator<String> headerIter = searchDetails.getHeaders().iterator(); %>
+        <table>
+            <% for (final String attribute : searchDetails.getAttributes()) { %>
+            <% final String header = headerIter.next(); %>
+            <% if (searchDetails.getResults().get(userDN).containsKey(attribute)) { %>
+            <tr>
+                <td class="key" style="text-align: right; white-space: nowrap;">
+                    <%=header%>
+                </td>
+                <td>
+                    <%=searchDetails.getResults().get(userDN).get(attribute)%>
+                </td>
+            </tr>
+            <% } %>
+            <% } %>
+        </table>
         <% } %>
     </div>
-    <br class="clear"/>
 </div>
-<script>
-    function loadDetails(userKey) {
-        showWaitDialog();
-        window.location="PeopleSearch?pwmFormID=<%=Helper.buildPwmFormID(pwmSession.getSessionStateBean())%>&processAction=detail&userKey=" + userKey;
-    }
-</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

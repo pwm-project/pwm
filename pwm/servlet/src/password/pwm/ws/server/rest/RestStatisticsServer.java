@@ -41,6 +41,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -122,56 +123,37 @@ public class RestStatisticsServer {
 
     private Map<String,String> addEpsStats(final StatisticsManager statisticsManager){
         final Map<String,String> outputMap = new TreeMap<String,String>();
-        for (final StatisticsManager.EpsType loopEps : StatisticsManager.EpsType.values()) {
-            outputMap.put(loopEps.toString(),statisticsManager.readEps(loopEps).toPlainString());
-        }
-
-        {
-            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.AUTHENTICATIONS, 30);
-            final BigDecimal[] epsStats = new BigDecimal[]{
-                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_60),
-                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_240),
-                    statisticsManager.readEps(StatisticsManager.EpsType.AUTHENTICATION_1440),
-            };
-            outputMap.put("AUTHENTICATION_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
-        }
-
-        {
-            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.PASSWORD_CHANGES, 30);
-            final BigDecimal[] epsStats = new BigDecimal[]{
-                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_60),
-                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_240),
-                    statisticsManager.readEps(StatisticsManager.EpsType.PASSWORD_CHANGES_1440),
-            };
-            outputMap.put("PASSWORD_CHANGES_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
-        }
-
-        {
-            final Map<String,String> statistics = statisticsManager.getStatHistory(Statistic.INTRUDER_ATTEMPTS, 30);
-            final BigDecimal[] epsStats = new BigDecimal[]{
-                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_60),
-                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_240),
-                    statisticsManager.readEps(StatisticsManager.EpsType.INTRUDER_ATTEMPTS_1440),
-            };
-            outputMap.put("INTRUDER_ATTEMPTS_TOP",String.valueOf(figureTopValue(statistics,epsStats)));
+        for (final Statistic.EpsType loopEps : Statistic.EpsType.values()) {
+            for (final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values()) {
+                final BigDecimal loopValue = statisticsManager.readEps(loopEps,loopDuration);
+                final BigDecimal outputValue = loopValue.setScale(3, RoundingMode.UP);
+                outputMap.put(loopEps.toString() + "_" + loopDuration.toString(),outputValue.toString());
+            }
+            outputMap.put(loopEps.toString() + "_TOP",String.valueOf(figureTopValue(loopEps, statisticsManager)));
         }
 
         return outputMap;
     }
 
-    private int figureTopValue(final Map<String, String> statistics, final BigDecimal[] inputEpsStats) {
+    private int figureTopValue(final Statistic.EpsType epsType, final StatisticsManager statisticsManager) {
         final int dailyReduceFactor = (24 * 10);
         final int epsMultiplier = 60 * 60; // hour
 
         int counter = 100; // minimum
-        for (final String key : statistics.keySet()) {
-            final int loopValue = Integer.valueOf(statistics.get(key)) / dailyReduceFactor;
-            if (loopValue > counter) {
-                counter = loopValue;
+
+        final Statistic relatedStatistic = epsType.getRelatedStatistic();
+        if (relatedStatistic != null) {
+            final Map<String, String> statistics = statisticsManager.getStatHistory(relatedStatistic, 30);
+            for (final String key : statistics.keySet()) {
+                final int loopValue = Integer.valueOf(statistics.get(key)) / dailyReduceFactor;
+                if (loopValue > counter) {
+                    counter = loopValue;
+                }
             }
         }
 
-        for (final BigDecimal loopEps : inputEpsStats) {
+        for (final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values()) {
+            final BigDecimal loopEps = statisticsManager.readEps(epsType, loopDuration);
             if (loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).compareTo(BigDecimal.valueOf(counter)) > 0) {
                 counter = loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).intValue();
             }

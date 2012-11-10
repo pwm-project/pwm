@@ -28,10 +28,9 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.servlet.ConfigManagerServlet;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class ConfigManagerBean implements Serializable {
+public class ConfigManagerBean implements PwmSessionBean {
     private StoredConfiguration configuration;
     private ConfigManagerServlet.EDIT_MODE editMode = ConfigManagerServlet.EDIT_MODE.NONE;
     private java.util.Date configurationLoadTime;

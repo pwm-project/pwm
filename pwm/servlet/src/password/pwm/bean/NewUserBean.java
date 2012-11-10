@@ -22,10 +22,9 @@
 
 package password.pwm.bean;
 
-import java.io.Serializable;
 import java.util.Map;
 
-public class NewUserBean implements Serializable {
+public class NewUserBean implements PwmSessionBean {
     private String tokenEmailAddress;
     private String tokenSmsNumber;
     private Map<String,String> formData;

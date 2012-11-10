@@ -25,10 +25,9 @@ package password.pwm.bean;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.UserHistory;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class HelpdeskBean implements Serializable {
+public class HelpdeskBean implements PwmSessionBean {
     private boolean userExists;
     private UserInfoBean userInfoBean = new UserInfoBean();
     private transient ResponseSet responseSet;

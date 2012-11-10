@@ -77,8 +77,7 @@
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">
-            <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"
-                                              style="width: 600px"/></td>
+            <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"/></td>
         </tr>
     </table>
     <script type="text/javascript">
@@ -93,7 +92,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
-            <td><input type="text" disabled="disabled" value="[Loading...]" style="width: 600px"/></td>
+            <td><input type="text" disabled="disabled" value="[Loading...]"/></td>
         </tr>
     </table>
     <script type="text/javascript">

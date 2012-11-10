@@ -41,7 +41,7 @@ public class PwmDBTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false);
+        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false, null);
         pwmDB.truncate(TEST_DB);
         Assert.assertEquals(0,pwmDB.size(TEST_DB));
     }

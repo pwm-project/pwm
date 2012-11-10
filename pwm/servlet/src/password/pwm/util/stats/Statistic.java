@@ -22,6 +22,8 @@
 
 package password.pwm.util.stats;
 
+import password.pwm.util.TimeDuration;
+
 import java.util.*;
 
 public enum Statistic {
@@ -118,5 +120,46 @@ public enum Statistic {
             return "--RESOURCE MISSING--";
         }
     }
+
+    public enum EpsType {
+        PASSWORD_CHANGES(Statistic.PASSWORD_CHANGES),
+        AUTHENTICATION(Statistic.AUTHENTICATIONS),
+        INTRUDER_ATTEMPTS(Statistic.INTRUDER_ATTEMPTS),
+        PWMDB_WRITES(null),
+        PWMDB_READS(null),
+        ;
+
+        private Statistic relatedStatistic;
+
+        private EpsType(Statistic relatedStatistic) {
+            this.relatedStatistic = relatedStatistic;
+        }
+
+        public Statistic getRelatedStatistic() {
+            return relatedStatistic;
+        }
+
+        public String getDescription(final Locale locale) {
+            return readProps(EpsType.class.getSimpleName() + "_" + this.name(), locale);
+        }
+    }
+
+    public enum EpsDuration {
+        MINUTE(TimeDuration.MINUTE),
+        HOUR(TimeDuration.HOUR),
+        DAY(TimeDuration.DAY),
+        ;
+
+        private final TimeDuration timeDuration;
+
+        private EpsDuration(TimeDuration timeDuration) {
+            this.timeDuration = timeDuration;
+        }
+
+        public TimeDuration getTimeDuration() {
+            return timeDuration;
+        }
+    }
+
 
 }
