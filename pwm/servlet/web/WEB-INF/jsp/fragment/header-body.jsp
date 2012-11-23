@@ -44,7 +44,7 @@
 <% final boolean showLogout = loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
 <% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION; %>
 <% if (showConfigHeader) { %>
-<div id="header-warning">PWM is in configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
+<div id="header-warning">PWM is in open configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
     to modify or lock the configuration.
 </div>
 <% } %>
@@ -63,15 +63,5 @@
     </div>
     <div id="header-page"><pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
     <div id="header-title"><pwm:Display key="Title_Application"/></div>
-    <% if (showLogout) { %>
-    <script type="text/javascript">
-        require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
-            new Tooltip({
-                connectId: ["logoutDiv"],
-                label: PWM_STRINGS["Long_Title_Logout"]
-            });
-        });
-    </script>
-    <% } %>
 </div>
 

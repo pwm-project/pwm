@@ -22,7 +22,6 @@
 
 package password.pwm.servlet;
 
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
@@ -379,8 +378,8 @@ public class CommandServlet extends TopServlet {
         final UserReport userReport = new UserReport(pwmApplication);
 
         try {
-            userReport.outputToCsv(outputStream, true);
-        } catch (ChaiOperationException e) {
+            userReport.outputToCsv(outputStream, true, 50 * 1000);
+        } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
             ssBean.setSessionError(errorInformation);
@@ -399,9 +398,10 @@ public class CommandServlet extends TopServlet {
         final Date pageLeaveNoticeTime = new Date();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
         LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
-        final OutputStream outputStream = resp.getOutputStream();
-        outputStream.flush();
-        outputStream.close();
+        if (!resp.isCommitted()) {
+            resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            resp.setContentType("text/plain");
+        }
     }
 }
 

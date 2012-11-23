@@ -20,60 +20,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var validationCache = { };
-var validationInProgress = false;
-
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateNewUserForm() {
-    console.log('entering validateNewUserForm');
-    if (validationInProgress) {
-        return;
-    }
+    var validationProps = new Array();
+    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingData'];
+    validationProps['serviceURL'] = 'NewUser' + "?processAction=validate";
+    validationProps['readDataFunction'] = function(){
+        return makeFormData();
+    };
+    validationProps['processResultsFunction'] = function(data){
+        updateDisplay(data);
+    };
 
-    var parameterData = makeValidationKey();
-    {
-        var cachedResult = validationCache[parameterData.cacheKey];
-        if (cachedResult != null) {
-            updateDisplay(cachedResult);
-            return;
-        }
-    }
-
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingData']); }},1000);
-
-    validationInProgress = true;
-    require(["dojo"],function(dojo){
-        dojo.xhrPost({
-            url: 'NewUser' + "?processAction=validate&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            postData:  dojo.toJson(parameterData),
-            contentType: "application/json;charset=utf-8",
-            dataType: "json",
-            handleAs: "json",
-            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
-            error: function(errorObj) {
-                validationInProgress = false;
-                showSuccess(PWM_STRINGS['Display_CommunicationError']);
-                console.log('error: ' + errorObj);
-            },
-            load: function(data){
-                setTimeout(function(){
-                    validationCache[parameterData.cacheKey] = data;
-                    validationInProgress = false;
-                    validateNewUserForm();
-                    markStrength(data['strength']);
-                    markConfirmationCheck(data['match']);
-                },350);
-            }
-        });
-    });
+    pwmFormValidator(validationProps);
 }
 
-function makeValidationKey() {
-    var cacheKeyValue = "";
+function makeFormData() {
     var paramData = { };
 
     var newUserForm = getObject('newUserForm');
@@ -81,31 +47,37 @@ function makeValidationKey() {
     for (var i = 0; i < newUserForm.elements.length; i++ ) {
         var loopElement = newUserForm.elements[i];
         paramData[loopElement.name] = loopElement.value;
-        cacheKeyValue = cacheKeyValue + (loopElement.name + '=' + loopElement.value + '&')
     }
-
-    paramData['cacheKey'] = cacheKeyValue;
 
     return paramData;
 }
 
 function updateDisplay(resultInfo)
 {
-    var result = resultInfo["message"];
+    if (resultInfo == null) {
+        markConfirmationCheck(null);
+        markStrength(null);
+        return;
+    }
 
-    if (resultInfo["success"] == "true") {
-        getObject("submitBtn").disabled = false;
-        showSuccess(result);
+    var message = resultInfo["message"];
+
+    if (resultInfo["passed"] == true) {
+        if (resultInfo["match"] == "MATCH") {
+            getObject("submitBtn").disabled = false;
+            showSuccess(message);
+        } else {
+            getObject("submitBtn").disabled = true;
+            showInfo(message);
+        }
     } else {
         getObject("submitBtn").disabled = true;
-        showError(result);
+        showError(message);
     }
-    markConfirmationCheck(null);
-    try {
-        markConfirmationCheck(resultInfo["match"]);
-    } catch (e) {
-        console.log('error updating confirmation check icons: ' + e)
-    }
+
+
+    markConfirmationCheck(resultInfo["match"]);
+    markStrength(resultInfo["strength"]);
 }
 
 function markConfirmationCheck(matchStatus) {

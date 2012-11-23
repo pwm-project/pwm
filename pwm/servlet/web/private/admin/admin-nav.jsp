@@ -21,15 +21,125 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<p id="admin-menu-bar" style="text-align:center;">
-    <a onclick="showWaitDialog()" href="status.jsp">Status</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="statistics.jsp">Statistics</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="intruderstatus.jsp">Intruders</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="activesessions.jsp">Sessions</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="eventlog.jsp">Event Log</a>
-    <br/>
-    <a onclick="showWaitDialog()" href="userreport.jsp">User Report</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="config.jsp">Configuration</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="http-request-information.jsp">Http Debug</a>&nbsp;&#x2022;&nbsp
-    <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>">Main Menu</a>
-</p>
+<div id="TopMenu" style="width: 600px">
+</div>
+<br/>
+<br/>
+<script type="text/javascript" async="async">
+    function buildMenuBar() {
+        require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator","dojo/domReady!"],
+                function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem){
+                    clearDijitWidget('topMenuBar');
+                    var topMenuBar = new MenuBar({id:"topMenuBar"});
+                    { // Status Menu
+                        var statusMenu = new Menu({});
+                        statusMenu.addChild(new MenuItem({
+                            label: 'Activity',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "activity.jsp";
+                            }
+                        }));
+                        statusMenu.addChild(new MenuItem({
+                            label: 'Statistics',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "statistics.jsp";
+                            }
+                        }));
+                        statusMenu.addChild(new MenuItem({
+                            label: 'Health',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "health.jsp";
+                            }
+                        }));
+                        statusMenu.addChild(new MenuItem({
+                            label: 'Active Sessions',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "activesessions.jsp";
+                            }
+                        }));
+                        statusMenu.addChild(new MenuItem({
+                            label: 'Intruders',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "intruderstatus.jsp";
+                            }
+                        }));
+                        topMenuBar.addChild(new PopupMenuBarItem({
+                            label: "Status",
+                            popup: statusMenu
+                        }));
+                    }
+
+                    { // System Menu
+                        var systemMenu = new Menu({});
+                        systemMenu.addChild(new MenuItem({
+                            label: 'System Details',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "status.jsp";
+                            }
+                        }));
+                        systemMenu.addChild(new MenuItem({
+                            label: 'Configuration',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "config.jsp";
+                            }
+                        }));
+                        systemMenu.addChild(new MenuItem({
+                            label: 'Event Log',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "eventlog.jsp";
+                            }
+                        }));
+                        systemMenu.addChild(new MenuItem({
+                            label: 'User Report',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "userreport.jsp";
+                            }
+                        }));
+                        topMenuBar.addChild(new PopupMenuBarItem({
+                            label: "System",
+                            popup: systemMenu
+                        }));
+                    }
+                    { // Other Menu
+                        var exitMenu = new Menu({});
+                        exitMenu.addChild(new MenuItem({
+                            label: 'About',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "about.jsp";
+                            }
+                        }));
+                        exitMenu.addChild(new MenuItem({
+                            label: 'Main Menu',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "<%=request.getContextPath()%>";
+                            }
+                        }));
+                        exitMenu.addChild(new MenuItem({
+                            label: 'Configuration Menu',
+                            onClick: function() {
+                                showWaitDialog();
+                                window.location = "<%=request.getContextPath()%>/config/ConfigManager";
+                            }
+                        }));
+                        topMenuBar.addChild(new PopupMenuBarItem({
+                            label: "Navigation",
+                            popup: exitMenu
+                        }));
+                    }
+                    topMenuBar.placeAt("TopMenu");
+                    topMenuBar.startup();
+                });
+    }
+    buildMenuBar();
+</script>

@@ -30,18 +30,20 @@ function pwmPageLoadHandler() {
         getObject('button_cancel').style.visibility = 'visible';
     }
 
-    try { //page leave notice
-        window.addEventListener('beforeunload', function () {
-            require(["dojo"],function(dojo){
-                dojo.xhrPost({
-                    url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    preventCache: true,
-                    sync: true
+    if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
+        try { //page leave notice
+            window.addEventListener('beforeunload', function () {
+                require(["dojo"],function(dojo){
+                    dojo.xhrPost({
+                        url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                        preventCache: true,
+                        sync: true
+                    });
                 });
             });
-        });
-    } catch (e) {
-        try {console.log('unable to register beforeunload pageLeaveNotice handler: ' + e);} catch (e2) {/*ignore*/}
+        } catch (e) {
+            try {console.log('unable to register beforeunload pageLeaveNotice handler: ' + e);} catch (e2) {/*ignore*/}
+        }
     }
 
     if (getObject('message')) { // message div float handler
@@ -64,14 +66,66 @@ function pwmPageLoadHandler() {
     }
 
     if (getObject('header-warning')) {
-        setTimeout(function(){flashDomElement('white','header-warning',10*1000);},5*1000);
-        setInterval(function(){flashDomElement('white','header-warning',10*1000);},30*1000);
+        setInterval(function(){flashDomElement('white','header-warning',10*1000);},10*1000);
     }
 
     require(["dojo/domReady!"],function(){
         IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
         initLocaleSelectorMenu('localeSelectionMenu');
     });
+
+    if (getObject('logoutDiv')) {
+        require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+            new Tooltip({
+                connectId: ["logoutDiv"],
+                label: PWM_STRINGS["Long_Title_Logout"]
+            });
+        });
+    }
+
+    require(["dijit/ProgressBar"],function(ProgressBar){ // preloads the progress meter work when it immediately does a form submit
+        new ProgressBar({style: '',indeterminate:true,id: "emptyDiv"},"emptyDiv");
+        setTimeout(function(){clearDijitWidget("emptyDiv")},10);
+    });
+
+}
+
+
+
+function handleFormSubmit(buttonID, form) {
+    PWM_GLOBAL['idle_suspendTimeout'] = true;
+    var submitButton = getObject(buttonID);
+    if (submitButton != null) {
+        getObject(buttonID).value = PWM_STRINGS['Display_PleaseWait'];
+        getObject(buttonID).disabled = true;
+
+        var formElements = submitButton.form.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].readOnly = true;
+        }
+    }
+
+    showWaitDialog(null,null,function(){form.submit();});
+    return false;
+}
+
+function handleFormClear() {
+    var focusSet = false;
+
+    for (var j = 0; j < document.forms.length; j++) {
+        for (var i = 0; i < document.forms[j].length; i++) {
+            var current = document.forms[j].elements[i];
+            if ((current.type == 'text') || (current.type == 'password')) {
+                current.value = '';
+                if (!focusSet) {
+                    current.focus();
+                    focusSet = true;
+                }
+            } else if (current.type == 'select') {
+                current.selectedIndex = -1;
+            }
+        }
+    }
 }
 
 function checkForCapsLock(e) {
@@ -123,47 +177,6 @@ function checkForCapsLock(e) {
             fx.fadeOut(fadeOutArgs).play();
         }
     });
-}
-
-function handleFormSubmit(buttonID, form) {
-    PWM_GLOBAL['idle_suspendTimeout'] = true;
-    var submitButton = getObject(buttonID);
-    if (submitButton != null) {
-        getObject(buttonID).value = PWM_STRINGS['Display_PleaseWait'];
-        getObject(buttonID).disabled = true;
-
-        var formElements = submitButton.form.elements;
-        for (var i = 0; i < formElements.length; i++) {
-            formElements[i].readOnly = true;
-        }
-    }
-
-    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
-        showWaitDialog();
-
-        setTimeout(function() {
-            form.submit();
-        }, 300);
-    });
-}
-
-function handleFormClear() {
-    var focusSet = false;
-
-    for (var j = 0; j < document.forms.length; j++) {
-        for (var i = 0; i < document.forms[j].length; i++) {
-            var current = document.forms[j].elements[i];
-            if ((current.type == 'text') || (current.type == 'password')) {
-                current.value = '';
-                if (!focusSet) {
-                    current.focus();
-                    focusSet = true;
-                }
-            } else if (current.type == 'select') {
-                current.selectedIndex = -1;
-            }
-        }
-    }
 }
 
 function setFocus(elementName) {
@@ -241,7 +254,7 @@ function initLocaleSelectorMenu(attachNode) {
     }
 
     require(["dojo/domReady!"],function(){
-        require(["dijit/Menu","dijit/MenuItem"],function(dijitMenu, dijitMenuItem){
+        require(["dojo","dijit/Menu","dijit/MenuItem"],function(dojo, dijitMenu, dijitMenuItem){
             var localeData = PWM_GLOBAL['localeInfo'];
             var pMenu = new dijitMenu({
                 targetNodeIds: [attachNode],
@@ -282,12 +295,15 @@ function initLocaleSelectorMenu(attachNode) {
     });
 }
 
-function showWaitDialog(title, body) {
+function showWaitDialog(title, body, loadFunction) {
     if (title == null) {
         title=PWM_STRINGS['Display_PleaseWait'];
     }
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         var idName = 'dialogPopup';
+        if (!loadFunction) {
+            loadFunction = function(){};
+        }
         clearDijitWidget(idName);
         if (body == null || body.length < 1) {
             //body = '<div id="WaitDialogBlank"/>';
@@ -300,12 +316,12 @@ function showWaitDialog(title, body) {
             content: body
         });
         dojo.style(theDialog.closeButtonNode,"display","none");
+        dojo.connect(theDialog,"onShow",null,loadFunction);
         theDialog.show();
         var progressBar = new ProgressBar({
             style: '',
             indeterminate:true
         },"progressBar");
-
     });
 }
 
@@ -735,8 +751,8 @@ function showStatChart(statName,days,divName) {
                     }
                     if (divName != null && getObject(divName)) { // stats chart
                         var values = [];
-                        for(var key in data) {
-                            var value = data[key];
+                        for(var key in data['nameData']) {
+                            var value = data['nameData'][key];
                             values.push(parseInt(value));
                         }
 
@@ -929,3 +945,88 @@ function messageDivFloatHandler() { // called by message.jsp
         }
     });
 }
+
+function pwmFormValidator(validationProps, reentrant)
+{
+    var TYPE_WAIT_TIME_MS = PWM_GLOBAL['client.ajaxTypingWait'];
+    var AJAX_TIMEOUT = PWM_GLOBAL['client.ajaxTypingTimeout'];
+    var CONSOLE_DEBUG = true;
+
+    var serviceURL = validationProps['serviceURL'] + (validationProps['serviceURL'].indexOf('?') == -1 ? '?' : '&' ) + "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var readDataFunction = validationProps['readDataFunction'];
+    var processResultsFunction = validationProps['processResultsFunction'];
+    var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : PWM_STRINGS['Display_PleaseWait'];
+
+    if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
+    //init vars;
+    if (!PWM_GLOBAL['validationCache']) {
+        PWM_GLOBAL['validationCache'] = {};
+    }
+
+    // check if data is in cache, if it is just process it.
+    var formData = readDataFunction();
+    var formKey = "";
+    for (var key in formData) {formKey += formData[key] + "-";}
+
+    {
+        var cachedResult = PWM_GLOBAL['validationCache'][formKey];
+        if (cachedResult != null) {
+            processResultsFunction(cachedResult);
+            if (CONSOLE_DEBUG) console.log('pwmFormValidator: processed cached data, exiting');
+            return;
+        }
+    }
+
+    if (!reentrant) {
+        PWM_GLOBAL['validationLastType'] = new Date().getTime();
+    }
+
+    // check to see if user is still typing.  if yes, then come back later.
+    if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < TYPE_WAIT_TIME_MS) {
+        showInfo(PWM_STRINGS['Display_TypingWait']);
+        setTimeout(function(){pwmFormValidator(validationProps, true)}, TYPE_WAIT_TIME_MS + 1);
+        if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
+        return;
+    }
+    if (CONSOLE_DEBUG) console.log('pwmFormValidator: user no longer typing, continuing..');
+
+    //check to see if a validation is already in progress, if it is then ignore keypress.
+    if (PWM_GLOBAL['validationInProgress'] == true) {
+        if (CONSOLE_DEBUG) console.log('pwmFormValidator: waiting for a previous validation to complete, exiting...');
+        return;
+    }
+    PWM_GLOBAL['validationInProgress'] = true;
+
+    // show in-progress message if load takes too long.
+    setTimeout(function(){ if (PWM_GLOBAL['validationInProgress']==true) { showInfo(messageWorking); } },5);
+    var formDataString = dojo.toJson(formData);
+
+    require(["dojo"],function(dojo){
+        if (CONSOLE_DEBUG) console.log('pwmFormValidator: sending form data to server...');
+        dojo.xhrPost({
+            url: serviceURL,
+            postData: formDataString,
+            headers: {"Accept":"application/json"},
+            contentType: "application/json;charset=utf-8",
+            encoding: "utf-8",
+            handleAs: "json",
+            dataType: "json",
+            preventCache: true,
+            timeout: AJAX_TIMEOUT,
+            error: function(errorObj) {
+                PWM_GLOBAL['validationInProgress'] = false;
+                showInfo(PWM_STRINGS['Display_CommunicationError']);
+                if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
+                processResultsFunction(null);
+            },
+            load: function(data){
+                PWM_GLOBAL['validationInProgress'] = false;
+                delete PWM_GLOBAL['validationLastType'];
+                PWM_GLOBAL['validationCache'][formKey] = data;
+                if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
+                pwmFormValidator(validationProps, true);
+            }
+        });
+    });
+}
+

@@ -43,6 +43,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -248,7 +249,7 @@ public class AuthenticationFilter implements Filter {
             } else {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setUsername(username);
-                searchConfiguration.setContext(context);
+                searchConfiguration.setContexts(Collections.singletonList(context));
                 final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
                 userDN = theUser.getEntryDN();
             }

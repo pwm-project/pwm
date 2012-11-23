@@ -62,7 +62,7 @@
      style="visibility:hidden; vertical-align:bottom; float: right"
      onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
 <script type="text/javascript">
-    require(["dijit/Tooltip"],function(){
+    require(["dijit/Tooltip","dojo/domReady!"],function(){
         new dijit.Tooltip({
             connectId: ["resetButton-<%=loopSetting.getKey()%>"],
             label: 'Return this setting to its default value.'
@@ -81,13 +81,17 @@
         </tr>
     </table>
     <script type="text/javascript">
-        LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
+        require(["dojo/domReady!"],function(){
+            LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
+        });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
     </table>
     <script type="text/javascript">
-        MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+        require(["dojo/domReady!"],function(){
+            MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+        });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
@@ -96,13 +100,17 @@
         </tr>
     </table>
     <script type="text/javascript">
-        MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+        require(["dojo/domReady!"],function(){
+            MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+        });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.FORM) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
     <script type="text/javascript">
-        FormTableHandler.init('<%=loopSetting.getKey()%>');
+        require(["dojo/domReady!"],function(){
+            FormTableHandler.init('<%=loopSetting.getKey()%>');
+        });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
@@ -110,7 +118,7 @@
         [Loading...]
     </button>
     <script type="text/javascript">
-        require(["dijit","dijit/registry","dijit/form/Button"],function(dijit,registry){
+        require(["dijit","dijit/registry","dijit/form/Button","dojo/domReady!"],function(dijit,registry){
             new dijit.form.Button({
                 disabled: true,
                 onClick: function() {
@@ -141,7 +149,7 @@
         <% } %>
     </select>
     <script type="text/javascript">
-        require(["dijit","dijit/registry","dijit/form/FilteringSelect"],function(dijit,registry){
+        require(["dijit","dijit/registry","dijit/form/FilteringSelect","dojo/domReady!"],function(dijit,registry){
             readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
                 var selectElement = getObject('setting_' + '<%=loopSetting.getKey()%>');
                 selectElement.disabled = false;
@@ -154,7 +162,7 @@
     <% if (loopSetting.getSyntax() == PwmSetting.Syntax.TEXT_AREA) { %>
     <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
     <script type="text/javascript">
-        require(["dijit/form/Textarea"],function(){
+        require(["dijit/form/Textarea","dojo/domReady!"],function(){
             new dijit.form.Textarea({
                 regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                 required: <%=loopSetting.isRequired()%>,
@@ -172,7 +180,7 @@
     <% } if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
-        require(["dijit/form/ValidationTextBox"],function(){
+        require(["dijit/form/ValidationTextBox","dojo/domReady!"],function(){
             new dijit.form.ValidationTextBox({
                 regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                 required: <%=loopSetting.isRequired()%>,
@@ -190,7 +198,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
-        require(["dijit/form/NumberSpinner"],function(){
+        require(["dijit/form/NumberSpinner","dojo/domReady!"],function(){
             new dijit.form.NumberSpinner({
                 regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                 required: <%=loopSetting.isRequired()%>,

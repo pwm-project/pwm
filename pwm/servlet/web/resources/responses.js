@@ -24,72 +24,35 @@ var responsesHidden = true;
 var PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
 var PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 
-var validationCache = { };
-var validationInProgress = false;
-
 var simpleRandomSelectElements = [];
 
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateResponses() {
-    if (validationInProgress) {
-        return;
-    }
+    var validationProps = new Array();
+    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingResponses'];
+    validationProps['serviceURL'] = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
+    validationProps['readDataFunction'] = function(){
+        return makeFormData();
+    };
+    validationProps['processResultsFunction'] = function(data){
+        updateDisplay(data);
+    };
 
-    var parameterData = makeValidationKey();
-    {
-        var cachedResult = validationCache[parameterData.cacheKey];
-        if (cachedResult != null) {
-            updateDisplay(cachedResult);
-            return;
-        }
-    }
-
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingResponses']); }},1000);
-
-    validationInProgress = true;
-    require(["dojo"],function(dojo){
-        dojo.xhrPost({
-            url: PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            postData:  dojo.toJson(parameterData),
-            contentType: "application/json;charset=utf-8",
-            dataType: "json",
-            handleAs: "json",
-            preventCache: true,
-            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
-            error: function(errorObj) {
-                validationInProgress = false;
-                getObject("setresponses_button").disabled = false;
-                showSuccess(PWM_STRINGS['Display_CommunicationError']);
-                console.log('error: ' + errorObj);
-            },
-            load: function(data){
-                setTimeout(function(){
-                    validationCache[parameterData.cacheKey] = data;
-                    validationInProgress = false;
-                    validateResponses();
-                },500);
-            }
-        });
-    });
+    pwmFormValidator(validationProps);
 }
 
-function makeValidationKey() {
-    var cacheKeyValue = "";
+function makeFormData() {
     var paramData = { };
 
     for (var j = 0; j < document.forms.length; j++) {
         for (var i = 0; i < document.forms[j].length; i++) {
             var current = document.forms[j].elements[i];
             if (current.name.substring(0,PARAM_QUESTION_PREFIX.length) == PARAM_QUESTION_PREFIX || current.name.substring(0,PARAM_RESPONSE_PREFIX.length) == PARAM_RESPONSE_PREFIX) {
-                var currentValue = current.value;
-                cacheKeyValue = cacheKeyValue + (current.name + '=' + currentValue) + '&';
-                paramData[current.name] = currentValue;
+                paramData[current.name] = current.value;
             }
         }
     }
-
-    paramData['cacheKey'] = cacheKeyValue;
 
     return paramData;
 }
@@ -193,7 +156,7 @@ function makeSelectOptionsDistinct() {
     });
 }
 
-function startupResponsesPage(initialPrompt)
+function startupResponsesPage()
 {
     if (PWM_GLOBAL['setting-showHidePasswordFields']) {
         try {
@@ -205,6 +168,7 @@ function startupResponsesPage(initialPrompt)
         }
     }
 
+    var initialPrompt = PWM_STRINGS['Display_ResponsesPrompt'];
     if (initialPrompt != null && initialPrompt.length > 1) {
         var messageElement = getObject("message");
         if (messageElement.firstChild.nodeValue.length < 2) {

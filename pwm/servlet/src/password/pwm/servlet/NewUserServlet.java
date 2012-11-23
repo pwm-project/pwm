@@ -43,6 +43,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.rest.RestCheckPasswordServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -202,20 +203,16 @@ public class NewUserServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-
-        boolean success = true;
-        PasswordUtility.PasswordCheckInfo passwordCheckInfo = null;
-        String userMessage = Message.getLocalizedMessage(locale, Message.SUCCESS_NEWUSER_FORM, pwmApplication.getConfig());
-
         final Map<String,String> userValues = readResponsesFromJsonRequest(req);
 
+        String output = "";
         try {
             verifyFormAttributes(userValues, pwmSession, pwmApplication);
             { // no form errors, so check the password
                 final UserInfoBean uiBean = new UserInfoBean();
                 uiBean.setAllUserAttributes(userValues);
                 uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,locale));
-                passwordCheckInfo = PasswordUtility.checkEnteredPassword(
+                PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                         pwmApplication,
                         pwmSession.getSessionStateBean().getLocale(),
                         null,
@@ -223,29 +220,15 @@ public class NewUserServlet extends TopServlet {
                         userValues.get("password1"),
                         userValues.get("password2")
                 );
-                if (!passwordCheckInfo.isPassed()) {
-                    success = false;
-                    userMessage = passwordCheckInfo.getMessage();
-                }
+                output = new Gson().toJson(RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(passwordCheckInfo));
             }
         } catch (PwmOperationalException e) {
-            success = false;
-            userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
+            final Map<String, String> outputMap = new HashMap<String, String>();
+            outputMap.put("version", "2");
+            outputMap.put("message", e.getErrorInformation().toUserStr(pwmSession, pwmApplication));
+            outputMap.put("passed", String.valueOf(false));
+            output = (new Gson()).toJson(outputMap);
         }
-
-
-
-        final Map<String, String> outputMap = new HashMap<String, String>();
-        outputMap.put("version", "1");
-        outputMap.put("message", userMessage);
-        if (passwordCheckInfo != null) {
-            outputMap.put("strength", String.valueOf(passwordCheckInfo.getStrength()));
-            outputMap.put("match", passwordCheckInfo.getMatch().toString());
-        }
-        outputMap.put("success", String.valueOf(success));
-
-        final Gson gson = new Gson();
-        final String output = gson.toJson(outputMap);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);

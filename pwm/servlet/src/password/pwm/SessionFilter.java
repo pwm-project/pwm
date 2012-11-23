@@ -215,8 +215,9 @@ public class SessionFilter implements Filter {
             if (pwmApplication.getConfig() != null && !pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
                 ssBean.setSessionVerified(true);
             } else {
-                verifySession(req, resp, servletContext);
-                return;
+                if (verifySession(req, resp, servletContext)) {
+                    return;
+                }
             }
         }
 
@@ -333,7 +334,7 @@ public class SessionFilter implements Filter {
      * @throws IOException                    if error touching the io streams
      * @throws javax.servlet.ServletException error using the servlet context
      */
-    private static void verifySession(
+    private static boolean verifySession(
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final ServletContext servletContext
@@ -353,7 +354,7 @@ public class SessionFilter implements Filter {
 
             resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
-            return;
+            return true;
         }
 
         // else, request has a key, so investigate.
@@ -363,10 +364,7 @@ public class SessionFilter implements Filter {
             // session looks, good, mark it as such and return;
             LOGGER.trace(pwmSession, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
-
-            resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
-            return;
+            return false;
         }
 
         // user's session is messed up.  send to error page.
@@ -375,6 +373,7 @@ public class SessionFilter implements Filter {
         LOGGER.error(pwmSession, errorInformation.toDebugStr());
         ssBean.setSessionError(errorInformation);
         ServletHelper.forwardToErrorPage(req, resp, servletContext);
+        return false;
     }
 
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {

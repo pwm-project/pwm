@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server.rest;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.ContextManager;
@@ -41,8 +40,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.Map;
 
 @Path("/setpassword")
 public class RestSetPasswordServer {
@@ -51,16 +48,24 @@ public class RestSetPasswordServer {
     @Context
     HttpServletRequest request;
 
+    public static class JsonOutput {
+        public String username;
+        public int version;
+        //public int strength;
+        //public PasswordUtility.PasswordCheckInfo.MATCH_STATUS match;
+        public String errorMsg;
+        public boolean success;
+        public int errorCode;
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPostSetPassword(
+    public JsonOutput doPostSetPassword(
             final @FormParam("username") String username,
             final @FormParam("password") String password
     ) {
-        final Gson gson = new Gson();
-        final Map<String,String> outputMap = new HashMap<String,String>();
-
+        final JsonOutput outputMap = new JsonOutput();
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
@@ -68,45 +73,44 @@ public class RestSetPasswordServer {
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                outputMap.put("success","false");
-                outputMap.put("errorMsg", PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo().toDebugStr());
-                return gson.toJson(outputMap);
+                outputMap.success = false;
+                outputMap.errorMsg = PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo().toDebugStr();
+                return outputMap;
             }
 
             try {
                 if (username != null && username.length() > 0) {
 
                     if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
-                        outputMap.put("success","false");
-                        outputMap.put("errorMsg", PwmError.ERROR_UNAUTHORIZED.toInfo().toDebugStr());
-                        return gson.toJson(outputMap);
+                        outputMap.success = false;
+                        outputMap.errorMsg = PwmError.ERROR_UNAUTHORIZED.toInfo().toDebugStr();
+                        return outputMap;
                     }
 
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
-                    outputMap.put("username", chaiUser.readCanonicalDN());
+                    outputMap.username = chaiUser.readCanonicalDN();
                     PasswordUtility.helpdeskSetUserPassword(pwmSession, chaiUser, pwmApplication, password);
                 } else {
-                    outputMap.put("username",pwmSession.getUserInfoBean().getUserDN());
+                    outputMap.username = pwmSession.getUserInfoBean().getUserDN();
                     PasswordUtility.setUserPassword(pwmSession, pwmApplication, password);
                 }
-                outputMap.put("success", "true");
-                final String resultString = gson.toJson(outputMap);
+                outputMap.success = true;
                 if (isExternal) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_SETPASSWORD);
                 }
-                return resultString;
+                return outputMap;
             } catch (PwmOperationalException e) {
-                outputMap.put("success","false");
-                outputMap.put("errorCode", String.valueOf(e.getError().getErrorCode()));
-                outputMap.put("errorMsg", e.getErrorInformation().getDetailedErrorMsg());
-                return gson.toJson(outputMap);
+                outputMap.success = false;
+                outputMap.errorCode = e.getError().getErrorCode();
+                outputMap.errorMsg = e.getErrorInformation().getDetailedErrorMsg();
+                return outputMap;
             }
 
         } catch (Exception e) {
-            outputMap.put("success","false");
-            outputMap.put("errorCode", String.valueOf(PwmError.ERROR_UNKNOWN.getErrorCode()));
-            outputMap.put("errorMsg", "unexpected error building json response for /randompassword rest service: " + e.getMessage());
-            return gson.toJson(outputMap);
+            outputMap.success = false;
+            outputMap.errorCode = PwmError.ERROR_UNKNOWN.getErrorCode();
+            outputMap.errorMsg = "unexpected error building json response for /randompassword rest service: " + e.getMessage();
+            return outputMap;
         }
     }
 }

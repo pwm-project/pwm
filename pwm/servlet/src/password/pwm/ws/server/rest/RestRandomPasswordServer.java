@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server.rest;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.ContextManager;
@@ -40,8 +39,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.Map;
 
 @Path("/randompassword")
 public class RestRandomPasswordServer {
@@ -49,6 +46,10 @@ public class RestRandomPasswordServer {
 
     @Context
     HttpServletRequest request;
+
+    public static class JsonOutput {
+        public String password;
+    }
 
     // This method is called if TEXT_PLAIN is request
     @GET
@@ -76,7 +77,7 @@ public class RestRandomPasswordServer {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPostRandomPassword(
+    public JsonOutput doPostRandomPassword(
             final @FormParam("username") String username,
             final @FormParam("strength") String strength
     ) {
@@ -104,17 +105,14 @@ public class RestRandomPasswordServer {
             }
 
             final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, randomConfig, pwmApplication);
-            final Map<String, String> outputMap = new HashMap<String, String>();
-            outputMap.put("password", randomPassword);
-
-            final Gson gson = new Gson();
-            final String returnString = gson.toJson(outputMap);
+            final JsonOutput outputMap = new JsonOutput();
+            outputMap.password = randomPassword;
 
             if (isExternal) {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_RANDOMPASSWORD);
             }
 
-            return returnString;
+            return outputMap;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /randompassword rest service: " + e.getMessage());
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

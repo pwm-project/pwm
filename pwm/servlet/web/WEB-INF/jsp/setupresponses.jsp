@@ -38,7 +38,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo"
-      onload="pwmPageLoadHandler();startupResponsesPage('<pwm:Display key="Display_ResponsesPrompt"/>'); document.forms[0].elements[0].focus();">
+      onload="pwmPageLoadHandler();startupResponsesPage();makeSelectOptionsDistinct();document.forms[0].elements[0].focus()">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -100,7 +100,9 @@
                     <% } %>
                 </select>
                 <script type="text/javascript">
-                    simpleRandomSelectElements.push(getObject('PwmResponse_Q_Random_<%=i%>'));
+                    require(["dojo/domReady!"],function(){
+                        simpleRandomSelectElements.push(getObject('PwmResponse_Q_Random_<%=i%>'));
+                    });
                 </script>
             </h2>
             <p>
@@ -165,7 +167,7 @@
             </div>
         </form>
         <script type="text/javascript">
-            require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
+            require(["dojo/parser","dijit/form/Textarea","dojo/domReady!"],function(dojoParser){
                 dojoParser.parse(getObject('centerbody'));
             });
         </script>

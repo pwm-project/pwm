@@ -20,9 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.util.UserReport" %>
 <%@ page import="java.text.DateFormat" %>
-<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -35,83 +36,59 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Event Log"/>
     </jsp:include>
-    <%@ include file="admin-nav.jsp" %>
     <% if ("true".equalsIgnoreCase(request.getParameter("doReport"))) { %>
     <div id="centerbody" style="width:98%">
+        <%@ include file="admin-nav.jsp" %>
         <br class="clear"/>
-        <% final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session)); %>
-        <br class="clear"/>
-        <table id="form">
-            <tr>
-                <td style="text-align: center;">
-                    User DN
-                </td>
-                <td style="text-align: center">
-                    User GUID
-                </td>
-                <td style="text-align: center">
-                    Password Expiration Time
-                </td>
-                <td style="text-align: center">
-                    Password Change Time
-                </td>
-                <td style="text-align: center">
-                    Response Save Time
-                </td>
-                <td style="text-align: center">
-                    Has Valid Responses
-                </td>
-                <td style="text-align: center">
-                    Password Expired
-                </td>
-                <td style="text-align: center">
-                    Password Pre-Expired
-                </td>
-                <td style="text-align: center">
-                    Password Violates Policy
-                </td>
-                <td style="text-align: center">
-                    Password In Warn Period
-                </td>
-            </tr>
             <%
-                for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(); resultIterator.hasNext(); ) {
+                final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session));
+                final List<Map<String,Object>> gridData = new ArrayList<Map<String, Object>>();
+                for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(50*1000); resultIterator.hasNext(); ) {
                     final UserReport.UserInformation userInformation = resultIterator.next();
+                    final Map<String,Object> rowData = new HashMap<String,Object>();
+                    rowData.put("userID",userInformation.getUserInfoBean().getUserID());
+                    rowData.put("userDN",userInformation.getUserInfoBean().getUserDN());
+                    rowData.put("userGUID",userInformation.getUserInfoBean().getUserGuid());
+                    rowData.put("pet",userInformation.getUserInfoBean().getPasswordExpirationTime());
+                    rowData.put("pct",userInformation.getPasswordChangeTime());
+                    rowData.put("rst",userInformation.getResponseSetTime());
+                    rowData.put("hasResponses",userInformation.isHasValidResponses());
+                    rowData.put("expired",userInformation.getPasswordStatus().isExpired());
+                    rowData.put("preExpired",userInformation.getPasswordStatus().isPreExpired());
+                    rowData.put("violatesPolicy",userInformation.getPasswordStatus().isViolatesPolicy());
+                    rowData.put("passwordWarn",userInformation.getPasswordStatus().isWarnPeriod());
+                    gridData.add(rowData);
+                }
             %>
-            <tr>
-                <td class="key" style="font-family: Courier, sans-serif" width="5">
-                    <%= userInformation.getUserDN() %>
-                </td>
-                <td>
-                    <%= userInformation.getGuid() %>
-                </td>
-                <td style="white-space: nowrap;">
-                    <%= userInformation.getPasswordExpirationTime() == null ? "n/a" : dateFormat.format(userInformation.getPasswordExpirationTime()) %>
-                </td>
-                <td style="white-space: nowrap;">
-                    <%= userInformation.getPasswordChangeTime() == null ? "n/a" : dateFormat.format(userInformation.getPasswordChangeTime()) %>
-                </td>
-                <td style="white-space: nowrap;">
-                    <%= userInformation.getResponseSetTime() == null ? "n/a" : dateFormat.format(userInformation.getResponseSetTime()) %>
-                </td>
-                <td>
-                    <%= userInformation.isHasValidResponses() ? "yes" : "no" %>
-                </td>
-                <td>
-                    <%= userInformation.getPasswordStatus().isExpired() ? "yes" : "no" %>
-                </td>
-                <td>
-                    <%= userInformation.getPasswordStatus().isPreExpired() ? "yes" : "no" %>
-                </td>
-                <td>
-                    <%= userInformation.getPasswordStatus().isViolatesPolicy() ? "yes" : "no" %>
-                </td>
-                <td>
-                    <%= userInformation.getPasswordStatus().isWarnPeriod() ? "yes" : "no" %>
-                </td>
-            </tr>
-            <% } %>
-        </table>
+        <div id="grid">
+        </div>
+        <script>
+            var headers = {"userID":"User ID","userDN":"User DN","userGUID":"User GUID","pet":"Password Expiration Time","pct":"Password Change Time","rst":"Response Save Time",
+                "hasResponses":"Has Valid Responses","expired":"Password Expired","preExpired":"Password Pre-Expired","violatesPolicy":"Password Violates Policy", "passwordWarn":"Password In Warn Period"};
+
+            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                        var data = <%=new Gson().toJson(gridData)%>;
+
+                        // Create a new constructor by mixing in the components
+                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                        // Now, create an instance of our custom grid which
+                        // have the features we added!
+                        var grid = new CustomGrid({
+                            columns: headers
+                        }, "grid");
+                        grid.renderArray(data);
+                        grid.set("sort","userID");
+                    });
+        </script>
+
+        <style scoped="scoped">
+            .dgrid { height: auto; }
+            .dgrid .dgrid-scroller { position: relative; overflow: visible; }
+        </style>
+        <br/>
+        <br/>
         <div id="buttonbar" style="align: center">
             <form action="userreport.jsp" method="GET">
                 <button type="submit" class="btn">Continue</button>
@@ -121,7 +98,8 @@
     </div>
     <% } else { %>
     <div id="centerbody">
-        <br/><br/>
+        <%@ include file="admin-nav.jsp" %>
+        <br/>
         <p>This report may take a long time to generate depending on the number of users in the search.</p>
         <p>If the user count is large, PWM may need large sizes of Java memory (heap size) to run the report.  It is also possible to run
             this report from the <i>PwmCommand</i> command line utility.

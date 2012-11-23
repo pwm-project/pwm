@@ -41,7 +41,7 @@
         ServletHelper.forwardToErrorPage(request, response, true);
     }
 %>
-<body id="body" class="nihilo" style="background-color: black; cursor: none">
+<body id="body" class="nihilo" style="background-color: black; cursor: none" onload="startupHealthPage()">
 <div id="centerbody" style="margin-top: 0">
     <div id style="z-index: 3; position: relative; background: white; opacity: 0.9">
         <table id="form">
@@ -84,9 +84,6 @@
     var deltaV = Math.floor((Math.random() * V_RANGE * 2)) - V_RANGE;
     var deltaH = Math.floor((Math.random() * H_RANGE * 2)) - H_RANGE;
     var passwordValue = null;
-
-
-    PWM_GLOBAL['pwm-health'] = 'GOOD';
 
     function drawNextSprite() {
         require(["dojo","dojo/window"],function(dojo){
@@ -202,7 +199,8 @@
         });
     }
 
-    function startup() {
+    function startupHealthPage() {
+        PWM_GLOBAL['pwm-health'] = 'GOOD';
         require(["dojo","dojo/domReady!","dojo/window"],function(dojo){
             flashDomElement('white','body',9000);
 
@@ -235,8 +233,6 @@
 
         });
     }
-
-    startup();
 </script>
 </body>
 </html>

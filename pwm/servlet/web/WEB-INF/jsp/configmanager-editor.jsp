@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
-<%@ page import="password.pwm.config.PwmLocale" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
@@ -40,7 +39,7 @@
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
 <% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
 
-<body class="nihilo">
+<body class="nihilo" onload="pwmPageLoadHandler()">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/resources/configmanager.js"/>"></script>
 <div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
@@ -63,7 +62,7 @@
 <script type="text/javascript">
 function buildMenuBar() {
     clearDijitWidget('topMenuBar');
-    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],function(dojo,dijit){
+    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator","dojo/domReady!"],function(dojo,dijit){
         var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
@@ -293,7 +292,7 @@ function buildMenuBar() {
     });
 }
 
-require(["dojo"],function(dojo){
+require(["dojo","dojo/domReady!"],function(dojo){
     buildMenuBar();
     if(dojo.isIE <= 8){ // only IE8 and below
         alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');

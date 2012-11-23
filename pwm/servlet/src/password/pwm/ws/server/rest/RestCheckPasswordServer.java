@@ -44,8 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.Map;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer {
@@ -54,10 +52,56 @@ public class RestCheckPasswordServer {
     @Context
     HttpServletRequest request;
 
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
+    public static class JsonInput
+    {
+        public String password1;
+        public String password2;
+        public String username;
+    }
+
+    public static class JsonOutput {
+        public int version;
+        public int strength;
+        public PasswordUtility.PasswordCheckInfo.MATCH_STATUS match;
+        public String message;
+        public boolean passed;
+        public int errorCode;
+
+        public static JsonOutput fromPasswordCheckInfo(
+                final PasswordUtility.PasswordCheckInfo checkInfo
+        ) {
+            final JsonOutput outputMap = new JsonOutput();
+            outputMap.version = 2;
+            outputMap.strength = checkInfo.getStrength();
+            outputMap.match = checkInfo.getMatch();
+            outputMap.message = checkInfo.getMessage();
+            outputMap.passed = checkInfo.isPassed();
+            outputMap.errorCode = checkInfo.getErrorCode();
+            return outputMap;
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPasswordRuleCheckJsonPost(
+    public JsonOutput doPasswordRuleCheckFormPost(
+            final @FormParam("password1") String password1,
+            final @FormParam("password2") String password2,
+            final @FormParam("username") String username
+    )
+    {
+        return doOperation(password1,password2,username);
+    }
+
+    @POST
+	@Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public JsonOutput doPasswordRuleCheckJsonPost(JsonInput jsonInput)
+    {
+        return doOperation(jsonInput.password1,jsonInput.password2,jsonInput.username);
+    }
+
+    public JsonOutput doOperation(
             final @FormParam("password1") String password1,
             final @FormParam("password2") String password2,
             final @FormParam("username") String username
@@ -94,15 +138,15 @@ public class RestCheckPasswordServer {
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, password1, password2, uiBean);
 
-            final String resultString = doPasswordRuleCheck(pwmApplication, pwmSession, checkRequest);
+            final JsonOutput result  = doPasswordRuleCheck(pwmApplication, pwmSession, checkRequest);
             if (!isExternal) {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
             }
-            return resultString;
+            return result;
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /checkpassword rest service: " + e.getMessage());
         }
-        return "";
+        return null;
     }
 
     private static class PasswordCheckRequest {
@@ -136,7 +180,7 @@ public class RestCheckPasswordServer {
     }
 
 
-	public String doPasswordRuleCheck(PwmApplication pwmApplication, PwmSession pwmSession, PasswordCheckRequest checkRequest)
+	public JsonOutput doPasswordRuleCheck(PwmApplication pwmApplication, PwmSession pwmSession, PasswordCheckRequest checkRequest)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
@@ -150,43 +194,20 @@ public class RestCheckPasswordServer {
                 checkRequest.getPassword2()
         );
 
-
-        final String outputString = generateJsonOutputString(passwordCheckInfo);
+        final JsonOutput result = JsonOutput.fromPasswordCheckInfo(passwordCheckInfo);
         {
             final StringBuilder sb = new StringBuilder();
             sb.append("real-time password validator called for ").append(checkRequest.getUserDN());
             sb.append("\n");
             sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
-            sb.append(", pass: ").append(passwordCheckInfo.isPassed());
-            sb.append(", match: ").append(passwordCheckInfo.getMatch());
-            sb.append(", strength: ").append(passwordCheckInfo.getStrength());
-            if (!passwordCheckInfo.isPassed()) {
-                sb.append(", err: ").append(passwordCheckInfo.getMessage());
-            }
             sb.append("\n");
-            sb.append("  passwordCheckInfo string: ").append(outputString);
+            sb.append("  passwordCheckInfo string: ").append(new Gson().toJson(result));
             LOGGER.trace(pwmSession, sb.toString());
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
-        return outputString;
+        return result;
 	}
-
-
-    private static String generateJsonOutputString(
-            final PasswordUtility.PasswordCheckInfo checkInfo
-    ) {
-        final Map<String, String> outputMap = new HashMap<String, String>();
-        outputMap.put("version", "2");
-        outputMap.put("strength", String.valueOf(checkInfo.getStrength()));
-        outputMap.put("match", checkInfo.getMatch().toString());
-        outputMap.put("message", checkInfo.getMessage());
-        outputMap.put("passed", String.valueOf(checkInfo.isPassed()));
-        outputMap.put("errorCode", String.valueOf(checkInfo.getErrorCode()));
-
-        final Gson gson = new Gson();
-        return gson.toJson(outputMap);
-    }
 }
 
 

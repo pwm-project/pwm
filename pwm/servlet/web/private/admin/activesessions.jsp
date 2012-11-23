@@ -20,14 +20,11 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.error.ErrorInformation" %>
+<%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.LinkedHashSet" %>
-<%@ page import="java.util.Set" %>
+<%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -39,80 +36,69 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Active Sessions"/>
     </jsp:include>
-    <div id="centerbody" style="width:98%">
+    <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <table>
-            <tr>
-                <td class="key" style="text-align: left">
-                    Label
-                </td>
-                <td class="key" style="text-align: left">
-                    Creation Time
-                </td>
-                <td class="key" style="text-align: left">
-                    Idle
-                </td>
-                <td class="key" style="text-align: left">
-                    Address
-                </td>
-                <td class="key" style="text-align: left">
-                    Locale
-                </td>
-                <td class="key" style="text-align: left">
-                    User DN
-                </td>
-                <td class="key" style="text-align: left">
-                    Bad Auths
-                </td>
-                <td class="key" style="text-align: left">
-                    Last Error
-                </td>
-            </tr>
-
-            <%
-                final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-                final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
-                for (final PwmSession loopSession : activeSessions) {
-                    try {
-                        final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-                        final password.pwm.bean.UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-            %>
-
-            <tr>
-                <td>
-                    <%= StringEscapeUtils.escapeHtml(loopSession.getSessionLabel()) %>
-                </td>
-                <td style="white-space: nowrap;">
-                    <%= DateFormat.getDateTimeInstance().format(new Date(loopSession.getCreationTime())) %>
-                </td>
-                <td>
-                    <%= TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString() %>
-                </td>
-                <td>
-                    <%=loopSsBean.getSrcAddress() %>
-                </td>
-                <td>
-                    <%= loopSsBean.getLocale() %>
-                </td>
-                <td>
-                    <%= loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "&nbsp;" %>
-                </td>
-                <td>
-
-                    <%= loopSsBean.getIncorrectLogins() %>
-                </td>
-                <td>
-                    <% final ErrorInformation lastError = loopSsBean.getSessionError(); %>
-                    <%= lastError != null ? lastError.toUserStr(loopSession, ContextManager.getPwmApplication(session)) : "&nbsp;" %>
-                </td>
-            </tr>
-            <%
-                    } catch (IllegalStateException e) {
-                        //don't care, session is invalidated
-                    }
+        <%
+            final Gson gson = new Gson();
+            final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+            timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+            final int maxResults = 100000;
+            boolean maxResultsExceeded = false;
+            final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
+            final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
+            final List<Map<String,String>> gridData = new ArrayList<Map<String, String>>();
+            for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && !maxResultsExceeded;) {
+                final PwmSession loopSession = iterator.next();
+                try {
+                    final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
+                    final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
+                    final Map<String, String> rowData = new HashMap<String, String>();
+                    rowData.put("label", loopSession.getSessionStateBean().getSessionID());
+                    rowData.put("createTime", timeFormat.format(new Date(loopSession.getCreationTime())));
+                    rowData.put("idle", TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString());
+                    rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
+                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "");
+                    rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUserID() : "");
+                    rowData.put("srcAddress", loopSsBean.getSrcAddress());
+                    gridData.add(rowData);
+                } catch (IllegalStateException e) { /* ignore */ }
+                if (gridData.size() >= maxResults) {
+                    maxResultsExceeded = true;
                 }
-            %>
-        </table>
+            }
+        %>
+        <div id="grid">
+        </div>
+        <script>
+            var headers = {"createTime":"Create Time","label":"Label","idle":"Idle","srcAddress":"Address","locale":"Locale",
+                "userID":"User ID","userDN":"User DN"};
+
+            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                        var data = <%=gson.toJson(gridData)%>;
+                        var columnHeaders = headers;
+
+                        // Create a new constructor by mixing in the components
+                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                        // Now, create an instance of our custom grid which
+                        // have the features we added!
+                        var grid = new CustomGrid({
+                            columns: columnHeaders
+                        }, "grid");
+                        grid.renderArray(data);
+                        grid.set("sort","createTime");
+                    });
+        </script>
+        <style scoped="scoped">
+            .dgrid { height: auto; }
+            .dgrid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
+        </style>
+        <% if (maxResultsExceeded) { %>
+        <div style="width:100%; text-align: center">
+            <pwm:Display key="Display_SearchResultsExceeded"/>
+        </div>
+        <% } %>
     </div>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

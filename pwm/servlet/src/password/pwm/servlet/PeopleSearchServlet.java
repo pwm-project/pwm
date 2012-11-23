@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.PeopleSearchBean;
 import password.pwm.bean.SessionStateBean;
@@ -36,10 +35,12 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.crypto.SecretKey;
@@ -53,6 +54,8 @@ import java.util.*;
 public class PeopleSearchServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PeopleSearchServlet.class);
+
+    private static final String KEY_RESULTS_EXCEEDED = "KEY_RESULTS_EXCEEDED";
 
     @Override
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
@@ -168,12 +171,16 @@ public class PeopleSearchServlet extends TopServlet {
             }
 
             if (!ldapResults.isEmpty()) {
-                final Map<String,Map<String,String>> outputMap = new LinkedHashMap<String, Map<String, String>>(ldapResults);
-                final int maxResults = (int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
-                return new PeopleSearchResults(headers,attributes,outputMap,outputMap.size() > maxResults);
+                final boolean resultsExceeded = ldapResults.containsKey(KEY_RESULTS_EXCEEDED);
+                ldapResults.remove(KEY_RESULTS_EXCEEDED);
+                final Map<String,Map<String,String>> outputMap = Collections.unmodifiableMap(ldapResults);
+                return new PeopleSearchResults(headers,attributes,outputMap,resultsExceeded);
             }
-        } catch (ChaiOperationException e) {
-            LOGGER.trace(pwmSession, "can't find username: " + e.getMessage());
+        } catch (Exception e) {
+            final String errorMsg = "can't perform search: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.warn(pwmSession, errorInformation.toDebugStr());
         }
         return null;
     }
@@ -219,45 +226,33 @@ public class PeopleSearchServlet extends TopServlet {
             final String username,
             final List<String> returnAttributes,
             final ChaiProvider chaiProvider
-    ) throws ChaiUnavailableException, ChaiOperationException {
+    )
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
         final Configuration config = pwmApplication.getConfig();
-        final String filter;
-        {
-            final String peopleSearchSetting = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER);
-            if (peopleSearchSetting != null && peopleSearchSetting.length() > 0) {
-                filter = peopleSearchSetting.replaceAll("%USERNAME%", username);
-            } else {
-                filter = config.readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER).replace("%USERNAME%", username);
-            }
-        }
-
-        final List<String> searchContexts;
-        {
-            final List<String> peopleSearchSetting = config.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE);
-            if (!peopleSearchSetting.isEmpty() && peopleSearchSetting.get(0).length() > 0) {
-                searchContexts = peopleSearchSetting;
-            } else {
-                searchContexts = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-            }
-        }
-
         final int maxResults = (int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilter(filter);
-        searchHelper.setAttributes(returnAttributes);
 
-        final Map<String,Map<String,String>> searchResults = new LinkedHashMap<String,Map<String, String>>();
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setChaiProvider(chaiProvider);
+        searchConfiguration.setContexts(config.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
+        searchConfiguration.setEnableContextValidation(false);
+        searchConfiguration.setUsername(username);
 
-        for (final String searchContext : searchContexts) {
-            final int remainingResults = (maxResults + 1) - searchResults.size();
-            if (remainingResults > 0) {
-                searchHelper.setMaxResults(remainingResults);
+        final String peopleSearchFilter = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER);
+        if (peopleSearchFilter != null && peopleSearchFilter.length() > 0) {
+            searchConfiguration.setFilter(peopleSearchFilter);
+        }
 
-                LOGGER.trace("about to perform people search: " + searchHelper.toString() + ", at context: " + searchContext);
-                final Map<String,Map<String,String>> ldapResults = chaiProvider.search(searchContext,searchHelper);
-                LOGGER.trace("people search results: " + ldapResults.size());
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final Map<ChaiUser,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null,searchConfiguration,maxResults+1,returnAttributes);
 
-                searchResults.putAll(ldapResults);
+        final Map<String,Map<String,String>> returnData = new LinkedHashMap<String, Map<String, String>>();
+        for (final ChaiUser loopUser : searchResults.keySet()) {
+            final String userDN = loopUser.getEntryDN();
+            returnData.put(userDN, searchResults.get(loopUser));
+            if (returnData.size() >= maxResults) {
+                returnData.put(KEY_RESULTS_EXCEEDED,Collections.<String,String>emptyMap());
+                break;
             }
         }
 
@@ -265,7 +260,7 @@ public class PeopleSearchServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
         }
 
-        return searchResults;
+        return returnData;
     }
 
     private void forwardToJSP(
@@ -313,6 +308,29 @@ public class PeopleSearchServlet extends TopServlet {
 
         public boolean isSizeExceeded() {
             return sizeExceeded;
+        }
+
+        public List<Map<String,String>> resultsAsJsonOutput(final PwmSession pwmSession) {
+            final List<Map<String,String>> outputList = new ArrayList<Map<String, String>>();
+            for (final String userDN : this.getResults().keySet()) {
+                final Map<String,String> rowMap = new LinkedHashMap<String, String>();
+                for (final String attribute : this.getAttributes()) {
+                    rowMap.put(attribute,this.getResults().get(userDN).get(attribute));
+                }
+                rowMap.put("userKey",makeUserDetailKey(userDN,pwmSession));
+                outputList.add(rowMap);
+            }
+            return outputList;
+        }
+
+        public Map<String,String> attributeHeaderMap() {
+            final Map<String,String> resultMap = new LinkedHashMap<String, String>();
+            final Iterator<String> headerIter = this.getHeaders().iterator();
+            for (final String attribute : this.getAttributes()) {
+                final String header = headerIter.next();
+                resultMap.put(attribute,header);
+            }
+            return resultMap;
         }
     }
 

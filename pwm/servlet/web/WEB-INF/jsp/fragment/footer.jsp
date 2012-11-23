@@ -29,6 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final Locale userLocaleFooter = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
+<div id="emptyDiv" style="max-width:1px"></div>
 <div id="footer">
     <br/>
     <br/>
@@ -45,29 +46,15 @@
         &nbsp;
     </span>
         &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
-        <span id="localeSelectionMenu" style="white-space: nowrap">
+    <span id="localeSelectionMenu" style="white-space: nowrap">
         <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
-        <%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
+        &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>
     </div>
     <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
         <%=PwmMacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>
-    </script>
-    <% } %>
-    <% final String googleTrackingCode = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
-    <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
-    <script type="text/javascript">
-        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-    </script>
-    <script type="text/javascript">
-        try {
-            var pageTracker = _gat._getTracker("<%=googleTrackingCode%>");
-            pageTracker._trackPageview();
-        } catch(err) {
-        }
     </script>
     <% } %>
 </div>

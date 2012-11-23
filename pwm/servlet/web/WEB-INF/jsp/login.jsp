@@ -36,7 +36,7 @@
         <p><pwm:Display key="Display_Login"/></p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
+              onsubmit="return handleFormSubmit('submitBtn',this)" onreset="handleFormClear();return false"
               onkeypress="checkForCapsLock(event)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.

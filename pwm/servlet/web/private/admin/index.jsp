@@ -27,14 +27,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body class="nihilo" onload="showWaitDialog();pwmPageLoadHandler()">
-<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>"/>
+<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="PWM Administration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/status.jsp"/>">PWM Status</a>
+            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>">PWM Status</a>
         </div>
     </div>
     <br class="clear"/>

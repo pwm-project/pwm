@@ -55,7 +55,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
                 for (final FormConfiguration paramConfig : requiredAttrParams) {
             %>
-            <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel() %>
+            <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel(ssBean.getLocale()) %>
             </label></h2>
             <input type="password" name="<%= paramConfig.getName()%>" class="inputfield" maxlength="255"
                    id="attribute-<%= paramConfig.getName()%>"
@@ -100,10 +100,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <br class="clear"/>
 </div>
-<script type="text/javascript">
-    PWM_STRINGS['Button_Hide_Responses'] = '<pwm:Display key="Button_Hide_Responses"/>';
-    PWM_STRINGS['Button_Show_Responses'] = '<pwm:Display key="Button_Show_Responses"/>';
-</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

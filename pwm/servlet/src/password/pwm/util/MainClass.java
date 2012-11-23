@@ -113,7 +113,7 @@ public class MainClass {
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
 
         final UserReport userReport = new UserReport(pwmApplication);
-        userReport.outputToCsv(outputFileStream,true);
+        userReport.outputToCsv(outputFileStream,true,50*1000);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report complete.");

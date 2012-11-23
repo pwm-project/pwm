@@ -41,9 +41,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class UserSearchEngine {
 
@@ -57,14 +55,18 @@ public class UserSearchEngine {
 
     private static String figureSearchFilterForParams(
             final Map<FormConfiguration, String> formValues,
-            final String searchFilter
+            final String searchFilter,
+            final boolean enableValueEscaping
     )
     {
         String newSearchFilter = searchFilter;
 
         for (final FormConfiguration formConfiguration : formValues.keySet()) {
             final String attrName = "%" + formConfiguration.getName() + "%";
-            String value = escapeLdapString(formValues.get(formConfiguration));
+            String value = formValues.get(formConfiguration);
+            if (enableValueEscaping) {
+                value = escapeLdapString(value);
+            }
             newSearchFilter = newSearchFilter.replace(attrName, value);
         }
 
@@ -108,6 +110,35 @@ public class UserSearchEngine {
     public ChaiUser performUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
+        final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
+        final List<ChaiUser> results = searchResults == null ? Collections.<ChaiUser>emptyList() : new ArrayList<ChaiUser>(searchResults.keySet());
+        if (results.isEmpty()) {
+            final String errorMessage;
+            if (searchConfiguration.getUsername() != null && searchConfiguration.getUsername().length() > 0) {
+                errorMessage = "an ldap user for username value '" + searchConfiguration.getUsername() + "' was not found";
+            } else {
+                errorMessage = "an ldap user was not found";
+            }
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
+        } else if (results.size() == 1) {
+            final ChaiUser theUser = results.get(0);
+            final String userDN = theUser.getEntryDN();
+            LOGGER.debug(pwmSession, "found userDN: " + userDN);
+            return theUser;
+        } else {
+            final String errorMessage = "multiple user matches found";
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
+        }
+    }
+
+    public Map<ChaiUser,Map<String,String>> performMultiUserSearch(
+            final PwmSession pwmSession,
+            final SearchConfiguration searchConfiguration,
+            final int maxResults,
+            final List<String> returnAttributes
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
         final long startTime = System.currentTimeMillis();
         LOGGER.debug(pwmSession, "beginning user search process");
 
@@ -120,67 +151,68 @@ public class UserSearchEngine {
 
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {
-            searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, escapeLdapString(searchConfiguration.getUsername()));
+            if (searchConfiguration.isEnableValueEscaping()) {
+                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, escapeLdapString(searchConfiguration.getUsername()));
+            } else {
+                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, searchConfiguration.getUsername());
+            }
         } else if (searchConfiguration.getFormValues() != null) {
-            searchFilter = figureSearchFilterForParams(searchConfiguration.getFormValues(),input_searchFilter);
+            searchFilter = figureSearchFilterForParams(searchConfiguration.getFormValues(),input_searchFilter,searchConfiguration.isEnableValueEscaping());
         } else {
             searchFilter = input_searchFilter;
+        }
+
+        final List<String> searchContexts;
+        if (searchConfiguration.getContexts() != null && !searchConfiguration.getContexts().isEmpty() && searchConfiguration.getContexts().iterator().next().length() > 0) {
+            searchContexts = searchConfiguration.getContexts();
+
+            if (searchConfiguration.isEnableContextValidation()) {
+                for (final String searchContext : searchContexts) {
+                    validateSpecifiedContext(pwmApplication, searchContext);
+                }
+            }
+        } else {
+            searchContexts = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         }
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null ?
                 pwmApplication.getProxyChaiProvider() :
                 searchConfiguration.getChaiProvider();
 
-        ChaiUser returnUser = null;
-        if (searchConfiguration.getContext() != null && searchConfiguration.getContext().length() > 0) {
-            validateSpecifiedContext(pwmApplication, searchConfiguration.getContext());
-            returnUser = doSearch(
+        final Map<ChaiUser,Map<String,String>> returnMap;
+        returnMap = new HashMap<ChaiUser,Map<String, String>>();
+        for (final String loopContext : searchContexts) {
+            final Map<ChaiUser,Map<String,String>> singleContextResults = doSingleContextSearch(
                     pwmSession,
                     searchFilter,
-                    searchConfiguration.getContext(),
+                    loopContext,
+                    returnAttributes,
+                    maxResults - returnMap.size(),
                     chaiProvider
             );
-        } else {
-            final List<String> searchContexts = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-            for (final String loopContext : searchContexts) {
-                returnUser = doSearch(
-                        pwmSession,
-                        searchFilter,
-                        loopContext,
-                        chaiProvider
-                );
-                if (returnUser != null) {
-                    break;
-                }
+            returnMap.putAll(singleContextResults);
+            if (returnMap.size() >= maxResults) {
+                break;
             }
         }
 
-        LOGGER.debug(pwmSession, "completed user search process in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", result=" + (returnUser == null ? "none" : returnUser.getEntryDN()));
-
-        if (returnUser == null) {
-            final String errorMessage;
-            if (searchConfiguration.getUsername() != null && searchConfiguration.getUsername().length() > 0) {
-                errorMessage = "an ldap user for username value '" + searchConfiguration.getUsername() + "' was not found";
-            } else {
-                errorMessage = "an ldap user was not found";
-            }
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
-        }
-
-        return returnUser;
+        LOGGER.debug(pwmSession, "completed user search process in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", resultSize=" + returnMap.size());
+        return returnMap;
     }
 
-    private ChaiUser doSearch(
+    private Map<ChaiUser,Map<String,String>> doSingleContextSearch(
             final PwmSession pwmSession,
             final String searchFilter,
             final String context,
+            final List<String> returnAttributes,
+            final int maxResults,
             final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException, PwmOperationalException {
         final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setMaxResults(2);
+        searchHelper.setMaxResults(maxResults);
         searchHelper.setFilter(searchFilter);
-        searchHelper.setAttributes("");
+        searchHelper.setAttributes(returnAttributes);
 
         LOGGER.debug(pwmSession, "performing ldap search for user, base=" + context + " filter=" + searchHelper.toString());
 
@@ -188,16 +220,19 @@ public class UserSearchEngine {
             final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
 
             if (results.isEmpty()) {
-                LOGGER.debug(pwmSession, "user not found in context " + context);
-                return null;
-            } else if (results.size() > 1) {
-                final String errorMessage = "multiple user matches found in context '" + context + "'";
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
+                LOGGER.trace(pwmSession, "user not found in context " + context);
+                return Collections.emptyMap();
             }
 
-            final String userDN = results.keySet().iterator().next();
-            LOGGER.debug(pwmSession, "found userDN: " + userDN);
-            return ChaiFactory.createChaiUser(userDN, chaiProvider);
+            LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context);
+
+            final Map<ChaiUser,Map<String,String>> returnMap = new LinkedHashMap<ChaiUser, Map<String, String>>();
+            for (final String userDN : results.keySet()) {
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, chaiProvider);
+                final Map<String,String> attributeMap = results.get(userDN);
+                returnMap.put(chaiUser, attributeMap);
+            }
+            return returnMap;
         } catch (ChaiOperationException e) {
             LOGGER.warn(pwmSession, "error searching for user: " + e.getMessage());
             return null;
@@ -224,9 +259,12 @@ public class UserSearchEngine {
     public static class SearchConfiguration implements Serializable {
         private String filter;
         private String username;
-        private String context;
+        private List<String> contexts;
         private Map<FormConfiguration, String> formValues;
-        private ChaiProvider chaiProvider;
+        private transient ChaiProvider chaiProvider;
+
+        private boolean enableValueEscaping = true;
+        private boolean enableContextValidation = true;
 
         public String getFilter() {
             return filter;
@@ -252,12 +290,12 @@ public class UserSearchEngine {
             this.username = username;
         }
 
-        public String getContext() {
-            return context;
+        public List<String> getContexts() {
+            return contexts;
         }
 
-        public void setContext(String context) {
-            this.context = context;
+        public void setContexts(List<String> contexts) {
+            this.contexts = contexts;
         }
 
         public ChaiProvider getChaiProvider() {
@@ -266,6 +304,22 @@ public class UserSearchEngine {
 
         public void setChaiProvider(ChaiProvider chaiProvider) {
             this.chaiProvider = chaiProvider;
+        }
+
+        public boolean isEnableValueEscaping() {
+            return enableValueEscaping;
+        }
+
+        public void setEnableValueEscaping(boolean enableValueEscaping) {
+            this.enableValueEscaping = enableValueEscaping;
+        }
+
+        public boolean isEnableContextValidation() {
+            return enableContextValidation;
+        }
+
+        public void setEnableContextValidation(boolean enableContextValidation) {
+            this.enableContextValidation = enableContextValidation;
         }
 
         private void validate() {

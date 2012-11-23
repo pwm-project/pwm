@@ -22,21 +22,20 @@
 
 package password.pwm.util;
 
-import com.novell.ldapchai.ChaiFactory;
+import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PasswordStatus;
-import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
 
 import java.io.IOException;
@@ -53,64 +52,57 @@ public class UserReport {
         this.pwmApplication = pwmApplication;
     }
 
-    public Iterator<UserInformation> resultIterator()
-            throws ChaiUnavailableException, ChaiOperationException
+    public Iterator<UserInformation> resultIterator(final int maxResults)
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
-        final Set<String> userDNs = generateListOfUsers();
+        final List<ChaiUser> userDNs = generateListOfUsers(maxResults);
         return new ResultIterator(userDNs);
     }
 
-    private Set<String> generateListOfUsers()
-            throws ChaiUnavailableException, ChaiOperationException
+    private List<ChaiUser> generateListOfUsers(final int maxResults)
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
-        final String baseDN = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        final String rawSearchFilter = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER);
-        final String usernameSearchFilter = rawSearchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME,"*");
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setChaiProvider(pwmApplication.getProxyChaiProvider());
+        searchConfiguration.setEnableValueEscaping(false);
+        searchConfiguration.setUsername("*");
 
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setAttributes(Collections.<String>emptyList());
-        searchHelper.setFilter(usernameSearchFilter);
-        searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.SUBTREE);
+        LOGGER.debug("beginning UserReport user search using parameters: " + (new Gson()).toJson(searchConfiguration));
 
-        LOGGER.debug("beginning UserReport user search using parameters: " + searchHelper.toString());
-
-        final Map<String,Map<String,String>> searchResults = pwmApplication.getProxyChaiProvider().search(baseDN, searchHelper);
+        final Map<ChaiUser,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, maxResults, Collections.<String>emptyList());
         LOGGER.debug("UserReport user search found " + searchResults.size() + " users for reporting");
-        return searchResults.keySet();
+        return new ArrayList<ChaiUser>(searchResults.keySet());
     }
 
-    private UserInformation readUserInformation(final String userDN)
+    private UserInformation readUserInformation(final ChaiUser theUser)
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final UserInformation userInformation = new UserInformation();
-        userInformation.setUserDN(userDN);
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
         final UserInfoBean uiBean = new UserInfoBean();
 
-        UserStatusHelper.populateUserInfoBean(null, uiBean, pwmApplication, PwmConstants.DEFAULT_LOCALE ,userDN, null, pwmApplication.getProxyChaiProvider());
+        UserStatusHelper.populateUserInfoBean(null, uiBean, pwmApplication, PwmConstants.DEFAULT_LOCALE ,theUser.getEntryDN(), null, pwmApplication.getProxyChaiProvider());
         userInformation.setUserInfoBean(uiBean);
 
-        userInformation.setGuid(uiBean.getUserGuid());
         userInformation.setHasValidResponses(!uiBean.isRequiresResponseConfig());
         userInformation.setPasswordChangeTime(uiBean.getPasswordLastModifiedTime());
         userInformation.setPasswordExpirationTime(uiBean.getPasswordExpirationTime());
-        userInformation.setUserDN(uiBean.getUserDN());
         userInformation.setPasswordStatus(uiBean.getPasswordState());
 
         try {
             final ResponseSet responseSet = CrUtility.readUserResponseSet(null, pwmApplication, theUser);
             userInformation.setResponseSetTime(responseSet == null ? null : responseSet.getTimestamp());
         } catch (ChaiOperationException e) {
-            LOGGER.debug("error reading response set for " + userDN + " : " + e.getMessage());
+            LOGGER.debug("error reading response set for " + theUser.getEntryDN() + " : " + e.getMessage());
         }
 
         return userInformation;
     }
 
     private class ResultIterator implements Iterator<UserInformation> {
-        private final Iterator<String> userDNs;
+        private final Iterator<ChaiUser> userDNs;
 
-        private ResultIterator(final Set<String> userDNs) {
+        private ResultIterator(final List<ChaiUser> userDNs) {
             this.userDNs = userDNs.iterator();
         }
 
@@ -119,9 +111,9 @@ public class UserReport {
         }
 
         public UserInformation next() {
-            final String userDN = userDNs.next();
+            final ChaiUser nextUser = userDNs.next();
             try {
-                return readUserInformation(userDN);
+                return readUserInformation(nextUser);
             } catch (ChaiUnavailableException e) {
                 throw new IllegalStateException("the ldap directory is unavailable: " + e.getMessage());
             } catch (PwmUnrecoverableException e) {
@@ -135,9 +127,6 @@ public class UserReport {
     }
 
     public static class UserInformation {
-        private String userDN;
-        private String guid;
-
         private PasswordStatus passwordStatus;
 
         private Date passwordChangeTime;
@@ -147,22 +136,6 @@ public class UserReport {
         private boolean hasValidResponses;
 
         private UserInfoBean userInfoBean;
-
-        public String getUserDN() {
-            return userDN;
-        }
-
-        public void setUserDN(final String userDN) {
-            this.userDN = userDN;
-        }
-
-        public String getGuid() {
-            return guid;
-        }
-
-        public void setGuid(final String guid) {
-            this.guid = guid;
-        }
 
         public Date getPasswordChangeTime() {
             return passwordChangeTime;
@@ -214,13 +187,13 @@ public class UserReport {
         }
     }
 
-    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader)
-            throws IOException, ChaiUnavailableException, ChaiOperationException
-    {
+    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final int maxResults)
+            throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException {
         final CsvWriter csvWriter = new CsvWriter(outputStream, ',', Charset.forName("UTF8"));
 
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<String>();
+            headerRow.add("UserID");
             headerRow.add("UserDN");
             headerRow.add("UserGuid");
             headerRow.add("Password Expiration Time");
@@ -234,12 +207,13 @@ public class UserReport {
             csvWriter.writeRecord(headerRow.toArray(new String[headerRow.size()]));
         }
 
-        for (final Iterator<UserReport.UserInformation> resultIterator = this.resultIterator(); resultIterator.hasNext(); ) {
+        for (final Iterator<UserReport.UserInformation> resultIterator = this.resultIterator(maxResults); resultIterator.hasNext(); ) {
             final UserReport.UserInformation userInformation = resultIterator.next();
             final List<String> csvRow = new ArrayList<String>();
 
-            csvRow.add(userInformation.getUserDN());
-            csvRow.add(userInformation.getGuid());
+            csvRow.add(userInformation.getUserInfoBean().getUserID());
+            csvRow.add(userInformation.getUserInfoBean().getUserDN());
+            csvRow.add(userInformation.getUserInfoBean().getUserGuid());
             csvRow.add(userInformation.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordExpirationTime()));
             csvRow.add(userInformation.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getPasswordChangeTime()));
             csvRow.add(userInformation.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInformation.getResponseSetTime()));

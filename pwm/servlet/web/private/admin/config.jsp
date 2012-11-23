@@ -120,10 +120,11 @@
                         </td>
                     </tr>
                     <script type="text/javascript">
-                        require(["dojo/ready"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
+                        require(["dojo/domReady!"],function(){setTimeout(function(){require(["dijit/Tooltip"],function(){
                             var strengthTooltip = new dijit.Tooltip({
                                 connectId: ["<%=loopSetting.getKey()%>"],
-                                label: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(pwmSession.getSessionStateBean().getLocale()))%>'
+                                label: '<div style="max-width: 350px">' + '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(pwmSession.getSessionStateBean().getLocale()))%>' + '</div>',
+                                position: ['before']
                             });
                         });},1000)});
                     </script>

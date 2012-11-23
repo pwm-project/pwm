@@ -40,7 +40,6 @@
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <% final Map<String, IntruderManager.IntruderRecord> userLockTable = intruderManager.getUserLockTable(); %>
-        <br/>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit.layout.ContentPane" title="Users">
                 <% if (userLockTable.isEmpty()) { %>
@@ -153,10 +152,6 @@
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
             dojoParser.parse();
-
-            setTimeout(function(){
-                closeWaitDialog();
-            },300);
         });
     }
     startupPage();

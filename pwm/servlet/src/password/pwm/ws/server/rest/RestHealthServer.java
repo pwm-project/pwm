@@ -22,10 +22,12 @@
 
 package password.pwm.ws.server.rest;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.*;
+import password.pwm.ContextManager;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
@@ -43,9 +45,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Path("/pwm-health")
 public class RestHealthServer {
@@ -54,6 +56,12 @@ public class RestHealthServer {
 
     @Context
     HttpServletRequest request;
+
+    public static class JsonOutput {
+        public Date timestamp;
+        public String overall;
+        public List<HealthRecord> data;
+    }
 
     // This method is called if TEXT_PLAIN is request
     @GET
@@ -78,7 +86,7 @@ public class RestHealthServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String doPwmHealthJsonGet(@QueryParam("refreshImmediate") final String requestImmediateParam) {
+    public JsonOutput doPwmHealthJsonGet(@QueryParam("refreshImmediate") final String requestImmediateParam) {
         final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
@@ -86,7 +94,7 @@ public class RestHealthServer {
             LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
-            final String resultString = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
+            final JsonOutput resultString = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
             if (isExternal) {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
             }
@@ -95,10 +103,10 @@ public class RestHealthServer {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }
 
-        return "";
+        return null;
     }
 
-    private static String processGetHealthCheckData(
+    private static JsonOutput processGetHealthCheckData(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final boolean refreshImmediate
@@ -122,14 +130,11 @@ public class RestHealthServer {
             }
         }
 
-        final Collection<HealthRecord> healthRecords = healthMonitor.getHealthRecords(doRefresh);
-        final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
-        returnMap.put("date", PwmConstants.DEFAULT_DATETIME_FORMAT.format(healthMonitor.getLastHealthCheckDate()));
-        returnMap.put("timestamp", healthMonitor.getLastHealthCheckDate().getTime());
-        returnMap.put("overall", healthMonitor.getMostSevereHealthStatus().toString());
-        returnMap.put("data", healthRecords);
-
-        final Gson gson = new Gson();
-        return gson.toJson(returnMap);
+        final List<HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(doRefresh));
+        final JsonOutput returnMap = new JsonOutput();
+        returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
+        returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
+        returnMap.data = healthRecords;
+        return returnMap;
     }
 }

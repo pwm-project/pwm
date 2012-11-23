@@ -55,6 +55,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Locale;
 
 /**
@@ -158,7 +159,7 @@ public class HelpdeskServlet extends TopServlet {
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-            searchConfiguration.setContext(context);
+            searchConfiguration.setContexts(Collections.singletonList(context));
             searchConfiguration.setUsername(username);
             searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
             searchConfiguration.setChaiProvider(pwmSession.getSessionManager().getChaiProvider());

@@ -21,11 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.util.PwmDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
-<%@ page import="java.io.PrintWriter" %>
-<%@ page import="java.io.StringWriter" %>
-<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -54,7 +50,7 @@
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="PWM Event Log"/>
 </jsp:include>
-<div id="centerbody" style="width:98%">
+<div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <p>
     This page shows PWM debug log
@@ -238,6 +234,7 @@
     searching <%= numberFormat.format(searchResults.getSearchedEvents()) %> log entries
     in <%= searchResults.getSearchTime().asCompactString() %>.</p>
 <br class="clear"/>
+<%--
 <% if (displayAsText) { %>
 <hr/>
 <pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
@@ -314,6 +311,7 @@
     <% } %>
 </table>
 <% } %>
+--%>
 <% } %>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

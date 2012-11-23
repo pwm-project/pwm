@@ -28,8 +28,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="nihilo">
-<script type="text/javascript"
-        src="<%=request.getContextPath()%>/resources/<pwm:url url='newuser.js'/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/newuser.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
@@ -68,10 +67,6 @@
     </div>
     <br class="clear"/>
 </div>
-<script type="text/javascript">
-    PWM_STRINGS['Display_CheckingData'] = "<pwm:Display key="Display_CheckingData"/>";
-    PWM_STRINGS['Display_CommunicationError'] = "<pwm:Display key="Display_CommunicationError"/>";
-</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -161,7 +161,7 @@ public class
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
-                searchConfiguration.setContext(contextParam);
+                searchConfiguration.setContexts(Collections.singletonList(contextParam));
                 theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
             }
 

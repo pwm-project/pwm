@@ -27,10 +27,10 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.Display"%>
 <%@ page import="password.pwm.config.FormConfiguration"%>
-<%@ page import="password.pwm.util.stats.Statistic"%>
-<%@ page import="java.util.Collections"%>
-<%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
-<% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
+<%@ page import="password.pwm.config.Message"%>
+<%@ page import="password.pwm.config.PwmSetting"%>
+<%@ page import="password.pwm.util.PwmMacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+        <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
@@ -40,11 +40,14 @@ PWM_STRINGS={};
 function initPwmStringValues() {
 PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
 PWM_GLOBAL['MaxInactiveInterval']='<%=request.getSession().getMaxInactiveInterval()%>';
+PWM_GLOBAL['pageLeaveNotice']='<%=pwmApplication.getConfig().readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT)%>';
+PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
 <% final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName()); %>
 <% final Locale userLocale = pwmSession.getSessionStateBean().getLocale() == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale(); %>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
     PWM_STRINGS['<%=key%>']='<%=StringEscapeUtils.escapeJavaScript(Display.getLocalizedMessage(userLocale,key,pwmApplication.getConfig()))%>';
 <% } %>
+    PWM_STRINGS['passwordGuideText'] = '<%=PwmMacroMachine.expandMacros(ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()),ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>';
 }
 
 function initPwmGlobalValues() {
@@ -56,8 +59,9 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%><pwm:url url='/resources'/>";
     PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%><pwm:url url='/public/rest'/>";
     PWM_GLOBAL['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
-    PWM_GLOBAL['clientAjaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
-            PWM_GLOBAL['formTypeOptions'] = [];
+    PWM_GLOBAL['client.ajaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
+    PWM_GLOBAL['client.ajaxTypingWait'] = <%=PwmConstants.CLIENT_AJAX_TYPING_WAIT%>
+    PWM_GLOBAL['formTypeOptions'] = [];
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
 <%}%>

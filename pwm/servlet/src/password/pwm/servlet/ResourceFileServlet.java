@@ -177,6 +177,8 @@ public class ResourceFileServlet extends HttpServlet {
         response.setBufferSize(BUFFER_SIZE);
         //response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
         response.setHeader("Cache-Control","public, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS);
+        response.setHeader("ETag", makeNonce(pwmApplication));
+        response.setHeader("Vary","Accept-Encoding");
         response.setContentType(contentType);
 
         // set pwm headers
@@ -610,9 +612,13 @@ public class ResourceFileServlet extends HttpServlet {
     )
     {
         if (PwmConstants.RESOURCE_SERVLET_ENABLE_PATH_NONCE) {
-            return '/' + PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + Long.toString(pwmApplication.getStartupTime().getTime(),36);
+            return '/' + PwmConstants.RESOURCE_SERVLET_NONCE_PATH_PREFIX + makeNonce(pwmApplication);
         } else {
             return "";
         }
+    }
+
+    public static String makeNonce(final PwmApplication pwmApplication) {
+        return Long.toString(pwmApplication.getStartupTime().getTime(),36);
     }
 }

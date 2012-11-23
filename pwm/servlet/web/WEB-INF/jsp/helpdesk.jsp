@@ -25,7 +25,6 @@
 <%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
-<%@ page import="password.pwm.config.Message" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.servlet.HelpdeskServlet" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
@@ -92,7 +91,7 @@
 <br class="clear"/>
 <% if (helpdeskBean.isUserExists()) { %>
 <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
-<div id="userPanel" style="display: none">
+<div id="userPanel">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
     <table>
@@ -472,7 +471,7 @@
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";
-                        if (results['success'] == 'true') {
+                        if (results['success'] == true) {
                             bodyText += '<span class="message message-info">';
                             bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
                             bodyText += '</span></br>';
@@ -522,7 +521,7 @@
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";
-                        if (results['success'] == 'true') {
+                        if (results['success'] == true) {
                             bodyText += PWM_STRINGS['Message_SuccessUnknown'];
                         } else {
                             bodyText += results['errorMsg'];
@@ -556,17 +555,9 @@
     }
 
     function startupPage() {
-        PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig())%>";
-        if (getObject('userPanel')) {
-            require(["dojo/parser","dijit/Dialog"],function(){
-                showWaitDialog();
-                require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-                    getObject('userPanel').style.display = 'inline';
-                    dojoParser.parse();
-                    closeWaitDialog();
-                });
-            });
-        }
+        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+            dojoParser.parse();
+        });
     }
     startupPage();
 </script>

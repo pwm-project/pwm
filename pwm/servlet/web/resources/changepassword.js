@@ -30,16 +30,13 @@ var previousP1 = "";
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
-var validationCache = { };
-var validationInProgress = false;
-
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validatePasswords(userDN)
 {
+    getObject("password_button").disabled = true;
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
         updateDisplay(null);
-        getObject("password_button").disabled = true;
         return;
     }
 
@@ -48,68 +45,23 @@ function validatePasswords(userDN)
         previousP1 = getObject("password1").value;
     }
 
-    if (validationInProgress) {
-        return;
-    }
-
-    var passwordData = makeValidationKey(userDN);
-    {
-        var cachedResult = validationCache[passwordData.passwordCacheKey];
-        if (cachedResult != null) {
-            updateDisplay(cachedResult);
-            return;
-        }
-    }
-
-    if (userDN != null && userDN.length > 0) {
-        passwordData['username'] = userDN;
-    }
-
-    setTimeout(function(){ if (validationInProgress) { showInfo(PWM_STRINGS['Display_CheckingPassword']); } },1000);
-
-    validationInProgress = true;
-
-    require(["dojo"],function(dojo){
-        dojo.xhrPost({
-            url: PWM_GLOBAL['url-restservice'] + "/checkpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            content: passwordData,
-            headers: {"Accept":"application/json"},
-            handleAs: "json",
-            preventCache: true,
-            timeout: PWM_GLOBAL['clientAjaxTypingTimeout'],
-            error: function(errorObj) {
-                validationInProgress = false;
-                showInfo(PWM_STRINGS['Display_CommunicationError']);
-                markStrength(0);
-                markConfirmationCheck(null);
-                console.log('error: ' + errorObj);
-            },
-            load: function(data){
-                setTimeout(function(){
-                    validationCache[passwordData.passwordCacheKey] = data;
-                    validationInProgress = false;
-                    validatePasswords(userDN);
-                },350);
-            }
-        });
-    });
-}
-
-function makeValidationKey(userDN) {
-    var validationKey = {
-        password1:getObject("password1").value,
-        password2:getObject("password2").value,
-        userDN: userDN,
-        passwordCacheKey: getObject("password1").value + getObject("password2").value
+    var validationProps = new Array();
+    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingPassword'];
+    validationProps['serviceURL'] = PWM_GLOBAL['url-restservice'] + "/checkpassword";
+    validationProps['readDataFunction'] = function(){
+        var returnObj = {};
+        returnObj['password1'] = getObject("password1").value;
+        returnObj['password2'] = getObject("password2").value;
+        if (userDN) returnObj['username'] = userDN;
+        return returnObj;
+    };
+    validationProps['processResultsFunction'] = function(data){
+        updateDisplay(data);
     };
 
-    if (getObject("currentPassword") != null) {
-        validationKey.currentPassword = getObject("currentPassword").value;
-        validationKey.passwordCacheKey = getObject("password1").value + getObject("password2").value + getObject("currentPassword").value;
-    }
-
-    return validationKey;
+    pwmFormValidator(validationProps);
 }
+
 
 function updateDisplay(resultInfo) {
     if (resultInfo == null) {
@@ -130,7 +82,7 @@ function updateDisplay(resultInfo) {
         return;
     }
 
-    if (resultInfo["passed"] == "true") {
+    if (resultInfo["passed"] == true) {
         if (resultInfo["match"] == "MATCH") {
             getObject("password_button").disabled = false;
             showSuccess(message);
@@ -201,7 +153,6 @@ function markStrength(strength) { //strength meter
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
     var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
-
 
     var barObject = getObject("strengthBar");
     if (barObject != null) {

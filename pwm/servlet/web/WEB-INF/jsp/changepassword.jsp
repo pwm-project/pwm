@@ -61,7 +61,7 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event)"
+              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event)" onchange="validatePasswords(null);"
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
               onreset="handleFormClear();validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
@@ -148,7 +148,6 @@
         </form>
     </div>
     <script type="text/javascript">
-        PWM_STRINGS['passwordGuideText'] = '<%=PwmMacroMachine.expandMacros(ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()),ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>';
     </script>
 </div>
 <%@ include file="fragment/footer.jsp" %>
