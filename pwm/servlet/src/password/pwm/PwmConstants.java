@@ -77,6 +77,7 @@ public abstract class PwmConstants {
     public static final int PWMDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
     public static final int PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
     public static final boolean CLEAR_SESSIONS_ON_RESTART = Boolean.parseBoolean(readPwmConstantsBundle("clearSessionsOnRestart"));
+    public static final boolean ALLOW_HTML_IN_ERROR_MESSAGES = Boolean.parseBoolean(readPwmConstantsBundle("allowHtmlInErrorMessages"));
 
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
@@ -164,7 +165,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "WEB-INF/jsp/configmanager-mode-new.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configmanager-mode-running.jsp";
-    public static final String URL_JSP_HELPDESK = "WEB-INF/jsp/helpdesk.jsp";
+    public static final String URL_JSP_HELPDESK_SEARCH = "WEB-INF/jsp/helpdesk.jsp";
+    public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
 
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_LOGOUT = "Logout";

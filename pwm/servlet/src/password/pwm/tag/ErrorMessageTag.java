@@ -25,6 +25,7 @@ package password.pwm.tag;
 import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -61,15 +62,17 @@ public class ErrorMessageTag extends PwmAbstractTag {
             final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
 
             if (error != null) {
-                final String errorMsg;
+                String errorMsg;
                 if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
                     errorMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
                 }  else {
                     errorMsg = error.toUserStr(pwmSession, pwmApplication);
                 }
-                final String escapedErrorMsg = StringEscapeUtils.escapeHtml(errorMsg);
-                pageContext.getOut().write(escapedErrorMsg);
+                if (!PwmConstants.ALLOW_HTML_IN_ERROR_MESSAGES) {
+                    errorMsg = StringEscapeUtils.escapeHtml(errorMsg);
+                }
+                pageContext.getOut().write(errorMsg);
             }
         } catch (PwmUnrecoverableException e) {
             /* app not running */
