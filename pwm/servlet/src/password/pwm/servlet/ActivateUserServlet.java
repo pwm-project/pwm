@@ -147,7 +147,7 @@ public class ActivateUserServlet extends TopServlet {
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
                 searchConfiguration.setFilter(config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
-                theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+                theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
 
             validateParamsAgainstLDAP(formValues, pwmSession, theUser, config);

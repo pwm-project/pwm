@@ -679,8 +679,14 @@ public enum PwmSetting {
             "helpdesk.queryMatch", Syntax.STRING, Category.HELPDESK, true, Level.BASIC),
     HELPDESK_SEARCH_FILTER(
             "helpdesk.filter", Syntax.STRING, Category.HELPDESK, false, Level.ADVANCED),
-    HELPDESK_DISPLAY_ATTRIBUTES(
-            "helpdesk.displayAttributes", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_SEARCH_FORM(
+            "helpdesk.result.form", Syntax.FORM, Category.HELPDESK, true, Level.BASIC),
+    HELPDESK_DETAIL_FORM(
+            "helpdesk.detail.form", Syntax.FORM, Category.HELPDESK, true, Level.BASIC),
+    HELPDESK_SEARCH_BASE(
+            "helpdesk.searchBase", Syntax.STRING_ARRAY, Category.HELPDESK, false, Level.BASIC),
+    HELPDESK_RESULT_LIMIT(
+            "helpdesk.result.limit", Syntax.NUMERIC, Category.HELPDESK, true, Level.ADVANCED),
     HELPDESK_SET_PASSWORD_MODE(
             "helpdesk.setPassword.mode", Syntax.SELECT, Category.HELPDESK, false, Level.BASIC),
     HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(

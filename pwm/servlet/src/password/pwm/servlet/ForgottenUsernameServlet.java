@@ -95,7 +95,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
             searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER));
             searchConfiguration.setFormValues(formValues);
-            final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+            final ChaiUser theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
 
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));

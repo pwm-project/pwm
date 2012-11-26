@@ -24,80 +24,103 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.UserHistory;
+import password.pwm.util.operations.UserSearchEngine;
 
+import java.io.Serializable;
 import java.util.Date;
 
 public class HelpdeskBean implements PwmSessionBean {
-    private boolean userExists;
+    private String searchString;
     private UserInfoBean userInfoBean = new UserInfoBean();
-    private transient ResponseSet responseSet;
-    private boolean intruderLocked;
-    private boolean pwmIntruder;
-    private boolean accountEnabled;
-    private Date lastLoginTime;
-    private UserHistory userHistory;
+    private UserSearchEngine.UserSearchResults searchResults;
+    private AdditionalUserInfo additionalUserInfo = new AdditionalUserInfo();
 
-    public boolean isUserExists() {
-        return userExists;
-    }
+    public static class AdditionalUserInfo implements Serializable {
+        private transient ResponseSet responseSet;
+        private boolean intruderLocked;
+        private boolean pwmIntruder;
+        private boolean accountEnabled;
+        private Date lastLoginTime;
+        private UserHistory userHistory;
 
-    public void setUserExists(final boolean userExists) {
-        this.userExists = userExists;
+        public ResponseSet getResponseSet() {
+            return responseSet;
+        }
+
+        public void setResponseSet(ResponseSet responseSet) {
+            this.responseSet = responseSet;
+        }
+
+        public boolean isIntruderLocked() {
+            return intruderLocked;
+        }
+
+        public void setIntruderLocked(boolean intruderLocked) {
+            this.intruderLocked = intruderLocked;
+        }
+
+        public boolean isPwmIntruder() {
+            return pwmIntruder;
+        }
+
+        public void setPwmIntruder(boolean pwmIntruder) {
+            this.pwmIntruder = pwmIntruder;
+        }
+
+        public boolean isAccountEnabled() {
+            return accountEnabled;
+        }
+
+        public void setAccountEnabled(boolean accountEnabled) {
+            this.accountEnabled = accountEnabled;
+        }
+
+        public Date getLastLoginTime() {
+            return lastLoginTime;
+        }
+
+        public void setLastLoginTime(Date lastLoginTime) {
+            this.lastLoginTime = lastLoginTime;
+        }
+
+        public UserHistory getUserHistory() {
+            return userHistory;
+        }
+
+        public void setUserHistory(UserHistory userHistory) {
+            this.userHistory = userHistory;
+        }
     }
 
     public UserInfoBean getUserInfoBean() {
         return userInfoBean;
     }
 
-    public void setUserInfoBean(final UserInfoBean userInfoBean) {
+    public void setUserInfoBean(UserInfoBean userInfoBean) {
         this.userInfoBean = userInfoBean;
     }
 
-    public ResponseSet getResponseSet() {
-        return responseSet;
+    public UserSearchEngine.UserSearchResults getSearchResults() {
+        return searchResults;
     }
 
-    public void setResponseSet(final ResponseSet responseSet) {
-        this.responseSet = responseSet;
+    public void setSearchResults(UserSearchEngine.UserSearchResults searchResults) {
+        this.searchResults = searchResults;
     }
 
-    public boolean isIntruderLocked() {
-        return intruderLocked;
+    public String getSearchString() {
+        return searchString;
     }
 
-    public void setIntruderLocked(final boolean intruderLocked) {
-        this.intruderLocked = intruderLocked;
+    public void setSearchString(String searchString) {
+        this.searchString = searchString;
     }
 
-    public boolean isPwmIntruder() {
-        return pwmIntruder;
+    public AdditionalUserInfo getAdditionalUserInfo() {
+        return additionalUserInfo;
     }
 
-    public void setPwmIntruder(final boolean pwmIntruder) {
-        this.pwmIntruder = pwmIntruder;
-    }
-
-    public Date getLastLoginTime() {
-        return lastLoginTime;
-    }
-
-    public void setLastLoginTime(Date lastLoginTime) {
-        this.lastLoginTime = lastLoginTime;
-    }
-
-    public UserHistory getUserHistory() {
-        return userHistory;
-    }
-
-    public void setUserHistory(UserHistory userHistory) {
-        this.userHistory = userHistory;
-    }
-
-    public boolean isAccountEnabled() {
-        return accountEnabled;
-    }
-
-    public void setAccountEnabled(boolean accountEnabled) {
-        this.accountEnabled = accountEnabled;
+    public void setAdditionalUserInfo(AdditionalUserInfo additionalUserInfo) {
+        this.additionalUserInfo = additionalUserInfo;
     }
 }

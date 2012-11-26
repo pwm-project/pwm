@@ -22,7 +22,7 @@
 
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.bean.PeopleSearchBean" %>
-<%@ page import="password.pwm.servlet.PeopleSearchServlet" %>
+<%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -60,7 +60,7 @@
             <% } %>
         </form>
         <br class="clear"/>
-        <% final PeopleSearchServlet.PeopleSearchResults searchResults = peopleSearchBean.getSearchResults(); %>
+        <% final UserSearchEngine.UserSearchResults searchResults = peopleSearchBean.getSearchResults(); %>
         <% if (searchResults != null) { %>
         <% final Gson gson = new Gson(); %>
         <noscript>
@@ -103,7 +103,7 @@
                 require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                         function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
                             var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmSession))%>;
-                            var columnHeaders = <%=gson.toJson(searchResults.attributeHeaderMap())%>;
+                            var columnHeaders = <%=gson.toJson(searchResults.getHeaderAttributeMap())%>;
 
                             // Create a new constructor by mixing in the components
                             var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
@@ -113,9 +113,8 @@
                             var grid = new CustomGrid({
                                 columns: columnHeaders
                             }, "grid");
-                            grid.on("load",function(){alert('yah!')});
                             grid.renderArray(data);
-                            grid.set("sort","<%=searchResults.getAttributes().iterator().next()%>");
+                            grid.set("sort","<%=searchResults.getHeaderAttributeMap().keySet().iterator().next()%>");
                             grid.on(".dgrid-row .dgrid-cell:click", function(evt){
                                 var row = grid.row(evt);
                                 loadDetails(row.data['userKey']);
@@ -141,12 +140,19 @@
         <% } %>
     </div>
 </div>
+<form id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    <input type="hidden" name="processAction" value="detail"/>
+    <input type="hidden" name="userKey" id="userKey" value=""/>
+</form>
 <script>
     function loadDetails(userKey) {
-        showWaitDialog();
-        setTimeout(function(){
-            window.location="PeopleSearch?pwmFormID=<%=Helper.buildPwmFormID(pwmSession.getSessionStateBean())%>&processAction=detail&userKey=" + userKey;
-        },10);
+        showWaitDialog(null,null,function(){
+            setTimeout(function(){
+                getObject("userKey").value = userKey;
+                getObject("loadDetailsForm").submit();
+            },10);
+        });
     }
 </script>
 <%@ include file="fragment/footer.jsp" %>

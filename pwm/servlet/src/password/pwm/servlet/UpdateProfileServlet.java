@@ -22,6 +22,8 @@
 
 package password.pwm.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -97,10 +99,50 @@ public class UpdateProfileServlet extends TopServlet {
             } else if ("unConfirm".equalsIgnoreCase(actionParam)) {       // go back and edit data
                 LOGGER.debug(pwmSession, "user requested to 'go back' and re-edit profile data");
                 handleUnconfirm(updateProfileBean);
+            } else if ("validate".equalsIgnoreCase(actionParam)) {       // go back and edit data
+                handleValidateForm(req,resp);
+                return;
             }
         }
 
         advanceToNextStep(pwmApplication, pwmSession, updateProfileBean, req, resp);
+    }
+
+    protected static void handleValidateForm(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
+        boolean success = true;
+        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UPDATE_FORM, pwmApplication.getConfig());
+
+        try {
+            // read in the responses from the request
+            final Map<FormConfiguration, String> formMap = readFromJsonRequest(req, pwmApplication, pwmSession);
+
+            // see if the values meet requirements.
+            Validator.validateParmValuesMeetRequirements(formMap, pwmSession.getSessionStateBean().getLocale());
+
+        } catch (PwmDataValidationException e) {
+            success = false;
+            userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
+        }
+
+        final Map<String, String> outputMap = new HashMap<String, String>();
+        outputMap.put("version", "1");
+        outputMap.put("message", userMessage);
+        outputMap.put("success", String.valueOf(success));
+
+        final String output = new Gson().toJson(outputMap);
+
+        resp.setContentType("text/plain;charset=utf-8");
+        resp.getWriter().print(output);
+
+        LOGGER.trace(pwmSession, "ajax validate responses: " + output);
     }
 
     private void handleUnconfirm(
@@ -130,6 +172,22 @@ public class UpdateProfileServlet extends TopServlet {
         if (!updateProfileBean.isFormSubmitted()) {
             populateFormFromLdap(req);
             forwardToJSP(req,resp);
+            return;
+        }
+
+        //make sure there is form data in the bean.
+        if (updateProfileBean.getFormData() == null) {
+            forwardToJSP(req,resp);
+            return;
+        }
+
+        // validate the form data.
+        try {
+            Validator.validateParmValuesMeetRequirements(updateProfileBean.getFormData(), pwmSession.getSessionStateBean().getLocale());
+        } catch (PwmDataValidationException e) {
+            LOGGER.error(pwmSession, e.getMessage());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+            this.forwardToJSP(req,resp);
             return;
         }
 
@@ -194,13 +252,36 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         //read the values from the request
-        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formFields, pwmSession.getSessionStateBean().getLocale());
-
-        // see if the values meet requirements.
-        Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
-
-        return formValues;
+        return Validator.readFormValuesFromRequest(req, formFields, pwmSession.getSessionStateBean().getLocale());
     }
+
+    private static Map<FormConfiguration, String> readFromJsonRequest(
+            final HttpServletRequest req,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmDataValidationException, PwmUnrecoverableException, IOException
+    {
+        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+
+        // remove read-only fields
+        for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
+            FormConfiguration loopFormConfig = iterator.next();
+            if (loopFormConfig.isReadonly()) {
+                iterator.remove();
+            }
+        }
+
+        final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
+        final Map<String, String> clientValues = new Gson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        }.getType());
+        if (clientValues == null) {
+            return null;
+        }
+
+        return Validator.readFormValuesFromMap(clientValues, formFields,  pwmSession.getSessionStateBean().getLocale());
+    }
+
 
     private void handleUpdateRequest(final HttpServletRequest req)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException

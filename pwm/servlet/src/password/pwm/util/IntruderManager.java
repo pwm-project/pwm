@@ -242,7 +242,7 @@ public class IntruderManager implements Serializable, PwmService {
             } else {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setUsername(username);
-                user = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+                user = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
             if (user != null) {
                 UserHistory.updateUserHistory(pwmSession, pwmApplication, user, UserHistory.Record.Event.INTRUDER_LOCK, "");

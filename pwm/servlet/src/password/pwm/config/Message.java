@@ -43,6 +43,7 @@ public enum Message {
     SUCCESS_UNKNOWN("Success_Unknown"),
     SUCCESS_CREATE_USER("Success_CreateUser"),
     SUCCESS_NEWUSER_FORM("Success_NewUserForm"),
+    SUCCESS_UPDATE_FORM("Success_UpdateForm"),
     SUCCESS_CREATE_GUEST("Success_CreateGuest"),
     SUCCESS_UPDATE_GUEST("Success_UpdateGuest"),
     SUCCESS_ACTIVATE_USER("Success_ActivateUser"),

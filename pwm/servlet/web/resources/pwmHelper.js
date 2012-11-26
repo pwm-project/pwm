@@ -66,7 +66,14 @@ function pwmPageLoadHandler() {
     }
 
     if (getObject('header-warning')) {
-        setInterval(function(){flashDomElement('white','header-warning',10*1000);},10*1000);
+        require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
+            // Function linked to the button to trigger the fade.
+            var args = {node: "header-warning",duration:1000};
+            setInterval(function(){fx.fadeOut(args).play()},7*1000);
+            setTimeout(function(){
+                setInterval(function(){fx.fadeIn(args).play();},7*1000);
+            },2000);
+        });
     }
 
     require(["dojo/domReady!"],function(){
@@ -83,11 +90,12 @@ function pwmPageLoadHandler() {
         });
     }
 
-    require(["dijit/ProgressBar"],function(ProgressBar){ // preloads the progress meter work when it immediately does a form submit
-        new ProgressBar({style: '',indeterminate:true,id: "emptyDiv"},"emptyDiv");
-        setTimeout(function(){clearDijitWidget("emptyDiv")},10);
-    });
-
+    if (getObject('emptyDiv')) {
+        require(["dijit/ProgressBar"],function(ProgressBar){ // preloads the progress meter work when it immediately does a form submit
+            new ProgressBar({style: 'width:10px',indeterminate:true,id: "emptyDiv"},"emptyDiv");
+            setTimeout(function(){clearDijitWidget("emptyDiv")},1);
+        });
+    }
 }
 
 

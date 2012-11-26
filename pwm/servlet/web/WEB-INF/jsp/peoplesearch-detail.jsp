@@ -21,8 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.bean.PeopleSearchBean" %>
-<%@ page import="password.pwm.servlet.PeopleSearchServlet" %>
-<%@ page import="java.util.Iterator" %>
+<%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -60,13 +59,12 @@
             <% } %>
         </form>
         <br class="clear"/>
-        <% final PeopleSearchServlet.PeopleSearchResults searchDetails = peopleSearchBean.getSearchDetails(); %>
+        <% final UserSearchEngine.UserSearchResults searchDetails = peopleSearchBean.getSearchDetails(); %>
         <% if (searchDetails != null && !searchDetails.getResults().isEmpty()) { %>
         <% final String userDN = searchDetails.getResults().keySet().iterator().next(); %>
-        <% final Iterator<String> headerIter = searchDetails.getHeaders().iterator(); %>
         <table>
-            <% for (final String attribute : searchDetails.getAttributes()) { %>
-            <% final String header = headerIter.next(); %>
+            <% for (final String attribute : searchDetails.getHeaderAttributeMap().keySet()) { %>
+            <% final String header = searchDetails.getHeaderAttributeMap().get(attribute); %>
             <% if (searchDetails.getResults().get(userDN).containsKey(attribute)) { %>
             <tr>
                 <td class="key" style="text-align: right; white-space: nowrap;">

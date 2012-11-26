@@ -250,7 +250,7 @@ public class AuthenticationFilter implements Filter {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setUsername(username);
                 searchConfiguration.setContexts(Collections.singletonList(context));
-                final ChaiUser theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+                final ChaiUser theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
                 userDN = theUser.getEntryDN();
             }
         } catch (PwmOperationalException e) {

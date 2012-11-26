@@ -162,13 +162,35 @@ public class UserStatusHelper {
 
 
     public static void populateUserInfoBean(
-           final PwmSession pwmSession,
+            final PwmSession pwmSession,
             final UserInfoBean uiBean,
             final PwmApplication pwmApplication,
             final Locale userLocale,
             final String userDN,
             final String userCurrentPassword,
             final ChaiProvider provider
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        populateUserInfoBean(
+                pwmSession,
+                uiBean,
+                pwmApplication,
+                userLocale,
+                userDN,
+                userCurrentPassword,
+                provider,
+                Collections.<String>emptySet());
+    }
+     public static void populateUserInfoBean(
+           final PwmSession pwmSession,
+            final UserInfoBean uiBean,
+            final PwmApplication pwmApplication,
+            final Locale userLocale,
+            final String userDN,
+            final String userCurrentPassword,
+            final ChaiProvider provider,
+            final Set<String> additionalAttributes
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -201,18 +223,7 @@ public class UserStatusHelper {
 
         //populate all user attributes.
         try {
-            final Set<String> interestingUserAttributes = new HashSet<String>(config.getAllUsedLdapAttributes());
-            interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
-            interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-            interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
-            interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
-            interestingUserAttributes.addAll(config.readSettingAsStringMap(PwmSetting.HELPDESK_DISPLAY_ATTRIBUTES).keySet());
-            if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
-                interestingUserAttributes.add("sAMAccountName");
-                interestingUserAttributes.add("displayName");
-                interestingUserAttributes.add("fullname");
-                interestingUserAttributes.add("cn");
-            }
+            final Set<String> interestingUserAttributes = figureInterestingAttributes(config,uiBean,additionalAttributes);
             final Map<String,String> allUserAttrs = theUser.readStringAttributes(interestingUserAttributes);
             uiBean.setAllUserAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
@@ -257,6 +268,29 @@ public class UserStatusHelper {
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+    }
+
+    private static Set<String> figureInterestingAttributes(
+            final Configuration config,
+            final UserInfoBean uiBean,
+            final Collection additionalReadAttributes
+    )
+    {
+        final Set<String> interestingUserAttributes = new HashSet<String>(config.getAllUsedLdapAttributes());
+        interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
+        interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
+        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
+        if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
+            interestingUserAttributes.add("sAMAccountName");
+            interestingUserAttributes.add("displayName");
+            interestingUserAttributes.add("fullname");
+            interestingUserAttributes.add("cn");
+        }
+        if (additionalReadAttributes != null) {
+            interestingUserAttributes.addAll(additionalReadAttributes);
+        }
+        return interestingUserAttributes;
     }
 
     public static Date determinePwdLastModified(

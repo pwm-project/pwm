@@ -162,7 +162,7 @@ public class
                 searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
-                theUser = userSearchEngine.performUserSearch(pwmSession, searchConfiguration);
+                theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
 
             if (theUser == null) {

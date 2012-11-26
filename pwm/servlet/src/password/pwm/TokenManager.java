@@ -612,7 +612,7 @@ public class TokenManager implements PwmService {
                 final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setFilter(searchFilter);
-                final ChaiUser user = userSearchEngine.performUserSearch(null, searchConfiguration);
+                final ChaiUser user = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
                 if (user == null) {
                     return null;
                 }

@@ -402,13 +402,13 @@ MultiTableHandler.writeMultiSetting = function(settingKey, iteration, value) {
 
 MultiTableHandler.removeMultiSetting = function(keyName, iteration, regExPattern) {
     var parentDiv = 'table_setting_' + keyName;
-    MultiTableHandler.writeFormSetting(keyName, iteration, null);
+    MultiTableHandler.writeMultiSetting(keyName, iteration, null);
     MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern);
 };
 
 MultiTableHandler.addMultiSetting = function(keyName, parentDiv, regExPattern) {
     var size = clientSettingCache[keyName];
-    MultiTableHandler.writeFormSetting(keyName, size + 1, "");
+    MultiTableHandler.writeMultiSetting(keyName, size + 1, "");
     MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern)
 };
 
@@ -1024,10 +1024,10 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
             var value = clientSettingCache[keyName][iteration]['selectOptions'][optionName];
             var optionID = inputID + optionName;
             bodyText += '<td style="border:1px">' + optionName + '</td><td style="border:1px">' + value + '</td>';
-                bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
-                bodyText += ' onclick="FormTableHandler.removeSelectOptionsOption(\'' + keyName + '\',' + iteration + ',\'' + optionName + '\')" />';
-                bodyText += '</td>';
+            bodyText += '<td style="border:0">';
+            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+            bodyText += ' onclick="FormTableHandler.removeSelectOptionsOption(\'' + keyName + '\',' + iteration + ',\'' + optionName + '\')" />';
+            bodyText += '</td>';
             bodyText += '</tr><tr>';
         }
         bodyText += '</tr></table>';
@@ -1226,13 +1226,48 @@ ChangePasswordHandler.doChange = function(settingKey) {
     writeSetting(settingKey,password1);
 };
 
+ChangePasswordHandler.generateRandom = function() {
+    require(["dojo","dijit/registry"],function(dojo,registry){
+        var charMap = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        if (registry.byId('special').checked) {
+            charMap += '~`!@#$%^&*()_-+=;:,.[]{}';
+        }
+        var length = registry.byId('randomLength').value;
+        var postData = { };
+        postData.maxLength = length;
+        postData.minLength = length;
+        postData.chars = charMap;
+        getObject('generateButton').disabled = true;
+        getObject('generateButton').innerHTML = "Loading...";
+
+        dojo.xhrPost({
+            url:PWM_GLOBAL['url-restservice'] + "/randompassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            preventCache: true,
+            postData: postData,
+            dataType: "json",
+            handleAs: "json",
+            load: function(data) {
+                registry.byId('password1').set('value',data['password']);
+                registry.byId('password2').set('value','');
+                getObject('generateButton').disabled = false;
+                getObject('generateButton').innerHTML = "Generate Random";
+            },
+            error: function(error) {
+                getObject('generateButton').disabled = false;
+                getObject('generateButton').innerHTML = "Generate Random";
+                alert('error reading random password: ' + error);
+            }
+        });
+    });
+};
+
 ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
     require(["dijit/Dialog","dijit/form/Textarea"],function(){
         var bodyText = '<span id="message" class="message message-info">' + settingName + '</span><br/>';
         bodyText += '<table style="border: 0">';
-        bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
+        bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
         bodyText += '</tr><tr style="border: 0">';
-        bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 400px" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
+        bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto;" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
 
         bodyText += '<td style="border: 0"><div style="margin:0;">';
         bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="../resources/greenCheck.png">';
@@ -1241,13 +1276,16 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
 
         bodyText += '</tr></table>';
         bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
-        bodyText += 'Set Password</button>';
+        bodyText += 'Set Password</button>&nbsp;&nbsp;&nbsp;&nbsp;';
+        bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom()">Generate Random</button>';
+        bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="1024"/>Length';
+        bodyText += '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit.form.CheckBox" value="10"/>Special';
 
         clearDijitWidget('changepassword-popup');
         var theDialog = new dijit.Dialog({
             id: 'changepassword-popup',
             title: 'Set Password',
-            style: "width: 450px",
+            style: "width: 550px",
             content: bodyText,
             hide: function(){
                 clearDijitWidget('changepassword-popup');
@@ -1255,7 +1293,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         });
         theDialog.show();
 
-        require(["dojo/parser","dijit/form/Textarea"],function(dojoParser){
+        require(["dojo/parser","dijit/form/Textarea","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
 

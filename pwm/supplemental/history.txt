@@ -23,9 +23,12 @@ v1.6.5
 + select type forms with configurable option values (issue #273)
 + all pages and content now gzip compressed when supported by browser
 + new user form password strength meter and validation check
++ helpdesk user search results
++ sortable/column select grid for tabled data and user search results throughout pwm
 
 - Shortcut order is sometimes randomized (issue #277)
 - Null pointer (and other issues) when using ldap token storage method (issue #281)
+- Allow HTML in error messages(
 
 
 v1.6.4 (August 23, 2012) build 1185

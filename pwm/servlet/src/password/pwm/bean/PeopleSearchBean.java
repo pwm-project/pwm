@@ -22,12 +22,12 @@
 
 package password.pwm.bean;
 
-import password.pwm.servlet.PeopleSearchServlet;
+import password.pwm.util.operations.UserSearchEngine;
 
 public class PeopleSearchBean implements PwmSessionBean {
     private String searchString;
-    private PeopleSearchServlet.PeopleSearchResults searchResults;
-    private PeopleSearchServlet.PeopleSearchResults searchDetails;
+    private UserSearchEngine.UserSearchResults searchResults;
+    private UserSearchEngine.UserSearchResults searchDetails;
 
     public String getSearchString() {
         return searchString;
@@ -37,19 +37,19 @@ public class PeopleSearchBean implements PwmSessionBean {
         this.searchString = searchString;
     }
 
-    public PeopleSearchServlet.PeopleSearchResults getSearchResults() {
+    public UserSearchEngine.UserSearchResults getSearchResults() {
         return searchResults;
     }
 
-    public void setSearchResults(PeopleSearchServlet.PeopleSearchResults searchResults) {
+    public void setSearchResults(UserSearchEngine.UserSearchResults searchResults) {
         this.searchResults = searchResults;
     }
 
-    public PeopleSearchServlet.PeopleSearchResults getSearchDetails() {
+    public UserSearchEngine.UserSearchResults getSearchDetails() {
         return searchDetails;
     }
 
-    public void setSearchDetails(PeopleSearchServlet.PeopleSearchResults searchDetails) {
+    public void setSearchDetails(UserSearchEngine.UserSearchResults searchDetails) {
         this.searchDetails = searchDetails;
     }
 }

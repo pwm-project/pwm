@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiUser;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
@@ -39,6 +40,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path("/randompassword")
 public class RestRandomPasswordServer {
@@ -51,57 +54,115 @@ public class RestRandomPasswordServer {
         public String password;
     }
 
+    public static class JsonInput {
+        public String username;
+        public int strength;
+        public int minLength;
+        public int maxLength;
+        public String chars;
+    }
+
     // This method is called if TEXT_PLAIN is request
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String doPlainRandomPassword() {
-        try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+    public String doPlainRandomPassword(
+            @QueryParam("username") String username,
+            @QueryParam("strength") int strength,
+            @QueryParam("minLength") int minLength,
+            @QueryParam("maxLength") int maxLength,
+            @QueryParam("chars") String chars
+    ) throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
-            final String resultString = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
+        final JsonInput jsonInput = new JsonInput();
+        jsonInput.username = username;
+        jsonInput.strength = strength;
+        jsonInput.maxLength = maxLength;
+        jsonInput.minLength = minLength;
+        jsonInput.chars = chars;
 
-            if (isExternal) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_RANDOMPASSWORD);
-            }
-
-            return resultString;
-        } catch (Exception e) {
-            LOGGER.error("unexpected error building json response for /randompassword rest service: " + e.getMessage());
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        return doOperation(pwmApplication, pwmSession, isExternal, jsonInput).password;
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public JsonOutput doPostRandomPassword(
+    public JsonOutput doPostRandomPasswordForm(
             final @FormParam("username") String username,
-            final @FormParam("strength") String strength
+            final @FormParam("strength") int strength,
+            final @FormParam("maxLength") int maxLength,
+            final @FormParam("minLength") int minLength,
+            final @FormParam("chars") String chars
+    ) throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+        final JsonInput jsonInput = new JsonInput();
+        jsonInput.username = username;
+        jsonInput.strength = strength;
+        jsonInput.maxLength = maxLength;
+        jsonInput.minLength = minLength;
+        jsonInput.chars = chars;
+
+        return doOperation(pwmApplication, pwmSession, isExternal, jsonInput);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public JsonOutput doPostRandomPasswordJson(
+            final JsonInput jsonInput
+    )
+     throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+
+        return doOperation(pwmApplication, pwmSession, isExternal, jsonInput);
+    }
+
+    private static JsonOutput doOperation(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final boolean isExternal,
+            final JsonInput jsonInput
     ) {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
-
             final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
+            if (jsonInput.strength > 0 && jsonInput.strength <= 100) {
+                randomConfig.setMinimumStrength(jsonInput.strength);
+            }
+            if (jsonInput.minLength > 0 && jsonInput.minLength <= 100 * 1024) {
+                randomConfig.setMinimumLength(jsonInput.minLength);
+            }
+            if (jsonInput.maxLength > 0 && jsonInput.maxLength <= 100 * 1024) {
+                randomConfig.setMaximumLength(jsonInput.maxLength);
+            }
+            if (jsonInput.chars != null) {
+                final List<String> charValues = new ArrayList<String>();
+                for (int i = 0; i < jsonInput.chars.length(); i++) {
+                    charValues.add(String.valueOf(jsonInput.chars.charAt(i)));
+                }
+                randomConfig.setSeedlistPhrases(charValues);
+            }
 
             if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                if (username != null && username.length() > 0) {
-                    final ChaiUser theUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
+                if (jsonInput.username != null && jsonInput.username.length() > 0) {
+                    final ChaiUser theUser = ChaiFactory.createChaiUser(jsonInput.username, pwmSession.getSessionManager().getChaiProvider());
                     randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale()));
                 } else {
                     randomConfig.setPasswordPolicy(pwmSession.getUserInfoBean().getPasswordPolicy());
                 }
             } else {
                 randomConfig.setPasswordPolicy(pwmApplication.getConfig().getGlobalPasswordPolicy(pwmSession.getSessionStateBean().getLocale()));
-            }
-
-            if (strength != null && strength.length() > 0) {
-                randomConfig.setMinimumStrength(Integer.valueOf(strength));
             }
 
             final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, randomConfig, pwmApplication);

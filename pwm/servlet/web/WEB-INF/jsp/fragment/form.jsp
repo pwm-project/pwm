@@ -60,14 +60,15 @@
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(isReadonly){%> required="required"<%}%>
+        <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
         <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired()) { %>
 <h1>
-    <label id="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/> <%= loopConfiguration.getLabel(ssBean.getLocale()) %></label>
+    <label id="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %></label>
 </h1>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
-       name="<%=loopConfiguration.getName()%>_confirm"
+       name="<%=loopConfiguration.getName()%>_confirm" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>

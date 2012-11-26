@@ -37,7 +37,8 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false"
+              onchange="validateForm()" onkeyup="validateForm()">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -60,6 +61,34 @@
     </div>
     <br class="clear"/>
 </div>
+<script type="text/javascript">
+    function validateForm() {
+        var validationProps = new Array();
+        validationProps['serviceURL'] = "UpdateProfile" + "?processAction=validate";
+        validationProps['readDataFunction'] = function(){
+            var paramData = { };
+            for (var j = 0; j < document.forms.length; j++) {
+                for (var i = 0; i < document.forms[j].length; i++) {
+                    var current = document.forms[j].elements[i];
+                    paramData[current.name] = current.value;
+                }
+            }
+            return paramData;
+        };
+        validationProps['processResultsFunction'] = function(data){
+            if (data["success"] == "true") {
+                getObject("submitBtn").disabled = false;
+                showSuccess(data["message"]);
+            } else {
+                getObject("submitBtn").disabled = true;
+                showError(data['message']);
+            }
+        };
+
+        pwmFormValidator(validationProps);
+    }
+
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

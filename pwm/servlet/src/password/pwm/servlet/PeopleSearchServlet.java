@@ -37,18 +37,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
-import javax.crypto.SecretKey;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 
 public class PeopleSearchServlet extends TopServlet {
@@ -112,7 +109,7 @@ public class PeopleSearchServlet extends TopServlet {
             return;
         }
 
-        final String decodedUserKey = decodeUserDetailKey(userKey, pwmSession);
+        final String decodedUserKey = UserSearchEngine.decodeUserDetailKey(userKey, pwmSession);
         peopleSearchBean.setSearchDetails(doDetailLookup(pwmApplication, pwmSession, decodedUserKey));
         this.forwardToDetailJSP(req, resp);
     }
@@ -132,7 +129,7 @@ public class PeopleSearchServlet extends TopServlet {
             return;
         }
 
-        final PeopleSearchResults searchResults = doSearch(pwmSession, pwmApplication, username);
+        final UserSearchEngine.UserSearchResults searchResults = doSearch(pwmSession, pwmApplication, username);
         peopleSearchBean.setSearchResults(searchResults);
         if (searchResults != null && searchResults.getResults().size() == 1) {
             final String userDN = searchResults.getResults().keySet().iterator().next();
@@ -144,7 +141,7 @@ public class PeopleSearchServlet extends TopServlet {
         }
     }
 
-    private PeopleSearchResults doSearch(
+    private UserSearchEngine.UserSearchResults doSearch(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final String username
@@ -154,16 +151,11 @@ public class PeopleSearchServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
         final List<FormConfiguration> configuredForm = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
 
-        final List<String> headers = new ArrayList<String>();
-        final List<String> attributes = new ArrayList<String>();
-        for (final FormConfiguration formConfiguration : configuredForm) {
-            headers.add(formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
-            attributes.add(formConfiguration.getName());
-        }
+        final Map<String,String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(configuredForm, pwmSession.getSessionStateBean().getLocale());
 
         try {
             final ChaiProvider provider = figureChaiProvider(pwmApplication, pwmSession);
-            final Map<String,Map<String,String>> ldapResults = doLdapSearch(pwmApplication, username,attributes, provider);
+            final Map<String,Map<String,String>> ldapResults = doLdapSearch(pwmApplication, username, attributeHeaderMap.keySet(), provider);
 
             LOGGER.trace(pwmSession,"search results: " + ldapResults.size());
             if (pwmApplication.getStatisticsManager() != null) {
@@ -174,7 +166,7 @@ public class PeopleSearchServlet extends TopServlet {
                 final boolean resultsExceeded = ldapResults.containsKey(KEY_RESULTS_EXCEEDED);
                 ldapResults.remove(KEY_RESULTS_EXCEEDED);
                 final Map<String,Map<String,String>> outputMap = Collections.unmodifiableMap(ldapResults);
-                return new PeopleSearchResults(headers,attributes,outputMap,resultsExceeded);
+                return new UserSearchEngine.UserSearchResults(attributeHeaderMap,outputMap,resultsExceeded);
             }
         } catch (Exception e) {
             final String errorMsg = "can't perform search: " + e.getMessage();
@@ -197,7 +189,7 @@ public class PeopleSearchServlet extends TopServlet {
         }
     }
 
-    private static PeopleSearchResults doDetailLookup(
+    private static UserSearchEngine.UserSearchResults doDetailLookup(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final String userDN
@@ -205,26 +197,21 @@ public class PeopleSearchServlet extends TopServlet {
         final ChaiProvider chaiProvider = figureChaiProvider(pwmApplication, pwmSession);
         final Configuration config = pwmApplication.getConfig();
         final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
-        final List<String> headers = new ArrayList<String>();
-        final List<String> attributes = new ArrayList<String>();
-        for (final FormConfiguration formConfiguration : detailFormConfig) {
-            headers.add(formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
-            attributes.add(formConfiguration.getName());
-        }
+        final Map<String,String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(detailFormConfig, pwmSession.getSessionStateBean().getLocale());
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN,chaiProvider);
         Map<String,String> values = null;
         try {
-            values = theUser.readStringAttributes(new LinkedHashSet<String>(attributes));
+            values = theUser.readStringAttributes(attributeHeaderMap.keySet());
         } catch (ChaiOperationException e) {
             LOGGER.error("unexpected error during detail lookup of '" + userDN + "', error: " + e.getMessage());
         }
-        return new PeopleSearchResults(headers, attributes, Collections.singletonMap(userDN, values),false);
+        return new UserSearchEngine.UserSearchResults(attributeHeaderMap, Collections.singletonMap(userDN, values),false);
     }
 
     private static Map<String,Map<String,String>> doLdapSearch(
             final PwmApplication pwmApplication,
             final String username,
-            final List<String> returnAttributes,
+            final Set<String> returnAttributes,
             final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
@@ -281,76 +268,4 @@ public class PeopleSearchServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 
-    public static class PeopleSearchResults implements Serializable {
-        private final List<String> headers;
-        private final List<String> attributes;
-        private final Map<String,Map<String,String>> results;
-        private boolean sizeExceeded;
-
-        public PeopleSearchResults(List<String> headers, List<String> attributes, Map<String, Map<String, String>> results, boolean sizeExceeded) {
-            this.headers = headers;
-            this.attributes = attributes;
-            this.results = results;
-            this.sizeExceeded = sizeExceeded;
-        }
-
-        public List<String> getHeaders() {
-            return headers;
-        }
-
-        public List<String> getAttributes() {
-            return attributes;
-        }
-
-        public Map<String, Map<String, String>> getResults() {
-            return results;
-        }
-
-        public boolean isSizeExceeded() {
-            return sizeExceeded;
-        }
-
-        public List<Map<String,String>> resultsAsJsonOutput(final PwmSession pwmSession) {
-            final List<Map<String,String>> outputList = new ArrayList<Map<String, String>>();
-            for (final String userDN : this.getResults().keySet()) {
-                final Map<String,String> rowMap = new LinkedHashMap<String, String>();
-                for (final String attribute : this.getAttributes()) {
-                    rowMap.put(attribute,this.getResults().get(userDN).get(attribute));
-                }
-                rowMap.put("userKey",makeUserDetailKey(userDN,pwmSession));
-                outputList.add(rowMap);
-            }
-            return outputList;
-        }
-
-        public Map<String,String> attributeHeaderMap() {
-            final Map<String,String> resultMap = new LinkedHashMap<String, String>();
-            final Iterator<String> headerIter = this.getHeaders().iterator();
-            for (final String attribute : this.getAttributes()) {
-                final String header = headerIter.next();
-                resultMap.put(attribute,header);
-            }
-            return resultMap;
-        }
-    }
-
-    public static String makeUserDetailKey(final String userDN, final PwmSession pwmSession) {
-        try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
-            return Helper.SimpleTextCrypto.encryptValue(userDN, secretKey, true);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error making user detail key: " + e.getMessage());
-        }
-        return "error";
-    }
-
-    public static String decodeUserDetailKey(final String userKey, final PwmSession pwmSession) {
-        try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
-            return Helper.SimpleTextCrypto.decryptValue(userKey, secretKey,true);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error decoding user detail key: " + e.getMessage());
-        }
-        return "error";
-    }
 }

@@ -37,9 +37,11 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.*;
 
@@ -107,7 +109,27 @@ public class UserSearchEngine {
         return sb.toString();
     }
 
-    public ChaiUser performUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
+    public static String makeUserDetailKey(final String userDN, final PwmSession pwmSession) {
+        try {
+            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
+            return Helper.SimpleTextCrypto.encryptValue(userDN, secretKey, true);
+        } catch (Exception e) {
+            LOGGER.error("unexpected error making user detail key: " + e.getMessage());
+        }
+        return "error";
+    }
+
+    public static String decodeUserDetailKey(final String userKey, final PwmSession pwmSession) {
+        try {
+            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
+            return Helper.SimpleTextCrypto.decryptValue(userKey, secretKey, true);
+        } catch (Exception e) {
+            LOGGER.error("unexpected error decoding user detail key: " + e.getMessage());
+        }
+        return "error";
+    }
+
+    public ChaiUser performSingleUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
@@ -131,14 +153,40 @@ public class UserSearchEngine {
         }
     }
 
+    public UserSearchResults performMultiUserSearchFromForm(
+            final PwmSession pwmSession,
+            final SearchConfiguration searchConfiguration,
+            final int maxResults,
+            final List<FormConfiguration> formConfiguration
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
+        final Map<String,String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(formConfiguration,pwmSession.getSessionStateBean().getLocale());
+        final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(
+                pwmSession,
+                searchConfiguration,
+                maxResults + 1,
+                attributeHeaderMap.keySet()
+        );
+        final boolean resultsExceeded = searchResults.size() > maxResults;
+        final Map<String,Map<String,String>> returnData = new LinkedHashMap<String, Map<String, String>>();
+        for (final ChaiUser loopUser : searchResults.keySet()) {
+            final String userDN = loopUser.getEntryDN();
+            returnData.put(userDN, searchResults.get(loopUser));
+            if (returnData.size() >= maxResults) {
+                break;
+            }
+        }
+        return new UserSearchResults(attributeHeaderMap,returnData,resultsExceeded);
+    }
+
+
     public Map<ChaiUser,Map<String,String>> performMultiUserSearch(
             final PwmSession pwmSession,
             final SearchConfiguration searchConfiguration,
             final int maxResults,
-            final List<String> returnAttributes
+            final Collection<String> returnAttributes
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
-    {
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
         final long startTime = System.currentTimeMillis();
         LOGGER.debug(pwmSession, "beginning user search process");
 
@@ -182,14 +230,19 @@ public class UserSearchEngine {
         final Map<ChaiUser,Map<String,String>> returnMap;
         returnMap = new HashMap<ChaiUser,Map<String, String>>();
         for (final String loopContext : searchContexts) {
-            final Map<ChaiUser,Map<String,String>> singleContextResults = doSingleContextSearch(
-                    pwmSession,
-                    searchFilter,
-                    loopContext,
-                    returnAttributes,
-                    maxResults - returnMap.size(),
-                    chaiProvider
-            );
+            final Map<ChaiUser,Map<String,String>> singleContextResults;
+            try {
+                singleContextResults = doSingleContextSearch(
+                        pwmSession,
+                        searchFilter,
+                        loopContext,
+                        returnAttributes,
+                        maxResults - returnMap.size(),
+                        chaiProvider
+                );
+            } catch (ChaiOperationException e) {
+                throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during search: " + e.getMessage());
+            }
             returnMap.putAll(singleContextResults);
             if (returnMap.size() >= maxResults) {
                 break;
@@ -204,11 +257,11 @@ public class UserSearchEngine {
             final PwmSession pwmSession,
             final String searchFilter,
             final String context,
-            final List<String> returnAttributes,
+            final Collection<String> returnAttributes,
             final int maxResults,
             final ChaiProvider chaiProvider
     )
-            throws ChaiUnavailableException, PwmOperationalException {
+            throws ChaiUnavailableException, PwmOperationalException, ChaiOperationException {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(maxResults);
         searchHelper.setFilter(searchFilter);
@@ -216,27 +269,22 @@ public class UserSearchEngine {
 
         LOGGER.debug(pwmSession, "performing ldap search for user, base=" + context + " filter=" + searchHelper.toString());
 
-        try {
-            final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
+        final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
 
-            if (results.isEmpty()) {
-                LOGGER.trace(pwmSession, "user not found in context " + context);
-                return Collections.emptyMap();
-            }
-
-            LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context);
-
-            final Map<ChaiUser,Map<String,String>> returnMap = new LinkedHashMap<ChaiUser, Map<String, String>>();
-            for (final String userDN : results.keySet()) {
-                final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, chaiProvider);
-                final Map<String,String> attributeMap = results.get(userDN);
-                returnMap.put(chaiUser, attributeMap);
-            }
-            return returnMap;
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error searching for user: " + e.getMessage());
-            return null;
+        if (results.isEmpty()) {
+            LOGGER.trace(pwmSession, "user not found in context " + context);
+            return Collections.emptyMap();
         }
+
+        LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context);
+
+        final Map<ChaiUser,Map<String,String>> returnMap = new LinkedHashMap<ChaiUser, Map<String, String>>();
+        for (final String userDN : results.keySet()) {
+            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, chaiProvider);
+            final Map<String,String> attributeMap = results.get(userDN);
+            returnMap.put(chaiUser, attributeMap);
+        }
+        return returnMap;
     }
 
     private static void validateSpecifiedContext(final PwmApplication pwmApplication, final String context)
@@ -344,5 +392,50 @@ public class UserSearchEngine {
         }
 
         return false;
+    }
+
+    public static class UserSearchResults implements Serializable {
+        private final Map<String,String> headerAttributeMap;
+        private final Map<String,Map<String,String>> results;
+        private boolean sizeExceeded;
+
+        public UserSearchResults(Map<String, String> headerAttributeMap, Map<String, Map<String, String>> results, boolean sizeExceeded) {
+            this.headerAttributeMap = headerAttributeMap;
+            this.results = results;
+            this.sizeExceeded = sizeExceeded;
+        }
+
+        public Map<String, String> getHeaderAttributeMap() {
+            return headerAttributeMap;
+        }
+
+        public Map<String, Map<String, String>> getResults() {
+            return results;
+        }
+
+        public boolean isSizeExceeded() {
+            return sizeExceeded;
+        }
+
+        public List<Map<String,String>> resultsAsJsonOutput(final PwmSession pwmSession) {
+            final List<Map<String,String>> outputList = new ArrayList<Map<String, String>>();
+            for (final String userDN : this.getResults().keySet()) {
+                final Map<String,String> rowMap = new LinkedHashMap<String, String>();
+                for (final String attribute : this.getHeaderAttributeMap().keySet()) {
+                    rowMap.put(attribute,this.getResults().get(userDN).get(attribute));
+                }
+                rowMap.put("userKey",makeUserDetailKey(userDN,pwmSession));
+                outputList.add(rowMap);
+            }
+            return outputList;
+        }
+
+        public static Map<String,String> fromFormConfiguration(final List<FormConfiguration> formConfigurations, final Locale locale) {
+            final Map<String,String> results = new LinkedHashMap<String, String>();
+            for (final FormConfiguration formConfiguration : formConfigurations) {
+                results.put(formConfiguration.getName(),formConfiguration.getLabel(locale));
+            }
+            return results;
+        }
     }
 }
