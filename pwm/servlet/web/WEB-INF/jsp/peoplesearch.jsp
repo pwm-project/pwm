@@ -129,7 +129,7 @@
         </style>
         <br/>
         <% if (searchResults.isSizeExceeded()) { %>
-        <div style="width:100%; text-align: center">
+        <div style="width:100%; text-align: center; font-size: smaller">
             <pwm:Display key="Display_SearchResultsExceeded"/>
         </div>
         <% } %>

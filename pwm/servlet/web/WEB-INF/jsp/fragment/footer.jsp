@@ -29,7 +29,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final Locale userLocaleFooter = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
-<div id="emptyDiv" style="max-width:1px"></div>
 <div id="footer">
     <br/>
     <br/>

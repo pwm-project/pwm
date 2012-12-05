@@ -69,9 +69,9 @@ function pwmPageLoadHandler() {
         require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
             // Function linked to the button to trigger the fade.
             var args = {node: "header-warning",duration:1000};
-            setInterval(function(){fx.fadeOut(args).play()},7*1000);
+            setInterval(function(){fx.fadeOut(args).play()},15*1000);
             setTimeout(function(){
-                setInterval(function(){fx.fadeIn(args).play();},7*1000);
+                setInterval(function(){fx.fadeIn(args).play();},15*1000);
             },2000);
         });
     }
@@ -92,8 +92,8 @@ function pwmPageLoadHandler() {
 
     if (getObject('emptyDiv')) {
         require(["dijit/ProgressBar"],function(ProgressBar){ // preloads the progress meter work when it immediately does a form submit
-            new ProgressBar({style: 'width:10px',indeterminate:true,id: "emptyDiv"},"emptyDiv");
-            setTimeout(function(){clearDijitWidget("emptyDiv")},1);
+            new ProgressBar({style: 'width:10px',indeterminate:true,id: "preloadedProgressBar"});
+            setTimeout(function(){clearDijitWidget("preloadedProgressBar")},10);
         });
     }
 }

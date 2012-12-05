@@ -211,7 +211,12 @@ public class UserSearchEngine {
         }
 
         final List<String> searchContexts;
-        if (searchConfiguration.getContexts() != null && !searchConfiguration.getContexts().isEmpty() && searchConfiguration.getContexts().iterator().next().length() > 0) {
+        if (searchConfiguration.getContexts() != null &&
+                !searchConfiguration.getContexts().isEmpty() &&
+                searchConfiguration.getContexts().iterator().next() != null &&
+                searchConfiguration.getContexts().iterator().next().length() > 0
+                )
+        {
             searchContexts = searchConfiguration.getContexts();
 
             if (searchConfiguration.isEnableContextValidation()) {

@@ -225,6 +225,7 @@
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
+    <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().getRecords().isEmpty()) { %>
     <table>
         <% for (final UserHistory.Record record : helpdeskBean.getAdditionalUserInfo().getUserHistory().getRecords()) { %>
         <tr>
@@ -238,6 +239,11 @@
         </tr>
         <% } %>
     </table>
+    <% } else { %>
+    <div style="width:100%; text-align: center">
+        <pwm:Display key="Display_SearchResultsNone"/>
+    </div>
+    <% } %>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Password Policy">
     <table>
@@ -444,7 +450,7 @@
                         } else {
                             bodyText += results['errorMsg'];
                         }
-                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'continueForm\').submit();"> OK </button>';
                         <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
                         bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                         bodyText += '<button class="btn" onclick="doResponseClear(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\')">';
@@ -492,7 +498,7 @@
                         } else {
                             bodyText += results['errorMsg'];
                         }
-                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'searchForm\').submit();"> OK </button>';
+                        bodyText += '<br/><br/><button class="btn" onclick="getObject(\'continueForm\').submit();"> OK </button>';
                         closeWaitDialog();
                         var theDialog = new dijit.Dialog({
                             id: 'dialogPopup',

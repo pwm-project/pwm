@@ -54,38 +54,15 @@ public enum PwmSetting {
     GOOGLE_ANAYLTICS_TRACKER(
             "google.analytics.tracker", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
     PWM_INSTANCE_NAME(
-            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.BASIC),
+            "pwmInstanceName", Syntax.STRING, Category.GENERAL, false, Level.ADVANCED),
     IDLE_TIMEOUT_SECONDS(
             "idleTimeoutSeconds", Syntax.NUMERIC, Category.GENERAL, true, Level.BASIC),
     DISPLAY_SHOW_DETAILED_ERRORS(
             "display.showDetailedErrors", Syntax.BOOLEAN, Category.GENERAL, true, Level.BASIC),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
-            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.BASIC),
+            "display.hideConfigHealthWarnings", Syntax.BOOLEAN, Category.GENERAL, false, Level.ADVANCED),
     KNOWN_LOCALES(
             "knownLocales", Syntax.STRING_ARRAY, Category.GENERAL, false, Level.ADVANCED),
-
-    // change password
-    LOGOUT_AFTER_PASSWORD_CHANGE(
-            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
-    PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
-    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD, false, Level.BASIC),
-    PASSWORD_SYNC_MIN_WAIT_TIME(
-            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
-    PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
-    PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
-    PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
-    EXPIRE_CHECK_DURING_AUTH(
-            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", Syntax.STRING, Category.CHANGE_PASSWORD, false, Level.ADVANCED),
-    CHANGE_PASSWORD_WRITE_ATTRIBUTES(
-            "changePassword.writeAttributes", Syntax.STRING_ARRAY, Category.CHANGE_PASSWORD, false, Level.BASIC),
-
 
     // user interface
     INTERFACE_THEME(
@@ -113,16 +90,37 @@ public enum PwmSetting {
     DISPLAY_LOGOUT_BUTTON(
             "display.logoutButton", Syntax.BOOLEAN, Category.USER_INTERFACE, true, Level.BASIC),
     DISPLAY_CSS_CUSTOM_STYLE(
-            "display.css.customStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.ADVANCED),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
-            "display.css.customMobileStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customMobileStyleLocation", Syntax.STRING, Category.USER_INTERFACE, false, Level.ADVANCED),
     DISPLAY_CSS_EMBED(
-            "display.css.customStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
     DISPLAY_CSS_MOBILE_EMBED(
-            "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.css.customMobileStyle", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
     DISPLAY_CUSTOM_JAVASCRIPT(
-            "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.BASIC),
+            "display.js.custom", Syntax.TEXT_AREA, Category.USER_INTERFACE, false, Level.ADVANCED),
 
+    // change password
+    LOGOUT_AFTER_PASSWORD_CHANGE(
+            "logoutAfterPasswordChange", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_REQUIRE_CURRENT(
+            "password.change.requireCurrent", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_CHANGE_AGREEMENT_MESSAGE(
+            "display.password.changeAgreement", Syntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD, false, Level.BASIC),
+    PASSWORD_SYNC_MIN_WAIT_TIME(
+            "passwordSyncMinWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    PASSWORD_SYNC_MAX_WAIT_TIME(
+            "passwordSyncMaxWaitTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    PASSWORD_EXPIRE_PRE_TIME(
+            "expirePreTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_EXPIRE_WARN_TIME(
+            "expireWarnTime", Syntax.NUMERIC, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    EXPIRE_CHECK_DURING_AUTH(
+            "expireCheckDuringAuth", Syntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.ADVANCED),
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", Syntax.STRING, Category.CHANGE_PASSWORD, false, Level.ADVANCED),
+    CHANGE_PASSWORD_WRITE_ATTRIBUTES(
+            "changePassword.writeAttributes", Syntax.STRING_ARRAY, Category.CHANGE_PASSWORD, false, Level.BASIC),
 
     //ldap directory
     LDAP_SERVER_URLS(
@@ -425,7 +423,7 @@ public enum PwmSetting {
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.SECURITY, true, Level.BASIC),
+            "network.reverseDNS.enable", Syntax.BOOLEAN, Category.SECURITY, true, Level.ADVANCED),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
             "security.page.leaveNoticeTimeout", Syntax.NUMERIC, Category.SECURITY, true, Level.ADVANCED),
 
@@ -927,6 +925,9 @@ public enum PwmSetting {
         SECURITY(0),
         TOKEN(0),
         LOGGING(0),
+        EDIRECTORY(0),
+        DATABASE(0),
+        MISC(0),
         CHANGE_PASSWORD(1),
         RECOVERY(1),
         FORGOTTEN_USERNAME(1),
@@ -936,9 +937,6 @@ public enum PwmSetting {
         UPDATE(1),
         SHORTCUT(1),
         PEOPLE_SEARCH(1),
-        EDIRECTORY(0),
-        DATABASE(0),
-        MISC(0),
         HELPDESK(1),
         ;
 

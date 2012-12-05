@@ -209,7 +209,7 @@ function buildMenuBar() {
                         id: idName,
                         title: 'PWM Macro Help',
                         style: "width: 550px",
-                        href: "<pwm:url url="/pwm/resources/macroHelp.html"/>"
+                        href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
                     });
                     theDialog.show();
                 }
@@ -245,6 +245,22 @@ function buildMenuBar() {
                 }
             }));
         <% } %>
+            templateMenu.addChild(new dijit.MenuSeparator());
+            templateMenu.addChild(new dijit.MenuItem({
+                label: "About Templates",
+                onClick: function() {
+                    var idName = 'dialogPopup';
+                    clearDijitWidget(idName);
+                    var theDialog = new dijit.Dialog({
+                        id: idName,
+                        title: 'About Templates',
+                        style: "width: 550px",
+                        href: PWM_GLOBAL['url-resources'] + "/text/aboutTemplates.html"
+                    });
+                    theDialog.show();
+                }
+            }));
+
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                 label: "Template",
                 popup: templateMenu

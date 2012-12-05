@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.GuestRegistrationBean;
@@ -46,6 +45,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -221,53 +221,41 @@ public class GuestRegistrationServlet extends TopServlet {
     protected void handleSearchRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
+    )
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
     	LOGGER.trace("Enter: handleSearchRequest(...)");
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
         final Configuration config = pwmApplication.getConfig();
-        final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+
+        final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
+        final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
+
         final String usernameParam = Validator.readStringFromRequest(req, "username");
-        final String searchContext = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final GuestRegistrationBean guBean = pwmSession.getGuestRegistrationBean();
-        LOGGER.debug(String.format("Searching for username: '%s' in container '%s'", usernameParam, searchContext));
+
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setChaiProvider(chaiProvider);
+        searchConfiguration.setContexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)));
+        searchConfiguration.setEnableContextValidation(false);
+        searchConfiguration.setUsername(usernameParam);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
 
         try {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final Map<String, String> filterClauses = new HashMap<String, String>();
-            filterClauses.put(namingAttribute, usernameParam);
-            final SearchHelper searchHelper = new SearchHelper();
-            searchHelper.setFilterAnd(filterClauses);
-
-            final Set<String> resultDNs = new HashSet<String>(provider.search(searchContext, searchHelper).keySet());
-            if (resultDNs.size() > 1) {
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_MULTI_USERNAME, null, new String[]{usernameParam});
-                ssBean.setSessionError(error);
-                this.forwardToJSP(req, resp);
-                return;
-            }
-            if (resultDNs.size() == 0) {
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, null, new String[]{usernameParam});
-                ssBean.setSessionError(error);
-                this.forwardToJSP(req, resp);
-                return;
-            }
-            final String userDN = resultDNs.iterator().next();
-            guBean.setUpdateUserDN(null);
-            final ChaiUser theGuest = ChaiFactory.createChaiUser(userDN, provider);
+            final ChaiUser theGuest = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
             try {
-                final List<FormConfiguration> updateParams = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
+                final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<String>();
-                for (final FormConfiguration formConfiguration : updateParams) {
+                for (final FormConfiguration formConfiguration : guestUpdateForm) {
                     if (!formConfiguration.getName().equalsIgnoreCase("__accountDuration__")) {
                         involvedAttrs.add(formConfiguration.getName());
                     }
                 }
-                final Map<String,String> userAttrValues = provider.readStringAttributes(userDN, involvedAttrs);
-                final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
-                final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
+                final Map<String,String> userAttrValues = theGuest.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
@@ -287,7 +275,7 @@ public class GuestRegistrationServlet extends TopServlet {
                     }
                 }
 
-                for (final FormConfiguration formConfiguration : updateParams) {
+                for (final FormConfiguration formConfiguration : guestUpdateForm) {
                     final String key = formConfiguration.getName();
                     final String value = userAttrValues.get(key);
                     if (value != null) {
@@ -295,17 +283,16 @@ public class GuestRegistrationServlet extends TopServlet {
                     }
                 }
 
-                guBean.setUpdateUserDN(userDN);
+                guBean.setUpdateUserDN(theGuest.getEntryDN());
 
                 this.forwardToUpdateJSP(req, resp);
                 return;
             } catch (ChaiOperationException e) {
                 LOGGER.warn(pwmSession, "error reading current attributes for user: " + e.getMessage());
             }
-        } catch (ChaiOperationException e) {
-            final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error searching for guest user: " + e.getMessage());
-            ssBean.setSessionError(info);
-            LOGGER.warn(pwmSession, info);
+        } catch (PwmOperationalException e) {
+            final ErrorInformation error = e.getErrorInformation();
+            ssBean.setSessionError(error);
             this.forwardToJSP(req, resp);
             return;
         }
