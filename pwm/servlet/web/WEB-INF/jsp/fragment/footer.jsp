@@ -46,7 +46,7 @@
     </span>
         &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
     <span id="localeSelectionMenu" style="white-space: nowrap">
-        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
+        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
         &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>
     </div>

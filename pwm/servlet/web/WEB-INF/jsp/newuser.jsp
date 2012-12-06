@@ -28,7 +28,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();document.forms.newUser.elements[0].focus();" class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/newuser.js'/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/newuser.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>

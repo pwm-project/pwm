@@ -43,7 +43,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/responses.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
 

@@ -46,7 +46,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <script type="text/javascript"
-        src="<%=request.getContextPath()%><pwm:url url='/resources/changepassword.js'/>"></script>
+        src="<%=request.getContextPath()%><pwm:url url='/public/resources/changepassword.js'/>"></script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
@@ -393,8 +393,8 @@
             bodyText += '<td style="border: 0"><input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>\');""/></td>';
 
             bodyText += '<td style="border: 0"><div style="margin:0;">';
-            bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='greenCheck.png'/>">';
-            bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%>/resources/<pwm:url url='redX.png'/>">';
+            bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">';
+            bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">';
             bodyText += '</div></td>';
 
             bodyText += '</tr></table>';

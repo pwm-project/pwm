@@ -63,7 +63,7 @@
         </script>
         <% } %>
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
-        <img src="<%=request.getContextPath()%>/resources/reset.png" alt="Reset" title="Reset to default value"
+        <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
              id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
              style="visibility:hidden; vertical-align:bottom; float: right"
              onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>

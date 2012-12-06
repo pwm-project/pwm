@@ -257,7 +257,7 @@
         <init-param>
             <description>zip files to treat as resource paths, seperated by semi-colons (;), must end in .zip</description>
             <param-name>zipFileResources</param-name>
-            <param-value>/resources/dojo.zip;/resources/flags.zip</param-value>
+            <param-value>/public/resources/dojo.zip;/public/resources/flags.zip</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -337,7 +337,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>
-        <url-pattern>/resources/*</url-pattern>
+        <url-pattern>/public/resources/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>HelpdeskServlet</servlet-name>

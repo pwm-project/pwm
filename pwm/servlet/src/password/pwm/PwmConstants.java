@@ -181,7 +181,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_COMMAND = "CommandServlet";
     public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
 
-    public static final String URL_THEMES = "/resources/themes/";
+    public static final String URL_THEMES = "/public/resources/themes/";
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_VERIFICATION_KEY = "session_verification_key";

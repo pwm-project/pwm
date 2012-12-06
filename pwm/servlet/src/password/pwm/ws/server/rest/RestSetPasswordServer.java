@@ -47,7 +47,6 @@ public class RestSetPasswordServer {
 
     @Context
     HttpServletRequest request;
-
     public static class JsonOutput {
         public String username;
         public int version;

@@ -113,9 +113,9 @@ public class ThemeUrlTag extends PwmAbstractTag {
         } else {
             final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
             if (isMobile) {
-                themeURL = servletContext.getContextPath() + "/resources" + nonce + "/themes/" + themeName + "/pwmMobileStyle.css";
+                themeURL = servletContext.getContextPath() + "/public/resources" + nonce + "/themes/" + themeName + "/pwmMobileStyle.css";
             } else {
-                themeURL = servletContext.getContextPath() + "/resources" + nonce + "/themes/" + themeName + "/pwmStyle.css";
+                themeURL = servletContext.getContextPath() + "/public/resources" + nonce + "/themes/" + themeName + "/pwmStyle.css";
             }
         }
 

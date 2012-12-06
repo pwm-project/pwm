@@ -253,7 +253,7 @@ LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeStr
         if (localeString != null && localeString.length > 0) {
             var imgElement = document.createElement("img");
             imgElement.setAttribute("style", "width: 15px; height: 15px");
-            imgElement.setAttribute("src", "../resources/redX.png");
+            imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
             imgElement.setAttribute("onclick", "LocaleTableHandler.removeLocaleSetting('" + settingKey + "','" + localeString + "','" + parentDiv + "','" + regExPattern + "','" + syntax + "')");
             td2.appendChild(imgElement);
         }
@@ -375,7 +375,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
             if (iteration != 0) {
                 var imgElement = document.createElement("img");
                 imgElement.setAttribute("style", "width: 15px; height: 15px");
-                imgElement.setAttribute("src", "../resources/redX.png");
+                imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
                 imgElement.setAttribute("onclick", "MultiTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
                 td1.appendChild(imgElement);
             }
@@ -473,7 +473,7 @@ MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regE
                     if (iteration != 0) { // add the remove value button
                         var imgElement = document.createElement("img");
                         imgElement.setAttribute("style", "width: 15px; height: 15px");
-                        imgElement.setAttribute("src", "../resources/redX.png");
+                        imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
                         imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
                         valueTd1.appendChild(imgElement);
                     }
@@ -502,7 +502,7 @@ MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regE
                 if (localeName != '') { // add remove locale x
                     var imgElement2 = document.createElement("img");
                     imgElement2.setAttribute("style", "width: 15px; height: 15px;");
-                    imgElement2.setAttribute("src", "../resources/redX.png");
+                    imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
                     imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
                     var tdElement = document.createElement("td");
                     tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
@@ -718,7 +718,7 @@ FormTableHandler.addFormRow = function(parentDiv, settingKey, iteration, value) 
 
             var imgElement = document.createElement("img");
             imgElement.setAttribute("style", "width: 15px; height: 15px");
-            imgElement.setAttribute("src", "../resources/redX.png");
+            imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
             imgElement.setAttribute("onclick", "FormTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "')");
             tdFinal.appendChild(imgElement);
             newTableRow.appendChild(tdFinal);
@@ -887,7 +887,7 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
             bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
             if (localeName != '') {
                 bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
                 bodyText += ' onclick="FormTableHandler.removeLocaleLabel(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
                 bodyText += '</td>';
             }
@@ -956,7 +956,7 @@ FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
             bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
             if (localeName != '') {
                 bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
                 bodyText += ' onclick="FormTableHandler.removeRegexErrorLocale(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
                 bodyText += '</td>';
             }
@@ -1025,7 +1025,7 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
             var optionID = inputID + optionName;
             bodyText += '<td style="border:1px">' + optionName + '</td><td style="border:1px">' + value + '</td>';
             bodyText += '<td style="border:0">';
-            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
             bodyText += ' onclick="FormTableHandler.removeSelectOptionsOption(\'' + keyName + '\',' + iteration + ',\'' + optionName + '\')" />';
             bodyText += '</td>';
             bodyText += '</tr><tr>';
@@ -1124,7 +1124,7 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
             bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
             if (localeName != '') {
                 bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="../resources/redX.png"';
+                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
                 bodyText += ' onclick="FormTableHandler.removeDescriptionLocale(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
                 bodyText += '</td>';
             }
@@ -1270,8 +1270,8 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><textarea data-dojo-type="dijit.form.Textarea" name="password2" id="password2" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto;" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields()"/></textarea></td>';
 
         bodyText += '<td style="border: 0"><div style="margin:0;">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="../resources/greenCheck.png">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="../resources/redX.png">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">';
+        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">';
         bodyText += '</div></td>';
 
         bodyText += '</tr></table>';

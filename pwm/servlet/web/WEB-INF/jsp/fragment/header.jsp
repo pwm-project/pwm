@@ -43,16 +43,16 @@
     <meta name="application-name" content="PWM Password Self Service" data-pwm-version="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-pwm-build="<%=PwmConstants.BUILD_NUMBER%>" data-pwm-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7" />
-    <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/resources/favicon.ico'/>"/>
-    <link href="<%=request.getContextPath()%><pwm:url url='/resources/pwmStyle.css'/>" rel="stylesheet" type="text/css" media="screen"/>
-    <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/resources/pwmMobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
+    <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
+    <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmStyle.css'/>" rel="stylesheet" type="text/css" media="screen"/>
+    <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmMobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% } %>
-    <link href="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
-    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/dojo/dojo/dojo.js'/>"></script>
-    <script defer="defer" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/resources/pwmHelper.js'/>"></script>
+    <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
+    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+    <script defer="defer" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmHelper.js'/>"></script>
     <script defer="defer" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(PwmSession.getPwmSession(request))%>"></script>
     <% final String googleTrackingCode = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
     <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>

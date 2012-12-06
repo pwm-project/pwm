@@ -262,7 +262,7 @@ function initLocaleSelectorMenu(attachNode) {
     }
 
     require(["dojo/domReady!"],function(){
-        require(["dojo","dijit/Menu","dijit/MenuItem"],function(dojo, dijitMenu, dijitMenuItem){
+        require(["dojo","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(dojo, dijitMenu, dijitMenuItem, dijitMenuSeparator){
             var localeData = PWM_GLOBAL['localeInfo'];
             var pMenu = new dijitMenu({
                 targetNodeIds: [attachNode],
@@ -299,6 +299,16 @@ function initLocaleSelectorMenu(attachNode) {
                 var loopKey = localeKey == '' ? 'default' : localeKey;
                 loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
             }
+
+            pMenu.addChild(new dijitMenuSeparator());
+            pMenu.addChild(new dijitMenuItem({
+                label: PWM_STRINGS['Title_LocaleSelect'],
+                onClick: function() {
+                    showWaitDialog(null,null,function(){
+                        window.location = PWM_GLOBAL['url-context'] + '/public/localeselect.jsp'
+                    });
+                }
+            }));
         });
     });
 }

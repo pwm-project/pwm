@@ -57,7 +57,7 @@
         title.append(" (Advanced)");
     }
 %>
-<img src="<%=request.getContextPath()%><pwm:url url="/resources/reset.png"/>" alt="Reset" title="Reset to default value"
+<img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
      id="resetButton-<%=loopSetting.getKey()%>"
      style="visibility:hidden; vertical-align:bottom; float: right"
      onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
