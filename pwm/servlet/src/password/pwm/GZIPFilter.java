@@ -37,12 +37,11 @@ public class GZIPFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse res,
                          FilterChain chain) throws IOException, ServletException {
         if (req instanceof HttpServletRequest) {
-            HttpServletRequest request = (HttpServletRequest) req;
-            HttpServletResponse response = (HttpServletResponse) res;
-            String ae = request.getHeader("accept-encoding");
-            if (PwmConstants.SERVLET_FILTER_ENABLE_GZIP && ae != null && ae.contains("gzip")) {
-                GZIPResponseWrapper wrappedResponse =
-                        new GZIPResponseWrapper(response);
+            final HttpServletRequest request = (HttpServletRequest) req;
+            final HttpServletResponse response = (HttpServletResponse) res;
+            final String acceptEncodingHeader = request.getHeader("accept-encoding");
+            if (!request.getRequestURI().contains("/resources/") && PwmConstants.SERVLET_FILTER_ENABLE_GZIP && acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
+                final GZIPResponseWrapper wrappedResponse = new GZIPResponseWrapper(response);
                 chain.doFilter(req, wrappedResponse);
                 wrappedResponse.finishResponse();
                 return;

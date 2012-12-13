@@ -20,17 +20,5 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<Context>
-    <init-param>
-        <param-name>keepgenerated</param-name>
-        <param-value>false</param-value>
-    </init-param>
-    <init-param>
-        <param-name>tldNamespaceAware</param-name>
-        <param-value>false</param-value>
-    </init-param>
-    <init-param>
-        <param-name>tldValidation</param-name>
-        <param-value>false</param-value>
-    </init-param>
+<Context tldNamespaceAware="false" tldValidation="false">
 </Context>

@@ -60,7 +60,7 @@
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" name="uploadFile" size="50"/>
+            <input type="file" name="uploadFile" size="50" data-dojo-type="dojox/form/Uploader"/>
             <input type="submit" class="btn" name="uploadSubmit" value="Upload"
                    onclick="document.forms['uploadXml'].submit();"/>
         </form>
@@ -105,6 +105,11 @@
         <% } %>
     </div>
 </div>
+<script type="text/javascript">
+    require(["dojo/parser","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

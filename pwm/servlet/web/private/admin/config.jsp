@@ -103,7 +103,6 @@
                                         break;
 
                                         case FORM: {
-                                            System.out.println(loopSetting.getKey());
                                             final List<FormConfiguration> formValues = pwmConfig.readSettingAsForm(loopSetting);
                                             for (final FormConfiguration formConfiguration : formValues) {
                                                 out.write(StringEscapeUtils.escapeHtml(formConfiguration.toString()));

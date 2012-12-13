@@ -22,16 +22,14 @@
 
 package password.pwm;
 
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -258,6 +256,14 @@ public class SessionFilter implements Filter {
             pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
         }
 
+        try {
+            if (forceRequiredRedirects(req,resp,pwmApplication,pwmSession)) {
+                return;
+            }
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error("unexpected ldap error when checking for user redirects: " + e.getMessage());
+        }
+
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
             ServletHelper.addPwmResponseHeaders(pwmApplication, resp, true);
@@ -425,13 +431,10 @@ public class SessionFilter implements Filter {
         }
 
         if (mode == PwmApplication.MODE.NEW) {
-            final String configServletPathPrefix = req.getContextPath() + "/config/";
-            final String requestedURL = req.getRequestURI();
-
             // check if current request is actually for the config url, if it is, just do nothing.
-            if (requestedURL == null || !requestedURL.startsWith(configServletPathPrefix)) {
+            if (!PwmServletURLHelper.isResourceURL(req) && !PwmServletURLHelper.isConfigManagerURL(req)) {
                 LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
-                resp.sendRedirect(configServletPathPrefix + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
+                resp.sendRedirect(req.getContextPath() + "/config/" + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
                 return true;
             }
         } else if (mode == PwmApplication.MODE.ERROR) {
@@ -465,4 +468,78 @@ public class SessionFilter implements Filter {
 
         return true;
     }
+
+    public static boolean forceRequiredRedirects(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException
+    {
+        if (PwmServletURLHelper.isResourceURL(req) || PwmServletURLHelper.isConfigManagerURL(req)) {
+            return false;
+        }
+
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            return false;
+        }
+
+        if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+                if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
+                    if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
+                        LOGGER.info(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");
+                        resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+
+        if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
+                if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+                    if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
+                        LOGGER.info(pwmSession, "user is required to update profile, redirecting to profile update servlet");
+                        resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+
+        if (!PwmServletURLHelper.isChangePasswordURL(req)) {
+            if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+                boolean doRedirect = false;
+                if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
+                    LOGGER.info(pwmSession, "user password is expired, redirecting to change password servlet");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired() ) {
+                    LOGGER.info(pwmSession, "user password is pre-expired, redirecting to change password servlet ");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().getPasswordState().isViolatesPolicy() ) {
+                    LOGGER.info(pwmSession, "user password violates policy, redirecting to change password servlet ");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
+                    LOGGER.info(pwmSession, "user password requires changing due to a previous operation, redirecting to change password servlet");
+                    doRedirect = true;
+                }
+
+                if (doRedirect) {
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return false;
+    }
+
 }

@@ -94,8 +94,7 @@
             <tr style="border:0">
                 <td style="border:0; text-align: right">
                     <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a>
-
-                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
+<form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
                           enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="generateXml"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -107,8 +106,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
-
+                    <a class="menubutton" href="#" onclick="if (confirm('Are you sure you wish to overwrite the current running configuration with the selected file?')) {document.forms['uploadXml'].submit()}">Upload Configuration File</a>
                 </td>
                 <td style="border:0">
                     <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
@@ -116,7 +114,7 @@
                     <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
                         <input type="hidden" name="processAction" value="uploadXml"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        <input type="file" name="uploadFile" size="50" style="width: 350px"/>
+                        <input type="file" name="uploadFile" size="50" style="width: 350px" data-dojo-type="dojox/form/Uploader" required="required"/>
                         <%--<input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
                                onclick="document.forms['uploadXml'].submit();"/>--%>
                     </form>
@@ -132,10 +130,9 @@
                     </form>
                 </td>
                 <td style="border:0">
-                    <p>Lock the configuration. Once the configuration is locked, you can no longer directly edit the running
-                        configuration using this interface.  If you wish to make changes
-                        after locking, you will need to have access to the <span style="font-style: italic;"><%=configFilePath%></span>
-                        file on the PWM server.</p>
+                    <p>Lock the configuration. Once, locked you can still edit the configuration or unlock the
+                        configuration as long as you have access to the configuration file at <span style="font-style: italic;"><%=configFilePath%></span>.
+                        </p>
                 </td>
             </tr>
             <tr style="border:0">
@@ -150,7 +147,7 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
+    require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
         dojoParser.parse();
     });
 </script>

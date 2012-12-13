@@ -34,6 +34,9 @@
     </jsp:include>
     <div id="centerbody">
         <br/>
+        <div>
+            <pwm:Display key="@User:DaysUntilPwExpire@"/>
+        </div>
         <table style="border:0">
             <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">

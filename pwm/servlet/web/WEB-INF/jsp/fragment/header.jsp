@@ -52,8 +52,8 @@
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-    <script defer="defer" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmHelper.js'/>"></script>
-    <script defer="defer" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(PwmSession.getPwmSession(request))%>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmHelper.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(PwmSession.getPwmSession(request))%>"></script>
     <% final String googleTrackingCode = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
     <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
     <script type="text/javascript">

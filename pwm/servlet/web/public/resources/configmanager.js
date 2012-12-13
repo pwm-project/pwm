@@ -1304,7 +1304,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
 
 
 
-function saveConfiguration() {
+function saveConfiguration(waitForReload) {
     require(["dojo"],function(dojo){
         showWaitDialog('Saving Configuration...', null);
         dojo.xhrGet({
@@ -1314,6 +1314,7 @@ function saveConfiguration() {
             dataType: "json",
             handleAs: "json",
             load: function(data) {
+                var oldEpoch = data != null ? data['configEpoch'] : null;
                 dojo.xhrGet({
                     url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                     preventCache: true,
@@ -1324,12 +1325,15 @@ function saveConfiguration() {
                             closeWaitDialog();
                             showError(data['errorMessage']);
                         } else {
-                            var oldEpoch = data != null ? data['configEpoch'] : null;
-                            var currentTime = new Date().getTime();
-                            showError('Waiting for server restart');
-                            setTimeout(function() {
-                                waitForRestart(currentTime, oldEpoch);
-                            }, 2 * 1000);
+                            if (waitForReload) {
+                                var currentTime = new Date().getTime();
+                                showError('Waiting for server restart');
+                                setTimeout(function() {
+                                    waitForRestart(currentTime, oldEpoch);
+                                }, 2 * 1000);
+                            } else {
+                                window.location.reload();
+                            }
                         }
                     }
                 });
@@ -1433,12 +1437,11 @@ function startNewConfigurationEditor(template) {
         dojo.xhrGet({
             url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
             preventCache: true,
-            sync: true,
             error: function(errorObj) {
-                showError("error starting configuration editor: " + errorObj)
+                showError("error starting configuration editor: " + errorObj);
             },
-            load: function(data) {
-                document.forms['editMode'].submit();
+            load: function() {
+                window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
             }
         });
     });

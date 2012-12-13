@@ -273,10 +273,7 @@ function buildMenuBar() {
             actionsMenu.addChild(new dijit.MenuItem({
                 label: "Finish Editing",
                 onClick: function() {
-                    showWaitDialog('Updating Configuration');
-                    setTimeout(function() {
-                        document.forms['completeEditing'].submit();
-                    }, 1000)
+                    saveConfiguration(false);
                 }
             }));
         <% } else { %>
@@ -285,7 +282,7 @@ function buildMenuBar() {
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
                 onClick: function() {
                     if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
-                        saveConfiguration();
+                        saveConfiguration(true);
                     }
                 }
             }));
@@ -320,11 +317,6 @@ function loadMainPageBody() {
 }
 
 </script>
-<form action="<pwm:url url='ConfigManager'/>" method="post" name="completeEditing"
-      enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="processAction" value="finishEditing"/>
-    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-</form>
 <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
       enctype="application/x-www-form-urlencoded">
     <input type="hidden" name="processAction" value="cancelEditing"/>

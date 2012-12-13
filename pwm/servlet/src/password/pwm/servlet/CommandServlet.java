@@ -175,7 +175,7 @@ public class CommandServlet extends TopServlet {
             sb.append("EXPIRED");
             expired = true;
         } else if (passwordState.isPreExpired()) {
-            sb.append("PRE-EXIRED");
+            sb.append("PRE-EXPIRED");
             expired = true;
         } else if (passwordState.isViolatesPolicy()) {
             sb.append("POLICY-VIOLATION");

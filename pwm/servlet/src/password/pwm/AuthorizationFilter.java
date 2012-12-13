@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Authorization servlet filter.  Manages PWM authorization levels.  Primariliy,
+ * Authorization servlet filter.  Manages PWM authorization levels.  Primarily,
  * this filter handles authorization filtering for the PWM Admin modules.
  *
  * @author Jason D. Rivard

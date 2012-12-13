@@ -49,27 +49,24 @@
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
         <p><a class="menubutton" href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')">New Configuration: <%=template.getDescription()%></a></p>
         <% } %>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="editMode"/>
-            <input type="hidden" name="mode" value="SETTINGS"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
         <br/>
         <p>or...</p>
         <br/>
         <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
-
+        <br/>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" name="uploadFile" size="50"/>
-            <input type="submit" class="btn" name="uploadSubmit" value="Upload"
-                   onclick="document.forms['uploadXml'].submit();"/>
+            <input type="file" name="uploadFile" size="50" data-dojo-type="dojox/form/Uploader"/>
         </form>
         <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the PWM configuration.</p>
     </div>
 </div>
+<script type="text/javascript">
+    require(["dojo/parser","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
+        dojoParser.parse();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

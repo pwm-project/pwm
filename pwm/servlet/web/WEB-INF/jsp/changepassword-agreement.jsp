@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.config.PasswordStatus" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/
@@ -44,10 +45,15 @@
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
     <div id="centerbody">
+        <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
+        <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
+        <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
+        <%-- <p/>You have <pwm:LdapValue name="loginGraceRemaining"/> remaining logins. --%>
+        <% } %>
         <%@ include file="fragment/message.jsp" %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
         <% final String expandedText = PwmMacroMachine.expandMacros(agreementText,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()); %>
-        <br/><br/>
+        <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='ChangePassword'/>" method="post"
