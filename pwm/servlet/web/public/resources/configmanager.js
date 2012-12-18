@@ -1414,10 +1414,10 @@ function waitForRestart(startTime, oldEpoch) {
                 }
             },
             error: function(error) {
-                showError('Waiting for server restart, unable to contact server: ' + error);
                 setTimeout(function() {
                     waitForRestart(startTime, oldEpoch)
                 }, 1000);
+                console.log('Waiting for server restart, unable to contact server: ' + error);
             }
         });
     });

@@ -46,8 +46,10 @@
 <% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
 <p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
 <% } %>
-<% boolean isReadonly = loopConfiguration.isReadonly() || "true".equalsIgnoreCase((String)request.getAttribute("form-readonly")); %>
-<% if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
+<% boolean readonly = loopConfiguration.isReadonly() || "true".equalsIgnoreCase((String)request.getAttribute("form-readonly")); %>
+<% if (readonly) { %>
+<span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;<%= currentValue %></span>
+<% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
 <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px">
     <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
     <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
@@ -59,9 +61,8 @@
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
-        <%if(isReadonly){%> required="required"<%}%>
+        <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
-        <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired()) { %>
 <h1>

@@ -37,9 +37,7 @@ import password.pwm.util.pwmdb.PwmDBException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 abstract class AbstractWordlist implements Wordlist, PwmService {
     protected PwmDB.DB META_DB = null;
@@ -261,15 +259,35 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         final String testWord = normalizeWord(word);
 
-        if (testWord == null) {
+        if (testWord == null || testWord.length() < 1) {
             return false;
         }
 
-        try {
-            final long startTime = System.currentTimeMillis();
-            final boolean result = pwmDB.contains(WORD_DB, testWord);
-            final long totalTime = (System.currentTimeMillis() - startTime);
+        int checkSize = this.wordlistConfiguration.getCheckSize();
+        checkSize = checkSize == 0 || checkSize > testWord.length() ? testWord.length() : checkSize;
+        final TreeSet<String> testWords = new TreeSet<String>();
+        while (checkSize <= testWord.length()) {
+            for (int i = 0; i + checkSize <= testWord.length(); i++) {
+                final String loopWord = testWord.substring(i,i + checkSize);
+                testWords.add(loopWord);
+            }
+            checkSize++;
+        }
 
+        final Date startTime = new Date();
+        try {
+            boolean result = false;
+            for (final String t : testWords) {
+                if (!result) { // stop checking once found
+                    if (pwmDB.contains(WORD_DB, t)) {
+                        result = true;
+                    }
+                }
+            }
+            final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
+            if (timeDuration.isLongerThan(100)) {
+                LOGGER.debug("wordlist search time for " + testWords.size() + " wordlist permutations was greater then 100ms: " + timeDuration.asCompactString());
+            }
             return result;
         } catch (Exception e) {
             LOGGER.error("database error checking for word: " + e.getMessage());

@@ -25,7 +25,6 @@
 //
 
 var passwordsMasked = true;
-var previousP1 = "";
 
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
@@ -40,9 +39,9 @@ function validatePasswords(userDN)
         return;
     }
 
-    if (previousP1 != getObject("password1").value) {  // if p1 is changing, then clear out p2.
+    if (PWM_GLOBAL['previousP1'] != getObject("password1").value) {  // if p1 is changing, then clear out p2.
         getObject("password2").value = "";
-        previousP1 = getObject("password1").value;
+        PWM_GLOBAL['previousP1'] = getObject("password1").value;
     }
 
     var validationProps = new Array();

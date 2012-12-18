@@ -49,6 +49,7 @@ public abstract class PwmConstants {
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER + " (" + BUILD_TYPE + ")";
 
     public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
+    public static final String CONFIG_FILE_FILENAME = readPwmConstantsBundle("configFilename");
 
     public static final String PWM_URL_HOME = readPwmConstantsBundle("url.pwm-home");
     public static final String PWM_URL_CLOUD = readPwmConstantsBundle("url.pwm-cloud");
@@ -161,7 +162,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/configmanager-logview.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "WEB-INF/jsp/configmanager-mode-new.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configmanager-mode-running.jsp";

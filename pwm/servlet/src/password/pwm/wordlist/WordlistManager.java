@@ -36,7 +36,7 @@ import java.util.Map;
 
 
 /**
- * @author Jason D. Rivard         b
+ * @author Jason D. Rivard
  */
 public class WordlistManager extends AbstractWordlist implements Wordlist {
 // ------------------------------ FIELDS ------------------------------
@@ -51,7 +51,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
     public void init(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
-        this.DEBUG_LABEL = "Pwm-wordlist";
+        this.DEBUG_LABEL = "pwm-wordlist";
         this.META_DB = PwmDB.DB.WORDLIST_META;
         this.WORD_DB = PwmDB.DB.WORDLIST_WORDS;
 
@@ -81,7 +81,8 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
         final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
         final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
         final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive);
+        final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive, checkSize);
 
         init(pwmApplication.getPwmDB(),wordlistConfiguration);
     }

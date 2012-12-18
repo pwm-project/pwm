@@ -49,7 +49,7 @@
         </h2>
 
         <p>
-            &nbsp;»&nbsp;
+            &nbsp;<%="\u00bb"%>&nbsp;
             <%= StringEscapeUtils.escapeHtml(responseText) %>
         </p>
         <% } %>

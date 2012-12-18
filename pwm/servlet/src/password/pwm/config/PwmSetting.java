@@ -222,13 +222,13 @@ public enum PwmSetting {
     EMAIL_ACTIVATION_VERIFICATION_BODY_HTML(
             "email.activation.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_FROM(
-            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.BASIC),
+            "email.challenge.token.from", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_SUBJECT(
-            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, true, Level.BASIC),
+            "email.challenge.token.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_BODY(
-            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.BASIC),
+            "email.challenge.token.plainBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHALLENGE_TOKEN_BODY_HTML(
-            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, true, Level.BASIC),
+            "email.challenge.token.htmlBody", Syntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
     EMAIL_GUEST_SUBJECT(
             "email.guest.subject", Syntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_GUEST_FROM(
@@ -383,6 +383,8 @@ public enum PwmSetting {
             "pwm.wordlist.location", Syntax.STRING, Category.PASSWORD_POLICY, false, Level.BASIC),
     WORDLIST_CASE_SENSITIVE(
             "wordlistCaseSensitive", Syntax.BOOLEAN, Category.PASSWORD_POLICY, true, Level.BASIC),
+    PASSWORD_WORDLIST_WORDSIZE(
+            "password.wordlist.wordSize", Syntax.NUMERIC, Category.PASSWORD_POLICY, true, Level.ADVANCED),
 
 
     // security settings

@@ -69,9 +69,6 @@ public class ConfigManagerServlet extends TopServlet {
             if ("getOptions".equalsIgnoreCase(processActionParam)) {
                 doGetOptions(req, resp);
                 return;
-            } else if ("viewLog".equalsIgnoreCase(processActionParam)) {
-                doViewLog(req, resp);
-                return;
             }
 
             Validator.validatePwmFormID(req);
@@ -185,20 +182,6 @@ public class ConfigManagerServlet extends TopServlet {
         final String outputString = gson.toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
-    }
-
-    static void doViewLog(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmUnrecoverableException, IOException, ServletException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-
-        final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
-
-        if (configMode == PwmApplication.MODE.RUNNING) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
-        }
-
-        final ServletContext servletContext = req.getSession().getServletContext();
-        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGVIEW).forward(req, resp);
     }
 
     private void readSetting(
@@ -448,7 +431,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         final String output = configuration.toXml();
-        resp.setHeader("content-disposition", "attachment;filename=PwmConfiguration.xml");
+        resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.CONFIG_FILE_FILENAME);
         resp.setContentType("text/xml;charset=utf-8");
         resp.getWriter().print(output);
         return true;

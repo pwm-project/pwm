@@ -61,7 +61,7 @@ function updateDisplay(resultInfo)
 {
     var result = resultInfo["message"];
 
-    if (resultInfo["success"] == "true") {
+    if (resultInfo["success"] == true) {
         getObject("setresponses_button").disabled = false;
         showSuccess(result);
     } else {
@@ -101,6 +101,7 @@ function toggleHideResponses()
 function makeSelectOptionsDistinct() {
     var allPossibleTexts = [];
     var currentlySelectedTexts = [];
+    var initialChoiceText = PWM_STRINGS['Display_SelectionIndicator'];
 
     // build list of all possible texts, and currently selected values.
     require(["dojo"],function(dojo){
@@ -132,7 +133,9 @@ function makeSelectOptionsDistinct() {
                     }
                 }
             }
-            usedTexts.push(text);
+            if (text != initialChoiceText) {
+                usedTexts.push(text);
+            }
         }
 
         // rewrite the options for each of the select lists
@@ -146,11 +149,29 @@ function makeSelectOptionsDistinct() {
                 var hasBeenUsed = -1 != dojo.indexOf(usedTexts,optionText);
                 var isSelected = optionText == selectedText;
                 if (isSelected || !hasBeenUsed) {
-                    selectElement.options[nextOptionCounter] = new Option(optionText,optionText,isSelected,isSelected);
-                    nextOptionCounter++;
+                    if (!(optionText == initialChoiceText && !isSelected)) {
+                        selectElement.options[nextOptionCounter] = new Option(optionText, optionText, isSelected, isSelected);
+                        nextOptionCounter++;
+                    }
                 }
             }
             selectedText = selectElement.options[selectElement.selectedIndex].text;
+        }
+
+        //make answer fields readonly if unselected
+        for (var i2 in simpleRandomSelectElements) {
+            var current = simpleRandomSelectElements[i2];
+            var currentSelected = current.selectedIndex;
+            var currentSelectedText = current.options[currentSelected].text;
+            var questionID = current.id.replace("_Q_","_R_");
+            var notSelected = currentSelectedText == initialChoiceText;
+            if (notSelected) {
+                getObject(questionID).disabled = true;
+                getObject(questionID).value = '';
+            } else {
+                getObject(questionID).disabled = false;
+            }
+
         }
 
     });

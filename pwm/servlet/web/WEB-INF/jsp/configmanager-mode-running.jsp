@@ -53,7 +53,7 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% if (!hasBeenModified) { %>
         <p><b>The configuration for this server has been locked.  However you can still edit the configuration.</b></p>
-        <p>For security reasons, to edit the configuration, you must upload (and then download) the <span style="font-style: italic;">PwmConfiguration.xml</span>
+        <p>For security reasons, to edit the configuration, you must upload (and then download) the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span>
             file.
         </p>
         <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration Menu</a>
@@ -68,14 +68,14 @@
         <br/>
         <a class="menubutton">Alternate Option: Un-Locking the Configuration</a>
         <p>
-            The locking of the <span style="font-style: italic;">PwmConfiguration.xml</span> file is controlled by the property "configIsEditable" within the file.  Set this property to "true" to return
+            The locking of the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> file is controlled by the property "configIsEditable" within the file.  Set this property to "true" to return
             to the online configuration mode.  Be aware that while this property is set to true anyone accessing this site can make modifications to the live configuration without authentication.
         </p>
         <br/>
         <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Alternate Option: Edit a new configuration</a>
         <p>
         <p>Edit a newconfiguration in memory by selecting a new configuration template.  After editing the configuration, you can download
-            the <span style="font-style: italic;">PwmConfiguration.xml</span> file.  This option will not modify the running configuration.
+            the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> file.  This option will not modify the running configuration.
         </p>
         <% } else { %>
         <p>Your modified configuration is currently in memory, but has not yet been saved.  Please choose an option below to continue.</p>
@@ -86,7 +86,7 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
         <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit()">Download Configuration File</a>
-        <p>Download the in memory configuration to an XML file. Save the <span style="font-style: italic;">PwmConfiguration.xml</span> to PWM's <span
+        <p>Download the in memory configuration to an XML file. Save the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> to PWM's <span
                 style="font-style: italic;">WEB-INF </span> directory to change the configuration.  In most cases, PWM will automatically restart and load the new configuration immediately.</p>
 
         <br/>

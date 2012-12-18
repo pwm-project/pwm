@@ -298,7 +298,7 @@ public class MainClass {
     }
 
     static Configuration loadConfiguration() throws Exception {
-        return (new ConfigurationReader(new File("PwmConfiguration.xml"))).getConfiguration();
+        return (new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME))).getConfiguration();
     }
 
     static void initLog4j() {

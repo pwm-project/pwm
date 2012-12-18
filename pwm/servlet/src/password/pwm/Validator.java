@@ -246,11 +246,13 @@ public class Validator {
         return resultSet;
     }
 
-    public static String sanatizeInputValue(final Configuration config, final String input, final int maxLength) {
+    public static String sanatizeInputValue(final Configuration config, final String input, int maxLength) {
 
-        String theString = input;
+        String theString = input == null ? "" : input.trim();
 
-        theString = theString.trim();
+        if (maxLength < 1) {
+           maxLength = 10 * 1024;
+        }
 
         // strip off any length beyond the specified maxLength.
         if (theString.length() > maxLength) {

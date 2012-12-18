@@ -23,7 +23,6 @@
 <%@ page import="password.pwm.util.PwmDBLogger" %>
 <%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
-<%@ page import="password.pwm.PwmSession" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -34,7 +33,7 @@
 <% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <div style="width: 100%; text-align:center;">
-<a href="<pwm:url url='ConfigManager'/>?processAction=viewLog">refresh</a>
+<a href="<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog">refresh</a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="#" onclick="self.close()">close</a>
 </div>

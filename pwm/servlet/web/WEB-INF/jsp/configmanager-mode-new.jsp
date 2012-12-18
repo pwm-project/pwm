@@ -59,7 +59,7 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <input type="file" name="uploadFile" size="50" data-dojo-type="dojox/form/Uploader"/>
         </form>
-        <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the PWM configuration.</p>
+        <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the new configuration.</p>
     </div>
 </div>
 <script type="text/javascript">

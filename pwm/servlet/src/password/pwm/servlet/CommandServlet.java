@@ -39,6 +39,7 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.UserReport;
 import password.pwm.util.operations.CrUtility;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -87,6 +88,8 @@ public class CommandServlet extends TopServlet {
             outputUserReportCsv(req, resp);
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
             processPageLeaveNotice(req, resp);
+        } else if (action.equalsIgnoreCase("viewLog")) {
+            processViewLog(req, resp);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -403,5 +406,20 @@ public class CommandServlet extends TopServlet {
             resp.setContentType("text/plain");
         }
     }
+
+    private void processViewLog(final HttpServletRequest req, final HttpServletResponse resp)
+            throws PwmUnrecoverableException, IOException, ServletException {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+
+        final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
+
+        if (configMode == PwmApplication.MODE.RUNNING) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
+        }
+
+        final ServletContext servletContext = req.getSession().getServletContext();
+        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGVIEW).forward(req, resp);
+    }
+
 }
 

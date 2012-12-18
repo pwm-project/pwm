@@ -87,13 +87,14 @@
             <h2>
                 <select name="PwmResponse_Q_Random_<%=i%>" id="PwmResponse_Q_Random_<%=i%>" style="font-weight:normal"
                         onchange="makeSelectOptionsDistinct();getObject('PwmResponse_R_Random_<%=i%>').value = '';validateResponses();getObject('PwmResponse_R_Random_<%=i%>').focus()">
+                    <option value=""><pwm:Display key="Display_SelectionIndicator"/></option>
                     <%
                         for (final String indexKey : responseBean.getIndexedChallenges().keySet()) {
                             final Challenge challenge = responseBean.getIndexedChallenges().get(indexKey);
                             if (!challenge.isRequired()) {
                                 final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + i, ""));
                     %>
-                    <option <%=selected ? "selected=\"yes\"" : ""%>
+                    <option <%=selected ? "selected=\"selected\"" : ""%>
                             value="<%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>"><%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>
                     </option>
                     <% } %>
@@ -145,7 +146,6 @@
             <% } %>
             <% } %>
             <% } %>
-
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <input type="submit" name="setResponses" class="btn" id="setresponses_button"

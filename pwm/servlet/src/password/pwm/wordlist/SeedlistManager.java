@@ -48,7 +48,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
     ) {
         this.LOGGER = PwmLogger.getLogger(this.getClass());
-        this.DEBUG_LABEL = "Pwm-seedist";
+        this.DEBUG_LABEL = "pwm-seedist";
         this.META_DB = PwmDB.DB.SEEDLIST_META;
         this.WORD_DB = PwmDB.DB.SEEDLIST_WORDS;
 
@@ -107,7 +107,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
         final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
         final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true);
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true, 0);
 
         init(wordlistConfiguration, pwmApplication.getPwmDB());
     }

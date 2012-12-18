@@ -114,31 +114,33 @@ public abstract class CrUtility {
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        if (responseMap == null || responseMap.isEmpty()) {
-            final String errorMsg = "empty response set";
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
-            throw new PwmDataValidationException(errorInfo);
+        //strip null keys from responseMap;
+        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext();) {
+            final Challenge loopChallenge = iter.next();
+            if (loopChallenge == null) {
+                iter.remove();
+            }
         }
 
         final Configuration config = pwmApplication.getConfig();
 
-        { // check that responses arent useing the challenge text word.
+        { // check that responses are not using the challenge text word.
             final int maxChallengeLengthInResponse = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE);
             if (maxChallengeLengthInResponse > 0) {
                 for (final Challenge loopChallenge : responseMap.keySet()) {
-                    final String challengeText = loopChallenge.getChallengeText();
-                    if (challengeText != null && responseMap.containsKey(loopChallenge)) {
-                        final String[] challengeWords = challengeText.split("\\s");
-                        for (final String challengeWord :challengeWords) {
-                            if (challengeWord.length() > maxChallengeLengthInResponse) {
-                                final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
-                                for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
-                                    final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
-                                    if (responseTextLower.contains(wordPart)) {
-                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
-                                        throw new PwmDataValidationException(errorInformation);
+                        final String challengeText = loopChallenge.getChallengeText();
+                        if (challengeText != null && responseMap.containsKey(loopChallenge)) {
+                            final String[] challengeWords = challengeText.split("\\s");
+                            for (final String challengeWord :challengeWords) {
+                                if (challengeWord.length() > maxChallengeLengthInResponse) {
+                                    final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
+                                    for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
+                                        final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
+                                        if (responseTextLower.contains(wordPart)) {
+                                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
+                                            throw new PwmDataValidationException(errorInformation);
+                                        }
                                     }
-                                }
                             }
                         }
                     }
@@ -179,6 +181,28 @@ public abstract class CrUtility {
         if (randomCount < minRandomRequiredSetup) {
             final String errorMsg = minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
+            throw new PwmDataValidationException(errorInfo);
+        }
+
+        { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
+            final Set<String> userQuestionTexts = new HashSet<String>();
+            for (final Challenge challenge : responseMap.keySet()) {
+                if (!challenge.isAdminDefined()) {
+                    final String text = challenge.getChallengeText();
+                    if (userQuestionTexts.contains(text.toLowerCase())) {
+                        final String errorMsg = "duplicate challenge text: " + text;
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE, errorMsg, new String[]{text});
+                        throw new PwmDataValidationException(errorInformation);
+                    } else {
+                        userQuestionTexts.add(text.toLowerCase());
+                    }
+                }
+            }
+        }
+
+        if (responseMap == null || responseMap.isEmpty()) {
+            final String errorMsg = "empty response set";
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, errorMsg);
             throw new PwmDataValidationException(errorInfo);
         }
     }

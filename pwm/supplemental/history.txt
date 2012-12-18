@@ -26,6 +26,8 @@ v1.6.5
 + helpdesk user search results
 + sortable/column select grid for tabled data and user search results throughout pwm
 + search filter for helpdesk user lookup (issue #228)
++ added "please select" message during setup response randoms (issue #306)
+
 
 - Shortcut order is sometimes randomized (issue #277)
 - Null pointer (and other issues) when using ldap token storage method (issue #281)

@@ -52,7 +52,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * User interaction servlet for setting up secret question/answer
@@ -152,7 +155,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         try {
             // read in the responses from the request
-            final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmSession, challengeSet);
+            final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmApplication, pwmSession, challengeSet);
             CrUtility.validateResponses(pwmApplication, challengeSet, responseMap);
             generateResponseInfoBean(pwmSession, challengeSet, responseMap);
         } catch (PwmDataValidationException e) {
@@ -160,10 +163,10 @@ public class SetupResponsesServlet extends TopServlet {
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
         }
 
-        final Map<String, String> outputMap = new HashMap<String, String>();
-        outputMap.put("version", "1");
+        final Map<String, Object> outputMap = new HashMap<String, Object>();
+        outputMap.put("version", 1);
         outputMap.put("message", userMessage);
-        outputMap.put("success", String.valueOf(success));
+        outputMap.put("success", success);
 
         final Gson gson = new Gson();
         final String output = gson.toJson(outputMap);
@@ -290,6 +293,7 @@ public class SetupResponsesServlet extends TopServlet {
 
     private static Map<Challenge, String> readResponsesFromJsonRequest(
             final HttpServletRequest req,
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final ChallengeSet challengeSet)
             throws PwmDataValidationException, PwmUnrecoverableException, IOException {
@@ -306,8 +310,12 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         for (final String key : srcMap.keySet()) {
-            final String paramValue = srcMap.get(key);
-            inputMap.put(key, paramValue);
+            if (key != null) {
+                final String paramValue = Validator.sanatizeInputValue(pwmApplication.getConfig(),srcMap.get(key),0);
+                if (paramValue != null && paramValue.length() > 0) {
+                    inputMap.put(key, paramValue);
+                }
+            }
         }
 
         return paramMapToChallengeMap(inputMap, pwmSession, challengeSet);
@@ -320,22 +328,6 @@ public class SetupResponsesServlet extends TopServlet {
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final List<ErrorInformation> errorInformations = new ArrayList<ErrorInformation>();
-
-        { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
-            final Set<String> questionTexts = new HashSet<String>();
-            for (final String paramName : inputMap.keySet()) {
-                final String paramValue = inputMap.get(paramName);
-                if (paramValue != null && paramValue.length() > 0 && paramName.startsWith(PwmConstants.PARAM_QUESTION_PREFIX)) {
-                    if (questionTexts.contains(paramValue.toLowerCase())) {
-                        errorInformations.add(new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE,null,new String[]{paramName}));
-                    } else {
-                        questionTexts.add(paramValue.toLowerCase());
-                    }
-                }
-            }
-        }
-
         final Map<Challenge, String> readResponses = new LinkedHashMap<Challenge, String>();
         final SetupResponsesBean responsesBean = pwmSession.getSetupResponseBean();
 
@@ -351,14 +343,13 @@ public class SetupResponsesServlet extends TopServlet {
 
                     final String answer = inputMap.get(PwmConstants.PARAM_RESPONSE_PREFIX + indexKey);
 
-                    if (answer.length() > 0) {
+                    if (answer != null && answer.length() > 0) {
                         readResponses.put(loopChallenge, answer);
                     }
                 }
             }
 
             if (responsesBean.isSimpleMode()) { // if in simple mode, read the select-based random challenges
-
                 for (int i = 0; i < responsesBean.getIndexedChallenges().size(); i++) {
                     final String questionText = inputMap.get(PwmConstants.PARAM_QUESTION_PREFIX + "Random_" + String.valueOf(i));
 
@@ -376,10 +367,6 @@ public class SetupResponsesServlet extends TopServlet {
                     }
                 }
             }
-        }
-
-        if (!errorInformations.isEmpty()) {
-            throw new PwmDataValidationException(errorInformations.get(0));
         }
 
         return readResponses;

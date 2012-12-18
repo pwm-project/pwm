@@ -28,11 +28,18 @@ public class WordlistConfiguration {
     final private File wordlistFile;
     final private int loadFactor;
     final private boolean caseSensitive;
+    final private int checkSize;
 
-    public WordlistConfiguration(final File wordlistFile, final int loadFactor, final boolean caseSensitive) {
+    public WordlistConfiguration(
+            final File wordlistFile,
+            final int loadFactor,
+            final boolean caseSensitive,
+            final int checkSize
+    ) {
         this.wordlistFile = wordlistFile;
         this.loadFactor = loadFactor;
         this.caseSensitive = caseSensitive;
+        this.checkSize = checkSize;
     }
 
     public File getWordlistFile() {
@@ -47,4 +54,7 @@ public class WordlistConfiguration {
         return caseSensitive;
     }
 
+    public int getCheckSize() {
+        return checkSize;
+    }
 }

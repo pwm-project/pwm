@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
-    String configFilePath = "PwmConfiguration.xml";
+    String configFilePath = PwmConstants.CONFIG_FILE_FILENAME;
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -80,12 +80,12 @@
                     </form>
                 </td>
                 <td style="border:0">
-                    <p>Use the PWM configuration editor to edit the running configuration.</p>
+                    <p>Use the configuration editor to edit the running configuration.</p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<pwm:url url='ConfigManager'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
+                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
                 </td>
                 <td style="border:0">
                     <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
@@ -137,7 +137,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="<%=request.getContextPath()%>">PWM Main Menu</a>
+                    <a class="menubutton" href="<%=request.getContextPath()%>">Main Menu</a>
                 </td>
                 <td style="border:0">
                     <p>Return to the main menu to test the configuration.</p>
