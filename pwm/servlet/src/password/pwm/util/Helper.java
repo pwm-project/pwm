@@ -864,13 +864,13 @@ public class Helper {
 
     public static Locale parseLocaleString(final String localeString) {
         if (localeString == null) {
-            return new Locale("");
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
         final StringTokenizer st = new StringTokenizer(localeString, "_");
 
         if (!st.hasMoreTokens()) {
-            return new Locale("");
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
         final String language = st.nextToken();

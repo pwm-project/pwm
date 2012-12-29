@@ -32,6 +32,9 @@ public class ChangePasswordBean implements PwmSessionBean {
     private String newPassword;
     private boolean agreementPassed;
     private boolean currentPasswordRequired;
+    private boolean currentPasswordPassed;
+    private boolean formPassed;
+    private boolean allChecksPassed;
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -55,6 +58,30 @@ public class ChangePasswordBean implements PwmSessionBean {
 
     public void setCurrentPasswordRequired(final boolean currentPasswordRequired) {
         this.currentPasswordRequired = currentPasswordRequired;
+    }
+
+    public boolean isCurrentPasswordPassed() {
+        return currentPasswordPassed;
+    }
+
+    public void setCurrentPasswordPassed(boolean currentPasswordPassed) {
+        this.currentPasswordPassed = currentPasswordPassed;
+    }
+
+    public boolean isFormPassed() {
+        return formPassed;
+    }
+
+    public void setFormPassed(boolean formPassed) {
+        this.formPassed = formPassed;
+    }
+
+    public boolean isAllChecksPassed() {
+        return allChecksPassed;
+    }
+
+    public void setAllChecksPassed(boolean allChecksPassed) {
+        this.allChecksPassed = allChecksPassed;
     }
 
     // -------------------------- OTHER METHODS --------------------------

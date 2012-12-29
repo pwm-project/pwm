@@ -172,7 +172,7 @@ public class SessionFilter implements Filter {
         if (ssBean.getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
-            ssBean.setLocale(userLocale == null ? new Locale("") : userLocale);
+            ssBean.setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
         }
 

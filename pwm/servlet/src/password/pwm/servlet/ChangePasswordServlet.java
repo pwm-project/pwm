@@ -22,15 +22,14 @@
 
 package password.pwm.servlet;
 
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.Message;
-import password.pwm.config.PwmPasswordRule;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -43,7 +42,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -75,10 +76,8 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_REQUIRE_CURRENT)) {
-            if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw()) {
-                cpb.setCurrentPasswordRequired(true);
-            }
+        if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession)) {
+            cpb.setCurrentPasswordRequired(true);
         }
 
         if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
@@ -91,6 +90,8 @@ public class ChangePasswordServlet extends TopServlet {
             Validator.validatePwmFormID(req);
             if (processRequestParam.equalsIgnoreCase("change")) {        // change request
                 this.handleChangeRequest(req, resp);
+            } else if (processRequestParam.equalsIgnoreCase("form")) {      // wait page call-back
+                this.handleFormRequest(req, resp);
             } else if (processRequestParam.equalsIgnoreCase("doChange")) {      // wait page call-back
                 this.handleDoChangeRequest(req, resp);
             } else if (processRequestParam.equalsIgnoreCase("agree")) {         // accept password change agreement
@@ -100,26 +101,10 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         if (!resp.isCommitted()) {
-            this.forwardToJSP(req, resp);
+            advancedToNextStage(req,resp);
         }
     }
 
-
-
-    private static MATCH_STATUS figureMatchStatus(final PwmSession session, final String password1, final String password2) {
-        final MATCH_STATUS matchStatus;
-        if (password2.length() < 1) {
-            matchStatus = MATCH_STATUS.EMPTY;
-        } else {
-            if (session.getUserInfoBean().getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive)) {
-                matchStatus = password1.equals(password2) ? MATCH_STATUS.MATCH : MATCH_STATUS.NO_MATCH;
-            } else {
-                matchStatus = password1.equalsIgnoreCase(password2) ? MATCH_STATUS.MATCH : MATCH_STATUS.NO_MATCH;
-            }
-        }
-
-        return matchStatus;
-    }
 
     /**
      * Action handler for when user clicks "change password" button.  This copies the
@@ -139,60 +124,36 @@ public class ChangePasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException {
-        //Fetch the required managers/beans
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
-        final String currentPassword = Validator.readStringFromRequest(req, "currentPassword");
+        if (!cpb.isAllChecksPassed()) {
+            this.advancedToNextStage(req,resp);
+            return;
+        }
+
         final String password1 = Validator.readStringFromRequest(req, "password1");
         final String password2 = Validator.readStringFromRequest(req, "password2");
 
-        // check the current password
-        if (cpb.isCurrentPasswordRequired() && pwmSession.getUserInfoBean().getUserCurrentPassword() != null) {
-            if (currentPassword == null || currentPassword.length() < 1) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
-                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is missing");
-                this.forwardToJSP(req, resp);
-                return;
-            }
-
-            final boolean caseSensitive = Boolean.parseBoolean(pwmSession.getUserInfoBean().getPasswordPolicy().getValue(PwmPasswordRule.CaseSensitive));
-            final boolean passed;
-            if (caseSensitive) {
-                passed = pwmSession.getUserInfoBean().getUserCurrentPassword().equals(currentPassword);
-            } else {
-                passed = pwmSession.getUserInfoBean().getUserCurrentPassword().equalsIgnoreCase(currentPassword);
-            }
-
-            if (!passed) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmApplication.getIntruderManager().addIntruderAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
-                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
-                this.forwardToJSP(req, resp);
-                return;
-            }
-        }
-
         // check the password meets the requirements
-        {
-            try {
-                final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,pwmSession.getUserInfoBean().getPasswordPolicy());
-                pwmPasswordRuleValidator.testPassword(password1,null,pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getActor());
-            } catch (PwmDataValidationException e) {
-                ssBean.setSessionError(e.getErrorInformation());
-                LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());
-                this.forwardToJSP(req, resp);
-                return;
-            }
+        try {
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,pwmSession.getUserInfoBean().getPasswordPolicy());
+            pwmPasswordRuleValidator.testPassword(password1,null,pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getActor());
+        } catch (PwmDataValidationException e) {
+            ssBean.setSessionError(e.getErrorInformation());
+            LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());
+            this.forwardToChangeJSP(req, resp);
+            return;
         }
 
         //make sure the two passwords match
         if (MATCH_STATUS.MATCH != figureMatchStatus(pwmSession, password1, password2)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH));
-            this.forwardToJSP(req, resp);
+            this.forwardToChangeJSP(req, resp);
             return;
         }
 
@@ -203,6 +164,114 @@ public class ChangePasswordServlet extends TopServlet {
 
             forwardToWaitPage(req, resp, this.getServletContext());
         }
+    }
+
+    private void forwardToChangeJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
+    }
+
+    private static MATCH_STATUS figureMatchStatus(final PwmSession session, final String password1, final String password2) {
+        final MATCH_STATUS matchStatus;
+        if (password2.length() < 1) {
+            matchStatus = MATCH_STATUS.EMPTY;
+        } else {
+            if (session.getUserInfoBean().getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive)) {
+                matchStatus = password1.equals(password2) ? MATCH_STATUS.MATCH : MATCH_STATUS.NO_MATCH;
+            } else {
+                matchStatus = password1.equalsIgnoreCase(password2) ? MATCH_STATUS.MATCH : MATCH_STATUS.NO_MATCH;
+            }
+        }
+
+        return matchStatus;
+    }
+
+    public static void forwardToWaitPage(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final ServletContext theContext
+    )
+            throws IOException, ServletException, PwmUnrecoverableException {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        final StringBuilder returnURL = new StringBuilder();
+        returnURL.append(req.getContextPath());
+        returnURL.append(req.getServletPath());
+        returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
+        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
+        final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
+        req.setAttribute("nextURL",rewrittenURL );
+
+        try {
+            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE_WAIT, req, resp);
+            theContext.getRequestDispatcher(url).forward(req, resp);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
+        }
+    }
+
+    private void handleFormRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+
+        final String currentPassword = Validator.readStringFromRequest(req, "currentPassword");
+
+        // check the current password
+        if (cpb.isCurrentPasswordRequired() && pwmSession.getUserInfoBean().getUserCurrentPassword() != null) {
+            if (currentPassword == null || currentPassword.length() < 1) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
+                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is missing");
+                forwardToFormJSP(req, resp);
+                return;
+            }
+
+            final boolean passed;
+            {
+                final boolean caseSensitive = Boolean.parseBoolean(pwmSession.getUserInfoBean().getPasswordPolicy().getValue(PwmPasswordRule.CaseSensitive));
+                final String storedPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+                passed = caseSensitive ? storedPassword.equals(currentPassword) : storedPassword.equalsIgnoreCase(currentPassword);
+            }
+
+            if (!passed) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
+                pwmApplication.getIntruderManager().addIntruderAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
+                forwardToFormJSP(req, resp);
+                return;
+            }
+            cpb.setCurrentPasswordPassed(passed);
+        }
+
+        final List<FormConfiguration> formItem = pwmApplication.getConfig().readSettingAsForm(PwmSetting.PASSWORD_REQUIRE_FORM);
+
+        try {
+            //read the values from the request
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
+
+            validateParamsAgainstLDAP(formValues, pwmSession, pwmSession.getSessionManager().getActor());
+
+            cpb.setFormPassed(true);
+        } catch (PwmOperationalException e) {
+            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+            ssBean.setSessionError(e.getErrorInformation());
+            LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
+            forwardToFormJSP(req, resp);
+            return;
+        }
+
+        advancedToNextStage(req,resp);
     }
 
     /**
@@ -259,49 +328,6 @@ public class ChangePasswordServlet extends TopServlet {
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, userLocale);
-        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
-
-        if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
-            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
-        } else {
-            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
-        }
-    }
-
-    public static void forwardToWaitPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
-        final StringBuilder returnURL = new StringBuilder();
-        returnURL.append(req.getContextPath());
-        returnURL.append(req.getServletPath());
-        returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doChange");
-        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
-        final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
-        req.setAttribute("nextURL",rewrittenURL );
-
-        try {
-            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE_WAIT, req, resp);
-            theContext.getRequestDispatcher(url).forward(req, resp);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
-        }
-
-    }
-
     public static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -320,8 +346,116 @@ public class ChangePasswordServlet extends TopServlet {
         pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
     }
 
+    private void advancedToNextStage(final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final Configuration config = pwmApplication.getConfig();
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+
+        final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
+        if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
+            forwardToAgreementJSP(req, resp);
+            return;
+        }
+
+        if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession) && !cpb.isCurrentPasswordPassed()) {
+            forwardToFormJSP(req,resp);
+            return;
+        }
+
+        if (!config.readSettingAsForm(PwmSetting.PASSWORD_REQUIRE_FORM).isEmpty() && !cpb.isFormPassed()) {
+            forwardToFormJSP(req,resp);
+            return;
+        }
+
+        cpb.setAllChecksPassed(true);
+
+        forwardToChangeJSP(req,resp);
+    }
+
+    private void forwardToAgreementJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
+    }
+
+    private void forwardToFormJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_FORM).forward(req, resp);
+    }
+
+    private static boolean determineIfCurrentPasswordRequired(final PwmApplication pwmApplication, final PwmSession pwmSession) {
+        final String stringValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_REQUIRE_CURRENT);
+        REQUIRE_CURRENT_SETTING currentSetting;
+        try {
+            currentSetting = REQUIRE_CURRENT_SETTING.valueOf(stringValue);
+        } catch (IllegalArgumentException e) {
+            currentSetting = REQUIRE_CURRENT_SETTING.FALSE;
+        }
+
+        if (currentSetting == REQUIRE_CURRENT_SETTING.FALSE) {
+            return false;
+        }
+
+        if (pwmSession.getUserInfoBean().isAuthFromUnknownPw() || pwmSession.getUserInfoBean().getUserCurrentPassword() == null) {
+            return false;
+        }
+
+        if (currentSetting == REQUIRE_CURRENT_SETTING.TRUE) {
+            return true;
+        }
+
+        final PasswordStatus passwordStatus = pwmSession.getUserInfoBean().getPasswordState();
+        if (currentSetting == REQUIRE_CURRENT_SETTING.NOTEXPIRED && !passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) {
+            return true;
+        }
+
+        return false;
+    }
+
+// -------------------------- ENUMERATIONS --------------------------
+
+    private enum REQUIRE_CURRENT_SETTING {
+        TRUE, FALSE, NOTEXPIRED
+    }
+
     private enum MATCH_STATUS {
         MATCH, NO_MATCH, EMPTY
     }
+
+    public static void validateParamsAgainstLDAP(
+            final Map<FormConfiguration, String> formValues,
+            final PwmSession pwmSession,
+            final ChaiUser theUser
+    )
+            throws ChaiUnavailableException, PwmDataValidationException
+    {
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            final String attrName = formItem.getName();
+            final String value = formValues.get(formItem);
+            try {
+                if (!theUser.compareStringAttribute(attrName, value)) {
+                    final String errorMsg = "incorrect value for '" + attrName + "'";
+                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, errorMsg, new String[]{attrName});
+                    LOGGER.debug(pwmSession, errorInfo.toDebugStr());
+                    throw new PwmDataValidationException(errorInfo);
+                }
+                LOGGER.trace(pwmSession, "successful validation of ldap value for '" + attrName + "'");
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
+                throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
+            }
+        }
+    }
+
 }
 

@@ -66,18 +66,6 @@
               onreset="handleFormClear();validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">
-                <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
-                <tr>
-                    <td style="border:0; width:75%">
-                        <h2><label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label></h2>
-                        <input type="password" name="currentPassword" id="currentPassword" class="changepasswordfield"/>
-                    </td>
-                    <td style="border:0; width:15%">
-                        &nbsp;
-                    </td>
-                    <td style="border:0; width:10%">&nbsp;</td>
-                </tr>
-                <% } %>
                 <tr>
                     <td style="border:0; width:75%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>

@@ -205,6 +205,7 @@ function changeInputTypeField(object, type) {
     if (object.onclick) newObject.onclick = object.onclick;
     if (object.onkeyup) newObject.onkeyup = object.onkeyup;
     if (object.onkeydown) newObject.onkeydown = object.onkeydown;
+    if (object.onkeydown) newObject.onchange = object.onchange;
     if (object.onkeypress) newObject.onkeypress = object.onkeypress;
     if (object.disabled) newObject.disabled = object.disabled;
     if (object.readonly) newObject.readonly = object.readonly;

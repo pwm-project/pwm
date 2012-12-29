@@ -103,8 +103,10 @@ public enum PwmSetting {
     // change password
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+    PASSWORD_REQUIRE_FORM(
+            "password.require.form", PwmSettingSyntax.FORM, Category.CHANGE_PASSWORD, false, Level.BASIC),
     PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD, true, Level.BASIC),
+            "password.change.requireCurrent", PwmSettingSyntax.SELECT, Category.CHANGE_PASSWORD, true, Level.BASIC),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD, false, Level.BASIC),
     PASSWORD_SYNC_MIN_WAIT_TIME(

@@ -64,7 +64,6 @@ function writeSetting(keyName, valueData) {
                 showError("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
-                clearError();
                 console.log('wrote data for ' + keyName);
                 var isDefault = data['isDefault'];
                 var resetImageButton = getObject('resetButton-' + keyName);

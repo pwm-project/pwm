@@ -66,7 +66,7 @@
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired()) { %>
 <h1>
-    <label id="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %></label>
+    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %></label>
 </h1>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>_confirm" value="<%= currentValue %>"

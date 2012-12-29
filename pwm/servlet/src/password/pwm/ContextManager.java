@@ -100,6 +100,13 @@ public class ContextManager implements Serializable {
 
     void initialize() {
 
+        try {
+            Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
+        } catch (Exception e) {
+            System.err.println("Unable to set default PWM locale as Java machine default locale: " + e.getMessage());
+            System.out.println("Unable to set default PWM locale as Java machine default locale: " + e.getMessage());
+        }
+
         final EnvironmentTest[] tests = new EnvironmentTest[]{
                 new JavaVersionCheck(),
                 new PwmSettingDefaults()

@@ -132,6 +132,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
     public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
+    public static final String URL_JSP_PASSWORD_FORM = "WEB-INF/jsp/changepassword-form.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";
     public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
     public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
