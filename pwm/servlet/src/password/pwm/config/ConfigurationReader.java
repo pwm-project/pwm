@@ -140,7 +140,7 @@ public class ConfigurationReader {
     }
 
     public void saveConfiguration(final StoredConfiguration storedConfiguration)
-            throws IOException {
+            throws IOException, PwmUnrecoverableException {
         if (getConfigMode() == PwmApplication.MODE.RUNNING) {
             throw new IllegalStateException("running config mode does now allow saving of configuration");
         }

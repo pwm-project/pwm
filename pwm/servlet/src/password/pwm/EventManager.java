@@ -111,6 +111,8 @@ public class EventManager implements ServletContextListener, HttpSessionListener
         } catch (Exception e) {
             LOGGER.fatal("error initializing pwm context: " + e, e);
             System.err.println("error initializing pwm context: " + e);
+            System.out.println("error initializing pwm context: " + e);
+            e.printStackTrace();
         }
     }
 

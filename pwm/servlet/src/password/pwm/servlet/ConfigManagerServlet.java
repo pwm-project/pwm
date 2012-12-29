@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
 import password.pwm.config.*;
+import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -63,7 +64,6 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
 
         initialize(pwmSession, ContextManager.getContextManager(req.getSession().getServletContext()).getConfigReader(), configManagerBean);
-
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
         if (processActionParam.length() > 0) {
             if ("getOptions".equalsIgnoreCase(processActionParam)) {
@@ -218,61 +218,22 @@ public class ConfigManagerServlet extends TopServlet {
             }
             returnMap.put("key", key);
         } else if (theSetting == null) {
-            LOGGER.warn("readSetting request for unknown key: " + key);
+            LOGGER.warn("readSettingAsString request for unknown key: " + key);
             returnMap.put("key", key);
             returnMap.put("isDefault", "false");
             returnValue = "UNKNOWN KEY";
         } else {
             switch (theSetting.getSyntax()) {
-                case FORM: {
-                    final List<FormConfiguration> values = storedConfig.readFormSetting(theSetting);
-                    final Map<String, FormConfiguration> outputMap = new LinkedHashMap<String, FormConfiguration>();
-                    for (int i = 0; i < values.size(); i++) {
-                        outputMap.put(String.valueOf(i),values.get(i));
-                    }
-                    returnValue = outputMap;
-                }
-                break;
-
-                case STRING_ARRAY: {
-                    final List<String> values = storedConfig.readStringArraySetting(theSetting);
-                    final Map<String, String> outputMap = new LinkedHashMap<String, String>();
-                    for (int i = 0; i < values.size(); i++) {
-                        outputMap.put(String.valueOf(i), values.get(i));
-                    }
-                    returnValue = outputMap;
-                }
-                break;
-
-                case LOCALIZED_STRING_ARRAY: {
-                    final Map<String, List<String>> values = storedConfig.readLocalizedStringArraySetting(theSetting);
-                    final Map<String, Map<String, String>> outputMap = new LinkedHashMap<String, Map<String, String>>();
-                    for (final String localeKey : values.keySet()) {
-                        final List<String> loopValues = values.get(localeKey);
-                        final Map<String, String> loopMap = new LinkedHashMap<String, String>();
-                        for (int i = 0; i < loopValues.size(); i++) {
-                            loopMap.put(String.valueOf(i), loopValues.get(i));
-                        }
-                        outputMap.put(localeKey, loopMap);
-                    }
-                    returnValue = outputMap;
-                }
-                break;
-
-                case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA:
-                    returnValue = new LinkedHashMap<String, String>(storedConfig.readLocalizedStringSetting(theSetting));
-                    break;
                 case PASSWORD:
                     returnValue = DEFAULT_PW;
                     break;
                 case SELECT:
-                    returnValue = storedConfig.readSetting(theSetting);
+                    returnValue = storedConfig.readSetting(theSetting).toNativeObject();
                     returnMap.put("options",theSetting.getOptions());
                     break;
 
                 default:
-                    returnValue = storedConfig.readSetting(theSetting);
+                    returnValue = storedConfig.readSetting(theSetting).toNativeObject();
             }
             returnMap.put("key", key);
             returnMap.put("category", theSetting.getCategory().toString());
@@ -312,69 +273,15 @@ public class ConfigManagerServlet extends TopServlet {
             storedConfig.writeLocaleBundleMap(bundleName.getTheClass().getName(),keyName, outputMap);
             returnMap.put("isDefault", outputMap.isEmpty());
             returnMap.put("key", key);
-            returnMap.put("syntax", PwmSetting.Syntax.LOCALIZED_TEXT_AREA.toString());
+            returnMap.put("syntax", setting.getSyntax().toString());
         } else {
-            switch (setting.getSyntax()) {
-                case FORM:{
-                    final Map<String, FormConfiguration> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, FormConfiguration>>() {
-                    }.getType());
-                    final List<FormConfiguration> outputMap = new ArrayList<FormConfiguration>(valueMap.values());
-                    storedConfig.writeFormSetting(setting, outputMap);
-                }
-                break;
-
-                case STRING_ARRAY: {
-                    final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
-                    }.getType());
-                    final Map<String, String> outputMap = new LinkedHashMap<String, String>(valueMap);
-                    storedConfig.writeStringArraySetting(setting, new ArrayList<String>(outputMap.values()));
-                }
-                break;
-
-                case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA: {
-                    final Map<String, String> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
-                    }.getType());
-                    final Map<String, String> outputMap = new LinkedHashMap<String, String>(valueMap);
-                    storedConfig.writeLocalizedSetting(setting, outputMap);
-                }
-                break;
-
-                case LOCALIZED_STRING_ARRAY: {
-                    final Map<String, Map<String, String>> valueMap = gson.fromJson(bodyString, new TypeToken<Map<String, Map<String, String>>>() {
-                    }.getType());
-                    final Map<String, List<String>> outputMap = new LinkedHashMap<String, List<String>>();
-                    for (final String localeKey : valueMap.keySet()) {
-                        final List<String> returnList = new LinkedList<String>();
-                        for (final String iterKey : new LinkedHashMap<String, String>(valueMap.get(localeKey)).keySet()) {
-                            returnList.add(valueMap.get(localeKey).get(iterKey));
-                        }
-                        outputMap.put(localeKey, returnList);
-                    }
-                    storedConfig.writeLocalizedStringArraySetting(setting, outputMap);
-                }
-                break;
-
-                case PASSWORD: {
-                    final String value = gson.fromJson(bodyString, new TypeToken<String>() {
-                    }.getType());
-                    if (!bodyString.equals(DEFAULT_PW)) {
-                        storedConfig.writeSetting(setting, value);
-                    }
-                }
-                break;
-
-                case NUMERIC: {
-                    final Long value = gson.fromJson(bodyString, new TypeToken<Long>() {
-                    }.getType());
-                    storedConfig.writeSetting(setting, value.toString());
-                }
-                break;
-
-                default:
-                    final String value = gson.fromJson(bodyString, new TypeToken<String>() {
-                    }.getType());
-                    storedConfig.writeSetting(setting, value);
+            try {
+                final StoredValue storedValue = ValueFactory.fromJson(setting, bodyString);
+                storedConfig.writeSetting(setting,storedValue);
+            } catch (Exception e) {
+                final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
+                LOGGER.error(errorMsg,e);
+                throw new IllegalStateException(errorMsg,e);
             }
             returnMap.put("key", key);
             returnMap.put("category", setting.getCategory().toString());
@@ -575,15 +482,15 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedTemplate = Validator.readStringFromRequest(req, "template");
+            final String requestedTemplate = Validator.readStringFromRequest(req, "getTemplate");
             if (requestedTemplate != null && requestedTemplate.length() > 0) {
                 try {
                     final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE, template.toString());
-                    LOGGER.trace("setting template to: " + requestedTemplate);
+                    LOGGER.trace("setting getTemplate to: " + requestedTemplate);
                 } catch (IllegalArgumentException e) {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE,PwmSetting.Template.DEFAULT.toString());
-                    LOGGER.error("unknown template set request: " + requestedTemplate);
+                    LOGGER.error("unknown getTemplate set request: " + requestedTemplate);
                 }
             }
         }

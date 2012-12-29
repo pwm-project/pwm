@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -74,7 +75,7 @@
 </div>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
 
-    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_TEXT_AREA) { %>
+    <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">
             <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"/></td>
@@ -85,7 +86,7 @@
             LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING_ARRAY) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
     </table>
     <script type="text/javascript">
@@ -93,7 +94,7 @@
             MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING_ARRAY) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
             <td><input type="text" disabled="disabled" value="[Loading...]"/></td>
@@ -104,7 +105,7 @@
             MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.FORM) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
     <script type="text/javascript">
@@ -112,7 +113,15 @@
             FormTableHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.BOOLEAN) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
+    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+    </table>
+    <script type="text/javascript">
+        require(["dojo/domReady!"],function(){
+            ActionHandler.init('<%=loopSetting.getKey()%>');
+        });
+    </script>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
     <button id="button_<%=loopSetting.getKey()%>" type="button">
         [Loading...]
@@ -123,13 +132,13 @@
                 disabled: true,
                 onClick: function() {
                     toggleBooleanSetting('<%=loopSetting.getKey()%>');
-                    writeSetting('<%=loopSetting.getKey()%>', getObject('value_' + '<%=loopSetting.getKey()%>').value);
+                    writeSetting('<%=loopSetting.getKey()%>', 'true' == getObject('value_' + '<%=loopSetting.getKey()%>').value);
                 }
             }, "button_<%=loopSetting.getKey()%>");
             readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
                 var valueElement = getObject('value_' + '<%=loopSetting.getKey()%>');
                 var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
-                if (dataValue == 'true') {
+                if (dataValue == true) {
                     valueElement.value = 'true';
                     buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
                 } else {
@@ -141,7 +150,7 @@
             });
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.SELECT) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.SELECT) { %>
     <select id="setting_<%=loopSetting.getKey()%>" disabled="true" data-dojo-type="dijit.form.FilteringSelect"
             onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" style="min-width: 300px">
         <% for (final String loopValue : loopSetting.getOptions().keySet()) { %>
@@ -159,7 +168,7 @@
         });
     </script>
     <% } else { %>
-    <% if (loopSetting.getSyntax() == PwmSetting.Syntax.TEXT_AREA) { %>
+    <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
     <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
     <script type="text/javascript">
         require(["dijit/form/Textarea","dojo/domReady!"],function(){
@@ -177,7 +186,7 @@
             readInitialTextBasedValue('<%=loopSetting.getKey()%>');
         });
     </script>
-    <% } if (loopSetting.getSyntax() == PwmSetting.Syntax.STRING) { %>
+    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
         require(["dijit/form/ValidationTextBox","dojo/domReady!"],function(){
@@ -195,7 +204,7 @@
             readInitialTextBasedValue('<%=loopSetting.getKey()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.NUMERIC) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.NUMERIC) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
         require(["dijit/form/NumberSpinner","dojo/domReady!"],function(){
@@ -213,7 +222,7 @@
             readInitialTextBasedValue('<%=loopSetting.getKey()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSetting.Syntax.PASSWORD) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.changePasswordPopup('<%=loopSetting.getLabel(locale)%>','<%=loopSetting.getKey()%>')">Set Password</button>
     <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="if (confirm('Clear password for setting <%=loopSetting.getLabel(locale)%>?')) {resetSetting('<%=loopSetting.getKey()%>')}">Clear Password</button>
     <% } %>

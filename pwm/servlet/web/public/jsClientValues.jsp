@@ -25,11 +25,7 @@
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
-<%@ page import="password.pwm.config.Display"%>
-<%@ page import="password.pwm.config.FormConfiguration"%>
-<%@ page import="password.pwm.config.Message"%>
-<%@ page import="password.pwm.config.PwmSetting"%>
-<%@ page import="password.pwm.util.PwmMacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+        <%@ page import="password.pwm.config.*"%><%@ page import="password.pwm.util.PwmMacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
@@ -65,6 +61,10 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['formTypeOptions'] = [];
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
+<%}%>
+    PWM_GLOBAL['actionTypeOptions'] = [];
+<% for (final ActionConfiguration.Type type : ActionConfiguration.Type.values()) { %>
+    PWM_GLOBAL['actionTypeOptions'].push('<%=type.toString()%>');
 <%}%>
 }
 

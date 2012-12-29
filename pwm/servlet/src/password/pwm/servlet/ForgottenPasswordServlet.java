@@ -76,7 +76,6 @@ public class
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
         if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
@@ -925,19 +924,19 @@ public class
         }
 
         final List<FormConfiguration> returnList = new ArrayList<FormConfiguration>();
-        for (final FormConfiguration formConfiguration : requiredAttributesForm) {
-            if (formConfiguration.isRequired()) {
-                returnList.add(formConfiguration);
+        for (final FormConfiguration formItem : requiredAttributesForm) {
+            if (formItem.isRequired()) {
+                returnList.add(formItem);
             } else {
                 try {
-                    final String currentValue = theUser.readStringAttribute(formConfiguration.getName());
+                    final String currentValue = theUser.readStringAttribute(formItem.getName());
                     if (currentValue != null && currentValue.length() > 0) {
-                        returnList.add(formConfiguration);
+                        returnList.add(formItem);
                     } else {
-                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formConfiguration.getName() + "), user has no value");
+                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
                     }
                 } catch (ChaiOperationException e) {
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formConfiguration.getName()));
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName()));
                 }
             }
         }

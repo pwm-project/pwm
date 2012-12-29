@@ -33,18 +33,13 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.util.EntityUtils;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -55,7 +50,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.operations.UserStatusHelper;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -424,62 +418,6 @@ public class Helper {
         }
     }
 
-    public static void invokeExternalRestChangeMethods(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String userDN,
-            final String oldPassword,
-            final String newPassword
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        final List<String> externalURLs = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_REST_CHANGE_METHODS);
-        if (externalURLs == null || externalURLs.isEmpty()) {
-            return;
-        }
-
-        final UserInfoBean userInfoBean;
-        if (userDN == null || userDN.length() < 1 || !userDN.equals(pwmSession.getUserInfoBean().getUserDN())) {
-            final UserInfoBean newUiBean = new UserInfoBean();
-            UserStatusHelper.populateUserInfoBean(pwmSession, newUiBean, pwmApplication, pwmSession.getSessionStateBean().getLocale(), userDN, newPassword, pwmSession.getSessionManager().getChaiProvider());
-            userInfoBean = newUiBean;
-        } else {
-            userInfoBean = pwmSession.getUserInfoBean();
-        }
-
-        for (final String loopURL : externalURLs) {
-            try {
-                // expand using pwm macros
-                String expandedURL = PwmMacroMachine.expandMacros(loopURL, pwmApplication, userInfoBean, new PwmMacroMachine.StringReplacer() {
-                    public String replace(String matchedMacro, String newValue) {
-                        return StringEscapeUtils.escapeHtml(newValue); // make sure replacement values are properly encoded
-                    }
-                });
-                LOGGER.debug(pwmSession, "sending HTTP verification request: " + expandedURL);
-                expandedURL = expandedURL.replace("%PASSWORD%", StringEscapeUtils.escapeHtml(newPassword)); // expand and encode %PASSWORD%
-                expandedURL = expandedURL.replace("%OLD_PASSWORD%", StringEscapeUtils.escapeHtml(oldPassword)); // expand and encode %OLD_PASSWORD%
-                final URI requestURI = new URI(expandedURL);
-                final HttpGet httpGet = new HttpGet(requestURI.toString());
-
-                final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpGet);
-                if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    throw new PwmOperationalException(new ErrorInformation(
-                            PwmError.ERROR_UNKNOWN,
-                            "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") while calling external REST service"
-                    ));
-                }
-
-                final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-                LOGGER.debug(pwmSession, "response from http rest request: " + httpResponse.getStatusLine());
-                LOGGER.trace(pwmSession, "response body from http rest request: " + responseBody);
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error during recpatcha API execution: " + e.getMessage();
-                LOGGER.error(pwmSession, errorMsg);
-            }
-        }
-    }
-
-
     public static List<Integer> invokeExternalJudgeMethods(
             final Configuration config,
             //final PwmSession pwmSession,
@@ -611,11 +549,11 @@ public class Helper {
     {
         final Map<String,String> tempMap = new HashMap<String,String>();
 
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            tempMap.put(formConfiguration.getName(),formValues.get(formConfiguration));
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            tempMap.put(formItem.getName(),formValues.get(formItem));
         }
 
-        writeMapToLdap(pwmApplication, pwmSession, theUser, tempMap, expandPwmMacros);
+        writeMapToLdap(pwmApplication, theUser, tempMap, pwmSession.getUserInfoBean(), expandPwmMacros);
     }
 
     /**
@@ -624,7 +562,6 @@ public class Helper {
      * <p/>
      * Any ldap operation exceptions are not reported (but logged).
      *
-     * @param pwmSession       for looking up session info
      * @param theUser          User to write to
      * @param valueMap       A map with String keys and String values.
      * @throws ChaiUnavailableException if the directory is unavailable
@@ -632,9 +569,9 @@ public class Helper {
      */
     public static void writeMapToLdap(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
             final ChaiUser theUser,
             final Map<String,String> valueMap,
+            final UserInfoBean userInfoBean,
             final boolean expandPwmMacros
     )
             throws PwmOperationalException, ChaiUnavailableException
@@ -654,13 +591,13 @@ public class Helper {
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
             if (expandPwmMacros) {
-                attrValue = PwmMacroMachine.expandMacros(attrValue, pwmApplication, pwmSession.getUserInfoBean(), null);
+                attrValue = PwmMacroMachine.expandMacros(attrValue, pwmApplication, userInfoBean, null);
             }
             if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {
                     try {
                         theUser.writeStringAttribute(attrName, attrValue);
-                        LOGGER.info(pwmSession, "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                        LOGGER.info("set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
                     } catch (ChaiOperationException e) {
                         final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -672,7 +609,7 @@ public class Helper {
                     if (currentValues.get(attrName) != null && currentValues.get(attrName).length() > 0) {
                         try {
                             theUser.deleteAttribute(attrName, null);
-                            LOGGER.info(pwmSession, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                            LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
                         } catch (ChaiOperationException e) {
                             final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -683,7 +620,7 @@ public class Helper {
                     }
                 }
             } else {
-                LOGGER.debug(pwmSession, "skipping attribute modify for attribute '" + attrName + "', no change in value");
+                LOGGER.debug("skipping attribute modify for attribute '" + attrName + "', no change in value");
             }
         }
     }

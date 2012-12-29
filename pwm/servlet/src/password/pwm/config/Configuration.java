@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
@@ -59,7 +60,6 @@ public class Configuration implements Serializable {
 
     private Map<Locale,PwmPasswordPolicy> cachedPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
-    private Map<PwmSetting,Object> renderedConfigurationCache = new HashMap<PwmSetting,Object>();
     private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
@@ -84,13 +84,17 @@ public class Configuration implements Serializable {
         return outputText.toString().replaceAll("\n","\n  ");
     }
 
+    public String toString(final PwmSetting pwmSetting) {
+        return new Gson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public Set<String> getAllUsedLdapAttributes() {
         final Set<String> returnSet = new HashSet<String>();
         for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
-            for (final FormConfiguration formConfiguration : readSettingAsForm(formSetting)) {
-                returnSet.add(formConfiguration.getName());
+            for (final FormConfiguration formItem : readSettingAsForm(formSetting)) {
+                returnSet.add(formItem.getName());
             }
         }
         returnSet.add(this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
@@ -106,11 +110,28 @@ public class Configuration implements Serializable {
     }
 
     public List<FormConfiguration> readSettingAsForm(final PwmSetting setting) {
-        return storedConfiguration.readFormSetting(setting);
+        if (PwmSettingSyntax.FORM != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read FORM value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = storedConfiguration.readSetting(setting);
+        return (List<FormConfiguration>)value.toNativeObject();
+    }
+
+    public List<ActionConfiguration> readSettingAsAction(final PwmSetting setting) {
+        if (PwmSettingSyntax.ACTION != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read ACTION value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = storedConfiguration.readSetting(setting);
+        return (List<ActionConfiguration>)value.toNativeObject();
     }
 
     public List<String> readSettingAsLocalizedStringArray(final PwmSetting setting, final Locale locale) {
-        final Map<String, List<String>> storedValues = storedConfiguration.readLocalizedStringArraySetting(setting);
+        if (PwmSettingSyntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString());
+        }
+        final Map<String, List<String>> storedValues = (Map<String, List<String>>)storedConfiguration.readSetting(setting).toNativeObject();
         final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
@@ -121,7 +142,18 @@ public class Configuration implements Serializable {
     }
 
     public String readSettingAsString(final PwmSetting setting) {
-        return storedConfiguration.readSetting(setting);
+        switch (setting.getSyntax()) {
+            case STRING:
+            case TEXT_AREA:
+            case SELECT:
+            case NUMERIC:
+            case BOOLEAN:
+            case PASSWORD:
+                return (String)storedConfiguration.readSetting(setting).toNativeObject();
+
+            default:
+                throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
+        }
     }
 
     public Map<Locale,String> readLocalizedBundle(final String className, final String keyName) {
@@ -218,7 +250,11 @@ public class Configuration implements Serializable {
     }
 
     public long readSettingAsLong(final PwmSetting setting) {
-        return StringHelper.convertStrToLong(storedConfiguration.readSetting(setting), 0);
+        if (PwmSettingSyntax.NUMERIC != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read NUMERIC value for setting: " + setting.toString());
+        }
+
+        return (Long)storedConfiguration.readSetting(setting).toNativeObject();
     }
 
     public PwmPasswordPolicy getGlobalPasswordPolicy(final Locale locale)
@@ -244,7 +280,7 @@ public class Configuration implements Serializable {
                             value = readSettingAsLocalizedString(pwmSetting, locale);
                             break;
                         default:
-                            value = readSettingAsString(pwmSetting);
+                            value = String.valueOf(storedConfiguration.readSetting(pwmSetting).toNativeObject());
                     }
                     passwordPolicySettings.put(rule.getKey(), value);
                 }
@@ -262,7 +298,12 @@ public class Configuration implements Serializable {
 
 
     public List<String> readSettingAsStringArray(final PwmSetting setting) {
-        final List<String> results = new ArrayList<String>(storedConfiguration.readStringArraySetting(setting));
+        if (PwmSettingSyntax.STRING_ARRAY != setting.getSyntax() && PwmSettingSyntax.FORM != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = storedConfiguration.readSetting(setting);
+        final List<String> results = new ArrayList<String>((List<String>)value.toNativeObject());
         for (final Iterator iter = results.iterator(); iter.hasNext();) {
             final Object loopString = iter.next();
             if (loopString == null || loopString.toString().length() < 1) {
@@ -284,7 +325,11 @@ public class Configuration implements Serializable {
     }
 
     public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
-        final Map<String, String> availableValues = storedConfiguration.readLocalizedStringSetting(setting);
+        if (PwmSettingSyntax.LOCALIZED_STRING != setting.getSyntax() && PwmSettingSyntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read LOCALIZED_STRING or LOCALIZED_TEXT_AREA values for setting: " + setting.toString());
+        }
+
+        final Map<String, String> availableValues = (Map<String, String>)storedConfiguration.readSetting(setting).toNativeObject();
         final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
         for (final String localeStr : availableValues.keySet()) {
             availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
@@ -332,13 +377,13 @@ public class Configuration implements Serializable {
         switch (setting.getSyntax()) {
             case LOCALIZED_TEXT_AREA:
             case LOCALIZED_STRING:
-                for (final String localeStr : storedConfiguration.readLocalizedStringSetting(setting).keySet()) {
+                for (final String localeStr : ((Map<String, String>)storedConfiguration.readSetting(setting).toNativeObject()).keySet()) {
                     returnCollection.add(Helper.parseLocaleString(localeStr));
                 }
                 break;
 
             case LOCALIZED_STRING_ARRAY:
-                for (final String localeStr : storedConfiguration.readLocalizedStringArraySetting(setting).keySet()) {
+                for (final String localeStr : ((Map<String, List<String>>)storedConfiguration.readSetting(setting).toNativeObject()).keySet()) {
                     returnCollection.add(Helper.parseLocaleString(localeStr));
                 }
                 break;
@@ -352,7 +397,11 @@ public class Configuration implements Serializable {
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting) {
-        return StringHelper.convertStrToBoolean(storedConfiguration.readSetting(setting));
+        if (PwmSettingSyntax.BOOLEAN != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read BOOLEAN value for setting: " + setting.toString());
+        }
+
+        return (Boolean)storedConfiguration.readSetting(setting).toNativeObject();
     }
 
     public String toDebugString() {

@@ -63,9 +63,9 @@ public class UserSearchEngine {
     {
         String newSearchFilter = searchFilter;
 
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = "%" + formConfiguration.getName() + "%";
-            String value = formValues.get(formConfiguration);
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            final String attrName = "%" + formItem.getName() + "%";
+            String value = formValues.get(formItem);
             if (enableValueEscaping) {
                 value = escapeLdapString(value);
             }
@@ -157,10 +157,10 @@ public class UserSearchEngine {
             final PwmSession pwmSession,
             final SearchConfiguration searchConfiguration,
             final int maxResults,
-            final List<FormConfiguration> formConfiguration
+            final List<FormConfiguration> formItem
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
-        final Map<String,String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(formConfiguration,pwmSession.getSessionStateBean().getLocale());
+        final Map<String,String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(formItem,pwmSession.getSessionStateBean().getLocale());
         final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(
                 pwmSession,
                 searchConfiguration,
@@ -435,10 +435,10 @@ public class UserSearchEngine {
             return outputList;
         }
 
-        public static Map<String,String> fromFormConfiguration(final List<FormConfiguration> formConfigurations, final Locale locale) {
+        public static Map<String,String> fromFormConfiguration(final List<FormConfiguration> formItems, final Locale locale) {
             final Map<String,String> results = new LinkedHashMap<String, String>();
-            for (final FormConfiguration formConfiguration : formConfigurations) {
-                results.put(formConfiguration.getName(),formConfiguration.getLabel(locale));
+            for (final FormConfiguration formItem : formItems) {
+                results.put(formItem.getName(), formItem.getLabel(locale));
             }
             return results;
         }

@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -70,6 +69,14 @@
                                     out.write("<span style=\"color:gray;\">" + PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + "</span>");
                                 } else {
                                     switch (loopSetting.getSyntax()) {
+                                        case STRING: {
+                                            final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
+                                            for (final String value : values) {
+                                                out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
+                                            }
+                                        }
+                                        break;
+
                                         case STRING_ARRAY: {
                                             final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
                                             for (final String value : values) {
@@ -102,17 +109,8 @@
                                         }
                                         break;
 
-                                        case FORM: {
-                                            final List<FormConfiguration> formValues = pwmConfig.readSettingAsForm(loopSetting);
-                                            for (final FormConfiguration formConfiguration : formValues) {
-                                                out.write(StringEscapeUtils.escapeHtml(formConfiguration.toString()));
-                                                out.write("br/>");
-                                            }
-                                        }
-                                        break;
-
                                         default:
-                                            out.write(StringEscapeUtils.escapeHtml(pwmConfig.readSettingAsString(loopSetting)));
+                                            out.write(StringEscapeUtils.escapeHtml(pwmConfig.toString(loopSetting)));
                                     }
                                 }
                             %>

@@ -52,7 +52,7 @@ public class FormConfiguration implements Serializable {
     private boolean required;
     private boolean confirmationRequired;
     private boolean readonly;
-    private Map<String,String> labels = Collections.singletonMap("","");
+    private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> regexErrors = Collections.singletonMap("","");
     private Map<String,String> description = Collections.singletonMap("","");
     private String regex;
@@ -69,20 +69,20 @@ public class FormConfiguration implements Serializable {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"input cannot be null"));
         }
 
-        final FormConfiguration formConfiguration = new FormConfiguration();
+        final FormConfiguration formItem = new FormConfiguration();
         final StringTokenizer st = new StringTokenizer(config, ":");
 
         // attribute name
-        formConfiguration.name = st.nextToken();
+        formItem.name = st.nextToken();
 
         // label
-        formConfiguration.labels = Collections.singletonMap("",st.nextToken());
+        formItem.labels = Collections.singletonMap("",st.nextToken());
 
         // type
         {
             final String typeStr = st.nextToken();
             try {
-                formConfiguration.type = Type.valueOf(typeStr.toLowerCase());
+                formItem.type = Type.valueOf(typeStr.toLowerCase());
             } catch (IllegalArgumentException e) {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"unknown type for form config: " + typeStr));
             }
@@ -90,25 +90,25 @@ public class FormConfiguration implements Serializable {
 
         //minimum length
         try {
-            formConfiguration.minimumLength = Integer.parseInt(st.nextToken());
+            formItem.minimumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid minimum length type for form config: " + e.getMessage()));
         }
 
         //maximum length
         try {
-            formConfiguration.maximumLength = Integer.parseInt(st.nextToken());
+            formItem.maximumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid maximum length type for form config: " + e.getMessage()));
         }
 
         //required
-        formConfiguration.required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formItem.required = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
         //confirmation
-        formConfiguration.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
+        formItem.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase(st.nextToken());
 
-        return formConfiguration;
+        return formItem;
     }
 
     public void validate() throws PwmOperationalException {
@@ -226,7 +226,7 @@ public class FormConfiguration implements Serializable {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("FormConfiguration: ");
+        sb.append("FormItem: ");
         sb.append(new Gson().toJson(this));
 
         return sb.toString();
@@ -287,4 +287,3 @@ public class FormConfiguration implements Serializable {
         }
     }
 }
-

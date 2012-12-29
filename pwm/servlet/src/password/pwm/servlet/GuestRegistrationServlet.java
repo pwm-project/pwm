@@ -32,10 +32,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.GuestRegistrationBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.Message;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -44,6 +41,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
@@ -129,14 +127,14 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
 
-        final List<FormConfiguration> formConfigurations = pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
+        final List<FormConfiguration> formItems = pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
         Validator.validatePwmFormID(req);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfigurations, ssBean.getLocale());
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItems, ssBean.getLocale());
 
             // see if the values meet form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
@@ -145,19 +143,19 @@ public class GuestRegistrationServlet extends TopServlet {
             final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
 
             final Map<String, String> updateAttrs = new HashMap<String, String>();
-            for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                if ( !formConfiguration.isReadonly()) {
-                    final String attrName = formConfiguration.getName();
-                    updateAttrs.put(attrName, formValues.get(formConfiguration));
-                    notifyAttrs.put(attrName, formValues.get(formConfiguration));
+            for (final FormConfiguration formItem : formValues.keySet()) {
+                if ( !formItem.isReadonly()) {
+                    final String attrName = formItem.getName();
+                    updateAttrs.put(attrName, formValues.get(formItem));
+                    notifyAttrs.put(attrName, formValues.get(formItem));
                 }
             }
 
             // strip out non-changing values
             final Map<String, String> currentValues = theGuest.readStringAttributes(updateAttrs.keySet());
             for (Iterator<FormConfiguration> iterator = formValues.keySet().iterator(); iterator.hasNext(); ) {
-                FormConfiguration formConfiguration = iterator.next();
-                final String attrName = formConfiguration.getName();
+                FormConfiguration formItem = iterator.next();
+                final String attrName = formItem.getName();
                 if (updateAttrs.get(attrName) == null || updateAttrs.get(attrName).equals(currentValues.get(attrName))) {
                     updateAttrs.remove(attrName);
                     iterator.remove();
@@ -171,7 +169,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
             // Update user attributes
-            Helper.writeMapToLdap(pwmApplication, pwmSession, theGuest, updateAttrs, false);
+            Helper.writeMapToLdap(pwmApplication, theGuest, updateAttrs, pwmSession.getUserInfoBean(), false);
 
             // Write expirationDate
             if (expirationDate != null) {
@@ -250,9 +248,9 @@ public class GuestRegistrationServlet extends TopServlet {
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<String>();
-                for (final FormConfiguration formConfiguration : guestUpdateForm) {
-                    if (!formConfiguration.getName().equalsIgnoreCase("__accountDuration__")) {
-                        involvedAttrs.add(formConfiguration.getName());
+                for (final FormConfiguration formItem : guestUpdateForm) {
+                    if (!formItem.getName().equalsIgnoreCase("__accountDuration__")) {
+                        involvedAttrs.add(formItem.getName());
                     }
                 }
                 final Map<String,String> userAttrValues = theGuest.readStringAttributes(involvedAttrs);
@@ -275,8 +273,8 @@ public class GuestRegistrationServlet extends TopServlet {
                     }
                 }
 
-                for (final FormConfiguration formConfiguration : guestUpdateForm) {
-                    final String key = formConfiguration.getName();
+                for (final FormConfiguration formItem : guestUpdateForm) {
+                    final String key = formItem.getName();
                     final String value = userAttrValues.get(key);
                     if (value != null) {
                         formProps.setProperty(key, value);
@@ -333,10 +331,10 @@ public class GuestRegistrationServlet extends TopServlet {
 
             // set up the user creation attributes
             final Map<String,String> createAttributes = new HashMap<String, String>();
-            for (final FormConfiguration formConfiguration : formValues.keySet()) {
-                LOGGER.debug(pwmSession, "Attribute from form: "+formConfiguration.getName()+" = "+formValues.get(formConfiguration));
-                final String n = formConfiguration.getName();
-                final String v = formValues.get(formConfiguration);
+            for (final FormConfiguration formItem : formValues.keySet()) {
+                LOGGER.debug(pwmSession, "Attribute from form: "+ formItem.getName()+" = "+formValues.get(formItem));
+                final String n = formItem.getName();
+                final String v = formValues.get(formItem);
                 if (n != null && n.length() > 0 && v != null && v.length() > 0) {
                     createAttributes.put(n, v);
                     notifyAttrs.put(n, v);
@@ -354,20 +352,23 @@ public class GuestRegistrationServlet extends TopServlet {
 
             final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
 
-            // write out configured attributes.
-            LOGGER.debug(pwmSession, "writing guestUser.writeAttributes to user " + theUser.getEntryDN());
-            final List<String> configValues = config.readSettingAsStringArray(PwmSetting.GUEST_WRITE_ATTRIBUTES);
-            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
-            for (final String key : configNameValuePairs.keySet()) {
-                notifyAttrs.put(key, configNameValuePairs.get(key));
-            }
-
             // write the expiration date:
             if (expirationDate != null) {
                 final String expirationAttr =config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
                 theUser.writeDateAttribute(expirationAttr,expirationDate);
                 notifyAttrs.put(expirationAttr,new SimpleDateFormat().format(expirationDate));
+            }
+
+
+            {  // execute configured actions
+                LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
+                final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.GUEST_WRITE_ATTRIBUTES);
+                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+                settings.setExpandPwmMacros(true);
+                settings.setUserInfoBean(pwmSession.getUserInfoBean());
+                settings.setUser(theUser);
+                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                actionExecutor.executeActions(actions, settings);
             }
 
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, locale);
@@ -440,9 +441,9 @@ public class GuestRegistrationServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            if (namingAttribute.equals(formConfiguration.getName())) {
-                final String namingValue = formValues.get(formConfiguration);
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            if (namingAttribute.equals(formItem.getName())) {
+                final String namingValue = formValues.get(formItem);
                 final String gestUserContextDN = config.readSettingAsString(PwmSetting.GUEST_CONTEXT);
                 return namingAttribute + "=" + namingValue + "," + gestUserContextDN;
             }
@@ -498,13 +499,13 @@ public class GuestRegistrationServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
+        final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
         final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES);
 
         {
             boolean namingIsInForm = false;
-            for (final FormConfiguration formConfiguration : formConfigurations) {
-                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getName())) {
+            for (final FormConfiguration formItem : formItems) {
+                if (ldapNamingattribute.equalsIgnoreCase(formItem.getName())) {
                     namingIsInForm = true;
                 }
             }

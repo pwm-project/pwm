@@ -75,57 +75,57 @@ public class Validator {
 
     public static Map<FormConfiguration, String> readFormValuesFromRequest(
             final HttpServletRequest req,
-            final Collection<FormConfiguration> formConfigurations,
+            final Collection<FormConfiguration> formItems,
             final Locale locale
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final Map<String,String> tempMap = readRequestParametersAsMap(req);
-        return readFormValuesFromMap(tempMap, formConfigurations, locale);
+        return readFormValuesFromMap(tempMap, formItems, locale);
     }
 
 
     public static Map<FormConfiguration, String> readFormValuesFromMap(
             final Map<String,String> inputMap,
-            final Collection<FormConfiguration> formConfigurations,
+            final Collection<FormConfiguration> formItems,
             final Locale locale
     )
             throws PwmDataValidationException, PwmUnrecoverableException {
-        if (formConfigurations == null || formConfigurations.isEmpty()) {
+        if (formItems == null || formItems.isEmpty()) {
             return Collections.emptyMap();
         }
 
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<FormConfiguration,String>();
-        for (final FormConfiguration formConfiguration : formConfigurations) {
-            returnMap.put(formConfiguration,"");
+        for (final FormConfiguration formItem : formItems) {
+            returnMap.put(formItem,"");
         }
 
         if (inputMap == null) {
             return returnMap;
         }
 
-        for (final FormConfiguration formConfiguration : formConfigurations) {
-            final String keyName = formConfiguration.getName();
+        for (final FormConfiguration formItem : formItems) {
+            final String keyName = formItem.getName();
             final String value = inputMap.get(keyName);
 
-            if (formConfiguration.isRequired()) {
+            if (formItem.isRequired()) {
                 if (value == null || value.length() < 0) {
-                    final String errorMsg = "missing required value for field '" + formConfiguration.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formConfiguration.getLabel(locale)});
+                    final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});
                     throw new PwmDataValidationException(error);
                 }
             }
 
-            if (formConfiguration.isConfirmationRequired()) {
+            if (formItem.isConfirmationRequired()) {
                 final String confirmValue = inputMap.get(keyName + PARAM_CONFIRM_SUFFIX);
                 if (!confirmValue.equals(value)) {
-                    final String errorMsg = "incorrect confirmation value for field '" + formConfiguration.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formConfiguration.getLabel(locale)});
+                    final String errorMsg = "incorrect confirmation value for field '" + formItem.getName() + "'";
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formItem.getLabel(locale)});
                     throw new PwmDataValidationException(error);
                 }
             }
             if (value != null) {
-                returnMap.put(formConfiguration,value);
+                returnMap.put(formItem,value);
             }
         }
 
@@ -291,9 +291,9 @@ public class Validator {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
     {
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String value = formValues.get(formConfiguration);
-            formConfiguration.checkValue(value,locale);
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            final String value = formValues.get(formItem);
+            formItem.checkValue(value,locale);
         }
     }
 
@@ -312,12 +312,12 @@ public class Validator {
             objectClasses.put("objectClass",loopStr);
         }
 
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            if (uniqueAttributes.contains(formConfiguration.getName())) {
-                final String value = formValues.get(formConfiguration);
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            if (uniqueAttributes.contains(formItem.getName())) {
+                final String value = formValues.get(formItem);
 
                 final Map<String, String> filterClauses = new HashMap<String, String>();
-                filterClauses.put(formConfiguration.getName(), value);
+                filterClauses.put(formItem.getName(), value);
                 filterClauses.putAll(objectClasses);
                 final SearchHelper searchHelper = new SearchHelper();
                 searchHelper.setFilterAnd(filterClauses);
@@ -326,7 +326,7 @@ public class Validator {
                 for (final String loopBase : searchBases) {
                     final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(loopBase, searchHelper).keySet());
                     if (resultDNs.size() > 0) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{formConfiguration.getLabel(locale)});
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{formItem.getLabel(locale)});
                         throw new PwmDataValidationException(error);
                     }
                 }

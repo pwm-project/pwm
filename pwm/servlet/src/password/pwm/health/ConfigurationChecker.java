@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -143,7 +144,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         for (final PwmSetting setting : PwmSetting.values()) {
-            if (PwmSetting.Syntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(setting)) {
+            if (PwmSettingSyntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(setting)) {
                 final String passwordValue = config.readSettingAsString(setting);
                 final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
                 if (strength < 50) {

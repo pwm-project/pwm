@@ -25,7 +25,7 @@ var clientSettingCache = { };
 function readSetting(keyName, valueWriter) {
     require(["dojo"],function(dojo){
         dojo.xhrGet({
-            url:"ConfigManager?processAction=readSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
+            url:"ConfigManager?processAction=readSetting&key=" + keyName + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             contentType: "application/json;charset=utf-8",
             preventCache: true,
             dataType: "json",
@@ -59,11 +59,12 @@ function writeSetting(keyName, valueData) {
             encoding: "utf-8",
             dataType: "json",
             handleAs: "json",
-            sync: true,
+            preventCache: true,
             error: function(errorObj) {
                 showError("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
+                clearError();
                 console.log('wrote data for ' + keyName);
                 var isDefault = data['isDefault'];
                 var resetImageButton = getObject('resetButton-' + keyName);
@@ -186,21 +187,34 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
 var LocaleTableHandler = {};
 
 LocaleTableHandler.initLocaleTable = function(parentDiv, keyName, regExPattern, syntax) {
-    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
-        console.log('LocaleTableHandler init for ' + keyName);
-        clearDivElements(parentDiv, true);
-        readSetting(keyName, function(resultValue) {
-            clearDivElements(parentDiv, false);
-            for (var i in resultValue) {
-                LocaleTableHandler.addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
-            }
-            addAddLocaleButtonRow(parentDiv, keyName, function() {
-                LocaleTableHandler.addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
-            });
+    console.log('LocaleTableHandler init for ' + keyName);
+    clientSettingCache[keyName + "_regExPattern"] = regExPattern;
+    clientSettingCache[keyName + "_syntax"] = syntax;
+    clientSettingCache[keyName + "_parentDiv"] = parentDiv;
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        LocaleTableHandler.draw(keyName);
+    });
+};
 
-            clientSettingCache[keyName] = resultValue;
-            dojoParser.parse(parentDiv);
+LocaleTableHandler.draw = function(keyName) {
+    var parentDiv = clientSettingCache[keyName + "_parentDiv"];
+    var regExPattern = clientSettingCache[keyName + "_regExPattern"];
+    var syntax = clientSettingCache[keyName + "_syntax"];
+
+    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
+        var resultValue = clientSettingCache[keyName];
+        clearDivElements(parentDiv, false);
+        for (var i in resultValue) {
+            LocaleTableHandler.addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
+        }
+        addAddLocaleButtonRow(parentDiv, keyName, function() {
+            LocaleTableHandler.addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
         });
+
+        clientSettingCache[keyName] = resultValue;
+        dojoParser.parse(parentDiv);
     });
 };
 
@@ -280,7 +294,7 @@ LocaleTableHandler.writeLocaleSetting = function(settingKey, locale, value) {
 
 LocaleTableHandler.removeLocaleSetting = function(keyName, locale, parentDiv, regExPattern, syntax) {
     LocaleTableHandler.writeLocaleSetting(keyName, locale, null);
-    LocaleTableHandler.initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+    LocaleTableHandler.draw(keyName);
 };
 
 LocaleTableHandler.addLocaleSetting = function(keyName, parentDiv, regExPattern, syntax) {
@@ -290,7 +304,7 @@ LocaleTableHandler.addLocaleSetting = function(keyName, parentDiv, regExPattern,
             var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
             if (existingElementForLocale == null) {
                 LocaleTableHandler.writeLocaleSetting(keyName, inputValue, '');
-                LocaleTableHandler.initLocaleTable(parentDiv, keyName, regExPattern, syntax);
+                LocaleTableHandler.draw(keyName);
             }
         } finally {
         }
@@ -304,37 +318,42 @@ var MultiTableHandler = {};
 MultiTableHandler.initMultiTable = function(parentDiv, keyName, regExPattern) {
     console.log('MultiTableHandler init for ' + keyName);
     clearDivElements(parentDiv, true);
-
     readSetting(keyName, function(resultValue) {
-        clearDivElements(parentDiv, false);
-        var counter = 0;
-        for (var i in resultValue) {
-            MultiTableHandler.addMultiValueRow(parentDiv, keyName, i, resultValue[i], regExPattern);
-            counter++;
-        }
-        {
-            var newTableRow = document.createElement("tr");
-            newTableRow.setAttribute("style", "border-width: 0");
-            newTableRow.setAttribute("colspan", "5");
+        clientSettingCache[keyName] = resultValue;
+        MultiTableHandler.draw(parentDiv, keyName, regExPattern);
+    });
+};
 
-            var newTableData = document.createElement("td");
-            newTableData.setAttribute("style", "border-width: 0;");
 
-            var addItemButton = document.createElement("button");
-            addItemButton.setAttribute("type", "[button");
-            addItemButton.setAttribute("onclick", "MultiTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "','" + regExPattern + "');");
-            addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
-            addItemButton.innerHTML = "Add Value";
-            newTableData.appendChild(addItemButton);
+MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
+    clearDivElements(parentDiv, false);
+    var resultValue = clientSettingCache[keyName];
+    var counter = 0;
+    for (var i in resultValue) {
+        MultiTableHandler.addMultiValueRow(parentDiv, keyName, i, resultValue[i], regExPattern);
+        counter++;
+    }
+    {
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
+        newTableRow.setAttribute("colspan", "5");
 
-            newTableRow.appendChild(newTableData);
-            var parentDivElement = getObject(parentDiv);
-            parentDivElement.appendChild(newTableRow);
-        }
-        clientSettingCache[keyName] = counter;
-        require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
-            dojoParser.parse(parentDiv);
-        });
+        var newTableData = document.createElement("td");
+        newTableData.setAttribute("style", "border-width: 0;");
+
+        var addItemButton = document.createElement("button");
+        addItemButton.setAttribute("type", "[button");
+        addItemButton.setAttribute("onclick", "MultiTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "','" + regExPattern + "');");
+        addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+        addItemButton.innerHTML = "Add Value";
+        newTableData.appendChild(addItemButton);
+
+        newTableRow.appendChild(newTableData);
+        var parentDivElement = getObject(parentDiv);
+        parentDivElement.appendChild(newTableRow);
+    }
+    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
+        dojoParser.parse(parentDiv);
     });
 };
 
@@ -343,7 +362,6 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
         var inputID = 'value-' + settingKey + '-' + iteration;
 
         // clear the old dijit node (if it exists)
-
         var oldDijitNode = registry.byId(inputID);
         if (oldDijitNode != null) {
             try {
@@ -386,12 +404,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
 };
 
 MultiTableHandler.writeMultiSetting = function(settingKey, iteration, value) {
-    var size = clientSettingCache[settingKey];
-    var currentValues = { };
-    for (var i = 0; i < size; i++) {
-        var inputID = 'value-' + settingKey + '-' + i;
-        currentValues[i] = getObject(inputID).value;
-    }
+    var currentValues = clientSettingCache[settingKey];
     if (value == null) {
         delete currentValues[iteration];
     } else {
@@ -403,13 +416,13 @@ MultiTableHandler.writeMultiSetting = function(settingKey, iteration, value) {
 MultiTableHandler.removeMultiSetting = function(keyName, iteration, regExPattern) {
     var parentDiv = 'table_setting_' + keyName;
     MultiTableHandler.writeMultiSetting(keyName, iteration, null);
-    MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern);
+    MultiTableHandler.draw(parentDiv, keyName, regExPattern);
 };
 
 MultiTableHandler.addMultiSetting = function(keyName, parentDiv, regExPattern) {
-    var size = clientSettingCache[keyName];
-    MultiTableHandler.writeMultiSetting(keyName, size + 1, "");
-    MultiTableHandler.initMultiTable(parentDiv, keyName, regExPattern)
+    clientSettingCache[keyName].push("");
+    writeSetting(keyName, clientSettingCache[keyName]);
+    MultiTableHandler.draw(parentDiv, keyName, regExPattern)
 };
 
 // -------------------------- multi locale table handler ------------------------------------
@@ -418,144 +431,138 @@ var MultiLocaleTableHandler = {};
 
 MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regExPattern) {
     console.log('MultiLocaleTableHandler init for ' + keyName);
-    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
-        clearDivElements(parentDiv, true);
-        readSetting(keyName, function(resultValue) {
-            clearDivElements(parentDiv, false);
-            for (var localeName in resultValue) {
-                var localeTableRow = document.createElement("tr");
-                localeTableRow.setAttribute("style", "border-width: 0;");
-
-                var localeTdName = document.createElement("td");
-                localeTdName.setAttribute("style", "border-width: 0; width:15px");
-                localeTdName.innerHTML = localeName;
-                localeTableRow.appendChild(localeTdName);
-
-                var localeTdContent = document.createElement("td");
-                localeTdContent.setAttribute("style", "border-width: 0; width: 495px");
-                localeTableRow.appendChild(localeTdContent);
-
-                var localeTableElement = document.createElement("table");
-                localeTableElement.setAttribute("style", "border-width: 1px; width:490px; margin:0");
-                localeTdContent.appendChild(localeTableElement);
-
-                var multiValues = resultValue[localeName];
-
-                for (var iteration in multiValues) {
-
-                    var valueTableRow = document.createElement("tr");
-
-                    var valueTd1 = document.createElement("td");
-                    valueTd1.setAttribute("style", "border-width: 0;");
-
-                    // clear the old dijit node (if it exists)
-                    var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
-                    var oldDijitNode = registry.byId(inputID);
-                    if (oldDijitNode != null) {
-                        try {
-                            oldDijitNode.destroy();
-                        } catch (error) {
-                        }
-                    }
-
-                    var inputElement = document.createElement("input");
-                    inputElement.setAttribute("id", inputID);
-                    inputElement.setAttribute("value", multiValues[iteration]);
-                    inputElement.setAttribute("onchange", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "')");
-                    inputElement.setAttribute("style", "width: 450px");
-                    inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-                    inputElement.setAttribute("regExp", regExPattern);
-                    inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
-                    valueTd1.appendChild(inputElement);
-                    valueTableRow.appendChild(valueTd1);
-                    localeTableElement.appendChild(valueTableRow);
-
-                    if (iteration != 0) { // add the remove value button
-                        var imgElement = document.createElement("img");
-                        imgElement.setAttribute("style", "width: 15px; height: 15px");
-                        imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-                        imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                        valueTd1.appendChild(imgElement);
-                    }
-                }
-
-                { // add row button for this locale group
-                    var newTableRow = document.createElement("tr");
-                    newTableRow.setAttribute("style", "border-width: 0");
-                    newTableRow.setAttribute("colspan", "5");
-
-                    var newTableData = document.createElement("td");
-                    newTableData.setAttribute("style", "border-width: 0;");
-
-                    var addItemButton = document.createElement("button");
-                    addItemButton.setAttribute("type", "[button");
-                    addItemButton.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + (multiValues.size + 1) + "','');MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                    addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
-                    addItemButton.innerHTML = "Add Value";
-                    newTableData.appendChild(addItemButton);
-
-                    newTableRow.appendChild(newTableData);
-                    localeTableElement.appendChild(newTableRow);
-                }
-
-
-                if (localeName != '') { // add remove locale x
-                    var imgElement2 = document.createElement("img");
-                    imgElement2.setAttribute("style", "width: 15px; height: 15px;");
-                    imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-                    imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null);MultiLocaleTableHandler.initMultiLocaleTable('" + parentDiv + "','" + keyName + "','" + regExPattern + "')");
-                    var tdElement = document.createElement("td");
-                    tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
-
-                    localeTableRow.appendChild(tdElement);
-                    tdElement.appendChild(imgElement2);
-                }
-
-                var parentDivElement = getObject(parentDiv);
-                parentDivElement.appendChild(localeTableRow);
-
-                { // add a spacer row
-                    var spacerTableRow = document.createElement("tr");
-                    spacerTableRow.setAttribute("style", "border-width: 0");
-                    parentDivElement.appendChild(spacerTableRow);
-
-                    var spacerTableData = document.createElement("td");
-                    spacerTableData.setAttribute("style", "border-width: 0");
-                    spacerTableData.innerHTML = "&nbsp;";
-                    spacerTableRow.appendChild(spacerTableData);
-                }
-            }
-
-            var addLocaleFunction = function() {
-                require(["dijit/registry"],function(registry){
-                    MultiLocaleTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '');
-                    MultiLocaleTableHandler.initMultiLocaleTable(parentDiv, keyName, regExPattern);
-                });
-            };
-
-            addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
-            clientSettingCache[keyName] = resultValue;
-            dojoParser.parse(parentDiv);
-        });
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        MultiLocaleTableHandler.draw(parentDiv, keyName, regExPattern);
     });
 };
 
-MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value) {
-    var results = clientSettingCache[settingKey];
-    var currentValues = { };
-    for (var loopLocale in results) {
-        var iterValues = results[loopLocale];
-        var loopValues = { };
-        for (var loopIteration in iterValues) {
-            var inputID = "value-" + settingKey + "-" + loopLocale + "-" + loopIteration;
-            loopValues[loopIteration] = getObject(inputID).value;
-        }
-        currentValues[loopLocale] = loopValues;
-    }
+MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
+    var resultValue = clientSettingCache[keyName];
+    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
+        clearDivElements(parentDiv, false);
+        for (var localeName in resultValue) {
+            var localeTableRow = document.createElement("tr");
+            localeTableRow.setAttribute("style", "border-width: 0;");
 
+            var localeTdName = document.createElement("td");
+            localeTdName.setAttribute("style", "border-width: 0; width:15px");
+            localeTdName.innerHTML = localeName;
+            localeTableRow.appendChild(localeTdName);
+
+            var localeTdContent = document.createElement("td");
+            localeTdContent.setAttribute("style", "border-width: 0; width: 495px");
+            localeTableRow.appendChild(localeTdContent);
+
+            var localeTableElement = document.createElement("table");
+            localeTableElement.setAttribute("style", "border-width: 1px; width:490px; margin:0");
+            localeTdContent.appendChild(localeTableElement);
+
+            var multiValues = resultValue[localeName];
+
+            for (var iteration in multiValues) {
+
+                var valueTableRow = document.createElement("tr");
+
+                var valueTd1 = document.createElement("td");
+                valueTd1.setAttribute("style", "border-width: 0;");
+
+                // clear the old dijit node (if it exists)
+                var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
+                var oldDijitNode = registry.byId(inputID);
+                if (oldDijitNode != null) {
+                    try {
+                        oldDijitNode.destroy();
+                    } catch (error) {
+                    }
+                }
+
+                var inputElement = document.createElement("input");
+                inputElement.setAttribute("id", inputID);
+                inputElement.setAttribute("value", multiValues[iteration]);
+                inputElement.setAttribute("onchange", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',this.value,'" + regExPattern + "')");
+                inputElement.setAttribute("style", "width: 450px");
+                inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+                inputElement.setAttribute("regExp", regExPattern);
+                inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
+                valueTd1.appendChild(inputElement);
+                valueTableRow.appendChild(valueTd1);
+                localeTableElement.appendChild(valueTableRow);
+
+                if (iteration != 0) { // add the remove value button
+                    var imgElement = document.createElement("img");
+                    imgElement.setAttribute("style", "width: 15px; height: 15px");
+                    imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                    imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
+                    valueTd1.appendChild(imgElement);
+                }
+            }
+
+            { // add row button for this locale group
+                var newTableRow = document.createElement("tr");
+                newTableRow.setAttribute("style", "border-width: 0");
+                newTableRow.setAttribute("colspan", "5");
+
+                var newTableData = document.createElement("td");
+                newTableData.setAttribute("style", "border-width: 0;");
+
+                var addItemButton = document.createElement("button");
+                addItemButton.setAttribute("type", "[button");
+                addItemButton.setAttribute("onclick", "clientSettingCache['" + keyName + "']['" + localeName + "'].push('');MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "',null,null,null,'" + regExPattern + "')");
+                addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+                addItemButton.innerHTML = "Add Value";
+                newTableData.appendChild(addItemButton);
+
+                newTableRow.appendChild(newTableData);
+                localeTableElement.appendChild(newTableRow);
+            }
+
+
+            if (localeName != '') { // add remove locale x
+                var imgElement2 = document.createElement("img");
+                imgElement2.setAttribute("style", "width: 15px; height: 15px;");
+                imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null,'" + regExPattern + "')");
+                var tdElement = document.createElement("td");
+                tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
+
+                localeTableRow.appendChild(tdElement);
+                tdElement.appendChild(imgElement2);
+            }
+
+            var parentDivElement = getObject(parentDiv);
+            parentDivElement.appendChild(localeTableRow);
+
+            { // add a spacer row
+                var spacerTableRow = document.createElement("tr");
+                spacerTableRow.setAttribute("style", "border-width: 0");
+                parentDivElement.appendChild(spacerTableRow);
+
+                var spacerTableData = document.createElement("td");
+                spacerTableData.setAttribute("style", "border-width: 0");
+                spacerTableData.innerHTML = "&nbsp;";
+                spacerTableRow.appendChild(spacerTableData);
+            }
+        }
+
+        var addLocaleFunction = function() {
+            require(["dijit/registry"],function(registry){
+                MultiLocaleTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '', regExPattern);
+            });
+        };
+
+        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+        clientSettingCache[keyName] = resultValue;
+        dojoParser.parse(parentDiv);
+    });
+};
+
+MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value, regExPattern) {
+    var currentValues = clientSettingCache[settingKey];
     if (locale != null) {
         if (currentValues[locale] == null) {
-            currentValues[locale] = { "0":"" };
+            currentValues[locale] = [ "" ];
         }
 
         if (iteration == null) {
@@ -571,6 +578,8 @@ MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, i
     }
 
     writeSetting(settingKey, currentValues);
+    var parentDiv = 'table_setting_' + settingKey;
+    MultiLocaleTableHandler.draw(parentDiv, settingKey, regExPattern);
 };
 
 // -------------------------- form table handler ------------------------------------
@@ -593,7 +602,7 @@ FormTableHandler.redraw = function(keyName) {
     clearDivElements(parentDiv, false);
     var parentDivElement = getObject(parentDiv);
 
-    {
+    if (!isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
         headerRow.setAttribute("style", "border-width: 0");
 
@@ -611,7 +620,7 @@ FormTableHandler.redraw = function(keyName) {
     }
 
     for (var i in resultValue) {
-        FormTableHandler.addFormRow(parentDiv, keyName, i, resultValue[i]);
+        FormTableHandler.drawRow(parentDiv, keyName, i, resultValue[i]);
     }
 
     {
@@ -637,7 +646,7 @@ FormTableHandler.redraw = function(keyName) {
     });
 };
 
-FormTableHandler.addFormRow = function(parentDiv, settingKey, iteration, value) {
+FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     var inputID = 'value_' + settingKey + '_' + iteration + "_";
 
     // clear the old dijit node (if it exists)
@@ -712,7 +721,7 @@ FormTableHandler.addFormRow = function(parentDiv, settingKey, iteration, value) 
             newTableRow.appendChild(td4);
         }
 
-        if (iteration != 0) {
+        {
             var tdFinal = document.createElement("td");
             tdFinal.setAttribute("style", "border-width: 0");
 
@@ -1301,6 +1310,297 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
     });
 };
 
+// -------------------------- action handler ------------------------------------
+
+var ActionHandler = {};
+
+ActionHandler.init = function(keyName) {
+    console.log('ActionHandler init for ' + keyName);
+    var parentDiv = 'table_setting_' + keyName;
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        ActionHandler.redraw(keyName);
+    });
+};
+
+ActionHandler.redraw = function(keyName) {
+    console.log('ActionHandler redraw for ' + keyName)
+    var resultValue = clientSettingCache[keyName];
+    var parentDiv = 'table_setting_' + keyName;
+    clearDivElements(parentDiv, false);
+    var parentDivElement = getObject(parentDiv);
+
+    if (!isEmpty(resultValue)) {
+        var headerRow = document.createElement("tr");
+        headerRow.setAttribute("style", "border-width: 0");
+
+        var header1 = document.createElement("td");
+        header1.setAttribute("style", "border-width: 0;");
+        header1.innerHTML = "Name";
+        headerRow.appendChild(header1);
+
+        var header2 = document.createElement("td");
+        header2.setAttribute("style", "border-width: 0;");
+        header2.innerHTML = "Description";
+        headerRow.appendChild(header2);
+
+        parentDivElement.appendChild(headerRow);
+    }
+
+    for (var i in resultValue) {
+        ActionHandler.drawRow(parentDiv, keyName, i, resultValue[i]);
+    }
+
+    {
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
+        newTableRow.setAttribute("colspan", "5");
+
+        var newTableData = document.createElement("td");
+        newTableData.setAttribute("style", "border-width: 0; width: 50px");
+
+        var addItemButton = document.createElement("button");
+        addItemButton.setAttribute("type", "button");
+        addItemButton.setAttribute("onclick", "ActionHandler.addMultiSetting('" + keyName + "','" + parentDiv + "');");
+        addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+        addItemButton.innerHTML = "Add Value";
+        newTableData.appendChild(addItemButton);
+
+        newTableRow.appendChild(newTableData);
+        parentDivElement.appendChild(newTableRow);
+    }
+    require(["dojo/parser","dijit/form/Button","dijit/form/FilteringSelect","dijit/form/Textarea"],function(dojoParser){
+        dojoParser.parse(parentDiv);
+    });
+};
+
+ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
+    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+
+    // clear the old dijit node (if it exists)
+    clearDijitWidget(inputID + "name");
+    clearDijitWidget(inputID + "description");
+    clearDijitWidget(inputID + "type");
+    clearDijitWidget(inputID + "optionsButton");
+
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
+    {
+        {
+            var td1 = document.createElement("td");
+            td1.setAttribute("style", "border-width: 0; width:50px");
+            var nameInput = document.createElement("input");
+            nameInput.setAttribute("id", inputID + "name");
+            nameInput.setAttribute("value", value['name']);
+            nameInput.setAttribute("onchange","clientSettingCache['" + settingKey + "'][" + iteration + "]['name'] = this.value;ActionHandler.writeFormSetting('" + settingKey + "')");
+            nameInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+            nameInput.setAttribute("data-dojo-props", "required: true");
+
+            td1.appendChild(nameInput);
+            newTableRow.appendChild(td1);
+        }
+
+        {
+            var td2 = document.createElement("td");
+            td2.setAttribute("style", "border-width: 0");
+            var descriptionInput = document.createElement("input");
+            descriptionInput.setAttribute("id", inputID + "description");
+            descriptionInput.setAttribute("value", value['description']);
+            descriptionInput.setAttribute("readonly", "readonly");
+            descriptionInput.setAttribute("onclick","ActionHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
+            descriptionInput.setAttribute("onkeypress","ActionHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
+            descriptionInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+            td2.appendChild(descriptionInput);
+            newTableRow.appendChild(td2);
+        }
+
+        {
+            var td3 = document.createElement("td");
+            td3.setAttribute("style", "border-width: 0");
+            var optionList = PWM_GLOBAL['actionTypeOptions'];
+            var typeSelect = document.createElement("select");
+            typeSelect.setAttribute("data-dojo-type", "dijit.form.FilteringSelect");
+            typeSelect.setAttribute("id", inputID + "type");
+            typeSelect.setAttribute("style","width: 90px");
+            typeSelect.setAttribute("onchange","clientSettingCache['" + settingKey + "'][" + iteration + "]['type'] = this.value;ActionHandler.writeFormSetting('" + settingKey + "')");
+            for (var optionItem in optionList) {
+                var optionElement = document.createElement("option");
+                optionElement.value = optionList[optionItem];
+                optionElement.innerHTML = optionList[optionItem];
+                if (optionList[optionItem] == clientSettingCache[settingKey][iteration]['type']) {
+                    optionElement.setAttribute("selected","true");
+                }
+                typeSelect.appendChild(optionElement);
+            }
+
+            td3.appendChild(typeSelect);
+            newTableRow.appendChild(td3);
+        }
+
+        {
+            var td4 = document.createElement("td");
+            td4.setAttribute("style", "border-width: 0");
+            var labelButton = document.createElement("button");
+            labelButton.setAttribute("id", inputID + "optionsButton");
+            labelButton.setAttribute("data-dojo-type", "dijit.form.Button");
+            labelButton.setAttribute("onclick","ActionHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
+            labelButton.innerHTML = "Options";
+            td4.appendChild(labelButton);
+            newTableRow.appendChild(td4);
+        }
+
+        var tdFinal = document.createElement("td");
+        tdFinal.setAttribute("style", "border-width: 0");
+
+        var imgElement = document.createElement("img");
+        imgElement.setAttribute("style", "width: 15px; height: 15px");
+        imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+        imgElement.setAttribute("onclick", "ActionHandler.removeMultiSetting('" + settingKey + "','" + iteration + "')");
+        tdFinal.appendChild(imgElement);
+        newTableRow.appendChild(tdFinal);
+    }
+    var parentDivElement = getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+};
+
+ActionHandler.writeFormSetting = function(settingKey) {
+    var cachedSetting = clientSettingCache[settingKey];
+    writeSetting(settingKey, cachedSetting);
+};
+
+ActionHandler.removeMultiSetting = function(keyName, iteration) {
+    delete clientSettingCache[keyName][iteration];
+    console.log("removed iteration " + iteration + " from " + keyName + ", cached keyValue=" + clientSettingCache[keyName]);
+    ActionHandler.writeFormSetting(keyName);
+    ActionHandler.redraw(keyName);
+};
+
+ActionHandler.addMultiSetting = function(keyName) {
+    var currentSize = 0;
+    for (var loopVar in clientSettingCache[keyName]) {
+        currentSize++;
+    }
+    clientSettingCache[keyName][currentSize + 1] = {};
+    clientSettingCache[keyName][currentSize + 1]['name'] = '';
+    clientSettingCache[keyName][currentSize + 1]['description'] = '';
+    clientSettingCache[keyName][currentSize + 1]['type'] = 'webservice';
+    clientSettingCache[keyName][currentSize + 1]['method'] = 'get';
+    ActionHandler.writeFormSetting(keyName);
+    ActionHandler.redraw(keyName)
+};
+
+ActionHandler.showOptionsDialog = function(keyName, iteration) {
+    require(["dojo/store/Memory","dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/Select","dijit/form/ValidationTextBox"],function(Memory){
+        var inputID = 'value_' + keyName + '_' + iteration + "_";
+        var bodyText = '<table style="border:0">';
+        if (clientSettingCache[keyName][iteration]['type'] == 'webservice') {
+            bodyText += '<tr>';
+            bodyText += '<td style="border:0; text-align: center" colspan="2">Web Service</td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">Method</td><td style="border:0;"><select id="' + inputID + 'method' + '"/></td>';
+            bodyText += '</tr><tr>';
+            //bodyText += '<td style="border:0; text-align: right">Client Side</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'clientSide' + '"/></td>';
+            //bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">URL</td><td style="border:0;"><input type="text" id="' + inputID + 'url' + '"/></td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">Body</td><td style="border:0;"><input type="text" id="' + inputID + 'body' + '"/></td>';
+            bodyText += '</tr>';
+        } else if (clientSettingCache[keyName][iteration]['type'] == 'ldap') {
+            bodyText += '<tr>';
+            bodyText += '<td style="border:0; text-align: center" colspan="2">LDAP Value Write</td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">Attribute Name</td><td style="border:0;"><input type="text" id="' + inputID + 'attributeName' + '"/></td>';
+            bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">Attribute Value</td><td style="border:0;"><input type="text" id="' + inputID + 'attributeValue' + '"/></td>';
+            bodyText += '</tr>';
+        }
+        bodyText += '<tr>';
+        bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
+        bodyText += '</tr><tr>';
+        bodyText += '<td style="border:0; text-align: right">Description</td><td style="border:0;"><input type="text" id="' + inputID + 'description' + '"/></td>';
+        bodyText += '</tr>';
+        bodyText += '</table>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');ActionHandler.redraw(\'' + keyName + '\')">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Options for ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+                ActionHandler.redraw(keyName);
+            }
+        });
+        theDialog.show();
+
+        if (clientSettingCache[keyName][iteration]['type'] == 'webservice') {
+            clearDijitWidget(inputID + "method");
+            new dijit.form.Select({
+                value: clientSettingCache[keyName][iteration]['method'],
+                options: [
+                    { label: "Delete", value: "delete" },
+                    { label: "Get", value: "get" },
+                    { label: "Post", value: "post" },
+                    { label: "Put", value: "put" }
+                ],
+                style: "width: 80px",
+                onChange: function(){clientSettingCache[keyName][iteration]['method'] = this.value;ActionHandler.writeFormSetting(keyName)}
+            },inputID + "method");
+
+            //clearDijitWidget(inputID + "clientSide");
+            //new dijit.form.CheckBox({
+            //    checked: clientSettingCache[keyName][iteration]['clientSide'],
+            //    onChange: function(){clientSettingCache[keyName][iteration]['clientSide'] = this.checked;ActionHandler.writeFormSetting(keyName)}
+            //},inputID + "clientSide");
+
+            clearDijitWidget(inputID + "url");
+            new dijit.form.Textarea({
+                value: clientSettingCache[keyName][iteration]['url'],
+                required: true,
+                onChange: function(){clientSettingCache[keyName][iteration]['url'] = this.value;ActionHandler.writeFormSetting(keyName)}
+            },inputID + "url");
+
+            clearDijitWidget(inputID + "body");
+            new dijit.form.Textarea({
+                value: clientSettingCache[keyName][iteration]['body'],
+                onChange: function(){clientSettingCache[keyName][iteration]['body'] = this.checked;ActionHandler.writeFormSetting(keyName)}
+            },inputID + "body");
+
+        } else if (clientSettingCache[keyName][iteration]['type'] == 'ldap') {
+            clearDijitWidget(inputID + "attributeName");
+            new dijit.form.ValidationTextBox({
+                value: clientSettingCache[keyName][iteration]['attributeName'],
+                required: true,
+                onChange: function(){clientSettingCache[keyName][iteration]['attributeName'] = this.value;ActionHandler.writeFormSetting(keyName)}
+            },inputID + "attributeName");
+
+            clearDijitWidget(inputID + "attributeValue");
+            new dijit.form.Textarea({
+                value: clientSettingCache[keyName][iteration]['attributeValue'],
+                required: true,
+                onChange: function(){clientSettingCache[keyName][iteration]['attributeValue'] = this.value;ActionHandler.writeFormSetting(keyName)}
+            },inputID + "attributeValue");
+        }
+        clearDijitWidget(inputID + "description");
+        new dijit.form.Textarea({
+            value: clientSettingCache[keyName][iteration]['description'],
+            onChange: function(){clientSettingCache[keyName][iteration]['description'] = this.value;ActionHandler.writeFormSetting(keyName)}
+        },inputID + "description");
+    });
+};
+
+
+
+
+
 
 
 
@@ -1435,7 +1735,7 @@ function startNewConfigurationEditor(template) {
     require(["dojo"],function(dojo){
         showWaitDialog('Loading...','');
         dojo.xhrGet({
-            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&getTemplate=" + template,
             preventCache: true,
             error: function(errorObj) {
                 showError("error starting configuration editor: " + errorObj);
@@ -1540,5 +1840,10 @@ function showConfigurationNotes() {
             }
         });
     });
+}
+
+function isEmpty(o) {
+    for (var key in o) if (o.hasOwnProperty(key)) return false;
+    return true;
 }
 

@@ -23,7 +23,6 @@
 package password.pwm.config;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.jdom.CDATA;
 import org.jdom.Comment;
 import org.jdom.Document;
@@ -32,6 +31,9 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import password.pwm.PwmConstants;
+import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -39,11 +41,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import javax.crypto.SecretKey;
 import java.io.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Jason D. Rivard
@@ -197,48 +196,30 @@ public class StoredConfiguration implements Serializable, Cloneable {
             return true;
         }
 
-        final StoredValue defaultValue = defaultValue(setting,template());
+        final StoredValue defaultValue = defaultValue(setting, getTemplate());
         if (defaultValue == null) {
             return settingMap.get(setting) == null;
         }
 
-        final String defaultJson = defaultValue.toJsonString();
-        final String currentJson = settingMap.get(setting).toJsonString();
+
+        final String defaultJson = new Gson().toJson(defaultValue.toNativeObject());
+        final String currentJson = new Gson().toJson(settingMap.get(setting).toNativeObject());
         return defaultJson.equals(currentJson);
     }
 
-    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template) {
+    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template)
+    {
         try {
-            switch (pwmSetting.getSyntax()) {
-                case STRING:
-                case BOOLEAN:
-                case TEXT_AREA:
-                case SELECT:
-                case NUMERIC:
-                    return StoredValue.StoredValueString.fromJsonString(pwmSetting.getDefaultValue(template));
-                case PASSWORD:
-                    return StoredValue.StoredValuePassword.fromJsonString(pwmSetting.getDefaultValue(template));
-                case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA:
-                    return StoredValue.StoredValueLocaleList.fromJsonString(pwmSetting.getDefaultValue(template));
-                case LOCALIZED_STRING_ARRAY:
-                    return StoredValue.StoredValueLocaleMap.fromJsonString(pwmSetting.getDefaultValue(template));
-                case STRING_ARRAY:
-                    return StoredValue.StoredValueList.fromJsonString(pwmSetting.getDefaultValue(template));
-                case FORM:
-                    return StoredValue.StoredFormList.fromJsonString(pwmSetting.getDefaultValue(template));
-
-                default:
-                    throw new IllegalArgumentException("unable to read default value for: " + pwmSetting.toString());
-            }
-        } catch (Exception e) {
-            final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getMessage();
+            final String defaultValueString = pwmSetting.getDefaultValue(template);
+            return ValueFactory.fromJson(pwmSetting,defaultValueString);
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getErrorInformation().toDebugStr();
             LOGGER.error(errorMsg,e);
-            throw new IllegalStateException(errorMsg,e);
+            throw new IllegalStateException(errorMsg);
         }
     }
 
-    public PwmSetting.Template template() {
+    public PwmSetting.Template getTemplate() {
         final String propertyValue = propertyMap.get(PROPERTY_KEY_TEMPLATE);
         try {
             return PwmSetting.Template.valueOf(propertyValue);
@@ -247,6 +228,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
         } catch (NullPointerException e) {
             return PwmSetting.Template.DEFAULT;
         }
+    }
+
+    public void setTemplate(PwmSetting.Template template) {
+        propertyMap.put(PROPERTY_KEY_TEMPLATE,template.toString());
     }
 
     public String toString(final PwmSetting setting) {
@@ -285,187 +270,29 @@ public class StoredConfiguration implements Serializable, Cloneable {
         final List<String> errorStrings = new ArrayList<String>();
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
-            final StringBuilder errorString = new StringBuilder();
-            errorString.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorString.append("-");
-            errorString.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorString.append(" ");
+            final StringBuilder errorPrefix = new StringBuilder();
+            errorPrefix.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+            errorPrefix.append("-");
+            errorPrefix.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
+            errorPrefix.append(" ");
 
-            final Pattern loopPattern = loopSetting.getRegExPattern();
-
-            switch (loopSetting.getSyntax()) {
-                case NUMERIC: {
-                    final String value = this.readSetting(loopSetting);
-                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append("missing required value");
-                        errorStrings.add(errorString.toString());
-                    } else {
-                        try {
-                            Long.parseLong(value);
-                        } catch (Exception e) {
-                            errorString.append("can not parse numeric value:").append(e.getMessage());
-                            errorStrings.add(errorString.toString());
-                        }
-                    }
+            final StoredValue loopValue = readSetting(loopSetting);
+            final List<String> errors;
+            try {
+                errors = loopValue.validateValue(loopSetting);
+                for (final String loopError : errors) {
+                    errorStrings.add(errorPrefix + loopError);
                 }
-                break;
-
-                case BOOLEAN: {
-                    final String value = this.readSetting(loopSetting);
-                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append("missing required value");
-                        errorStrings.add(errorString.toString());
-                    } else {
-                        try {
-                            Boolean.parseBoolean(value);
-                        } catch (Exception e) {
-                            errorString.append("can not parse boolean value:").append(e.getMessage());
-                            errorStrings.add(errorString.toString());
-                        }
-                    }
-                }
-                break;
-
-                case STRING_ARRAY: {
-                    final List<String> values = this.readStringArraySetting(loopSetting);
-                    for (final String value : values) {
-                        if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                            errorString.append("missing required value");
-                            errorStrings.add(errorString.toString());
-                        } else {
-                            final Matcher matcher = loopPattern.matcher(value);
-                            if (value != null && value.length() > 0 && !matcher.matches()) {
-                                errorString.append("incorrect value format for value: ").append(value);
-                                errorStrings.add(errorString.toString());
-                            }
-                        }
-                    }
-                }
-                break;
-
-                case LOCALIZED_STRING:
-                case LOCALIZED_TEXT_AREA: {
-                    final Map<String, String> values = this.readLocalizedStringSetting(loopSetting);
-                    for (final String locale : values.keySet()) {
-                        final String value = values.get(locale);
-                        if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                            errorString.append("missing required value");
-                            errorStrings.add(errorString.toString());
-                        } else {
-                            if (loopSetting.getSyntax() == PwmSetting.Syntax.LOCALIZED_STRING) {
-                                final Matcher matcher = loopPattern.matcher(value);
-                                if (value != null && value.length() > 0 && !matcher.matches()) {
-                                    errorString.append("incorrect value format for locale '").append(locale).append("': ").append(value);
-                                    errorStrings.add(errorString.toString());
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-
-                case LOCALIZED_STRING_ARRAY: {
-                    final Map<String, List<String>> values = this.readLocalizedStringArraySetting(loopSetting);
-                    for (final String locale : values.keySet()) {
-                        for (final String value : values.get(locale)) {
-                            if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                                errorString.append("missing required value");
-                                errorStrings.add(errorString.toString());
-                            } else if (value != null) {
-                                final Matcher matcher = loopPattern.matcher(value);
-                                if (value != null && value.length() > 0 && !matcher.matches()) {
-                                    errorString.append("incorrect value format for locale '").append(locale).append("': ").append(value);
-                                    errorStrings.add(errorString.toString());
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-
-                case FORM: {
-                    final List<FormConfiguration> values = this.readFormSetting(loopSetting);
-                    for (final FormConfiguration loopConfig: values) {
-                        try {
-                            loopConfig.validate();
-                        } catch (PwmOperationalException e) {
-                            errorString.append("format error: ").append(e.getErrorInformation().toDebugStr());
-                            errorStrings.add(errorString.toString());
-
-                        }
-                    }
-                }
-                break;
-
-                default: {
-                    final String value = readSetting(loopSetting);
-                    if ((value == null || value.length() < 1) && loopSetting.isRequired()) {
-                        errorString.append("missing required value");
-                        errorStrings.add(errorString.toString());
-                    } else {
-                        final Matcher matcher = loopPattern.matcher(value);
-                        if (value != null && value.length() > 0 && !matcher.matches()) {
-                            errorString.append("incorrect value format for value: '").append(value);
-                            errorStrings.add(errorString.toString());
-                        }
-                    }
-                }
+            } catch (Exception e) {
+                LOGGER.error("unexpected error during validate value for " + errorPrefix + ", error: " + e.getMessage(),e);
             }
         }
 
         return errorStrings;
     }
 
-    public List<String> readStringArraySetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax() && PwmSetting.Syntax.FORM != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
-        }
-
-        final StoredValue value = settingMap.get(setting);
-        return (List<String>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
-    }
-
-    public List<FormConfiguration> readFormSetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.FORM != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
-        }
-
-        final StoredValue value = settingMap.get(setting);
-        return (List<FormConfiguration>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
-    }
-
-    public Map<String, String> readLocalizedStringSetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read LOCALIZED_STRING or LOCALIZED_TEXT_AREA values for setting: " + setting.toString());
-        }
-
-        final StoredValue value = settingMap.get(setting);
-        return (Map<String, String>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
-    }
-
-    public Map<String, List<String>> readLocalizedStringArraySetting(final PwmSetting setting) {
-        if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString());
-        }
-
-        final StoredValue value = settingMap.get(setting);
-        return (Map<String, List<String>>) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
-    }
-
-    public String readSetting(final PwmSetting setting) {
-        switch (setting.getSyntax()) {
-            case STRING:
-            case TEXT_AREA:
-            case SELECT:
-            case BOOLEAN:
-            case NUMERIC:
-            case PASSWORD:
-                final StoredValue value = settingMap.get(setting);
-                return (String) (value == null ? defaultValue(setting,template()) : value).toNativeObject();
-
-            default:
-                throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
-        }
+    public StoredValue readSetting(final PwmSetting setting) {
+        return settingMap.containsKey(setting) ? settingMap.get(setting) : defaultValue(setting, getTemplate());
     }
 
     public void writeLocaleBundleMap(final String bundleName, final String keyName, final Map<String,String> localeMap) {
@@ -475,7 +302,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 theBundle = ResourceBundle.getBundle(bundleName);
             }
         }
-
 
         if (theBundle == null) {
             LOGGER.info("ignoring unknown locale bundle for bundle=" + bundleName + ", key=" + keyName);
@@ -497,20 +323,11 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public void writeLocalizedSetting(final PwmSetting setting, final Map<String, String> values) {
         preModifyActions();
-        if (PwmSetting.Syntax.LOCALIZED_STRING != setting.getSyntax() && PwmSetting.Syntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
+        if (PwmSettingSyntax.LOCALIZED_STRING != setting.getSyntax() && PwmSettingSyntax.LOCALIZED_TEXT_AREA != setting.getSyntax()) {
             throw new IllegalArgumentException("may not write value to non-LOCALIZED_STRING or LOCALIZED_TEXT_AREA setting: " + setting.toString());
         }
 
-        settingMap.put(setting, new StoredValue.StoredValueLocaleList(values));
-    }
-
-    public void writeLocalizedStringArraySetting(final PwmSetting setting, final Map<String, List<String>> values) {
-        preModifyActions();
-        if (PwmSetting.Syntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not write LOCALIZED_STRING_ARRAY value to setting: " + setting.toString());
-        }
-
-        settingMap.put(setting, new StoredValue.StoredValueLocaleMap(values));
+        settingMap.put(setting, new LocalizedStringValue(values));
     }
 
     public void writeProperty(final String propertyName, final String propertyValue) {
@@ -522,24 +339,11 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
     }
 
-    public void writeSetting(final PwmSetting setting, final String value) {
+    public void writeSetting(final PwmSetting setting, final StoredValue value) {
         preModifyActions();
-        switch (setting.getSyntax()) {
-            case STRING:
-            case TEXT_AREA:
-            case SELECT:
-            case BOOLEAN:
-            case NUMERIC:
-                settingMap.put(setting, new StoredValue.StoredValueString(value));
-                break;
-            case PASSWORD:
-                settingMap.put(setting, new StoredValue.StoredValuePassword(value));
-                break;
-
-            default:
-                throw new IllegalArgumentException("may not write setting as string: " + setting.toString());
-        }
+        settingMap.put(setting,value);
     }
+
 
     private void preModifyActions() {
         if (locked) {
@@ -548,23 +352,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
         modifyTime = new Date();
     }
 
-    public void writeStringArraySetting(final PwmSetting setting, final List<String> values) {
-        preModifyActions();
-        if (PwmSetting.Syntax.STRING_ARRAY != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not write STRING_ARRAY value to setting: " + setting.toString());
-        }
-
-        settingMap.put(setting, new StoredValue.StoredValueList(values));
-    }
-
-    public void writeFormSetting(final PwmSetting setting, final List<FormConfiguration> values) {
-        preModifyActions();
-        if (PwmSetting.Syntax.FORM != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not write FORM value to setting: " + setting.toString());
-        }
-
-        settingMap.put(setting, new StoredValue.StoredFormList(values));
-    }
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -617,9 +404,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     settingElement.addContent(new Element("default"));
                 } else {
                     final List<Element> valueElements;
-                    if (setting.getSyntax() == PwmSetting.Syntax.PASSWORD) {
+                    if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
                         final String key = PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
-                        valueElements = ((StoredValue.StoredValuePassword) storedConfiguration.settingMap.get(setting)).toXmlValues("value", key);
+                        valueElements = ((PasswordValue) storedConfiguration.settingMap.get(setting)).toXmlValues("value", key);
                         settingElement.addContent(new Comment("Note: This value is encrypted and can not be edited directly."));
                         settingElement.addContent(new Comment("Please use the PWM Configuration Manager to modify this value."));
                     } else {
@@ -706,90 +493,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     if (pwmSetting == null) {
                         LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
                     } else {
-                        if (settingElement.getChild("value") != null) {
-                            switch (pwmSetting.getSyntax()) {
-                                case LOCALIZED_STRING:
-                                case LOCALIZED_TEXT_AREA: {
-                                    final List valueElements = settingElement.getChildren("value");
-                                    final Map<String, String> values = new TreeMap<String, String>();
-                                    for (final Object loopValue : valueElements) {
-                                        final Element loopValueElement = (Element) loopValue;
-                                        final String localeString = loopValueElement.getAttributeValue("locale");
-                                        final String value = loopValueElement.getText();
-                                        values.put(localeString == null ? "" : localeString, value);
-                                    }
-                                    newConfiguration.writeLocalizedSetting(pwmSetting, values);
-                                }
-                                break;
-
-                                case FORM: {
-                                    final boolean oldType = PwmSetting.Syntax.LOCALIZED_STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
-                                    final Gson gson = new Gson();
-                                    final List valueElements = settingElement.getChildren("value");
-                                    final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
-                                    for (final Object loopValue : valueElements) {
-                                        final Element loopValueElement = (Element) loopValue;
-                                        final String value = loopValueElement.getText();
-                                        if (oldType) {
-                                            values.add(FormConfiguration.parseOldConfigString(value));
-                                        } else {
-                                            values.add(gson.fromJson(value,FormConfiguration.class));
-                                        }
-                                    }
-                                    newConfiguration.writeFormSetting(pwmSetting, values);
-                                }
-                                break;
-
-                                case STRING_ARRAY: {
-                                    final List valueElements = settingElement.getChildren("value");
-                                    final List<String> values = new ArrayList<String>();
-                                    for (final Object loopValue : valueElements) {
-                                        final Element loopValueElement = (Element) loopValue;
-                                        final String value = loopValueElement.getText();
-                                        values.add(value);
-                                    }
-                                    newConfiguration.writeStringArraySetting(pwmSetting, values);
-                                }
-                                break;
-
-                                case LOCALIZED_STRING_ARRAY: {
-                                    final List valueElements = settingElement.getChildren("value");
-                                    final Map<String, List<String>> values = new TreeMap<String, List<String>>();
-                                    for (final Object loopValue : valueElements) {
-                                        final Element loopValueElement = (Element) loopValue;
-                                        final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
-                                        final String value = loopValueElement.getText();
-                                        List<String> valueList = values.get(localeString);
-                                        if (valueList == null) {
-                                            valueList = new ArrayList<String>();
-                                            values.put(localeString, valueList);
-                                        }
-                                        valueList.add(value);
-                                    }
-                                    newConfiguration.writeLocalizedStringArraySetting(pwmSetting, values);
-                                }
-                                break;
-
-                                case PASSWORD: {
-                                    final Element valueElement = settingElement.getChild("value");
-                                    final String encodedValue = valueElement.getText();
-                                    try {
-                                        final SecretKey key = Helper.SimpleTextCrypto.makeKey(PwmConstants.DEFAULT_DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName());
-                                        final String decodedValue = Helper.SimpleTextCrypto.decryptValue(encodedValue, key);
-                                        newConfiguration.writeSetting(pwmSetting, decodedValue);
-                                    } catch (Exception e) {
-                                        final String errorMsg = "unable to decode encrypted password value for setting '" + pwmSetting.toString() + "' : " + e.getMessage();
-                                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-                                        throw new PwmOperationalException(errorInfo);
-                                    }
-                                }
-                                break;
-
-                                default:
-                                    final Element valueElement = settingElement.getChild("value");
-                                    final String value = valueElement.getText();
-                                    newConfiguration.writeSetting(pwmSetting, value);
-                            }
+                        if (settingElement.getChild("default") == null) {
+                            final String key = PwmConstants.DEFAULT_DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
+                            final StoredValue storedValue = ValueFactory.fromXmlValues(pwmSetting, settingElement, key);
+                            newConfiguration.writeSetting(pwmSetting, storedValue);
                         }
                     }
                 }
@@ -830,7 +537,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     }
                 }
             } catch (PwmOperationalException e) {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
+                final String errorMsg = "error reading configuration file format, setting=" + currentSettingName + ", error=" + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+                throw new PwmUnrecoverableException(errorInfo);
             } catch (Exception e) {
                 final String errorMsg = "error reading configuration file format, setting=" + currentSettingName + ", error=" + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
@@ -842,280 +551,4 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
     }
 
-    private interface StoredValue extends Serializable {
-        String toJsonString();
-
-        List<Element> toXmlValues(final String valueElementName);
-
-        Object toNativeObject();
-
-        static class StoredValueString implements StoredValue {
-            final String value;
-
-            public StoredValueString(final String value) {
-                this.value = value;
-            }
-
-            public static StoredValueString fromJsonString(final String input) {
-                return new StoredValueString(input);
-            }
-
-            public String toJsonString() {
-                return value == null ? "" : value;
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                final Element valueElement = new Element(valueElementName);
-                valueElement.addContent(new CDATA(value));
-                return Collections.singletonList(valueElement);
-            }
-
-            public String toNativeObject() {
-                return value;
-            }
-
-            public String toString() {
-                return toJsonString();
-            }
-        }
-
-        static class StoredValueLocaleList implements StoredValue {
-            final Map<String, String> values;
-
-            public StoredValueLocaleList(final Map<String, String> values) {
-                this.values = values;
-            }
-
-            public static StoredValueLocaleList fromJsonString(final String input) {
-                if (input == null) {
-                    return new StoredValueLocaleList(Collections.<String, String>emptyMap());
-                }
-
-                final Gson gson = new Gson();
-                final Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
-                }.getType());
-                final Map<String, String> returnMap = new TreeMap<String, String>(srcMap);
-                return new StoredValueLocaleList(returnMap);
-            }
-
-            public String toJsonString() {
-                final Gson gson = new Gson();
-                if (values == null) {
-                    return gson.toJson(Collections.emptyMap());
-                }
-                return gson.toJson(values);
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                final List<Element> returnList = new ArrayList<Element>();
-                for (final String locale : values.keySet()) {
-                    final String value = values.get(locale);
-                    final Element valueElement = new Element(valueElementName);
-                    valueElement.addContent(new CDATA(value));
-                    if (locale != null && locale.length() > 0) {
-                        valueElement.setAttribute("locale", locale);
-                    }
-                    returnList.add(valueElement);
-                }
-                return returnList;
-            }
-
-            public Map<String, String> toNativeObject() {
-                return Collections.unmodifiableMap(values);
-            }
-
-            public String toString() {
-                return toJsonString();
-            }
-        }
-
-        static class StoredFormList implements StoredValue {
-            final List<FormConfiguration> values;
-
-            public StoredFormList(final List<FormConfiguration> values) {
-                this.values = values;
-            }
-
-            public static StoredFormList fromJsonString(final String input) {
-                if (input == null) {
-                    return new StoredFormList(Collections.<FormConfiguration>emptyList());
-                }
-
-                final Gson gson = new Gson();
-                final List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
-                }.getType());
-
-                if (srcList == null || srcList.isEmpty()) {
-                    return new StoredFormList(Collections.<FormConfiguration>emptyList());
-                }
-
-                srcList.removeAll(Collections.singletonList(null));
-                return new StoredFormList(srcList);
-            }
-
-            public String toJsonString() {
-                final Gson gson = new Gson();
-                if (values == null) {
-                    return gson.toJson(Collections.emptyList());
-                }
-                return gson.toJson(values);
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                final List<Element> returnList = new ArrayList<Element>();
-                final Gson gson = new Gson();
-                for (final FormConfiguration value : values) {
-                    final Element valueElement = new Element(valueElementName);
-                    valueElement.addContent(gson.toJson(value));
-                    returnList.add(valueElement);
-                }
-                return returnList;
-            }
-
-            public List<FormConfiguration> toNativeObject() {
-                return Collections.unmodifiableList(values);
-            }
-
-            public String toString() {
-                return toJsonString();
-            }
-        }
-
-        static class StoredValueList implements StoredValue {
-            final List<String> values;
-
-            public StoredValueList(final List<String> values) {
-                this.values = values;
-            }
-
-            public static StoredValueList fromJsonString(final String input) {
-                if (input == null) {
-                    return new StoredValueList(Collections.<String>emptyList());
-                }
-
-                final Gson gson = new Gson();
-                final List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
-                }.getType());
-
-                if (srcList == null || srcList.isEmpty()) {
-                    return new StoredValueList(Collections.<String>emptyList());
-                }
-
-                srcList.removeAll(Collections.singletonList(null));
-                return new StoredValueList(srcList);
-            }
-
-            public String toJsonString() {
-                final Gson gson = new Gson();
-                if (values == null) {
-                    return gson.toJson(Collections.emptyList());
-                }
-                return gson.toJson(values);
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                final List<Element> returnList = new ArrayList<Element>();
-                for (final String value : values) {
-                    final Element valueElement = new Element(valueElementName);
-                    valueElement.addContent(new CDATA(value));
-                    returnList.add(valueElement);
-                }
-                return returnList;
-            }
-
-            public List<String> toNativeObject() {
-                return Collections.unmodifiableList(values);
-            }
-
-            public String toString() {
-                return toJsonString();
-            }
-        }
-
-        static class StoredValueLocaleMap implements StoredValue {
-            final Map<String, List<String>> values;
-
-            public StoredValueLocaleMap(final Map<String, List<String>> values) {
-                this.values = values;
-            }
-
-            public static StoredValueLocaleMap fromJsonString(final String input) {
-                if (input == null) {
-                    return new StoredValueLocaleMap(Collections.<String, List<String>>emptyMap());
-                }
-
-                final Gson gson = new Gson();
-                final Map<String, List<String>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<String>>>() {
-                }.getType());
-                final Map<String, List<String>> returnMap = new TreeMap<String, List<String>>(srcMap);
-                return new StoredValueLocaleMap(returnMap);
-            }
-
-            public String toJsonString() {
-                final Gson gson = new Gson();
-                if (values == null) {
-                    return gson.toJson(Collections.emptyMap());
-                }
-                return gson.toJson(values);
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                final List<Element> returnList = new ArrayList<Element>();
-                for (final String locale : values.keySet()) {
-                    for (final String value : values.get(locale)) {
-                        final Element valueElement = new Element(valueElementName);
-                        valueElement.addContent(new CDATA(value));
-                        if (locale != null && locale.length() > 0) {
-                            valueElement.setAttribute("locale", locale);
-                        }
-                        returnList.add(valueElement);
-                    }
-                }
-                return returnList;
-            }
-
-            public Map<String, List<String>> toNativeObject() {
-                return Collections.unmodifiableMap(values);
-            }
-
-            public String toString() {
-                return toJsonString();
-            }
-        }
-
-        static class StoredValuePassword extends StoredValueString {
-            public StoredValuePassword(final String value) {
-                super(value);
-            }
-
-            public static StoredValueString fromJsonString(final String input) {
-                return new StoredValuePassword(input);
-            }
-
-            public List<Element> toXmlValues(final String valueElementName) {
-                throw new IllegalStateException("password xml output requires hash key");
-            }
-
-            public List<Element> toXmlValues(final String valueElementName, final String key) {
-                if (value == null || value.length() < 1) {
-                    final Element valueElement = new Element(valueElementName);
-                    return Collections.singletonList(valueElement);
-                }
-                final Element valueElement = new Element(valueElementName);
-                try {
-                    final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
-                    final String encodedValue = Helper.SimpleTextCrypto.encryptValue(value, secretKey);
-                    valueElement.addContent(encodedValue);
-                } catch (Exception e) {
-                    valueElement.addContent("");
-                    throw new RuntimeException("missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage());
-                }
-                return Collections.singletonList(valueElement);
-            }
-
-            public String toString() {
-                return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
-            }
-        }
-    }
 }

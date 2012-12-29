@@ -33,6 +33,11 @@ public abstract class PwmServletURLHelper {
                 checkIfMatchsURL(req, "/public/jsClientValues.jsp");
     }
 
+    public static boolean isLogoutURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_LOGOUT) ||
+                checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_LOGOUT);
+    }
+
     public static boolean isConfigManagerURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/config/");
     }

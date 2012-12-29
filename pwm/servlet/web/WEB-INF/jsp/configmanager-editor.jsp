@@ -67,7 +67,7 @@ function buildMenuBar() {
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
         <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
-        <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().template() == PwmSetting.Template.NOVL) { %>
+        <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().getTemplate() == PwmSetting.Template.NOVL) { %>
         <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
@@ -223,7 +223,7 @@ function buildMenuBar() {
         { // Templates
             var templateMenu = new dijit.Menu({});
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().template() == template; %>
+        <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
             templateMenu.addChild(new dijit.CheckedMenuItem({
                 label: "<%=template.getDescription()%>",
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,

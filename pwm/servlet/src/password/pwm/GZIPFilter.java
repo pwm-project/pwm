@@ -40,7 +40,7 @@ public class GZIPFilter implements Filter {
             final HttpServletRequest request = (HttpServletRequest) req;
             final HttpServletResponse response = (HttpServletResponse) res;
             final String acceptEncodingHeader = request.getHeader("accept-encoding");
-            if (!request.getRequestURI().contains("/resources/") && PwmConstants.SERVLET_FILTER_ENABLE_GZIP && acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
+            if (PwmConstants.SERVLET_FILTER_ENABLE_GZIP && acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
                 final GZIPResponseWrapper wrappedResponse = new GZIPResponseWrapper(response);
                 chain.doFilter(req, wrappedResponse);
                 wrappedResponse.finishResponse();

@@ -25,6 +25,7 @@ package password.pwm;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -108,12 +109,16 @@ public class ContextManager implements Serializable {
         }
 
         try {
-            final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
-            final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
-            configReader = new ConfigurationReader(configurationFile);
-            final Configuration configuration = configReader.getConfiguration();
-            final File pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
-            final PwmApplication.MODE mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplication.MODE.ERROR;
+            Configuration configuration = null;
+            File pwmApplicationPath = null;
+            if (startupErrorInformation == null) {
+                final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
+                final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
+                configReader = new ConfigurationReader(configurationFile);
+                configuration = configReader.getConfiguration();
+                pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
+            }
+            final PwmApplication.MODE mode = startupErrorInformation == null ? (configReader == null ? PwmApplication.MODE.ERROR : configReader.getConfigMode()) : PwmApplication.MODE.ERROR;
             if (startupErrorInformation == null) {
                 startupErrorInformation = configReader.getConfigFileError();
             }
@@ -132,8 +137,9 @@ public class ContextManager implements Serializable {
             startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
             try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
             System.err.println(errorMsg);
+            System.out.println(errorMsg);
+            e.printStackTrace();
         }
-
 
         if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
             taskMaster = new Timer("pwm-ContextManager timer", true);
@@ -284,14 +290,20 @@ public class ContextManager implements Serializable {
 
     private static class PwmSettingDefaults implements EnvironmentTest  {
         public ErrorInformation doTest() {
-            for (final PwmSetting pwmSetting : PwmSetting.values()) {
-                for (final PwmSetting.Template template : PwmSetting.Template.values()) {
+            for (final PwmSetting.Template template : PwmSetting.Template.values()) {
+                final StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
+                storedConfiguration.setTemplate(template);
+                for (final PwmSetting pwmSetting : PwmSetting.values()) {
                     try {
-                        pwmSetting.getDefaultValue(template);
+                        storedConfiguration.readSetting(pwmSetting);
                     } catch (Throwable e)  {
-                        final String errorMsg = "error reading default value for PwmSetting key=" + pwmSetting.getKey() + ", template=" + template.toString() + ", error: " + e.getMessage();
+                        final String errorMsg = "error reading default value for PwmSetting key=" + pwmSetting.getKey() + ", getTemplate=" + template.toString() + ", error: " + e.getMessage();
                         return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
                     }
+                }
+                final List<String> errors = storedConfiguration.validateValues();
+                if (errors != null && !errors.isEmpty()) {
+                    return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "error reading default setting value: " + errors.iterator().next());
                 }
             }
             return null;

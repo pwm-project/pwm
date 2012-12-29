@@ -31,48 +31,30 @@ function pwmPageLoadHandler() {
     }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
-        try { //page leave notice
-            window.addEventListener('beforeunload', function () {
-                require(["dojo"],function(dojo){
-                    dojo.xhrPost({
-                        url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                        preventCache: true,
-                        sync: true
-                    });
+        require(["dojo","dojo/on"], function(dojo,on){
+            on(window, "beforeunload", function(){
+                dojo.xhrPost({
+                    url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    preventCache: true,
+                    sync: true
                 });
             });
-        } catch (e) {
-            try {console.log('unable to register beforeunload pageLeaveNotice handler: ' + e);} catch (e2) {/*ignore*/}
-        }
+        });
     }
 
-    if (getObject('message')) { // message div float handler
+    if (getObject('message')) {
         PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
-        try {
-            window.addEventListener('resize', function () {
-                messageDivFloatHandler();
-            });
-        } catch (e) {
-            try {console.log('unable to register resize messageFivFloatHandler: ' + e);} catch (e2) {/*ignore*/}
-        }
-
-        try {
-            window.addEventListener('scroll', function () {
-                messageDivFloatHandler();
-            });
-        } catch (e) {
-            try {console.log('unable to register scroll messageFivFloatHandler: ' + e);} catch (e2) {/*ignore*/}
-        }
+        require(["dojo/on"], function(on){
+            on(window, "resize", function(){messageDivFloatHandler()});
+            on(window, "scroll", function(){messageDivFloatHandler()});
+        });
     }
 
     if (getObject('header-warning')) {
         require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
-            // Function linked to the button to trigger the fade.
             var args = {node: "header-warning",duration:1000};
             setInterval(function(){fx.fadeOut(args).play()},15*1000);
-            setTimeout(function(){
-                setInterval(function(){fx.fadeIn(args).play();},15*1000);
-            },2000);
+            setTimeout(function(){setInterval(function(){fx.fadeIn(args).play();},15*1000);},2000);
         });
     }
 
@@ -87,13 +69,6 @@ function pwmPageLoadHandler() {
                 connectId: ["logoutDiv"],
                 label: PWM_STRINGS["Long_Title_Logout"]
             });
-        });
-    }
-
-    if (getObject('emptyDiv')) {
-        require(["dijit/ProgressBar"],function(ProgressBar){ // preloads the progress meter work when it immediately does a form submit
-            new ProgressBar({style: 'width:10px',indeterminate:true,id: "preloadedProgressBar"});
-            setTimeout(function(){clearDijitWidget("preloadedProgressBar")},10);
         });
     }
 }
@@ -437,15 +412,22 @@ IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
     PWM_GLOBAL['idle_lastPingTime'] = new Date().getTime();
     PWM_GLOBAL['real-window-title'] = document.title;
     IdleTimeoutHandler.resetIdleCounter();
-    setInterval("IdleTimeoutHandler.pollActivity()", IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
-    document.onclick = IdleTimeoutHandler.resetIdleCounter;
-    document.onkeydown = IdleTimeoutHandler.resetIdleCounter;
+    setInterval(function(){IdleTimeoutHandler.pollActivity()}, IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
+    require(["dojo/on"], function(on){
+        on(document, "click", function(){IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "keypress", function(){IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "scroll", function(){IdleTimeoutHandler.resetIdleCounter()});
+    });
 };
 
 IdleTimeoutHandler.resetIdleCounter = function() {
     var idleSeconds = IdleTimeoutHandler.calcIdleSeconds();
     IdleTimeoutHandler.closeIdleWarning();
-    getObject("idle_status").firstChild.nodeValue = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
+    try {
+        getObject("idle_status").firstChild.nodeValue = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
+    } catch (e) {
+        console.log("unable to update idle_status html node: " + e);
+    }
 
     PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (PWM_GLOBAL['idle_Timeout'] * 1000));
     {
@@ -484,11 +466,13 @@ IdleTimeoutHandler.pollActivity = function() {
     }
 
     if (idleSeconds < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
-        IdleTimeoutHandler.showIdleWarning();
-        if (idleSeconds % 2 == 0) {
-            document.title = PWM_GLOBAL['real-window-title'];
-        } else {
-            document.title = idleDisplayString;
+        if (!PWM_GLOBAL['idle_suspendTimeout']) {
+            IdleTimeoutHandler.showIdleWarning();
+            if (idleSeconds % 2 == 0) {
+                document.title = PWM_GLOBAL['real-window-title'];
+            } else {
+                document.title = idleDisplayString;
+            }
         }
     }
 };
@@ -609,22 +593,8 @@ IdleTimeoutHandler.closeIdleWarning = function() {
 
 function clearError()
 {
-    var errorObject = getObject("message");
-    if (errorObject == null) {
-        return;
-    }
-    errorObject.firstChild.nodeValue = '\u00a0';
-
-    var destStyle = errorObject.parentNode.style;
-    var destBackground = destStyle.backgroundColor;
-
-    dojo.animateProperty({
-        node:"message",
-        duration: 500,
-        properties: {
-            backgroundColor: destBackground
-        }
-    }).play();
+    PWM_GLOBAL['messageStatus'] = '';
+    doShow('messageStatus','\u00a0');
 }
 
 function showInfo(infoMsg)
@@ -650,6 +620,14 @@ function doShow(destClass, message) {
     if (messageElement == null || messageElement.firstChild == null || messageElement.firstChild.nodeValue == null) {
         return;
     }
+
+    if (destClass == '') {
+        require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
+            var fadeArgs = { node: "message", duration: 500 };
+            fx.fadeOut(fadeArgs).play();
+        });
+        return;
+    };
     messageElement.firstChild.nodeValue = message;
 
     try {
@@ -658,6 +636,7 @@ function doShow(destClass, message) {
         messageElement.style.display = 'block';
     }
 
+    messageElement.style.opacity = '1';
     require(["dojo"],function(dojo){
         if(dojo.isIE <= 8){ // only IE7 and below
             messageElement.className = "message " + destClass;
@@ -686,6 +665,7 @@ function doShow(destClass, message) {
             } catch (e) {
                 messageElement.className = "message " + destClass;
             }
+            messageDivFloatHandler();
         }
     });
 }
@@ -944,10 +924,10 @@ function messageDivFloatHandler() { // called by message.jsp
             return;
         }
 
-        if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj)) {
-            PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj);
+        if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
+            PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
 
-            if (elementInViewport(messageWrapperObj,false)) {
+            if (elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
                 messageObj.style.cssText = '';
                 doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
             } else {

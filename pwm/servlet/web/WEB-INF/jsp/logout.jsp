@@ -37,5 +37,8 @@
     </div>
     <br class="clear"/>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['idle_suspendTimeout'] = true;
+</script>
 </body>
 </html>

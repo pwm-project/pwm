@@ -33,7 +33,7 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UpdateProfileBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.ActionConfiguration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
@@ -41,6 +41,7 @@ import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
@@ -223,8 +224,8 @@ public class UpdateProfileServlet extends TopServlet {
         final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
         final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
-        for (final FormConfiguration formConfiguration : formFields) {
-            final String attrName = formConfiguration.getName();
+        for (final FormConfiguration formItem : formFields) {
+            final String attrName = formItem.getName();
             if (!formProps.containsKey(attrName)) {
                 final String userCurrentValue = currentUserAttributes.get(attrName);
                 if (userCurrentValue != null) {
@@ -322,11 +323,17 @@ public class UpdateProfileServlet extends TopServlet {
         final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
         Helper.writeFormValuesToLdap(pwmApplication, pwmSession, actor, formValues, false);
 
-        // write configured values
-        final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
-        final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmApplication.getProxyChaiProvider());
-        Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, writeAttributesSettings, true);
+        {  // execute configured actions
+            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmApplication.getProxyChaiProvider());
+            LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
+            final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
+            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+            settings.setExpandPwmMacros(true);
+            settings.setUserInfoBean(pwmSession.getUserInfoBean());
+            settings.setUser(proxiedUser);
+            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+            actionExecutor.executeActions(configValues, settings);
+        }
 
         // mark the event log
         UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.UPDATE_PROFILE, null);

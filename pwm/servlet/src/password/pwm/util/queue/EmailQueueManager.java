@@ -106,7 +106,7 @@ public class EmailQueueManager extends AbstractQueueManager {
         }
     }
 
-    boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) {
+    boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) throws PwmUnrecoverableException {
         final String serverAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
 
         if (serverAddress == null || serverAddress.length() < 1) {

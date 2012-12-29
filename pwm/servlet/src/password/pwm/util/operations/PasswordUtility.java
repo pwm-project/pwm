@@ -32,6 +32,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.*;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
@@ -181,14 +182,15 @@ public class PasswordUtility {
         // call out to external methods.
         Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, uiBean.getUserDN(), oldPassword, newPassword);
 
-        // call out to external REST methods.
-        Helper.invokeExternalRestChangeMethods(pwmSession, pwmApplication, uiBean.getUserDN(), oldPassword, newPassword);
-
-        {  // write out configured attributes.
-            LOGGER.debug(pwmSession, "writing changePassword.writeAttributes to user " + proxiedUser.getEntryDN());
-            final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
-            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, configNameValuePairs, true);
+        {  // execute configured actions
+            LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
+            final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
+            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+            settings.setExpandPwmMacros(true);
+            settings.setUserInfoBean(uiBean);
+            settings.setUser(proxiedUser);
+            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+            actionExecutor.executeActions(configValues, settings);
         }
 
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
@@ -249,21 +251,29 @@ public class PasswordUtility {
         // call out to external methods.
         Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, chaiUser.getEntryDN(), null, newPassword);
 
-        // call out to external REST methods.
-        Helper.invokeExternalRestChangeMethods(pwmSession, pwmApplication, chaiUser.getEntryDN(), null, newPassword);
-
-        {  // write out configured attributes.
-            LOGGER.debug(pwmSession, "writing changePassword.writeAttributes to user " + proxiedUser.getEntryDN());
-            final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
-            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, configNameValuePairs, true);
-        }
-
-        {  // write out configured attributes for helpdesk change
-            LOGGER.debug(pwmSession, "writing helpdesk post password change writeAttributes to user " + proxiedUser.getEntryDN());
-            final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES);
-            final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, proxiedUser, writeAttributesSettings, true);
+        {  // execute configured actions
+            LOGGER.debug(pwmSession, "executing changepassword and helpdesk post password change writeAttributes to user " + proxiedUser.getEntryDN());
+            final List<ActionConfiguration> actions = new ArrayList<ActionConfiguration>();
+            actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
+            actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
+            if (!actions.isEmpty()) {
+                final UserInfoBean userInfoBean = new UserInfoBean();
+                UserStatusHelper.populateUserInfoBean(
+                        pwmSession,
+                        userInfoBean,
+                        pwmApplication,
+                        pwmSession.getSessionStateBean().getLocale(),
+                        proxiedUser.getEntryDN(),
+                        newPassword,
+                        proxiedUser.getChaiProvider()
+                );
+                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+                settings.setExpandPwmMacros(true);
+                settings.setUserInfoBean(userInfoBean);
+                settings.setUser(proxiedUser);
+                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                actionExecutor.executeActions(actions,settings);
+            }
         }
 
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));

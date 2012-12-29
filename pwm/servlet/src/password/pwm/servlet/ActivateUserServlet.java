@@ -127,11 +127,11 @@ public class ActivateUserServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         pwmSession.clearActivateUserBean();
-        final List<FormConfiguration> formConfiguration = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
+        final List<FormConfiguration> formItem = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
         try {
             //read the values from the request
-            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formConfiguration, ssBean.getLocale());
+            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
 
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
@@ -244,7 +244,7 @@ public class ActivateUserServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "writing pre-activate user attribute write values to user " + theUser.getEntryDN());
                 final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
                 final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, writeAttributesSettings, true);
+                Helper.writeMapToLdap(pwmApplication, theUser, writeAttributesSettings, pwmSession.getUserInfoBean(), true);
             }
 
             //authenticate the pwm session
@@ -276,7 +276,7 @@ public class ActivateUserServlet extends TopServlet {
                         LOGGER.debug(pwmSession, "writing post-activate user attribute write values to user " + theUser.getEntryDN());
                         final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                         final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                        Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, writeAttributesSettings, true);
+                        Helper.writeMapToLdap(pwmApplication, theUser, writeAttributesSettings, pwmSession.getUserInfoBean(), true);
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
                         final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
@@ -310,13 +310,13 @@ public class ActivateUserServlet extends TopServlet {
             throws ChaiUnavailableException, PwmDataValidationException
     {
         final String searchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
-        for (final FormConfiguration formConfiguration : formValues.keySet()) {
-            final String attrName = formConfiguration.getName();
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            final String attrName = formItem.getName();
             final String tokenizedAttrName = "%" + attrName + "%";
             if (searchFilter.contains(tokenizedAttrName)) {
                 LOGGER.trace(pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter");
             } else {
-                final String value = formValues.get(formConfiguration);
+                final String value = formValues.get(formItem);
                 try {
                     if (!theUser.compareStringAttribute(attrName, value)) {
                         final String errorMsg = "incorrect value for '" + attrName + "'";

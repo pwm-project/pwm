@@ -46,6 +46,7 @@ public class PwmMacroMachine {
         MACROS.add(new UserPwExpirationTimeDefaultMacro());
         MACROS.add(new UserDaysUntilPwExpireMacro());
         MACROS.add(new UserIDMacro());
+        MACROS.add(new UserPasswordMacro());
         MACROS.add(new PwmInstanceIDMacro());
         MACROS.add(new PwmCurrentTimeMacro());
         MACROS.add(new PwmCurrentTimeDefaultMacro());
@@ -213,6 +214,20 @@ public class PwmMacroMachine {
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
             if (uiBean == null || uiBean.getUserID() == null) {
+                return "";
+            }
+
+            return uiBean.getUserID();
+        }
+    }
+
+    private static class UserPasswordMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@User:Password@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+            if (uiBean == null || uiBean.getUserCurrentPassword() == null) {
                 return "";
             }
 

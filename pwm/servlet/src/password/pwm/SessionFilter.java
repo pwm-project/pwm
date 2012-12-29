@@ -477,7 +477,7 @@ public class SessionFilter implements Filter {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
     {
-        if (PwmServletURLHelper.isResourceURL(req) || PwmServletURLHelper.isConfigManagerURL(req)) {
+        if (PwmServletURLHelper.isResourceURL(req) || PwmServletURLHelper.isConfigManagerURL(req) || PwmServletURLHelper.isLogoutURL(req)) {
             return false;
         }
 

@@ -30,10 +30,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.*;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.Message;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -41,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.*;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -349,14 +347,13 @@ public class NewUserServlet extends TopServlet {
         // re-perform verification before proceeding
         verifyFormAttributes(formValues, pwmSession, pwmApplication);
 
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final List<FormConfiguration> newUserForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.NEWUSER_FORM);
         final String userPassword = formValues.get(FIELD_PASSWORD);
 
         // set up the user creation attributes
         final Map<String,String> createAttributes = new HashMap<String,String>();
-        for (final FormConfiguration formConfiguration : newUserForm) {
-            final String attributeName = formConfiguration.getName();
+        for (final FormConfiguration formItem : newUserForm) {
+            final String attributeName = formItem.getName();
             createAttributes.put(attributeName, formValues.get(attributeName));
         }
 
@@ -397,11 +394,15 @@ public class NewUserServlet extends TopServlet {
         //set user requested password
         PasswordUtility.setUserPassword(pwmSession, pwmApplication, userPassword);
 
-        {  // write out configured attributes.
-            LOGGER.debug(pwmSession, "writing newUser.writeAttributes to user " + theUser.getEntryDN());
-            final List<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
-            final Map<String, String> configNameValuePairs = Configuration.convertStringListToNameValuePair(configValues, "=");
-            Helper.writeMapToLdap(pwmApplication, pwmSession, theUser, configNameValuePairs, true);
+        {  // execute configured actions
+            LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
+            final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
+            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+            settings.setExpandPwmMacros(true);
+            settings.setUserInfoBean(pwmSession.getUserInfoBean());
+            settings.setUser(theUser);
+            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+            actionExecutor.executeActions(actions, settings);
         }
 
         //everything good so forward to change password page.
@@ -578,15 +579,15 @@ public class NewUserServlet extends TopServlet {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final List<FormConfiguration> formConfigurations = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
         final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
 
         boolean usernameIsGenerated = isUsernameRandomGenerated(configuration);
 
         {
             boolean namingIsInForm = false;
-            for (final FormConfiguration formConfiguration : formConfigurations) {
-                if (ldapNamingattribute.equalsIgnoreCase(formConfiguration.getName())) {
+            for (final FormConfiguration formItem : formItems) {
+                if (ldapNamingattribute.equalsIgnoreCase(formItem.getName())) {
                     namingIsInForm = true;
                 }
             }

@@ -76,13 +76,13 @@
             </tr>
         </table>
         <table>
-            <% for (FormConfiguration formConfiguration : pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM)) { %>
+            <% for (FormConfiguration formItem : pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM)) { %>
             <tr>
                 <td class="key">
-                    <%= formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale())%>
+                    <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                 </td>
                 <td>
-                    <% final String loopValue = searchedUserInfo.getAllUserAttributes().get(formConfiguration.getName()); %>
+                    <% final String loopValue = searchedUserInfo.getAllUserAttributes().get(formItem.getName()); %>
                     <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
                 </td>
             </tr>
@@ -444,9 +444,11 @@
                     load: function(results){
                         var bodyText = "";
                         if (results['success'] == true) {
-                            bodyText += '<span class="message message-info">';
+                            bodyText += '<br/>';
+                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                            bodyText += '</br></br>';
                             bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
-                            bodyText += '</span></br>';
+                            bodyText += '<br/>';
                         } else {
                             bodyText += results['errorMsg'];
                         }
@@ -459,7 +461,7 @@
                         closeWaitDialog();
                         var theDialog = new dijit.Dialog({
                             id: 'dialogPopup',
-                            title: PWM_STRINGS['Message_SuccessUnknown'],
+                            title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
                             style: "width: 450px",
                             content: bodyText,
                             closable: false,
@@ -502,6 +504,7 @@
                         closeWaitDialog();
                         var theDialog = new dijit.Dialog({
                             id: 'dialogPopup',
+                            title: 'Clear Responses',
                             style: "width: 450px",
                             content: bodyText,
                             closable: false,
