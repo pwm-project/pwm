@@ -66,14 +66,14 @@ function buildMenuBar() {
         var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
-        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
-        <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().getTemplate() == PwmSetting.Template.NOVL) { %>
-        <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+            <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
+            <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().getTemplate() == PwmSetting.Template.NOVL) { %>
+            <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 disabled: true
             }));
-        <% } else { %>
+            <% } else { %>
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
@@ -90,9 +90,9 @@ function buildMenuBar() {
                     });
                 }
             }));
-        <% } %>
-        <% } %>
-        <% } %>
+            <% } %>
+            <% } %>
+            <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                 label: "Settings",
                 popup: settingsMenu
@@ -100,13 +100,13 @@ function buildMenuBar() {
         }
         { // Modules Menu
             var modulesMenu = new dijit.Menu({});
-        <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
-        <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+            <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
+            <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
             modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 disabled: true
             }));
-        <% } else { %>
+            <% } else { %>
             modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
@@ -123,8 +123,8 @@ function buildMenuBar() {
                     });
                 }
             }));
-        <% } %>
-        <% } %>
+            <% } %>
+            <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                 label: "Modules",
                 popup: modulesMenu
@@ -133,13 +133,13 @@ function buildMenuBar() {
         { // Display menu
             var displayMenu = new dijit.Menu({});
 
-        <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
-        <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
+            <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
+            <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
             displayMenu.addChild(new dijit.MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 disabled: true
             }));
-        <% } else { %>
+            <% } else { %>
             displayMenu.addChild(new dijit.MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 onClick: function() {
@@ -156,8 +156,8 @@ function buildMenuBar() {
                     });
                 }
             }));
-        <% } %>
-        <% } %>
+            <% } %>
+            <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                 label: "Custom Text",
                 popup: displayMenu
@@ -222,8 +222,8 @@ function buildMenuBar() {
 
         { // Templates
             var templateMenu = new dijit.Menu({});
-        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
+            <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+            <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
             templateMenu.addChild(new dijit.CheckedMenuItem({
                 label: "<%=template.getDescription()%>",
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,
@@ -244,7 +244,7 @@ function buildMenuBar() {
                     });
                 }
             }));
-        <% } %>
+            <% } %>
             templateMenu.addChild(new dijit.MenuSeparator());
             templateMenu.addChild(new dijit.MenuItem({
                 label: "About Templates",
@@ -269,14 +269,14 @@ function buildMenuBar() {
         { // Actions
             var actionsMenu = new dijit.Menu({});
 
-        <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
+            <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
             actionsMenu.addChild(new dijit.MenuItem({
                 label: "Finish Editing",
                 onClick: function() {
                     saveConfiguration(false);
                 }
             }));
-        <% } else { %>
+            <% } else { %>
             actionsMenu.addChild(new dijit.MenuItem({
                 label: "Save",
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
@@ -286,7 +286,7 @@ function buildMenuBar() {
                     }
                 }
             }));
-        <% } %>
+            <% } %>
             actionsMenu.addChild(new dijit.MenuItem({
                 label: "Cancel",
                 iconClass: "dijitEditorIcon dijitEditorIconCancel",
@@ -305,11 +305,13 @@ function buildMenuBar() {
     });
 }
 
-require(["dojo","dojo/domReady!"],function(dojo){
-    buildMenuBar();
-    if(dojo.isIE <= 8){ // only IE8 and below
-        alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
-    }
+PWM_GLOBAL['startupFunctions'].push(function(){
+    require(["dojo","dojo/domReady!"],function(dojo){
+        buildMenuBar();
+        if(dojo.isIE <= 8){ // only IE8 and below
+            alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
+        }
+    });
 });
 
 function loadMainPageBody() {

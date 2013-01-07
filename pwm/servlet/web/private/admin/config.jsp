@@ -70,10 +70,8 @@
                                 } else {
                                     switch (loopSetting.getSyntax()) {
                                         case STRING: {
-                                            final List<String> values = pwmConfig.readSettingAsStringArray(loopSetting);
-                                            for (final String value : values) {
-                                                out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
-                                            }
+                                            final String value = pwmConfig.readSettingAsString(loopSetting);
+                                            out.write(StringEscapeUtils.escapeHtml(value) + "<br/>");
                                         }
                                         break;
 

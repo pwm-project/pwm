@@ -104,10 +104,10 @@ function toggleBooleanSetting(keyName) {
     var innerValue = valueElement.value;
     if (innerValue == 'true') {
         valueElement.value = 'false';
-        buttonElement.innerHTML = '\u00A0\u00A0\u00A0False\u00A0\u00A0\u00A0';
+        buttonElement.innerHTML = '\u00A0\u00A0\u00A0False  (Disabled)\u00A0\u00A0\u00A0';
     } else {
         valueElement.value = 'true';
-        buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
+        buttonElement.innerHTML = '\u00A0\u00A0\u00A0True  (Enabled)\u00A0\u00A0\u00A0';
     }
 }
 
@@ -1597,11 +1597,181 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
 };
 
 
+// -------------------------- email table handler ------------------------------------
+
+var EmailTableHandler = {};
+
+EmailTableHandler.init = function(keyName) {
+    console.log('EmailTableHandler init for ' + keyName);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        EmailTableHandler.draw(keyName);
+    });
+};
+
+EmailTableHandler.draw = function(keyName) {
+    var resultValue = clientSettingCache[keyName];
+    var parentDiv = 'table_setting_' + keyName;
+    clearDivElements(parentDiv, true);
+    require(["dojo/parser","dojo/html","dijit/form/ValidationTextBox","dijit/form/Textarea"],
+        function(dojoParser,dojoHtml,ValidationTextBox,Textarea){
+            clearDivElements(parentDiv, false);
+            for (var localeName in resultValue) {
+                var localeTableRow = document.createElement("tr");
+                localeTableRow.setAttribute("style", "border-width: 0;");
+
+                var localeTdName = document.createElement("td");
+                localeTdName.setAttribute("style", "border-width: 0; width:15px");
+                localeTdName.innerHTML = localeName;
+                localeTableRow.appendChild(localeTdName);
+
+                var localeTdContent = document.createElement("td");
+                localeTdContent.setAttribute("style", "border-width: 0; width: 520px");
+                localeTableRow.appendChild(localeTdContent);
+
+                var localeTableElement = document.createElement("table");
+                localeTableElement.setAttribute("style", "border-width: 1px; width:515px; margin:0");
+                localeTdContent.appendChild(localeTableElement);
+
+                var idPrefix = "setting_" + localeName + "_" + keyName;
+                var htmlBody = '';
+                htmlBody += '<table>';
+                htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">From</td>';
+                htmlBody += '<td style="border:0"><input id="' + idPrefix + '_from"/></td></tr>';
+                htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">Subject</td>';
+                htmlBody += '<td style="border:0"><input id="' + idPrefix + '_subject"/></td></tr>';
+                htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">Plain Body</td>';
+                htmlBody += '<td style="border:0"><input id="' + idPrefix + '_bodyPlain"/></td></tr>';
+                htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">HTML Body</td>';
+                htmlBody += '<td style="border:0"><div style="border:2px solid #EAEAEA; background: white; width: 446px" onclick="EmailTableHandler.popupEditor(\'' + keyName + '\',\'' + localeName + '\')">';
+                htmlBody += clientSettingCache[keyName][localeName]['bodyHtml'] ? clientSettingCache[keyName][localeName]['bodyHtml'] : "&nbsp;" ;
+                htmlBody += '</div></td></tr>';
+                htmlBody += "</table>"
+                dojoHtml.set(localeTableElement,htmlBody);
+                var parentDivElement = getObject(parentDiv);
+                parentDivElement.appendChild(localeTableRow);
+
+                clearDijitWidget(idPrefix + "_from");
+                new ValidationTextBox({
+                    value: clientSettingCache[keyName][localeName]['from'],
+                    style: 'width: 450px',
+                    required: true,
+                    onChange: function(){clientSettingCache[keyName][localeName]['from'] = this.value;EmailTableHandler.writeSetting(keyName)}
+                },idPrefix + "_from");
+
+                clearDijitWidget(idPrefix + "_subject");
+                new ValidationTextBox({
+                    value: clientSettingCache[keyName][localeName]['subject'],
+                    style: 'width: 450px',
+                    required: true,
+                    onChange: function(){clientSettingCache[keyName][localeName]['subject'] = this.value;EmailTableHandler.writeSetting(keyName)}
+                },idPrefix + "_subject");
+
+                clearDijitWidget(idPrefix + "_bodyPlain");
+                new Textarea({
+                    value: clientSettingCache[keyName][localeName]['bodyPlain'],
+                    style: 'width: 450px',
+                    required: true,
+                    onChange: function(){clientSettingCache[keyName][localeName]['bodyPlain'] = this.value;EmailTableHandler.writeSetting(keyName)}
+                },idPrefix + "_bodyPlain");
+
+                { // add a spacer row
+                    var spacerTableRow = document.createElement("tr");
+                    spacerTableRow.setAttribute("style", "border-width: 0");
+                    parentDivElement.appendChild(spacerTableRow);
+
+                    var spacerTableData = document.createElement("td");
+                    spacerTableData.setAttribute("style", "border-width: 0");
+                    spacerTableData.innerHTML = "&nbsp;";
+                    spacerTableRow.appendChild(spacerTableData);
+                }
+
+                if (localeName != '' || itemCount(resultValue)){ // add remove locale x
+                    var imgElement2 = document.createElement("img");
+                    imgElement2.setAttribute("style", "width: 15px; height: 15px;");
+                    imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                    imgElement2.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + localeName + "'];EmailTableHandler.writeSetting('" + keyName + "',true)");
+                    var tdElement = document.createElement("td");
+                    tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
+
+                    localeTableRow.appendChild(tdElement);
+                    tdElement.appendChild(imgElement2);
+                }
+            }
+
+            if (isEmpty(resultValue)) {
+                var newTableRow = document.createElement("tr");
+                newTableRow.setAttribute("style", "border-width: 0");
+                newTableRow.setAttribute("colspan", "5");
+
+                var newTableData = document.createElement("td");
+                newTableData.setAttribute("style", "border-width: 0;");
+
+                var addItemButton = document.createElement("button");
+                addItemButton.setAttribute("type", "[button");
+                addItemButton.setAttribute("onclick", "resetSetting('" + keyName + "');loadMainPageBody()");
+                addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+                addItemButton.innerHTML = "Add Value";
+                newTableData.appendChild(addItemButton);
+
+                newTableRow.appendChild(newTableData);
+                var parentDivElement = getObject(parentDiv);
+                parentDivElement.appendChild(newTableRow);
+            } else {
+                var addLocaleFunction = function() {
+                    require(["dijit/registry"],function(registry){
+                        var localeValue = registry.byId(keyName + "-addLocaleValue").value;
+                        if (!clientSettingCache[keyName][localeValue]) {
+                            clientSettingCache[keyName][localeValue] = {};
+                            EmailTableHandler.writeSetting(keyName,true);
+                        }
+                    });
+                };
+                addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+            }
+            dojoParser.parse(parentDiv);
+        });
+};
+
+EmailTableHandler.popupEditor = function(keyName, localeName) {
+    require(["dijit/Dialog","dijit/Editor","dijit/_editor/plugins/AlwaysShowToolbar","dijit/_editor/plugins/LinkDialog","dijit/_editor/plugins/ViewSource","dijit/_editor/plugins/FontChoice","dijit/_editor/plugins/TextColor"],
+        function(Dialog,Editor,AlwaysShowToolbar){
+            var idValue = keyName + "_" + localeName + "_htmlEditor";
+            var idValueDialog = idValue + "_Dialog";
+            var bodyText = '';
+            bodyText += '<div id="' + idValue + '" style="border:2px solid #EAEAEA;"></div>'
+            bodyText += '<br/>'
+            bodyText += '<button class="btn" onclick="EmailTableHandler.writeSetting(\'' + keyName + '\',true);clearDijitWidget(\'' + idValueDialog + '\')"> OK </button>'
+            clearDijitWidget(idValue);
+            clearDijitWidget(idValueDialog);
+
+            var dialog = new Dialog({
+                id: idValueDialog,
+                title: "HTML Editor",
+                style: "width: 500px",
+                content: bodyText
+            });
+            dialog.show();
+
+            new Editor({
+                extraPlugins: [AlwaysShowToolbar,"viewsource",{name:"dijit/_editor/plugins/LinkDialog",command:"createLink",urlRegExp:".*"},"fontName","foreColor"],
+                height: '',
+                value: clientSettingCache[keyName][localeName]['bodyHtml'],
+                style: 'width: 470px',
+                onChange: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')},
+                onKeyUp: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')}
+            },idValue);
+        });
+};
 
 
-
-
-
+EmailTableHandler.writeSetting = function(settingKey, redraw) {
+    var currentValues = clientSettingCache[settingKey];
+    writeSetting(settingKey, currentValues);
+    if (redraw) {
+        EmailTableHandler.draw(settingKey);
+    }
+};
 
 function saveConfiguration(waitForReload) {
     require(["dojo"],function(dojo){
@@ -1846,3 +2016,8 @@ function isEmpty(o) {
     return true;
 }
 
+function itemCount(o) {
+    var i = 0;
+    for (var key in o) if (o.hasOwnProperty(key)) i++;
+    return i;
+}

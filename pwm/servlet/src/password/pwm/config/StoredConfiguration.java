@@ -31,6 +31,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
@@ -534,6 +535,15 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 for (final PwmSetting setting : PwmSetting.values()) {
                     if (!seenSettings.contains(setting)) {
                         LOGGER.info("missing setting key while parsing input configuration: " + setting.getKey() + ", will use default value");
+                    }
+                    if (setting.getSyntax() == PwmSettingSyntax.EMAIL) { // for reading old email config values.
+                        Element stubSettingElement = new Element("setting");
+                        settingsElement.addContent(stubSettingElement);
+                        stubSettingElement.setAttribute("key",setting.getKey());
+                        final StoredValue storedValue = ValueFactory.fromXmlValues(setting, stubSettingElement, null);
+                        if (storedValue.toNativeObject() != null && !((Map<String,EmailItemBean>)storedValue.toNativeObject()).isEmpty()) {
+                            newConfiguration.writeSetting(setting, storedValue);
+                        }
                     }
                 }
             } catch (PwmOperationalException e) {

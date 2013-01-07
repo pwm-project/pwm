@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
@@ -51,207 +52,230 @@
 <% final boolean showSetting = loopSetting.getCategory() == category && ((level == PwmSetting.Level.ADVANCED || loopSetting.getLevel() == PwmSetting.Level.BASIC) || !configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
 <% if (showSetting) { %>
 <div id="outline_<%=loopSetting.getKey()%>" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
-<%
-    StringBuilder title = new StringBuilder();
-    title.append(loopSetting.getLabel(locale));
-    if (loopSetting.getLevel() == PwmSetting.Level.ADVANCED) {
-        title.append(" (Advanced)");
-    }
-%>
-<img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
-     id="resetButton-<%=loopSetting.getKey()%>"
-     style="visibility:hidden; vertical-align:bottom; float: right"
-     onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
-<script type="text/javascript">
-    require(["dijit/Tooltip","dojo/domReady!"],function(){
-        new dijit.Tooltip({
-            connectId: ["resetButton-<%=loopSetting.getKey()%>"],
-            label: 'Return this setting to its default value.'
-        });
-    });
-</script>
-<div data-dojo-type="dijit.TitlePane" title="<%=title%>" data-dojo-props="open:<%=showDesc%>" style="width:580px" id="title_<%=loopSetting.getKey()%>">
-    <div><%=loopSetting.getDescription(locale)%></div>
-</div>
-<div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
-
-    <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
-        <tr style="border-width:0">
-            <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"/></td>
-        </tr>
-    </table>
+    <%
+        StringBuilder title = new StringBuilder();
+        title.append(loopSetting.getLabel(locale));
+        if (loopSetting.getLevel() == PwmSetting.Level.ADVANCED) {
+            title.append(" (Advanced)");
+        }
+    %>
+    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
+         id="resetButton-<%=loopSetting.getKey()%>"
+         style="visibility:hidden; vertical-align:bottom; float: right"
+         onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
     <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
-    </table>
-    <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
-        <tr>
-            <td><input type="text" disabled="disabled" value="[Loading...]"/></td>
-        </tr>
-    </table>
-    <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
-    </table>
-    <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            FormTableHandler.init('<%=loopSetting.getKey()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
-    </table>
-    <script type="text/javascript">
-        require(["dojo/domReady!"],function(){
-            ActionHandler.init('<%=loopSetting.getKey()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
-    <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
-    <button id="button_<%=loopSetting.getKey()%>" type="button">
-        [Loading...]
-    </button>
-    <script type="text/javascript">
-        require(["dijit","dijit/registry","dijit/form/Button","dojo/domReady!"],function(dijit,registry){
-            new dijit.form.Button({
-                disabled: true,
-                onClick: function() {
-                    toggleBooleanSetting('<%=loopSetting.getKey()%>');
-                    writeSetting('<%=loopSetting.getKey()%>', 'true' == getObject('value_' + '<%=loopSetting.getKey()%>').value);
-                }
-            }, "button_<%=loopSetting.getKey()%>");
-            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
-                var valueElement = getObject('value_' + '<%=loopSetting.getKey()%>');
-                var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
-                if (dataValue == true) {
-                    valueElement.value = 'true';
-                    buttonElement.innerHTML = '\u00A0\u00A0\u00A0True\u00A0\u00A0\u00A0';
-                } else {
-                    valueElement.value = 'false';
-                    buttonElement.innerHTML = '\u00A0\u00A0\u00A0False\u00A0\u00A0\u00A0';
-                }
-                buttonElement.disabled = false;
-                registry.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dijit/Tooltip"],function(Tooltip){
+                new Tooltip({
+                    connectId: ["resetButton-<%=loopSetting.getKey()%>"],
+                    label: 'Return this setting to its default value.'
+                });
             });
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.SELECT) { %>
-    <select id="setting_<%=loopSetting.getKey()%>" disabled="true" data-dojo-type="dijit.form.FilteringSelect"
-            onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" style="min-width: 300px">
-        <% for (final String loopValue : loopSetting.getOptions().keySet()) { %>
-        <option value="<%=loopValue%>"><%=loopSetting.getOptions().get(loopValue)%></option>
-        <% } %>
-    </select>
+    <div id="titlePaneHeader-<%=loopSetting.getKey()%>" style="width:580px" id="title_<%=loopSetting.getKey()%>">
+    </div>
     <script type="text/javascript">
-        require(["dijit","dijit/registry","dijit/form/FilteringSelect","dojo/domReady!"],function(dijit,registry){
-            readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
-                var selectElement = getObject('setting_' + '<%=loopSetting.getKey()%>');
-                selectElement.disabled = false;
-                registry.byId('setting_<%=loopSetting.getKey()%>').setDisabled(false);
-                registry.byId('setting_<%=loopSetting.getKey()%>').set('value',dataValue);
+        require(["dijit/TitlePane"],function(TitlePane){
+            new TitlePane({
+                open: <%=showDesc%>,
+                content: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>',
+                title: '<%=title%>'
+            },'titlePaneHeader-<%=loopSetting.getKey()%>');
+        });
+    </script>
+    <div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
+        <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
+            <tr style="border-width:0">
+                <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"/></td>
+            </tr>
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
             });
-        });
-    </script>
-    <% } else { %>
-    <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
-    <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
-    <script type="text/javascript">
-        require(["dijit/form/Textarea","dojo/domReady!"],function(){
-            new dijit.form.Textarea({
-                regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
-                required: <%=loopSetting.isRequired()%>,
-                invalidMessage: "The value does not have the correct format.",
-                style: "width: 450px",
-                onChange: function() {
-                    writeSetting('<%=loopSetting.getKey()%>', this.value);
-                },
-                value: "[Loading..]",
-                disabled: true
-            }, "value_<%=loopSetting.getKey()%>");
-            readInitialTextBasedValue('<%=loopSetting.getKey()%>');
-        });
-    </script>
-    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
-    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
-    <script type="text/javascript">
-        require(["dijit/form/ValidationTextBox","dojo/domReady!"],function(){
-            new dijit.form.ValidationTextBox({
-                regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
-                required: <%=loopSetting.isRequired()%>,
-                invalidMessage: "The value does not have the correct format.",
-                style: "width: 450px",
-                onChange: function() {
-                    writeSetting('<%=loopSetting.getKey()%>', this.value);
-                },
-                value: "[Loading..]",
-                disabled: true
-            }, "value_<%=loopSetting.getKey()%>");
-            readInitialTextBasedValue('<%=loopSetting.getKey()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.NUMERIC) { %>
-    <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
-    <script type="text/javascript">
-        require(["dijit/form/NumberSpinner","dojo/domReady!"],function(){
-            new dijit.form.NumberSpinner({
-                regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
-                required: <%=loopSetting.isRequired()%>,
-                invalidMessage: "The value does not have the correct format.",
-                style: "width: 100px",
-                onChange: function() {
-                    writeSetting('<%=loopSetting.getKey()%>', this.value);
-                },
-                value: "[Loading..]",
-                disabled: true
-            }, "value_<%=loopSetting.getKey()%>");
-            readInitialTextBasedValue('<%=loopSetting.getKey()%>');
-        });
-    </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
-    <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.changePasswordPopup('<%=loopSetting.getLabel(locale)%>','<%=loopSetting.getKey()%>')">Set Password</button>
-    <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="if (confirm('Clear password for setting <%=loopSetting.getLabel(locale)%>?')) {resetSetting('<%=loopSetting.getKey()%>')}">Clear Password</button>
-    <% } %>
-    <% } %>
-</div>
-<br/>
-</div>
-<br/>
-<% } %>
-<% } %>
-<script type="text/javascript">
-    require(["dojo/parser",
-        "dijit/form/Button",
-        "dijit/form/FilteringSelect",
-        "dijit/form/Textarea",
-        "dijit/layout/BorderContainer",
-        "dijit/layout/ContentPane",
-        "dijit/TitlePane",
-        "dojo/domReady!"],function(dojoParser){
-        dojoParser.parse();
-        setTimeout(function(){
-            closeWaitDialog();
-
-            <% if (hasNotes) { %>
-            if (getCookie("seen-notes") == "false") {
-                showConfigurationNotes();
-                setCookie("seen-notes","true",30 * 60);
-            }
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+            <tr>
+                <td><input type="text" disabled="disabled" value="[Loading...]"/></td>
+            </tr>
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                FormTableHandler.init('<%=loopSetting.getKey()%>');
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                ActionHandler.init('<%=loopSetting.getKey()%>');
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.EMAIL) { %>
+        <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+        </table>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                EmailTableHandler.init('<%=loopSetting.getKey()%>');
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
+        <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
+        <button id="button_<%=loopSetting.getKey()%>" type="button">
+            [Loading...]
+        </button>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit","dijit/registry","dijit/form/Button"],function(dijit,registry){
+                    new dijit.form.Button({
+                        disabled: true,
+                        onClick: function() {
+                            toggleBooleanSetting('<%=loopSetting.getKey()%>');
+                            writeSetting('<%=loopSetting.getKey()%>', 'true' == getObject('value_' + '<%=loopSetting.getKey()%>').value);
+                        }
+                    }, "button_<%=loopSetting.getKey()%>");
+                    readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                        var valueElement = getObject('value_' + '<%=loopSetting.getKey()%>');
+                        var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
+                        if (dataValue == true) {
+                            valueElement.value = 'true';
+                            buttonElement.innerHTML = '\u00A0\u00A0\u00A0True  (Enabled)\u00A0\u00A0\u00A0';
+                        } else {
+                            valueElement.value = 'false';
+                            buttonElement.innerHTML = '\u00A0\u00A0\u00A0False  (Disabled)\u00A0\u00A0\u00A0';
+                        }
+                        buttonElement.disabled = false;
+                        registry.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
+                    });
+                });
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.SELECT) { %>
+        <select id="setting_<%=loopSetting.getKey()%>" disabled="true" data-dojo-type="dijit.form.FilteringSelect"
+                onchange="writeSetting('<%=loopSetting.getKey()%>',this.value);" style="min-width: 300px">
+            <% for (final String loopValue : loopSetting.getOptions().keySet()) { %>
+            <option value="<%=loopValue%>"><%=loopSetting.getOptions().get(loopValue)%></option>
             <% } %>
-        },500);
+        </select>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit","dijit/registry","dijit/form/FilteringSelect"],function(dijit,registry){
+                    readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                        var selectElement = getObject('setting_' + '<%=loopSetting.getKey()%>');
+                        selectElement.disabled = false;
+                        registry.byId('setting_<%=loopSetting.getKey()%>').setDisabled(false);
+                        registry.byId('setting_<%=loopSetting.getKey()%>').set('value',dataValue);
+                    });
+                });
+            });
+        </script>
+        <% } else { %>
+        <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
+        <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit/form/Textarea"],function(Textarea){
+                    new Textarea({
+                        regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
+                        required: <%=loopSetting.isRequired()%>,
+                        invalidMessage: "The value does not have the correct format.",
+                        style: "width: 450px",
+                        onChange: function() {
+                            writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        },
+                        value: "[Loading..]",
+                        disabled: true
+                    }, "value_<%=loopSetting.getKey()%>");
+                    readInitialTextBasedValue('<%=loopSetting.getKey()%>');
+                });
+            });
+        </script>
+        <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
+        <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                    new ValidationTextBox({
+                        regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
+                        required: <%=loopSetting.isRequired()%>,
+                        invalidMessage: "The value does not have the correct format.",
+                        style: "width: 450px",
+                        onChange: function() {
+                            writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        },
+                        value: "[Loading..]",
+                        disabled: true
+                    }, "value_<%=loopSetting.getKey()%>");
+                    readInitialTextBasedValue('<%=loopSetting.getKey()%>');
+                });
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.NUMERIC) { %>
+        <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit/form/NumberSpinner","dojo/domReady!"],function(NumberSpinner){
+                    new NumberSpinner({
+                        regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
+                        required: <%=loopSetting.isRequired()%>,
+                        invalidMessage: "The value does not have the correct format.",
+                        style: "width: 100px",
+                        onChange: function() {
+                            writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        },
+                        value: "[Loading..]",
+                        disabled: true
+                    }, "value_<%=loopSetting.getKey()%>");
+                    readInitialTextBasedValue('<%=loopSetting.getKey()%>');
+                });
+            });
+        </script>
+        <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
+        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.changePasswordPopup('<%=loopSetting.getLabel(locale)%>','<%=loopSetting.getKey()%>')">Set Password</button>
+        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="if (confirm('Clear password for setting <%=loopSetting.getLabel(locale)%>?')) {resetSetting('<%=loopSetting.getKey()%>')}">Clear Password</button>
+        <% } %>
+        <% } %>
+    </div>
+    <br/>
+</div>
+<br/>
+<% } %>
+<% } %>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser",
+            "dijit/form/Button",
+            "dijit/form/FilteringSelect",
+            "dijit/form/Textarea"],function(dojoParser){
+            dojoParser.parse();
+            setTimeout(function(){
+                <% if (hasNotes) { %>
+                if (getCookie("seen-notes") == "false") {
+                    showConfigurationNotes();
+                    setCookie("seen-notes","true",30 * 60);
+                }
+                <% } %>
+            },500);
+        });
     });
 </script>

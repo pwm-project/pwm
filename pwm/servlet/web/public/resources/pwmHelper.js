@@ -71,6 +71,10 @@ function pwmPageLoadHandler() {
             });
         });
     }
+
+    for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
+        PWM_GLOBAL['startupFunctions'][i]();
+    }
 }
 
 

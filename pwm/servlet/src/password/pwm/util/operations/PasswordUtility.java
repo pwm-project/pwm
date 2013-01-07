@@ -31,6 +31,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
@@ -193,6 +194,9 @@ public class PasswordUtility {
             actionExecutor.executeActions(configValues, settings);
         }
 
+        // send user an email confirmation
+        sendChangePasswordEmailNotice(pwmSession, pwmApplication);
+
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
 
     }
@@ -251,22 +255,24 @@ public class PasswordUtility {
         // call out to external methods.
         Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, chaiUser.getEntryDN(), null, newPassword);
 
+        // create a uib for end user
+        final UserInfoBean userInfoBean = new UserInfoBean();
+        UserStatusHelper.populateUserInfoBean(
+                pwmSession,
+                userInfoBean,
+                pwmApplication,
+                pwmSession.getSessionStateBean().getLocale(),
+                proxiedUser.getEntryDN(),
+                newPassword,
+                proxiedUser.getChaiProvider()
+        );
+
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing changepassword and helpdesk post password change writeAttributes to user " + proxiedUser.getEntryDN());
             final List<ActionConfiguration> actions = new ArrayList<ActionConfiguration>();
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
             if (!actions.isEmpty()) {
-                final UserInfoBean userInfoBean = new UserInfoBean();
-                UserStatusHelper.populateUserInfoBean(
-                        pwmSession,
-                        userInfoBean,
-                        pwmApplication,
-                        pwmSession.getSessionStateBean().getLocale(),
-                        proxiedUser.getEntryDN(),
-                        newPassword,
-                        proxiedUser.getChaiProvider()
-                );
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
                 settings.setUserInfoBean(userInfoBean);
@@ -285,6 +291,9 @@ public class PasswordUtility {
             final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
             UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES, message);
         }
+
+        // send email notification
+        sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean);
 
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
     }
@@ -644,5 +653,47 @@ public class PasswordUtility {
         public int getErrorCode() {
             return errorCode;
         }
+    }
+
+    private static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+        final Configuration config = pwmApplication.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
+
+        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+            return;
+        }
+
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), pwmSession.getUserInfoBean());
+    }
+
+    private static void sendChangePasswordHelpdeskEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean userInfoBean)
+            throws PwmUnrecoverableException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD_HELPDESK, locale);
+
+        final String toAddress = userInfoBean.getUserEmailAddress();
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+            return;
+        }
+
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), userInfoBean);
     }
 }

@@ -74,9 +74,11 @@ public class StringValue implements StoredValue {
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        final Matcher matcher = pattern.matcher(value);
-        if (value != null && value.length() > 0 && !matcher.matches()) {
-            return Collections.singletonList("incorrect value format for value '" + value + "'");
+        if (pattern != null && value != null) {
+            final Matcher matcher = pattern.matcher(value);
+            if (value != null && value.length() > 0 && !matcher.matches()) {
+                return Collections.singletonList("incorrect value format for value '" + value + "'");
+            }
         }
 
         return Collections.emptyList();

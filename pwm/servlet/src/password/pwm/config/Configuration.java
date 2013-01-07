@@ -35,6 +35,7 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -117,6 +118,22 @@ public class Configuration implements Serializable {
         final StoredValue value = storedConfiguration.readSetting(setting);
         return (List<FormConfiguration>)value.toNativeObject();
     }
+
+    public EmailItemBean readSettingAsEmail(final PwmSetting setting, final Locale locale) {
+        if (PwmSettingSyntax.EMAIL != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read EMAIL value for setting: " + setting.toString());
+        }
+
+        final Map<String, EmailItemBean> storedValues = (Map<String, EmailItemBean>)storedConfiguration.readSetting(setting).toNativeObject();
+        final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<Locale, EmailItemBean>();
+        for (final String localeStr : storedValues.keySet()) {
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+        }
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+
+        return availableLocaleMap.get(matchedLocale);
+    }
+
 
     public List<ActionConfiguration> readSettingAsAction(final PwmSetting setting) {
         if (PwmSettingSyntax.ACTION != setting.getSyntax()) {

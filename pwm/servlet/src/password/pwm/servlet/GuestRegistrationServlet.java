@@ -44,6 +44,7 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -177,8 +178,20 @@ public class GuestRegistrationServlet extends TopServlet {
                 notifyAttrs.put(expirationAttribute, expirationDate.toString());
             }
 
+            // send email.
+            final UserInfoBean guestUserInfoBean = new UserInfoBean();
+            UserStatusHelper.populateUserInfoBean(
+                    pwmSession,
+                    guestUserInfoBean,
+                    pwmApplication,
+                    pwmSession.getSessionStateBean().getLocale(),
+                    theGuest.getEntryDN(),
+                    null,
+                    theGuest.getChaiProvider()
+            );
+            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, guestUserInfoBean);
+
             //everything good so forward to confirmation page.
-            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, notifyAttrs);
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
@@ -195,25 +208,26 @@ public class GuestRegistrationServlet extends TopServlet {
         forwardToUpdateJSP(req,resp);
     }
 
-    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final Properties attrs)
+    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean guestUserInfoBean)
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEGUEST, locale);
 
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_FROM, locale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_SUBJECT, locale);
-        final String plainBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_BODY, locale), attrs);
-        final String htmlBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_UPDATEGUEST_BODY_HTML, locale), attrs);
-
-        final String toAddress = attrs.getProperty(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        final String toAddress = guestUserInfoBean.getUserEmailAddress();
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send updated guest user email: no email configured");
             return;
         }
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
-        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), guestUserInfoBean);
     }
 
     protected void handleSearchRequest(
@@ -306,7 +320,6 @@ public class GuestRegistrationServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = ssBean.getLocale();
-        Properties notifyAttrs = new Properties();
 
         final List<FormConfiguration> guestUserForm = config.readSettingAsForm(PwmSetting.GUEST_FORM);
 
@@ -337,7 +350,6 @@ public class GuestRegistrationServlet extends TopServlet {
                 final String v = formValues.get(formItem);
                 if (n != null && n.length() > 0 && v != null && v.length() > 0) {
                     createAttributes.put(n, v);
-                    notifyAttrs.put(n, v);
                 }
             }
 
@@ -355,9 +367,22 @@ public class GuestRegistrationServlet extends TopServlet {
             // write the expiration date:
             if (expirationDate != null) {
                 final String expirationAttr =config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
-                theUser.writeDateAttribute(expirationAttr,expirationDate);
-                notifyAttrs.put(expirationAttr,new SimpleDateFormat().format(expirationDate));
+                theUser.writeDateAttribute(expirationAttr, expirationDate);
             }
+
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, locale);
+            final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, pwmApplication);
+            theUser.setPassword(newPassword);
+            final UserInfoBean guestUserInfoBean = new UserInfoBean();
+            UserStatusHelper.populateUserInfoBean(
+                    pwmSession,
+                    guestUserInfoBean,
+                    pwmApplication,
+                    pwmSession.getSessionStateBean().getLocale(),
+                    theUser.getEntryDN(),
+                    newPassword,
+                    theUser.getChaiProvider()
+            );
 
 
             {  // execute configured actions
@@ -365,19 +390,14 @@ public class GuestRegistrationServlet extends TopServlet {
                 final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.GUEST_WRITE_ATTRIBUTES);
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
-                settings.setUserInfoBean(pwmSession.getUserInfoBean());
+                settings.setUserInfoBean(guestUserInfoBean);
                 settings.setUser(theUser);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                 actionExecutor.executeActions(actions, settings);
             }
 
-            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, locale);
-            final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, pwmApplication);
-            theUser.setPassword(newPassword);
-            notifyAttrs.put("password", newPassword);
-
             //everything good so forward to success page.
-            this.sendGuestUserEmailConfirmation(pwmSession, pwmApplication, notifyAttrs);
+            this.sendGuestUserEmailConfirmation(pwmSession, pwmApplication, guestUserInfoBean);
             ssBean.setSessionSuccess(Message.SUCCESS_CREATE_GUEST, null);
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
@@ -452,25 +472,26 @@ public class GuestRegistrationServlet extends TopServlet {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
     }
 
-    private void sendGuestUserEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final Properties attrs) throws PwmUnrecoverableException {
+    private void sendGuestUserEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean guestUserInfoBean) throws PwmUnrecoverableException {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_GUEST, locale);
 
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_GUEST_FROM, locale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_GUEST_SUBJECT, locale);
-        final String plainBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_GUEST_BODY, locale), attrs);
-        final String htmlBody = Helper.replaceAllPatterns(config.readSettingAsLocalizedString(PwmSetting.EMAIL_GUEST_BODY_HTML, locale), attrs);
-
-        final String toAddress = attrs.getProperty(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+        final String toAddress = guestUserInfoBean.getUserEmailAddress();
 
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send guest registration email for '" + userInfoBean.getUserDN() + "' no email configured");
             return;
         }
 
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
-        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), guestUserInfoBean);
     }
 
     private void forwardToJSP(

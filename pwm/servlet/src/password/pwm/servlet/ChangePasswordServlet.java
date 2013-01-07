@@ -27,7 +27,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
-import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
@@ -43,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -316,9 +314,6 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        // send user an email confirmation
-        sendChangePasswordEmailNotice(pwmSession, pwmApplication);
-
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE)) {
             ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
         }
@@ -326,24 +321,6 @@ public class ChangePasswordServlet extends TopServlet {
         ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
         UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.CHANGE_PASSWORD, null);
         ServletHelper.forwardToSuccessPage(req, resp);
-    }
-
-    public static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
-        final Configuration config = pwmApplication.getConfig();
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_FROM, locale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_SUBJECT, locale);
-        final String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY, locale);
-        final String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHANGEPASSWORD_BODY_HMTL, locale);
-
-        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
-            return;
-        }
-
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
     }
 
     private void advancedToNextStage(final HttpServletRequest req, final HttpServletResponse resp)

@@ -34,6 +34,7 @@
 PWM_GLOBAL={};
 PWM_STRINGS={};
 function initPwmStringValues() {
+PWM_GLOBAL['startupFunctions'] = new Array();
 PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
 PWM_GLOBAL['MaxInactiveInterval']='<%=request.getSession().getMaxInactiveInterval()%>';
 PWM_GLOBAL['pageLeaveNotice']='<%=pwmApplication.getConfig().readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT)%>';

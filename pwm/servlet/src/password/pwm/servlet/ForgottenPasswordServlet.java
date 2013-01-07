@@ -816,21 +816,20 @@ public class
     {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_FROM, userLocale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_SUBJECT, userLocale);
-        String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY, userLocale);
-        String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_CHALLENGE_TOKEN_BODY_HTML, userLocale);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
 
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send token email for '" + proxiedUser.getEntryDN() + "' no email address available in ldap");
             return false;
         }
 
-        plainBody = plainBody.replace("%TOKEN%", tokenKey);
-        htmlBody = htmlBody.replace("%TOKEN%", tokenKey);
-
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
-        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
+                configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
+        ), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
         return true;
@@ -863,10 +862,7 @@ public class
             throws PwmUnrecoverableException, PwmOperationalException {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_FROM, userLocale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_SUBJECT, userLocale);
-        String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_BODY, userLocale);
-        String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_SENDPASSWORD_BODY_HTML, userLocale);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_SENDPASSWORD, userLocale);
 
         if (toAddress == null || toAddress.length() < 1) {
             final String errorMsg = "unable to send new password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email address available in ldap";
@@ -874,11 +870,13 @@ public class
             throw new PwmOperationalException(errorInformation);
         }
 
-        plainBody = plainBody.replace("%PASSWORD%", newPassword);
-        htmlBody = htmlBody.replace("%PASSWORD%", newPassword);
-
-        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody);
-        pwmApplication.sendEmailUsingQueue(emailItem, pwmSession.getUserInfoBean());
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain().replace("%TOKEN%", newPassword),
+                configuredEmailSetting.getBodyHtml().replace("%TOKEN%", newPassword)
+        ), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "new password email added to send queue for " + toAddress);
     }

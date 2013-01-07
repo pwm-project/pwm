@@ -37,6 +37,7 @@ public enum PwmSettingSyntax {
     SELECT(StringValue.class),
     FORM(FormValue.class),
     ACTION(ActionValue.class),
+    EMAIL(EmailValue.class),
     ;
 
     private Class storedValueImpl;

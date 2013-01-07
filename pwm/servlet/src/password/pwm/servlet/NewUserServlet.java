@@ -517,11 +517,8 @@ public class NewUserServlet extends TopServlet {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER, locale);
 
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_FROM, locale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_SUBJECT, locale);
-        final String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_BODY, locale);
-        final String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_BODY_HTML, locale);
 
         final String toAddress = userInfoBean.getUserEmailAddress();
 
@@ -530,7 +527,13 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), userInfoBean);
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), pwmSession.getUserInfoBean());
     }
 
     private void forwardToJSP(
@@ -707,10 +710,7 @@ public class NewUserServlet extends TopServlet {
             throws PwmUnrecoverableException {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
-        final String fromAddress = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_VERIFICATION_FROM, userLocale);
-        final String subject = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_VERIFICATION_SUBJECT, userLocale);
-        String plainBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_VERIFICATION_BODY, userLocale);
-        String htmlBody = config.readSettingAsLocalizedString(PwmSetting.EMAIL_NEWUSER_VERIFICATION_BODY_HTML, userLocale);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER_VERIFICATION, userLocale);
 
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final String toAddress = newUserBean.getTokenEmailAddress();
@@ -720,10 +720,13 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        plainBody = plainBody.replaceAll("%TOKEN%", tokenKey);
-        htmlBody = htmlBody.replaceAll("%TOKEN%", tokenKey);
-
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(toAddress, fromAddress, subject, plainBody, htmlBody), pwmSession.getUserInfoBean());
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
+                configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
+        ), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
     }

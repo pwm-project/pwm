@@ -183,78 +183,26 @@ public enum PwmSetting {
             "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.EMAIL, false, Level.BASIC),
     EMAIL_ADMIN_ALERT_FROM(
             "email.adminAlert.fromAddress", PwmSettingSyntax.STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_CHANGEPASSWORD_FROM(
-            "email.changePassword.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHANGEPASSWORD_SUBJECT(
-            "email.changePassword.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHANGEPASSWORD_BODY(
-            "email.changePassword.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHANGEPASSWORD_BODY_HMTL(
-            "email.changePassword.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_SUBJECT(
-            "email.newUser.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_FROM(
-            "email.newUser.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_BODY(
-            "email.newUser.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_BODY_HTML(
-            "email.newUser.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_VERIFICATION_SUBJECT(
-            "email.newUser.token.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_VERIFICATION_FROM(
-            "email.newUser.token.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_VERIFICATION_BODY(
-            "email.newUser.token.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_NEWUSER_VERIFICATION_BODY_HTML(
-            "email.newUser.token.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_SUBJECT(
-            "email.activation.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_FROM(
-            "email.activation.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_BODY(
-            "email.activation.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_BODY_HTML(
-            "email.activation.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_VERIFICATION_SUBJECT(
-            "email.activation.token.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_VERIFICATION_FROM(
-            "email.activation.token.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_VERIFICATION_BODY(
-            "email.activation.token.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_ACTIVATION_VERIFICATION_BODY_HTML(
-            "email.activation.token.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHALLENGE_TOKEN_FROM(
-            "email.challenge.token.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHALLENGE_TOKEN_SUBJECT(
-            "email.challenge.token.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHALLENGE_TOKEN_BODY(
-            "email.challenge.token.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_CHALLENGE_TOKEN_BODY_HTML(
-            "email.challenge.token.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.BASIC),
-    EMAIL_GUEST_SUBJECT(
-            "email.guest.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_GUEST_FROM(
-            "email.guest.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_GUEST_BODY(
-            "email.guest.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_GUEST_BODY_HTML(
-            "email.guest.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_UPDATEGUEST_SUBJECT(
-            "email.updateguest.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_UPDATEGUEST_FROM(
-            "email.updateguest.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_UPDATEGUEST_BODY(
-            "email.updateguest.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_UPDATEGUEST_BODY_HTML(
-            "email.updateguest.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_SENDPASSWORD_SUBJECT(
-            "email.sendpassword.subject", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_SENDPASSWORD_FROM(
-            "email.sendpassword.from", PwmSettingSyntax.LOCALIZED_STRING, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_SENDPASSWORD_BODY(
-            "email.sendpassword.plainBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
-    EMAIL_SENDPASSWORD_BODY_HTML(
-            "email.sendpassword.htmlBody", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_CHANGEPASSWORD(
+            "email.changePassword", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_CHANGEPASSWORD_HELPDESK(
+            "email.changePassword.helpdesk", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_NEWUSER(
+            "email.newUser", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_NEWUSER_VERIFICATION(
+            "email.newUser.token", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION(
+            "email.activation", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_ACTIVATION_VERIFICATION(
+            "email.activation.token", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_CHALLENGE_TOKEN(
+            "email.challenge.token", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_GUEST(
+            "email.guest", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_UPDATEGUEST(
+            "email.updateguest", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.ADVANCED),
+    EMAIL_SENDPASSWORD(
+            "email.sendpassword", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.ADVANCED),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, Category.EMAIL, false, Level.ADVANCED),
 
