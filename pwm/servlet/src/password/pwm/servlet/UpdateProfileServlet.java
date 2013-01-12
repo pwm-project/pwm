@@ -321,6 +321,9 @@ public class UpdateProfileServlet extends TopServlet {
         final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
         Helper.writeFormValuesToLdap(pwmApplication, pwmSession, actor, formValues, false);
 
+        // re-populate the uiBean because we have changed some values.
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+
         {  // execute configured actions
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmApplication.getProxyChaiProvider());
             LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
@@ -338,9 +341,6 @@ public class UpdateProfileServlet extends TopServlet {
 
         // mark the event log
         UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.UPDATE_PROFILE, null);
-
-        // re-populate the uiBean because we have changed some values.
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
 
         // mark the uiBean so we user isn't recycled to the update profile page by the CommandServlet
         uiBean.setRequiresUpdateProfile(false);
