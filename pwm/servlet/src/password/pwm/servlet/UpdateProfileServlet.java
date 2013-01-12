@@ -30,13 +30,11 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UpdateProfileBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.Message;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -335,6 +333,9 @@ public class UpdateProfileServlet extends TopServlet {
             actionExecutor.executeActions(configValues, settings);
         }
 
+        // send email
+        sendProfileUpdateEmailNotice(pwmSession, pwmApplication);
+
         // mark the event log
         UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.UPDATE_PROFILE, null);
 
@@ -378,5 +379,28 @@ public class UpdateProfileServlet extends TopServlet {
     {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES_CONFIRM).forward(req, resp);
     }
+
+    private static void sendProfileUpdateEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
+
+        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+        if (toAddress == null || toAddress.length() < 1) {
+            LOGGER.debug(pwmSession, "unable to send profile update email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+            return;
+        }
+
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), pwmSession.getUserInfoBean());
+    }
+
 }
 

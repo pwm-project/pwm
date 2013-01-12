@@ -23,13 +23,13 @@
 package password.pwm.config;
 
 import com.google.gson.Gson;
-import org.jdom.CDATA;
-import org.jdom.Comment;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.jdom2.CDATA;
+import org.jdom2.Comment;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.value.LocalizedStringValue;
@@ -483,9 +483,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 final String modifyTimeString = rootElement.getAttributeValue("modifyTime");
                 newConfiguration.createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(createTimeString);
                 final Element settingsElement = rootElement.getChild("settings");
-                final List settingElements = settingsElement.getChildren("setting");
-                for (final Object loopSetting : settingElements) {
-                    final Element settingElement = (Element) loopSetting;
+                final List<Element> settingElements = settingsElement.getChildren("setting");
+                for (final Element settingElement : settingElements) {
                     final String keyName = settingElement.getAttributeValue("key");
                     currentSettingName = keyName;
                     final PwmSetting pwmSetting = PwmSetting.forKey(keyName);
@@ -504,8 +503,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
                 final Element propertiesElement = rootElement.getChild("properties");
                 if (propertiesElement != null) {
-                    for (final Object loopElementObj : propertiesElement.getChildren("property")) {
-                        final Element element = (Element) loopElementObj;
+                    for (final Element element : propertiesElement.getChildren("property")) {
                         final String key = element.getAttributeValue("key");
                         final String value = element.getText();
                         newConfiguration.propertyMap.put(key, value);
@@ -517,8 +515,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     final String bundle = localeBundleElement.getAttributeValue("bundle");
                     final String key = localeBundleElement.getAttributeValue("key");
                     final Map<String,String> bundleMap = new LinkedHashMap<String, String>();
-                    for (final Object loopElementObj2 : localeBundleElement.getChildren("value")) {
-                        final Element valueElement = (Element) loopElementObj2;
+                    for (final Element valueElement : localeBundleElement.getChildren("value")) {
                         final String localeStrValue = valueElement.getAttributeValue("locale");
                         bundleMap.put(localeStrValue == null ? "" : localeStrValue, valueElement.getText());
                     }

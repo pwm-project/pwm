@@ -23,7 +23,7 @@
 package password.pwm.config.value;
 
 import com.google.gson.Gson;
-import org.jdom.Element;
+import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;

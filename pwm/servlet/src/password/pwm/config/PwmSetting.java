@@ -187,6 +187,8 @@ public enum PwmSetting {
             "email.changePassword", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
     EMAIL_CHANGEPASSWORD_HELPDESK(
             "email.changePassword.helpdesk", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
+    EMAIL_UPDATEPROFILE(
+            "email.updateProfile", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER(
             "email.newUser", PwmSettingSyntax.EMAIL, Category.EMAIL, false, Level.BASIC),
     EMAIL_NEWUSER_VERIFICATION(

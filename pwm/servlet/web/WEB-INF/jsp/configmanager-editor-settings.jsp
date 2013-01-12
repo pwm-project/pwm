@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
+<%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -40,12 +41,20 @@
 </h1>
 <% if (showDesc) { %><p><%= category.getDescription(locale)%></p><% } %>
 <% if (category.settingsForCategory(PwmSetting.Level.ADVANCED).size() > 0 && !level.equals(PwmSetting.Level.ADVANCED)) { %>
-<%--
-<div style="font-size: smaller">
-    <img src="<%=request.getContextPath()%>/resources/warning.gif" alt="warning"/>
-    <span style="font-weight: bold;">Some settings are not displayed.</span>&nbsp;&nbsp;Select "Advanced Options" from the View menu to show all settings.
+<% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true")) { %>
+<div style="font-size: small">
+    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
+    <strong>Some settings are not displayed.</strong>&nbsp;&nbsp;Select <em>Advanced Options</em> from the <em>View</em> menu to show all settings.
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-advanced','true',86400);" href="ConfigManager">(hide)</a>
 </div>
---%>
+<% } %>
+<% } %>
+<% if (!ServletHelper.cookieEquals(request, "hide-warn-showdesc", "true") && !showDesc) { %>
+<div style="font-size: small">
+    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
+    Help text for settings is available by clicking on setting title, or by selecting <em>Display Help Text</em> from the <em>View</em> menu.
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-showdesc','true',86400);" href="ConfigManager">(hide)</a>
+</div>
 <% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>

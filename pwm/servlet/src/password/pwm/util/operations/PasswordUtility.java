@@ -194,9 +194,6 @@ public class PasswordUtility {
             actionExecutor.executeActions(configValues, settings);
         }
 
-        // send user an email confirmation
-        sendChangePasswordEmailNotice(pwmSession, pwmApplication);
-
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
 
     }
@@ -653,26 +650,6 @@ public class PasswordUtility {
         public int getErrorCode() {
             return errorCode;
         }
-    }
-
-    private static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
-        final Configuration config = pwmApplication.getConfig();
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
-
-        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
-            return;
-        }
-
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean());
     }
 
     private static void sendChangePasswordHelpdeskEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean userInfoBean)

@@ -323,6 +323,20 @@ function showWaitDialog(title, body, loadFunction) {
     });
 }
 
+function showConfirmDialog(title, text, trueAction, falseAction) {
+    var titleText = title == null ? PWM_STRINGS['Button_Confirm'] : title;
+    PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};
+    PWM_GLOBAL['confirm_false_action'] = falseAction ? falseAction : function(){};
+    var bodyText = '';
+    bodyText += '<div><p>';
+    bodyText += text;
+    bodyText += '</p></div>';
+    bodyText += '<br/>';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + PWM_STRINGS['Button_OK'] + '</button>  ';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + PWM_STRINGS['Button_Cancel'] + '</button>  ';
+    showWaitDialog(titleText,bodyText);
+}
+
 function closeWaitDialog() {
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         clearDijitWidget('dialogPopup');

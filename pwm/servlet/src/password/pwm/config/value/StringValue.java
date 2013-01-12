@@ -23,8 +23,8 @@
 package password.pwm.config.value;
 
 import com.google.gson.Gson;
-import org.jdom.CDATA;
-import org.jdom.Element;
+import org.jdom2.CDATA;
+import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 

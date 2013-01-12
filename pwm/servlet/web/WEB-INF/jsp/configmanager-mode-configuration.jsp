@@ -52,7 +52,7 @@
             automatically restart to have changes
             take effect.</p>
 
-        <p>The current PWM configuration was loaded at
+        <p>The current configuration was loaded at
             <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime()%>.
             (Epoch <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()%>)
         </p>

@@ -273,7 +273,6 @@ public class ConfigManagerServlet extends TopServlet {
             storedConfig.writeLocaleBundleMap(bundleName.getTheClass().getName(),keyName, outputMap);
             returnMap.put("isDefault", outputMap.isEmpty());
             returnMap.put("key", key);
-            returnMap.put("syntax", setting.getSyntax().toString());
         } else {
             try {
                 final StoredValue storedValue = ValueFactory.fromJson(setting, bodyString);

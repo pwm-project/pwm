@@ -281,9 +281,8 @@ function buildMenuBar() {
                 label: "Save",
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
                 onClick: function() {
-                    if (confirm('Are you sure you want to save the changes to the current PWM configuration?')) {
-                        saveConfiguration(true);
-                    }
+                    showConfirmDialog(null,'Are you sure you want to save the changes to the current PWM configuration?',function(){saveConfiguration(true)});
+                    buildMenuBar();
                 }
             }));
             <% } %>
@@ -306,10 +305,11 @@ function buildMenuBar() {
 }
 
 PWM_GLOBAL['startupFunctions'].push(function(){
-    require(["dojo","dojo/domReady!"],function(dojo){
-        buildMenuBar();
+    buildMenuBar();
+    require(["dojo"],function(dojo){
         if(dojo.isIE <= 8){ // only IE8 and below
-            alert('Internet Explorer 8 and below is not able to correctly load this page.  Please use a newer version of IE or a different browser.');
+            alert('Internet Explorer 8 and below is not able to edit the configuration.  Please use a newer version of IE or a different browser.');
+            document.forms['cancelEditing'].submit();
         }
     });
 });

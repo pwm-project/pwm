@@ -854,9 +854,12 @@ public class Helper {
             }
         }
 
-        final Locale emptyLocale = parseLocaleString("");
-        if (localePool.contains(emptyLocale)) {
-            return emptyLocale;
+        if (localePool.contains(PwmConstants.DEFAULT_LOCALE)) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        if (localePool.contains(new Locale(""))) {
+            return new Locale("");
         }
 
         return null;

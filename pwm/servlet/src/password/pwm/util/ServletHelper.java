@@ -30,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -308,5 +309,16 @@ public class ServletHelper {
                 resp.setHeader("X-Pwm-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
             }
         }
+    }
+
+    public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
+        for (final Cookie cookie : req.getCookies()) {
+            if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
+                if (cookie.getValue() != null && cookie.getValue().equals(cookieValue)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

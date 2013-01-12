@@ -1271,7 +1271,8 @@ ChangePasswordHandler.generateRandom = function() {
 
 ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
     require(["dijit/Dialog","dijit/form/Textarea"],function(){
-        var bodyText = '<span id="message" class="message message-info">' + settingName + '</span><br/>';
+        var bodyText = '<div id="changePasswordDialogDiv">';
+        bodyText += '<span id="message" class="message message-info">' + settingName + '</span><br/>';
         bodyText += '<table style="border: 0">';
         bodyText += '<tr style="border: 0"><td style="border: 0"><textarea data-dojo-type="dijit.form.Textarea" name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off" onkeyup="ChangePasswordHandler.validatePasswordPopupFields();getObject(\'password2\').value = \'\'"></textarea></td>';
         bodyText += '</tr><tr style="border: 0">';
@@ -1288,6 +1289,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom()">Generate Random</button>';
         bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="1024"/>Length';
         bodyText += '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit.form.CheckBox" value="10"/>Special';
+        bodyText += '</div>';
 
         clearDijitWidget('changepassword-popup');
         var theDialog = new dijit.Dialog({
@@ -1302,7 +1304,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         theDialog.show();
 
         require(["dojo/parser","dijit/form/Textarea","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
+            dojoParser.parse(getObject('changePasswordDialogDiv'));
         });
 
         setTimeout(function(){ getObject('password1').focus();},500);

@@ -22,7 +22,7 @@
 
 package password.pwm.config;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 import java.io.Serializable;
 import java.util.List;
