@@ -28,8 +28,9 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.Display;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmMacroMachine;
 
@@ -50,6 +51,7 @@ public class DisplayTag extends PwmAbstractTag {
     private String value1;
     private String value2;
     private boolean displayIfMissing;
+    private String bundle;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -85,6 +87,14 @@ public class DisplayTag extends PwmAbstractTag {
         this.displayIfMissing = displayIfMissing;
     }
 
+    public String getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(String bundle) {
+        this.bundle = bundle;
+    }
+
     // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -98,11 +108,11 @@ public class DisplayTag extends PwmAbstractTag {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
 
-            String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig());
+            final Class bundle = readBundle();
+            final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);
+            final String expandedMessage = PwmMacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
 
-            displayMessage = PwmMacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
-
-            pageContext.getOut().write(displayMessage);
+            pageContext.getOut().write(expandedMessage);
         } catch (PwmUnrecoverableException e) { {
             LOGGER.debug("error while executing jsp display tag: " + e.getMessage(), e);
             return EVAL_PAGE;
@@ -114,28 +124,28 @@ public class DisplayTag extends PwmAbstractTag {
         return EVAL_PAGE;
     }
 
-    private String figureDisplayMessage(Locale locale, final Configuration config) {
+    private Class readBundle() {
+        if (bundle == null || bundle.length() < 1) {
+            return Display.class;
+        }
+
+        try {
+            return Class.forName(bundle);
+        } catch (ClassNotFoundException e) { /* no op */ }
+
+        try {
+            return Class.forName(Display.class.getPackage().getName() + "." + bundle);
+        } catch (ClassNotFoundException e) { /* no op */ }
+
+        return Display.class;
+    }
+
+    private String figureDisplayMessage(Locale locale, final Configuration config, final Class bundleClass) {
         if (locale == null) {
             locale = PwmConstants.DEFAULT_LOCALE;
         }
         try {
-            String displayMessage = Display.getLocalizedMessage(locale, key, config);
-
-            if (displayMessage != null) {
-                if (value1 != null && value1.length() > 0) {
-                    displayMessage = displayMessage.replaceAll("%1%", value1);
-                }
-
-                if (value2 != null && value2.length() > 0) {
-                    displayMessage = displayMessage.replaceAll("%2%", value2);
-                }
-
-                return displayMessage;
-            } else {
-                if (!displayIfMissing) {
-                    LOGGER.info("no value for: " + key);
-                }
-            }
+            return LocaleHelper.getLocalizedMessage(locale, key, config, bundleClass, new String[]{value1, value2});
         } catch (MissingResourceException e) {
             if (!displayIfMissing) {
                 LOGGER.info("error while executing jsp display tag: " + e.getMessage());

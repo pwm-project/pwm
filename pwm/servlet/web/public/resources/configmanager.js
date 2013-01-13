@@ -1803,7 +1803,7 @@ function saveConfiguration(waitForReload) {
                                     waitForRestart(currentTime, oldEpoch);
                                 }, 2 * 1000);
                             } else {
-                                window.location.reload();
+                                window.location = "ConfigManager";
                             }
                         }
                     }

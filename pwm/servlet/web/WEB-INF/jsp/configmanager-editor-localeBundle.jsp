@@ -37,12 +37,9 @@
     showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
 </script>
 <h1 style="text-align:center; color: gray">Custom Text - <%=bundleName.getTheClass().getSimpleName()%></h1>
-<p>Edit the display fields presented to users.  Whenever a single value is modified for a setting, all values for that setting will be used to override all default locale-specific values for that particular setting.  Display keys not modified from the default will use the default display
-    value of the current pwm defaults.</p>
-<p>If your modifications are to correct missing non-english locale values, please consider sharing your translations with the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>.
-        <% if (PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY.equals(bundleName)) { %>
-<p>All display settings may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>
-<% } %>
+<div>
+    <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
+</div>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
 <% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
 <% if (!isDefault) { %>

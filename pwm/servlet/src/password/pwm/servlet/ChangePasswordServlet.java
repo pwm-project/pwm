@@ -31,6 +31,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
+import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmPasswordRuleValidator;

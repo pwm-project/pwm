@@ -38,7 +38,7 @@
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            PWM Offline Configuration Editor
+            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
         </div>
         <div id="header-title">
             Configuration is locked
@@ -52,11 +52,8 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% if (!hasBeenModified) { %>
-        <p><b>The configuration for this server has been locked.  However you can still edit the configuration.</b></p>
-        <p>For security reasons, to edit the configuration, you must upload (and then download) the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span>
-            file.
-        </p>
-        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration Menu</a>
+        <pwm:Display key="Display_ConfigManagerRunning" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
+        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -66,32 +63,36 @@
         </form>
         <br/>
         <br/>
-        <a class="menubutton">Alternate Option: Un-Locking the Configuration</a>
+        <a class="menubutton"><pwm:Display key="MenuItem_AlternateUnlockConfig" bundle="Config"/></a>
         <p>
-            The locking of the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> file is controlled by the property "configIsEditable" within the file.  Set this property to "true" to return
-            to the online configuration mode.  Be aware that while this property is set to true anyone accessing this site can make modifications to the live configuration without authentication.
+            <pwm:Display key="MenuDisplay_AlternateUnlockConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
         </p>
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Alternate Option: Edit a new configuration</a>
+        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();"><pwm:Display key="MenuItem_AlternateNewConfig" bundle="Config"/></a>
         <p>
-        <p>Edit a newconfiguration in memory by selecting a new configuration template.  After editing the configuration, you can download
-            the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> file.  This option will not modify the running configuration.
+        <p>
+        <pwm:Display key="MenuDisplay_AlternateNewConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
         </p>
         <% } else { %>
-        <p>Your modified configuration is currently in memory, but has not yet been saved.  Please choose an option below to continue.</p>
+        <p>
+            <pwm:Display key="Display_ConfigManagerRunningEditor" bundle="Config"/>
+        </p>
         <br/>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="generateXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit()">Download Configuration File</a>
-        <p>Download the in memory configuration to an XML file. Save the <span style="font-style: italic;"><%=PwmConstants.CONFIG_FILE_FILENAME%></span> to PWM's <span
-                style="font-style: italic;">WEB-INF </span> directory to change the configuration.  In most cases, PWM will automatically restart and load the new configuration immediately.</p>
+        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit()"><pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/></a>
+        <p>
+            <pwm:Display key="MenuDisplay_DownloadConfigRunning" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
+        </p>
 
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit()">Return to Editor</a>
-        <p>Continue editing the in memory configuration.</p>
+        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit()"><pwm:Display key="MenuItem_ReturnToEditor" bundle="Config"/></a>
+        <p>
+            <pwm:Display key="MenuDisplay_ReturnToEditor" bundle="Config"/>
+        </p>
 
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
               enctype="application/x-www-form-urlencoded">
@@ -100,8 +101,10 @@
         </form>
 
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['cancelEditing'].submit()">Cancel Edits</a>
-        <p>Cancel all changes you have made to the in-memory configuration.</p>
+        <a class="menubutton" href="#" onclick="document.forms['cancelEditing'].submit()"><pwm:Display key="MenuItem_CancelEdits" bundle="Config"/></a>
+        <p>
+            <pwm:Display key="MenuDisplay_CancelEdits" bundle="Config"/>
+        </p>
         <% } %>
     </div>
 </div>

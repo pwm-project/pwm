@@ -36,9 +36,9 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.config.Configuration;
-import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 
 import java.io.IOException;

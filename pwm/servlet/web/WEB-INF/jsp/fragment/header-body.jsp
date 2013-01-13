@@ -44,8 +44,9 @@
 <% final boolean showLogout = loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
 <% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION; %>
 <% if (showConfigHeader) { %>
-<div id="header-warning">PWM is in open configuration mode. Use the <a href="<%=request.getContextPath()%><pwm:url url='/config/ConfigManager'/>">ConfigManager</a>
-    to modify or lock the configuration.
+<div id="header-warning">
+    <% final String configManagerUrl = request.getContextPath() + "/config/ConfigManager"; %>
+    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=configManagerUrl%>"/>
 </div>
 <% } %>
 <div id="header">

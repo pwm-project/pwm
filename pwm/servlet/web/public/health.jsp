@@ -41,7 +41,7 @@
         ServletHelper.forwardToErrorPage(request, response, true);
     }
 %>
-<body id="body" class="nihilo" style="background-color: black; cursor: none" onload="startupHealthPage()">
+<body id="body" class="nihilo" style="background-color: black" onload="startupHealthPage()">
 <div id="centerbody" style="margin-top: 0">
     <div id style="z-index: 3; position: relative; background: white; opacity: 0.9">
         <table id="form">

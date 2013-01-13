@@ -38,6 +38,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Admin;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -65,7 +67,11 @@ public class LDAPStatusChecker implements HealthChecker {
             }
 
             if (returnRecords.isEmpty()) {
-                returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "All configured LDAP servers are reachable"));
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.GOOD,
+                        TOPIC,
+                        LocaleHelper.getLocalizedMessage("Health_LDAP_OK",config,Admin.class)
+                ));
 
                 final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
                 if (hr != null) {
@@ -77,7 +83,15 @@ public class LDAPStatusChecker implements HealthChecker {
                     final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
                     if (errorAge.isShorterThan(PwmConstants.LDAP_CHECKER_RECENT_ERRORS_DURATION)) {
-                        returnRecords.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "LDAP server was recently unavailable (" + errorAge.asLongString() + " ago at " + errorInfo.getDate().toString()+ "): " + errorInfo.toDebugStr()));
+                        final String ageString = errorAge.asLongString();
+                        final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
+                        final String errorMsg = errorInfo.toDebugStr();
+                        returnRecords.add(
+                                new HealthRecord(
+                                        HealthStatus.CAUTION,
+                                        TOPIC,
+                                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_Unreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
+                                ));
                     }
                 }
             }
@@ -97,16 +111,16 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
-            final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorMsg.append(" -> ");
-            errorMsg.append(PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorMsg.append(" setting is the same value as the ");
-            errorMsg.append(PwmSetting.LDAP_PROXY_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorMsg.append(" setting");
+            final String setting1 = PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
+                    + " -> "
+                    + PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
+            final String setting2 = PwmSetting.LDAP_PROXY_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
 
-            return new HealthRecord(HealthStatus.WARN, TOPIC, errorMsg.toString());
-
+            return new HealthRecord(
+                    HealthStatus.WARN,
+                    TOPIC,
+                    LocaleHelper.getLocalizedMessage(null,"Health_LDAP_ProxyTestSameUser",config,Admin.class,new String[]{setting1,setting2})
+            );
         }
 
         ChaiUser theUser = null;
@@ -123,15 +137,18 @@ public class LDAPStatusChecker implements HealthChecker {
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
 
             } catch (ChaiUnavailableException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "LDAP unavailable error while testing ldap test user: " + e.getMessage());
+                return new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()}));
             } catch (Throwable e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected error while testing ldap test user: " + e.getMessage());
+                return new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()}));
             }
 
             try {
                 theUser.readObjectClass();
             } catch (ChaiException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "error verifying test user account: " + e.getMessage());
+                return new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()}));
             }
 
             String userPassword = null;
@@ -153,15 +170,18 @@ public class LDAPStatusChecker implements HealthChecker {
                         theUser.setPassword(newPassword);
                         userPassword = newPassword;
                     } catch (ChaiPasswordPolicyException e) {
-                        return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected policy error while writing test user temporary random password: " + e.getMessage());
+                        return new HealthRecord(HealthStatus.WARN, TOPIC,
+                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()}));
                     } catch (Exception e) {
-                        return new HealthRecord(HealthStatus.WARN, TOPIC, "unexpected ldap error while writing test user temporary random password: " + e.getMessage());
+                        return new HealthRecord(HealthStatus.WARN, TOPIC,
+                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()}));
                     }
                 }
             }
 
             if (userPassword == null) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user password, and unable to set test user password to temporary random value");
+                return new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class));
             }
 
             try {
@@ -178,7 +198,7 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
 
-        return new HealthRecord(HealthStatus.GOOD, TOPIC, "LDAP test user account is functioning normally");
+        return new HealthRecord(HealthStatus.GOOD, TOPIC, LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class));
     }
 
 

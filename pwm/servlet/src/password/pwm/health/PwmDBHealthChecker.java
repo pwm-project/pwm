@@ -23,6 +23,8 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
+import password.pwm.i18n.Admin;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.pwmdb.PwmDB;
 
 import java.util.ArrayList;
@@ -39,22 +41,38 @@ public class PwmDBHealthChecker implements HealthChecker {
         final PwmDB pwmDB = pwmApplication.getPwmDB();
 
         if (pwmDB == null) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is not available, statistics, online logging, wordlists and other features are disabled.  Check startup logs to troubleshoot"));
+            healthRecords.add(new HealthRecord(
+                    HealthStatus.GOOD,
+                    "PwmDB",
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_BAD",pwmApplication.getConfig(),Admin.class)
+            ));
             return healthRecords;
         }
 
         if (PwmDB.Status.NEW == pwmDB.status()) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB status is NEW (loading) state, until PwmDB loads, statistics, online logging, wordlists and other features are disabled"));
+            healthRecords.add(new HealthRecord(
+                    HealthStatus.WARN,
+                    "PwmDB",
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_NEW",pwmApplication.getConfig(),Admin.class)
+            ));
             return healthRecords;
         }
 
         if (PwmDB.Status.CLOSED == pwmDB.status()) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDB", "PwmDB is CLOSED, statistics, online logging, wordlists and other features are disabled.  Check logs to troubleshoot"));
+            healthRecords.add(new HealthRecord(
+                    HealthStatus.WARN,
+                    "PwmDB",
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_WARN",pwmApplication.getConfig(),Admin.class)
+            ));
             return healthRecords;
         }
 
         if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(HealthStatus.GOOD, "PwmDB", "PwmDB and related services are operating correctly"));
+            healthRecords.add(new HealthRecord(
+                    HealthStatus.GOOD,
+                    "PwmDB",
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_OK",pwmApplication.getConfig(),Admin.class)
+            ));
         }
 
         return healthRecords;

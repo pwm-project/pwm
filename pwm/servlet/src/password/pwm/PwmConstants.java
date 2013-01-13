@@ -22,9 +22,8 @@
 
 package password.pwm;
 
-import password.pwm.config.Display;
-import password.pwm.config.Message;
-import password.pwm.error.PwmError;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -257,7 +256,7 @@ public abstract class PwmConstants {
 
     public static enum EDITABLE_LOCALE_BUNDLES {
         DISPLAY(Display.class),
-        ERRORS(PwmError.class),
+        ERRORS(password.pwm.i18n.Error.class),
         MESSAGE(Message.class),
         ;
 

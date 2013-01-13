@@ -23,6 +23,8 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
+import password.pwm.i18n.Admin;
+import password.pwm.i18n.LocaleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,19 +36,22 @@ public class JavaChecker implements HealthChecker {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
         if (Thread.activeCount() > 1000) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Java thread count is unusually large (" + Thread.activeCount() + " threads)"));
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, localizedString(pwmApplication,"Health_Java_HighThreads",String.valueOf(Thread.activeCount()))));
         }
 
         if (Runtime.getRuntime().maxMemory() <= 64 * 1024 * 1024) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Java maximum memory heap size is set to default of 64MB.  Please increase the memory heap size."));
+            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, localizedString(pwmApplication,"Health_Java_SmallHeap")));
         }
 
         if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, "Java platform is operating normally"));
+            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, localizedString(pwmApplication,"Health_Java_OK")));
         }
-
-
 
         return records;
     }
+
+    private String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
+        return LocaleHelper.getLocalizedMessage(null, key, pwmApplication.getConfig(), Admin.class, values);
+    }
+
 }

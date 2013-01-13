@@ -24,12 +24,10 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.util.Helper;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  * Utility class for managing messages returned by the servlet for inclusion in UI screens.
@@ -163,8 +161,6 @@ public enum PwmError {
 
 // ------------------------------ FIELDS ------------------------------
 
-    public static String FIELD_REPLACE_VALUE = "%field%";
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmError.class);
 
     private final int errorCode;
@@ -174,39 +170,7 @@ public enum PwmError {
 // -------------------------- STATIC METHODS --------------------------
 
     public static String getLocalizedMessage(final Locale locale, final PwmError message, final Configuration config, final String... fieldValue) {
-        String result = getRawString(config, message.getResourceKey(),locale);
-        try {
-            if (fieldValue != null && fieldValue.length > 0) {
-                result = result.replaceAll(FIELD_REPLACE_VALUE, fieldValue[0]);
-            }
-        } catch (Exception e) {
-            LOGGER.trace("error fetching localized key for '" + message + "', error: " + e.getMessage());
-        }
-        return result;
-    }
-
-    private static ResourceBundle getMessageBundle(final Locale locale) {
-        final ResourceBundle messagesBundle;
-        if (locale == null) {
-            messagesBundle = ResourceBundle.getBundle(PwmError.class.getName());
-        } else {
-            messagesBundle = ResourceBundle.getBundle(PwmError.class.getName(), locale);
-        }
-
-        return messagesBundle;
-    }
-
-    private static String getRawString(final Configuration config, final String key, final Locale locale) {
-        if (config != null) {
-            final Map<Locale,String> configuredBundle = config.readLocalizedBundle(PwmError.class.getName(),key);
-            if (configuredBundle != null) {
-                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
-                return configuredBundle.get(resolvedLocale);
-            }
-        }
-        final ResourceBundle bundle = getMessageBundle(locale);
-        return bundle.getString(key);
-
+        return LocaleHelper.getLocalizedMessage(locale, message.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue);
     }
 
     public static PwmError forChaiError(final ChaiError errorCode) {

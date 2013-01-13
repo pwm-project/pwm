@@ -23,9 +23,9 @@
 package password.pwm.bean;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Message;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
+import password.pwm.i18n.Message;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 

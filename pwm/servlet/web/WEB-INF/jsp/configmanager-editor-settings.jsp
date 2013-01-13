@@ -44,17 +44,28 @@
 <% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true")) { %>
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
-    <strong>Some settings are not displayed.</strong>&nbsp;&nbsp;Select <em>Advanced Options</em> from the <em>View</em> menu to show all settings.
+    <pwm:Display key="Warning_ShowAdvanced" bundle="Config"/>
     <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-advanced','true',86400);" href="ConfigManager">(hide)</a>
 </div>
 <% } %>
 <% } %>
+<% if (hasNotes) { %>
+<% if (!ServletHelper.cookieEquals(request, "hide-warn-shownotes", "true") && !showDesc) { %>
+<div style="font-size: small">
+    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
+    <pwm:Display key="Warning_ShowNotes" bundle="Config"/>
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-shownotes','true',86400);" href="ConfigManager">(hide)</a>
+</div>
+<% } %>
+<% } %>
+<% if (!showDesc) { %>
 <% if (!ServletHelper.cookieEquals(request, "hide-warn-showdesc", "true") && !showDesc) { %>
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
-    Help text for settings is available by clicking on setting title, or by selecting <em>Display Help Text</em> from the <em>View</em> menu.
+    <pwm:Display key="Warning_ShowDescription" bundle="Config"/>
     <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-showdesc','true',86400);" href="ConfigManager">(hide)</a>
 </div>
+<% } %>
 <% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>

@@ -25,7 +25,7 @@
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
-        <%@ page import="password.pwm.config.*"%><%@ page import="password.pwm.util.PwmMacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
+        <%@ page import="password.pwm.config.ActionConfiguration"%><%@ page import="password.pwm.config.FormConfiguration"%><%@ page import="password.pwm.config.PwmSetting"%><%@ page import="password.pwm.i18n.Display"%><%@ page import="password.pwm.i18n.Message"%><%@ page import="password.pwm.util.PwmMacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
         <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>

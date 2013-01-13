@@ -38,7 +38,7 @@
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            PWM Configuration Editor
+            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
         </div>
         <div id="header-title">
             Configuration is editable
@@ -46,16 +46,9 @@
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p>Welcome to the PWM ConfigManager. PWM is in configuration mode, which means you can make changes to the
-            running configuration
-            directly through this page. Changes made in the configuration editor will be saved immediately, and PWM will
-            automatically restart to have changes
-            take effect.</p>
-
-        <p>The current configuration was loaded at
-            <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime()%>.
-            (Epoch <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()%>)
-        </p>
+        <% final String configLoadTime = ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime().toString(); %>
+        <% final String configEpoch = String.valueOf(ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()); %>
+        <pwm:Display key="Display_ConfigManagerConfiguration" bundle="Config" value1="<%=configLoadTime%>" value2="<%=configEpoch%>"/>
         <div data-dojo-type="dijit.TitlePane" title="PWM Health" style="border:0; margin:0; padding:0">
             <div id="healthBody" style="border:0; margin:0; padding:0">
                 <div id="WaitDialogBlank"></div>
@@ -71,7 +64,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();">Configuration Editor</a>
+                    <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();"><pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/></a>
                     <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
                           enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="editMode"/>
@@ -80,49 +73,48 @@
                     </form>
                 </td>
                 <td style="border:0">
-                    <p>Use the configuration editor to edit the running configuration.</p>
+                    <p><pwm:Display key="MenuDisplay_ConfigEditor" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">View Log Events</a>
+                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false"><pwm:Display key="MenuItem_ViewLog" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
-                    <p>View recent log events.  Requires pop-up windows to be enabled in your browser.</p>
+                    <p><pwm:Display key="MenuDisplay_ViewLog" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();">Download Configuration File</a>
-<form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
+                    <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();"><pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/></a>
+                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
                           enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="generateXml"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
                 <td style="border:0">
-                    <p>Download the current configuration XML file.</p>
+                    <p>
+                        <pwm:Display key="MenuDisplay_DownloadConfig" bundle="Config"/>
+                    </p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="if (confirm('Are you sure you wish to overwrite the current running configuration with the selected file?')) {document.forms['uploadXml'].submit()}">Upload Configuration File</a>
+                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,'<pwm:Display key="Confirm_UploadConfig" bundle="Config"/>',function(){document.forms['uploadXml'].submit()})"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
-                    <p>Upload an existing configuration file. The uploaded file will be saved as the PWM configuration and will replace
-                        the current configuration.</p>
+                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
                     <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
                         <input type="hidden" name="processAction" value="uploadXml"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        <input type="file" name="uploadFile" size="50" style="width: 350px" data-dojo-type="dojox/form/Uploader" required="required"/>
-                        <%--<input type="submit" class="btn" name="uploadSubmit" value="   Upload   "
-                               onclick="document.forms['uploadXml'].submit();"/>--%>
+                        <input type="file" name="uploadFile" size="50" style="width: 350px" data-dojo-type="dojox/form/Uploader" data-dojo-props="uploadOnSelect:true"/>
                     </form>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="if (confirm('Are you sure you want to lock the configuration?')) {showWaitDialog('Lock Configuration'); finalizeConfiguration();}">Lock Configuration</a>
+                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,'<pwm:Display key="Confirm_LockConfig" bundle="Config"/>',function(){finalizeConfiguration()})"><pwm:Display key="MenuItem_LockConfig" bundle="Config"/></a>
                     <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
                           enctype="application/x-www-form-urlencoded">
                         <input type="hidden" name="processAction" value="lockConfiguration"/>
@@ -130,17 +122,15 @@
                     </form>
                 </td>
                 <td style="border:0">
-                    <p>Lock the configuration. Once, locked you can still edit the configuration or unlock the
-                        configuration as long as you have access to the configuration file at <span style="font-style: italic;"><%=configFilePath%></span>.
-                        </p>
+                    <p><pwm:Display key="MenuDisplay_LockConfig" bundle="Config" value1="<%=configFilePath%>"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="<%=request.getContextPath()%>">Main Menu</a>
+                    <a class="menubutton" href="<%=request.getContextPath()%>"><pwm:Display key="MenuItem_MainMenu" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
-                    <p>Return to the main menu to test the configuration.</p>
+                    <p><pwm:Display key="MenuDisplay_MainMenu" bundle="Config"/></p>
                 </td>
             </tr>
         </table>

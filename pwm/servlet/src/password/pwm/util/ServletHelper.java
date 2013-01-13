@@ -24,9 +24,9 @@ package password.pwm.util;
 
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Message;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Message;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;

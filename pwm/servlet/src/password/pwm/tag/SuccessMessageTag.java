@@ -25,7 +25,7 @@ package password.pwm.tag;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
-import password.pwm.config.Message;
+import password.pwm.i18n.Message;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;

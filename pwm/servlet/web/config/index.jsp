@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.PwmConstants" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -35,7 +34,7 @@
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManage"/>">Configurations</a>
+            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManage"/>">Configuration</a>
         </div>
     </div>
     <br class="clear"/>

@@ -27,7 +27,11 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -226,12 +230,10 @@ public class PasswordRequirementsTag extends TagSupport {
 
     private static String getLocalString(final Message message, final int size, final Locale locale, final Configuration config) {
         try {
-            if (size > 1) {
-                final Message pluralMessage = Message.forResourceKey(message.getResourceKey() + "Plural");
-                if (pluralMessage != null) {
-                    return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
-                }
-            }
+            try {
+                final Message pluralMessage = Message.valueOf(message.getResourceKey() + "Plural");
+                return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
+            } catch (IllegalArgumentException e) {/*noop*/ }
         } catch (MissingResourceException e) {
             //LOGGER.trace("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }

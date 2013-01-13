@@ -33,17 +33,14 @@
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            PWM Configuration Editor
+            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
         </div>
         <div id="header-title">
             Configuration Mode: <%=ContextManager.getPwmApplication(session).getApplicationMode()%>
         </div>
     </div>
     <div id="centerbody">
-        <p><b>Welcome to PWM.</b>  We hope you enjoy using this software.</p>
-        <p>For help, guidance and other resources please visit the <a href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project Page</a>.</p>
-        <p>PWM was not able to detect a pre-existing configuration and is now in new configuration mode.  Please begin configuring PWM by selecting a default
-            template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
+        <pwm:Display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
@@ -52,14 +49,16 @@
         <br/>
         <p>or...</p>
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();">Upload Configuration File</a>
+        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
         <br/>
         <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
             <input type="hidden" name="processAction" value="uploadXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <input type="file" name="uploadFile" size="50" data-dojo-type="dojox/form/Uploader"/>
         </form>
-        <p>Alternatively, you may upload a previously saved configuration file. The uploaded file will be saved as the new configuration.</p>
+        <p>
+            <pwm:Display key="MenuDisplay_AlternateUpload" bundle="Config"/>
+        </p>
     </div>
 </div>
 <script type="text/javascript">
