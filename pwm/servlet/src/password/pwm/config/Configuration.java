@@ -166,7 +166,11 @@ public class Configuration implements Serializable {
             case NUMERIC:
             case BOOLEAN:
             case PASSWORD:
-                return (String)storedConfiguration.readSetting(setting).toNativeObject();
+            	StoredValue value = storedConfiguration.readSetting(setting);
+            	if (value == null) return null;
+            	Object nativeObject = value.toNativeObject();
+            	if (nativeObject == null) return null;
+            	return nativeObject.toString();
 
             default:
                 throw new IllegalArgumentException("may not read setting as string: " + setting.toString());

@@ -738,6 +738,7 @@ public class
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
         LOGGER.debug(pwmSession, "generated token code for session");
+        LOGGER.trace(String.format("Token: %s", token));
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
         String toEmailAddr = null;

@@ -94,7 +94,7 @@ public abstract class AbstractQueueManager implements PwmService {
         if (e != null) {
             final Throwable cause = e.getCause();
             if (cause instanceof IOException) {
-                LOGGER.trace("email failure cause is due to an IOException: " + e.getMessage());
+                LOGGER.trace("message send failure cause is due to an IOException: " + e.getMessage());
                 return true;
             }
         }
@@ -191,8 +191,8 @@ public abstract class AbstractQueueManager implements PwmService {
                         lastSendFailure = null;
                     }
                 } catch (Exception e) {
-                    LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
-                    LOGGER.error("unable to process email queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));
+                    LOGGER.error("unexpected exception while processing queue: " + e.getMessage(), e);
+                    LOGGER.error("unable to process queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));
                 }
 
                 final long startTime = System.currentTimeMillis();
@@ -206,11 +206,11 @@ public abstract class AbstractQueueManager implements PwmService {
             try {
                 processQueue();
             } catch (Exception e) {
-                LOGGER.error("unexpected exception while processing mail queue: " + e.getMessage(), e);
+                LOGGER.error("unexpected exception while processing queue: " + e.getMessage(), e);
             }
 
             threadActive = false;
-            LOGGER.trace("closing email queue processing thread");
+            LOGGER.trace("closing queue processing thread");
         }
 
         private boolean processQueue() {

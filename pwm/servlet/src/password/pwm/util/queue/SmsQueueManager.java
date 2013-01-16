@@ -200,7 +200,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
         final String gatewayMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_METHOD);
         final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
-        LOGGER.trace("SMS data: " + requestData);
+        LOGGER.trace("SMS data: " + requestData);        
         try {
             final HttpRequestBase httpRequest;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
@@ -276,7 +276,7 @@ public class SmsQueueManager extends AbstractQueueManager {
                 break;
             default:
                 try {
-                    returnData = URLEncoder.encode(data,"UTF8");
+                    returnData = (data==null)?"":URLEncoder.encode(data,"UTF8");
                 } catch (UnsupportedEncodingException e) {
                     returnData = data;
                     LOGGER.warn("Unexpected missing encoder for charset 'UTF8': " + e.getMessage());
