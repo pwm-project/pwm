@@ -37,7 +37,6 @@ public class PwmDBFactory {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBFactory.class);
-    private static final String DEFAULT_IMPLEMENTATION = Berkeley_PwmDb.class.getName();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -51,13 +50,12 @@ public class PwmDBFactory {
             throws Exception {
 
         final long startTime = System.currentTimeMillis();
-        final String theClass = className != null ? className : DEFAULT_IMPLEMENTATION;
-        final PwmDBProvider dbProvider = createInstance(theClass);
-        LOGGER.debug("initializing " + theClass + " pwmDBProvider instance");
+        final PwmDBProvider dbProvider = createInstance(className);
+        LOGGER.debug("initializing " + className + " pwmDBProvider instance");
 
         final PwmDB db = new PwmDBAdaptor(dbProvider, pwmApplication);
 
-        initInstance(dbProvider, dbDirectory, initParameters, theClass, readonly);
+        initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
         LOGGER.trace("clearing TEMP db");

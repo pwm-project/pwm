@@ -589,7 +589,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         public String getName() {
-            return realFile.getName();
+            return realFile.getAbsolutePath();
         }
     }
 

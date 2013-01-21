@@ -138,11 +138,15 @@ public class PwmApplication {
     }
 
     public ChaiProvider getProxyChaiProvider()
-            throws ChaiUnavailableException {
+            throws PwmUnrecoverableException {
         if (proxyChaiProvider == null) {
-            openProxyChaiProvider();
+            try {
+                proxyChaiProvider = openProxyChaiProvider(configuration, getStatisticsManager());
+            } catch (PwmUnrecoverableException e) {
+                setLastLdapFailure(e.getErrorInformation());
+                throw e;
+            }
         }
-
         return proxyChaiProvider;
     }
 
@@ -162,26 +166,35 @@ public class PwmApplication {
         return Collections.unmodifiableList(pwmServices);
     }
 
-    private void openProxyChaiProvider() throws ChaiUnavailableException {
-        if (proxyChaiProvider == null) {
+    private static ChaiProvider openProxyChaiProvider(final Configuration config, final StatisticsManager statsMangager)
+            throws PwmUnrecoverableException
+    {
             final StringBuilder debugLogText = new StringBuilder();
             debugLogText.append("opening new ldap proxy connection");
             LOGGER.trace(debugLogText.toString());
 
-            final String proxyDN = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            final String proxyPW = this.getConfig().readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
             try {
                 final int idleTimeoutMs = PwmConstants.LDAP_PROXY_CONNECTION_TIMEOUT;
-                proxyChaiProvider = Helper.createChaiProvider(this.getConfig(), proxyDN, proxyPW, idleTimeoutMs);
+                return Helper.createChaiProvider(config, proxyDN, proxyPW, idleTimeoutMs);
             } catch (ChaiUnavailableException e) {
-                getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());
-                setLastLdapFailure(errorInformation);
-                LOGGER.fatal("check ldap proxy settings: " + e.getMessage());
-                throw e;
+                if (statsMangager != null) {
+                    statsMangager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                }
+                final StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append(" error connecting as proxy user: ");
+                final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
+                if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
+                    errorMsg.append(new ErrorInformation(pwmError,e.getMessage()).toDebugStr());
+                } else {
+                    errorMsg.append(e.getMessage());
+                }
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg.toString());
+                LOGGER.fatal("check ldap proxy settings: " + errorInformation.toDebugStr());
+                throw new PwmUnrecoverableException(errorInformation);
             }
-        }
     }
 
     public WordlistManager getWordlistManager() {
@@ -633,6 +646,10 @@ public class PwmApplication {
             if (configException != null) {
                 LOGGER.error("error loading log4jconfig file '" + log4jConfigFile + "' error: " + configException.getMessage());
             }
+
+            // disable jersey warnings.
+            java.util.logging.LogManager.getLogManager().addLogger(java.util.logging.Logger.getLogger("com.sun.jersey.spi.container.servlet.WebComponent"));
+            java.util.logging.LogManager.getLogManager().getLogger("com.sun.jersey.spi.container.servlet.WebComponent").setLevel(java.util.logging.Level.OFF);
         }
 
         public static void initializePwmDB(final PwmApplication pwmApplication) {
@@ -711,7 +728,7 @@ public class PwmApplication {
 
                 final String hostname = url.getHost();
                 if (hostname.equalsIgnoreCase("localhost") || hostname.equalsIgnoreCase("127.0.0.1")) {
-                    LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
+                    //LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
                     return;
                 }
 

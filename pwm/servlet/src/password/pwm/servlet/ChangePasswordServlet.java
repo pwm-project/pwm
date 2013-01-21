@@ -389,7 +389,7 @@ public class ChangePasswordServlet extends TopServlet {
             return false;
         }
 
-        if (pwmSession.getUserInfoBean().isAuthFromUnknownPw() || pwmSession.getUserInfoBean().getUserCurrentPassword() == null) {
+        if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() || pwmSession.getUserInfoBean().getUserCurrentPassword() == null) {
             return false;
         }
 

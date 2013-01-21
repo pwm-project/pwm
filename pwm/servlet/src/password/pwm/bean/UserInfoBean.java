@@ -58,7 +58,8 @@ public class UserInfoBean implements PwmSessionBean {
 
     private String userGuid;
 
-    private boolean authFromUnknownPw;
+    private boolean currentPasswordUnknownToUser;
+    private boolean currentPasswordUnknownToPwm;
 
     /**
      * A listing of all readable attributes on the ldap user object
@@ -164,12 +165,12 @@ public class UserInfoBean implements PwmSessionBean {
         this.passwordState = passwordState;
     }
 
-    public boolean isAuthFromUnknownPw() {
-        return authFromUnknownPw;
+    public boolean isCurrentPasswordUnknownToUser() {
+        return currentPasswordUnknownToUser;
     }
 
-    public void setAuthFromUnknownPw(final boolean authFromUnknownPw) {
-        this.authFromUnknownPw = authFromUnknownPw;
+    public void setCurrentPasswordUnknownToUser(final boolean currentPasswordUnknownToUser) {
+        this.currentPasswordUnknownToUser = currentPasswordUnknownToUser;
     }
 
     public boolean isRequiresNewPassword() {
@@ -250,5 +251,20 @@ public class UserInfoBean implements PwmSessionBean {
         return copiedList;
     }
 
+    public boolean isCurrentPasswordUnknownToPwm() {
+        return currentPasswordUnknownToPwm;
+    }
+
+    public void setCurrentPasswordUnknownToPwm(boolean currentPasswordUnknownToPwm) {
+        this.currentPasswordUnknownToPwm = currentPasswordUnknownToPwm;
+    }
+
+    public Map<String, PostChangePasswordAction> getPostChangePasswordActions() {
+        return postChangePasswordActions;
+    }
+
+    public void setPostChangePasswordActions(Map<String, PostChangePasswordAction> postChangePasswordActions) {
+        this.postChangePasswordActions = postChangePasswordActions;
+    }
 }
 

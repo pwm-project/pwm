@@ -1,6 +1,5 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.error.PwmError" %>
-<%@ page import="password.pwm.util.PwmRandom" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -76,7 +75,6 @@
         <br/>
         <br/>
         <br/>
-        <div style="width:100%;text-align:center;color:grey"><%=PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]%></div>
     </div>
     <br class="clear"/>
 </div>

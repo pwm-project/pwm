@@ -117,10 +117,10 @@ public class PwmMacroMachine {
                     final DateFormat dateFormat = new SimpleDateFormat(datePattern);
                     return dateFormat.format(new Date());
                 } catch (IllegalArgumentException e) {
-                    LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                    LOGGER.error("invalid macro expression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
                 }
             } else {
-                LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
+                LOGGER.error("invalid macro expression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
             }
 
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
@@ -158,10 +158,10 @@ public class PwmMacroMachine {
                     final DateFormat dateFormat = new SimpleDateFormat(datePattern);
                     return dateFormat.format(pwdExpirationTime);
                 } catch (IllegalArgumentException e) {
-                    LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                    LOGGER.error("invalid macro expression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
                 }
             } else {
-                LOGGER.error("invalid PwmMacroExpression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
+                LOGGER.error("invalid macro expression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
             }
 
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
@@ -313,7 +313,7 @@ public class PwmMacroMachine {
         try {
             replaceStr = configVar.replaceValue(matchedStr,pwmApplication,uiBean);
         }  catch (Exception e) {
-            LOGGER.error("error while replacing PwmMacro '" + matchedStr + "', error: " + e.getMessage());
+            LOGGER.error("error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }
 
         if (replaceStr == null) {
@@ -329,7 +329,7 @@ public class PwmMacroMachine {
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            LOGGER.trace("replaced PwmMacro " + matchedStr + " with value: " + replaceStr);
+            LOGGER.trace("replaced Macro " + matchedStr + " with value: " + replaceStr);
         }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
     }

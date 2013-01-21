@@ -44,11 +44,6 @@
             Configuration is locked
         </div>
     </div>
-    <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode" enctype="application/x-www-form-urlencoded">
-        <input type="hidden" name="processAction" value="editMode"/>
-        <input type="hidden" name="mode" value="SETTINGS"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <% if (!hasBeenModified) { %>
@@ -68,7 +63,7 @@
             <pwm:Display key="MenuDisplay_AlternateUnlockConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
         </p>
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();"><pwm:Display key="MenuItem_AlternateNewConfig" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_AlternateNewConfig" bundle="Config"/></a>
         <p>
         <p>
         <pwm:Display key="MenuDisplay_AlternateNewConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
@@ -89,7 +84,7 @@
         </p>
 
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['editMode'].submit()"><pwm:Display key="MenuItem_ReturnToEditor" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_ReturnToEditor" bundle="Config"/></a>
         <p>
             <pwm:Display key="MenuDisplay_ReturnToEditor" bundle="Config"/>
         </p>

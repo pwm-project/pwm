@@ -40,7 +40,7 @@ import java.util.*;
 
 public class PwmDBLoggerTest extends TestCase {
 
-    private static final int BULK_EVENT_COUNT = 90 * 1000 * 1000;
+    private static final int BULK_EVENT_COUNT = 150 * 1000 * 1000;
 
     private PwmDBLogger pwmDBLogger;
     private PwmDB pwmDB;
@@ -56,7 +56,6 @@ public class PwmDBLoggerTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
@@ -98,13 +97,14 @@ public class PwmDBLoggerTest extends TestCase {
         }
 
         while (eventsRemaining > 0) {
-            Helper.pause(500);
+            Helper.pause(5);
         }
 
         final long startWaitTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startWaitTime < 30 * 1000 && pwmDBLogger.getPendingEventCount() > 0) {
             Helper.pause(500);
         }
+        Helper.pause(5000);
 
         if (startingSize + BULK_EVENT_COUNT >= maxSize) {
             Assert.assertEquals(pwmDBLogger.getStoredEventCount(), maxSize);

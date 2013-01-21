@@ -64,13 +64,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="document.forms['editMode'].submit();"><pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/></a>
-                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="editMode"
-                          enctype="application/x-www-form-urlencoded">
-                        <input type="hidden" name="processAction" value="editMode"/>
-                        <input type="hidden" name="mode" value="SETTINGS"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
+                    <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ConfigEditor" bundle="Config"/></p>

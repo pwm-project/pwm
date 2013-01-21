@@ -123,6 +123,7 @@ public class Helper {
         chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
         chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
+        chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, "1");
 
         {
             final boolean encryptResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
@@ -149,6 +150,9 @@ public class Helper {
                 chaiConfig.setSetting(theSetting, configuredSettings.get(key));
             }
         }
+
+        // set ldap referrals
+        chaiConfig.setSetting(ChaiSetting.LDAP_FOLLOW_REFERRALS,String.valueOf(config.readSettingAsBoolean(PwmSetting.LDAP_FOLLOW_REFERRALS)));
 
         // enable wire trace;
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {

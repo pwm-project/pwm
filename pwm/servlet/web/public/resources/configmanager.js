@@ -156,24 +156,25 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     var parentDivElement = getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
-    require(["dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Button"],function(Memory){
+    require(["dijit/form/Select","dijit/form/Button"],function(Select,Button){
         var availableLocales = PWM_GLOBAL['localeInfo'];
 
         var localeMenu = [];
         for (var localeIter in availableLocales) {
             if (localeIter != PWM_GLOBAL['defaultLocale']) {
-                localeMenu.push({name: availableLocales[localeIter], id: localeIter})
+                localeMenu.push({label: availableLocales[localeIter], value: localeIter})
             }
         }
 
         clearDijitWidget(keyName + '-addLocaleValue');
-        new dijit.form.FilteringSelect({
+        new Select({
             id: keyName + '-addLocaleValue',
-            store: new Memory({data: localeMenu})
+            options: localeMenu,
+            style: 'width: 175px'
         }, keyName + '-addLocaleValue');
 
         clearDijitWidget(keyName + '-addLocaleButton');
-        new dijit.form.Button({
+        new Button({
             id: keyName + '-addLocaleButton',
             onClick: addFunction
         }, keyName + '-addLocaleButton');
@@ -389,7 +390,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
             newTableRow.appendChild(td1);
 
 
-            if (iteration != 0) {
+            if (itemCount(clientSettingCache[settingKey]) > 1) {
                 var imgElement = document.createElement("img");
                 imgElement.setAttribute("style", "width: 15px; height: 15px");
                 imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
@@ -1287,7 +1288,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
         bodyText += 'Set Password</button>&nbsp;&nbsp;&nbsp;&nbsp;';
         bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom()">Generate Random</button>';
-        bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="1024"/>Length';
+        bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="128"/>Length';
         bodyText += '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit.form.CheckBox" value="10"/>Special';
         bodyText += '</div>';
 
@@ -1895,16 +1896,15 @@ function waitForRestart(startTime, oldEpoch) {
 }
 
 function handleResetClick(settingKey) {
-    var confirmLabel = 'Are you sure you want to reset this setting to the default value?';
-    if (confirm(confirmLabel)) {
+    showConfirmDialog(null,'Are you sure you want to reset this setting to the default value?',function(){
         resetSetting(settingKey);
-        window.location = window.location;
-    }
+        window.location = "ConfigManager";
+    });
 }
 
 function startNewConfigurationEditor(template) {
+    showWaitDialog('Loading...','');
     require(["dojo"],function(dojo){
-        showWaitDialog('Loading...','');
         dojo.xhrGet({
             url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&getTemplate=" + template,
             preventCache: true,
@@ -1915,6 +1915,18 @@ function startNewConfigurationEditor(template) {
                 window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
             }
         });
+    });
+}
+
+function startConfigurationEditor() {
+    require(["dojo"],function(dojo){
+        if(dojo.isIE <= 7){ // only IE8 and below
+            alert('Internet Explorer 7 and below is not able to edit the configuration.  Please use a newer version of Internet Explorer or a different browser.');
+            document.forms['cancelEditing'].submit();
+        } else {
+            showWaitDialog('Loading...','');
+            window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
+        }
     });
 }
 

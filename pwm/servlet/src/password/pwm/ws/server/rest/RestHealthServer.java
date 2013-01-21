@@ -49,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Path("/pwm-health")
+@Path("/health")
 public class RestHealthServer {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);

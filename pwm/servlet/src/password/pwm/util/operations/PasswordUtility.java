@@ -158,6 +158,9 @@ public class PasswordUtility {
         // clear the "requires new password flag"
         uiBean.setRequiresNewPassword(false);
 
+        // uibean
+        uiBean.setCurrentPasswordUnknownToPwm(false);
+
         // update the uibean's "password expired flag".
         uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(),uiBean));
 
@@ -173,7 +176,7 @@ public class PasswordUtility {
         }
 
         // add the old password to the global history list (if the old password is known)
-        if (!pwmSession.getUserInfoBean().isAuthFromUnknownPw() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
+        if (!pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
             pwmApplication.getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 

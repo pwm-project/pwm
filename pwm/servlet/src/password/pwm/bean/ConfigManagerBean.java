@@ -35,7 +35,7 @@ public class ConfigManagerBean implements PwmSessionBean {
     private ConfigManagerServlet.EDIT_MODE editMode = ConfigManagerServlet.EDIT_MODE.NONE;
     private java.util.Date configurationLoadTime;
     private ErrorInformation errorInformation;
-    private PwmSetting.Level level = PwmSetting.Level.BASIC;
+    private int level = 0;
     private boolean showDescr = false;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
@@ -67,11 +67,11 @@ public class ConfigManagerBean implements PwmSessionBean {
         this.editMode = editMode;
     }
 
-    public PwmSetting.Level getLevel() {
+    public int getLevel() {
         return level;
     }
 
-    public void setLevel(final PwmSetting.Level level) {
+    public void setLevel(int level) {
         this.level = level;
     }
 

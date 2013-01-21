@@ -23,7 +23,6 @@
 package password.pwm;
 
 import com.novell.ldapchai.ChaiConstant;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -264,16 +263,24 @@ public class AuthenticationFilter implements Filter {
         intruderManager.checkUser(userDN, pwmSession);
         intruderManager.checkAddress(pwmSession);
 
+        boolean passwordIsUnknownToPwm = false;
         try {
             testCredentials(userDN, password, pwmSession, pwmApplication);
         } catch (PwmOperationalException e) {
-            // auth failed, presumably due to wrong password.
-            ssBean.setAuthenticated(false);
-            intruderManager.addIntruderAttempt(userDN, pwmSession);
-            LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
-            statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
-            throw e;
+            if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() // handle stupid ad case where it denies bind with valid password
+                    && pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY
+                    && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                LOGGER.info("auth bind failed, but will allow login due to 'require new password AD error', error: " + e.getErrorInformation().toDebugStr());
+                passwordIsUnknownToPwm = true;
+            } else {
+                // auth failed, presumably due to wrong password.
+                ssBean.setAuthenticated(false);
+                intruderManager.addIntruderAttempt(userDN, pwmSession);
+                LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
+                statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
+                pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
+                throw e;
+            }
         }
 
         // auth succeed
@@ -289,7 +296,13 @@ public class AuthenticationFilter implements Filter {
         statisticsManager.updateEps(Statistic.EpsType.AUTHENTICATION, 1);
 
         // update the actor user info bean
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);
+        if (passwordIsUnknownToPwm) {
+            final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+            UserStatusHelper.populateUserInfoBean(pwmSession, userInfoBean, pwmApplication, ssBean.getLocale(), userDN, null, pwmApplication.getProxyChaiProvider());
+            userInfoBean.setCurrentPasswordUnknownToPwm(true);
+        } else {
+            UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, password);
+        }
 
         if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_EXPIRED_WARNING);
@@ -318,9 +331,6 @@ public class AuthenticationFilter implements Filter {
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         LOGGER.trace(pwmSession, "beginning testCredentials process");
 
-        final boolean alwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LDAP_ALWAYS_USE_PROXY);
-        final boolean ldapIsEdirectory = pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
-
         if (userDN == null || userDN.length() < 1) {
             final String errorMsg = "attempt to authenticate with null userDN";
             LOGGER.debug(pwmSession, errorMsg);
@@ -331,44 +341,6 @@ public class AuthenticationFilter implements Filter {
             final String errorMsg = "attempt to authenticate with null password";
             LOGGER.debug(pwmSession, errorMsg);
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
-        }
-
-        if (alwaysUseProxy && ldapIsEdirectory) { //try authenticating user by binding as admin proxy, and using ldap COMPARE operation.
-            LOGGER.trace(pwmSession, "attempting authentication using ldap compare operation");
-            final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);
-
-            try {
-                final boolean correctPassword = theUser.compareStringAttribute(ChaiUser.ATTR_PASSWORD, password);
-
-                if (correctPassword) {
-                    // check if user's login is disabled
-                    final boolean loginDisabled = theUser.readBooleanAttribute(ChaiUser.ATTR_LOGIN_DISABLED);
-                    if (loginDisabled) {
-                        final String errorMsg = "ldap compare operation is failed due to ldap account being disabled";
-                        LOGGER.debug(pwmSession, errorMsg);
-                        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
-                    }
-                }
-
-                return;
-            } catch (ChaiOperationException e) {
-                LOGGER.warn(pwmSession, "ldap bind compare failed, check ldap proxy user account");
-
-                if (e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT) {
-                    final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
-                    LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                    pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
-                    if (!PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT.equals(password)) {
-                        pwmSession.getSessionStateBean().setSessionError(errorInformation);
-                    }
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
-                final String errorMsg = "ldap error during password check: " + e.getMessage();
-                LOGGER.debug(pwmSession, errorMsg);
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
-            }
         }
 
         //try authenticating the user using a normal ldap BIND operation.
@@ -388,9 +360,15 @@ public class AuthenticationFilter implements Filter {
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
             }
-            final String errorMsg = "ldap error during password check: " + e.getMessage();
-            LOGGER.debug(pwmSession, errorMsg);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation errorInformation;
+            if (pwmError != null && PwmError.ERROR_UNKNOWN != pwmError) {
+                errorInformation = new ErrorInformation(pwmError, e.getMessage());
+            } else {
+                errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD, "ldap error during password check: " + e.getMessage());
+            }
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            throw new PwmOperationalException(errorInformation);
         }
     }
 
@@ -451,6 +429,12 @@ public class AuthenticationFilter implements Filter {
         LOGGER.trace(pwmSession, "beginning auth processes for user with unknown password");
         if (theUser == null || theUser.getEntryDN() == null) {
             throw new NullPointerException("invalid user (null)");
+        }
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN)) {
+            if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+
+            }
         }
 
         String currentPass = null;
@@ -521,7 +505,7 @@ public class AuthenticationFilter implements Filter {
         pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
         // mark the uib as coming from unknown pw.
-        pwmSession.getUserInfoBean().setAuthFromUnknownPw(true);
+        pwmSession.getUserInfoBean().setCurrentPasswordUnknownToUser(true);
     }
 }
 

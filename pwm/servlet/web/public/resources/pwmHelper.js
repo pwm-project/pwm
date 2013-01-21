@@ -355,7 +355,7 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
             }
         }, refreshNow ? 1000 : 30 * 1000);
 
-        var refreshUrl = PWM_GLOBAL['url-restservice'] + "/pwm-health";
+        var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
         if (refreshNow) {
             refreshUrl += "?refreshImmediate=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         } else {
@@ -398,11 +398,11 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
                 }, 10 * 1000);
             },
             error: function(error) {
-                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
-                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data</span></br>';
                 if (error != null) {
-                    htmlBody += '<br/>' + error + '<br/>';
+                    console.log('error reaching server: ' + error);
                 }
+                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
+                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
                 if (showRefresh) {
                     htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',false,true)">retry</a><br/><br/>';

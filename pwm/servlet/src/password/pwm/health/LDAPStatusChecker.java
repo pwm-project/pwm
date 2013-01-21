@@ -236,13 +236,11 @@ public class LDAPStatusChecker implements HealthChecker {
         ChaiProvider chaiProvider = null;
         try{
             try {
-                chaiProvider = Helper.createChaiProvider(
-                        config,
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT);
-
-                chaiProvider.getDirectoryVendor();
+                final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+                final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+                chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW,30*1000);
+                final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),chaiProvider);
+                adminEntry.isValid();
             } catch (Exception e) {
                 final String errorString = "error connecting to ldap directory: " + e.getMessage();
                 returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));

@@ -111,7 +111,7 @@ public class ServletHelper {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());
         }
     }
-
+    
     public static void forwardToOriginalRequestURL(
             final HttpServletRequest req,
             final HttpServletResponse resp

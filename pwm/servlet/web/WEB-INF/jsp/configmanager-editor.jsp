@@ -24,6 +24,8 @@
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -33,7 +35,7 @@
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<% final password.pwm.config.PwmSetting.Level level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
+<% final int level = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLevel(); %>
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
@@ -66,8 +68,8 @@ function buildMenuBar() {
         var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
         { // Settings Menu
             var settingsMenu = new dijit.Menu({});
-            <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(0)) { %>
-            <% if (loopCategory != PwmSetting.Category.EDIRECTORY || configManagerBean.getConfiguration().getTemplate() == PwmSetting.Template.NOVL) { %>
+            <% final Map<PwmSetting.Category,List<PwmSetting>> settingMap = PwmSetting.valuesByFilter(configManagerBean.getConfiguration().getTemplate(),PwmSetting.Category.Type.SETTING,level); %>
+            <% for (final PwmSetting.Category loopCategory : settingMap.keySet()) { %>
             <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
             settingsMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
@@ -92,7 +94,6 @@ function buildMenuBar() {
             }));
             <% } %>
             <% } %>
-            <% } %>
             topMenuBar.addChild(new dijit.PopupMenuBarItem({
                 label: "Settings",
                 popup: settingsMenu
@@ -100,7 +101,8 @@ function buildMenuBar() {
         }
         { // Modules Menu
             var modulesMenu = new dijit.Menu({});
-            <% for (final PwmSetting.Category loopCategory : PwmSetting.Category.valuesByGroup(1)) { %>
+            <% final Map<PwmSetting.Category,List<PwmSetting>> moduleMap = PwmSetting.valuesByFilter(configManagerBean.getConfiguration().getTemplate(),PwmSetting.Category.Type.MODULE,level); %>
+            <% for (final PwmSetting.Category loopCategory : moduleMap.keySet()) { %>
             <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
             modulesMenu.addChild(new dijit.MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
@@ -167,11 +169,11 @@ function buildMenuBar() {
             var viewMenu = new dijit.Menu({});
             viewMenu.addChild(new dijit.CheckedMenuItem({
                 label: "Advanced Settings",
-                checked: <%=level == PwmSetting.Level.ADVANCED ? "true" : "false"%>,
+                checked: <%=level == 1 ? "true" : "false"%>,
                 onClick: function() {
                     showWaitDialog();
                     dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == PwmSetting.Level.ADVANCED ? "BASIC" : "ADVANCED"%>",
+                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == 1 ? "0" : "1"%>",
                         sync: false,
                         load: function(data) {
                             loadMainPageBody();
@@ -201,13 +203,13 @@ function buildMenuBar() {
                 }
             }));
             viewMenu.addChild(new dijit.MenuItem({
-                label: "PWM Macro Help",
+                label: "Macro Help",
                 onClick: function() {
                     var idName = 'dialogPopup';
                     clearDijitWidget(idName);
                     var theDialog = new dijit.Dialog({
                         id: idName,
-                        title: 'PWM Macro Help',
+                        title: 'Macro Help',
                         style: "width: 550px",
                         href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
                     });
@@ -224,23 +226,23 @@ function buildMenuBar() {
             var templateMenu = new dijit.Menu({});
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
             <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
+            var confirmText = 'Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.';
             templateMenu.addChild(new dijit.CheckedMenuItem({
                 label: "<%=template.getDescription()%>",
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,
                 onClick: function() {
-                    if (!confirm('Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.')) {
-                        return;
-                    }
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
-                        sync: true,
-                        error: function(errorObj) {
-                            showError("error loading " + keyName + ", reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            window.location = "ConfigManager";
-                        }
+                    showConfirmDialog(null,confirmText,function(){
+                        showWaitDialog();
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
+                            sync: true,
+                            error: function(errorObj) {
+                                showError("error loading " + keyName + ", reason: " + errorObj)
+                            },
+                            load: function(data) {
+                                window.location = "ConfigManager";
+                            }
+                        });
                     });
                 }
             }));
@@ -306,12 +308,6 @@ function buildMenuBar() {
 
 PWM_GLOBAL['startupFunctions'].push(function(){
     buildMenuBar();
-    require(["dojo"],function(dojo){
-        if(dojo.isIE <= 8){ // only IE8 and below
-            alert('Internet Explorer 8 and below is not able to edit the configuration.  Please use a newer version of IE or a different browser.');
-            document.forms['cancelEditing'].submit();
-        }
-    });
 });
 
 function loadMainPageBody() {

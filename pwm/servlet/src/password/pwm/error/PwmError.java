@@ -75,12 +75,13 @@ public enum PwmError {
     PASSWORD_TOO_MANY_NON_ALPHA("Password_TooManyNonAlpha", 4036),
     PASSWORD_NOT_ENOUGH_NON_ALPHA("Password_NotEnoughNonAlpha", 4037),
     PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4038),
+    PASSWORD_NEW_PASSWORD_REQUIRED("Password_NewPasswordRequired", 4039, ChaiError.NEW_PASSWORD_REQUIRED),
 
     NUMBERVALIDATION_INVALIDNUMER("NumberValidation_Invalid_Number", 4101),
     NUMBERVALIDATION_LOWERBOUND("NumberValidation_Lowerbound", 4102),
     NUMBERVALIDATION_UPPERBOUND("NumberValidation_Upperbound", 4103),
 
-    ERROR_WRONGPASSWORD("Error_WrongPassword", 5001),
+    ERROR_WRONGPASSWORD("Error_WrongPassword", 5001, ChaiError.FAILED_AUTHENTICATION),
     ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002),
     ERROR_USERAUTHENTICATED("Error_UserAuthenticated", 5003),
     ERROR_AUTHENTICATION_REQUIRED("Error_AuthenticationRequired", 5004),

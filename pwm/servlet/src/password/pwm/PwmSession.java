@@ -319,7 +319,7 @@ public class PwmSession implements Serializable {
                 sb.append(", ");
                 sb.append("dn=").append(getUserInfoBean().getUserDN());
                 sb.append(", ");
-                sb.append("knownPassword=").append(!getUserInfoBean().isAuthFromUnknownPw());
+                sb.append("knownPassword=").append(!getUserInfoBean().isCurrentPasswordUnknownToUser());
                 sb.append(", ");
                 sb.append("needsNewPW=").append(getUserInfoBean().isRequiresNewPassword());
                 sb.append(", ");

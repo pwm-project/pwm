@@ -184,7 +184,7 @@
                         Auth is via unknown password
                     </td>
                     <td>
-                        <%= pwmSession.getUserInfoBean().isAuthFromUnknownPw() %>
+                        <%= pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() %>
                     </td>
                 </tr>
                 <tr>

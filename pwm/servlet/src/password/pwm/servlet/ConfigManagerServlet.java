@@ -462,7 +462,7 @@ public class ConfigManagerServlet extends TopServlet {
             final String requestedLevelstr = Validator.readStringFromRequest(req, "level");
             if (requestedLevelstr != null && requestedLevelstr.length() > 0) {
                 try {
-                    configManagerBean.setLevel(PwmSetting.Level.valueOf(requestedLevelstr));
+                    configManagerBean.setLevel(Integer.valueOf(requestedLevelstr));
                     LOGGER.trace("setting level to: " + configManagerBean.getLevel());
                 } catch (Exception e) {
                     LOGGER.error("unknown level set request: " + requestedLevelstr);
@@ -481,15 +481,15 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
         {
-            final String requestedTemplate = Validator.readStringFromRequest(req, "getTemplate");
+            final String requestedTemplate = Validator.readStringFromRequest(req, "template");
             if (requestedTemplate != null && requestedTemplate.length() > 0) {
                 try {
                     final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE, template.toString());
-                    LOGGER.trace("setting getTemplate to: " + requestedTemplate);
+                    LOGGER.trace("setting template to: " + requestedTemplate);
                 } catch (IllegalArgumentException e) {
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE,PwmSetting.Template.DEFAULT.toString());
-                    LOGGER.error("unknown getTemplate set request: " + requestedTemplate);
+                    LOGGER.error("unknown template set request: " + requestedTemplate);
                 }
             }
         }

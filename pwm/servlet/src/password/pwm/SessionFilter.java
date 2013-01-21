@@ -485,6 +485,21 @@ public class SessionFilter implements Filter {
             return false;
         }
 
+        // high priority password changes.
+        if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+            if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToPwm()) {
+                if (!PwmServletURLHelper.isChangePasswordURL(req)) {
+                    LOGGER.info(pwmSession, "user password is unknown to application, redirecting to change password servlet");
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+
+
         if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
                 if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
