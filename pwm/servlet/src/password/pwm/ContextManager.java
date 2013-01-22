@@ -24,8 +24,6 @@ package password.pwm;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -108,8 +106,7 @@ public class ContextManager implements Serializable {
         }
 
         final EnvironmentTest[] tests = new EnvironmentTest[]{
-                new JavaVersionCheck(),
-                new PwmSettingDefaults()
+                new JavaVersionCheck()
         };
         for (final EnvironmentTest doTest : tests) {
             startupErrorInformation = doTest.doTest();
@@ -290,28 +287,6 @@ public class ContextManager implements Serializable {
                 System.err.println(errorMsg);
                 LOGGER.fatal(errorMsg);
                 return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
-            }
-            return null;
-        }
-    }
-
-    private static class PwmSettingDefaults implements EnvironmentTest  {
-        public ErrorInformation doTest() {
-            for (final PwmSetting.Template template : PwmSetting.Template.values()) {
-                final StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
-                storedConfiguration.setTemplate(template);
-                for (final PwmSetting pwmSetting : PwmSetting.values()) {
-                    try {
-                        storedConfiguration.readSetting(pwmSetting);
-                    } catch (Throwable e)  {
-                        final String errorMsg = "error reading default value for PwmSetting key=" + pwmSetting.getKey() + ", getTemplate=" + template.toString() + ", error: " + e.getMessage();
-                        return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
-                    }
-                }
-                final List<String> errors = storedConfiguration.validateValues();
-                if (errors != null && !errors.isEmpty()) {
-                    return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "error reading default setting value: " + errors.iterator().next());
-                }
             }
             return null;
         }

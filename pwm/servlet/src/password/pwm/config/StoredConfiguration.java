@@ -211,8 +211,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template)
     {
         try {
-            final String defaultValueString = pwmSetting.getDefaultValue(template);
-            return ValueFactory.fromJson(pwmSetting,defaultValueString);
+            return pwmSetting.getDefaultValue(template);
         } catch (PwmOperationalException e) {
             final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getErrorInformation().toDebugStr();
             LOGGER.error(errorMsg,e);

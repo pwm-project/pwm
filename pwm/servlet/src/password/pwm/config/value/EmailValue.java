@@ -127,9 +127,10 @@ public class EmailValue implements StoredValue {
             seenLocales.addAll(subjectMap.keySet());
             seenLocales.addAll(bodyPlainMap.keySet());
             seenLocales.addAll(bodyHtmlMap.keySet());
-            final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
-            final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
-            final EmailItemBean defaultBean = defaultList.get("");
+            //final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
+            //final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
+            //final EmailItemBean defaultBean = defaultList.get("");
+            /*
             for (final String localeStr : seenLocales) {
                 values.put(localeStr,new EmailItemBean(
                         null,
@@ -139,6 +140,7 @@ public class EmailValue implements StoredValue {
                         bodyHtmlMap.containsKey(localeStr) ? bodyHtmlMap.get(localeStr) : defaultBean.getBodyHtml()
                         ));
             }
+            */
         }
         return new EmailValue(values);
     }

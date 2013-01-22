@@ -1,0 +1,2507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <setting key="pwm.selfURL" level="0">
+        <label>PWM Site URL</label>
+        <description><![CDATA[The URL to this password servlet, as seen by users.  The value is used in email macros and other user facing communications.  Example: <i>https://password.example.com/pwm</i>.  The URL should contain the context path (usually <i>/pwm</i>).  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent PWM from accurately determining the URL.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwm.versionCheck.enable" level="0" required="true">
+        <label>Enable Version Checking</label>
+        <description><![CDATA[Allow PWM to periodically check for new versions]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="pwm.publishStats.enable" level="0" required="true">
+        <label>Enable Anonymous Statistics Publishing</label>
+        <description><![CDATA[If true, PWM will periodically publish statics to the PWM project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps PWM developers know which features are used by administrators and understand whatPWM is used for.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="pwm.publishStats.siteDescription" level="0">
+        <label>Site Description</label>
+        <description><![CDATA[If Anonymous statistics publishing is enabled, this optional site description is published along with the otherwise anonymous statisics.  This can be an organization name, or other similar value.]]></description>
+        <regex>^.{0,100}$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwm.forwardURL" level="0">
+        <label>Forward URL</label>
+        <description><![CDATA[After completing any activity which does not require a logout, the user will be forwarded to this url.<br/><br/>This setting can always be overridden for any given user session by adding a <i>forwardURL</i> parameter to any HTTP request.  If blank, the user will be forward to the application menu.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwm.logoutURL" level="0">
+        <label>Logout URL</label>
+        <description><![CDATA[URL to redirect user to upon logout.  If the site is being accessed through a web authentication gateway, the Logout URL should be set to the gateway's Logout URL. If you are using a gateway and do not include the proper Logout URL here, then users will almost certainly get authentication errors, intruder lockouts and other problems.  If things are working properly then the user should see the gateway logout screen when logging out of PWM.<br/><br/>The Logout URL can be set to any desired relative or absolute URL.  At the time the user's browser requests this url, the PWM session will have already been invalidated.<br/><br/>This setting can always be overridden for any given user session by adding a <i>logoutURL</i> parameter to any HTTP request during the session.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="google.analytics.tracker" level="0">
+        <label>Google Analytics Code</label>
+        <description><![CDATA[Google tracking cookie code.  Used for Google Analytics.  See <a href="http://www.google.com/analytics/">http://www.google.com/analytics/</a>.  If this setting is blank, this feature will be disabled.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwmInstanceName" level="1">
+        <label>PWM Instance Name</label>
+        <description><![CDATA[Name of PWM instance.  If blank a persistent, randomly generated value will be used.  Recommended value is blank.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="idleTimeoutSeconds" level="0" required="true">
+        <label>Idle Timeout Seconds</label>
+        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+    <setting key="display.hideConfigHealthWarnings" level="1">
+        <label>Hide Configuration Health Warnings</label>
+        <description><![CDATA[Hide health warnings about configuration issues from the health status monitors.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="knownLocales" level="1">
+        <label>Known Locales</label>
+        <description><![CDATA[List of locales available in PWM.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
+        <regex>^.+::.+$</regex>
+        <default>
+            <value><![CDATA[en::us]]></value>
+            <value><![CDATA[cs::cz]]></value>
+            <value><![CDATA[de::de]]></value>
+            <value><![CDATA[es::es]]></value>
+            <value><![CDATA[fi::fi]]></value>
+            <value><![CDATA[fr::fr]]></value>
+            <value><![CDATA[iw::il]]></value>
+            <value><![CDATA[it::it]]></value>
+            <value><![CDATA[ja::jp]]></value>
+            <value><![CDATA[ko::sk]]></value>
+            <value><![CDATA[nl::nl]]></value>
+            <value><![CDATA[no::no]]></value>
+            <value><![CDATA[pl::pl]]></value>
+            <value><![CDATA[pt::pt]]></value>
+            <value><![CDATA[sk::sk]]></value>
+            <value><![CDATA[th::th]]></value>
+            <value><![CDATA[tr::tr]]></value>
+            <value><![CDATA[zh::cn]]></value>
+        </default>
+    </setting>
+    <setting key="interface.theme" level="0" required="true">
+        <label>Interface Theme</label>
+        <description><![CDATA[Change the look and feel of PWM by selecting a theme.  Themes are provided to provide CSS customizers inspiration.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
+        <default>
+            <value><![CDATA[default]]></value>
+        </default>
+        <options>
+            <option value="default">Default</option>
+            <option value="autumn">Autumn</option>
+            <option value="blue">Blue</option>
+            <option value="matrix">Matrix</option>
+            <option value="midnight">Midnight</option>
+            <option value="red">Red</option>
+            <option value="sterile">Sterile</option>
+            <option value="tulips">Tulips</option>
+            <option value="water">Water</option>
+            <option value="custom">Custom</option>
+            <option value="embed">Embedded</option>
+        </options>
+    </setting>
+    <setting key="password.showAutoGen" level="0" required="true">
+        <label>Show Auto Generate Randoms</label>
+        <description><![CDATA[If true, the user will see the auto-generate random password link on the change password screen.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.showStrengthMeter" level="0" required="true">
+        <label>Show Strength Meter</label>
+        <description><![CDATA[If true, the user will see the password strength meter on the change password screen.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.password.guideText" level="0">
+        <label>Password Guide Text</label>
+        <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="display.showHidePasswordFields" level="0" required="true">
+        <label>Show Show/Hide Password Button</label>
+        <description><![CDATA[Where available, allow the user to toggle the show/hide password field option.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.showCancelButton" level="0" required="true">
+        <label>Show Cancel Button</label>
+        <description><![CDATA[Where appropriate, show a "Cancel" button to user.  Pressing the cancel button will send the user to the forwardURL (or logoutURL if the password has been modified).  The cancel button will show on the change password screen only if the password is not expired.  The Cancel button will only show up if the browser has javaScript enabled.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.showResetButton" level="0" required="true">
+        <label>Show Reset Button</label>
+        <description><![CDATA[Where appropriate, show a "Reset" button to user.  Pressing the reset button will clear the form field values to their original values.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.showSuccessPage" level="0" required="true">
+        <label>Show Success Pages</label>
+        <description><![CDATA[When an activity completes successfully, PWM will normally show a "success" page to the user informing the user the action is completed.  This page can be bypassed by changing this setting to false.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.passwordHistory" level="0" required="true">
+        <label>Show Password Event History</label>
+        <description><![CDATA[Show Password History menu on main menu.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.accountInformation" level="0" required="true">
+        <label>Show User Account Information</label>
+        <description><![CDATA[Show User Account Information menu on main menu.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.showLoginPageOptions" level="0" required="true">
+        <label>Show Login Page Options</label>
+        <description><![CDATA[If true, the login page will display the "Forgotten Password" and other options (if those components are enabled).]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.logoutButton" level="0" required="true">
+        <label>Show Logout Button</label>
+        <description><![CDATA[When authenticated, show a logout button in header and/or other menus as appropriate.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.css.customStyleLocation" level="1">
+        <label>Custom CSS Stylesheet Location.</label>
+        <description><![CDATA[URL Location (and name) of the pwmStyle.css.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <default>
+            <value><![CDATA[/public/resources/custom/pwmStyle.css]]></value>
+        </default>
+    </setting>
+    <setting key="display.css.customMobileStyleLocation" level="1">
+        <label>Custom Mobile CSS Stylesheet Location</label>
+        <description><![CDATA[URL Location (and name) of the pwmMobileStyle.css.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <default>
+            <value><![CDATA[/public/resources/custom/pwmStyleMobile.css]]></value>
+        </default>
+    </setting>
+    <setting key="display.css.customStyle" level="1">
+        <label>Embedded CSS Stylesheet</label>
+        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/pwmStyle.css</b>.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="display.css.customMobileStyle" level="1">
+        <label>Embedded Mobile CSS Stylesheet</label>
+        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/pwmMobileStyle.css</b>.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="display.js.custom" level="1">
+        <label>Embedded JavaScript</label>
+        <description><![CDATA[Contents of this setting will be injected into all PWM pages inside a <script></script> html tag near the bottom of the page.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="logoutAfterPasswordChange" level="0" required="true">
+        <label>Logout After Password Change</label>
+        <description><![CDATA[Force user to logout of PWM (and send to logoutURL) after a password change.<br/><br/>In most cases, this should be left on (default), especially if using some type of single sign on service.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.require.form" level="0">
+        <label>Change Password Required Values Form</label>
+        <description><![CDATA[Values required to be entered prior to password change.]]></description>
+        <default>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="password.change.requireCurrent" level="0" required="true">
+        <label>Require Current Password during change</label>
+        <description><![CDATA[If true, the user's current password will be required on the change password page for most change password scenarios.  In most cases this is not required because the user just authenticated to pwm prior to the seeing the change password page.  The major exception is when using SSO with pwm, in that case you will probably what to set "Only when not expired" so that the current password must be supplied when the user attempts a password change during a session, but not when forced to change immediately upon authentication.]]></description>
+        <default>
+            <value><![CDATA[false]]></value>
+        </default>
+        <options>
+            <option value="TRUE">True</option>
+            <option value="FALSE">False</option>
+            <option value="NOTEXPIRED">Only when not expired</option>
+        </options>
+    </setting>
+    <setting key="display.password.changeAgreement" level="0">
+        <label>Password Change Agreement Message</label>
+        <description><![CDATA[<p>Message to display to user before being allowed to change password. If blank, the change password agreement page will not be displayed to the user. This message may include HTML tags.</p> <p>This setting may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="passwordSyncMinWaitTime" level="1" required="true">
+        <label>Password Change Minimum Wait Time</label>
+        <description><![CDATA[During a password change, PWM will wait for at least this amount of time before forwarding the user. <br/><br/>Value is specified in seconds.]]></description>
+        <default>
+            <value>15</value>
+        </default>
+    </setting>
+    <setting key="passwordSyncMaxWaitTime" level="1" required="true">
+        <label>Password Change Maximum Wait Time</label>
+        <description><![CDATA[During a password change, PWM will wait for the password to be synchronized to all configured LDAP servers.  In cases where the synchronization may take an extraordinary amount of time, this setting will prevent the page from timing out.<br/><br/>Value is specified in seconds.]]></description>
+        <default>
+            <value>90</value>
+        </default>
+    </setting>
+    <setting key="expirePreTime" level="0" required="true">
+        <label>Password Pre-Expire Time</label>
+        <description><![CDATA[Number of seconds before a user's password expires in which to force the user to change their password.  If the user's password will expire within this time frame, PWM will behave as if the user's password has already expired. <br/><br/>Setting this value to a day or so will prevent most cases of a user's password expiring while they are logged in.  The recommend setting for this value is 86400 (1 day).]]></description>
+        <default>
+            <value>86400</value>
+        </default>
+    </setting>
+    <setting key="expireWarnTime" level="0" required="true">
+        <label>Password ExpireWarn Time</label>
+        <description><![CDATA[Number of seconds before a user's password expires in which to warn the user to change their password.  If the user's password will expire within this time frame, PWM will warn the user during a CommandServlet checkExpire or checkAll operation. <br/><br/>If this time is zero or less than the expirePreTime, this feature will be disabled.  The recommended setting for this value is 432000 (5 days).]]></description>
+        <default>
+            <value>432000</value>
+        </default>
+    </setting>
+    <setting key="expireCheckDuringAuth" level="1" required="true">
+        <label>Check Expire During Authentication</label>
+        <description><![CDATA[When the user is authenticated to PWM, should there be a check to see if the user's password is expired (or about to expire based on the expirePreTime).  If this is set to true, and the user's password is expired, they will be forced to the expire password page.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="pwm.seedlist.location" level="1">
+        <label>Seedlist File</label>
+        <description><![CDATA[PWM can generate "friendly" random password suggestions to users.  It does this by using a "seed" word or words, and then modifying that word randomly until it is sufficiently complex and meets the configured rules computed for the user.<br/><br/>Setting this to blank will result in suggested passwords being completely randomized.]]></description>
+        <default>
+            <value><![CDATA[seedlist.zip]]></value>
+        </default>
+    </setting>
+    <setting key="changePassword.writeAttributes" level="0">
+        <label>Post Password Change Actions</label>
+        <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  PwmMacros can be used within the action and will be expanded based on the loged in user.]]></description>
+        <default />
+    </setting>
+    <setting key="ldap.serverUrls" level="0" required="true">
+        <label>LDAP URLs</label>
+        <description><![CDATA[List of ldap servers in URL format.  PWM will use these servers in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable PWM will use the next available server in the list.  PWM will then periodically fall-back to the first server to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine running PWM must trust the directory server, either because it has a valid commercial certificate, or because you have manually added the public key certificate from the tree to the Java keystore.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Avoid using a virtual IP address (vip) or load balancer device whenever possible.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
+        <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
+        <default>
+            <value><![CDATA[ldaps://ldap.example.com:636]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.promiscuousSSL" level="0" required="true">
+        <label>LDAP Promiscuous SSL</label>
+        <description><![CDATA[If true PWM will trust any LDAP SSL certificate without any verification.  Thus, with this setting set to true, it is not required to import the LDAP server's SSL certificate into the Java keystore.<br/><br/><b>WARNING:</b> using promiscuous SSL is a security risk and should never be used in a production system.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldap.proxy.username" level="0" required="true">
+        <label>LDAP Proxy User</label>
+        <description><![CDATA[LDAP Proxy User used by PWM to access the ldap directory. This user must have rights to browse users, and manage password attributes on the user object.<br/><br/>This value should be in LDAP distinguished name format, even if your ldap directory accepts other types of values for the bind DN.  An example of this format is <i>cn=admin,o=example</i> or <i>cn=administrator,cn=users,dc=subdomain,dc=domain,dc=net</i>.<br/><br/>Generally, the proxy user needs read/browse object rights to all user objects it will manage, as well as create object rights in the new user container (if enabled).]]></description>
+        <default>
+            <value><![CDATA[cn=admin,o=example]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.proxy.password" level="0">
+        <label>LDAP Proxy Password</label>
+        <description><![CDATA[The corresponding password of LDAP Proxy User user.]]></description>
+    </setting>
+    <setting key="ldap.rootContexts" level="0" required="true">
+        <label>LDAP Contextless Login Roots</label>
+        <description><![CDATA[Base context to search for usernames during authentication and other operations.  Each context will be searched in order until a single match is found.  If multiple matches are found in a single context, a match will be considered not found.  Because each search is executed serially, avoid large numbers of contexts to improve search performance.]]></description>
+        <default>
+            <value><![CDATA[ou=users,o=example]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.selectableContexts" level="1">
+        <label>User Selectable Login Contexts</label>
+        <description><![CDATA[This optional setting, if configured, will add another field to the form-based PWM login screen and other user search screens.  The field will allow the user to select a specific context. This allows PWM to be used against ldap directories that do not have unique usernames throughout the entire directory. <br/><br/>Values can further be set with both a display value and a context, separated by three colons.<br/><br/>For example:<p><b>ou=sf,ou=ca,o=example:::San Francisco</b><br/<b>ou=lon,ou=uk,o=example:::London</b><br/<b>ou=nyc,ou=ny,o=example:::New York</b><br/</p>]]></description>
+        <regex>^.+:::.+$</regex>
+        <default />
+    </setting>
+    <setting key="ldap.testuser.username" level="0">
+        <label>LDAP Test User</label>
+        <description><![CDATA[The LDAP test user is used by PWM to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. PWM will periodically use this account to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability of PWM to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwmAdmin.queryMatch" level="0" required="true">
+        <label>PWM Admin Query String</label>
+        <description><![CDATA[Query string used to detect if a user is a pwmAdministrator.  An LDAP query is performed during pwm login against the logged in user to determine if the user is a pwm Admin.  If the user matches the query, then the user is considered a PWM administrator.]]></description>
+        <default>
+            <value><![CDATA[(groupMembership=cn=PwmAdmins,ou=Groups,o=example)]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.usernameSearchFilter" level="1" required="true">
+        <label>Username search filter</label>
+        <description><![CDATA[Used to for contextless login and other functions to find users in ldap using usernames.  The value <i>%USERNAME%</i> is replaced with the actual username value.]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[(&(objectClass=person)(|(samAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[(&(objectClass=person)(|(samAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.readPasswordPolicies" level="1" required="true">
+        <label>Read Password Policies</label>
+        <description><![CDATA[If this setting is true, PWM will attempt to read the password policy for the user from the ldap directory.  Support for this functionality varies based on directory vendor and directory configuration settings. <br/><br/>After successfully reading a user password policy, PWM will merge the PWM configured policy and the user policy and apply the most restrictive value for each setting.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.addObjectClasses" level="1">
+        <label>Auto Add Object Classes</label>
+        <description><![CDATA[Object classes to automatically add to users who authenticate to the password servlet.  Typically this is the standard pwmUser aux class.  The definition for this class is in the supplied pwmSchema.ldif file.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[pwmUser]]></value>
+        </default>
+        <default template="ADDB">
+            <value />
+        </default>
+    </setting>
+    <setting key="password.allowChange.queryMatch" level="1" required="true">
+        <label>Change Password Query Match</label>
+        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this is ldap query or else the user will not be permitted to change the password.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
+    <setting key="passwordLastUpdateAttribute" level="1">
+        <label>Last Password Update Attribute</label>
+        <description><![CDATA[This attribute is used to mark when the password is updated, and is used during replication checks, and other processes.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[pwmLastPwdUpdate]]></value>
+        </default>
+        <default template="ADDB">
+            <value />
+        </default>
+    </setting>
+    <setting key="ldap.namingAttribute" level="1" required="true">
+        <label>LDAP Naming Attribute</label>
+        <description><![CDATA[Attribute name used as the naming attribute on ldap user entries. This value is also the first part of the distinguished name of a user.  This name is constant depending on directory vendor type, even if a different attribute is used for the login search filter.  Typically the naming attribute is <i>cn</i> or <i>uid</i>.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[cn]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.idleTimeout" level="1" required="true">
+        <label>LDAP Idle Timeout</label>
+        <description><![CDATA[Amount of seconds the LDAP connection for a given session can remain idle before closing. If zero, then an ldap connection will be maintained throughout the lifetime of the http session.]]></description>
+        <default>
+            <value>30</value>
+        </default>
+    </setting>
+    <setting key="ldap.guidAttribute" level="1" required="true">
+        <label>LDAP GUID Attribute</label>
+        <description><![CDATA[This attribute is used by PWM to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, PWM will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as PWM can trust the directory to enforce the uniqueness.  Lastly, you can use a custom attribute such as the pwmGUID attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[VENDORGUID]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.guid.autoAddValue" level="1" required="true">
+        <label>Auto-Add GUID Value</label>
+        <description><![CDATA[If true, PWM will attempt to add a unique GUID value for any user attempting to authenticate that does not have a value.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldap.wireTrace.enable" level="1" required="true">
+        <label>Enable LDAP Wire Trace</label>
+        <description><![CDATA[If true, PWM will enable logging of all ldap read/write values to the TRACE logging level.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldapChaiSettings" level="1">
+        <label>LDAP Chai Settings</label>
+        <description><![CDATA[Name/Value settings to control the behavior of the <a href="http://code.google.com/p/ldapchai">LDAP Chai API</a>.  The settings must be in "name=value" format, where name is the key value of a valid <a href="http://ldapchai.googlecode.com/svn/trunk/javadoc/com/novell/ldapchai/provider/ChaiSetting.html">ChaiSetting</a>.]]></description>
+        <regex>^chai\.[a-zA-Z0-9.]*=.+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="ldap.username.attr" level="1">
+        <label>Attribute to use for Username</label>
+        <description><![CDATA[If blank, the LDAP Naming Attribute will be used.  This configuration option allows screens that display the "Username" of a user to show something other then the LDAP Naming Attribute if appropriate.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value />
+        </default>
+        <default template="AD">
+            <value><![CDATA[sAMaccountName]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[sAMaccountName]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.followReferrals" level="1" required="true">
+        <label>Follow LDAP Referrals</label>
+        <description><![CDATA[--RESOURCE MISSING--]]></description>
+        <regex>Follow LDAP Referrals.  Not typically required except for Active Directory.</regex>
+        <default>
+            <value>false</value>
+        </default>
+        <default template="AD">
+            <value>true</value>
+        </default>
+        <default template="ADDB">
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="email.smtp.address" level="0">
+        <label>SMTP Email Server Address</label>
+        <description><![CDATA[Any emails generated by PWM will be sent via this server.  Removing this setting will prevent PWM from sending any email at all.  Be sure the server listed here allows relaying.  For best results, use a local smtp server.]]></description>
+        <regex>^[a-zA-Z0-9.-]*$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="email.smtp.username" level="1">
+        <label>SMTP Email Server Username</label>
+        <description><![CDATA[Any emails generated by PWM will be sent by logging into server with this user.  A blank value will here will send SMTP messages without authentication.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="email.smtp.userpassword" level="1">
+        <label>SMTP Email Server Password</label>
+        <description><![CDATA[Any emails generated by PWM will be sent by logging into server with this password.  A blank value will here will send SMTP messages without authentication.]]></description>
+    </setting>
+    <setting key="email.userMailAttribute" level="1" required="true">
+        <label>User Email attribute</label>
+        <description><![CDATA[User LDAP attribute containing the user's email address.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[mail]]></value>
+        </default>
+    </setting>
+    <setting key="email.queueMaxAge" level="1" required="true">
+        <label>Maximum Email Queue Age</label>
+        <description><![CDATA[Maximum age (in seconds) an email can wait in the send queue.  If an email is in the send queue longer than this time, it will be discarded.  Emails only persist in the send queue if there is an IO or network error to the smtp server while sending the email.]]></description>
+        <default>
+            <value>3600</value>
+        </default>
+    </setting>
+    <setting key="email.adminAlert.toAddress" level="0">
+        <label>Admin Alert To Address</label>
+        <description><![CDATA[During certain events, PWM will send email notifications such events include things like intruder lockout events, or ldap server unavailability Leave this setting blank to disable the alerts.]]></description>
+        <default>
+            <value><![CDATA[admin@example.com]]></value>
+        </default>
+    </setting>
+    <setting key="email.adminAlert.fromAddress" level="1">
+        <label>Admin Alert From Address</label>
+        <description><![CDATA[Admin alert "From" email address.]]></description>
+        <default>
+            <value><![CDATA[PWM Alert Notification <noreply@@PWM:SiteHost@>]]></value>
+        </default>
+    </setting>
+    <setting key="email.changePassword" level="0">
+        <label>Change Password Email</label>
+        <description><![CDATA[Email sent to user when a password change occurs.  This email is only sent when the user changes their own password.]]></description>
+        <default>
+            <value>{"from":"Change Password Notice \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
+        </default>
+    </setting>
+    <setting key="email.changePassword.helpdesk" level="0">
+        <label>Helpdesk Change Password Email</label>
+        <description><![CDATA[Email sent to user when the helpdesk changes the user's password.]]></description>
+        <default>
+            <value>{"from":"Change Password Notice \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your help desk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your help desk."}</value>
+        </default>
+    </setting>
+    <setting key="email.updateProfile" level="0">
+        <label>Update Profile Email</label>
+        <description><![CDATA[Email sent to users after a profile update.]]></description>
+        <default>
+            <value>{"from":"Profile Update \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.newUser" level="0">
+        <label>New User Email</label>
+        <description><![CDATA[Email sent to newly created users.]]></description>
+        <default>
+            <value>{"from":"New User Registration \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.newUser.token" level="0">
+        <label>New User Verification Email</label>
+        <description><![CDATA[Email sent during new user verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
+        <default>
+            <value>{"from":"New User Registration \u003cnoreply@@PWM:SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@PWM:SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+        </default>
+    </setting>
+    <setting key="email.activation" level="0">
+        <label>Activation Email</label>
+        <description><![CDATA[Email sent to a user just after a successful activation.]]></description>
+        <default>
+            <value>{"from":"Activation Notification \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account.\u003c/b\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.activation.token" level="0">
+        <label>Activation Verification Email</label>
+        <description><![CDATA[Email sent during activation verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
+        <default>
+            <value>{"from":"Activation Verification \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@PWM:SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+        </default>
+    </setting>
+    <setting key="email.challenge.token" level="0">
+        <label>Forgotten Password Verification Email</label>
+        <description><![CDATA[Email sent during forgotten password verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
+        <default>
+            <value>{"from":"Forgotten Password \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@PWM:SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
+        </default>
+    </setting>
+    <setting key="email.guest" level="1">
+        <label>Guest Registration Email</label>
+        <description><![CDATA[Email sent to newly created guest users.]]></description>
+        <default>
+            <value>{"from":"Guest Registration Agent \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.updateguest" level="1">
+        <label>Guest Registration Update Email</label>
+        <description><![CDATA[Email sent to newly created guest users.]]></description>
+        <default>
+            <value>{"from":"Guest Registration Agent \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.sendpassword" level="1">
+        <label>Send Password Email Subject</label>
+        <description><![CDATA[Email sent during new user verification process if send password functionality is enabled.]]></description>
+        <default>
+            <value>{"from":"Password Notifier \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n%PASSWORD%\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e%PASSWORD%\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003eThank you for requesting a password reset.  Your new password is:\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e \u003c/b\u003e\u003c/font\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.smtp.advancedSettings" level="1">
+        <label>SMTP Email Advanced Settings</label>
+        <description><![CDATA[Name/Value settings to control the behavior of the mail agent.Available settings are defined as part of the <a href="http://java.sun.com/products/javamail/javadocs/com/sun/mail/smtp/package-summary.html">JavaMail API</a>. The settings must be in "name=value" format, where name is the key value of a valid JavaMail API setting.]]></description>
+        <regex>^[a-zA-Z0-9.]+=.+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="sms.userSmsAttribute" level="0" required="true">
+        <label>User SMS number attribute</label>
+        <description><![CDATA[User LDAP attribute containing the user's mobile phone number for SMS.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[personalMobile]]></value>
+        </default>
+    </setting>
+    <setting key="sms.queueMaxAge" level="1" required="true">
+        <label>Maximum SMS Queue Age</label>
+        <description><![CDATA[Maximum age (in seconds) an sms can wait in the send queue.  If an sms is in the send queue longer than this time, it will be discarded.  SMS messages only persist in the send queue if there is an IO or network error to the sms gateway server while sending the message.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+    <setting key="sms.gatewayURL" level="0" required="true">
+        <label>SMS Gateway</label>
+        <description><![CDATA[URL for the SMS gateway]]></description>
+        <regex>^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
+        <default>
+            <value><![CDATA[https://sms.example.com/service]]></value>
+        </default>
+    </setting>
+    <setting key="sms.gatewayUser" level="0">
+        <label>SMS Gateway User</label>
+        <description><![CDATA[User name for the SMS gateway]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="sms.gatewayPassword" level="0">
+        <label>SMS Gateway Password</label>
+        <description><![CDATA[User password for the SMS gateway]]></description>
+    </setting>
+    <setting key="sms.gatewayMethod" level="0" required="true">
+        <label>HTTP(S) Method</label>
+        <description><![CDATA[HTTP(S) protocol method to be used for sending SMS messages.]]></description>
+        <default>
+            <value><![CDATA[POST]]></value>
+        </default>
+        <options>
+            <option value="POST">POST</option>
+            <option value="GET">GET</option>
+        </options>
+    </setting>
+    <setting key="sms.gatewayAuthMethod" level="1" required="true">
+        <label>SMS Gateway Authentication Method</label>
+        <description><![CDATA[Method to be used for authentication on the SMS gateway.]]></description>
+        <default>
+            <value><![CDATA[REQUEST]]></value>
+        </default>
+        <options>
+            <option value="REQUEST">Request - Authentication will be part of the request</option>
+            <option value="HTTP">HTTP - Use HTTP basic authentication</option>
+        </options>
+    </setting>
+    <setting key="sms.requestData" level="1">
+        <label>SMS Request Data</label>
+        <description><![CDATA[The data to be submitted in order to send an SMS message. You can usecertain codes that will be replaced:<ul><li><tt>%USER%</tt>: authentication user name</li><li><tt>%PASS%</tt>: authentication password</li><li><tt>%SENDERID%</tt>: sender identification</li><li><tt>%TO%</tt>: recipient SMS number</li><li><tt>%REQUESTID%</tt>: randomly generated request identifier</li><li><tt>%MESSAGE%</tt>: the message to be sent</li></ul>]]></description>
+        <default>
+            <value><![CDATA[user=%USER%&pass=%PASS%&to=%TO%&msg=%MESSAGE%]]></value>
+        </default>
+    </setting>
+    <setting key="sms.requestContentType" level="1">
+        <label>SMS Data Content Type</label>
+        <description><![CDATA[Content Type for POST data. This is the mime type for the content. This only applies if the HTTP(S) Method is POST. Common values are:<ul><li><tt>application/x-www-form-urlencoded</tt>: HTTP form data</li><li><tt>text/plain</tt>: Plain ASCII data</li><li><tt>text/xml</tt>: XML document</li></ul>Optionally, a character set can be appended. Eg.:<ul><li><tt>application/x-www-form-urlencoded; charset=utf-8</tt>: HTTP form data in UTF-8 encoding</li></ul>]]></description>
+        <regex>^[A-Za-z0-9_\.-]+/[A-Za-z0-9\+_\.-]+([ 	]*;[ 	]*[A-Za-z0-9_\.-]+=([A-Za-z0-9_\.-]|\".+\")+)*$</regex>
+        <default>
+            <value><![CDATA[application/x-www-form-urlencoded]]></value>
+        </default>
+    </setting>
+    <setting key="sms.requestContentEncoding" level="1" required="true">
+        <label>SMS Data Content Encoding</label>
+        <description><![CDATA[Data for fields in the SMS data may need encoding or escaping.</br>See <a href="http://commons.apache.org/lang/api-release/org/apache/commons/lang/StringEscapeUtils.html" target="_new">Apache Commons JavaDocs</a> for detailed information.]]></description>
+        <default>
+            <value><![CDATA[URL]]></value>
+        </default>
+        <options>
+            <option value="NONE">None - no encoding (use at your own risk)</option>
+            <option value="CSV">CSV - Escape for comma separated values</option>
+            <option value="HTML">HTML - for HTML data</option>
+            <option value="JAVA">Java - for Java String representations</option>
+            <option value="JAVASCRIPT">Javascript - recommended for JSON formatted documents</option>
+            <option value="SQL">SQL - turn single-quotes (') into double single-quotes ('')</option>
+            <option value="URL">URL - recommended for GET requests and POST with form data (default)</option>
+            <option value="XML">XML - for XML and/or SOAP services</option>
+        </options>
+
+    </setting>
+    <setting key="sms.httpRequestHeaders" level="1">
+        <label>SMS Gateway HTTP Request Headers</label>
+        <description><![CDATA[Additional HTTP request headers for the SMS request, for example SOAPAction for SOAP messages.]]></description>
+        <regex>^[A-Za-z0-9_\.-]+:.*</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="sms.maxTextLength" level="1" required="true">
+        <label>Maximum SMS Text Length</label>
+        <description><![CDATA[Maximum length for SMS text. Some services allow texts longer than one message (generally 140 bytes). If the text is longer than the configured maximum, multiple requests will be made.]]></description>
+        <default>
+            <value>140</value>
+        </default>
+    </setting>
+    <setting key="sms.responseOkRegex" level="1">
+        <label>Response Regular Expressions</label>
+        <description><![CDATA[Regular expressions that can be used to determine whether the SMS has been sent succesfully. If the response matches any of the expressions, the transmission is considered succesful. If no expressions are entered, all transmissions are assumed successful. NOTE: the string must match an entire line. Use <tt>.*</tt> to match anything after the required texts.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="sms.senderID" level="0">
+        <label>SMS Sender ID</label>
+        <description><![CDATA[Alphanumerical sender identification. If blank, the provider will most likely use a default or anonymous sender identification. In most cases the sender ID must be validated by the SMS provider. Please contact your provider for values that can be used as a valid sender identification.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="sms.phoneNumberFormat" level="1" required="true">
+        <label>SMS Phone Number Format</label>
+        <description><![CDATA[The format that should be used for the mobile phone number.]]></description>
+        <default>
+            <value><![CDATA[ZEROS]]></value>
+        </default>
+        <options>
+            <option value="PLAIN">Plain - country code (e.g. 1 for USA) plus subscriber number (e.g. 12312345): 112312345</option>
+            <option value="PLUS">Plus - Same as plain, but with a plus sign as a prefix: +112312345</option>
+            <option value="ZEROS">Zeros -  Same as plain, but prefixed with a double zero: 00112312345</option>
+        </options>
+    </setting>
+    <setting key="sms.defaultCountryCode" level="1">
+        <label>Default SMS Country Code</label>
+        <description><![CDATA[Default country code for SMS phone numbers, see <a href="http://countrycode.org/" target="_blank">http://countrycode.org/</a> for a list of country codes. Set to 0 to disable.]]></description>
+        <regex>^[0-9]{0,3}$</regex>
+        <default>
+            <value>1</value>
+        </default>
+    </setting>
+    <setting key="sms.requestId.characters" level="1" required="true">
+        <label>Request Id Characters</label>
+        <description><![CDATA[Available characters SMS request id]]></description>
+        <default>
+            <value><![CDATA[0123456789abcdef]]></value>
+        </default>
+    </setting>
+    <setting key="sms.requestId.length" level="1" required="true">
+        <label>Request Id Length</label>
+        <description><![CDATA[Length of the SMS request id]]></description>
+        <default>
+            <value>6</value>
+        </default>
+    </setting>
+    <setting key="sms.challenge.token.message" level="0" required="true">
+        <label>Challenge Token SMS Text</label>
+        <description><![CDATA[Message text of SMS sent during forgotten password token process.]]></description>
+        <default>
+            <value><![CDATA[Your activation token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.newUser.token.message" level="0" required="true">
+        <label>New User Verification SMS Text</label>
+        <description><![CDATA[Text of SMS sent during new user verification process.]]></description>
+        <default>
+            <value><![CDATA[Your account verification token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.activation.token.message" level="0" required="true">
+        <label>Activation Token SMS Text</label>
+        <description><![CDATA[Message text of token SMS sent during activation process.]]></description>
+        <default>
+            <value><![CDATA[Your activation token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.activation.message" level="0" required="true">
+        <label>Activation SMS Text</label>
+        <description><![CDATA[Message text of SMS sent after succesful activation.]]></description>
+        <default>
+            <value><![CDATA[Thank you for activating your account.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.useUrlShortener" level="1">
+        <label>Use URL Shortener</label>
+        <description><![CDATA[Enable this option to use a url shortener service like tinyurl.com, bit.ly and goo.gl. This will enable searching the SMS text for http and https urls and replace them with a shortened version. The service to be used can be configured under the Miscellaneous options. Be sure to check View|Advanced.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="password.policy.source" level="1" required="true">
+        <label>Password Policy Source</label>
+        <description><![CDATA[This setting determines where PWM should read password policy settings from.  If "LDAP" is selected, PWM will attempt to read the policy out of the ldap directory, and many of the following settings are ignored.  If "PWM" is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If "Merge" is selected, PWM will use both areas to read policy settings, and where there is any conflict, PWM will chose the <b>most restrictive</b> value of the policy.]]></description>
+        <default>
+            <value><![CDATA[MERGE]]></value>
+        </default>
+        <options>
+            <option key="MERGE">Merge PWM and LDAP (default)</option>
+            <option key="LDAP">LDAP</option>
+            <option key="PWM">PWM</option>
+        </options>
+    </setting>
+    <setting key="password.policy.minimumLength" level="0" required="true">
+        <label>Minimum Length</label>
+        <description><![CDATA[Minimum length of password.   A value of zero disables this check.]]></description>
+        <default>
+            <value>2</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumLength" level="0" required="true">
+        <label>Maximum Length</label>
+        <description><![CDATA[Maximum length of password.  A value of zero disables this check.]]></description>
+        <default>
+            <value>64</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumRepeat" level="0" required="true">
+        <label>Maximum Repeat</label>
+        <description><![CDATA[Maximum times any character may be repeated throughout the password.  Case is ignored for this check. A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumSequentialRepeat" level="0" required="true">
+        <label>Maximum Sequential Repeat</label>
+        <description><![CDATA[Maximum times any character may be sequentially repeated throughout the password.Case is ignored for this check.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowNumeric" level="0" required="true">
+        <label>Allow Numeric Characters</label>
+        <description><![CDATA[Allow numeric characters in password.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowFirstCharNumeric" level="0" required="true">
+        <label>Allow First Character Numeric</label>
+        <description><![CDATA[Allow the first character of the password to be numeric.  Applies only if numeric characters are allowed.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowLastCharNumeric" level="0" required="true">
+        <label>Allow Last Character Numeric</label>
+        <description><![CDATA[Allow the last character of the password to be numeric.  Applies only if numeric characters are allowed.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumNumeric" level="0" required="true">
+        <label>Maximum Numeric</label>
+        <description><![CDATA[Maximum amount of numeric characters required (if numeric allowed).  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumNumeric" level="0" required="true">
+        <label>Minimum Numeric</label>
+        <description><![CDATA[Minimum amount of numeric characters required (if numeric allowed).  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowSpecial" level="0" required="true">
+        <label>Allow Special Characters</label>
+        <description><![CDATA[Allow special (non alpha-numeric) characters in password.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowFirstCharSpecial" level="0" required="true">
+        <label>Allow First Character Special</label>
+        <description><![CDATA[Allow the first character of the password to be special.  Applies only if special characters are allowed.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.allowLastCharSpecial" level="0" required="true">
+        <label>Allow Last Character Special</label>
+        <description><![CDATA[Allow the last character of the password to be special.  Applies only if special characters are allowed.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumSpecial" level="0" required="true">
+        <label>Maximum Special</label>
+        <description><![CDATA[Maximum amount of special characters required (if special allowed).  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumSpecial" level="0" required="true">
+        <label>Minimum Special</label>
+        <description><![CDATA[Minimum amount of special characters required (if special allowed).  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumAlpha" level="0" required="true">
+        <label>Maximum Alphabetic</label>
+        <description><![CDATA[Maximum amount of alphabetic characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumAlpha" level="0" required="true">
+        <label>Minimum Alphabetic</label>
+        <description><![CDATA[Minimum amount of alphabetic characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumNonAlpha" level="0" required="true">
+        <label>Maximum Non-Alphabetic</label>
+        <description><![CDATA[Maximum amount of non-alphabetic characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumNonAlpha" level="0" required="true">
+        <label>Minimum Non-Alphabetic</label>
+        <description><![CDATA[Minimum amount of non-alphabetic characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumUpperCase" level="0" required="true">
+        <label>Maximum Uppercase</label>
+        <description><![CDATA[Maximum amount of uppercase characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumUpperCase" level="0" required="true">
+        <label>Minimum Uppercase</label>
+        <description><![CDATA[Minimum amount of uppercase characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumLowerCase" level="0" required="true">
+        <label>Maximum Lowercase</label>
+        <description><![CDATA[Maximum amount of lowercase characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumLowerCase" level="0" required="true">
+        <label>Minimum Lowercase</label>
+        <description><![CDATA[Minimum amount of lowercase characters required.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumUnique" level="0" required="true">
+        <label>Minimum Unique Characters</label>
+        <description><![CDATA[Minimum amount of unique characters allowed.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumOldPasswordChars" level="0" required="true">
+        <label>Maximum Characters From Previous Password</label>
+        <description><![CDATA[Maximum amount of characters from the previous password allowed in the new password.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.caseSensitivity" level="0" required="true">
+        <label>Password is Case Sensitive</label>
+        <description><![CDATA[Controls if the password is case sensitive.  In most cases, this can be read from the directory, but in some cases PWM is not able to correctly determine this value, so you may override it here.]]></description>
+        <default>
+            <value><![CDATA[read]]></value>
+        </default>
+        <options>
+            <option value="read">Read from Directory</option>
+            <option value="true">True (Case Sensitive)</option>
+            <option value="false">False (Case Insensitive)</option>
+        </options>
+    </setting>
+    <setting key="password.policy.checkWordlist" level="0" required="true">
+        <label>Enable Wordlist</label>
+        <description><![CDATA[Check the password against the configured PWM Wordlist.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.ADComplexity" level="0" required="true">
+        <label>Enforce Microsoft-AD Password Complexity</label>
+        <description><![CDATA[Enforce MS-ActiveDirectory style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
+        <default>
+            <value>false</value>
+        </default>
+        <default template="AD">
+            <value>true</value>
+        </default>
+        <default template="ADDB">
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="password.policy.regExMatch" level="1">
+        <label>Required Regular Expression Matches</label>
+        <description><![CDATA[A Regular Expression pattern the password must match in order to be allowed.  Multiple patterns can be listed.   Patterns must follow the rules listed for <a href=http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html">Pattern</a>.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="password.policy.regExNoMatch" level="1">
+        <label>Disallowed Regular Expression Matches</label>
+        <description><![CDATA[A Regular Expression pattern the password must <b>not</b> match in order to be allowed.  Multiple patterns can be listed.   Patterns must follow the rules listed for <a href=http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html">Pattern</a>. A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="password.policy.disallowedValues" level="0">
+        <label>Disallowed Values</label>
+        <description><![CDATA[A case insensitive list of values not allowed to be used as passwords.]]></description>
+        <default>
+            <value><![CDATA[password]]></value>
+            <value><![CDATA[test]]></value>
+        </default>
+    </setting>
+    <setting key="password.policy.disallowedAttributes" level="1">
+        <label>Disallowed Attributes</label>
+        <description><![CDATA[A list of attributes not allowed to be used as passwords.  For a given user, the values will be read and will not be permitted to be used as part of the password value.  This check is case insensitive.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[cn]]></value>
+            <value><![CDATA[givenName]]></value>
+            <value><![CDATA[sn]]></value>
+        </default>
+    </setting>
+    <setting key="password.sharedHistory.enable" level="0" required="true">
+        <label>Enable Shared History</label>
+        <description><![CDATA[Enable a global shared password history for all PWM users.  If enabled, all pwm users will share a common password history.  This helps prevent common organizational words from being used as passwords by users. Passwords are stored as a salted encrypted hash in the PwmDB.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="password.sharedHistory.age" level="1" required="true">
+        <label>Shared History Age</label>
+        <description><![CDATA[PWM will periodically remove values older than the configured value here.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200)]]></description>
+        <default>
+            <value>2419200</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumStrength" level="0" required="true">
+        <label>Minimum Password Strength</label>
+        <description><![CDATA[PWM judges password strength on a scale of 0 to 100 irrespective of the password policy.  This setting requires that the user have a password that meets the minimum strength level specified here, regardless of other password policy rules.   45 or better is considered "good" while 70 or better is considered "strong".  A value of 0 disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.changeMessage" level="0">
+        <label>Password Change Message</label>
+        <description><![CDATA[Message to be displayed to user during password changes.  May include HTML markup.  This setting may be overwritten by a change password message read as part of an ldap password policy.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="password.policy.ruleText" level="1">
+        <label>Password Rule Text</label>
+        <description><![CDATA[Rules to display to user.  By default this is blank, and PWM will construct an appropriate rule text to show to the user.  However if this setting is configured, the text in this setting will replace the automatically generated rule text.  HTML tags are permitted.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="pwm.wordlist.location" level="0">
+        <label>Wordlist File</label>
+        <description><![CDATA[PWM supports worldlist dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included with PWM contains commonly used English passwords.  More comprehensive wordlists are available on the <a href="http://code.google.com/p/pwm">PWM project</a> page.  Wordlists with over 10 million words have been tested. <br/><br/>The first time PWM is run with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information. The wordlist format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.]]></description>
+        <default>
+            <value><![CDATA[wordlist.zip]]></value>
+        </default>
+    </setting>
+    <setting key="wordlistCaseSensitive" level="0" required="true">
+        <label>Wordlist Case Sensitivity</label>
+        <description><![CDATA[If true, the wordlist will be treated as case sensitive for all matches. Changing this value will cause the wordlist to be recompiled.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="password.wordlist.wordSize" level="1" required="true">
+        <label>Wordlist word size check</label>
+        <description><![CDATA[Number of characters in a word that is checked against the wordlist dictionary.  For example, if the word to be checked is "wordlist" and this setting is set to 6, then the combinations "wordli", "ordlis" and "rdlist" would all be checked against the configured dictionary.  If any of these values match, then the entire value is considered to match the wordlist.  If this value is set to zero or the word to check is smaller then the value specified here, then only the entire word ist checked.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="pwm.securityKey" level="0">
+        <label>PWM Security Key</label>
+        <description><![CDATA[<p>PWM Security Key used for tokens and other crypto functions.  A value is not required unless other features are configured to require it, such as the Crypto Token Storage Method.  This value is used similar to how a cryptographic security certificate is used.</p> <p>If configured, this value must be at least 32 characters in length.  The longer and more random this value, the more secure its use will be.  If multiple PWM instances are in use, each instance should be configured with the same value.</p>]]></description>
+        <regex>.{32}.*</regex>
+    </setting>
+    <setting key="intruder.user.resetTime" level="0" required="true">
+        <label>Intruder User Reset Time</label>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The user lockout table is marked for a user anytime a user has a failed attempt to authenticate, recover a password, or activate a user account. <br/><br/>Value is in number of seconds.  A value of zero disables the user lockout table.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+    <setting key="intruder.user.maxAttempts" level="0" required="true">
+        <label>Intruder User Maximum Attempts</label>
+        <description><![CDATA[The maximum number of attempts a user may make within the reset time interval.  Once this value is exceeded, the user will not be able to perform any PWM activities until the reset time interval has passed.]]></description>
+        <default>
+            <value>10</value>
+        </default>
+    </setting>
+    <setting key="intruder.address.resetTime" level="0" required="true">
+        <label>Intruder Address Reset Time</label>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how PWM is deployed it may not be able to correctly identify the IP address of the user.  You can check if it is getting the correct IP address by looking at the light text on the bottom of every screen, or by looking at the PWM logs.<br/><br/>Some scenarios where PWM would not get the correct address is where it is behind a reverse proxy that doesn't set the X-Forwarded-For header, or behind some types of NAT firewalls.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout table.]]></description>
+        <default>
+            <value>120</value>
+        </default>
+    </setting>
+    <setting key="intruder.address.maxAttempts" level="0" required="true">
+        <label>Intruder Address Maximum Attempts</label>
+        <description><![CDATA[The maximum number of attempts any user may make within a particular address.  Once this value is exceeded, no user from that address will be able to perform any PWM activities until the reset time interval has passed.]]></description>
+        <default>
+            <value>30</value>
+        </default>
+    </setting>
+    <setting key="security.ldap.simulateBadPassword" level="0">
+        <label>Enable Bad Password Simulation</label>
+        <description><![CDATA[This feature will enable Bad Password simulation activity when a forgotten password field is entered.  When an identified user attempts to recover a forgotten password but uses incorrect data, PWM will attempt to authenticate to the directory using a known bad password value.  This is done to allow the ldap directory to trigger it's own defense mechanisms against intruders.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="captcha.recaptcha.publicKey" level="0">
+        <label>reCAPTCHA Public Key</label>
+        <description><![CDATA[Public reCAPTCHA key.  If blank no captcha verification will be performed.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="captcha.recaptcha.privateKey" level="0">
+        <label>reCAPTCHA Private Key</label>
+        <description><![CDATA[Private reCAPTCHA key.  If blank no captcha verification will be performed.]]></description>
+    </setting>
+    <setting key="captcha.skip.param" level="1">
+        <label>Captcha Skip Parameter Value</label>
+        <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request paramater with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>https://pwmserver.example.com/pwm/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause PWM to skip the captcha check.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="captcha.skip.cookie" level="1">
+        <label>Captcha Skip Cookie</label>
+        <description><![CDATA[Allows for skipping the captcha request if a known browser cookie value is held by the browser the cookie is stored in a cookie named 'pwm-captcha-key'.  If the value is correct,then the captcha check is skipped.  The cookie value is stored in the browser after a successful captcha check.<br/><br/>If blank, then no cookie will be read/stored.  If set to 'INSTANCEID', then the instanceID of pwm (see web.xml instanceID setting) will be used.  If set to any other value, then the literal value will be used.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="security.page.enableRequestSequence" level="1" required="true">
+        <label>Enable Back Button / Multiple Browser-Tab Detection</label>
+        <description><![CDATA[Enable detection of the use of back button or multiple browser windows/tabs.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="security.formNonce.enable" level="1" required="true">
+        <label>Enable Form Nonce</label>
+        <description><![CDATA[Require a form nonce for each form in PWM to prevent certain types of cross-site scripting (XSS) attacks.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="allowUrlSessions" level="1" required="true">
+        <label>Allow URL Sessions</label>
+        <description><![CDATA[If true, allow sessions to be managed via parameter on URL when cookies are not enabled.  This allows browsers (such as some mobile devices) that do not support cookies.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="enableSessionVerification" level="1" required="true">
+        <label>Enable Session Verification</label>
+        <description><![CDATA[If true, sessions will be verified using a session verification key and a redirect.  This verification proves that the browser can correctly establish a session with the pwm server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and pwm is 'sticky' when their are multiple pwm servers.  Additionally it helps prevent some types of XSS attacks.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="disallowedInputs" level="1">
+        <label>Disallowed HTTP Inputs</label>
+        <description><![CDATA[Disallowed values.  If any input values (on any http parameter) matches these patterns, the matching portion will be stripped from the input.]]></description>
+        <default>
+            <value><![CDATA[(?i)<.*script.*>]]></value>
+            <value><![CDATA[(?i)<.*xml.*>*]]></value>
+            <value><![CDATA[(?i)<.*img.*>]]></value>
+            <value><![CDATA[(?i)<.*src.*>]]></value>
+            <value><![CDATA[(?i).*href.*]]></value>
+        </default>
+    </setting>
+    <setting key="pwm.requireHTTPS" level="0" required="true">
+        <label>Require HTTPS</label>
+        <description><![CDATA[Require HTTPS (instead of cleartext HTTP) traffic to the PWM server.  While non-secure connections are useful during testing, production PWM servers should always have this setting set to true.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="forceBasicAuth" level="1" required="true">
+        <label>Force Basic Authentication</label>
+        <description><![CDATA[If false, then the form page will be presented for un-authenticated users, however if a basic auth header is present it will always be used.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="useXForwardedForHeader" level="1" required="true">
+        <label>Use X-Forwarded-For Header</label>
+        <description><![CDATA[If present, use the X-Forwarded-For HTTP header value as the client IP address instead of the source IP address of the HTTP connection.  X-Forwarded-For headers are typically added by upstream proxies or firewalls and may be the only reliable way to identify the user's source IP address.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="network.reverseDNS.enable" level="1" required="true">
+        <label>Enable Reverse DNS</label>
+        <description><![CDATA[If true, the system's reverse DNS system is used to record the hostname of the client.  In some cases this can cause performance issues so it can be disabled if it is not required.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="security.page.leaveNoticeTimeout" level="1" required="true">
+        <label>Page Leave Notice Timeout</label>
+        <description><![CDATA[When a user navigates away from any PWM page, a notice is sent to the PWM server.   The next time a page is requested, the timeout is checked to determine if the last page leave time was greater then the timeout, and if so, the user's session will be invalidated.  This has the effect of logging out users that navigate away from the PWM application without explicitly logging out.If set to zero, this feature is disabled.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="display.showDetailedErrors" level="0" required="true">
+        <label>Show Detailed Error Messages</label>
+        <description><![CDATA[While useful for administrators, especially during configuration, showing detailed error messages to users may be confusing as well as a security hazard.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="token.storageMethod" level="0" required="true">
+        <label>Token Storage Method</label>
+        <description><![CDATA[Storage method used to save issued tokens.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>PwmDB</td><td>Stores the tokens in the local embedded PwmDB database.  Tokens will not across multiple PWM instances.</td></tr><tr><td>DB</td><td>Store the tokens in a configured, remote database.  Tokens will work across multiple PWM instances.</td></tr><tr><td>Crypto</td><td>Use crypto to create and read tokens, they are not stored locally.  Tokens will work across multiple PWM instances if they have the same PWM Security Key.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to store tokens.  Tokens will work across multiple PWM instances.  LDAP tokens cannot be used as New User Registration tokens.</td></tr></table>Except when using the "Crypto" method, tokens will be generated using the length and character configuration options. Whenusing the "Crypto" method, tokens will be much longer.]]></description>
+        <default>
+            <value><![CDATA[STORE_CRYPTO]]></value>
+        </default>
+        <options>
+            <option value="STORE_PWMDB">PwmDB</option>
+            <option value="STORE_DB">DB</option>
+            <option value="STORE_CRYPTO">Crypto</option>
+            <option value="STORE_LDAP">LDAP</option>
+        </options>
+    </setting>
+    <setting key="token.characters" level="0" required="true">
+        <label>Token Characters</label>
+        <description><![CDATA[Available characters for the email token.]]></description>
+        <default>
+            <value><![CDATA[ABCDEFGHJKLMNPQRSTUVWXY3456789]]></value>
+        </default>
+    </setting>
+    <setting key="token.length" level="0" required="true">
+        <label>Token Length</label>
+        <description><![CDATA[Length of the email token]]></description>
+        <default>
+            <value>16</value>
+        </default>
+    </setting>
+    <setting key="token.lifetime" level="0" required="true">
+        <label>Token Maximum Lifetime</label>
+        <description><![CDATA[Length of lifetime a token is valid (in seconds).  Default is one hour.]]></description>
+        <default>
+            <value>3600</value>
+        </default>
+    </setting>
+    <setting key="token.ldap.attribute" level="0" required="true">
+        <label>Token LDAP attribute name</label>
+        <description><![CDATA[When using the LDAP Token Storage Method, this attribute will be used to store and search for tokens.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[pwmToken]]></value>
+        </default>
+    </setting>
+    <setting key="events.healthCheck.minInterval" level="1">
+        <label>Health Check Frequency</label>
+        <description><![CDATA[Frequency (in seconds) at which PWM performs a self-health check.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
+        <default>
+            <value>120</value>
+        </default>
+    </setting>
+    <setting key="events.java.stdoutLevel" level="0">
+        <label>Java StdOut Log Level</label>
+        <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
+        <default>
+            <value><![CDATA[INFO]]></value>
+        </default>
+        <options>
+            <option value="TRACE">Trace</option>
+            <option value="DEBUG">Debug</option>
+            <option value="INFO">Info</option>
+            <option value="WARN">Warn</option>
+            <option value="ERROR">Error</option>
+            <option value="FATAL">Fatal</option>
+            <option value="Off">Off - no logging to stdout</option>
+        </options>
+    </setting>
+    <setting key="events.java.log4jconfigFile" level="1">
+        <label>Log4j Configuration File</label>
+        <description><![CDATA[Location and name of a log4j xml configuration file.  If specified, PWM will use this file to configure the log4j system.  If unspecified, PWM will use a basic log4j configuration logging only to stdout. The location specified by this setting is relative to PWM's <i>WEB-INF</i> directory.  PWM includes an example <i>log4jconfig.xml</i> file.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="events.pwmDB.maxEvents" level="1" required="true">
+        <label>Maximum PwmDB Events</label>
+        <description><![CDATA[Maximum log events stored in PwmDB.  PWM will retain this number of events in the local PwmDB database and use these to display in the admin event log screen.<br/><br/>This setting does not effect the normal log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Approximately 100MB of disk space will be consumed for each 100,000 log events.]]></description>
+        <default>
+            <value>1000000</value>
+        </default>
+    </setting>
+    <setting key="events.pwmDB.maxAge" level="1" required="true">
+        <label>Maximum Age PwmDB Events</label>
+        <description><![CDATA[Maximum age of events stored in PwmDB. <br/><br/>This setting does not effect log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>PWM will periodically remove values older than the configured value here.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200).  A value of zero will cause PWM to not remove events due to age.]]></description>
+        <default>
+            <value>2419200</value>
+        </default>
+    </setting>
+    <setting key="events.pwmDB.logLevel" level="0" required="true">
+        <label>PwmDB Log Level</label>
+        <description><![CDATA[Level at which to log events in the PwmDB.]]></description>
+        <default>
+            <value><![CDATA[INFO]]></value>
+        </default>
+        <options>
+            <option value="TRACE">Trace</option>
+            <option value="DEBUG">Debug</option>
+            <option value="INFO">Info</option>
+            <option value="WARN">Warn</option>
+            <option value="ERROR">Error</option>
+            <option value="FATAL">Fatal</option>
+            <option value="Off">Off - no logging to stdout</option>
+        </options>
+    </setting>
+    <setting key="events.ldap.attribute" level="1">
+        <label>User History Attribute</label>
+        <description><![CDATA[Attribute used to write a user event attribute in ldap.  The user event log attribute will hold an XML document with the users pwm Event history.  Leave blank to disable logging event history to ldap.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[pwmEventLog]]></value>
+        </default>
+        <default template="ADDB">
+            <value />
+        </default>
+    </setting>
+    <setting key="events.ldap.maxEvents" level="1" required="true">
+        <label>User History Maximum Events</label>
+        <description><![CDATA[Maximum number of events to hold in the event history attribute for a user.]]></description>
+        <default>
+            <value>20</value>
+        </default>
+    </setting>
+    <setting key="events.alert.startup.enable" level="0" required="true">
+        <label>Startup Alerts</label>
+        <description><![CDATA[If true, send an alert to the PWM Administrator when PWM is started.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="events.alert.shutdown.enable" level="0" required="true">
+        <label>Shutdown Alerts</label>
+        <description><![CDATA[If true, send an alert to the PWM Administrator when PWM is shutdown.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="events.alert.intruder.enable" level="0" required="true">
+        <label>Intruder Alerts</label>
+        <description><![CDATA[If true, send an alert to the PWM Administrator when an intruder is detected.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="events.alert.fatalEvent.enable" level="0" required="true">
+        <label>Fatal Event Alerts</label>
+        <description><![CDATA[If true, send an alert to the PWM Administrator when a fatal event occurs.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="events.alert.configModify.enable" level="0" required="true">
+        <label>Configuration Modification Alerts</label>
+        <description><![CDATA[If true, send an email when the configuration has been modified.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="events.alert.dailySummary.enable" level="0" required="true">
+        <label>Daily Summary Alerts</label>
+        <description><![CDATA[If true, send an email once a day (at 0:00 GMT) to the PWM Administrator with a summary of the day's statistics and health.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.enable" level="0">
+        <label>Enable Setup Responses</label>
+        <description><![CDATA[If enabled, save responses page will be available to users.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.forceSetup" level="0" required="true">
+        <label>Force Response Setup</label>
+        <description><![CDATA[If true, the user will be directed to configure challenge/response before logging out of PWM. This accounts for new user creation and activation, and other scenarios.  The user is forced check to see if eligible for allowSetup, and also if they do not have valid responses already configured.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.randomChallenges" level="0">
+        <label>Random Questions</label>
+        <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses.  This is controlled by the "Force All Random Response Completion" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <regex>^.+::[0-9]+::[0-9]+$</regex>
+        <default>
+            <value><![CDATA[What is the name of the main character in your favorite book?::4::200]]></value>
+            <value><![CDATA[What is the name of your favorite teacher?::4::200]]></value>
+            <value><![CDATA[What is the name of your favorite pet?::4::200]]></value>
+            <value><![CDATA[What was the name of your childhood best friend?::4::200]]></value>
+            <value><![CDATA[What was your favorite show as a child?::4::200]]></value>
+            <value><![CDATA[Who is your favorite author?::4::200]]></value>
+            <value><![CDATA[What is your favorite food?::4::200]]></value>
+            <value><![CDATA[What is your partner's nickname?::4::200]]></value>
+            <value><![CDATA[What is your favorite team?::4::200]]></value>
+            <value><![CDATA[What street did you grow up on?::4::200]]></value>
+            <value><![CDATA[What city / town were you born in?::4::200]]></value>
+            <value><![CDATA[What is your favorite vehicle?::4::200]]></value>
+            <value><![CDATA[If you could meet someone from history, who would it be?::4::200]]></value>
+            <value><![CDATA[What is your least favorite film of all time?::4::200]]></value>
+            <value><![CDATA[Who was your least favorite teacher?::4::200]]></value>
+            <value><![CDATA[What food do you dislike the most?::4::200]]></value>
+        </default>
+    </setting>
+    <setting key="challenge.requiredChallenges" level="0">
+        <label>Required Questions</label>
+        <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be suppled during forgotten password.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
+        <regex>^.+::[0-9]+::[0-9]+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="challenge.minRandomRequired" level="0" required="true">
+        <label>Minimum Random Required</label>
+        <description><![CDATA[Minimum number of random questions required at time of forgotten password recovery.]]></description>
+        <default>
+            <value>2</value>
+        </default>
+    </setting>
+    <setting key="challenge.minRandomsSetup" level="0" required="true">
+        <label>Minimum Random Challenges Required During Setup</label>
+        <description><![CDATA[The minimum number of random questions the user is required to complete during Response Setup.  If this number is higher then the available randoms, or lower then the minimum required, it will be adjusted accordingly.  Set to zero to force all available randoms to be configured at time of setup.]]></description>
+        <default>
+            <value>4</value>
+        </default>
+    </setting>
+    <setting key="challenge.showConfirmation" level="0" required="true">
+        <label>Show Response Confirmation</label>
+        <description><![CDATA[Show the responses to the user after they configure them.  This will give your users an opportunity to read and review their responses before submitting, however it will show the responses on the screen and make them visible to anyone else watching the users screen.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="challenge.caseInsensitive" level="1" required="true">
+        <label>Case Insensitive Responses</label>
+        <description><![CDATA[Control the case sensitivity of responses.  If marked true, then responses will be deemed correct even if case is wrong.  Changing this value does not change existing stored responses -- the case sensitive flag is saved on each user's stored response.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.maxChallengeLengthInResponse" level="1" required="true">
+        <label>Maximum Characters of Challenge Allowed In Response</label>
+        <description><![CDATA[If greater then zero, then no more of this amount of charachters (of a whitespace seperated word) will be permitted to appear in the corresponding response.  This prevents a user's response to be the same as the challenge.]]></description>
+        <default>
+            <value>3</value>
+        </default>
+    </setting>
+    <setting key="challenge.allowDuplicateResponses" level="1" required="true">
+        <label>Allow Duplicate Responses</label>
+        <description><![CDATA[Control if each response is required to be unique]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="challenge.applyWorldlist" level="0" required="true">
+        <label>Apply Wordlist</label>
+        <description><![CDATA[Prevent commonly used words from being used as responses.  If true, and a wordlist is configured, then users will not be able to use response values that are in the wordlist.  Administrators are strongly encouragedto leave this setting to true to make passwords a meaningful security method.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="challenge.allowSetup.queryMatch" level="1" required="true">
+        <label>Save Challenge Query Match</label>
+        <description><![CDATA[Query string used to detect if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
+    <setting key="command.checkResponses.queryMatch" level="1" required="true">
+        <label>Check Responses Query Match</label>
+        <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/pwm/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
+    <setting key="recovery.enable" level="0">
+        <label>Enable Forgotten Password</label>
+        <description><![CDATA[If enabled, forgotten password recovery will be available to users.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="recovery.form" level="0" required="true">
+        <label>Forgotten Password User Search Form</label>
+        <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
+        <default>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="recovery.searchFilter" level="0" required="true">
+        <label>Forgotten Password User Search Filter</label>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "surname", then the filter <b>(&(objectClass=person)(mail=%mail%)(surname=%surname%))</b> may be appropriate.]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(surname=%surname%))]]></value>
+        </default>
+    </setting>
+    <setting key="recovery.response.readPreference" level="0" required="true">
+        <label>Response Read Location</label>
+        <description><![CDATA[Location to read the responses from. If an option with multiple values are selected, each location will be read in turn until a stored response is found.]]></description>
+        <default>
+            <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP</option>
+            <option value="LDAP-DB">LDAP, Database</option>
+            <option value="LDAP-DB-PWMDB">LDAP, Database, PwmDB</option>
+            <option value="LDAP-PWMDB">LDAP, PwmDB</option>
+            <option value="LDAP-PWMDB-DB">LDAP, PwmDB, Database</option>
+            <option value="DB">Database</option>
+            <option value="DB-LDAP">Database, LDAP</option>
+            <option value="DB-LDAP-PWMDB">Database, LDAP, PwmDB</option>
+            <option value="DB-PWMDB">Database, PwmDB</option>
+            <option value="DB-PWMDB-LDAP">Database, PwmDB, LDAP</option>
+            <option value="PWMDB">PwmDB</option>
+            <option value="PWMDB-DB">PwmDB, Database</option>
+            <option value="PWMDB-DB-LDAP">PwmDB, Database, LDAP</option>
+            <option value="PWMDB-LDAP">PwmDB, LDAP</option>
+            <option value="PWMDB-LDAP-DB">PwmDB, LDAP, Database</option>
+        </options>
+    </setting>
+    <setting key="recovery.response.writePreference" level="0" required="true">
+        <label>Response Write Location</label>
+        <description><![CDATA[Location to write the responses to.  All storage methods will be written to when the user configures their response answers.]]></description>
+        <default>
+            <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP</option>
+            <option value="LDAP-DB">LDAP, Database</option>
+            <option value="LDAP-PWMDB">LDAP, PwmDB</option>
+            <option value="LDAP-DB-PWMDB">LDAP, Database, PwmDB</option>
+            <option value="DB">Database</option>
+            <option value="DB-PWMDB">Database, PwmDB</option>
+            <option value="PWMDB">PwmDB</option>
+        </options>
+    </setting>
+    <setting key="challenge.userAttribute" level="0">
+        <label>Response Storage Attribute</label>
+        <description><![CDATA[Attribute to use for response storage when storing to ldap directory.  If blank, responses will not be stored in the ldap directory.  If configured, responses will be stored to the ldap directory in addition to any other configured storage repositories.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[pwmResponseSet]]></value>
+        </default>
+        <default template="ADDB">
+            <value />
+        </default>
+    </setting>
+    <setting key="challenge.allowUnlock" level="0" required="true">
+        <label>Allow Unlock</label>
+        <description><![CDATA[Allow unlock during forgotten password.  If true, and if the user's account is locked due to too many invalid login attempts, and the user's password is not expired, then the user will be given a chance to unlock their account instead of resetting their password.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.storageHashed" level="1" required="true">
+        <label>Store PWM Responses Encrypted</label>
+        <description><![CDATA[<p>If true, the PWM responses stored will be stored as encrypted SHA1 hashed with a salt. If false, the responses will be stored in plain text.  Encrypted responses are more secure, but storing the responses as plain text may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  PWM is always able to read the responses of the users stored in either format.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.requiredAttributes" level="0">
+        <label>Required Attributes</label>
+        <description><![CDATA[Required ldap attributes for challenge/response.  These attributes will be required to be supplied by the user as part of the forgotten password mechanism.   The proxy user will require "compare" ldap rights to these attributes.]]></description>
+        <default />
+    </setting>
+    <setting key="challenge.requireResponses" level="0">
+        <label>Require Responses</label>
+        <description><![CDATA[If enabled, the user will need to supply previously saved responses in order to proceed with forgotten password recovery.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="challenge.token.enable" level="0" required="true">
+        <label>Require Email Token</label>
+        <description><![CDATA[If enabled, a token will be emailed to the user during the forgotten password process.  The user will be required to type the email token in order to proceed to recover their password.  If this setting is disabled, then 'Require Responses' must be set to true for forgotten password recovery to operate.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="challenge.token.sendMethod" level="0" required="true">
+        <label>Token Send Method</label>
+        <description><![CDATA[Set the method(s) used for sending the token code to the user.]]></description>
+        <default>
+            <value><![CDATA[EMAILONLY]]></value>
+        </default>
+        <options>
+            <option value="EMAILONLY">Email Only - Send to email address</option>
+            <option value="SMSONLY">SMS Only - Send via SMS</option>
+            <option value="BOTH">Both - Send token to both email and SMS</option>
+            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
+            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+        </options>
+    </setting>
+    <setting key="recovery.action" level="0" required="true">
+        <label>Forgotten Password Success Action</label>
+        <description><![CDATA[Action to take when the user completes the forgotten password process.]]></description>
+        <default>
+            <value><![CDATA[RESETPW]]></value>
+        </default>
+        <options>
+            <option value="RESETPW">Allow user to reset password</option>
+            <option value="SENDNEW">Email new password to user</option>
+        </options>
+    </setting>
+    <setting key="forgottenUsername.enable" level="0" required="true">
+        <label>Enable Forgotten Username</label>
+        <description><![CDATA[Enable forgotten username registration]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="forgottenUsername.form" level="0" required="true">
+        <label>Forgotten Username Form</label>
+        <description><![CDATA[Field(s) to be used for search for the username.]]></description>
+        <default>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="forgottenUsername.searchFilter" level="0" required="true">
+        <label>Forgotten Username Search Filter</label>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "surname", then the filter <b>(&(objectClass=person)(cn=%mail%)(surname=%surname%))</b> may be appropriate.]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(surname=%surname%))]]></value>
+        </default>
+    </setting>
+    <setting key="forgottenUsername.usernameAttribute" level="0" required="true">
+        <label>Username LDAP Attribute</label>
+        <description><![CDATA[LDAP Attribute to read as the username of the user.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[cn]]></value>
+        </default>
+    </setting>
+    <setting key="newUser.enable" level="0" required="true">
+        <label>Enable New User Registration</label>
+        <description><![CDATA[Enable new user registration]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="newUser.createContext" level="0" required="true">
+        <label>Creation Context</label>
+        <description><![CDATA[LDAP context for new users to be created in.]]></description>
+        <default>
+            <value><![CDATA[ou=users,o=example]]></value>
+        </default>
+    </setting>
+    <setting key="display.newuser.agreement" level="0">
+        <label>New User Agreement Message</label>
+        <description><![CDATA[<p>Message to display to user before being allowed to register a new user. If blank, the new user agreement page will not be displayed to the user. This message may include HTML tags.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="newUser.form" level="0" required="true">
+        <label>New User Form</label>
+        <description><![CDATA[New User form creation attributes/fields.]]></description>
+        <default>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="newUser.creationUniqueAttributes" level="0">
+        <label>Unique Attributes</label>
+        <description><![CDATA[Attributes that must be unique in the directory for the user to be created.  For example,if the 'mail' attribute is listed here (and is in the newUser.attributes setting), then PWM will not allow the new user to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[cn]]></value>
+            <value><![CDATA[mail]]></value>
+        </default>
+    </setting>
+    <setting key="newUser.writeAttributes" level="0">
+        <label>Write Attributes</label>
+        <description><![CDATA[Attributes to be written to ldap when a user is created.  These attributes will be written to the user object just after creating the object.<br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <default />
+    </setting>
+    <setting key="newUser.deleteOnFail" level="1">
+        <label>Delete On Creation Failure</label>
+        <description><![CDATA[If the new user account creation fails for some reason, delete the (potentially partially-created) "broken" account in ldap.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="newUser.username.characters" level="1">
+        <label>Random Username Characters</label>
+        <description><![CDATA[Available characters for the new username.  If blank, PWM will not generate a random username and the ldap naming attribute must be included in the form.]]></description>
+        <default>
+            <value><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]]></value>
+        </default>
+    </setting>
+    <setting key="newUser.username.length" level="1">
+        <label>Random Username Length</label>
+        <description><![CDATA[Length of the new username.  If set to 0, PWM will not generate a random username and the ldap naming attribute must be included in the form.]]></description>
+        <default>
+            <value>16</value>
+        </default>
+    </setting>
+    <setting key="newUser.email.verification" level="0">
+        <label>Enable New User Email Verification</label>
+        <description><![CDATA[If true, an email will be sent to the new user's email address before the account is created.  The NewUser must verify receipt of the email before the account will be created.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="newUser.sms.verification" level="0">
+        <label>Enable New User SMS Verification</label>
+        <description><![CDATA[If true, an SMS will be sent to the new user's mobile phone number before the account is created.  The NewUser must verify receipt of the SMS before the account will be created.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="newUser.passwordPolicy.user" level="0">
+        <label>New User Password Policy Template</label>
+        <description><![CDATA[User to use as template for password policy.  PWM will read the configured user's password policy and use that on the new user password page.  If the value is <i>TESTUSER</i>, PWM will use the configured test user's password policy. If the value is blank, then the configured PWM password policy will be used.]]></description>
+        <default>
+            <value><![CDATA[TESTUSER]]></value>
+        </default>
+    </setting>
+    <setting key="newUser.minimumWaitTime" level="0">
+        <label>New User Minimum Wait Time</label>
+        <description><![CDATA[During a new user creation, PWM will wait for at least this amount of time before forwarding the user.  <br/><br/>Value is specified in seconds.]]></description>
+        <default>
+            <value>10</value>
+        </default>
+    </setting>
+    <setting key="ldap.defaultObjectClasses" level="1">
+        <label>User Object Class</label>
+        <description><![CDATA[Object class(es) to use for newly created users. Typically this is the standard inetOrgPerson class, but this could also be an extended class that inherits inetOrgPerson or some of it's attributes and/or other classes.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9]+$</regex>
+        <default>
+            <value><![CDATA[inetOrgPerson]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[User]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[User]]></value>
+        </default>
+    </setting>
+    <setting key="guest.enable" level="0" required="true">
+        <label>Enable Guest Registration</label>
+        <description><![CDATA[Enable guest registration]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="guest.createContext" level="0" required="true">
+        <label>Creation Context</label>
+        <description><![CDATA[LDAP context for new guest accounts to be created in.]]></description>
+        <default>
+            <value><![CDATA[ou=guests,o=example]]></value>
+        </default>
+    </setting>
+    <setting key="guest.adminGroup" level="0" required="true">
+        <label>Guest Admin Query String</label>
+        <description><![CDATA[Query string used to detect if a user is a guest administrator. An LDAP query is performed during pwm login against the logged in user to determine if the user is a guest administrator. If the user matches the query, then the user is considered a guest administrator.]]></description>
+        <default>
+            <value><![CDATA[(groupMembership=cn=useradmins,ou=groups,o=example)]]></value>
+        </default>
+    </setting>
+    <setting key="guest.form" level="0" required="true">
+        <label>New Guest Form</label>
+        <description><![CDATA[New Guest form creation attributes/fields.]]></description>
+        <default>
+            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="guest.update.form" level="0" required="true">
+        <label>Update Guest Form</label>
+        <description><![CDATA[New Guest form creation attributes/fields.]]></description>
+        <default>
+            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="guest.creationUniqueAttributes" level="0">
+        <label>Unique Attributes</label>
+        <description><![CDATA[Attributes that must be unique in the directory for the guest user to be created.  For example,if the 'mail' attribute is listed here (and is in the guest.attributes setting), then PWM will not allow the new guest user to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[cn]]></value>
+            <value><![CDATA[mail]]></value>
+        </default>
+    </setting>
+    <setting key="guest.writeAttributes" level="0">
+        <label>Write Attributes</label>
+        <description><![CDATA[Attributes to be written to ldap when a guest user is created.  These attributes will be written to the user object just after creating the object.<br/><br/>format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <default />
+    </setting>
+    <setting key="guest.adminAttribute" level="0">
+        <label>Administrator DN Attribute</label>
+        <description><![CDATA[Attribute in which the DN of the logged in user will be written to in ldap when a guest user is created. This attribute will be written to the user object just after creating the object.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[manager]]></value>
+        </default>
+    </setting>
+    <setting key="guest.editOriginalAdminOnly" level="0" required="true">
+        <label>Edit Guest By Original Administrator Only</label>
+        <description><![CDATA[When set to true, only the guest administrator who created the guest account will be allowed to update the guest account details.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="guest.maxValidDays" level="0" required="true">
+        <label>Maximum Duration of Account Validity</label>
+        <description><![CDATA[The maximum number of days before the account will be disabled.   The guest administrator may use a calendar widget to select an expiration date, which must be within the account validity window.  If this value is zero, the guest administrator is not prompted for an expiration date and no expiration date is recorded on the user.]]></description>
+        <default>
+            <value>30</value>
+        </default>
+    </setting>
+    <setting key="guest.expirationAttribute" level="0">
+        <label>Attribute Used To Store Account Expiration Date</label>
+        <description><![CDATA[The attribute used to store the account expiration date.  If this value is blank, the guest administrator is not prompted for an expiration date and no expiration date is recorded on the user.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[loginExpirationTime]]></value>
+        </default>
+    </setting>
+    <setting key="activateUser.enable" level="0" required="true">
+        <label>Enable User Activation</label>
+        <description><![CDATA[Enable the new user activation module.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="activateUser.token.verification" level="0" required="true">
+        <label>Enable Token Verification</label>
+        <description><![CDATA[Send the user a token during activation, and require the value to be entered (or clicked) during the activation process.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="display.activateUser.agreement" level="0">
+        <label>Activate User Agreement Message</label>
+        <description><![CDATA[<p>Message to display to user before being allowed to activate their account. If blank, the activate user agreement page will not be displayed to the user. This message may include HTML tags.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="activateUser.form" level="0" required="true">
+        <label>Activate User Form</label>
+        <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
+        <default>
+            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="activateUser.searchFilter" level="0" required="true">
+        <label>Activation Search Filter</label>
+        <description><![CDATA[Search filter used to find user during user activation.  Each attribute configured in the Activate User Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Activate User Form included the attributes "cn" and "surname", then the filter <b>(&(objectClass=person)(cn=%cn%)(surname=%surname%))</b> may be appropriate.<br/><br/>Any attributes that are listed in the form but are not used in the search filter will tested by attempting an ldap compare with the user supplied value.]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=person)(cn=%cn%))]]></value>
+        </default>
+    </setting>
+    <setting key="activateUser.queryMatch" level="0" required="true">
+        <label>Activation Query Match</label>
+        <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who's accounts are disabled and have not been previously activated to be activated.  The default example uses the "vehicleInformation" attribute on the user object because it is a rarely used attribute available in the default schema, but any attribute can be used for this.]]></description>
+        <default>
+            <value><![CDATA[(&(loginDisabled=true)(!(vehicleInformation=pwmActivated)))]]></value>
+        </default>
+    </setting>
+    <setting key="activateUser.writePreAttributes" level="0">
+        <label>Activation Write Attributes (Before Password Change)</label>
+        <description><![CDATA[Writes attributes to ldap after a user is activated but before the password is set.  Typically this is used to activate the account, as well as put some searchable indicator <br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*=.+$</regex>
+        <default>
+            <value><![CDATA[loginDisabled=false]]></value>
+        </default>
+    </setting>
+    <setting key="activateUser.writePostAttributes" level="0">
+        <label>Activation Write Attributes (After Password Change)</label>
+        <description><![CDATA[Writes attributes to ldap after a user is activated and has changed/set their initial password.  Typically this is used to activate the account, as well as put some searchable indicator <br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*=.+$</regex>
+        <default>
+            <value><![CDATA[vehicleInformation=pwmActivated]]></value>
+        </default>
+    </setting>
+    <setting key="activateUser.token.sendMethod" level="0" required="true">
+        <label>Token Send Method</label>
+        <description><![CDATA[Set the method(s) used for sending the token code to the user.]]></description>
+        <default>
+            <value><![CDATA[EMAILONLY]]></value>
+        </default>
+        <options>
+            <option value="EMAILONLY">Email Only - Send to email address</option>
+            <option value="SMSONLY">SMS Only - Send via SMS</option>
+            <option value="BOTH">Both - Send token to both email and SMS</option>
+            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
+            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+        </options>
+    </setting>
+    <setting key="updateAttributes.enable" level="0" required="true">
+        <label>Enable Update Profile</label>
+        <description><![CDATA[Enable Update Profile Attributes.  If true, the Update Profile module will be enabled.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="updateAttributes.forceSetup" level="0" required="true">
+        <label>Force Update Profile</label>
+        <description><![CDATA[If true, the Update Profile module will be presented to the user before the user leaves PWM if the Update Check Query Match setting evaluation returns true.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="display.updateAttributes.agreement" level="0">
+        <label>Update Profile Agreement Message</label>
+        <description><![CDATA[<p>Message to display to user before being allowed to update their profile. If blank, the update profile agreement page will not be displayed to the user. This message may include HTML tags.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="updateAttributes.queryMatch" level="0" required="true">
+        <label>Update Query Match</label>
+        <description><![CDATA[Only allow users who match this query to be update their profile.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=person)]]></value>
+        </default>
+    </setting>
+    <setting key="updateAttributes.writeAttributes" level="0">
+        <label>Update Write Attributes</label>
+        <description><![CDATA[Writes attributes to ldap after a user's attributes are populated.  Typically this is used to put some searchable indicator on the user object.<br/><br/>format is name=value.  PwmMacros may be used.]]></description>
+        <default />
+    </setting>
+    <setting key="updateAttributes.form" level="0" required="true">
+        <label>Update Profile Form</label>
+        <description><![CDATA[Update Profile Form values.]]></description>
+        <default>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="updateAttributes.check.queryMatch" level="0">
+        <label>Update Check Query Match</label>
+        <description><![CDATA[When the "checkProfile" or "checkAll" parameter is used with the command servlet, this query match will be used to determine if the user should be required to populate the param values. <br/><br/>If this value is blank, then PWM will check that the current values meet the form requirements.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="updateAttributes.showConfirmation" level="0" required="true">
+        <label>Show Update Profile Confirmation</label>
+        <description><![CDATA[Show the update attributes to the user after they configure them.  This will give your users an opportunity to read and review their attributes before submitting, however it will show the responses on the screen and make them visible to anyone else watching the users screen.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="shortcut.enable" level="0">
+        <label>Enable Shortcuts</label>
+        <description><![CDATA[Enable the shortcuts module.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="shortcut.items" level="0">
+        <label>Shortcut Items</label>
+        <description><![CDATA[List of available shortcuts.<br/><br/>Format: <b>label::url::ldapQuery::description</b><table style="width: 400px"><tr><td>label</td><td>Label to show to user</td></tr><tr><td>ldapQuery</td><td>Valid ldap syntax style query, if the user matches this query, then the shortcut will be shown to the user.</td></tr><tr><td>url</td><td>http shortcut to direct the user to</td></tr><tr><td>description</td><td>Long description of the shortcut</td></tr></table>]]></description>
+        <default>
+            <value><![CDATA[Google::http://www.google.com::(objectClass=inetOrgPerson)::Google Search]]></value>
+            <value><![CDATA[Example::http://www.Example.com::(&(objectClass=inetOrgPerson)(cn=n*))::Example Page]]></value>
+            <value><![CDATA[Yahoo::http://www.yahoo.com::(objectClass=inetOrgPerson)::Yahoo Home Page]]></value>
+        </default>
+    </setting>
+    <setting key="shortcut.httpHeaders" level="0">
+        <label>Shortcut Headers</label>
+        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, PWM will use the values to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, PWM will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the labbel is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
+        <default>
+            <value><![CDATA[X-PWM-Shortcuts]]></value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.enable" level="0">
+        <label>Enable PeopleSearch</label>
+        <description><![CDATA[Enable the PeopleSearch module.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.queryMatch" level="0" required="true">
+        <label>PeopleSearch Query Match</label>
+        <description><![CDATA[If configured, this query match controls if a user may access the PeopleSearch module.  The user must match this ldap filter to be able to use the PeopleSearch module.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.searchFilter" level="0" required="true">
+        <label>Search filter</label>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=Person)(|((givenName=*%USERNAME%*)(sn=*%USERNAME%*)(mail=*%USERNAME%*)(telephoneNumber=*%USERNAME%*))))]]></value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.searchBase" level="0">
+        <label>LDAP Search base</label>
+        <description><![CDATA[If empty, the default ldap search base(s) will be used.]]></description>
+        <default />
+    </setting>
+    <setting key="peopleSearch.result.form" level="0" required="true">
+        <label>PeopleSearch Result Form</label>
+        <description><![CDATA[Field(s) to be shown as a result to searches.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <default>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.detail.form" level="0" required="true">
+        <label>PeopleSearch Detail Form</label>
+        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <default>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"ou","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Department"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"businessCategory","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Business Category"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"company","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Company"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"street","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Street"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"physicalDeliveryOfficeName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"City"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"st","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"State"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"l","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Location"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeType","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Type"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.result.limit" level="0" required="true">
+        <label>PeopleSearch result limit</label>
+        <description><![CDATA[result limit]]></description>
+        <default>
+            <value>100</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.useProxy" level="1" required="true">
+        <label>Use proxy account</label>
+        <description><![CDATA[Use ldap proxy account to perform searches.  For proper security in most environments this setting should <b>not</b> be enabled.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.enableNmas" level="0" required="true">
+        <label>Enable NMAS Extensions</label>
+        <description><![CDATA[When connecting to a Novell eDirectory ldap directory, this parameter will control if PWM will use NMAS extensions when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using unversal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.storeNmasResponses" level="0" required="true">
+        <label>Store NMAS Responses</label>
+        <description><![CDATA[If true, PWM will save responses to the NMAS response storage container on the user.  This storage is in addition to any other configured response storage methods.  PWM will not use these stored responses during forgotten password recovery unless the "UserApp Password SOAP Service URL" setting is configured.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.readUserPwd" level="1">
+        <label>Read User Passwords</label>
+        <description><![CDATA[If true, PWM will attempt to read the user's password from eDirectory before changing it. This prevents PWM from having to change the users password to a temporary random password during forgotten password sequence.  If the proxy user does not have rights to read the password, PWM will behave as if this setting is false, so it generally should not be changed.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.readChallengeSets" level="0" required="true">
+        <label>Read Challenge Sets</label>
+        <description><![CDATA[If true, PWM will read the challenge set configuration from eDirectory and apply it to users logging into PWM.  If an eDirectory challenge set is applied to the user, PWM will use that policy, otherwise PWM will use the PWM configured challenge questions for forgotten password.To use only NMAS configured challenge sets, be sure to blank out the pwm required and forgotten questions, or else those will be used in cases where no eDirectory policy is found or the is an error reading the policy.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.ws.pwdMgtURL" level="0">
+        <label>UserApp Password SOAP Service URL</label>
+        <description><![CDATA[If supplied, this setting will change the behavior of the PWM forgotten password function. Instead of using the PWM stored response set in ldap, PWM will call the Novell UserApp forgotten password web service to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, PWM will then forward the user to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS's certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in Novell UserApp v3.7 or greater.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="ldap.ad.proxyForgotten" level="0" required="true">
+        <label>Use Proxy When Password Unknown</label>
+        <description><![CDATA[DESCR //todo]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.ad.allowAuthRequireNewPassword" level="0" required="true">
+        <label>Allow authentication when "require password on next login" is true</label>
+        <description><![CDATA[DESCR //todo]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.enable" level="0">
+        <label>Enable Helpdesk Module</label>
+        <description><![CDATA[Enable Helpdesk Module]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.queryMatch" level="0" required="true">
+        <label>Helpdesk Query Match</label>
+        <description><![CDATA[LDAP query string used to detect if logged in user is permitted to access the helpdesk module.  The user must be returned during this is ldap query or else the user will not be permitted to access the helpdesk module.]]></description>
+        <default>
+            <value><![CDATA[(groupMembership=cn=PwmAdmins,ou=Groups,o=example)]]></value>
+        </default>
+    </setting>
+    <setting key="helpdesk.filter" level="1">
+        <label>Helpdesk Search Filter</label>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
+        <default>
+            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
+        </default>
+    </setting>
+    <setting key="helpdesk.result.form" level="0" required="true">
+        <label>Helpdesk Search Form</label>
+        <description><![CDATA[Field(s) to be shown as a result to searches.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <default>
+            <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.detail.form" level="0" required="true">
+        <label>Helpdesk Detail Form</label>
+        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <default>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"initials","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Initials"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"preferredName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Preferred Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"ou","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Department"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"businessCategory","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Business Category"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"company","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Company"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"street","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Street"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"physicalDeliveryOfficeName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"City"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"st","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"State"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"l","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Location"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeType","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Type"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.searchBase" level="0">
+        <label>LDAP Search base</label>
+        <description><![CDATA[If empty, the default ldap search base(s) will be used.]]></description>
+        <default />
+    </setting>
+    <setting key="helpdesk.result.limit" level="1" required="true">
+        <label>Helpdesk search result limit</label>
+        <description><![CDATA[result limit]]></description>
+        <default>
+            <value>100</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.setPassword.mode" level="0">
+        <label>Set Password UI Mode</label>
+        <description><![CDATA[Mode to allow helpdesk administrators to set passwords.  (Note the logged-in user must have proper ldap permissions.)]]></description>
+        <default>
+            <value><![CDATA[autogen]]></value>
+        </default>
+        <options>
+            <option value="none">None</option>
+            <option value="type">Type</option>
+            <option value="autogen">Auto Generate</option>
+            <option value="both">Both</option>
+        </options>
+    </setting>
+    <setting key="helpdesk.setPassword.writeAttributes" level="1">
+        <label>Post Set Password Write Attributes</label>
+        <description><![CDATA[Writes attributes to ldap after a helpdesk actor modifies the user's password.  Format for is name=value.  PwmMacros may be used.]]></description>
+        <default />
+    </setting>
+    <setting key="helpdesk.enableUnlock" level="0" required="true">
+        <label>Enable Unlock</label>
+        <description><![CDATA[Enable helpdesk module users to unlock an (intruder) locked account.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.enforcePasswordPolicy" level="0">
+        <label>Enforce PWM Password Policy</label>
+        <description><![CDATA[Require that passwords set by helpdesk must meet the same password policy as the user would normally be constrained by.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.idleTimeout" level="0">
+        <label>Idle Timeout Seconds for HelpdeskUsers</label>
+        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Pwm Session Idle timeout will be set to this value once a user successfully access the helpdesk module.]]></description>
+        <default>
+            <value>3600</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.clearResponses" level="0">
+        <label>Clear Responses on Password Set</label>
+        <description><![CDATA[Mode to allow helpdesk administrators to set passwords.  (Note the logged-in user must have proper ldap permissions.)]]></description>
+        <default>
+            <value><![CDATA[ask]]></value>
+        </default>
+        <options>
+            <option value="yes">True</option>
+            <option value="ask">Ask</option>
+            <option value="no">False</option>
+        </options>
+    </setting>
+    <setting key="pwmDb.location" level="0" required="true">
+        <label>PwmDB Location</label>
+        <description><![CDATA[Location of the PwmDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
+        <default>
+            <value><![CDATA[pwmDB]]></value>
+        </default>
+    </setting>
+    <setting key="pwmDb.implementation" level="1" required="true">
+        <label>PwmDB Implementation Class</label>
+        <description><![CDATA[Java class implementation used by PwmDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.pwmdb.Berkeley_PwmDb</td><td>Default Implementation based on BerekelyDB Java Edition</td><tr><tr><td>password.pwm.util.pwmdb.Derby_PwmDb</td><td>Based on Apache Derby java embedded SQL database</td><tr><tr><td>password.pwm.util.pwmdb.JDBM_PwmDb</td><td>Uses JDBM2 as the embedded key store</td><tr><tr><td>password.pwm.util.pwmdb.Memory_PwmDb</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
+        <default>
+            <value><![CDATA[password.pwm.util.pwmdb.Berkeley_PwmDb]]></value>
+        </default>
+    </setting>
+    <setting key="pwmDb.initParameters" level="1">
+        <label>PwmDB Initialization String</label>
+        <description><![CDATA[Value passed to the pwmDbImplementation class during initialization.  Value format is specific to the implementation.]]></description>
+        <default>
+            <value><![CDATA[je.maxMemory=10000000]]></value>
+            <value><![CDATA[je.cleaner.minUtilization=70]]></value>
+        </default>
+    </setting>
+    <setting key="db.classname" level="0">
+        <label>Database Class</label>
+        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC drivar JAR or ZIP file must be included in PWM's classpath, typically in PWM's <i>WEB-INF/lib</i> or the application server's lib directory.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="db.url" level="0">
+        <label>Database Connection String</label>
+        <description><![CDATA[Database connection string in standard JDBC format.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="db.username" level="0">
+        <label>Database Username</label>
+        <description><![CDATA[Database username]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="db.password" level="0">
+        <label>Database Password</label>
+        <description><![CDATA[Database password]]></description>
+    </setting>
+    <setting key="externalChangeMethod" level="0">
+        <label>External Change Method</label>
+        <description><![CDATA[Java classes to call after a successful password change.  These classes may take such actions as updating passwords in other systems or updating eDirectory.  External password classes must implement the interface <i>password.pwm.ExternalChangeMethod</i>.<br/><br/>Unless your adding custom Java code to PWM, you should leave this blank.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="externalJudgeMethod" level="0">
+        <label>External Judge Method</label>
+        <description><![CDATA[Java classes to call to determine the strength of a given password.  External judge methods must implement the interface <i>password.pwm.ExternalJudgeMethod</i>. During password judge checks, pwm will call all listed judge classes.  If multiple results are returned, the lowest returned value will be used as the result.]]></description>
+        <default>
+            <value><![CDATA[password.pwm.PwmPasswordJudge]]></value>
+        </default>
+    </setting>
+    <setting key="externalRuleMethod" level="0">
+        <label>External Rule Method</label>
+        <description><![CDATA[Java classes to call to determine any rule violations of a given password.  External rule methods must implement the interface <i>password.pwm.ExternalRuleMethod</i>.<br/><br/>Unless your adding custom Java code to PWM, you should leave this blank.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="http.proxy.url" level="0">
+        <label>HTTP Proxy</label>
+        <description><![CDATA[The url of the HTTP proxy server.  If blank, no proxy server will be used.<ul><li>For http proxy server, use "<i>http://serverame:3128</i>" format</li><li>For authenticated proxy server, use the "<i>http://username:password@servername:3128</i>" format</ul></li><br/>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="cas.clearPassUrl" level="0">
+        <label>CAS ClearPass URL</label>
+        <description><![CDATA[For <a href="http://www.jasig.org/cas">CAS</a> authentication integration, enter the ClearPass url here.  If blank, CAS authentication integration will be disabled.<br/><br/>You will also need to edit the <i>WEB-INF/web.xml</i> file to enable CAS integration.  Uncomment the section for the CAS servlet filters, and modify the CAS servlet parameters as appropriate for your configuration.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="urlshortener.classname" level="1">
+        <label>Enable URL Shortening Service Class</label>
+        <description><![CDATA[URL Shortening Service class name. The Java full class name that implements a short url service. The corresponding JAR or ZIP file must be included in PWM's classpath, typically in PWM's <i>WEB-INF/pwm</i> or the application server's lib directory.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="urlshortener.regex" level="1">
+        <label>Regular Expression for Matching URLs</label>
+        <description><![CDATA[Enter a regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class]]></description>
+        <default>
+            <value><![CDATA[(https?://([^:@]+(:[^@]+)?@)?([a-zA-Z0-9.]+|d{1,3}.d{1,3}.d{1,3}.d{1,3}|[[0-9a-fA-F:]+])(:d{1,5})?/*[a-zA-Z0-9/\%_.]*?*[a-zA-Z0-9/\%_.=&#]*)]]></value>
+        </default>
+    </setting>
+    <setting key="urlshortener.parameters" level="1">
+        <label>Configuration Parameters for URL Shortening Service</label>
+        <description><![CDATA[Name/Value settings used to configure the selected URL shortening service, like for example an API key, username, password or domain name. The settings must be in "name=value" format, where name is the key value of a valid service setting.]]></description>
+        <regex>^[a-zA-Z0-9.]+=.+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="external.webservices.enable" level="0">
+        <label>Enable External Web Services</label>
+        <description><![CDATA[Allow public use of the PWM web services.  When false, the PWM form nonce is required for all web services.  The form nonce is difficult (though not impossible) for a client to retreive programmatically.  Therefore it is difficult, though not impossible to use the web services.  When true, the form nonce is not required to invoke the PWM web services.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="external.webAuth.methods" level="0">
+        <label>External Web Auth Methods</label>
+        <description><![CDATA[External Web Auth Methods]]></description>
+        <default />
+    </setting>
+    <category key="LDAP">
+        <label>LDAP Directory</label>
+        <description><![CDATA[Settings that control PWM's interaction with an LDAP directory.  PWM will auto-detect the LDAP directory vendor and type.  Vendor specific settings have their own category.]]></description>
+    </category>
+    <category key="GENERAL">
+        <label>General</label>
+        <description><![CDATA[General settings for the PWM application.  Settings here control the functionality and behavior of the system.]]></description>
+    </category>
+    <category key="USER_INTERFACE">
+        <label>User Interface</label>
+        <description><![CDATA[These settings control overall features and displays that are visible to the end user.]]></description>
+    </category>
+    <category key="PASSWORD_POLICY">
+        <label>Password Policy</label>
+        <description><![CDATA[This password policy is applied to all PWM users, regardless of any other password policy that may be configured in the directory.  If so configured, PWM reads the password policy configured for the user in the directory and <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
+    </category>
+    <category key="CHALLENGE">
+        <label>Challenge Policy</label>
+        <description><![CDATA[Challenge Policy.  If a challenge policy is read from the directory, that policy will override the settings listed here.]]></description>
+    </category>
+    <category key="EMAIL">
+        <label>Email</label>
+        <description><![CDATA[<p>Configuration settings for all PWM sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and (if desired) HTML email bodies are configured.  PWM will deliver the email body in both formats and the email client can choose which to display.</p> <p>The body (plaintext or HTML), subject and from values of emails may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+    </category>
+    <category key="SMS">
+        <label>SMS</label>
+        <description><![CDATA[Configuration settings for all PWM sent SMS messages. For SMS message text configuration settings are provided.  It is encouraged that for each configured setting and locale, SMS texts are configured.  PWM will deliver the message using the configured short message service gateway.]]></description>
+    </category>
+    <category key="SECURITY">
+        <label>Security</label>
+        <description><![CDATA[PWM has built in intruder detection independent of what a directory may provide.  Because PWM may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  PWM will always deny a password based authentication if the directory's intruder detection is enabled. <br/><br/>PWM's own intruder detection mechanisms are only stored in memory, and are not resetable, thus, the timeouts should be relatively short.  The goal for PWM intruder detection isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>PWM uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.  Additionally, the PWM servlet will need to be able to make HTTP requests to <i>http://www.google.com/recaptcha/api/verify</i> during operation or captcha verification will fail.]]></description>
+    </category>
+    <category key="TOKEN">
+        <label>Tokens</label>
+        <description><![CDATA[Options for email and sms tokens sent to users.]]></description>
+    </category>
+    <category key="LOGGING">
+        <label>Logging &amp; Alerts</label>
+        <description><![CDATA[PWM will log events to three different places:<ul><li><b>PwmDB</b> - PWM's local embedded database</li><li><b>ldap</b> - User events get saved to an attribute on the user entry</li><li><b>java</b> - PWM utilizes the standard Apache <a href="http://logging.apache.org/log4j/">log4j</a> library</li></ul>Additionally, PWM's use of the log4j library allows directing log events to file, database, syslog, Windows event log and other systems.  Visit the <a href="http://logging.apache.org/log4j/">log4j</a> website for more information.<br/><br/>If enabled, alerts are sent to the Admin Alert To Address configured in the Email Settings.<br/><br/>]]></description>
+    </category>
+    <category key="EDIRECTORY">
+        <label>Novell eDirectory</label>
+        <description><![CDATA[These settings are only used when Novell eDirectory is the ldap directory service being used.]]></description>
+    </category>
+    <category key="ACTIVE_DIRECTORY">
+        <label>Active Directory</label>
+        <description><![CDATA[Active Directory settings]]></description>
+    </category>
+    <category key="DATABASE">
+        <label>Database</label>
+        <description><![CDATA[Optional database configuration settings.  Two types of databases are used by PWM.<h2>PwmDB</h2>The PwmDB is a local, embedded database that is used by PWM for storage of local data.  In most cases, the PwmDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured, PWM can use a traditional RDBMS database to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, PWM will connect to the database and create any necessary tables.  Multiple PWM server instances can be configured for the same database instance.]]></description>
+    </category>
+    <category key="MISC">
+        <label>Integration / Developer</label>
+        <description><![CDATA[Settings that are of interest to developers or component integrators.]]></description>
+    </category>
+    <category key="CHANGE_PASSWORD">
+        <label>Change Password</label>
+        <description />
+    </category>
+    <category key="RECOVERY">
+        <label>Forgotten Password</label>
+        <description><![CDATA[Policies for user's forgotten password configuration.]]></description>
+    </category>
+    <category key="FORGOTTEN_USERNAME">
+        <label>Forgotten Username</label>
+        <description><![CDATA[Allow a user to search for a forgotten username using a configurable search filter and attributes.]]></description>
+    </category>
+    <category key="NEWUSER">
+        <label>New User Registration</label>
+        <description><![CDATA[Note: The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
+    </category>
+    <category key="GUEST">
+        <label>Guest Registration</label>
+        <description><![CDATA[Note: The guest user registration module requires that the logged in user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
+    </category>
+    <category key="ACTIVATION">
+        <label>User Activation</label>
+        <description><![CDATA[The user activation module allows users to activate an account they have not previously authenticated to.  The user does not need to know the password to activate the account.]]></description>
+    </category>
+    <category key="UPDATE">
+        <label>Update Profile</label>
+        <description><![CDATA[The update user profile module will force/allow the user to update the attributes configured here.  This is useful for forcing the user to populate to update some piece of information while they are using PWM.]]></description>
+    </category>
+    <category key="SHORTCUT">
+        <label>Shortcut Menu</label>
+        <description><![CDATA[The shortcut menu is used to display a list of click-able links to users.  This functionality may be useful as a basic landing page for users.]]></description>
+    </category>
+    <category key="PEOPLE_SEARCH">
+        <label>People Search</label>
+        <description />
+    </category>
+    <category key="HELPDESK">
+        <label>Helpdesk</label>
+        <description><![CDATA[Configurations for administrative helpdesk.]]></description>
+    </category>
+</settings>
