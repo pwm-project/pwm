@@ -52,6 +52,7 @@
         <mkdir dir="${destination}/bin"/>
         <copy todir="${destination}/bin">
             <fileset dir="${src.root}/src" includes="**/*.properties"/>
+            <fileset dir="${src.root}/src" includes="**/*.xml"/>
         </copy>
     </target>                                                                                                          
 
