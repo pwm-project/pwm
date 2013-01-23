@@ -265,7 +265,7 @@
         <label>Change Password Required Values Form</label>
         <description><![CDATA[Values required to be entered prior to password change.]]></description>
         <default>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="password.change.requireCurrent" level="0" required="true">
@@ -412,10 +412,10 @@
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectClass=person)(|(samAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
+            <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
         <default template="ADDB">
-            <value><![CDATA[(&(objectClass=person)(|(samAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
+            <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
     </setting>
     <setting key="ldap.readPasswordPolicies" level="1" required="true">
@@ -507,15 +507,15 @@
             <value />
         </default>
         <default template="AD">
-            <value><![CDATA[sAMaccountName]]></value>
+            <value><![CDATA[sAMAccountName]]></value>
         </default>
         <default template="ADDB">
-            <value><![CDATA[sAMaccountName]]></value>
+            <value><![CDATA[sAMAccountName]]></value>
         </default>
     </setting>
     <setting key="ldap.followReferrals" level="1" required="true">
         <label>Follow LDAP Referrals</label>
-        <description><![CDATA[--RESOURCE MISSING--]]></description>
+        <description><![CDATA[Follow LDAP Referrals]]></description>
         <regex>Follow LDAP Referrals.  Not typically required except for Active Directory.</regex>
         <default>
             <value>false</value>
@@ -1575,14 +1575,14 @@
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="recovery.searchFilter" level="0" required="true">
         <label>Forgotten Password User Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "surname", then the filter <b>(&(objectClass=person)(mail=%mail%)(surname=%surname%))</b> may be appropriate.]]></description>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(mail=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
         <default>
-            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(surname=%surname%))]]></value>
+            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
         </default>
     </setting>
     <setting key="recovery.response.readPreference" level="0" required="true">
@@ -1712,14 +1712,14 @@
         <description><![CDATA[Field(s) to be used for search for the username.]]></description>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="forgottenUsername.searchFilter" level="0" required="true">
         <label>Forgotten Username Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "surname", then the filter <b>(&(objectClass=person)(cn=%mail%)(surname=%surname%))</b> may be appropriate.]]></description>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(cn=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
         <default>
-            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(surname=%surname%))]]></value>
+            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
         </default>
     </setting>
     <setting key="forgottenUsername.usernameAttribute" level="0" required="true">
@@ -1757,7 +1757,7 @@
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="newUser.creationUniqueAttributes" level="0">
@@ -1864,7 +1864,7 @@
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -1875,7 +1875,7 @@
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -1950,12 +1950,12 @@
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="activateUser.searchFilter" level="0" required="true">
         <label>Activation Search Filter</label>
-        <description><![CDATA[Search filter used to find user during user activation.  Each attribute configured in the Activate User Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Activate User Form included the attributes "cn" and "surname", then the filter <b>(&(objectClass=person)(cn=%cn%)(surname=%surname%))</b> may be appropriate.<br/><br/>Any attributes that are listed in the form but are not used in the search filter will tested by attempting an ldap compare with the user supplied value.]]></description>
+        <description><![CDATA[Search filter used to find user during user activation.  Each attribute configured in the Activate User Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Activate User Form included the attributes "cn" and "sn", then the filter <b>(&(objectClass=person)(cn=%cn%)(sn=%sn%))</b> may be appropriate.<br/><br/>Any attributes that are listed in the form but are not used in the search filter will tested by attempting an ldap compare with the user supplied value.]]></description>
         <default>
             <value><![CDATA[(&(objectClass=person)(cn=%cn%))]]></value>
         </default>
@@ -2107,7 +2107,7 @@
         <description><![CDATA[Field(s) to be shown as a result to searches.  (Fields will always be read-only, regardless of configuration.)]]></description>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2118,7 +2118,7 @@
         <description><![CDATA[Field(s) to be shown during the detail view of of an individual.  (Fields will always be read-only, regardless of configuration.)]]></description>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2224,7 +2224,7 @@
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2237,7 +2237,7 @@
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"initials","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Initials"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"surname","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"preferredName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Preferred Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>

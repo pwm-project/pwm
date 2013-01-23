@@ -38,6 +38,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserAuthenticator;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
@@ -248,7 +249,7 @@ public class ActivateUserServlet extends TopServlet {
             }
 
             //authenticate the pwm session
-            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true);
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true);
 
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.ACTIVATE_USER, null);

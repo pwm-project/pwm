@@ -36,6 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.operations.UserAuthenticator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -95,7 +96,7 @@ public class CASAuthenticationHelper {
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user '" + username + "' using CAS assertion and password");
-        AuthenticationFilter.authenticateUser(username, password, null,  pwmSession, pwmApplication, req.isSecure());
+        UserAuthenticator.authenticateUser(username, password, null, pwmSession, pwmApplication, req.isSecure());
         return true;
     }
 }

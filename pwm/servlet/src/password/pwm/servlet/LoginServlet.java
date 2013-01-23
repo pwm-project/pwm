@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserAuthenticator;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -77,7 +78,7 @@ public class
             }
 
             try {
-                AuthenticationFilter.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
+                UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
             } catch (PwmOperationalException e) {
                 ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);

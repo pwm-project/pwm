@@ -280,6 +280,7 @@ public class UserStatusHelper {
         interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
         interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
         interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE));
         interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
         if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
             interestingUserAttributes.add("sAMAccountName");

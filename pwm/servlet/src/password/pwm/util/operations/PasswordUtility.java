@@ -121,16 +121,33 @@ public class PasswordUtility {
         // retrieve the user's old password from the userInfoBean in the session
         final String oldPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
 
-        // Check to make sure we actually have an old password
+        boolean setPasswordWithoutOld = false;
         if (oldPassword == null || oldPassword.length() < 1) {
-            final String errorMsg = pwmSession.getUserInfoBean().getUserDN() + "can't set password for user, old password is null";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD, errorMsg);
-            throw new PwmOperationalException(errorInformation);
+            if (uiBean.isCurrentPasswordUnknownToPwm()) {
+                if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                    setPasswordWithoutOld = true;
+                }
+            }
+        }
+
+        if (!setPasswordWithoutOld) {
+            // Check to make sure we actually have an old password
+            if (oldPassword == null || oldPassword.length() < 1) {
+                final String errorMsg = "cannot set password for user, old password is not available";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
         }
 
         final long passwordSetTimestamp = System.currentTimeMillis();
         try {
-            doPasswordSetOperation(pwmSession, newPassword, oldPassword);
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+            if (setPasswordWithoutOld) {
+                theUser.setPassword(newPassword);
+            } else {
+                theUser.changePassword(oldPassword, newPassword);
+            }
         } catch (ChaiPasswordPolicyException e) {
             final String errorMsg = "error setting password for user '" + uiBean.getUserDN() + "'' " + e.toString();
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
@@ -353,14 +370,6 @@ public class PasswordUtility {
         }
     }
 
-
-    private static void doPasswordSetOperation(final PwmSession pwmSession, final String newPassword, final String oldPassword)
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
-    {
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
-        theUser.changePassword(oldPassword, newPassword);
-    }
 
     private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword)
             throws PwmUnrecoverableException

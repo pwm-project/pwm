@@ -44,10 +44,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.CrUtility;
-import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -571,7 +568,7 @@ public class
         }
 
         try {
-            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
@@ -616,7 +613,7 @@ public class
         }
 
         try {
-            AuthenticationFilter.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
             final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
@@ -902,7 +899,7 @@ public class
 
             try {
                 LOGGER.trace(pwmSession, "performing bad-password login attempt against ldap directory as a result of forgotten password recovery invalid attempt against " + userDN);
-                AuthenticationFilter.testCredentials(userDN, PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT, pwmSession, pwmApplication);
+                UserAuthenticator.testCredentials(userDN, PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT, pwmSession, pwmApplication);
                 LOGGER.warn(pwmSession, "bad-password login attempt succeeded for " + userDN + "! (this should always fail)");
             } catch (PwmOperationalException e) {
                 if (e.getError() == PwmError.ERROR_WRONGPASSWORD) {

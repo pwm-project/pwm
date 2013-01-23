@@ -44,6 +44,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.*;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.operations.UserAuthenticator;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 
@@ -393,7 +394,7 @@ public class NewUserServlet extends TopServlet {
         LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user to PWM using temporary password");
 
         //authenticate the user to pwm
-        AuthenticationFilter.authenticateUser(theUser.getEntryDN(), temporaryPassword, null, pwmSession, pwmApplication, true);
+        UserAuthenticator.authenticateUser(theUser.getEntryDN(), temporaryPassword, null, pwmSession, pwmApplication, true);
 
         //set user requested password
         PasswordUtility.setUserPassword(pwmSession, pwmApplication, userPassword);
