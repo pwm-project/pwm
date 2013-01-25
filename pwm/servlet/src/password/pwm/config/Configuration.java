@@ -567,4 +567,8 @@ public class Configuration implements Serializable {
             return null;
         }
     }
+
+    public PwmSetting.Template getTemplate() {
+        return storedConfiguration.getTemplate();
+    }
 }

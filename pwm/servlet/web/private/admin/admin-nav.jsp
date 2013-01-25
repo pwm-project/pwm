@@ -36,36 +36,31 @@
                         statusMenu.addChild(new MenuItem({
                             label: 'Activity',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "activity.jsp";
+                                showWaitDialog(null,null,function(){window.location = "activity.jsp";});
                             }
                         }));
                         statusMenu.addChild(new MenuItem({
                             label: 'Statistics',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "statistics.jsp";
+                                showWaitDialog(null,null,function(){window.location = "statistics.jsp";});
                             }
                         }));
                         statusMenu.addChild(new MenuItem({
                             label: 'Health',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "health.jsp";
+                                showWaitDialog(null,null,function(){window.location = "health.jsp";});
                             }
                         }));
                         statusMenu.addChild(new MenuItem({
                             label: 'Active Sessions',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "activesessions.jsp";
+                                showWaitDialog(null,null,function(){window.location = "activesessions.jsp";});
                             }
                         }));
                         statusMenu.addChild(new MenuItem({
                             label: 'Intruders',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "intruderstatus.jsp";
+                                showWaitDialog(null,null,function(){window.location = "intruderstatus.jsp";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({
@@ -79,29 +74,25 @@
                         systemMenu.addChild(new MenuItem({
                             label: 'System Details',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "status.jsp";
+                                showWaitDialog(null,null,function(){window.location = "status.jsp";});
                             }
                         }));
                         systemMenu.addChild(new MenuItem({
                             label: 'Configuration',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "config.jsp";
+                                showWaitDialog(null,null,function(){window.location = "config.jsp";});
                             }
                         }));
                         systemMenu.addChild(new MenuItem({
                             label: 'Event Log',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "eventlog.jsp";
+                                showWaitDialog(null,null,function(){window.location = "eventlog.jsp";});
                             }
                         }));
                         systemMenu.addChild(new MenuItem({
                             label: 'User Report',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "userreport.jsp";
+                                showWaitDialog(null,null,function(){window.location = "userreport.jsp";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({
@@ -114,22 +105,19 @@
                         exitMenu.addChild(new MenuItem({
                             label: 'About',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "about.jsp";
+                                showWaitDialog(null,null,function(){window.location = "about.jsp";});
                             }
                         }));
                         exitMenu.addChild(new MenuItem({
                             label: 'Main Menu',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "<%=request.getContextPath()%>";
+                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>";});
                             }
                         }));
                         exitMenu.addChild(new MenuItem({
                             label: 'Configuration Menu',
                             onClick: function() {
-                                showWaitDialog();
-                                window.location = "<%=request.getContextPath()%>/config/ConfigManager";
+                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/config/ConfigManager";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({

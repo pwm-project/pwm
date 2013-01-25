@@ -287,12 +287,13 @@ public class PwmApplication {
             final File log4jFile = Helper.figureFilepath(log4jFileName,pwmApplicationPath);
             final String logLevel;
             switch (getApplicationMode()) {
-                case RUNNING:
-                    logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+                case ERROR:
+                case NEW:
+                    logLevel = PwmLogLevel.TRACE.toString();
                     break;
 
                 default:
-                    logLevel = PwmLogLevel.TRACE.toString();
+                    logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
                     break;
             }
 

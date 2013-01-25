@@ -22,6 +22,7 @@
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -51,8 +52,9 @@
         <% } %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
             <%
-                for (final PwmSetting.Category loopCategory : PwmSetting.valuesByCategory(null).keySet()) {
-                    final List<PwmSetting> loopSettings = PwmSetting.valuesByCategory(null).get(loopCategory);
+                final Map<PwmSetting.Category,List<PwmSetting>> categorySettingMap = PwmSetting.valuesByFilter(pwmConfig.getTemplate(),null,2);
+                for (final PwmSetting.Category loopCategory : categorySettingMap.keySet()) {
+                    final List<PwmSetting> loopSettings = categorySettingMap.get(loopCategory);
             %>
             <div data-dojo-type="dijit/layout/ContentPane" title="<%= loopCategory.getLabel(pwmSession.getSessionStateBean().getLocale())%>"
                  style="max-height: 500px; overflow: auto">

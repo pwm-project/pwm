@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
+<%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.List" %>
@@ -64,19 +65,20 @@
 <script type="text/javascript">
 function buildMenuBar() {
     clearDijitWidget('topMenuBar');
-    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator","dojo/domReady!"],function(dojo,dijit){
-        var topMenuBar = new dijit.MenuBar({id:"topMenuBar"});
+    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],
+            function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem,CheckedMenuItem,MenuSeparator){
+        var topMenuBar = new MenuBar({id:"topMenuBar"});
         { // Settings Menu
-            var settingsMenu = new dijit.Menu({});
+            var settingsMenu = new Menu({});
             <% final Map<PwmSetting.Category,List<PwmSetting>> settingMap = PwmSetting.valuesByFilter(configManagerBean.getConfiguration().getTemplate(),PwmSetting.Category.Type.SETTING,level); %>
             <% for (final PwmSetting.Category loopCategory : settingMap.keySet()) { %>
             <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-            settingsMenu.addChild(new dijit.MenuItem({
+            settingsMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 disabled: true
             }));
             <% } else { %>
-            settingsMenu.addChild(new dijit.MenuItem({
+            settingsMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
                     showWaitDialog();
@@ -94,22 +96,22 @@ function buildMenuBar() {
             }));
             <% } %>
             <% } %>
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Settings",
                 popup: settingsMenu
             }));
         }
         { // Modules Menu
-            var modulesMenu = new dijit.Menu({});
+            var modulesMenu = new Menu({});
             <% final Map<PwmSetting.Category,List<PwmSetting>> moduleMap = PwmSetting.valuesByFilter(configManagerBean.getConfiguration().getTemplate(),PwmSetting.Category.Type.MODULE,level); %>
             <% for (final PwmSetting.Category loopCategory : moduleMap.keySet()) { %>
             <% if (loopCategory == category && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
-            modulesMenu.addChild(new dijit.MenuItem({
+            modulesMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 disabled: true
             }));
             <% } else { %>
-            modulesMenu.addChild(new dijit.MenuItem({
+            modulesMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
                     showWaitDialog();
@@ -127,22 +129,22 @@ function buildMenuBar() {
             }));
             <% } %>
             <% } %>
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Modules",
                 popup: modulesMenu
             }));
         }
         { // Display menu
-            var displayMenu = new dijit.Menu({});
+            var displayMenu = new Menu({});
 
             <% for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
             <% if (localeBundle == configManagerBean.getLocaleBundle() && configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
-            displayMenu.addChild(new dijit.MenuItem({
+            displayMenu.addChild(new MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 disabled: true
             }));
             <% } else { %>
-            displayMenu.addChild(new dijit.MenuItem({
+            displayMenu.addChild(new MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 onClick: function() {
                     showWaitDialog();
@@ -160,14 +162,14 @@ function buildMenuBar() {
             }));
             <% } %>
             <% } %>
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Custom Text",
                 popup: displayMenu
             }));
         }
         { // view
-            var viewMenu = new dijit.Menu({});
-            viewMenu.addChild(new dijit.CheckedMenuItem({
+            var viewMenu = new Menu({});
+            viewMenu.addChild(new CheckedMenuItem({
                 label: "Advanced Settings",
                 checked: <%=level == 1 ? "true" : "false"%>,
                 onClick: function() {
@@ -181,7 +183,7 @@ function buildMenuBar() {
                     });
                 }
             }));
-            viewMenu.addChild(new dijit.CheckedMenuItem({
+            viewMenu.addChild(new CheckedMenuItem({
                 label: "Display Help Text",
                 checked: <%=showDesc ? "true" : "false"%>,
                 onClick: function() {
@@ -195,19 +197,37 @@ function buildMenuBar() {
                     });
                 }
             }));
-            viewMenu.addChild(new dijit.MenuSeparator());
-            viewMenu.addChild(new dijit.MenuItem({
+            <% if (
+            ServletHelper.cookieEquals(request, "hide-warn-advanced", "true") ||
+            ServletHelper.cookieEquals(request, "hide-warn-shownotes", "true") ||
+            ServletHelper.cookieEquals(request, "hide-warn-showdesc", "true")
+            ){ %>
+            viewMenu.addChild(new MenuSeparator());
+            viewMenu.addChild(new MenuItem({
+                label: "Show Hidden Warnings",
+                checked: <%=showDesc ? "true" : "false"%>,
+                onClick: function() {
+                    setCookie('hide-warn-advanced');
+                    setCookie('hide-warn-shownotes');
+                    setCookie('hide-warn-showdesc');
+                    showWaitDialog();
+                    window.location="ConfigManager";
+                }
+            }));
+            <% } %>
+            viewMenu.addChild(new MenuSeparator());
+            viewMenu.addChild(new MenuItem({
                 label: "Configuration Notes",
                 onClick: function() {
                     showConfigurationNotes();
                 }
             }));
-            viewMenu.addChild(new dijit.MenuItem({
+            viewMenu.addChild(new MenuItem({
                 label: "Macro Help",
                 onClick: function() {
                     var idName = 'dialogPopup';
                     clearDijitWidget(idName);
-                    var theDialog = new dijit.Dialog({
+                    var theDialog = new Dialog({
                         id: idName,
                         title: 'Macro Help',
                         style: "width: 550px",
@@ -216,18 +236,18 @@ function buildMenuBar() {
                     theDialog.show();
                 }
             }));
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "View",
                 popup: viewMenu
             }));
         }
 
         { // Templates
-            var templateMenu = new dijit.Menu({});
+            var templateMenu = new Menu({});
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
             <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
             var confirmText = 'Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.';
-            templateMenu.addChild(new dijit.CheckedMenuItem({
+            templateMenu.addChild(new CheckedMenuItem({
                 label: "<%=template.getDescription()%>",
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,
                 onClick: function() {
@@ -247,13 +267,13 @@ function buildMenuBar() {
                 }
             }));
             <% } %>
-            templateMenu.addChild(new dijit.MenuSeparator());
-            templateMenu.addChild(new dijit.MenuItem({
+            templateMenu.addChild(new MenuSeparator());
+            templateMenu.addChild(new MenuItem({
                 label: "About Templates",
                 onClick: function() {
                     var idName = 'dialogPopup';
                     clearDijitWidget(idName);
-                    var theDialog = new dijit.Dialog({
+                    var theDialog = new Dialog({
                         id: idName,
                         title: 'About Templates',
                         style: "width: 550px",
@@ -263,23 +283,23 @@ function buildMenuBar() {
                 }
             }));
 
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Template",
                 popup: templateMenu
             }));
         }
         { // Actions
-            var actionsMenu = new dijit.Menu({});
+            var actionsMenu = new Menu({});
 
             <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
-            actionsMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new MenuItem({
                 label: "Finish Editing",
                 onClick: function() {
                     saveConfiguration(false);
                 }
             }));
             <% } else { %>
-            actionsMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new MenuItem({
                 label: "Save",
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
                 onClick: function() {
@@ -288,7 +308,7 @@ function buildMenuBar() {
                 }
             }));
             <% } %>
-            actionsMenu.addChild(new dijit.MenuItem({
+            actionsMenu.addChild(new MenuItem({
                 label: "Cancel",
                 iconClass: "dijitEditorIcon dijitEditorIconCancel",
                 onClick: function() {
@@ -296,7 +316,7 @@ function buildMenuBar() {
                 }
             }));
 
-            topMenuBar.addChild(new dijit.PopupMenuBarItem({
+            topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Actions",
                 popup: actionsMenu
             }));

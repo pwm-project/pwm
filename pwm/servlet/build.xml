@@ -66,6 +66,7 @@
     <target name="makeJAR" depends="compileCode,copyResources">
         <jar destfile="${destination}/pwm-servlet.jar">
             <fileset dir="${destination}/bin"/>
+            <zipfileset dir="${src.root}/src" prefix="src"/>
         </jar>
     </target>
 

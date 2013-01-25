@@ -106,6 +106,8 @@ public enum PwmSetting {
             "display.css.customMobileStyle", PwmSettingSyntax.TEXT_AREA, Category.USER_INTERFACE),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", PwmSettingSyntax.TEXT_AREA, Category.USER_INTERFACE),
+    DISPLAY_CUSTOM_LOGO_IMAGE(
+            "display.custom.logoImage", PwmSettingSyntax.STRING, Category.USER_INTERFACE),
 
     // change password
     LOGOUT_AFTER_PASSWORD_CHANGE(
@@ -314,6 +316,8 @@ public enum PwmSetting {
             "password.policy.minimumUnique", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
+    PASSWORD_POLICY_MINIMUM_LIFETIME(
+            "password.policy.minimumLifetime", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_CASE_SENSITIVITY(
             "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ENABLE_WORDLIST(
@@ -461,6 +465,8 @@ public enum PwmSetting {
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.STRING, Category.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
             "command.checkResponses.queryMatch", PwmSettingSyntax.STRING, Category.CHALLENGE),
+    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
+            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
 
 
     // recovery settings
@@ -633,10 +639,11 @@ public enum PwmSetting {
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
             "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, Category.EDIRECTORY, new Template[]{Template.NOVL}),
 
+    // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
-            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
+            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
     AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuthRequireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
+            "ldap.ad.allowAuthRequireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
 
     // helpdesk
     HELPDESK_ENABLE(
@@ -709,30 +716,12 @@ public enum PwmSetting {
 
 // ------------------------------ STATICS ------------------------------
 
-    private static final Map<Category, List<PwmSetting>> VALUES_BY_CATEGORY;
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmSetting.class);
 
-    static {
-        final Map<Category, List<PwmSetting>> returnMap = new LinkedHashMap<Category, List<PwmSetting>>();
-
-        //setup nested lists
-        for (final Category category : Category.values()) returnMap.put(category, new ArrayList<PwmSetting>());
-
-        //populate map
-        for (final PwmSetting setting : values()) returnMap.get(setting.getCategory()).add(setting);
-
-        //make nested lists unmodifiable
-        for (final Category category : Category.values())
-            returnMap.put(category, Collections.unmodifiableList(returnMap.get(category)));
-
-        //assign unmodifiable list
-        VALUES_BY_CATEGORY = Collections.unmodifiableMap(returnMap);
-    }
 
 // ------------------------------ FIELDS ------------------------------
 
     private static class Static {
-        private static final String RESOURCE_MISSING = "--RESOURCE MISSING--";
         private static final Pattern DEFAULT_REGEX = Pattern.compile(".*",Pattern.DOTALL);
     }
 
@@ -839,13 +828,17 @@ public enum PwmSetting {
         return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
     }
 
+    public boolean isHidden() {
+        final Element settingElement = readSettingXml(this);
+        final Attribute requiredAttribute = settingElement.getAttribute("hidden");
+        return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+    }
+
     public int getLevel() {
         final Element settingElement = readSettingXml(this);
         final Attribute levelAttribute = settingElement.getAttribute("level");
         return levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
     }
-
-
 
     public Pattern getRegExPattern() {
         Element settingNode = readSettingXml(this);
@@ -915,14 +908,16 @@ public enum PwmSetting {
             return type;
         }
 
-        public static Category[] valuesByType(final Category.Type type) {
-            final List<Category> returnCategories = new ArrayList<Category>();
-            for (final Category category : values()) {
-                if (category.getType() == type) {
-                    returnCategories.add(category);
-                }
-            }
-            return returnCategories.toArray(new Category[returnCategories.size()]);
+        public int getLevel() {
+            final Element settingElement = readCategoryXml(this);
+            final Attribute levelAttribute = settingElement.getAttribute("level");
+            return levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
+        }
+
+        public boolean isHidden() {
+            final Element settingElement = readCategoryXml(this);
+            final Attribute requiredAttribute = settingElement.getAttribute("hidden");
+            return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
         }
     }
 
@@ -953,32 +948,19 @@ public enum PwmSetting {
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByFilter(final Template template, final Category.Type categoryType, final int level) {
+        final long startTime = System.currentTimeMillis();
         final List<PwmSetting> settingList = new ArrayList<PwmSetting>(Arrays.asList(PwmSetting.values()));
 
-        if (level >= 0) {
-            for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
-                final PwmSetting loopSetting = iter.next();
-                if (loopSetting.getLevel() > level) {
-                    iter.remove();
-                }
-            }
-        }
-
-        if (categoryType != null) {
-            for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
-                final PwmSetting loopSetting = iter.next();
-                if (loopSetting.getCategory().getType() != categoryType) {
-                    iter.remove();
-                }
-            }
-        }
-
-        if (template != null) {
-            for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
-                final PwmSetting loopSetting = iter.next();
-                if (!loopSetting.getTemplates().contains(template)) {
-                    iter.remove();
-                }
+        for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
+            final PwmSetting loopSetting = iter.next();
+            if (categoryType != null && loopSetting.getCategory().getType() != categoryType) {
+                iter.remove();
+            } else if (level >= 0 && loopSetting.getLevel() > level) {
+                iter.remove();
+            } else if (template != null && !loopSetting.getTemplates().contains(template)) {
+                iter.remove();
+            } else if (loopSetting.isHidden() || loopSetting.getCategory().isHidden()) {
+                iter.remove();
             }
         }
 
@@ -989,6 +971,10 @@ public enum PwmSetting {
             }
             returnMap.get(loopSetting.getCategory()).add(loopSetting);
         }
+        for (final Category category : returnMap.keySet()) {
+            returnMap.put(category,Collections.unmodifiableList(returnMap.get(category)));
+        }
+
         return Collections.unmodifiableMap(returnMap);
     }
 
@@ -1003,13 +989,13 @@ public enum PwmSetting {
 
     private static Element readSettingXml(final PwmSetting setting) {
         final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile("//setting[@key=\"" + setting.getKey() + "\"]");
+        final XPathExpression xp = xpfac.compile("/settings/setting[@key=\"" + setting.getKey() + "\"]");
         return (Element)xp.evaluateFirst(readXml());
     }
 
     private static Element readCategoryXml(final Category category) {
         final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile("//category[@key=\"" + category.toString() + "\"]");
+        final XPathExpression xp = xpfac.compile("/settings/category[@key=\"" + category.toString() + "\"]");
         return (Element)xp.evaluateFirst(readXml());
     }
 

@@ -47,7 +47,7 @@
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
     <pwm:Display key="Warning_ShowAdvanced" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-advanced','true',86400);" href="ConfigManager">(hide)</a>
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-advanced','true',2592000);" href="ConfigManager">(hide)</a>
 </div>
 <% } %>
 <% if (hasNotes) { %>
@@ -55,7 +55,7 @@
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
     <pwm:Display key="Warning_ShowNotes" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-shownotes','true',86400);" href="ConfigManager">(hide)</a>
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-shownotes','true',2592000);" href="ConfigManager">(hide)</a>
 </div>
 <% } %>
 <% } %>
@@ -64,7 +64,7 @@
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
     <pwm:Display key="Warning_ShowDescription" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-showdesc','true',86400);" href="ConfigManager">(hide)</a>
+    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-showdesc','true',2592000);" href="ConfigManager">(hide)</a>
 </div>
 <% } %>
 <% } %>
@@ -245,7 +245,7 @@
                     regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                     required: <%=loopSetting.isRequired()%>,
                     invalidMessage: "The value does not have the correct format.",
-                    style: "width: 450px",
+                    style: "width: 550px",
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
@@ -296,15 +296,3 @@
 <br/>
 <% } %>
 <% } %>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        setTimeout(function(){
-            <% if (hasNotes) { %>
-            if (getCookie("seen-notes") == "false") {
-                showConfigurationNotes();
-                setCookie("seen-notes","true",30 * 60);
-            }
-            <% } %>
-        },500);
-    });
-</script>

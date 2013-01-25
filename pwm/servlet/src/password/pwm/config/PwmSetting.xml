@@ -254,6 +254,13 @@
             <value />
         </default>
     </setting>
+    <setting key="display.custom.logoImage" level="1">
+        <label>Custom Logo Image</label>
+        <description><![CDATA[URL of custom logo.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
         <label>Logout After Password Change</label>
         <description><![CDATA[Force user to logout of PWM (and send to logoutURL) after a password change.<br/><br/>In most cases, this should be left on (default), especially if using some type of single sign on service.]]></description>
@@ -854,9 +861,9 @@
             <value><![CDATA[MERGE]]></value>
         </default>
         <options>
-            <option key="MERGE">Merge PWM and LDAP (default)</option>
-            <option key="LDAP">LDAP</option>
-            <option key="PWM">PWM</option>
+            <option value="MERGE">Merge PWM and LDAP (default)</option>
+            <option value="LDAP">LDAP</option>
+            <option value="PWM">PWM</option>
         </options>
     </setting>
     <setting key="password.policy.minimumLength" level="0" required="true">
@@ -1023,6 +1030,13 @@
     <setting key="password.policy.maximumOldPasswordChars" level="0" required="true">
         <label>Maximum Characters From Previous Password</label>
         <description><![CDATA[Maximum amount of characters from the previous password allowed in the new password.  A value of zero disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.minimumLifetime" level="0" required="true">
+        <label>Minimum Lifetime</label>
+        <description><![CDATA[Minimum amount of time that must pass between password changes.  Value is in seconds.  A value of zero disables this check.]]></description>
         <default>
             <value>0</value>
         </default>
@@ -1563,6 +1577,13 @@
             <value><![CDATA[(objectClass=*)]]></value>
         </default>
     </setting>
+    <setting key="challenge.enforceMinimumPasswordLifetime" level="1" required="true">
+        <label>Enforce Minimum Password Lifetime</label>
+        <description><![CDATA[When the user authenticates via ForgottenPassword, should the password minimum lifetime (if set) be enforced?  If this setting is true, the user cannot change password if the minimum lifetime hasn't passed.  If false, the user is permitted to change their password when authenticated via Forgotten Password even if the minimum lifetime has not changed.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="recovery.enable" level="0">
         <label>Enable Forgotten Password</label>
         <description><![CDATA[If enabled, forgotten password recovery will be available to users.]]></description>
@@ -1770,8 +1791,8 @@
         </default>
     </setting>
     <setting key="newUser.writeAttributes" level="0">
-        <label>Write Attributes</label>
-        <description><![CDATA[Attributes to be written to ldap when a user is created.  These attributes will be written to the user object just after creating the object.<br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <label>New User Actions</label>
+        <description><![CDATA[Actions to be taken when a user is created.  These actions will be executed just after creating the object.<br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
         <default />
     </setting>
     <setting key="newUser.deleteOnFail" level="1">
@@ -2486,7 +2507,7 @@
         <label>Database</label>
         <description><![CDATA[Optional database configuration settings.  Two types of databases are used by PWM.<h2>PwmDB</h2>The PwmDB is a local, embedded database that is used by PWM for storage of local data.  In most cases, the PwmDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured, PWM can use a traditional RDBMS database to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, PWM will connect to the database and create any necessary tables.  Multiple PWM server instances can be configured for the same database instance.]]></description>
     </category>
-    <category key="MISC">
+    <category key="MISC" level="1">
         <label>Integration / Developer</label>
         <description><![CDATA[Settings that are of interest to developers or component integrators.]]></description>
     </category>
@@ -2506,7 +2527,7 @@
         <label>New User Registration</label>
         <description><![CDATA[Note: The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
     </category>
-    <category key="GUEST">
+    <category key="GUEST" hidden="true">
         <label>Guest Registration</label>
         <description><![CDATA[Note: The guest user registration module requires that the logged in user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
     </category>

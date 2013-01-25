@@ -29,13 +29,11 @@ import password.pwm.*;
 import password.pwm.bean.ChangePasswordBean;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmPasswordRuleValidator;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
 
 import javax.servlet.ServletContext;
@@ -43,6 +41,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,6 +84,15 @@ public class ChangePasswordServlet extends TopServlet {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
+        }
+
+        try {
+            checkMinimumLifetime(pwmApplication,pwmSession,pwmSession.getUserInfoBean());
+        } catch (PwmOperationalException e) {
+            final ErrorInformation errorInformation = e.getErrorInformation();
+            LOGGER.error(pwmSession,errorInformation.toDebugStr());
+            ssBean.setSessionError(errorInformation);
+            ServletHelper.forwardToErrorPage(req,resp,false);
         }
 
         if (processRequestParam != null && processRequestParam.length() > 0) {
@@ -458,5 +466,45 @@ public class ChangePasswordServlet extends TopServlet {
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
         ), pwmSession.getUserInfoBean());
+    }
+
+    private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)
+            throws PwmOperationalException
+    {
+        final int minimumLifetime = userInfoBean.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+        if (minimumLifetime < 1) {
+            return;
+        }
+
+        final Date lastModified = userInfoBean.getPasswordLastModifiedTime();
+        if (lastModified == null || lastModified.after(new Date())) {
+            LOGGER.debug(pwmSession, "skipping minimum lifetime check, password last set time is unknown");
+            return;
+        }
+
+        final TimeDuration passwordAge = TimeDuration.fromCurrent(lastModified);
+        final boolean passwordTooSoon = passwordAge.getTotalSeconds() < minimumLifetime;
+        if (!passwordTooSoon) {
+            return;
+        }
+
+        final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
+        if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod()) {
+            LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
+            return;
+        }
+
+        final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+        if (!enforceFromForgotten) {
+            if (userInfoBean.isCurrentPasswordUnknownToUser()) {
+                LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because user authenticated with unknown password");
+                return;
+            }
+        }
+
+        final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
+        final String errorMsg = "last password change is too recent, password cannot be changed until after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON,errorMsg);
+        throw new PwmOperationalException(errorInformation);
     }
 }
