@@ -27,7 +27,6 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
-<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(request); %>
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -41,7 +40,7 @@
         <p><pwm:Display key="Display_Helpdesk"/></p>
         <% } %>
         <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn',this);" onreset="handleFormClear();" id="searchForm">
+              onsubmit="handleFormSubmit('submitBtn',this);" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
 

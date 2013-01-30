@@ -20,57 +20,47 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
+<%@ page import="password.pwm.bean.SetupResponsesBean" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+
+<%@ page language="java" session="true" isThreadSafe="true"
+         contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
+    final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="nihilo">
+<body class="nihilo"
+      onload="pwmPageLoadHandler();startupResponsesPage();document.forms[0].elements[0].focus()">
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_GuestUpdate"/>
+        <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>
     </jsp:include>
     <div id="centerbody">
-        <p id="registration-menu-bar" style="text-align:center;">
-            <a href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a> |
-            <a href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
-        </p>
-        <br/>
-        <p><pwm:Display key="Display_GuestUpdate"/></p>
+        <p><pwm:Display key="Display_SetupHelpdeskResponses"/></p>
 
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="searchForm"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
+        <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
+              enctype="application/x-www-form-urlencoded" id="setupResponses"
+              onsubmit="handleFormSubmit('setresponses_button',this);return false">
             <%@ include file="fragment/message.jsp" %>
-
-
-            <% //check to see if any locations are configured.
-                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
-            %>
-            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context">
-                <pwm:DisplayLocationOptions name="context"/>
-            </select>
-            <% } %>
-
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="text" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
-
+            <% request.setAttribute("setupData",responseBean.getHelpdeskResponseData()); %>
+            <script type="text/javascript">PWM_GLOBAL['responseMode'] = "helpdesk";</script>
+            <jsp:include page="fragment/setupresponses-form.jsp"/>
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_Search"/>"
-                       id="submitBtn"/>
+                <input type="hidden" name="processAction" value="setHelpdeskResponses"/>
+                <input type="submit" name="setResponses" class="btn" id="setresponses_button"
+                       value="<pwm:Display key="Button_SetResponses"/>"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-
-                <input type="reset" class="btn"
-                       name="reset" onclick="clearForm('searchForm');return false;"
+                <input type="reset" name="reset" class="btn"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
+                <input type="hidden" name="hideButton" class="btn"
+                       value="<pwm:Display key="Button_Hide_Responses"/>"
+                       onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
@@ -85,4 +75,3 @@
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
-

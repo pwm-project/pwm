@@ -65,14 +65,14 @@ public class ServletHelper {
     }
 
     /**
-     * Forwards the user to the error page.  Callers to this method should populate the sesssion bean's
+     * Forwards the user to the error page.  Callers to this method should populate the session bean's
      * session error state.  If the session error state is null, then this method will populate it
      * with a generic unknown error.
      *
      *
      * @param req         Users http request
      * @param resp        Users http response
-     * @param forceLogout if the user should be unauthenticed after showing the error
+     * @param forceLogout if the user should be unauthenticated after showing the error
      * @throws java.io.IOException            if there is an error writing to the response
      * @throws javax.servlet.ServletException if there is a problem accessing the http objects
      */
@@ -111,7 +111,7 @@ public class ServletHelper {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());
         }
     }
-    
+
     public static void forwardToOriginalRequestURL(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -231,8 +231,8 @@ public class ServletHelper {
                     sb.append("  ").append(paramName).append("=");
                     if (
                             paramName.toLowerCase().contains("password") ||
-                            paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX) ||
-                            paramName.contains(PwmConstants.PARAM_TOKEN)
+                                    paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX) ||
+                                    paramName.contains(PwmConstants.PARAM_TOKEN)
                             ) {
                         sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
                     } else {
@@ -312,10 +312,12 @@ public class ServletHelper {
     }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
-        for (final Cookie cookie : req.getCookies()) {
-            if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
-                if (cookie.getValue() != null && cookie.getValue().equals(cookieValue)) {
-                    return true;
+        if (req != null) {
+            for (final Cookie cookie : req.getCookies()) {
+                if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
+                    if (cookie.getValue() != null && cookie.getValue().equals(cookieValue)) {
+                        return true;
+                    }
                 }
             }
         }

@@ -166,11 +166,11 @@ public class Configuration implements Serializable {
             case NUMERIC:
             case BOOLEAN:
             case PASSWORD:
-            	StoredValue value = storedConfiguration.readSetting(setting);
-            	if (value == null) return null;
-            	Object nativeObject = value.toNativeObject();
-            	if (nativeObject == null) return null;
-            	return nativeObject.toString();
+                StoredValue value = storedConfiguration.readSetting(setting);
+                if (value == null) return null;
+                Object nativeObject = value.toNativeObject();
+                if (nativeObject == null) return null;
+                return nativeObject.toString();
 
             default:
                 throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
@@ -203,8 +203,32 @@ public class Configuration implements Serializable {
     }
 
     public ChallengeSet getGlobalChallengeSet(final Locale locale) {
-        final List<String> requiredQuestions = readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_CHALLENGES, locale);
-        final List<String> randomQuestions = readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_RANDOM_CHALLENGES, locale);
+        return readChallengeSet(
+                locale,
+                PwmSetting.CHALLENGE_REQUIRED_CHALLENGES,
+                PwmSetting.CHALLENGE_RANDOM_CHALLENGES,
+                (int) readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED)
+        );
+    }
+
+    public ChallengeSet getHelpdeskChallengeSet(final Locale locale) {
+        return readChallengeSet(
+                locale,
+                PwmSetting.CHALLENGE_HELPDESK_REQUIRED_CHALLENGES,
+                PwmSetting.CHALLENGE_HELPDESK_RANDOM_CHALLENGES,
+                1
+        );
+    }
+
+    private ChallengeSet readChallengeSet(
+            final Locale locale,
+            final PwmSetting requiredChallenges,
+            final PwmSetting randomChallenges,
+            int minimumRands
+    )
+    {
+        final List<String> requiredQuestions = readSettingAsLocalizedStringArray(requiredChallenges, locale);
+        final List<String> randomQuestions = readSettingAsLocalizedStringArray(randomChallenges, locale);
 
         final List<Challenge> challenges = new ArrayList<Challenge>();
         for (final String question : requiredQuestions) {
@@ -221,7 +245,6 @@ public class Configuration implements Serializable {
             }
         }
 
-        int minimumRands = (int) readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED);
         if (minimumRands > randomQuestions.size()) {
             minimumRands = randomQuestions.size();
         }
@@ -233,6 +256,9 @@ public class Configuration implements Serializable {
         }
         return null;
     }
+
+
+
 
     private Challenge parseConfigStringToChallenge(String inputString, final boolean required) {
         if (inputString == null || inputString.length() < 1) {

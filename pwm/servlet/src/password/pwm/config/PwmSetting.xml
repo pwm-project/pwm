@@ -1563,6 +1563,29 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="challenge.helpdesk.randomChallenges" level="0">
+        <label>Helpdesk Random Questions</label>
+        <description><![CDATA[Helpdesk Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses.  This is controlled by the "Force All Random Response Completion" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <regex>^.+::[0-9]+::[0-9]+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="challenge.helpdesk.requiredChallenges" level="0">
+        <label>Helpdesk Required Questions</label>
+        <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be suppled during forgotten password.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
+        <regex>^.+::[0-9]+::[0-9]+$</regex>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="challenge.helpdesk.minRandomsSetup" level="0" required="true">
+        <label>Minimum Helpdesk Random Challenges Required During Setup</label>
+        <description><![CDATA[The minimum number of random questions the user is required to complete during Response Setup.  If this number is higher then the available randoms, or lower then the minimum required, it will be adjusted accordingly.  Set to zero to force all available randoms to be configured at time of setup.]]></description>
+        <default>
+            <value>4</value>
+        </default>
+    </setting>
     <setting key="challenge.allowSetup.queryMatch" level="1" required="true">
         <label>Save Challenge Query Match</label>
         <description><![CDATA[Query string used to detect if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
@@ -2248,6 +2271,20 @@
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"sAMAccountName"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"","userPrincipalName":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="ADDB">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"sAMAccountName"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="helpdesk.detail.form" level="0" required="true">

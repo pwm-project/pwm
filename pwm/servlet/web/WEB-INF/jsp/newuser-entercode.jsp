@@ -38,7 +38,7 @@
 <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
             <textarea style="height: 130px; width: 500px; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
@@ -53,8 +53,7 @@
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

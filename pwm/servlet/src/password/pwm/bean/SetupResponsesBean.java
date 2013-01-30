@@ -23,51 +23,110 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
 public class SetupResponsesBean implements PwmSessionBean {
-    private Map<String, Challenge> challengeList = Collections.emptyMap();
-    private boolean simpleMode;
-    private Map<Challenge, String> responseMap = Collections.emptyMap();
-    private int minRandomSetup;
+    private SetupData responseData;
+    private SetupData helpdeskResponseData;
+    private boolean responsesSatisfied;
+    private boolean helpdeskResponsesSatisfied;
+    private boolean confirmed;
 
-    public void clear() {
-        challengeList = Collections.emptyMap();
-        simpleMode = false;
-        responseMap = Collections.emptyMap();
+    public SetupResponsesBean() {
     }
 
-    public Map<String, Challenge> getIndexedChallenges() {
-        return challengeList;
+    public SetupData getResponseData() {
+        return responseData;
     }
 
-    public void setChallengeList(final Map<String, Challenge> challengeList) {
-        this.challengeList = challengeList;
+    public void setResponseData(SetupData responseData) {
+        this.responseData = responseData;
     }
 
-    public boolean isSimpleMode() {
-        return simpleMode;
+    public SetupData getHelpdeskResponseData() {
+        return helpdeskResponseData;
     }
 
-    public void setSimpleMode(final boolean simpleMode) {
-        this.simpleMode = simpleMode;
+    public void setHelpdeskResponseData(SetupData helpdeskResponseData) {
+        this.helpdeskResponseData = helpdeskResponseData;
     }
 
-    public Map<Challenge, String> getResponseMap() {
-        return responseMap;
+    public boolean isResponsesSatisfied() {
+        return responsesSatisfied;
     }
 
-    public void setResponseMap(final Map<Challenge, String> responseMap) {
-        this.responseMap = responseMap;
+    public void setResponsesSatisfied(boolean responsesSatisfied) {
+        this.responsesSatisfied = responsesSatisfied;
     }
 
-    public int getMinRandomSetup() {
-        return minRandomSetup;
+    public boolean isHelpdeskResponsesSatisfied() {
+        return helpdeskResponsesSatisfied;
     }
 
-    public void setMinRandomSetup(int minRandomSetup) {
-        this.minRandomSetup = minRandomSetup;
+    public void setHelpdeskResponsesSatisfied(boolean helpdeskResponsesSatisfied) {
+        this.helpdeskResponsesSatisfied = helpdeskResponsesSatisfied;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public static class SetupData implements Serializable {
+        private ChallengeSet challengeSet;
+        private Map<String, Challenge> indexedChallenges = Collections.emptyMap();
+        private boolean simpleMode;
+        private int minRandomSetup;
+        private Map<Challenge, String> responseMap = Collections.emptyMap();
+
+        public SetupData() {
+        }
+
+        public ChallengeSet getChallengeSet() {
+            return challengeSet;
+        }
+
+        public void setChallengeSet(ChallengeSet challengeSet) {
+            this.challengeSet = challengeSet;
+        }
+
+        public Map<String, Challenge> getIndexedChallenges() {
+            return indexedChallenges;
+        }
+
+        public void setIndexedChallenges(Map<String, Challenge> indexedChallenges) {
+            this.indexedChallenges = indexedChallenges;
+        }
+
+        public boolean isSimpleMode() {
+            return simpleMode;
+        }
+
+        public void setSimpleMode(boolean simpleMode) {
+            this.simpleMode = simpleMode;
+        }
+
+        public int getMinRandomSetup() {
+            return minRandomSetup;
+        }
+
+        public void setMinRandomSetup(int minRandomSetup) {
+            this.minRandomSetup = minRandomSetup;
+        }
+
+        public Map<Challenge, String> getResponseMap() {
+            return responseMap;
+        }
+
+        public void setResponseMap(Map<Challenge, String> responseMap) {
+            this.responseMap = responseMap;
+        }
     }
 }

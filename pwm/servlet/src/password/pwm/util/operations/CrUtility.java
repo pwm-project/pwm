@@ -110,7 +110,9 @@ public abstract class CrUtility {
     public static void validateResponses(
             final PwmApplication pwmApplication,
             final ChallengeSet challengeSet,
-            final Map<Challenge, String> responseMap
+            final Map<Challenge, String> responseMap,
+            final int minRandomRequiredSetup
+
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
@@ -162,6 +164,22 @@ public abstract class CrUtility {
             }
         }
 
+        { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
+            final Set<String> userQuestionTexts = new HashSet<String>();
+            for (final Challenge challenge : responseMap.keySet()) {
+                //if (!challenge.isAdminDefined()) {
+                    final String text = challenge.getChallengeText();
+                    if (userQuestionTexts.contains(text.toLowerCase())) {
+                        final String errorMsg = "duplicate challenge text: " + text;
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE, errorMsg, new String[]{text});
+                        throw new PwmDataValidationException(errorInformation);
+                    } else {
+                        userQuestionTexts.add(text.toLowerCase());
+                    }
+                //}
+            }
+        }
+
         int randomCount = 0;
         for (final Challenge loopChallenge : responseMap.keySet()) {
             if (!loopChallenge.isRequired()) {
@@ -169,7 +187,6 @@ public abstract class CrUtility {
             }
         }
 
-        final int minRandomRequiredSetup = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
         if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
             if (randomCount < challengeSet.getRandomChallenges().size()) {
                 final String errorMsg = "all randoms required, but not all randoms are completed";
@@ -182,22 +199,6 @@ public abstract class CrUtility {
             final String errorMsg = minRandomRequiredSetup + " randoms required, but not only " + randomCount + " randoms are completed";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_MISSING_RANDOM_RESPONSE, errorMsg);
             throw new PwmDataValidationException(errorInfo);
-        }
-
-        { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
-            final Set<String> userQuestionTexts = new HashSet<String>();
-            for (final Challenge challenge : responseMap.keySet()) {
-                if (!challenge.isAdminDefined()) {
-                    final String text = challenge.getChallengeText();
-                    if (userQuestionTexts.contains(text.toLowerCase())) {
-                        final String errorMsg = "duplicate challenge text: " + text;
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE, errorMsg, new String[]{text});
-                        throw new PwmDataValidationException(errorInformation);
-                    } else {
-                        userQuestionTexts.add(text.toLowerCase());
-                    }
-                }
-            }
         }
 
         if (responseMap == null || responseMap.isEmpty()) {
@@ -316,7 +317,7 @@ public abstract class CrUtility {
                 final String errorMsg = "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
-            } catch (ChaiValidationException e) {
+            } catch (ChaiException e) {
                 final String errorMsg = "unexpected chai error reading responses from pwmDB: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
@@ -418,6 +419,7 @@ public abstract class CrUtility {
 
         final ChaiResponseSet chaiResponseSet = ChaiCrFactory.newChaiResponseSet(
                 responseInfoBean.getCrMap(),
+                responseInfoBean.getHelpdeskCrMap(),
                 responseInfoBean.getLocale(),
                 responseInfoBean.getMinRandoms(),
                 theUser.getChaiProvider().getChaiConfiguration(),
@@ -475,6 +477,11 @@ public abstract class CrUtility {
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
                         throw pwmOE;
+                    } catch (ChaiOperationException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
                     }
                 }
                 break;
@@ -491,6 +498,11 @@ public abstract class CrUtility {
                         LOGGER.info(pwmSession, "saved responses for user in remote database");
                         successes++;
                     } catch (PwmUnrecoverableException e) {
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
+                        final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                        pwmOE.initCause(e);
+                        throw pwmOE;
+                    } catch (ChaiOperationException e) {
                         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
@@ -789,6 +801,11 @@ public abstract class CrUtility {
 
         public Date getTimestamp() throws ChaiUnavailableException, IllegalStateException, ChaiOperationException {
             return new Date();
+        }
+
+        @Override
+        public Map<Challenge, String> getHelpdeskResponses() {
+            return Collections.emptyMap();
         }
 
         @Override

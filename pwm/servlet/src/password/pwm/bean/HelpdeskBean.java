@@ -27,13 +27,16 @@ import password.pwm.UserHistory;
 import password.pwm.util.operations.UserSearchEngine;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 
 public class HelpdeskBean implements PwmSessionBean {
     private String searchString;
     private UserInfoBean userInfoBean = new UserInfoBean();
     private UserSearchEngine.UserSearchResults searchResults;
     private AdditionalUserInfo additionalUserInfo = new AdditionalUserInfo();
+    private Map<String,String> helpdeskResponses = Collections.emptyMap();
 
     public static class AdditionalUserInfo implements Serializable {
         private transient ResponseSet responseSet;
@@ -122,5 +125,13 @@ public class HelpdeskBean implements PwmSessionBean {
 
     public void setAdditionalUserInfo(AdditionalUserInfo additionalUserInfo) {
         this.additionalUserInfo = additionalUserInfo;
+    }
+
+    public Map<String, String> getHelpdeskResponses() {
+        return helpdeskResponses;
+    }
+
+    public void setHelpdeskResponses(Map<String, String> helpdeskResponses) {
+        this.helpdeskResponses = helpdeskResponses;
     }
 }

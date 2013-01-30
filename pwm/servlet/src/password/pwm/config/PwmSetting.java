@@ -461,6 +461,12 @@ public enum PwmSetting {
             "challenge.allowDuplicateResponses", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
     CHALLENGE_APPLY_WORDLIST(
             "challenge.applyWorldlist", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
+    CHALLENGE_HELPDESK_RANDOM_CHALLENGES(
+            "challenge.helpdesk.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
+    CHALLENGE_HELPDESK_REQUIRED_CHALLENGES(
+            "challenge.helpdesk.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
+    CHALLENGE_HELPDESK_MIN_RANDOM_SETUP(
+            "challenge.helpdesk.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.STRING, Category.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(

@@ -36,7 +36,7 @@
     </jsp:include>
     <div id="centerbody">
         <form action="<pwm:url url='PeopleSearch'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn');" onreset="handleFormClear();">
+              onsubmit="handleFormSubmit('submitBtn');">
             <%@ include file="fragment/message.jsp" %>
             <p>&nbsp;</p>
 

@@ -56,7 +56,7 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-resources'] = "<%=request.getContextPath()%><pwm:url url='/public/resources'/>";
     PWM_GLOBAL['url-restservice'] = "<%=request.getContextPath()%><pwm:url url='/public/rest'/>";
     PWM_GLOBAL['url-context'] = "<%=request.getContextPath()%>";
-    PWM_GLOBAL['url-setupresponses'] = '<pwm:url url='SetupResponses'/>';
+    PWM_GLOBAL['url-setupresponses'] = '<%=request.getContextPath()%><pwm:url url='/private/SetupResponses'/>';
     PWM_GLOBAL['client.ajaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
     PWM_GLOBAL['client.ajaxTypingWait'] = <%=PwmConstants.CLIENT_AJAX_TYPING_WAIT%>
     PWM_GLOBAL['formTypeOptions'] = [];

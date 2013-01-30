@@ -489,13 +489,11 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
                 valueTableRow.appendChild(valueTd1);
                 localeTableElement.appendChild(valueTableRow);
 
-                if (itemCount(resultValue)) { // add the remove value button
-                    var imgElement = document.createElement("img");
-                    imgElement.setAttribute("style", "width: 10px; height: 10px");
-                    imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-                    imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
-                    valueTd1.appendChild(imgElement);
-                }
+                var imgElement = document.createElement("img");
+                imgElement.setAttribute("style", "width: 10px; height: 10px");
+                imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
+                valueTd1.appendChild(imgElement);
             }
 
             { // add row button for this locale group
@@ -558,25 +556,23 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
 };
 
 MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value, regExPattern) {
-    var currentValues = clientSettingCache[settingKey];
     if (locale != null) {
-        if (currentValues[locale] == null) {
-            currentValues[locale] = [ "" ];
+        if (clientSettingCache[settingKey][locale] == null) {
+            clientSettingCache[settingKey][locale] = [ "" ];
         }
 
         if (iteration == null) {
-            delete currentValues[locale];
+            delete clientSettingCache[settingKey][locale];
         } else {
-            var internalValues = currentValues[locale];
             if (value == null) {
-                delete internalValues[iteration];
+                clientSettingCache[settingKey][locale].splice(iteration,1);
             } else {
-                internalValues[iteration] = value;
+                clientSettingCache[settingKey][locale][iteration] = value;
             }
         }
     }
 
-    writeSetting(settingKey, currentValues);
+    writeSetting(settingKey, clientSettingCache[settingKey]);
     var parentDiv = 'table_setting_' + settingKey;
     MultiLocaleTableHandler.draw(parentDiv, settingKey, regExPattern);
 };

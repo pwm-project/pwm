@@ -27,6 +27,7 @@ v1.6.5
 + sortable/column select grid for tabled data and user search results throughout pwm
 + search filter for helpdesk user lookup (issue #228)
 + added "please select" message during setup response randoms (issue #306)
++ added helpdesk viewable challenge/responses (issue #229)
 
 
 - Shortcut order is sometimes randomized (issue #277)

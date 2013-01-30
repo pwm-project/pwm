@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
@@ -245,7 +244,7 @@
     </div>
     <% } %>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Password Policy">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
     <table>
         <tr>
             <td class="key">
@@ -274,65 +273,22 @@
         </tr>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="ChallengeSet">
+<% if (!helpdeskBean.getHelpdeskResponses().isEmpty()) { %>
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_SecurityResponses"/>">
     <table>
-        <% if (searchedUserInfo.getChallengeSet() != null) { %>
+        <% for (final String challenge : helpdeskBean.getHelpdeskResponses().keySet()) { %>
         <tr>
             <td class="key">
-                ChallengeSet Locale
+                <%=challenge%>
             </td>
             <td>
-                <%=searchedUserInfo.getChallengeSet().getLocale()%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Identifier
-            </td>
-            <td>
-                <%=searchedUserInfo.getChallengeSet().getIdentifier()%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Minimum Random
-            </td>
-            <td>
-                <%=searchedUserInfo.getChallengeSet().getMinRandomRequired()%>
-            </td>
-        </tr>
-        <% for (final Challenge loopChallange : searchedUserInfo.getChallengeSet().getRequiredChallenges()) { %>
-        <tr>
-            <td class="key">
-                Required Challenge
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(loopChallange.getChallengeText()) %>
-            </td>
-        </tr>
-        <% } %>
-        <% for (final Challenge loopChallange : searchedUserInfo.getChallengeSet().getRandomChallenges()) { %>
-        <tr>
-            <td class="key">
-                Random Challenge
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(loopChallange.getChallengeText()) %>
-            </td>
-        </tr>
-        <% } %>
-        <% } else { %>
-        <tr>
-            <td class="key">
-                ChallengeSet
-            </td>
-            <td>
-                ChallengeSet not configured for user
+                <%=helpdeskBean.getHelpdeskResponses().get(challenge)%>
             </td>
         </tr>
         <% } %>
     </table>
 </div>
+<% } %>
 </div>
 <div id="buttonbar">
     <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
@@ -368,11 +324,11 @@
 </div>
 <script type="text/javascript">
     function initiateChangePasswordDialog() {
-    <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
+        <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
         generatePasswordPopup();
-    <% } else { %>
+        <% } else { %>
         changePasswordPopup();
-    <% } %>
+        <% } %>
     }
 
     function changePasswordPopup() {

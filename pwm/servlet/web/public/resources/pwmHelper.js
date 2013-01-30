@@ -24,7 +24,19 @@ function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
+        require(["dojo","dojo/on"], function(dojo,on){
+            on(loopForm, "reset", function(){
+                handleFormClear();
+                return false;
+            });
+        });
     }
+
+    require(["dojo","dojo/on"], function(dojo,on){
+        on(window, "keypress", function(event){
+            checkForCapsLock(event);
+        });
+    });
 
     if (getObject('button_cancel')) {
         getObject('button_cancel').style.visibility = 'visible';
@@ -77,7 +89,12 @@ function pwmPageLoadHandler() {
     }
 }
 
-
+function handleFormCancel() {
+    showWaitDialog(null,null,function(){
+        var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+        window.location = continueUrl;
+    });
+}
 
 function handleFormSubmit(buttonID, form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;

@@ -35,8 +35,7 @@
         <p><pwm:Display key="Display_ActivateUser"/></p>
 
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
-              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false"
-              onreset="handleFormClear();return false" onkeypress="checkForCapsLock(event)">
+              enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="fragment/message.jsp" %>
             <br/>
             <% //check to see if any locations are configured.
@@ -62,8 +61,7 @@
                        name="processAction"
                        value="activate"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

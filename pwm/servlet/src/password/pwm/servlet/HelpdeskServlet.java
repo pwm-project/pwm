@@ -24,6 +24,8 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
@@ -52,9 +54,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -249,6 +249,15 @@ public class HelpdeskServlet extends TopServlet {
         helpdeskBean.setUserInfoBean(uiBean);
         HelpdeskBean.AdditionalUserInfo additionalUserInfo = new HelpdeskBean.AdditionalUserInfo();
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);
+        {
+            final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession,pwmApplication,theUser);
+            final Map<Challenge,String> helpdeskResponseSet = responseSet.getHelpdeskResponses();
+            final Map<String,String> helpdeskResponses = new LinkedHashMap<String, String>();
+            for (final Challenge challenge : helpdeskResponseSet.keySet()) {
+                helpdeskResponses.put(challenge.getChallengeText(), helpdeskResponseSet.get(challenge));
+            }
+            helpdeskBean.setHelpdeskResponses(helpdeskResponses);
+        }
 
         try {
             additionalUserInfo.setIntruderLocked(theUser.isLocked());

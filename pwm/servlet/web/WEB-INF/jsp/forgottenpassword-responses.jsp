@@ -49,7 +49,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
@@ -58,7 +58,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel(ssBean.getLocale()) %>
             </label></h2>
             <input type="password" name="<%= paramConfig.getName()%>" class="inputfield" maxlength="255"
-                   id="attribute-<%= paramConfig.getName()%>"
+                   id="attribute-<%= paramConfig.getName()%>" required="required"
                    value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getName(),"") %>"/>
             <% } %>
 
@@ -71,7 +71,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>
             </label></h2>
             <input type="password" name="PwmResponse_R_<%= counter %>" class="inputfield" maxlength="255"
-                   id="PwmResponse_R_<%=counter%>"
+                   id="PwmResponse_R_<%=counter%>" required="required"
                    value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + counter,"") %>"/>
             <% } %>
             <% } %>
@@ -89,8 +89,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                        value="<pwm:Display key="Button_Hide_Responses"/>"
                        onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

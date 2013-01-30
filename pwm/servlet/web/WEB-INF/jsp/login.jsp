@@ -36,8 +36,7 @@
         <p><pwm:Display key="Display_Login"/></p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
-              onsubmit="return handleFormSubmit('submitBtn',this)" onreset="handleFormClear();return false"
-              onkeypress="checkForCapsLock(event)">
+              onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
                 if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
@@ -48,11 +47,11 @@
             </select>
             <% } %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="text" name="username" id="username" class="inputfield"
+            <input type="text" name="username" id="username" class="inputfield" required="required"
                    value="<pwm:ParamValue name='username'/>"/>
 
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield"/>
+            <input type="password" name="password" id="password" class="inputfield" re/>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"
@@ -67,7 +66,7 @@
                 <input type="hidden" name="processAction" value="login">
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                        onclick="handleFormCancel()">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

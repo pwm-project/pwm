@@ -42,7 +42,7 @@
         <p><pwm:Display key="Display_GuestRegistration"/></p>
 
         <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false">
+              onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <% request.setAttribute("form",PwmSetting.GUEST_FORM); %>
@@ -85,8 +85,7 @@
                 <input type="reset" name="reset" class="btn"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

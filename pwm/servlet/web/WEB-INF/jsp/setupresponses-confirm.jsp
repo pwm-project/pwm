@@ -42,8 +42,21 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <%
-            for (final Challenge loopChallenge : responseBean.getResponseMap().keySet()) {
-                final String responseText = responseBean.getResponseMap().get(loopChallenge);
+            for (final Challenge loopChallenge : responseBean.getResponseData().getResponseMap().keySet()) {
+                final String responseText = responseBean.getResponseData().getResponseMap().get(loopChallenge);
+        %>
+        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
+        </h2>
+
+        <p>
+            &nbsp;<%="\u00bb"%>&nbsp;
+            <%= StringEscapeUtils.escapeHtml(responseText) %>
+        </p>
+        <% } %>
+        <br/>
+        <%
+            for (final Challenge loopChallenge : responseBean.getHelpdeskResponseData().getResponseMap().keySet()) {
+                final String responseText = responseBean.getHelpdeskResponseData().getResponseMap().get(loopChallenge);
         %>
         <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
         </h2>
@@ -71,8 +84,7 @@
                        value="<pwm:Display key="Button_ChangeResponses"/>"/>
                 <input type="hidden" name="processAction" value="changeResponses"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

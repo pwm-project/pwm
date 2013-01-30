@@ -489,7 +489,7 @@ public class SessionFilter implements Filter {
         if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
             if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToPwm()) {
                 if (!PwmServletURLHelper.isChangePasswordURL(req)) {
-                    LOGGER.info(pwmSession, "user password is unknown to application, redirecting to change password servlet");
+                    LOGGER.debug(pwmSession, "user password is unknown to application, redirecting to change password servlet");
                     resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
                     return true;
                 } else {
@@ -498,13 +498,11 @@ public class SessionFilter implements Filter {
             }
         }
 
-
-
         if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
                 if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
                     if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
-                        LOGGER.info(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");
+                        LOGGER.debug(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");
                         resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
                         return true;
                     }
@@ -518,7 +516,7 @@ public class SessionFilter implements Filter {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
                 if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
                     if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
-                        LOGGER.info(pwmSession, "user is required to update profile, redirecting to profile update servlet");
+                        LOGGER.debug(pwmSession, "user is required to update profile, redirecting to profile update servlet");
                         resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
                         return true;
                     }
@@ -532,21 +530,21 @@ public class SessionFilter implements Filter {
             if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
                 boolean doRedirect = false;
                 if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
-                    LOGGER.info(pwmSession, "user password is expired, redirecting to change password servlet");
+                    LOGGER.debug(pwmSession, "user password is expired, redirecting to change password servlet");
                     doRedirect = true;
                 } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired() ) {
-                    LOGGER.info(pwmSession, "user password is pre-expired, redirecting to change password servlet ");
+                    LOGGER.debug(pwmSession, "user password is pre-expired, redirecting to change password servlet ");
                     doRedirect = true;
                 } else if (pwmSession.getUserInfoBean().getPasswordState().isViolatesPolicy() ) {
-                    LOGGER.info(pwmSession, "user password violates policy, redirecting to change password servlet ");
+                    LOGGER.debug(pwmSession, "user password violates policy, redirecting to change password servlet ");
                     doRedirect = true;
                 } else if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
-                    LOGGER.info(pwmSession, "user password requires changing due to a previous operation, redirecting to change password servlet");
+                    LOGGER.debug(pwmSession, "user password requires changing due to a previous operation, redirecting to change password servlet");
                     doRedirect = true;
                 }
 
                 if (doRedirect) {
-                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    resp.sendRedirect(req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
                     return true;
                 }
             }
@@ -556,5 +554,4 @@ public class SessionFilter implements Filter {
 
         return false;
     }
-
 }

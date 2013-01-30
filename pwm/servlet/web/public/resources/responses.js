@@ -24,41 +24,38 @@ var responsesHidden = true;
 var PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
 var PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 
-var simpleRandomSelectElements = [];
+PWM_GLOBAL['simpleRandomSelectElements'] = {};
+PWM_GLOBAL['simpleRandomOptions'] = [];
 
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 function validateResponses() {
-    var validationProps = new Array();
-    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingResponses'];
-    validationProps['serviceURL'] = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
-    validationProps['readDataFunction'] = function(){
-        return makeFormData();
-    };
-    validationProps['processResultsFunction'] = function(data){
-        updateDisplay(data);
-    };
-
-    pwmFormValidator(validationProps);
-}
-
-function makeFormData() {
-    var paramData = { };
-
-    for (var j = 0; j < document.forms.length; j++) {
-        for (var i = 0; i < document.forms[j].length; i++) {
-            var current = document.forms[j].elements[i];
-            if (current.name.substring(0,PARAM_QUESTION_PREFIX.length) == PARAM_QUESTION_PREFIX || current.name.substring(0,PARAM_RESPONSE_PREFIX.length) == PARAM_RESPONSE_PREFIX) {
-                paramData[current.name] = current.value;
-            }
+    require(["dojo/dom-form"], function(domForm){
+        var serviceUrl = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
+        if (PWM_GLOBAL['responseMode']) {
+            serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
         }
-    }
+        var validationProps = {};
+        validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingResponses'];
+        validationProps['serviceURL'] = serviceUrl;
+        validationProps['readDataFunction'] = function(){
+            return domForm.toObject('setupResponses');
+        };
+        validationProps['processResultsFunction'] = function(data){
+            updateDisplay(data);
+        };
 
-    return paramData;
+        pwmFormValidator(validationProps);
+    });
 }
 
 function updateDisplay(resultInfo)
 {
+    if (resultInfo == null) {
+        getObject("setresponses_button").disabled = false;
+        return;
+    }
+
     var result = resultInfo["message"];
 
     if (resultInfo["success"] == true) {
@@ -99,81 +96,54 @@ function toggleHideResponses()
 
 
 function makeSelectOptionsDistinct() {
-    var allPossibleTexts = [];
-    var currentlySelectedTexts = [];
-    var initialChoiceText = PWM_STRINGS['Display_SelectionIndicator'];
+    require(["dojo","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore","dojo/store/Memory"],
+        function(dojo,registry,array,dojoOn,ObjectStore,Memory){
+        console.log('entering makeSelectOptionsDistinct()');
+        var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
+        var initialChoiceText = PWM_STRINGS['Display_SelectionIndicator'];
+        var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
+        var currentlySelectedTexts = [];
 
-    // build list of all possible texts, and currently selected values.
-    require(["dojo"],function(dojo){
-        for (var i1 in simpleRandomSelectElements) {
-            var current = simpleRandomSelectElements[i1];
-            var currentSelected = current.selectedIndex;
-            currentlySelectedTexts[current.id] = current.options[currentSelected].text;
+        for (var responseID in simpleRandomSelectElements) {
+            (function(responseID){
+                var selectWidget = registry.byId(responseID);
+                var selectedValue = selectWidget.get('value');
+                currentlySelectedTexts.push(selectedValue);
+            }(responseID));
+        }
 
-            for (var optionIterator = 0; optionIterator < current.options.length; optionIterator++) {
-                var loopText = current.options[optionIterator].text;
-                var usedBefore = -1 != dojo.indexOf(allPossibleTexts,loopText);
-                if (!usedBefore) {
-                    allPossibleTexts.push(loopText);
+        for (var responseID in simpleRandomSelectElements) {
+            (function(responseID){
+                var questionID = simpleRandomSelectElements[responseID];
+                var selectWidget = registry.byId(responseID);
+                selectWidget.set('onchange',null);
+                var selectedValue = selectWidget.get('value');
+                var dataOptions = [];
+                if (selectedValue == 'UNSELECTED') {
+                    getObject(questionID).disabled = true;
+                    getObject(questionID).readonly = true;
+                    dataOptions.push({id:'UNSELECTED',label:'&nbsp;&nbsp---' + initialChoiceText + '---'})
+                } else {
+                    selectWidget.removeOption('UNSELECTED');
+                    getObject(questionID).disabled = false;
+                    getObject(questionID).readonly = false;
                 }
-            }
-        }
-
-        // ensure no two select lists have another's currently selected value
-        var usedTexts = [];
-        for (var loopIter in currentlySelectedTexts) {
-            var text = currentlySelectedTexts[loopIter];
-            if (-1 != dojo.indexOf(usedTexts,text)) {
-                for (var i in allPossibleTexts) {
-                    var loopT = allPossibleTexts[i];
-                    if (-1 == dojo.indexOf(usedTexts,loopT)) {
-                        currentlySelectedTexts[loopIter] = loopT;
-                        text = loopT;
-                        break;
-                    }
+                for (var i = 0; i < allPossibleTexts.length; i++) {
+                        var loopText = allPossibleTexts[i];
+                        if (loopText == selectedValue || array.indexOf(currentlySelectedTexts,loopText) == -1) {
+                            dataOptions.push({id:loopText,label:loopText});
+                        }
                 }
-            }
-            if (text != initialChoiceText) {
-                usedTexts.push(text);
-            }
+                var store = new Memory({data:dataOptions});
+                var os = new ObjectStore({ objectStore: store });
+                selectWidget.setStore(os,selectedValue);
+                dojoOn.once(selectWidget,"change",function(){
+                    getObject(questionID).value = '';
+                    makeSelectOptionsDistinct();
+                    validateResponses();
+                });
+            }(responseID));
         }
-
-        // rewrite the options for each of the select lists
-        for (var iterID in currentlySelectedTexts) {
-            var selectElement = getObject(iterID);
-            var selectedText = currentlySelectedTexts[iterID];
-            selectElement.options.length = 0;
-            var nextOptionCounter = 0;
-            for (var optionIter = 0; optionIter < allPossibleTexts.length; optionIter++) {
-                var optionText = allPossibleTexts[optionIter];
-                var hasBeenUsed = -1 != dojo.indexOf(usedTexts,optionText);
-                var isSelected = optionText == selectedText;
-                if (isSelected || !hasBeenUsed) {
-                    if (!(optionText == initialChoiceText && !isSelected)) {
-                        selectElement.options[nextOptionCounter] = new Option(optionText, optionText, isSelected, isSelected);
-                        nextOptionCounter++;
-                    }
-                }
-            }
-            selectedText = selectElement.options[selectElement.selectedIndex].text;
-        }
-
-        //make answer fields readonly if unselected
-        for (var i2 in simpleRandomSelectElements) {
-            var current = simpleRandomSelectElements[i2];
-            var currentSelected = current.selectedIndex;
-            var currentSelectedText = current.options[currentSelected].text;
-            var questionID = current.id.replace("_Q_","_R_");
-            var notSelected = currentSelectedText == initialChoiceText;
-            if (notSelected) {
-                getObject(questionID).disabled = true;
-                getObject(questionID).value = '';
-            } else {
-                getObject(questionID).disabled = false;
-            }
-
-        }
-
     });
 }
 

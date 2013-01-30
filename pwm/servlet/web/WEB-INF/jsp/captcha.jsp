@@ -38,8 +38,7 @@
         <br/>
 
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false"
-              onreset="handleFormClear();return false">
+              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false">
             <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
             <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
             <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
@@ -71,8 +70,7 @@
                 <% } %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

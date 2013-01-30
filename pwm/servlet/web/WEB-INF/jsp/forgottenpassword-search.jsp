@@ -35,8 +35,7 @@
 
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" onreset="handleFormClear();return false;"
-              id="searchForm">
+              onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.
                 if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
@@ -65,8 +64,7 @@
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

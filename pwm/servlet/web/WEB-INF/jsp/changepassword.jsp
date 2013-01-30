@@ -61,9 +61,9 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords(null);" onkeypress="checkForCapsLock(event)" onchange="validatePasswords(null);"
+              onkeyup="validatePasswords(null);" onchange="validatePasswords(null);"
               onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
-              onreset="handleFormClear();validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
+              onreset="validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">
                 <tr>
@@ -125,8 +125,7 @@
                        onclick="toggleMaskPasswords()" id="hide_button"/>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy() && !PwmSession.getPwmSession(session).getUserInfoBean().isCurrentPasswordUnknownToUser()) { %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>
