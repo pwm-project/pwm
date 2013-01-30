@@ -256,6 +256,8 @@ public enum PwmSetting {
             "sms.requestId.length", PwmSettingSyntax.NUMERIC, Category.SMS),
     SMS_CHALLENGE_TOKEN_TEXT(
             "sms.challenge.token.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
+    SMS_CHALLENGE_NEW_PASSWORD_TEXT(
+            "sms.challenge.newpassword.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
     SMS_NEWUSER_TOKEN_TEXT(
             "sms.newUser.token.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
     SMS_ACTIVATION_VERIFICATION_TEXT(

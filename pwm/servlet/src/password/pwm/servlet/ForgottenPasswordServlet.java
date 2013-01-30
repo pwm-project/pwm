@@ -615,6 +615,7 @@ public class
         try {
             UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
             final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
+            final String toSmsNumber = pwmSession.getUserInfoBean().getUserSmsNumber();
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
 
@@ -627,8 +628,8 @@ public class
             // mark the event log
             UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.RECOVER_PASSWORD, "new password sent to " + pwmSession.getUserInfoBean().getUserEmailAddress());
 
-            // send email
-            this.sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+            // send email or SMS
+            this.sendNewPassword(pwmSession, pwmApplication, newPassword, toAddress, toSmsNumber);
 
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toAddress);
             ServletHelper.forwardToSuccessPage(req, resp);
@@ -821,7 +822,7 @@ public class
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
 
         if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send token email for '" + proxiedUser.getEntryDN() + "' no email address available in ldap");
+            LOGGER.debug(pwmSession, String.format("unable to send token email for '%s' no email address available in ldap", proxiedUser.getEntryDN()));
             return false;
         }
 
@@ -833,7 +834,7 @@ public class
                 configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
         ), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
+        LOGGER.debug(pwmSession, String.format("token email added to send queue for %s",toAddress));
         return true;
     }
 
@@ -860,8 +861,77 @@ public class
         return true;
     }
 
-    private void sendNewPasswordEmail(final PwmSession pwmSession, final PwmApplication pwmApplication, final String newPassword, final String toAddress)
-            throws PwmUnrecoverableException, PwmOperationalException {
+    private void sendNewPassword(final PwmSession pwmSession, final PwmApplication pwmApplication, final String newPassword, final String toAddress, final String toNumber)
+            throws PwmOperationalException {
+        final Configuration config = pwmApplication.getConfig();
+        final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        ErrorInformation error = null;
+        switch (pref) {
+            case BOTH:
+                // Send both email and SMS, success if one of both succeeds
+                final ErrorInformation err1 = sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+                final ErrorInformation err2 = sendNewPasswordSms(pwmSession, pwmApplication, newPassword, toNumber);
+                if (err1 != null) {
+                  error = err1;
+                } else if (err2 != null) {
+                  error = err2;
+                }
+                break;
+            case EMAILFIRST:
+                // Send email first, try SMS if email is not available
+                error = sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+                if (error != null) {
+                  error = sendNewPasswordSms(pwmSession, pwmApplication, newPassword, toNumber);
+                }
+                break;
+            case SMSFIRST:
+                // Send SMS first, try email if SMS is not available
+                error = sendNewPasswordSms(pwmSession, pwmApplication, newPassword, toNumber);
+                if (error != null) {
+                  error = sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+                }
+                break;
+            case SMSONLY:
+                // Only try SMS
+                error = sendNewPasswordSms(pwmSession, pwmApplication, newPassword, toNumber);
+                break;
+            case EMAILONLY:
+            default:
+                // Only try email
+                error = sendNewPasswordEmail(pwmSession, pwmApplication, newPassword, toAddress);
+                break;
+        }
+        if (error != null) {
+            throw new PwmOperationalException(error);
+        }
+        
+    }
+
+    private ErrorInformation sendNewPasswordSms(final PwmSession pwmSession, final PwmApplication pwmApplication, final String newPassword, final String toNumber)
+            throws PwmOperationalException {
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmApplication.getConfig();
+        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
+        if (senderId == null) { senderId = ""; }
+        String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_NEW_PASSWORD_TEXT, userLocale);
+
+        if (toNumber == null || toNumber.length() < 1) {
+            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", pwmSession.getUserInfoBean().getUserDN());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            return errorInformation;
+        }
+
+        message = message.replace("%TOKEN%", newPassword);
+
+        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug(pwmSession, String.format("password SMS added to send queue for %s", toNumber));
+        return null;
+    }
+    
+    private ErrorInformation sendNewPasswordEmail(final PwmSession pwmSession, final PwmApplication pwmApplication, final String newPassword, final String toAddress)
+            throws PwmOperationalException {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_SENDPASSWORD, userLocale);
@@ -869,7 +939,7 @@ public class
         if (toAddress == null || toAddress.length() < 1) {
             final String errorMsg = "unable to send new password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email address available in ldap";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            throw new PwmOperationalException(errorInformation);
+            return errorInformation;
         }
 
         pwmApplication.sendEmailUsingQueue(new EmailItemBean(
@@ -881,6 +951,7 @@ public class
         ), pwmSession.getUserInfoBean());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "new password email added to send queue for " + toAddress);
+        return null;
     }
 
     private static void simulateBadLogin(

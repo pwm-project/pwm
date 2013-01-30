@@ -819,11 +819,18 @@
             <value>6</value>
         </default>
     </setting>
-    <setting key="sms.challenge.token.message" level="0" required="true">
+    <setting key="sms.challenge.token.message" level="1" required="true">
         <label>Challenge Token SMS Text</label>
         <description><![CDATA[Message text of SMS sent during forgotten password token process.]]></description>
         <default>
             <value><![CDATA[Your activation token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.challenge.newpassword.message" level="1" required="true">
+        <label>Challenge New Password SMS Text</label>
+        <description><![CDATA[Message text of SMS with new password sent during forgotten password process.]]></description>
+        <default>
+            <value><![CDATA[Your new password is %TOKEN%.]]></value>
         </default>
     </setting>
     <setting key="sms.newUser.token.message" level="0" required="true">
@@ -1720,8 +1727,8 @@
         </default>
     </setting>
     <setting key="challenge.token.sendMethod" level="0" required="true">
-        <label>Token Send Method</label>
-        <description><![CDATA[Set the method(s) used for sending the token code to the user.]]></description>
+        <label>Token or Password Send Method</label>
+        <description><![CDATA[Set the method(s) used for sending the token code or new password to the user.]]></description>
         <default>
             <value><![CDATA[EMAILONLY]]></value>
         </default>

@@ -247,6 +247,11 @@ public class UserStatusHelper {
             uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().get(ldapEmailAttribute));
         }
 
+        { // set SMS number
+            final String ldapSmsAttribute = config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            uiBean.setUserSmsNumber(uiBean.getAllUserAttributes().get(ldapSmsAttribute));
+        }
+
         // read  password state
         uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
 

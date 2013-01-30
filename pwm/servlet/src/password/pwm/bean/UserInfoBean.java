@@ -55,6 +55,7 @@ public class UserInfoBean implements PwmSessionBean {
     private String userID;
 
     private String userEmailAddress;
+    private String userSmsNumber;
 
     private String userGuid;
 
@@ -211,6 +212,14 @@ public class UserInfoBean implements PwmSessionBean {
 
     public void setUserEmailAddress(final String userEmailAddress) {
         this.userEmailAddress = userEmailAddress;
+    }
+
+    public String getUserSmsNumber() {
+        return userSmsNumber;
+    }
+
+    public void setUserSmsNumber(final String userSmsNumber) {
+        this.userSmsNumber = userSmsNumber;
     }
 
     public String getUserGuid() {
