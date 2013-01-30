@@ -124,25 +124,37 @@ public abstract class CrUtility {
             }
         }
 
+        { // check for missing question texts
+            for (final Challenge challenge : responseMap.keySet()) {
+                if (!challenge.isAdminDefined()) {
+                final String text = challenge.getChallengeText();
+                if (text == null || text.length() < 1) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT);
+                    throw new PwmDataValidationException(errorInformation);
+                }
+                }
+            }
+        }
+
         final Configuration config = pwmApplication.getConfig();
 
         { // check that responses are not using the challenge text word.
             final int maxChallengeLengthInResponse = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE);
             if (maxChallengeLengthInResponse > 0) {
                 for (final Challenge loopChallenge : responseMap.keySet()) {
-                        final String challengeText = loopChallenge.getChallengeText();
-                        if (challengeText != null && responseMap.containsKey(loopChallenge)) {
-                            final String[] challengeWords = challengeText.split("\\s");
-                            for (final String challengeWord :challengeWords) {
-                                if (challengeWord.length() > maxChallengeLengthInResponse) {
-                                    final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
-                                    for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
-                                        final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
-                                        if (responseTextLower.contains(wordPart)) {
-                                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
-                                            throw new PwmDataValidationException(errorInformation);
-                                        }
+                    final String challengeText = loopChallenge.getChallengeText();
+                    if (challengeText != null && responseMap.containsKey(loopChallenge)) {
+                        final String[] challengeWords = challengeText.split("\\s");
+                        for (final String challengeWord :challengeWords) {
+                            if (challengeWord.length() > maxChallengeLengthInResponse) {
+                                final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
+                                for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
+                                    final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
+                                    if (responseTextLower.contains(wordPart)) {
+                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
+                                        throw new PwmDataValidationException(errorInformation);
                                     }
+                                }
                             }
                         }
                     }
@@ -167,8 +179,8 @@ public abstract class CrUtility {
         { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
             final Set<String> userQuestionTexts = new HashSet<String>();
             for (final Challenge challenge : responseMap.keySet()) {
-                //if (!challenge.isAdminDefined()) {
-                    final String text = challenge.getChallengeText();
+                final String text = challenge.getChallengeText();
+                if (text != null) {
                     if (userQuestionTexts.contains(text.toLowerCase())) {
                         final String errorMsg = "duplicate challenge text: " + text;
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_DUPLICATE, errorMsg, new String[]{text});
@@ -176,7 +188,7 @@ public abstract class CrUtility {
                     } else {
                         userQuestionTexts.add(text.toLowerCase());
                     }
-                //}
+                }
             }
         }
 
