@@ -43,6 +43,9 @@ public class ForgottenPasswordBean implements PwmSessionBean {
     private boolean responsesSatisfied;
     private boolean tokenSatisfied;
     private boolean allPassed;
+    
+    private boolean passwordEmailSent = false;
+    private boolean passwordSmsSent = false;
 
     private List<FormConfiguration> attributeForm;
 
@@ -111,6 +114,22 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     public void setAttributeForm(final List<FormConfiguration> attributeForm) {
         this.attributeForm = attributeForm;
+    }
+
+    public void setPasswordEmailSent(boolean passwordEmailSent) {
+        this.passwordEmailSent = passwordEmailSent;
+    }
+
+    public boolean getPasswordEmailSent() {
+        return passwordEmailSent;
+    }
+
+    public void setPasswordSmsSent(boolean passwordSmsSent) {
+        this.passwordSmsSent = passwordSmsSent;
+    }
+
+    public boolean getPasswordSmsSent() {
+        return passwordSmsSent;
     }
 }
 
