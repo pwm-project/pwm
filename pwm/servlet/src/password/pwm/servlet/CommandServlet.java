@@ -307,7 +307,7 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmUnrecoverableException {
+            throws IOException, PwmUnrecoverableException, ServletException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
@@ -354,7 +354,8 @@ public class CommandServlet extends TopServlet {
 
         final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+        //resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+        ServletHelper.forwardToRedirectPage(req, resp, redirectURL);
     }
 
     private void outputUserReportCsv(final HttpServletRequest req, final HttpServletResponse resp)

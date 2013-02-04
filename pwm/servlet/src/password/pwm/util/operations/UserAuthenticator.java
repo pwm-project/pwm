@@ -93,7 +93,12 @@ public class UserAuthenticator {
             if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() // handle stupid ad case where it denies bind with valid password
                     && pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY
                     && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                LOGGER.info("auth bind failed, but will allow login due to 'require new password AD error', error: " + e.getErrorInformation().toDebugStr());
+                LOGGER.info("auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
+                password = null;
+            } else if (PwmError.PASSWORD_EXPIRED == e.getError() // handle ad case where password is expired
+                    && pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY
+                    && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
+                LOGGER.info("auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
                 password = null;
             } else {
                 // auth failed, presumably due to wrong password.

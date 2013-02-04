@@ -112,6 +112,18 @@ public class ServletHelper {
         }
     }
 
+    public static void forwardToRedirectPage(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final String redirectURL
+    )
+            throws IOException, ServletException
+    {
+        req.setAttribute("nextURL",redirectURL);
+        final String redirectPageJsp = '/' + PwmConstants.URL_JSP_REDIRECT;
+        req.getSession().getServletContext().getRequestDispatcher(redirectPageJsp).forward(req, resp);
+    }
+
     public static void forwardToOriginalRequestURL(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -312,10 +324,16 @@ public class ServletHelper {
     }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
-        if (req != null) {
-            for (final Cookie cookie : req.getCookies()) {
-                if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
-                    if (cookie.getValue() != null && cookie.getValue().equals(cookieValue)) {
+        if (req == null || cookieName == null || cookieValue == null) {
+            return false;
+        }
+        final Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for (final Cookie cookie : cookies) {
+                if (cookie != null) {
+                    final String loopName = cookie.getName();
+                    final String loopValue = cookie.getValue();
+                    if (cookieName.equals(loopName) && cookieValue.equals(loopValue)) {
                         return true;
                     }
                 }

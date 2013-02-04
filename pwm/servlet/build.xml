@@ -67,6 +67,9 @@
         <jar destfile="${destination}/pwm-servlet.jar">
             <fileset dir="${destination}/bin"/>
             <zipfileset dir="${src.root}/src" prefix="src"/>
+            <manifest>
+                <attribute name="Main-Class" value="password.pwm.util.JarMain"/>
+            </manifest>
         </jar>
     </target>
 

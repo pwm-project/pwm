@@ -2241,8 +2241,15 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.ad.allowAuthRequireNewPassword" level="0" required="true">
-        <label>Allow authentication when "require password on next login" is true</label>
+    <setting key="ldap.ad.allowAuth.requireNewPassword" level="0" required="true">
+        <label>Allow authentication when "must change password on next login" is set</label>
+        <description><![CDATA[DESCR //todo]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.ad.allowAuth.expired" level="0" required="true">
+        <label>Allow authentication when password expired</label>
         <description><![CDATA[DESCR //todo]]></description>
         <default>
             <value>true</value>

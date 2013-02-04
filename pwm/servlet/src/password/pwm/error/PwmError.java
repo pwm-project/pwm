@@ -76,6 +76,7 @@ public enum PwmError {
     PASSWORD_NOT_ENOUGH_NON_ALPHA("Password_NotEnoughNonAlpha", 4037),
     PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4038),
     PASSWORD_NEW_PASSWORD_REQUIRED("Password_NewPasswordRequired", 4039, ChaiError.NEW_PASSWORD_REQUIRED),
+    PASSWORD_EXPIRED("Password_Expired", 4040, ChaiError.PASSWORD_EXPIRED),
 
     NUMBERVALIDATION_INVALIDNUMER("NumberValidation_Invalid_Number", 4101),
     NUMBERVALIDATION_LOWERBOUND("NumberValidation_Lowerbound", 4102),

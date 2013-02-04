@@ -40,10 +40,14 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_TIME =     readBuildInfoBundle("build.time");
-    public static final String BUILD_NUMBER =   readBuildInfoBundle("build.number");
-    public static final String BUILD_TYPE =     readBuildInfoBundle("build.type");
-    public static final String PWM_VERSION =    readBuildInfoBundle("pwm.version");
+    public static final String BUILD_TIME           = readBuildInfoBundle("build.time");
+    public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number");
+    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type");
+    public static final String BUILD_NAME           = readBuildInfoBundle("build.name");
+    public static final String BUILD_USER           = readBuildInfoBundle("build.user");
+    public static final String BUILD_JAVA_VENDOR    = readBuildInfoBundle("build.java.vendor");
+    public static final String BUILD_JAVA_VERSION   = readBuildInfoBundle("build.java.version");
+    public static final String PWM_VERSION          = readBuildInfoBundle("pwm.version");
 
     public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER + " (" + BUILD_TYPE + ")";
 
@@ -130,6 +134,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
     public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
+    public static final String URL_JSP_REDIRECT = "WEB-INF/jsp/redirect.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
     public static final String URL_JSP_PASSWORD_FORM = "WEB-INF/jsp/changepassword-form.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";

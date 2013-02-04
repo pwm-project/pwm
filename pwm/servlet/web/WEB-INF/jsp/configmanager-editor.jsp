@@ -290,7 +290,13 @@ function buildMenuBar() {
         }
         { // Actions
             var actionsMenu = new Menu({});
-
+            actionsMenu.addChild(new MenuItem({
+                label: "Set Configuration Password",
+                onClick: function() {
+                    setConfigurationPassword();
+                }
+            }));
+            actionsMenu.addChild(new MenuSeparator());
             <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
             actionsMenu.addChild(new MenuItem({
                 label: "Finish Editing",

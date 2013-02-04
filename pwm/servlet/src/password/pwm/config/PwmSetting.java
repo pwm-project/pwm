@@ -651,7 +651,9 @@ public enum PwmSetting {
     AD_USE_PROXY_FOR_FORGOTTEN(
             "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
     AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuthRequireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
+            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
+    AD_ALLOW_AUTH_EXPIRED(
+            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
 
     // helpdesk
     HELPDESK_ENABLE(

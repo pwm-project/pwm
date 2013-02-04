@@ -39,6 +39,8 @@ public class ConfigManagerBean implements PwmSessionBean {
     private boolean showDescr = false;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
+    private boolean liveEditMode;
+    private boolean passwordVerified;
 
     public ConfigManagerBean() {
     }
@@ -105,5 +107,21 @@ public class ConfigManagerBean implements PwmSessionBean {
 
     public void setLocaleBundle(final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle) {
         this.localeBundle = localeBundle;
+    }
+
+    public boolean isLiveEditMode() {
+        return liveEditMode;
+    }
+
+    public void setLiveEditMode(boolean liveEditMode) {
+        this.liveEditMode = liveEditMode;
+    }
+
+    public boolean isPasswordVerified() {
+        return passwordVerified;
+    }
+
+    public void setPasswordVerified(boolean passwordVerified) {
+        this.passwordVerified = passwordVerified;
     }
 }

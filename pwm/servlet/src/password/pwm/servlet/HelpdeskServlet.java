@@ -251,12 +251,16 @@ public class HelpdeskServlet extends TopServlet {
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);
         {
             final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession,pwmApplication,theUser);
-            final Map<Challenge,String> helpdeskResponseSet = responseSet.getHelpdeskResponses();
-            final Map<String,String> helpdeskResponses = new LinkedHashMap<String, String>();
-            for (final Challenge challenge : helpdeskResponseSet.keySet()) {
-                helpdeskResponses.put(challenge.getChallengeText(), helpdeskResponseSet.get(challenge));
+            if (responseSet != null) {
+                final Map<Challenge,String> helpdeskResponseSet = responseSet.getHelpdeskResponses();
+                if (helpdeskResponseSet != null) {
+                    final Map<String,String> helpdeskResponses = new LinkedHashMap<String, String>();
+                    for (final Challenge challenge : helpdeskResponseSet.keySet()) {
+                        helpdeskResponses.put(challenge.getChallengeText(), helpdeskResponseSet.get(challenge));
+                    }
+                    helpdeskBean.setHelpdeskResponses(helpdeskResponses);
+                }
             }
-            helpdeskBean.setHelpdeskResponses(helpdeskResponses);
         }
 
         try {

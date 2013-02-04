@@ -335,6 +335,7 @@
     <servlet-mapping>
         <servlet-name>ConfigManagerServlet</servlet-name>
         <url-pattern>/config/ConfigManager</url-pattern>
+        <url-pattern>/private/admin/ConfigManager</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ConfigUploadServlet</servlet-name>

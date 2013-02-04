@@ -1265,7 +1265,10 @@ ChangePasswordHandler.generateRandom = function() {
     });
 };
 
-ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
+ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey,writeFunction) {
+    if (!writeFunction) {
+        writeFunction = 'ChangePasswordHandler.doChange(' + settingKey + ')';
+    }
     require(["dijit/Dialog","dijit/form/Textarea"],function(){
         var bodyText = '<div id="changePasswordDialogDiv">';
         bodyText += '<span id="message" class="message message-info">' + settingName + '</span><br/>';
@@ -1280,7 +1283,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey) {
         bodyText += '</div></td>';
 
         bodyText += '</tr></table>';
-        bodyText += '<button name="change" class="btn" id="password_button" onclick="ChangePasswordHandler.doChange(' + "\'"+ settingKey + "\'" + ')" disabled="true"/>';
+        bodyText += '<button name="change" class="btn" id="password_button" onclick="' + writeFunction + '" disabled="true"/>';
         bodyText += 'Set Password</button>&nbsp;&nbsp;&nbsp;&nbsp;';
         bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom()">Generate Random</button>';
         bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="128"/>Length';
@@ -2019,6 +2022,35 @@ function showConfigurationNotes() {
         });
     });
 }
+
+function setConfigurationPassword(password) {
+    if (password) {
+
+        dojo.xhrPost({
+            url:"ConfigManager?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            postData: password,
+            contentType: "application/text;charset=utf-8",
+            dataType: "text",
+            handleAs: "text",
+            load: function(data){
+                clearDijitWidget('changepassword-popup');
+                showInfo('Configuration password set successfully.')
+                return;
+            },
+            error: function(errorObj) {
+                clearDijitWidget('changepassword-popup');
+                return;
+                showError("error saving notes text: " + errorObj);
+            }
+        });
+
+
+    }
+
+    var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';
+    ChangePasswordHandler.changePasswordPopup('Configuration Password','configPw',writeFunction);
+}
+
 
 function isEmpty(o) {
     for (var key in o) if (o.hasOwnProperty(key)) return false;

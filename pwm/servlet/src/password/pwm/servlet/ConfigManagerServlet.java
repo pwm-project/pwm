@@ -91,6 +91,9 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
                 doFinishEditing(req,resp);
                 return;
+            } else if ("setConfigurationPassword".equalsIgnoreCase(processActionParam)) {
+                doSetConfigurationPassword(req);
+                return;
             } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
                 doCancelEditing(req);
             } else if ("editMode".equalsIgnoreCase(processActionParam)) {
@@ -367,6 +370,19 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
+    private void doSetConfigurationPassword(
+            final HttpServletRequest req
+
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+
+        final String password = ServletHelper.readRequestBody(req,100*1000);
+        configManagerBean.getConfiguration().setPassword(password);
+    }
+
     private void doFinishEditing(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -379,7 +395,7 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
         final Map<String,String> returnMap = new HashMap<String,String>();
 
-        if (configMode != PwmApplication.MODE.RUNNING) {
+        if (!configManagerBean.isLiveEditMode()) {
             configManagerBean.setErrorInformation(null);
             if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
                 final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
