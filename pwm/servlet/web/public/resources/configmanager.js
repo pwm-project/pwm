@@ -1267,7 +1267,7 @@ ChangePasswordHandler.generateRandom = function() {
 
 ChangePasswordHandler.changePasswordPopup = function(settingName,settingKey,writeFunction) {
     if (!writeFunction) {
-        writeFunction = 'ChangePasswordHandler.doChange(' + settingKey + ')';
+        writeFunction = 'ChangePasswordHandler.doChange(\'' + settingKey + '\')';
     }
     require(["dijit/Dialog","dijit/form/Textarea"],function(){
         var bodyText = '<div id="changePasswordDialogDiv">';
