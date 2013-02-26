@@ -1147,6 +1147,13 @@
             <value />
         </default>
     </setting>
+    <setting key="password.policy.disallowCurrent" level="1" required="true">
+        <label>Disallow Current Password</label>
+        <description><![CDATA[Prohibit current password from being used as new password.  Note that this can only be enforced if the login method permits the user's password to be known.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="pwm.wordlist.location" level="0">
         <label>Wordlist File</label>
         <description><![CDATA[PWM supports worldlist dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included with PWM contains commonly used English passwords.  More comprehensive wordlists are available on the <a href="http://code.google.com/p/pwm">PWM project</a> page.  Wordlists with over 10 million words have been tested. <br/><br/>The first time PWM is run with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information. The wordlist format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.]]></description>
@@ -2235,24 +2242,24 @@
         </default>
     </setting>
     <setting key="ldap.ad.proxyForgotten" level="0" required="true">
-        <label>Use Proxy When Password Unknown</label>
-        <description><![CDATA[DESCR //todo]]></description>
+        <label>Use Proxy When Password Forgotten</label>
+        <description><![CDATA[If true, when the user's password is forgotten, the system will use the ldap proxy account for ldap work.  This is because an ldap conection is not possible to AD without the user's password.  When authenticated in this condition, the user will be forced to change password immediately.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.ad.allowAuth.requireNewPassword" level="0" required="true">
         <label>Allow authentication when "must change password on next login" is set</label>
-        <description><![CDATA[DESCR //todo]]></description>
+        <description><![CDATA[Active Directory will fail an ldap login attempt when the user's "must change password on next login" flag is set.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.ad.allowAuth.expired" level="0" required="true">
         <label>Allow authentication when password expired</label>
-        <description><![CDATA[DESCR //todo]]></description>
+        <description><![CDATA[Active Directory will fail an ldap login attempt when the current date is after the user's password expiration date.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting key="helpdesk.enable" level="0">
@@ -2353,8 +2360,13 @@
         </options>
     </setting>
     <setting key="helpdesk.setPassword.writeAttributes" level="1">
-        <label>Post Set Password Write Attributes</label>
-        <description><![CDATA[Writes attributes to ldap after a helpdesk actor modifies the user's password.  Format for is name=value.  PwmMacros may be used.]]></description>
+        <label>Post Set Password Actions</label>
+        <description><![CDATA[Actions to execute after a helpdesk actor modifies the user's password.  Macros may be used.]]></description>
+        <default />
+    </setting>
+    <setting key="helpdesk.actions" level="1">
+        <label>Helpdesk Actor Actions</label>
+        <description><![CDATA[Actions available to the helpdesk actor.  Macros may be used.]]></description>
         <default />
     </setting>
     <setting key="helpdesk.enableUnlock" level="0" required="true">
@@ -2365,14 +2377,14 @@
         </default>
     </setting>
     <setting key="helpdesk.enforcePasswordPolicy" level="0">
-        <label>Enforce PWM Password Policy</label>
+        <label>Enforce User Password Policy</label>
         <description><![CDATA[Require that passwords set by helpdesk must meet the same password policy as the user would normally be constrained by.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="helpdesk.idleTimeout" level="0">
-        <label>Idle Timeout Seconds for HelpdeskUsers</label>
+        <label>Idle Timeout Seconds for Helpdesk Users</label>
         <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Pwm Session Idle timeout will be set to this value once a user successfully access the helpdesk module.]]></description>
         <default>
             <value>3600</value>

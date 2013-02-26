@@ -65,6 +65,7 @@ public enum PwmPasswordRule {
     DisallowedValues        (ChaiPasswordRule.DisallowedValues         ,PwmSetting.PASSWORD_POLICY_DISALLOWED_VALUES            ,ChaiPasswordRule.DisallowedValues        .getRuleType(), ChaiPasswordRule.DisallowedValues        .getDefaultValue(),false),
     DisallowedAttributes    (ChaiPasswordRule.DisallowedAttributes     ,PwmSetting.PASSWORD_POLICY_DISALLOWED_ATTRIBUTES        ,ChaiPasswordRule.DisallowedAttributes    .getRuleType(), ChaiPasswordRule.DisallowedAttributes    .getDefaultValue(),false),
     ADComplexity            (ChaiPasswordRule.ADComplexity             ,PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY                ,ChaiPasswordRule.ADComplexity            .getRuleType(), ChaiPasswordRule.ADComplexity            .getDefaultValue(),true),
+    DisallowCurrent         (null                                      ,PwmSetting.PASSWORD_POLICY_DISALLOW_CURRENT             ,ChaiPasswordRule.RuleType.BOOLEAN        ,"false"                                                 ,true),
 
     // pwm specific rules
     MaximumOldChars         (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS   ,ChaiPasswordRule.RuleType.NUMERIC, "",false),

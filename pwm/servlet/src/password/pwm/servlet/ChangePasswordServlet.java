@@ -384,7 +384,10 @@ public class ChangePasswordServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_FORM).forward(req, resp);
     }
 
-    private static boolean determineIfCurrentPasswordRequired(final PwmApplication pwmApplication, final PwmSession pwmSession) {
+    private static boolean determineIfCurrentPasswordRequired(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession)
+    {
         final String stringValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_REQUIRE_CURRENT);
         REQUIRE_CURRENT_SETTING currentSetting;
         try {
@@ -397,8 +400,11 @@ public class ChangePasswordServlet extends TopServlet {
             return false;
         }
 
-        if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() || pwmSession.getUserInfoBean().getUserCurrentPassword() == null) {
-            return false;
+        {
+            final String currentPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+            if (currentPassword == null || currentPassword.length() < 1) {
+                return false;
+            }
         }
 
         if (currentSetting == REQUIRE_CURRENT_SETTING.TRUE) {
@@ -494,13 +500,15 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
+        /*
         final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
         if (!enforceFromForgotten) {
-            if (userInfoBean.isCurrentPasswordUnknownToUser()) {
+            if (userInfoBean.isRequiresNewPassword()) {
                 LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because user authenticated with unknown password");
                 return;
             }
         }
+        */
 
         final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
         final String errorMsg = "last password change is too recent, password cannot be changed until after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);

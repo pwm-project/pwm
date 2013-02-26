@@ -98,7 +98,9 @@ public class ActionExecutor {
         );
     }
 
-    private void executeWebserviceAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings settings) {
+    private void executeWebserviceAction(
+            final ActionConfiguration actionConfiguration,
+            final ActionExecutorSettings settings) throws PwmOperationalException {
         String url = actionConfiguration.getUrl();
         String body = actionConfiguration.getBody();
         final UserInfoBean userInfoBean = settings.getUserInfoBean();
@@ -150,7 +152,8 @@ public class ActionExecutor {
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new PwmOperationalException(new ErrorInformation(
                         PwmError.ERROR_UNKNOWN,
-                        "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") while calling external REST service"
+                        "unexpected HTTP status code while calling external web service: "
+                        + httpResponse.getStatusLine().getStatusCode() + " " + httpResponse.getStatusLine().getReasonPhrase()
                 ));
             }
 
@@ -158,8 +161,13 @@ public class ActionExecutor {
             LOGGER.debug("response from http rest request: " + httpResponse.getStatusLine());
             LOGGER.trace("response body from http rest request: " + responseBody);
         } catch (Exception e) {
+            if (e instanceof PwmOperationalException) {
+                throw (PwmOperationalException)e;
+            }
+
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
             LOGGER.error(errorMsg);
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
     }
 

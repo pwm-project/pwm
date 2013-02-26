@@ -24,9 +24,11 @@ package password.pwm.util;
 
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -36,7 +38,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -341,4 +345,60 @@ public class ServletHelper {
         }
         return false;
     }
+
+    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
+        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
+        if (config != null && !config.readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
+            return "";
+        }
+
+        final String userIPAddress = readUserIPAddress(req, pwmSession);
+        try {
+            return InetAddress.getByName(userIPAddress).getCanonicalHostName();
+        } catch (UnknownHostException e) {
+            LOGGER.trace(pwmSession, "unknown host while trying to compute hostname for src request: " + e.getMessage());
+        }
+        return "";
+    }
+
+    /**
+     * Returns the IP address of the user.  If there is an X-Forwarded-For header in the request, that address will
+     * be used.  Otherwise, the source address of the request is used.
+     *
+     * @param req        A valid HttpServletRequest.
+     * @param pwmSession pwmSession used for config lookup
+     * @return String containing the textual representation of the source IP address, or null if the request is invalid.
+     */
+    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
+        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
+        final boolean useXForwardedFor = config != null && config.readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
+
+        String userIP = "";
+
+        if (useXForwardedFor) {
+            try {
+                userIP = req.getHeader(PwmConstants.HTTP_HEADER_X_FORWARDED_FOR);
+            } catch (Exception e) {
+                //ip address not in header (no X-Forwarded-For)
+            }
+        }
+
+        if (userIP == null || userIP.length() < 1) {
+            userIP = req.getRemoteAddr();
+        }
+
+        return userIP == null ? "" : userIP;
+    }
+
+    public static void outputJsonResult(
+            final HttpServletResponse resp,
+            final RestResultBean restResultBean
+    )
+            throws IOException
+    {
+        final String outputString = restResultBean.toJson();
+        resp.setContentType("application/json;charset=utf-8");
+        resp.getWriter().print(outputString);
+    }
+
 }

@@ -36,19 +36,23 @@ import password.pwm.UserHistory.Record;
 import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ActionConfiguration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -126,6 +130,9 @@ public class HelpdeskServlet extends TopServlet {
             } else if (processAction.equalsIgnoreCase("detail")) {
                 processDetailRequest(req, resp, pwmApplication, pwmSession);
                 return;
+            } else if (processAction.equalsIgnoreCase("executeAction")) {
+                processExecuteActionRequest(req, resp, pwmApplication, pwmSession);
+                return;
             } else if (processAction.equalsIgnoreCase("continue")) {
             }
         }
@@ -133,12 +140,73 @@ public class HelpdeskServlet extends TopServlet {
         forwardToSearchJSP(req, resp);
     }
 
+    private void processExecuteActionRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final List<ActionConfiguration> actionConfigurations = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS);
+        final String requestedName = Validator.readStringFromRequest(req,"name");
+        ActionConfiguration action = null;
+        for (ActionConfiguration loopAction : actionConfigurations) {
+            if (requestedName !=null && requestedName.equals(loopAction.getName())) {
+                action = loopAction;
+                break;
+            }
+        }
+        if (action == null) {
+            final String errorMsg = "request to execute unknown action: " + requestedName;
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            LOGGER.debug(pwmSession,errorInformation.toDebugStr());
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
+        }
+
+        final HelpdeskBean helpdeskBean = (HelpdeskBean)pwmSession.getSessionBean(HelpdeskBean.class);
+        if (helpdeskBean.getUserInfoBean() == null) {
+            final String errorMsg = "no user selected: " + requestedName;
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            LOGGER.debug(pwmSession,errorInformation.toDebugStr());
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
+        }
+
+        try {
+            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiUser chaiUser = ChaiFactory.createChaiUser(helpdeskBean.getUserInfoBean().getUserDN(),provider);
+            settings.setUserInfoBean(helpdeskBean.getUserInfoBean());
+            settings.setUser(chaiUser);
+            settings.setExpandPwmMacros(true);
+            actionExecutor.executeAction(action,settings);
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setSuccessMessage(Message.getLocalizedMessage(
+                    pwmSession.getSessionStateBean().getLocale(),
+                    Message.SUCCESS_ACTION,
+                    pwmApplication.getConfig(),
+                    action.getName()
+            ));
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
+        } catch (PwmOperationalException e) {
+            LOGGER.error(pwmSession,e.getErrorInformation().toDebugStr());
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(), pwmApplication, pwmSession);
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
+        }
+    }
+
     private void processDetailRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
-
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
@@ -153,6 +221,8 @@ public class HelpdeskServlet extends TopServlet {
         final String userDN = UserSearchEngine.decodeUserDetailKey(userKey,pwmSession);
         processDetailRequest(req,resp,pwmApplication,pwmSession,userDN);
     }
+
+
     private void processDetailRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp,

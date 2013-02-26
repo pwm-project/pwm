@@ -59,8 +59,7 @@ public class UserInfoBean implements PwmSessionBean {
 
     private String userGuid;
 
-    private boolean currentPasswordUnknownToUser;
-    private boolean currentPasswordUnknownToPwm;
+    private boolean mustUseLdapProxy;
 
     /**
      * A listing of all readable attributes on the ldap user object
@@ -166,14 +165,6 @@ public class UserInfoBean implements PwmSessionBean {
         this.passwordState = passwordState;
     }
 
-    public boolean isCurrentPasswordUnknownToUser() {
-        return currentPasswordUnknownToUser;
-    }
-
-    public void setCurrentPasswordUnknownToUser(final boolean currentPasswordUnknownToUser) {
-        this.currentPasswordUnknownToUser = currentPasswordUnknownToUser;
-    }
-
     public boolean isRequiresNewPassword() {
         return requiresNewPassword;
     }
@@ -260,20 +251,20 @@ public class UserInfoBean implements PwmSessionBean {
         return copiedList;
     }
 
-    public boolean isCurrentPasswordUnknownToPwm() {
-        return currentPasswordUnknownToPwm;
-    }
-
-    public void setCurrentPasswordUnknownToPwm(boolean currentPasswordUnknownToPwm) {
-        this.currentPasswordUnknownToPwm = currentPasswordUnknownToPwm;
-    }
-
     public Map<String, PostChangePasswordAction> getPostChangePasswordActions() {
         return postChangePasswordActions;
     }
 
     public void setPostChangePasswordActions(Map<String, PostChangePasswordAction> postChangePasswordActions) {
         this.postChangePasswordActions = postChangePasswordActions;
+    }
+
+    public boolean isMustUseLdapProxy() {
+        return mustUseLdapProxy;
+    }
+
+    public void setMustUseLdapProxy(boolean mustUseLdapProxy) {
+        this.mustUseLdapProxy = mustUseLdapProxy;
     }
 }
 

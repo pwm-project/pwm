@@ -20,7 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.util.ArrayList" %>
@@ -40,22 +42,27 @@
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
-<% final PwmApplication.MODE configMode = ContextManager.getPwmApplication(session).getApplicationMode(); %>
 
 <body class="nihilo" onload="pwmPageLoadHandler()">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configeditor.js"/>"></script>
+<script type="text/javascript">
+    PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES))%>';
+</script>
 <div id="wrapper" style="border:1px; background-color: black">
 <div id="header">
     <div id="header-company-logo"></div>
     <div id="header-page">
-        PWM Configuration Editor
-    </div>
-    <div id="header-title" style="text-align: right;">
-        <% if (configMode == PwmApplication.MODE.CONFIGURATION || configMode == PwmApplication.MODE.NEW) { %>
-        Editing Live Configuration
-        <% } else { %>
-        Editing In Memory Configuration
+        <% if (configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.SETTINGS) { %>
+        <%=category.getType() == PwmSetting.Category.Type.SETTING ? "Settings - " : "Modules - "%>
+        <%=category.getLabel(locale)%>
+        <% } else if (configManagerBean.getEditMode() == ConfigManagerServlet.EDIT_MODE.LOCALEBUNDLE) { %>
+        <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
+        Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
         <% } %>
+    </div>
+    <div id="header-title">
+        Configuration Editor
     </div>
 </div>
 <div id="TopMenu">
@@ -81,16 +88,17 @@ function buildMenuBar() {
             settingsMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: false,
-                        error: function(errorObj) {
-                            showError("error reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
+                    showWaitDialog(null,null,function(){
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                            preventCache: true,
+                            error: function(errorObj) {
+                                showError("error reason: " + errorObj)
+                            },
+                            load: function(data) {
+                                loadMainPageBody();
+                            }
+                        });
                     });
                 }
             }));
@@ -114,16 +122,17 @@ function buildMenuBar() {
             modulesMenu.addChild(new MenuItem({
                 label: '<%=loopCategory.getLabel(locale)%>',
                 onClick: function() {
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
-                        sync: false,
-                        error: function(errorObj) {
-                            showError("error reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
+                    showWaitDialog(null,null,function(){
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&category=<%=loopCategory.toString()%>",
+                            preventCache: true,
+                            error: function(errorObj) {
+                                showError("error reason: " + errorObj)
+                            },
+                            load: function(data) {
+                                loadMainPageBody();
+                            }
+                        });
                     });
                 }
             }));
@@ -147,16 +156,17 @@ function buildMenuBar() {
             displayMenu.addChild(new MenuItem({
                 label: '<%=localeBundle.getTheClass().getSimpleName()%>',
                 onClick: function() {
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
-                        sync: false,
-                        error: function(errorObj) {
-                            showError("error loading " + keyName + ", reason: " + errorObj)
-                        },
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
+                    showWaitDialog(null,null,function(){
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&localeBundle=<%=localeBundle.toString()%>",
+                            preventCache: true,
+                            error: function(errorObj) {
+                                showError("error loading " + keyName + ", reason: " + errorObj)
+                            },
+                            load: function(data) {
+                                loadMainPageBody();
+                            }
+                        });
                     });
                 }
             }));
@@ -173,13 +183,14 @@ function buildMenuBar() {
                 label: "Advanced Settings",
                 checked: <%=level == 1 ? "true" : "false"%>,
                 onClick: function() {
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == 1 ? "0" : "1"%>",
-                        sync: false,
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
+                    showWaitDialog(null,null,function(){
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&level=<%=level == 1 ? "0" : "1"%>",
+                            preventCache: true,
+                            load: function(data) {
+                                loadMainPageBody();
+                            }
+                        });
                     });
                 }
             }));
@@ -187,13 +198,14 @@ function buildMenuBar() {
                 label: "Display Help Text",
                 checked: <%=showDesc ? "true" : "false"%>,
                 onClick: function() {
-                    showWaitDialog();
-                    dojo.xhrGet({
-                        url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
-                        sync: false,
-                        load: function(data) {
-                            loadMainPageBody();
-                        }
+                    showWaitDialog(null,null,function(){
+                        dojo.xhrGet({
+                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&showDesc=<%=showDesc ? "false" : "true"%>",
+                            preventCache: true,
+                            load: function(data) {
+                                loadMainPageBody();
+                            }
+                        });
                     });
                 }
             }));
@@ -252,16 +264,17 @@ function buildMenuBar() {
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,
                 onClick: function() {
                     showConfirmDialog(null,confirmText,function(){
-                        showWaitDialog();
-                        dojo.xhrGet({
-                            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
-                            sync: true,
-                            error: function(errorObj) {
-                                showError("error loading " + keyName + ", reason: " + errorObj)
-                            },
-                            load: function(data) {
-                                window.location = "ConfigManager";
-                            }
+                        showWaitDialog(null,null,function(){
+                            dojo.xhrGet({
+                                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=<%=template.toString()%>",
+                                preventCache: true,
+                                error: function(errorObj) {
+                                    showError("error loading " + keyName + ", reason: " + errorObj)
+                                },
+                                load: function(data) {
+                                    window.location = "ConfigManager";
+                                }
+                            });
                         });
                     });
                 }
@@ -291,29 +304,27 @@ function buildMenuBar() {
         { // Actions
             var actionsMenu = new Menu({});
             actionsMenu.addChild(new MenuItem({
+                label: "<pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>",
+                onClick: function() {
+                    window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                }
+            }));
+            actionsMenu.addChild(new MenuSeparator());
+            actionsMenu.addChild(new MenuItem({
                 label: "Set Configuration Password",
                 onClick: function() {
                     setConfigurationPassword();
                 }
             }));
             actionsMenu.addChild(new MenuSeparator());
-            <% if (ContextManager.getPwmApplication(session).getApplicationMode() == PwmApplication.MODE.RUNNING) { %>
-            actionsMenu.addChild(new MenuItem({
-                label: "Finish Editing",
-                onClick: function() {
-                    saveConfiguration(false);
-                }
-            }));
-            <% } else { %>
             actionsMenu.addChild(new MenuItem({
                 label: "Save",
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
                 onClick: function() {
-                    showConfirmDialog(null,'Are you sure you want to save the changes to the current PWM configuration?',function(){saveConfiguration(true)});
+                    showConfirmDialog(null,'<pwm:Display key="MenuDisplay_SaveConfig" bundle="Config"/>',function(){saveConfiguration(true)});
                     buildMenuBar();
                 }
             }));
-            <% } %>
             actionsMenu.addChild(new MenuItem({
                 label: "Cancel",
                 iconClass: "dijitEditorIcon dijitEditorIconCancel",

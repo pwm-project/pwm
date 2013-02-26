@@ -25,7 +25,6 @@ package password.pwm.bean;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
-import password.pwm.error.ErrorInformation;
 import password.pwm.servlet.ConfigManagerServlet;
 
 import java.util.Date;
@@ -34,12 +33,10 @@ public class ConfigManagerBean implements PwmSessionBean {
     private StoredConfiguration configuration;
     private ConfigManagerServlet.EDIT_MODE editMode = ConfigManagerServlet.EDIT_MODE.NONE;
     private java.util.Date configurationLoadTime;
-    private ErrorInformation errorInformation;
     private int level = 0;
     private boolean showDescr = false;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
-    private boolean liveEditMode;
     private boolean passwordVerified;
 
     public ConfigManagerBean() {
@@ -77,14 +74,6 @@ public class ConfigManagerBean implements PwmSessionBean {
         this.level = level;
     }
 
-    public ErrorInformation getErrorInformation() {
-        return errorInformation;
-    }
-
-    public void setErrorInformation(final ErrorInformation errorInformation) {
-        this.errorInformation = errorInformation;
-    }
-
     public boolean isShowDescr() {
         return showDescr;
     }
@@ -107,14 +96,6 @@ public class ConfigManagerBean implements PwmSessionBean {
 
     public void setLocaleBundle(final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle) {
         this.localeBundle = localeBundle;
-    }
-
-    public boolean isLiveEditMode() {
-        return liveEditMode;
-    }
-
-    public void setLiveEditMode(boolean liveEditMode) {
-        this.liveEditMode = liveEditMode;
     }
 
     public boolean isPasswordVerified() {

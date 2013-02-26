@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
+import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -52,15 +53,15 @@ public class SessionManager implements Serializable {
     private transient volatile ChaiProvider chaiProvider;
 
     final private PwmSession pwmSession;
-    final private Configuration config;
+    final private transient HttpSession session;
 
     final Lock providerLock = new ReentrantLock();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SessionManager(final PwmSession pwmSession, final Configuration config) {
+    public SessionManager(final PwmSession pwmSession, final HttpSession httpSession) {
         this.pwmSession = pwmSession;
-        this.config = config;
+        this.session = httpSession;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -70,6 +71,7 @@ public class SessionManager implements Serializable {
         try {
             providerLock.lock();
             closeConnectionImpl();
+            final Configuration config = ContextManager.getPwmApplication(session).getConfig();
             chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             return chaiProvider;
         } finally {
@@ -89,6 +91,7 @@ public class SessionManager implements Serializable {
             if (chaiProvider == null) {
                 final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
                 final String userDN = pwmSession.getUserInfoBean().getUserDN();
+                final Configuration config = ContextManager.getPwmApplication(session).getConfig();
                 chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             }
 
@@ -109,7 +112,7 @@ public class SessionManager implements Serializable {
         LOGGER.trace(pwmSession, "attempting to open new ldap connection for " + userDN);
         final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
-        if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToPwm()) {
+        if (pwmSession.getUserInfoBean().isMustUseLdapProxy()) {
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             return Helper.createChaiProvider(config, proxyDN, proxyPassword, idleTimeoutMs);

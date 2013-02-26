@@ -94,7 +94,7 @@ public class ConfigUploadServlet extends TopServlet {
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"");
         } else {
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CONFIG_UPLOAD,"Please wait a moment for PWM to restart.");
-            ConfigManagerServlet.saveConfiguration(pwmSession,pwmApplication,req.getSession().getServletContext());
+            ConfigManagerServlet.saveConfiguration(pwmSession, req.getSession().getServletContext());
         }
 
         ServletHelper.forwardToSuccessPage(req,resp);

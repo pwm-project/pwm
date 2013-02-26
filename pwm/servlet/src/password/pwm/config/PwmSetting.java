@@ -350,6 +350,8 @@ public enum PwmSetting {
             "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
     PASSWORD_WORDLIST_WORDSIZE(
             "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
+    PASSWORD_POLICY_DISALLOW_CURRENT(
+            "password.policy.disallowCurrent", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
 
 
     // security settings
@@ -674,6 +676,8 @@ public enum PwmSetting {
             "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, Category.HELPDESK),
     HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
             "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, Category.HELPDESK),
+    HELPDESK_ACTIONS(
+            "helpdesk.actions", PwmSettingSyntax.ACTION, Category.HELPDESK),
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_ENFORCE_PASSWORD_POLICY(

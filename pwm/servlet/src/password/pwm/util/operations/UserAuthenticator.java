@@ -87,6 +87,7 @@ public class UserAuthenticator {
         intruderManager.checkUser(userDN, pwmSession);
         intruderManager.checkAddress(pwmSession);
 
+        boolean allowBindAsUser = true;
         try {
             testCredentials(userDN, password, pwmSession, pwmApplication);
         } catch (PwmOperationalException e) {
@@ -94,12 +95,12 @@ public class UserAuthenticator {
                     && pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY
                     && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
                 LOGGER.info("auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
-                password = null;
+                allowBindAsUser = false;
             } else if (PwmError.PASSWORD_EXPIRED == e.getError() // handle ad case where password is expired
                     && pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY
                     && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
                 LOGGER.info("auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
-                password = null;
+                allowBindAsUser = false;
             } else {
                 // auth failed, presumably due to wrong password.
                 ssBean.setAuthenticated(false);
@@ -120,7 +121,7 @@ public class UserAuthenticator {
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
         statisticsManager.updateEps(Statistic.EpsType.AUTHENTICATION, 1);
 
-        postAuthenticationSequence(pwmApplication, pwmSession, userDN, password, methodStartTime);
+        postAuthenticationSequence(pwmApplication, pwmSession, userDN, password, allowBindAsUser, methodStartTime);
     }
 
     public static void testCredentials(
@@ -275,19 +276,13 @@ public class UserAuthenticator {
             pwmSession.getSessionManager().closeConnections();
 
         } else {
-            postAuthenticationSequence(pwmApplication, pwmSession, theUser.getEntryDN(), null, startAuthenticationTimestamp);
-
-            pwmSession.getUserInfoBean().setCurrentPasswordUnknownToPwm(true);
+            postAuthenticationSequence(pwmApplication, pwmSession, theUser.getEntryDN(), null, false, startAuthenticationTimestamp);
         }
-
 
 
         // get the uib out of the session again (it may have been replaced) and mark
         // the password as expired to force a user password change.
         pwmSession.getUserInfoBean().setRequiresNewPassword(true);
-
-        // mark the uib as coming from unknown pw.
-        pwmSession.getUserInfoBean().setCurrentPasswordUnknownToUser(true);
     }
 
     private static void postAuthenticationSequence(
@@ -295,6 +290,7 @@ public class UserAuthenticator {
             final PwmSession pwmSession,
             final String userDN,
             final String userPassword,
+            final boolean bindAsUser,
             final long startAuthenticationTimestamp
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
@@ -302,7 +298,7 @@ public class UserAuthenticator {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        //notify the intruder manager with a successfull login
+        //notify the intruder manager with a successful login
         intruderManager.addGoodAddressAttempt(pwmSession);
         intruderManager.addGoodUserAttempt(userDN, pwmSession);
 
@@ -324,13 +320,25 @@ public class UserAuthenticator {
         ssBean.setAuthenticated(true);
 
         // update the actor user info bean
-        final boolean passwordIsUnknownToPwm = userPassword == null || userPassword.length() < 1;
-        if (passwordIsUnknownToPwm) {
+        if (!bindAsUser) {
             final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-            UserStatusHelper.populateUserInfoBean(pwmSession, userInfoBean, pwmApplication, ssBean.getLocale(), userDN, null, pwmApplication.getProxyChaiProvider());
-            userInfoBean.setCurrentPasswordUnknownToPwm(true);
+            UserStatusHelper.populateUserInfoBean(
+                    pwmSession,
+                    userInfoBean,
+                    pwmApplication,
+                    ssBean.getLocale(),
+                    userDN,
+                    userPassword,
+                    pwmApplication.getProxyChaiProvider()
+            );
+            userInfoBean.setMustUseLdapProxy(true);
+            userInfoBean.setRequiresNewPassword(true);
         } else {
-            UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, userDN, userPassword);
+            UserStatusHelper.populateActorUserInfoBean(
+                    pwmSession,
+                    pwmApplication,
+                    userDN,
+                    userPassword);
         }
 
     }

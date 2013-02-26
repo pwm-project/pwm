@@ -41,7 +41,6 @@
             <pwm:Display key="Title_ConfigManager" bundle="Config"/>
         </div>
         <div id="header-title">
-            Configuration is editable
         </div>
     </div>
     <div id="centerbody">
@@ -49,7 +48,7 @@
         <% final String configLoadTime = ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime().toString(); %>
         <% final String configEpoch = String.valueOf(ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()); %>
         <pwm:Display key="Display_ConfigManagerConfiguration" bundle="Config" value1="<%=configLoadTime%>" value2="<%=configEpoch%>"/>
-        <div data-dojo-type="dijit.TitlePane" title="PWM Health" style="border:0; margin:0; padding:0">
+        <div data-dojo-type="dijit.TitlePane" title="Health" style="border:0; margin:0; padding:0">
             <div id="healthBody" style="border:0; margin:0; padding:0">
                 <div id="WaitDialogBlank"></div>
             </div>
@@ -76,34 +75,6 @@
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ViewLog" bundle="Config"/></p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();"><pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/></a>
-                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="generateXml"
-                          enctype="application/x-www-form-urlencoded">
-                        <input type="hidden" name="processAction" value="generateXml"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
-                </td>
-                <td style="border:0">
-                    <p>
-                        <pwm:Display key="MenuDisplay_DownloadConfig" bundle="Config"/>
-                    </p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,'<pwm:Display key="Confirm_UploadConfig" bundle="Config"/>',function(){document.forms['uploadXml'].submit()})"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
-                </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
-                    <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
-                        <input type="hidden" name="processAction" value="uploadXml"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                        <input type="file" name="uploadFile" size="50" style="width: 350px" data-dojo-type="dojox/form/Uploader" data-dojo-props="uploadOnSelect:true"/>
-                    </form>
                 </td>
             </tr>
             <tr style="border:0">

@@ -46,6 +46,7 @@
         <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); } catch (Exception e) {} %>
         <br/>
         <br/>
+        <% if (pwmApplicationHeader != null && pwmApplicationHeader.getApplicationMode() != PwmApplication.MODE.ERROR) { %>
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
@@ -57,6 +58,7 @@
                        id="button_continue"/>
             </form>
         </div>
+        <% } %>
     </div>
     <br class="clear"/>
 </div>

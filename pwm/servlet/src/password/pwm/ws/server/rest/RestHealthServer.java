@@ -86,7 +86,9 @@ public class RestHealthServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public JsonOutput doPwmHealthJsonGet(@QueryParam("refreshImmediate") final String requestImmediateParam) {
+    public JsonOutput doPwmHealthJsonGet(
+            @QueryParam("refreshImmediate") final String requestImmediateParam
+    ) {
         final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
@@ -111,7 +113,8 @@ public class RestHealthServer {
             final PwmSession pwmSession,
             final boolean refreshImmediate
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
 
         boolean doRefresh = false;

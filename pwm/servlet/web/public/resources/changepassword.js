@@ -55,7 +55,7 @@ function validatePasswords(userDN)
         return returnObj;
     };
     validationProps['processResultsFunction'] = function(data){
-        updateDisplay(data);
+        updateDisplay(data['data']);
     };
 
     pwmFormValidator(validationProps);
@@ -309,7 +309,7 @@ function fetchRandoms(randomConfig) {
 
     if (randomConfig['fetchList'].length > 0) {
         var successFunction = function(resultInfo) {
-            var password = resultInfo["password"];
+            var password = resultInfo['data']["password"];
             var elementID = randomConfig['fetchList'].pop();
             var element = getObject(elementID);
             if (element != null) {

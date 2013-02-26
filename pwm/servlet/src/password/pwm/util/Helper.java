@@ -123,7 +123,7 @@ public class Helper {
         chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
         chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
-        chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, "1");
+        chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(PwmConstants.RESPONSES_HASH_LOOP_COUNT));
 
         {
             final boolean encryptResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);

@@ -62,9 +62,11 @@ public class ActionValue implements StoredValue {
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
-            if (value != null && value.length() > 0 && loopValueElement.getAttribute("locale") != null) {
+            if (value != null && value.length() > 0) {
                 if (oldType) {
-                    values.add(ActionConfiguration.parseOldConfigString(value));
+                    if (loopValueElement.getAttribute("locale") == null) {
+                        values.add(ActionConfiguration.parseOldConfigString(value));
+                    }
                 } else {
                     values.add(gson.fromJson(value,ActionConfiguration.class));
                 }

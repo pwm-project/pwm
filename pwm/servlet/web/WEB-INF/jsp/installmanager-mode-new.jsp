@@ -28,12 +28,12 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
+            <pwm:Display key="Title_InstallManager" bundle="Config"/>
         </div>
         <div id="header-title">
             Configuration Mode: <%=ContextManager.getPwmApplication(session).getApplicationMode()%>
@@ -44,21 +44,9 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <p><a class="menubutton" href="#" onclick="startNewConfigurationEditor('<%=template.toString()%>')">New Configuration: <%=template.getDescription()%></a></p>
+        <p><a class="menubutton" href="#" onclick="selectTemplate('<%=template.toString()%>')"><%=template.getDescription()%></a></p>
         <% } %>
         <br/>
-        <p>or...</p>
-        <br/>
-        <a class="menubutton" href="#" onclick="document.forms['uploadXml'].submit();"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
-        <br/>
-        <form action="<pwm:url url='ConfigUpload'/>" method="post" name="uploadXml" enctype="multipart/form-data">
-            <input type="hidden" name="processAction" value="uploadXml"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <input type="file" name="uploadFile" size="50" data-dojo-type="dojox/form/Uploader"/>
-        </form>
-        <p>
-            <pwm:Display key="MenuDisplay_AlternateUpload" bundle="Config"/>
-        </p>
     </div>
 </div>
 <script type="text/javascript">

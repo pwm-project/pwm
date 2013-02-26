@@ -140,10 +140,8 @@ public class ConfigurationReader {
     }
 
     public void saveConfiguration(final StoredConfiguration storedConfiguration)
-            throws IOException, PwmUnrecoverableException {
-        if (getConfigMode() == PwmApplication.MODE.RUNNING) {
-            throw new IllegalStateException("running config mode does now allow saving of configuration");
-        }
+            throws IOException, PwmUnrecoverableException
+    {
 
         { // increment the config epoch
             String epochStrValue = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);

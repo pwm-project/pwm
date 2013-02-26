@@ -147,6 +147,10 @@
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>password.pwm.AuthorizationFilter</filter-class>
     </filter>
+    <filter>
+        <filter-name>ApplicationModeFilter</filter-name>
+        <filter-class>password.pwm.ApplicationModeFilter</filter-class>
+    </filter>
     <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
         <url-pattern>/public/NewUser</url-pattern>
@@ -172,6 +176,10 @@
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
         <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ApplicationModeFilter</filter-name>
+        <url-pattern>*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
@@ -251,6 +259,10 @@
     <servlet>
         <servlet-name>ConfigManagerServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InstallManagerServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.InstallManagerServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ConfigUploadServlet</servlet-name>
@@ -336,6 +348,10 @@
         <servlet-name>ConfigManagerServlet</servlet-name>
         <url-pattern>/config/ConfigManager</url-pattern>
         <url-pattern>/private/admin/ConfigManager</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InstallManagerServlet</servlet-name>
+        <url-pattern>/config/InstallManager</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ConfigUploadServlet</servlet-name>

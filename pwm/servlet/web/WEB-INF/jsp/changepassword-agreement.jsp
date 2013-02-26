@@ -61,7 +61,7 @@
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
-                    key="Button_Agree"/></label>
+                    key="Button_Agree"/></label>&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="hidden"
                        name="processAction"
                        value="agree"/>

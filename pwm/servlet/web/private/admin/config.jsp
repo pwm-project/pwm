@@ -41,7 +41,7 @@
         <p>
             This screen shows the current running configuration. The configuration was loaded at
             <%=ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime()%>. You
-            can use the <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>">ConfigManager</a>
+            can use the <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/ConfigManager"/>">ConfigManager</a>
             to modify the configuration.  Values in <span style="color:blue;">blue</span> are modified from the default values.
         </p>
         <% if (pwmConfig.getNotes() != null && (pwmConfig.getNotes().length() > 0)) { %>

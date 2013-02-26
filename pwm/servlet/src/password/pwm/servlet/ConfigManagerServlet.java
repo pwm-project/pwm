@@ -27,7 +27,10 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ConfigManagerBean;
-import password.pwm.config.*;
+import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredConfiguration;
+import password.pwm.config.StoredValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -35,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -61,18 +65,32 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
 
         initialize(pwmSession, ContextManager.getContextManager(req.getSession().getServletContext()).getConfigReader(), configManagerBean);
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
-        if (processActionParam.length() > 0) {
-            if ("getOptions".equalsIgnoreCase(processActionParam)) {
-                doGetOptions(req, resp);
-                return;
-            }
 
+        if ("getEpoch".equalsIgnoreCase(processActionParam)) {
+            restGetEpoch(req, resp);
+            return;
+        }
+
+        final String requestURI = req.getRequestURI();
+        if (PwmApplication.MODE.RUNNING == pwmApplication.getApplicationMode() && !requestURI.startsWith(req.getContextPath() + "/private/admin/ConfigManager")) {
+            resp.sendRedirect(req.getContextPath() + "/private/admin/ConfigManager");
+            return;
+        }
+
+        if (processActionParam != null && processActionParam.length() > 0) {
             Validator.validatePwmFormID(req);
+        }
 
+        if ("startEditing".equalsIgnoreCase(processActionParam)) {
+            doStartEditing(req);
+            forwardToJSP(req,resp);
+            return;
+        }
+
+        if (configManagerBean.isPasswordVerified()) {
             if ("readSetting".equalsIgnoreCase(processActionParam)) {
                 this.readSetting(req, resp);
                 return;
@@ -86,10 +104,11 @@ public class ConfigManagerServlet extends TopServlet {
                 if (doGenerateXml(req, resp)) {
                     return;
                 }
-            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam) && configMode != PwmApplication.MODE.RUNNING) {
-                doLockConfiguration(req);
+            } else if ("lockConfiguration".equalsIgnoreCase(processActionParam)) {
+                restLockConfiguration(req, resp);
+                return;
             } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
-                doFinishEditing(req,resp);
+                restFinishEditing(req, resp);
                 return;
             } else if ("setConfigurationPassword".equalsIgnoreCase(processActionParam)) {
                 doSetConfigurationPassword(req);
@@ -108,7 +127,7 @@ public class ConfigManagerServlet extends TopServlet {
         forwardToJSP(req, resp);
     }
 
-    private void initialize(final PwmSession pwmSession,
+    private static void initialize(final PwmSession pwmSession,
                             final ConfigurationReader configReader,
                             final ConfigManagerBean configManagerBean
     )
@@ -133,30 +152,31 @@ public class ConfigManagerServlet extends TopServlet {
                         configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
                     }
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
+                    configManagerBean.setPasswordVerified(true);
                     break;
 
                 case CONFIGURATION:
+                    configManagerBean.setPasswordVerified(true);
+                case RUNNING:
                     try {
                         final StoredConfiguration runningConfig = configReader.getStoredConfiguration();
                         final StoredConfiguration clonedConfiguration = (StoredConfiguration) runningConfig.clone();
-                        clonedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
                         configManagerBean.setConfiguration(clonedConfiguration);
                     } catch (CloneNotSupportedException e) {
                         throw new RuntimeException("unexpected error cloning StoredConfiguration", e);
                     }
                     break;
+            }
+        }
 
-                case RUNNING:
-                    if (configManagerBean.getConfiguration() == null) {
-                        configManagerBean.setConfiguration(StoredConfiguration.getDefaultConfiguration());
-                    }
-                    configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
-                    break;
+        if (configReader.getConfigMode() == PwmApplication.MODE.RUNNING) {
+            if (configManagerBean.getEditMode() == EDIT_MODE.NONE) {
+                configManagerBean.setEditMode(EDIT_MODE.SETTINGS);
             }
         }
     }
 
-    private void doGetOptions(
+    private void restGetEpoch(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -164,27 +184,36 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
+        final Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
+        final RestResultBean restResultBean = new RestResultBean();
+
         if (configEpoch != null && configEpoch.length() > 0) {
-            returnMap.put("configEpoch", configEpoch);
-        } else {
-            returnMap.put("configEpoch", "none");
-        }
-        if (configManagerBean.getErrorInformation() != null) {
-            returnMap.put("error", true);
-            returnMap.put("errorCode", configManagerBean.getErrorInformation().getError().getErrorCode());
-            returnMap.put("errorDetail", configManagerBean.getErrorInformation().getDetailedErrorMsg());
+            dataMap.put("currentEpoch", configEpoch);
         }
 
-        {   // otherdata
-            final String notesText = configManagerBean.getConfiguration().readPropertyKeys().contains(StoredConfiguration.PROPERTY_KEY_NOTES) ? configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) : "";
-            returnMap.put("notesText",notesText);
-        }
+        restResultBean.setData(dataMap);
+        ServletHelper.outputJsonResult(resp,restResultBean);
+    }
 
-        final Gson gson = new Gson();
-        final String outputString = gson.toJson(returnMap);
-        resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().print(outputString);
+    private void doStartEditing(
+            final HttpServletRequest req
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        if (!configManagerBean.isPasswordVerified()) {
+            final String password = Validator.readStringFromRequest(req,"password");
+            final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
+            final boolean passed = storedConfig.verifyPassword(password);
+            configManagerBean.setPasswordVerified(passed);
+            if (!passed) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,"incorrect password");
+                Helper.pause(5000);
+                PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(errorInformation);
+                return;
+            }
+        }
+        configManagerBean.setEditMode(EDIT_MODE.SETTINGS);
     }
 
     private void readSetting(
@@ -346,28 +375,46 @@ public class ConfigManagerServlet extends TopServlet {
         return true;
     }
 
-    private void doLockConfiguration(
-            final HttpServletRequest req
+    private void restLockConfiguration(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+
     )
-            throws IOException, ServletException, PwmUnrecoverableException {
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final String currentEpoch = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
 
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
-        storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
+        if (!storedConfiguration.hasPassword()) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Please set a configuration password before locking the configuration");
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            LOGGER.debug(pwmSession, errorInfo);
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
+        }
 
+        storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
         try {
-            saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
+            saveConfiguration(pwmSession, req.getSession().getServletContext());
             Helper.pause(5000);
             configManagerBean.setConfiguration(null);
             pwmSession.invalidate();
         } catch (PwmUnrecoverableException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
-            configManagerBean.setErrorInformation(errorInfo);
-            LOGGER.error("error locking configuration: " + e.toString());
-            pwmSession.getSessionStateBean().setSessionError(errorInfo);
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            LOGGER.debug(pwmSession, errorInfo);
+            ServletHelper.outputJsonResult(resp, restResultBean);
+            return;
         }
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(Collections.singletonMap("currentEpoch",currentEpoch));
+        restResultBean.setError(false);
+        LOGGER.info(pwmSession, "Configuration Locked");
+        ServletHelper.outputJsonResult(resp, restResultBean);
+        return;
     }
 
     private void doSetConfigurationPassword(
@@ -379,11 +426,11 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        final String password = ServletHelper.readRequestBody(req,100*1000);
+        final String password = ServletHelper.readRequestBody(req, 100 * 1000);
         configManagerBean.getConfiguration().setPassword(password);
     }
 
-    private void doFinishEditing(
+    private void restFinishEditing(
             final HttpServletRequest req,
             final HttpServletResponse resp
 
@@ -392,45 +439,43 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
-        final Map<String,String> returnMap = new HashMap<String,String>();
+        RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(Collections.singletonMap("currentEpoch",configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH)));
 
-        if (!configManagerBean.isLiveEditMode()) {
-            configManagerBean.setErrorInformation(null);
+        if (configManagerBean.isPasswordVerified()) {
             if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
                 final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString);
-                configManagerBean.setErrorInformation(errorInfo);
-
-                returnMap.put("error","true");
-                returnMap.put("errorMessage", errorInfo.toDebugStr());
+                restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+                return;
             } else {
                 try {
-                    saveConfiguration(pwmSession, pwmApplication, req.getSession().getServletContext());
-                    returnMap.put("error","false");
-                    returnMap.put("errorMessage","");
+                    Helper.pause(5000);
+                    saveConfiguration(pwmSession, req.getSession().getServletContext());
+                    restResultBean.setError(false);
                 } catch (PwmUnrecoverableException e) {
                     final ErrorInformation errorInfo = e.getErrorInformation();
                     pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                    configManagerBean.setErrorInformation(errorInfo);
+                    restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
                     LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
-                    returnMap.put("error","true");
-                    returnMap.put("errorMessage", errorInfo.toDebugStr());
                 }
             }
+        } else {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"needed password for configuration modification has not been supplied");
+            restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
         }
 
-        final Gson gson = new Gson();
-        final String outputString = gson.toJson(returnMap);
-        resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().print(outputString);
-
-        configManagerBean.setEditMode(EDIT_MODE.NONE);
+        pwmSession.clearUserBean(ConfigManagerServlet.class);
         LOGGER.debug(pwmSession, "save configuration operation completed");
+        ServletHelper.outputJsonResult(resp, restResultBean);
     }
 
-    static void saveConfiguration(final PwmSession pwmSession, final PwmApplication pwmApplication, final ServletContext servletContext)
-            throws PwmUnrecoverableException {
+    static void saveConfiguration(
+            final PwmSession pwmSession,
+            final ServletContext servletContext
+    )
+            throws PwmUnrecoverableException
+    {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         final StoredConfiguration storedConfiguration = configManagerBean.getConfiguration();
 
@@ -443,19 +488,15 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING) {
-                ResourceFileServlet.clearCache(servletContext);
-                ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
-                pwmApplication.setLastLdapFailure(null);
-                ContextManager.getContextManager(servletContext).reinitialize();
-            }
+            ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
+            ContextManager.getContextManager(servletContext).reinitialize();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
         }
 
-        resetInMemoryBean(pwmSession);
+        resetInMemoryBean(pwmSession,servletContext);
     }
 
     private void doCancelEditing(
@@ -464,7 +505,7 @@ public class ConfigManagerServlet extends TopServlet {
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        resetInMemoryBean(pwmSession);
+        resetInMemoryBean(pwmSession,req.getSession().getServletContext());
         LOGGER.debug(pwmSession, "cancelled edit actions");
     }
 
@@ -555,30 +596,27 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, ServletException, PwmUnrecoverableException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
 
-        if (configManagerBean.getEditMode() != EDIT_MODE.NONE) {
-            servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
+        if (!configManagerBean.isPasswordVerified()) {
+            servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGIN).forward(req, resp);
+            return;
+        }
+
+        if (configManagerBean.getEditMode() == EDIT_MODE.NONE) {
+            servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
         } else {
-            final Configuration config = pwmApplication.getConfig();
-            final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
-            if (config == null || configMode == PwmApplication.MODE.NEW) {
-                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_NEW).forward(req, resp);
-            } else if (configMode == PwmApplication.MODE.CONFIGURATION) {
-                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
-            } else {
-                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_RUNNING).forward(req, resp);
-            }
+            servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
         }
     }
 
-    private static void resetInMemoryBean(final PwmSession pwmSession) {
+    private static void resetInMemoryBean(final PwmSession pwmSession, final ServletContext servletContext)
+            throws PwmUnrecoverableException
+    {
+        pwmSession.clearUserBean(ConfigManagerBean.class);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
-        configManagerBean.setConfiguration(null);
-        configManagerBean.setConfigurationLoadTime(null);
-        configManagerBean.setEditMode(EDIT_MODE.NONE);
+        initialize(pwmSession, ContextManager.getContextManager(servletContext).getConfigReader(), configManagerBean);
     }
 // -------------------------- ENUMERATIONS --------------------------
 
@@ -587,6 +625,4 @@ public class ConfigManagerServlet extends TopServlet {
         LOCALEBUNDLE,
         NONE
     }
-
-
 }

@@ -164,7 +164,7 @@
                 preventCache: true,
                 handleAs: "json",
                 load:  function(resultInfo) {
-                    passwordValue = resultInfo["password"];
+                    passwordValue = resultInfo['data']["password"];
                 },
                 error: function(errorObj){
                     passwordValue = "server unreachable";

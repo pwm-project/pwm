@@ -24,7 +24,6 @@ package password.pwm;
 
 import org.jasig.cas.client.util.AbstractCasFilter;
 import password.pwm.bean.*;
-import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -53,7 +52,6 @@ public class PwmSession implements Serializable {
 
     private final Map<Class,PwmSessionBean> sessionBeans = new HashMap<Class, PwmSessionBean>();
 
-    private Configuration config;
     private SessionManager sessionManager;
 
     private transient HttpSession httpSession;
@@ -101,7 +99,6 @@ public class PwmSession implements Serializable {
 
         this.creationTime = System.currentTimeMillis();
         this.getSessionStateBean().setSessionID("");
-        config = pwmApplication.getConfig();
         clearSessionBeans();
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
@@ -192,7 +189,7 @@ public class PwmSession implements Serializable {
         if (sessionManager != null) {
             sessionManager.closeConnections();
         }
-        sessionManager = new SessionManager(this, config);
+        sessionManager = new SessionManager(this, httpSession);
     }
 
     public boolean isValid() {
@@ -319,7 +316,7 @@ public class PwmSession implements Serializable {
                 sb.append(", ");
                 sb.append("dn=").append(getUserInfoBean().getUserDN());
                 sb.append(", ");
-                sb.append("knownPassword=").append(!getUserInfoBean().isCurrentPasswordUnknownToUser());
+                sb.append("forceLdapProxy=").append(!getUserInfoBean().isMustUseLdapProxy());
                 sb.append(", ");
                 sb.append("needsNewPW=").append(getUserInfoBean().isRequiresNewPassword());
                 sb.append(", ");
@@ -339,6 +336,4 @@ public class PwmSession implements Serializable {
 
         return sb.toString();
     }
-
-
 }

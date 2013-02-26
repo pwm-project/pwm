@@ -36,7 +36,6 @@
     getObject('mainContentPane').style.display = 'none';
     showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
 </script>
-<h1 style="text-align:center; color: gray">Custom Text - <%=bundleName.getTheClass().getSimpleName()%></h1>
 <div>
     <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
 </div>

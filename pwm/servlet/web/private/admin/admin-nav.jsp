@@ -78,12 +78,6 @@
                             }
                         }));
                         systemMenu.addChild(new MenuItem({
-                            label: 'Configuration',
-                            onClick: function() {
-                                showWaitDialog(null,null,function(){window.location = "config.jsp";});
-                            }
-                        }));
-                        systemMenu.addChild(new MenuItem({
                             label: 'Event Log',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "eventlog.jsp";});
@@ -93,6 +87,12 @@
                             label: 'User Report',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "userreport.jsp";});
+                            }
+                        }));
+                        systemMenu.addChild(new MenuItem({
+                            label: 'Edit Configuration',
+                            onClick: function() {
+                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/private/admin/ConfigManager";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({
@@ -112,12 +112,6 @@
                             label: 'Main Menu',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>";});
-                            }
-                        }));
-                        exitMenu.addChild(new MenuItem({
-                            label: 'Configuration Menu',
-                            onClick: function() {
-                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/config/ConfigManager";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({

@@ -144,7 +144,7 @@ public class PwmPasswordRuleValidator {
         final PasswordCharCounter charCounter = new PasswordCharCounter(password);
 
         //check against old password
-        if (oldPassword != null && oldPassword.length() > 0) {
+        if (oldPassword != null && oldPassword.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
             if (oldPassword != null && oldPassword.length() > 0) {
                 if (oldPassword.equalsIgnoreCase(password)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASOLD));

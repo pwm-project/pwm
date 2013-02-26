@@ -52,6 +52,7 @@ public enum Message {
     SUCCESS_CONFIG_UPLOAD("Success_ConfigFileUpload"),
     SUCCESS_PASSWORDRESET("Success_PasswordReset"),
     SUCCESS_PASSWORDSEND("Success_PasswordSend"),
+    SUCCESS_ACTION("Success_Action"),
 
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
@@ -139,7 +140,7 @@ public enum Message {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public String getLocalizedMessage(final Locale locale, final String fieldValue, final Configuration config) {
+    public String getLocalizedMessage(final Locale locale, final Configuration config, final String... fieldValue) {
         return Message.getLocalizedMessage(locale, this, config, fieldValue);
     }
 

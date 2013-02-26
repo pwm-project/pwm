@@ -85,7 +85,6 @@ public class PasswordUtility {
      *
      * @param newPassword the new password that is being set.
      * @param pwmSession  beanmanager for config and user info lookup
-     * @return true if the set was successful
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *          if the ldap directory is not unavailable
      * @throws password.pwm.error.PwmUnrecoverableException
@@ -123,10 +122,8 @@ public class PasswordUtility {
 
         boolean setPasswordWithoutOld = false;
         if (oldPassword == null || oldPassword.length() < 1) {
-            if (uiBean.isCurrentPasswordUnknownToPwm()) {
-                if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                    setPasswordWithoutOld = true;
-                }
+            if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                setPasswordWithoutOld = true;
             }
         }
 
@@ -176,7 +173,7 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // uibean
-        uiBean.setCurrentPasswordUnknownToPwm(false);
+        uiBean.setMustUseLdapProxy(false);
 
         // update the uibean's "password expired flag".
         uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(),uiBean));
@@ -193,7 +190,7 @@ public class PasswordUtility {
         }
 
         // add the old password to the global history list (if the old password is known)
-        if (!pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
+        if (oldPassword != null && oldPassword.length() > 0 && pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE)) {
             pwmApplication.getSharedHistoryManager().addWord(pwmSession, oldPassword);
         }
 
@@ -579,7 +576,8 @@ public class PasswordUtility {
         } else {
             try {
                 final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
-                pwmPasswordRuleValidator.testPassword(password, null, userInfoBean, user);
+                final String oldPassword = userInfoBean.getUserCurrentPassword();
+                pwmPasswordRuleValidator.testPassword(password, oldPassword, userInfoBean, user);
                 pass = true;
 
                 switch (matchStatus) {

@@ -354,8 +354,8 @@ public class CommandServlet extends TopServlet {
 
         final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
-        //resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
-        ServletHelper.forwardToRedirectPage(req, resp, redirectURL);
+        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+        //ServletHelper.forwardToRedirectPage(req, resp, redirectURL);
     }
 
     private void outputUserReportCsv(final HttpServletRequest req, final HttpServletResponse resp)

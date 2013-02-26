@@ -49,7 +49,7 @@ public class SuccessMessageTag extends PwmAbstractTag {
             final Message successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
             final String successField = pwmSession.getSessionStateBean().getSessionSuccessField();
 
-            final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), successField, pwmApplication.getConfig());
+            final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig(), successField);
             pageContext.getOut().write(errorMsg);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

@@ -223,7 +223,7 @@ public class NewUserServlet extends TopServlet {
                         userValues.get("password1"),
                         userValues.get("password2")
                 );
-                output = new Gson().toJson(RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(passwordCheckInfo));
+                output = new Gson().toJson(RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo));
             }
         } catch (PwmOperationalException e) {
             final Map<String, String> outputMap = new HashMap<String, String>();

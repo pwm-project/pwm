@@ -66,7 +66,7 @@
                 <input type="hidden" name="hideButton" class="btn"
                        value="<pwm:Display key="Button_Show"/>"
                        onclick="toggleMaskPasswords()" id="hide_button"/>
-                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy() && !PwmSession.getPwmSession(session).getUserInfoBean().isCurrentPasswordUnknownToUser()) { %>
+                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>

@@ -31,8 +31,8 @@
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-PWM_GLOBAL={};
-PWM_STRINGS={};
+if (!PWM_GLOBAL) var PWM_GLOBAL={};
+if (!PWM_STRINGS) var PWM_STRINGS={};
 function initPwmStringValues() {
 PWM_GLOBAL['startupFunctions'] = new Array();
 PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';

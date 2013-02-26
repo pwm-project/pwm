@@ -27,6 +27,7 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -245,6 +246,8 @@ public class ContextManager implements Serializable {
         public void doReinitialize() {
             LOGGER.info("beginning application restart");
             try {
+                ResourceFileServlet.clearCache(servletContext);
+                pwmApplication.setLastLdapFailure(null);
                 shutdown();
             } catch (Exception e) {
                 LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);

@@ -34,7 +34,7 @@
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="PWM Event Log"/>
+        <jsp:param name="pwm.PageName" value="Event Log"/>
     </jsp:include>
     <% if ("true".equalsIgnoreCase(request.getParameter("doReport"))) { %>
     <div id="centerbody" style="width:98%">

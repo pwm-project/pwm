@@ -107,6 +107,7 @@ public abstract class PwmConstants {
     public static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
 
     public static final int SHARED_HISTORY_HASH_LOOP_COUNT = Integer.parseInt(readPwmConstantsBundle("sharedHistory.hashLoopCount"));
+    public static final int RESPONSES_HASH_LOOP_COUNT = Integer.parseInt(readPwmConstantsBundle("responses.hashLoopCount"));
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
@@ -169,9 +170,10 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_NEW = "WEB-INF/jsp/configmanager-mode-new.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configmanager-mode-running.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/installmanager-mode-running.jsp";
+    public static final String URL_JSP_INSTALL_MANAGER_MODE_NEW = "WEB-INF/jsp/installmanager-mode-new.jsp";
     public static final String URL_JSP_HELPDESK_SEARCH = "WEB-INF/jsp/helpdesk.jsp";
     public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
 
@@ -187,6 +189,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
     public static final String URL_SERVLET_COMMAND = "CommandServlet";
     public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
+    public static final String URL_SERVLET_INSTALL_MANAGER = "InstallManager";
 
     public static final String URL_THEMES = "/public/resources/themes/";
 

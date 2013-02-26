@@ -26,13 +26,17 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,41 +51,33 @@ public class RestClearResponsesServer {
     @Context
     HttpServletRequest request;
 
-    public static class JsonOutput {
-        public boolean success;
-        public String errorMsg;
-        public int errorCode;
-    }
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public JsonOutput doPostClearResponses(
+    public String doPostClearResponses(
             final @FormParam("username") String username
-    ) {
-        final JsonOutput outputMap = new JsonOutput();
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
 
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            //final RestServerHelper.RestRequestBean restRequestBean = RestServerHelper.initializeRestRequest(request,"username");
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                outputMap.success = false;
-                outputMap.errorMsg = PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo().toDebugStr();
-                outputMap.errorCode = PwmError.ERROR_AUTHENTICATION_REQUIRED.getErrorCode();
-                return outputMap;
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+                return restResultBean.toJson();
             }
 
             try {
                 if (username != null && username.length() > 0) {
                     if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
-                        outputMap.success = false;
-                        outputMap.errorMsg = PwmError.ERROR_UNAUTHORIZED.toInfo().toDebugStr();
-                        outputMap.errorCode = PwmError.ERROR_UNAUTHORIZED.getErrorCode();
-                        return outputMap;
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
+                        final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+                        return restResultBean.toJson();
                     }
 
                     final ChaiProvider actorProvider = pwmSession.getSessionManager().getChaiProvider();
@@ -102,22 +98,21 @@ public class RestClearResponsesServer {
                     );
                     UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES,null);
                 }
-                outputMap.success = true;
                 if (isExternal) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CLEARRESPONSE);
                 }
-                return outputMap;
+                final RestResultBean restResultBean = new RestResultBean();
+                restResultBean.setSuccessMessage(Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_UNKNOWN,pwmApplication.getConfig()));
+                return restResultBean.toJson();
             } catch (PwmOperationalException e) {
-                outputMap.success = false;
-                outputMap.errorCode = e.getError().getErrorCode();
-                outputMap.errorMsg = e.getErrorInformation().getDetailedErrorMsg();
-                return outputMap;
+                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(), pwmApplication, pwmSession);
+                return restResultBean.toJson();
             }
         } catch (Exception e) {
-            outputMap.success = false;
-            outputMap.errorCode = PwmError.ERROR_UNKNOWN.getErrorCode();
-            outputMap.errorMsg = "unexpected error building json response for /clearresponses rest service: " + e.getMessage();
-            return outputMap;
+            final String errorMsg = "unexpected error building json response for /clearresponses rest service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            return restResultBean.toJson();
         }
     }
 }

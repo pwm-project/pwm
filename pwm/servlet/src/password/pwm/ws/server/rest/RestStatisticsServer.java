@@ -26,11 +26,14 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsBundle;
 import password.pwm.util.stats.StatisticsManager;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,14 +68,16 @@ public class RestStatisticsServer {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public JsonOutput doPwmStatisticJsonGet(
+    public String doPwmStatisticJsonGet(
             final @QueryParam("statKey") String statKey,
             final @QueryParam("statName") String statName,
             final @QueryParam("days") String days
-    ) {
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        final PwmSession pwmSession = PwmSession.getPwmSession(request);
         try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
             LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
@@ -90,11 +95,14 @@ public class RestStatisticsServer {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_STATISTICS);
             }
 
-            return jsonOutput;
-        } catch (Exception e) {
-            LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
+            final RestResultBean resultBean = new RestResultBean();
+            resultBean.setData(jsonOutput);
+            return resultBean.toJson();
+        } catch (PwmException e) {
+            final RestResultBean resultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(),pwmApplication,pwmSession);
+            LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
+            return resultBean.toJson();
         }
-        return null;
     }
 
     private Map<String,Object> doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {

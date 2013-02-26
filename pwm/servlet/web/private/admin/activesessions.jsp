@@ -34,7 +34,7 @@
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="PWM Active Sessions"/>
+        <jsp:param name="pwm.PageName" value="Active Sessions"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>

@@ -23,7 +23,6 @@
 package password.pwm.config;
 
 import com.google.gson.Gson;
-import com.novell.ldapchai.util.internal.Base64Util;
 import org.jdom2.CDATA;
 import org.jdom2.Comment;
 import org.jdom2.Document;
@@ -40,13 +39,11 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.BCrypt;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
 
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -61,7 +58,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public static final String PROPERTY_KEY_TEMPLATE = "configTemplate";
     public static final String PROPERTY_KEY_NOTES = "notes";
     public static final String PROPERTY_KEY_PASSWORD_HASH = "configPasswordHash";
-    public static final String PROPERTY_KEY_PASSWORD_SALT = "configPasswordSalt";
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
     private static final String XML_FORMAT_VERSION = "2";
@@ -564,34 +560,18 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public void setPassword(final String password) {
-        final String salt = PwmRandom.getInstance().alphaNumericString(32);
-        final String saltedPasswordHash = salt + password;
-        final String passwordHash = hashValue(saltedPasswordHash, 1000);
+        final String salt = BCrypt.gensalt();
+        final String passwordHash = BCrypt.hashpw(password,salt);
         this.writeProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH,passwordHash);
-        this.writeProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_SALT,salt);
     }
 
     public boolean verifyPassword(final String password) {
-        final String salt = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_SALT);
         final String passwordHash = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
-        final String testPasswordHash = hashValue(salt + password, 1000);
-        return passwordHash != null && passwordHash.equals(testPasswordHash);
+        return BCrypt.checkpw(password,passwordHash);
     }
 
-    private static String hashValue(final String value, final int saltCount)
-            throws IllegalStateException
-    {
-        final MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA1");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("unable to load SHA1 hash algorithm: " + e.getMessage());
-        }
-        byte[] hashedAnswer = value.getBytes();
-        for (int i = 0; i < saltCount; i++) {
-            hashedAnswer = md.digest(value.getBytes());
-        }
-        return Base64Util.encodeBytes(hashedAnswer);
+    public boolean hasPassword() {
+        final String passwordHash = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
+        return passwordHash != null && passwordHash.length() > 0;
     }
-
 }

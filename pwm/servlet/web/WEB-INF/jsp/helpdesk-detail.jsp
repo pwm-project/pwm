@@ -24,6 +24,7 @@
 <%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.servlet.HelpdeskServlet" %>
@@ -307,10 +308,25 @@
             });
         });
     </script>
-    <button name="button" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
+    <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
+    <% } %>
+    <% } %>
+    <br/>
+    <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
+    <% for (final ActionConfiguration loopAction : actions) { %>
+    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
+    <script type="text/javascript">
+        require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+            new Tooltip({
+                connectId: ["action-<%=loopAction.getName()%>"],
+                position: 'above',
+                label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
+            });
+        });
+    </script>
+    <% } %>
 
-    <% } %>
-    <% } %>
+
     <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -383,7 +399,7 @@
         doRandomGeneration(randomConfig);
     }
     function doPasswordChange(password) {
-        require(["dojo","dijit/Dialog"],function(dojo){
+        require(["dojo","dijit/Dialog"],function(dojo,Dialog){
             showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
             var inputValues = {};
             inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
@@ -399,14 +415,16 @@
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";
-                        if (results['success'] == true) {
+                        if (results['error'] == true) {
+                            bodyText += results['errorMessage'];
+                            bodyText += '<br/><br/>';
+                            bodyText += results['errorDetail'];
+                        } else {
                             bodyText += '<br/>';
-                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                            bodyText += results['successMessage'];
                             bodyText += '</br></br>';
                             bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
                             bodyText += '<br/>';
-                        } else {
-                            bodyText += results['errorMsg'];
                         }
                         bodyText += '<br/><br/><button class="btn" onclick="getObject(\'continueForm\').submit();"> OK </button>';
                         <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
@@ -415,7 +433,7 @@
                         bodyText += 'Clear Responses</button>';
                         <% } %>
                         closeWaitDialog();
-                        var theDialog = new dijit.Dialog({
+                        var theDialog = new Dialog({
                             id: 'dialogPopup',
                             title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>',
                             style: "width: 450px",
@@ -451,8 +469,8 @@
                     handleAs: "json",
                     load: function(results){
                         var bodyText = "";
-                        if (results['success'] == true) {
-                            bodyText += PWM_STRINGS['Message_SuccessUnknown'];
+                        if (results['error'] != true) {
+                            bodyText += results['successMessage'];
                         } else {
                             bodyText += results['errorMsg'];
                         }
@@ -478,6 +496,33 @@
             },100);
         });
     }
+
+    function executeAction(actionName) {
+        showWaitDialog(null,null,function(){
+            require(["dojo","dijit/Dialog"],function(dojo){
+                dojo.xhrGet({
+                    url: "Helpdesk?pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&processAction=executeAction&name=" + actionName,
+                    preventCache: true,
+                    dataType: "json",
+                    handleAs: "json",
+                    timeout: 90000,
+                    load: function(data){
+                        closeWaitDialog();
+                        if (data['error'] == true) {
+                            showDialog(PWM_STRINGS['Title_Error'],data['errorDetail']);
+                        } else {
+                            showDialog(PWM_STRINGS['Title_Success'],data['successMessage'],function(){getObject('continueForm').submit();});
+                        }
+                    },
+                    error: function(errorObj){
+                        closeWaitDialog();
+                        showError('error executing action: ' + errorObj);
+                    }
+                });
+            });
+        });
+    }
+
 
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){

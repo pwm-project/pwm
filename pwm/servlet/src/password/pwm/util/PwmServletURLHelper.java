@@ -38,8 +38,16 @@ public abstract class PwmServletURLHelper {
                 checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_LOGOUT);
     }
 
+    public static boolean isAdminUrl(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/admin/");
+    }
+
     public static boolean isConfigManagerURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/config/");
+    }
+
+    public static boolean isInstallManagerURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/config/" + PwmConstants.URL_SERVLET_INSTALL_MANAGER);
     }
 
     public static boolean isChangePasswordURL(final HttpServletRequest req) {

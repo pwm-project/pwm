@@ -47,6 +47,10 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserStatusHelper;
 
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class LDAPStatusChecker implements HealthChecker {
@@ -105,6 +109,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
         final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+        ChaiProvider.DIRECTORY_VENDOR vendor = null;
 
         if (testUserDN == null || testUserDN.length() < 1) {
             return null;
@@ -135,7 +140,6 @@ public class LDAPStatusChecker implements HealthChecker {
                 );
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
-
             } catch (ChaiUnavailableException e) {
                 return new HealthRecord(HealthStatus.WARN, TOPIC,
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()}));
@@ -146,6 +150,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             try {
                 theUser.readObjectClass();
+                vendor = chaiProvider.getDirectoryVendor();
             } catch (ChaiException e) {
                 return new HealthRecord(HealthStatus.WARN, TOPIC,
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()}));
@@ -191,12 +196,19 @@ public class LDAPStatusChecker implements HealthChecker {
             } catch (PwmUnrecoverableException e) {
                 return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage());
             }
+
+            if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                final List<HealthRecord> results = checkAd(pwmApplication, config);
+                if (results != null && !results.isEmpty()) {
+                    return results.get(0);
+                }
+            }
+
         } finally {
             if (chaiProvider != null) {
                 try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
             }
         }
-
 
         return new HealthRecord(HealthStatus.GOOD, TOPIC, LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class));
     }
@@ -270,5 +282,32 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         return returnRecords;
+    }
+
+    private static List<HealthRecord> checkAd(final PwmApplication pwmApplication, final Configuration config) {
+        List<HealthRecord> returnList = new ArrayList<HealthRecord>();
+        final List<String> serverURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        for (final String loopURL : serverURLs) {
+            try {
+                if (!urlUsingHostname(loopURL)) {
+                    returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
+                }
+            } catch (MalformedURLException e) {
+                returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " is not a valid url"));
+            } catch (UnknownHostException e) {
+                returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " is not a valid host"));
+            }
+        }
+        return returnList;
+    }
+
+    private static boolean urlUsingHostname(final String inputURL) throws MalformedURLException, UnknownHostException {
+        final URI uri = URI.create(inputURL);
+        final String host = uri.getHost();
+        final InetAddress inetAddress = InetAddress.getByName(host);
+        if (inetAddress != null && inetAddress.getHostName() != null && inetAddress.getHostName().equalsIgnoreCase(host)) {
+            return true;
+        }
+        return false;
     }
 }

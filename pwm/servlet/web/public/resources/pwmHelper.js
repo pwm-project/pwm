@@ -20,6 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+if (!PWM_GLOBAL) var PWM_GLOBAL={};
+if (!PWM_STRINGS) var PWM_STRINGS={};
+
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
@@ -338,6 +341,18 @@ function showWaitDialog(title, body, loadFunction) {
             indeterminate:true
         },"progressBar");
     });
+}
+
+function showDialog(title, text, nextAction) {
+    var titleText = title == null ? "" : title;
+    PWM_GLOBAL['dialog_nextAction'] = nextAction ? nextAction : function(){};
+    var bodyText = '';
+    bodyText += '<div><p>';
+    bodyText += text;
+    bodyText += '</p></div>';
+    bodyText += '<br/>';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + PWM_STRINGS['Button_OK'] + '</button>  ';
+    showWaitDialog(titleText,bodyText);
 }
 
 function showConfirmDialog(title, text, trueAction, falseAction) {
@@ -747,6 +762,7 @@ function showStatChart(statName,days,divName) {
                 },
                 load: function(data) {
                     {// gauges
+                        data = data['data'];
                         var activityCount = 0;
                         for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
                             var loopEpsName = epsTypes[loopEpsIndex] + '';
@@ -1064,3 +1080,36 @@ function pwmFormValidator(validationProps, reentrant)
     });
 }
 
+function setCookie(c_name,value,exseconds)
+{
+    var exdate=new Date();
+    exdate.setTime(exdate.getTime() + (exseconds * 1000));
+    var c_value=escape(value) + ((exseconds==null) ? "" : "; expires="+exdate.toUTCString());
+    document.cookie=c_name+"=" + c_value;
+}
+
+function getCookie(c_name)
+{
+    var i,x,y,ARRcookies=document.cookie.split(";");
+    for (i=0;i<ARRcookies.length;i++)
+    {
+        x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+        y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+        x=x.replace(/^\s+|\s+$/g,"");
+        if (x==c_name)
+        {
+            return unescape(y);
+        }
+    }
+}
+
+function isEmpty(o) {
+    for (var key in o) if (o.hasOwnProperty(key)) return false;
+    return true;
+}
+
+function itemCount(o) {
+    var i = 0;
+    for (var key in o) if (o.hasOwnProperty(key)) i++;
+    return i;
+}

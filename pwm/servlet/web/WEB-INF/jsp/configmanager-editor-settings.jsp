@@ -37,11 +37,6 @@
     final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory();
     final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0;
 %>
-
-<h1 style="color:#435174; text-align: center;">
-    <%=category.getType() == PwmSetting.Category.Type.SETTING ? "Settings - " : "Modules - "%>
-    <%=category.getLabel(locale)%>
-</h1>
 <% if (showDesc) { %><p><%= category.getDescription(locale)%></p><% } %>
 <% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true")) { %>
 <div style="font-size: small">
@@ -162,33 +157,10 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
-    <button id="button_<%=loopSetting.getKey()%>" type="button">
-        [Loading...]
-    </button>
+    <div id="button_<%=loopSetting.getKey()%>" type="button">[Loading...]</div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dijit","dijit/registry","dijit/form/Button"],function(dijit,registry,Button){
-                new Button({
-                    disabled: true,
-                    onClick: function() {
-                        toggleBooleanSetting('<%=loopSetting.getKey()%>');
-                        writeSetting('<%=loopSetting.getKey()%>', 'true' == getObject('value_' + '<%=loopSetting.getKey()%>').value);
-                    }
-                }, "button_<%=loopSetting.getKey()%>");
-                readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
-                    var valueElement = getObject('value_' + '<%=loopSetting.getKey()%>');
-                    var buttonElement = getObject('button_' + '<%=loopSetting.getKey()%>');
-                    if (dataValue == true) {
-                        valueElement.value = 'true';
-                        buttonElement.innerHTML = '\u00A0\u00A0\u00A0True  (Enabled)\u00A0\u00A0\u00A0';
-                    } else {
-                        valueElement.value = 'false';
-                        buttonElement.innerHTML = '\u00A0\u00A0\u00A0False  (Disabled)\u00A0\u00A0\u00A0';
-                    }
-                    buttonElement.disabled = false;
-                    registry.byId('button_<%=loopSetting.getKey()%>').setDisabled(false);
-                });
-            });
+            BooleanHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.SELECT) { %>
@@ -278,8 +250,8 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
-        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.changePasswordPopup('<%=loopSetting.getLabel(locale)%>','<%=loopSetting.getKey()%>')">Set Password</button>
-        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="if (confirm('Clear password for setting <%=loopSetting.getLabel(locale)%>?')) {resetSetting('<%=loopSetting.getKey()%>')}">Clear Password</button>
+        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Set Password</button>
+        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="showConfirmDialog(null,'Clear password for setting <%=loopSetting.getLabel(locale)%>?',function() {resetSetting('<%=loopSetting.getKey()%>');showInfo('<%=loopSetting.getLabel(locale)%> password cleared')})">Clear Password</button>
     </div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

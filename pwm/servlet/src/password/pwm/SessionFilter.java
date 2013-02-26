@@ -37,9 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -57,50 +55,6 @@ public class SessionFilter implements Filter {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SessionFilter.class);
 
 // -------------------------- STATIC METHODS --------------------------
-
-    public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
-        if (config != null && !config.readSettingAsBoolean(PwmSetting.REVERSE_DNS_ENABLE)) {
-            return "";
-        }
-
-        final String userIPAddress = readUserIPAddress(req, pwmSession);
-        try {
-            return InetAddress.getByName(userIPAddress).getCanonicalHostName();
-        } catch (UnknownHostException e) {
-            LOGGER.trace(pwmSession, "unknown host while trying to compute hostname for src request: " + e.getMessage());
-        }
-        return "";
-    }
-
-    /**
-     * Returns the IP address of the user.  If there is an X-Forwarded-For header in the request, that address will
-     * be used.  Otherwise, the source address of the request is used.
-     *
-     * @param req        A valid HttpServletRequest.
-     * @param pwmSession pwmSession used for config lookup
-     * @return String containing the textual representation of the source IP address, or null if the request is invalid.
-     */
-    public static String readUserIPAddress(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final Configuration config = ContextManager.getPwmApplication(req).getConfig();
-        final boolean useXForwardedFor = config != null && config.readSettingAsBoolean(PwmSetting.USE_X_FORWARDED_FOR_HEADER);
-
-        String userIP = "";
-
-        if (useXForwardedFor) {
-            try {
-                userIP = req.getHeader(PwmConstants.HTTP_HEADER_X_FORWARDED_FOR);
-            } catch (Exception e) {
-                //ip address not in header (no X-Forwarded-For)
-            }
-        }
-
-        if (userIP == null || userIP.length() < 1) {
-            userIP = req.getRemoteAddr();
-        }
-
-        return userIP == null ? "" : userIP;
-    }
 
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -143,10 +97,10 @@ public class SessionFilter implements Filter {
         pwmApplication.setAutoSiteURL(req);
 
         // mark the user's IP address in the session bean
-        ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
+        ssBean.setSrcAddress(ServletHelper.readUserIPAddress(req, pwmSession));
 
         // mark the user's hostname in the session bean
-        ssBean.setSrcHostname(readUserHostname(req, pwmSession));
+        ssBean.setSrcHostname(ServletHelper.readUserHostname(req, pwmSession));
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
@@ -195,10 +149,7 @@ public class SessionFilter implements Filter {
             ssBean.setTheme(themeReqParamter);
         }
 
-        // check for valid config
-        if (checkConfigModes(req, resp)) {
-            return;
-        }
+
 
         // make sure connection is secure.
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
@@ -420,35 +371,6 @@ public class SessionFilter implements Filter {
         return sb.toString();
     }
 
-    private static boolean checkConfigModes(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
-
-        PwmApplication.MODE mode = PwmApplication.MODE.NEW;
-        if (theManager != null) {
-            mode = theManager.getApplicationMode();
-        }
-
-        if (mode == PwmApplication.MODE.NEW) {
-            // check if current request is actually for the config url, if it is, just do nothing.
-            if (!PwmServletURLHelper.isResourceURL(req) && !PwmServletURLHelper.isConfigManagerURL(req)) {
-                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to ConfigManager");
-                resp.sendRedirect(req.getContextPath() + "/config/" + PwmConstants.URL_SERVLET_CONFIG_MANAGER);
-                return true;
-            }
-        } else if (mode == PwmApplication.MODE.ERROR) {
-            ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getStartupErrorInformation();
-            if (rootError == null) {
-                rootError = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "PWM Application startup failed.");
-            }
-            ssBean.setSessionError(rootError);
-            ServletHelper.forwardToErrorPage(req, resp, true);
-            return true;
-        }
-
-        return false;
-    }
 
     private static boolean checkPageLeaveNotice(final PwmSession pwmSession, final Configuration config) {
         final long configuredSeconds = config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT);
@@ -487,7 +409,7 @@ public class SessionFilter implements Filter {
 
         // high priority password changes.
         if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
-            if (pwmSession.getUserInfoBean().isCurrentPasswordUnknownToPwm()) {
+            if (pwmSession.getUserInfoBean().isMustUseLdapProxy()) {
                 if (!PwmServletURLHelper.isChangePasswordURL(req)) {
                     LOGGER.debug(pwmSession, "user password is unknown to application, redirecting to change password servlet");
                     resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
