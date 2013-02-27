@@ -180,7 +180,8 @@ public class ConfigManagerServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws IOException, PwmUnrecoverableException {
+            throws IOException, PwmUnrecoverableException
+    {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
@@ -399,9 +400,7 @@ public class ConfigManagerServlet extends TopServlet {
         storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
         try {
             saveConfiguration(pwmSession, req.getSession().getServletContext());
-            Helper.pause(5000);
             configManagerBean.setConfiguration(null);
-            pwmSession.invalidate();
         } catch (PwmUnrecoverableException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
@@ -449,7 +448,6 @@ public class ConfigManagerServlet extends TopServlet {
                 restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
             } else {
                 try {
-                    Helper.pause(5000);
                     saveConfiguration(pwmSession, req.getSession().getServletContext());
                     restResultBean.setError(false);
                 } catch (PwmUnrecoverableException e) {
@@ -488,6 +486,7 @@ public class ConfigManagerServlet extends TopServlet {
         try {
             ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
             ContextManager.getContextManager(servletContext).reinitialize();
+            Helper.pause(5000);
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);

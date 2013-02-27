@@ -146,7 +146,7 @@ public class AuditManager implements PwmService {
     }
 
     private void trimDB() {
-        if (oldestRecord != null && TimeDuration.fromCurrent(oldestRecord).isShorterThan(maxRecordAge)) {
+        if (oldestRecord != null && TimeDuration.fromCurrent(oldestRecord).isLongerThan(maxRecordAge)) {
             return;
         }
 
@@ -155,11 +155,11 @@ public class AuditManager implements PwmService {
         }
 
         int workActions = 0;
-        while (workActions < 3) {
+        while (workActions < 3 && !auditDB.isEmpty()) {
             final String stringFirstRecord = auditDB.getFirst();
             final AuditRecord firstRecord = new Gson().fromJson(stringFirstRecord,AuditRecord.class);
             oldestRecord = firstRecord.getTimestamp();
-            if (TimeDuration.fromCurrent(oldestRecord).isShorterThan(maxRecordAge)) {
+            if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(maxRecordAge)) {
                 auditDB.removeFirst();
                 workActions++;
             } else {
