@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
@@ -252,7 +253,7 @@ public class ActivateUserServlet extends TopServlet {
             UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true);
 
             // mark the event log
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.ACTIVATE_USER, null);
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean());
 
             // set the session success message
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_ACTIVATE_USER, null);

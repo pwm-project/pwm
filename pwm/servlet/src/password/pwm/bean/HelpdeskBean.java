@@ -23,12 +23,13 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.cr.ResponseSet;
-import password.pwm.UserHistory;
+import password.pwm.event.AuditRecord;
 import password.pwm.util.operations.UserSearchEngine;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class HelpdeskBean implements PwmSessionBean {
@@ -44,7 +45,7 @@ public class HelpdeskBean implements PwmSessionBean {
         private boolean pwmIntruder;
         private boolean accountEnabled;
         private Date lastLoginTime;
-        private UserHistory userHistory;
+        private List<AuditRecord> userHistory;
 
         public ResponseSet getResponseSet() {
             return responseSet;
@@ -86,11 +87,11 @@ public class HelpdeskBean implements PwmSessionBean {
             this.lastLoginTime = lastLoginTime;
         }
 
-        public UserHistory getUserHistory() {
+        public List<AuditRecord> getUserHistory() {
             return userHistory;
         }
 
-        public void setUserHistory(UserHistory userHistory) {
+        public void setUserHistory(List<AuditRecord> userHistory) {
             this.userHistory = userHistory;
         }
     }

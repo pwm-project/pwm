@@ -162,6 +162,20 @@ public class Helper {
         return chaiConfig;
     }
 
+    public static String readLdapUserIDValue(
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final String configUsernameAttr = config.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        final String ldapNamingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        final String uIDattr = configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+        return theUser.readStringAttribute(uIDattr);
+    }
+
+
     public static String readLdapGuidValue(
             final PwmApplication pwmApplication,
             final String userDN

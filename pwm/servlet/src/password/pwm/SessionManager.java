@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
@@ -71,6 +72,9 @@ public class SessionManager implements Serializable {
         try {
             providerLock.lock();
             closeConnectionImpl();
+            if (session == null) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"invalid session handle"));
+            }
             final Configuration config = ContextManager.getPwmApplication(session).getConfig();
             chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             return chaiProvider;
@@ -89,6 +93,10 @@ public class SessionManager implements Serializable {
             }
 
             if (chaiProvider == null) {
+                if (session == null) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"invalid session handle"));
+                }
+
                 final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
                 final String userDN = pwmSession.getUserInfoBean().getUserDN();
                 final Configuration config = ContextManager.getPwmApplication(session).getConfig();

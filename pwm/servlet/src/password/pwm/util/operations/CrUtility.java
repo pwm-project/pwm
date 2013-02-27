@@ -24,6 +24,7 @@ package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.impl.edir.NmasResponseSet;
@@ -823,6 +824,16 @@ public abstract class CrUtility {
         @Override
         public String toString() {
             return "NovellWSResponseSet holding {" + challengeSet.toString() + "}";
+        }
+
+        @Override
+        public List<ChallengeBean> asChallengeBeans(boolean includeAnswers) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<ChallengeBean> asHelpdeskChallengeBeans(boolean includeAnswers) {
+            return Collections.emptyList();
         }
     }
 

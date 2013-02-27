@@ -447,7 +447,6 @@ public class ConfigManagerServlet extends TopServlet {
                 final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString);
                 restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
-                return;
             } else {
                 try {
                     Helper.pause(5000);
@@ -465,7 +464,6 @@ public class ConfigManagerServlet extends TopServlet {
             restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
         }
 
-        pwmSession.clearUserBean(ConfigManagerServlet.class);
         LOGGER.debug(pwmSession, "save configuration operation completed");
         ServletHelper.outputJsonResult(resp, restResultBean);
     }

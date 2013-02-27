@@ -34,6 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.operations.UserSearchEngine;
@@ -245,7 +246,7 @@ public class IntruderManager implements Serializable, PwmService {
                 user = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
             if (user != null) {
-                UserHistory.updateUserHistory(pwmSession, pwmApplication, user, UserHistory.Record.Event.INTRUDER_LOCK, "");
+                pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.INTRUDER_LOCK, pwmSession.getUserInfoBean());
                 LOGGER.debug(pwmSession, "updated user history for " + user.getEntryDN() + " with intruder lock event");
             }
         } catch (ChaiUnavailableException e) {

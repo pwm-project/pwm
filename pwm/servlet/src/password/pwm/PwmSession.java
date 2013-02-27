@@ -52,7 +52,7 @@ public class PwmSession implements Serializable {
 
     private final Map<Class,PwmSessionBean> sessionBeans = new HashMap<Class, PwmSessionBean>();
 
-    private SessionManager sessionManager;
+    private transient SessionManager sessionManager;
 
     private transient HttpSession httpSession;
 
@@ -139,6 +139,9 @@ public class PwmSession implements Serializable {
     }
 
     public SessionManager getSessionManager() {
+        if (sessionManager == null) {
+            sessionManager = new SessionManager(this, httpSession);
+        }
         return sessionManager;
     }
 
@@ -189,7 +192,6 @@ public class PwmSession implements Serializable {
         if (sessionManager != null) {
             sessionManager.closeConnections();
         }
-        sessionManager = new SessionManager(this, httpSession);
     }
 
     public boolean isValid() {

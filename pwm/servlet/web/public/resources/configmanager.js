@@ -218,13 +218,11 @@ function setConfigurationPassword(password) {
             dataType: "text",
             handleAs: "text",
             load: function(data){
-                clearDijitWidget('changepassword-popup');
+                clearDijitWidget('dialogPopup');
                 showInfo('Configuration password set successfully.')
-                return;
             },
             error: function(errorObj) {
-                clearDijitWidget('changepassword-popup');
-                return;
+                clearDijitWidget('dialogPopup');
                 showError("error saving notes text: " + errorObj);
             }
         });

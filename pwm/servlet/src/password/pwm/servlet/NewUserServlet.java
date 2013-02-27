@@ -407,7 +407,7 @@ public class NewUserServlet extends TopServlet {
             settings.setUserInfoBean(pwmSession.getUserInfoBean());
             settings.setUser(theUser);
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-            actionExecutor.executeActions(actions, settings);
+            actionExecutor.executeActions(actions, settings, pwmSession);
         }
 
         //everything good so forward to change password page.

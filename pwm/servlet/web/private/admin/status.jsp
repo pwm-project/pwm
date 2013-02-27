@@ -118,6 +118,24 @@
         </tr>
         <tr>
             <td class="key">
+                Local Audit Service
+            </td>
+            <td>
+                <%= pwmApplication.getAuditManager().status() %>
+            </td>
+            <td class="key">
+                <a href="<pwm:url url='auditlog.jsp'/>">
+                    Local Audit Records
+                </a>
+            </td>
+            <td>
+                <a href="<pwm:url url='auditlog.jsp'/>">
+                    <%= pwmApplication.getAuditManager().localSize() %>
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
                 Intruder Address Table Size
             </td>
             <td>

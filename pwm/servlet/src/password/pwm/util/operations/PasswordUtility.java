@@ -38,6 +38,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -208,7 +210,7 @@ public class PasswordUtility {
             settings.setUserInfoBean(uiBean);
             settings.setUser(proxiedUser);
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-            actionExecutor.executeActions(configValues, settings);
+            actionExecutor.executeActions(configValues, settings, pwmSession);
         }
 
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
@@ -256,10 +258,25 @@ public class PasswordUtility {
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = ChaiFactory.createChaiUser(chaiUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
 
+        //
+        String userID = "";
+        try {
+            userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmSession, "trouble reading userID for user " + chaiUser.getEntryDN());
+        }
+
         // mark the event log
         {
-            final String message = "set by " + pwmSession.getUserInfoBean().getUserID();
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_SET_PASSWORD, message);
+            final AuditRecord auditRecord = new AuditRecord(
+                    AuditEvent.HELPDESK_SET_PASSWORD,
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    new Date(),
+                    null,
+                    userID,
+                    chaiUser.getEntryDN());
+            pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
         }
 
         // update statistics
@@ -292,7 +309,7 @@ public class PasswordUtility {
                 settings.setUserInfoBean(userInfoBean);
                 settings.setUser(proxiedUser);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                actionExecutor.executeActions(actions,settings);
+                actionExecutor.executeActions(actions,settings,pwmSession);
             }
         }
 
@@ -303,7 +320,15 @@ public class PasswordUtility {
 
             // mark the event log
             final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, proxiedUser, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES, message);
+            final AuditRecord auditRecord = new AuditRecord(
+                    AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    new Date(),
+                    null,
+                    userID,
+                    chaiUser.getEntryDN());
+            pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
         }
 
         // send email notification

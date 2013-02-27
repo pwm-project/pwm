@@ -34,6 +34,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -60,15 +61,23 @@ public class ActionExecutor {
         this.pwmApplication = pwmApplication;
     }
 
-    public void executeActions(List<ActionConfiguration> configValues, ActionExecutorSettings settings)
+    public void executeActions(
+            final List<ActionConfiguration> configValues,
+            final ActionExecutorSettings settings,
+            final PwmSession pwmSession
+    )
             throws ChaiUnavailableException, PwmOperationalException
     {
         for (final ActionConfiguration loopAction : configValues) {
-            this.executeAction(loopAction, settings);
+            this.executeAction(loopAction, settings, pwmSession);
         }
     }
 
-    public void executeAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings actionExecutorSettings)
+    public void executeAction(
+            final ActionConfiguration actionConfiguration,
+            final ActionExecutorSettings actionExecutorSettings,
+            final PwmSession pwmSession
+    )
             throws ChaiUnavailableException, PwmOperationalException
     {
         switch (actionConfiguration.getType()) {
@@ -80,6 +89,12 @@ public class ActionExecutor {
                 executeWebserviceAction(actionConfiguration, actionExecutorSettings);
                 break;
         }
+
+        String username = "<unknown>";
+        if (actionExecutorSettings.getUserInfoBean() != null) {
+            username = actionExecutorSettings.getUserInfoBean().getUserID();
+        }
+        LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully upon user " + username);
     }
 
     private void executeLdapAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings settings)

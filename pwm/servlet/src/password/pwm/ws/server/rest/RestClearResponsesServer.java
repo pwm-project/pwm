@@ -25,11 +25,16 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.*;
+import password.pwm.ContextManager;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -43,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.util.Date;
 
 @Path("/clearresponses")
 public class RestClearResponsesServer {
@@ -83,11 +89,20 @@ public class RestClearResponsesServer {
                     final ChaiProvider actorProvider = pwmSession.getSessionManager().getChaiProvider();
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, actorProvider);
                     final String userGUID = Helper.readLdapGuidValue(pwmApplication, chaiUser.getEntryDN());
+                    final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
                     CrUtility.clearResponses(pwmSession,pwmApplication, chaiUser, userGUID);
 
                     // mark the event log
-                    final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
-                    UserHistory.updateUserHistory(pwmSession, pwmApplication, chaiUser, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES, message);
+                    final AuditRecord auditRecord = new AuditRecord(
+                            AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                            pwmSession.getUserInfoBean().getUserID(),
+                            pwmSession.getUserInfoBean().getUserDN(),
+                            new Date(),
+                            null,
+                            userID,
+                            chaiUser.getEntryDN()
+                            );
+                    pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
 
                 } else {
                     CrUtility.clearResponses(
@@ -96,7 +111,7 @@ public class RestClearResponsesServer {
                             pwmSession.getSessionManager().getActor(),
                             pwmSession.getUserInfoBean().getUserGuid()
                     );
-                    UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.HELPDESK_CLEAR_RESPONSES,null);
+                    pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.HELPDESK_CLEAR_RESPONSES, pwmSession.getUserInfoBean());
                 }
                 if (isExternal) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CLEARRESPONSE);

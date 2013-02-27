@@ -56,6 +56,24 @@ public class Validator {
 
 // -------------------------- STATIC METHODS --------------------------
 
+    public static int readIntegerFromRequest(
+            final HttpServletRequest req,
+            final String paramName,
+            final int defaultValue
+    ) {
+        if (req == null) {
+            return defaultValue;
+        }
+
+        final String theString = req.getParameter(paramName);
+
+        try {
+            return Integer.valueOf(theString);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     public static boolean readBooleanFromRequest(
             final HttpServletRequest req,
             final String value

@@ -21,12 +21,12 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.UserHistory" %>
 <%@ page import="password.pwm.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.event.AuditRecord" %>
 <%@ page import="password.pwm.servlet.HelpdeskServlet" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
@@ -225,12 +225,12 @@
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
-    <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().getRecords().isEmpty()) { %>
+    <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().isEmpty()) { %>
     <table>
-        <% for (final UserHistory.Record record : helpdeskBean.getAdditionalUserInfo().getUserHistory().getRecords()) { %>
+        <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
         <tr>
             <td class="key" style="width: 200px">
-                <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(new java.util.Date(record.getTimestamp())) %>
+                <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(record.getTimestamp()) %>
             </td>
             <td>
                 <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>

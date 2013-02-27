@@ -1483,6 +1483,13 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="events.audit.maxAge" level="1" required="true">
+        <label>Local Alerts Storage Max Age</label>
+        <description><![CDATA[Maximum age (in seconds) of the local audit event log.  Default is 30 days.]]></description>
+        <default>
+            <value>2592000</value>
+        </default>
+    </setting>
     <setting key="challenge.enable" level="0">
         <label>Enable Setup Responses</label>
         <description><![CDATA[If enabled, save responses page will be available to users.]]></description>

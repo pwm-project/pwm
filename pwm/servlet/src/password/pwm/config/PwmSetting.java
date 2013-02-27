@@ -440,6 +440,8 @@ public enum PwmSetting {
             "events.alert.configModify.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
+    EVENTS_AUDIT_MAX_AGE(
+            "events.audit.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
 
 
     // challenge policy

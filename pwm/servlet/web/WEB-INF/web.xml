@@ -198,7 +198,7 @@
         <url-pattern>/private/admin/*</url-pattern>
     </filter-mapping>
     <listener>
-        <listener-class>password.pwm.EventManager</listener-class>
+        <listener-class>password.pwm.HttpEventManager</listener-class>
     </listener>
     <servlet>
         <servlet-name>LoginServlet</servlet-name>

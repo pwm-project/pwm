@@ -32,7 +32,6 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.UserHistory.Record;
 import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -43,6 +42,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -184,7 +185,7 @@ public class HelpdeskServlet extends TopServlet {
             settings.setUserInfoBean(helpdeskBean.getUserInfoBean());
             settings.setUser(chaiUser);
             settings.setExpandPwmMacros(true);
-            actionExecutor.executeAction(action,settings);
+            actionExecutor.executeAction(action,settings,pwmSession);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setSuccessMessage(Message.getLocalizedMessage(
                     pwmSession.getSessionStateBean().getLocale(),
@@ -359,7 +360,8 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         try {
-            additionalUserInfo.setUserHistory(UserHistory.readUserHistory(pwmSession, pwmApplication, theUser));
+
+            additionalUserInfo.setUserHistory(pwmApplication.getAuditManager().readUserAuditRecords(uiBean));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
         }
@@ -392,7 +394,7 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) {
-            final String errorMsg = "password unlock request, but no helpdesk unlock is not enabled";
+            final String errorMsg = "password unlock request, but helpdesk unlock is not enabled";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
             this.forwardToDetailJSP(req, resp);
@@ -407,10 +409,20 @@ public class HelpdeskServlet extends TopServlet {
             final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
+            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
             chaiUser.unlock();
             {
-                final String message = "(by " + pwmSession.getUserInfoBean().getUserID() + ")";
-                UserHistory.updateUserHistory(pwmSession, pwmApplication, chaiUser, Record.Event.HELPDESK_UNLOCK_PASSWORD, message);
+                // mark the event log
+                final AuditRecord auditRecord = new AuditRecord(
+                        AuditEvent.HELPDESK_UNLOCK_PASSWORD,
+                        pwmSession.getUserInfoBean().getUserID(),
+                        pwmSession.getUserInfoBean().getUserDN(),
+                        new Date(),
+                        null,
+                        userID,
+                        chaiUser.getEntryDN()
+                );
+                pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
             }
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);

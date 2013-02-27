@@ -39,6 +39,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -337,14 +338,14 @@ public class UpdateProfileServlet extends TopServlet {
             settings.setUserInfoBean(pwmSession.getUserInfoBean());
             settings.setUser(proxiedUser);
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-            actionExecutor.executeActions(configValues, settings);
+            actionExecutor.executeActions(configValues, settings, pwmSession);
         }
 
         // send email
         sendProfileUpdateEmailNotice(pwmSession, pwmApplication);
 
         // mark the event log
-        UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.UPDATE_PROFILE, null);
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfoBean());
 
         // mark the uiBean so we user isn't recycled to the update profile page by the CommandServlet
         uiBean.setRequiresUpdateProfile(false);

@@ -40,6 +40,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
@@ -573,7 +574,7 @@ public class
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
             // mark the event log
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.RECOVER_PASSWORD, null);
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean());
 
             // redirect user to change password screen.
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
@@ -617,7 +618,7 @@ public class
             final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
             final String toSmsNumber = pwmSession.getUserInfoBean().getUserSmsNumber();
 
-            LOGGER.info(pwmSession, String.format("user successfully supplied password recovery responses, sending new password to: %s", theUser.getEntryDN()));
+            LOGGER.info(pwmSession, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
 
             // create newpassword
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
@@ -626,26 +627,15 @@ public class
             PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
 
             // mark the event log
-            UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.RECOVER_PASSWORD, String.format("new password sent to %s", pwmSession.getUserInfoBean().getUserEmailAddress()));
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean());
 
             // send email or SMS
             this.sendNewPassword(pwmSession, pwmApplication, newPassword, toAddress, toSmsNumber);
-            
-            StringBuilder toDestination = new StringBuilder();
-            if (forgottenPasswordBean.getPasswordEmailSent()) {
-                toDestination.append(toAddress);
-            }
-            if (forgottenPasswordBean.getPasswordSmsSent()) {
-                if (forgottenPasswordBean.getPasswordEmailSent()) {
-                    toDestination.append(" / ");
-                }
-                toDestination.append(toSmsNumber);
-            }
 
-            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toDestination.toString());
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toAddress);
             ServletHelper.forwardToSuccessPage(req, resp);
         } catch (PwmException e) {
-            LOGGER.warn(pwmSession, String.format("unexpected error setting new password during recovery process for user: %s", e.getMessage()));
+            LOGGER.warn(pwmSession,"unexpected error setting new password during recovery process for user: " + e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } finally {
@@ -859,7 +849,7 @@ public class
         String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
 
         if (toSmsNumber == null || toSmsNumber.length() < 1) {
-            LOGGER.debug(pwmSession, String.format("unable to send token sms for '%s' no SMS number available in ldap", proxiedUser.getEntryDN()));
+            LOGGER.debug(pwmSession, "unable to send token sms for '" + proxiedUser.getEntryDN() + "' no SMS number available in ldap");
             return false;
         }
 
@@ -868,7 +858,7 @@ public class
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         theManager.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
         theManager.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug(pwmSession, String.format("token SMS added to send queue for %s", toSmsNumber));
+        LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
         return true;
     }
 
@@ -936,7 +926,6 @@ public class
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
-        pwmSession.getForgottenPasswordBean().setPasswordSmsSent(true);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, String.format("password SMS added to send queue for %s", toNumber));
         return null;
@@ -949,7 +938,7 @@ public class
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_SENDPASSWORD, userLocale);
 
         if (toAddress == null || toAddress.length() < 1) {
-            final String errorMsg = String.format("unable to send new password email for '%s' no email address available in ldap", pwmSession.getUserInfoBean().getUserDN());
+            final String errorMsg = "unable to send new password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email address available in ldap";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return errorInformation;
         }
@@ -961,9 +950,8 @@ public class
                 configuredEmailSetting.getBodyPlain().replace("%TOKEN%", newPassword),
                 configuredEmailSetting.getBodyHtml().replace("%TOKEN%", newPassword)
         ), pwmSession.getUserInfoBean());
-        pwmSession.getForgottenPasswordBean().setPasswordEmailSent(true);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug(pwmSession, String.format("new password email added to send queue for %s", toAddress));
+        LOGGER.debug(pwmSession, "new password email added to send queue for " + toAddress);
         return null;
     }
 

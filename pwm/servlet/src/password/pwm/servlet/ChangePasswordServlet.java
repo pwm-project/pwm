@@ -32,6 +32,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
@@ -333,7 +334,7 @@ public class ChangePasswordServlet extends TopServlet {
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 
         ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-        UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.CHANGE_PASSWORD, null);
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean());
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 

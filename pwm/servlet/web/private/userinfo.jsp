@@ -181,10 +181,10 @@
                 </tr>
                 <tr>
                     <td class="key">
-                        Auth is via unknown password
+                        Auth method requires a new password immediately
                     </td>
                     <td>
-                        <%= pwmSession.getUserInfoBean().isCurrentPasswordUnknownToUser() %>
+                        <%= pwmSession.getUserInfoBean().isRequiresNewPassword() %>
                     </td>
                 </tr>
                 <tr>

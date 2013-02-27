@@ -39,15 +39,15 @@ import javax.servlet.http.HttpSessionListener;
  *
  * @author Jason D. Rivard
  */
-public class EventManager implements ServletContextListener, HttpSessionListener, HttpSessionActivationListener {
+public class HttpEventManager implements ServletContextListener, HttpSessionListener, HttpSessionActivationListener {
 // ------------------------------ FIELDS ------------------------------
 
     // ----------------------------- CONSTANTS ----------------------------
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(EventManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(HttpEventManager.class);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public EventManager()
+    public HttpEventManager()
     {
     }
 

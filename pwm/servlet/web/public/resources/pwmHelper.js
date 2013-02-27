@@ -87,6 +87,12 @@ function pwmPageLoadHandler() {
         });
     }
 
+    setTimeout(function(){
+        require(["dojo/domReady!","dijit/Dialog","dijit/ProgressBar"],function(){
+            /* preloading */
+        });
+    },1000);
+
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
         PWM_GLOBAL['startupFunctions'][i]();
     }

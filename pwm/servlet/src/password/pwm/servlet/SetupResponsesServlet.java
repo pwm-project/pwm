@@ -40,6 +40,7 @@ import password.pwm.bean.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -270,7 +271,7 @@ public class SetupResponsesServlet extends TopServlet {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
-        UserHistory.updateUserHistory(pwmSession, pwmApplication, UserHistory.Record.Event.SET_RESPONSES, null);
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean());
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

@@ -84,6 +84,12 @@
                             }
                         }));
                         systemMenu.addChild(new MenuItem({
+                            label: 'Audit Log',
+                            onClick: function() {
+                                showWaitDialog(null,null,function(){window.location = "auditlog.jsp";});
+                            }
+                        }));
+                        systemMenu.addChild(new MenuItem({
                             label: 'User Report',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "userreport.jsp";});

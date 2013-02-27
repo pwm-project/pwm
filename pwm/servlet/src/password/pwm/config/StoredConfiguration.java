@@ -566,6 +566,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public boolean verifyPassword(final String password) {
+        if (!hasPassword()) {
+            return false;
+        }
         final String passwordHash = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
         return BCrypt.checkpw(password,passwordHash);
     }

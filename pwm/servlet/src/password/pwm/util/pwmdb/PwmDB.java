@@ -130,7 +130,8 @@ public interface PwmDB {
         TOKENS,
         INTRUDER_USER,
         INTRUDER_ADDRESS,
-        TEMP // cleared on each initializtaion of the pwmDB.
+        AUDIT_EVENTS,
+        TEMP, // cleared on each initialization of the pwmDB.
     }
 
 

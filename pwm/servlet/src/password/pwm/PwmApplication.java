@@ -40,6 +40,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditManager;
 import password.pwm.health.HealthMonitor;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
@@ -98,6 +99,7 @@ public class PwmApplication {
     private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(SharedHistoryManager.class,
             DatabaseAccessor.class,
             HealthMonitor.class,
+            AuditManager.class,
             StatisticsManager.class,
             WordlistManager.class,
             SeedlistManager.class,
@@ -207,6 +209,10 @@ public class PwmApplication {
 
     public EmailQueueManager getEmailQueue() {
         return (EmailQueueManager)pwmServices.get(EmailQueueManager.class);
+    }
+
+    public AuditManager getAuditManager() {
+        return (AuditManager)pwmServices.get(AuditManager.class);
     }
 
     public SmsQueueManager getSmsQueue() {
