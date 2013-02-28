@@ -39,7 +39,6 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -87,7 +86,18 @@ public class AuditManager implements PwmService {
 
     public Iterator<AuditRecord> readLocalDB() {
         if (status != STATUS.OPEN) {
-            return Collections.emptyIterator();
+            return new Iterator<AuditRecord>() {
+                public boolean hasNext() {
+                    return false;
+                }
+
+                public AuditRecord next() {
+                    return null;
+                }
+
+                public void remove() {
+                }
+            };
         }
         return new IteratorWrapper<AuditRecord>(auditDB.iterator());
     }
