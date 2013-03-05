@@ -2282,6 +2282,12 @@
         <default>
             <value><![CDATA[(groupMembership=cn=PwmAdmins,ou=Groups,o=example)]]></value>
         </default>
+        <default template="AD">
+            <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
+        </default>
     </setting>
     <setting key="helpdesk.filter" level="1">
         <label>Helpdesk Search Filter</label>
@@ -2597,7 +2603,7 @@
         <label>New User Registration</label>
         <description><![CDATA[Note: The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
     </category>
-    <category key="GUEST" hidden="true">
+    <category key="GUEST" hidden="false">
         <label>Guest Registration</label>
         <description><![CDATA[Note: The guest user registration module requires that the logged in user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
     </category>
