@@ -178,6 +178,14 @@
         </tr>
         <tr>
             <td class="key">
+                <pwm:Display key="Field_PasswordSetTimeDelta"/>
+            </td>
+            <td>
+                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString() + " ago" : "n/a"%>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
                 <pwm:Display key="Field_PasswordExpirationTime"/>
             </td>
             <td>

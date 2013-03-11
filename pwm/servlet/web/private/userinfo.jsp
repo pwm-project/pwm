@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
+<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.operations.CrUtility" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
@@ -104,6 +105,14 @@
                         </td>
                         <td>
                             <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : "n/a"%>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordSetTimeDelta"/>
+                        </td>
+                        <td>
+                            <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString() + " ago" : "n/a"%>
                         </td>
                     </tr>
                     <tr>
