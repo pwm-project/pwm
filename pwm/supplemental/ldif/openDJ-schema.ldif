@@ -1,0 +1,35 @@
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+cn: schema
+attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.1
+  NAME 'pwmEventLog'
+  DESC 'User event log'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+  EQUALITY octetStringMatch
+  X-ORIGIN 'PWM' )
+attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.2
+  NAME 'pwmResponseSet'
+  DESC 'Stores the challenge/response answers for the user'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+  EQUALITY octetStringMatch
+  X-ORIGIN 'PWM' )
+attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.3
+  NAME 'pwmLastPwdUpdate'
+  DESC 'Marks the last time the password was changed by user.'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  EQUALITY generalizedTimeMatch
+  X-ORIGIN 'PWM' )
+attributeTypes: ( 1.3.6.1.4.1.591242.2.2010.04.16.4
+  NAME 'pwmGUID'
+  DESC 'Marks the last time the password was changed by user.'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  EQUALITY caseIgnoreMatch
+  SUBSTR caseIgnoreSubstringsMatch
+  X-ORIGIN 'PWM' )
+objectClasses: ( 1.3.6.1.4.1.591242.1.2010.04.16.1
+  NAME 'pwmUser'
+  AUXILIARY
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID )
+  X-ORIGIN 'PWM' )
