@@ -231,7 +231,7 @@ public class PwmMacroMachine {
                 return "";
             }
 
-            return uiBean.getUserID();
+            return uiBean.getUserCurrentPassword();
         }
     }
 
