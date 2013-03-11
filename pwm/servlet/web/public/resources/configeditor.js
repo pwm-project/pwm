@@ -98,19 +98,6 @@ function resetSetting(keyName) {
     });
 }
 
-function toggleBooleanSetting(keyName) {
-    var valueElement = getObject('value_' + keyName);
-    var buttonElement = getObject('button_' + keyName);
-    var innerValue = valueElement.value;
-    if (innerValue == 'true') {
-        valueElement.value = 'false';
-        buttonElement.innerHTML = '\u00A0\u00A0\u00A0False  (Disabled)\u00A0\u00A0\u00A0';
-    } else {
-        valueElement.value = 'true';
-        buttonElement.innerHTML = '\u00A0\u00A0\u00A0True  (Enabled)\u00A0\u00A0\u00A0';
-    }
-}
-
 function clearDivElements(parentDiv, showLoading) {
     var parentDivElement = getObject(parentDiv);
     if (parentDivElement != null) {
@@ -1016,7 +1003,7 @@ FormTableHandler.removeRegexErrorLocale = function(keyName, iteration, localeNam
 };
 
 FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
-    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button"],function(){
+    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button","dijit/form/TextBox"],function(Dialog,ValidationTextBox,Button,TextBox){
         var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
 
         var bodyText = '';
@@ -1060,27 +1047,27 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
             var value = clientSettingCache[keyName][iteration]['selectOptions'][optionName];
             var loopID = inputID + optionName;
             clearDijitWidget(loopID);
-            new dijit.form.TextBox({
+            new TextBox({
                 onChange: function(){clientSettingCache[keyName][iteration]['selectOptions'][optionName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
         }
 
         clearDijitWidget("addSelectOptionName");
-        new dijit.form.ValidationTextBox({
+        new ValidationTextBox({
             placeholder: "Name",
             id: "addSelectOptionName",
             constraints: {min: 1}
         },"addSelectOptionName");
 
         clearDijitWidget("addSelectOptionValue");
-        new dijit.form.ValidationTextBox({
+        new ValidationTextBox({
             placeholder: "Display Value",
             id: "addSelectOptionValue",
             constraints: {min: 1}
         },"addSelectOptionValue");
 
         clearDijitWidget("addSelectOptionButton");
-        new dijit.form.Button({
+        new Button({
             label: "Add",
             onClick: function() {
                 require(["dijit/registry"],function(registry){

@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,11 +55,13 @@ public class RestRandomPasswordServer {
     @Context
     HttpServletRequest request;
 
-    public static class JsonOutput {
+    public static class JsonOutput implements Serializable
+    {
         public String password;
     }
 
-    public static class JsonInput {
+    public static class JsonInput implements Serializable
+    {
         public String username;
         public int strength;
         public int minLength;

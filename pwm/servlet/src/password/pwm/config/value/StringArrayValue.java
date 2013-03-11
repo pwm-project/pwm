@@ -42,16 +42,16 @@ public class StringArrayValue implements StoredValue {
         this.value = values;
     }
 
-    public StringArrayValue(final String input) {
+    static StringArrayValue fromJson(final String input) {
         if (input == null) {
-            value = Collections.<String>emptyList();
+            return new StringArrayValue(Collections.<String>emptyList());
         } else {
             final Gson gson = new Gson();
             List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
             }.getType());
             srcList = srcList == null ? Collections.<String>emptyList() : srcList;
             srcList.removeAll(Collections.singletonList(null));
-            value = Collections.unmodifiableList(srcList);
+            return new StringArrayValue(Collections.unmodifiableList(srcList));
         }
     }
 

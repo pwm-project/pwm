@@ -33,14 +33,18 @@ import java.util.List;
 public class BooleanValue implements StoredValue {
     boolean value;
 
-    public BooleanValue(String value) {
-        this.value = (Boolean)new Gson().fromJson(value,Boolean.class);
+    public BooleanValue(boolean value) {
+        this.value = value;
+    }
+
+    static BooleanValue fromJson(String value) {
+        return new BooleanValue(new Gson().fromJson(value,Boolean.class));
     }
 
     static BooleanValue fromXmlElement(final Element settingElement) {
         final Element valueElement = settingElement.getChild("value");
         final String value = valueElement.getText();
-        return new BooleanValue(value);
+        return new BooleanValue(Boolean.valueOf(value));
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {

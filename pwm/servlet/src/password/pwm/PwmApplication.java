@@ -117,7 +117,6 @@ public class PwmApplication {
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public PwmApplication(final Configuration config, final MODE applicationMode, final File pwmApplicationPath)
-            throws PwmDBException
     {
         this.configuration = config;
         this.applicationMode = applicationMode;
@@ -284,7 +283,7 @@ public class PwmApplication {
         return (DatabaseAccessor)pwmServices.get(DatabaseAccessor.class);
     }
 
-    private void initialize() throws PwmDBException {
+    private void initialize() {
         final long startTime = System.currentTimeMillis();
 
         // initialize log4j

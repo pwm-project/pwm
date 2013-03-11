@@ -98,29 +98,31 @@
         <div id="grid">
         </div>
         <script async="async">
-            require(["dojo/domReady!"],function(){
-                getObject("waitMessage").style.display = 'inline';
-                require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                        function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                            var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmSession))%>;
-                            var columnHeaders = <%=gson.toJson(searchResults.getHeaderAttributeMap())%>;
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dojo/domReady!"],function(){
+                    getObject("waitMessage").style.display = 'inline';
+                    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                            function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                                var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmSession))%>;
+                                var columnHeaders = <%=gson.toJson(searchResults.getHeaderAttributeMap())%>;
 
-                            // Create a new constructor by mixing in the components
-                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+                                // Create a new constructor by mixing in the components
+                                var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-                            // Now, create an instance of our custom grid which
-                            // have the features we added!
-                            var grid = new CustomGrid({
-                                columns: columnHeaders
-                            }, "grid");
-                            grid.renderArray(data);
-                            grid.set("sort","<%=searchResults.getHeaderAttributeMap().keySet().iterator().next()%>");
-                            grid.on(".dgrid-row .dgrid-cell:click", function(evt){
-                                var row = grid.row(evt);
-                                loadDetails(row.data['userKey']);
+                                // Now, create an instance of our custom grid which
+                                // have the features we added!
+                                var grid = new CustomGrid({
+                                    columns: columnHeaders
+                                }, "grid");
+                                grid.renderArray(data);
+                                grid.set("sort","<%=searchResults.getHeaderAttributeMap().keySet().iterator().next()%>");
+                                grid.on(".dgrid-row .dgrid-cell:click", function(evt){
+                                    var row = grid.row(evt);
+                                    loadDetails(row.data['userKey']);
+                                });
+                                getObject("waitMessage").style.display = 'none';
                             });
-                            getObject("waitMessage").style.display = 'none';
-                        });
+                });
             });
         </script>
         <style scoped="scoped">

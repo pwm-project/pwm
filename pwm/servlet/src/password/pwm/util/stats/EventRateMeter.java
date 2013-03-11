@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 
 public class EventRateMeter implements Serializable {
     private MovingAverage movingAverage;
-    double remainder = 0;
+    private double remainder = 0;
 
     public EventRateMeter(final TimeDuration maxDuration) {
         if (maxDuration == null) {

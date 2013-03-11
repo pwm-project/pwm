@@ -44,13 +44,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 import java.util.List;
 
 @Path("/getchallenges")
 public class RestGetChallengeServer {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestGetChallengeServer.class);
 
-    public static class JsonData {
+    public static class JsonData implements Serializable
+    {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
         public int minimumRandoms;

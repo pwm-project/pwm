@@ -31,7 +31,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.PwmLogger;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 public class ValueFactory {
@@ -43,14 +42,15 @@ public class ValueFactory {
     {
         try {
             final Class valueClass = setting.getSyntax().getStoredValueImpl();
-            final Constructor valueConstructor = valueClass.getConstructor(String.class);
-            final Object storedValueInstance = valueConstructor.newInstance(input);
+            final Method fromXmlElementMethod = valueClass.getDeclaredMethod("fromJson", String.class);
+            fromXmlElementMethod.setAccessible(true);
+            final Object storedValueInstance = fromXmlElementMethod.invoke(null, input);
             return (StoredValue)storedValueInstance;
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("error parsing value stored configuration value: " + e.getMessage());
+            errorMsg.append("error parsing value stored configuration value: ").append(e.getMessage());
             if (e.getCause() != null) {
-                errorMsg.append(", cause: " + e.getCause().getMessage());
+                errorMsg.append(", cause: ").append(e.getCause().getMessage());
             }
             LOGGER.error(errorMsg,e);
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg.toString()));

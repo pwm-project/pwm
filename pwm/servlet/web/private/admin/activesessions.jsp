@@ -70,25 +70,28 @@
         <div id="grid">
         </div>
         <script>
-            var headers = {"createTime":"Create Time","label":"Label","idle":"Idle","srcAddress":"Address","locale":"Locale",
-                "userID":"User ID","userDN":"User DN"};
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                        function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
 
-            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                        var data = <%=gson.toJson(gridData)%>;
-                        var columnHeaders = headers;
+                            var headers = {"createTime":"Create Time","label":"Label","idle":"Idle","srcAddress":"Address","locale":"Locale",
+                                "userID":"User ID","userDN":"User DN"};
 
-                        // Create a new constructor by mixing in the components
-                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+                            var data = <%=gson.toJson(gridData)%>;
+                            var columnHeaders = headers;
 
-                        // Now, create an instance of our custom grid which
-                        // have the features we added!
-                        var grid = new CustomGrid({
-                            columns: columnHeaders
-                        }, "grid");
-                        grid.renderArray(data);
-                        grid.set("sort","createTime");
-                    });
+                            // Create a new constructor by mixing in the components
+                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                            // Now, create an instance of our custom grid which
+                            // have the features we added!
+                            var grid = new CustomGrid({
+                                columns: columnHeaders
+                            }, "grid");
+                            grid.renderArray(data);
+                            grid.set("sort","createTime");
+                        });
+            });
         </script>
         <style scoped="scoped">
             .dgrid { height: auto; }

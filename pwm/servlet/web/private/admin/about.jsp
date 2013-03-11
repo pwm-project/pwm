@@ -160,6 +160,14 @@
                 <a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>
             </td>
         </tr>
+        <tr>
+            <td class="key">
+                License Information
+            </td>
+            <td>
+                <a href="<%=request.getContextPath()%><pwm:url url="/public/license.jsp"/>">License Information</a>
+            </td>
+        </tr>
     </table>
 </div>
 </div>

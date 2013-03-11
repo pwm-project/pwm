@@ -40,47 +40,53 @@
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
         <br class="clear"/>
-            <%
-                final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session));
-                final List<Map<String,Object>> gridData = new ArrayList<Map<String, Object>>();
-                for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(50*1000); resultIterator.hasNext(); ) {
-                    final UserReport.UserInformation userInformation = resultIterator.next();
-                    final Map<String,Object> rowData = new HashMap<String,Object>();
-                    rowData.put("userID",userInformation.getUserInfoBean().getUserID());
-                    rowData.put("userDN",userInformation.getUserInfoBean().getUserDN());
-                    rowData.put("userGUID",userInformation.getUserInfoBean().getUserGuid());
-                    rowData.put("pet",userInformation.getUserInfoBean().getPasswordExpirationTime());
-                    rowData.put("pct",userInformation.getPasswordChangeTime());
-                    rowData.put("rst",userInformation.getResponseSetTime());
-                    rowData.put("hasResponses",userInformation.isHasValidResponses());
-                    rowData.put("expired",userInformation.getPasswordStatus().isExpired());
-                    rowData.put("preExpired",userInformation.getPasswordStatus().isPreExpired());
-                    rowData.put("violatesPolicy",userInformation.getPasswordStatus().isViolatesPolicy());
-                    rowData.put("passwordWarn",userInformation.getPasswordStatus().isWarnPeriod());
-                    gridData.add(rowData);
-                }
-            %>
+        <%
+            final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session));
+            final List<Map<String,Object>> gridData = new ArrayList<Map<String, Object>>();
+            for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(50*1000); resultIterator.hasNext(); ) {
+                final UserReport.UserInformation userInformation = resultIterator.next();
+                final Map<String,Object> rowData = new HashMap<String,Object>();
+                rowData.put("userID",userInformation.getUserInfoBean().getUserID());
+                rowData.put("userDN",userInformation.getUserInfoBean().getUserDN());
+                rowData.put("userGUID",userInformation.getUserInfoBean().getUserGuid());
+                rowData.put("pet",userInformation.getUserInfoBean().getPasswordExpirationTime());
+                rowData.put("pct",userInformation.getPasswordChangeTime());
+                rowData.put("rst",userInformation.getResponseSetTime());
+                rowData.put("hasResponses",userInformation.isHasValidResponses());
+                rowData.put("expired",userInformation.getPasswordStatus().isExpired());
+                rowData.put("preExpired",userInformation.getPasswordStatus().isPreExpired());
+                rowData.put("violatesPolicy",userInformation.getPasswordStatus().isViolatesPolicy());
+                rowData.put("passwordWarn",userInformation.getPasswordStatus().isWarnPeriod());
+                gridData.add(rowData);
+            }
+        %>
         <div id="grid">
         </div>
-        <script>
-            var headers = {"userID":"User ID","userDN":"User DN","userGUID":"User GUID","pet":"Password Expiration Time","pct":"Password Change Time","rst":"Response Save Time",
-                "hasResponses":"Has Valid Responses","expired":"Password Expired","preExpired":"Password Pre-Expired","violatesPolicy":"Password Violates Policy", "passwordWarn":"Password In Warn Period"};
+        <script type="text/javascript">
+            function startupPage() {
+                var headers = {"userID":"User ID","userDN":"User DN","userGUID":"User GUID","pet":"Password Expiration Time","pct":"Password Change Time","rst":"Response Save Time",
+                    "hasResponses":"Has Valid Responses","expired":"Password Expired","preExpired":"Password Pre-Expired","violatesPolicy":"Password Violates Policy", "passwordWarn":"Password In Warn Period"};
 
-            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                        var data = <%=new Gson().toJson(gridData)%>;
+                require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                        function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                            var data = <%=new Gson().toJson(gridData)%>;
 
-                        // Create a new constructor by mixing in the components
-                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+                            // Create a new constructor by mixing in the components
+                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-                        // Now, create an instance of our custom grid which
-                        // have the features we added!
-                        var grid = new CustomGrid({
-                            columns: headers
-                        }, "grid");
-                        grid.renderArray(data);
-                        grid.set("sort","userID");
-                    });
+                            // Now, create an instance of our custom grid which
+                            // have the features we added!
+                            var grid = new CustomGrid({
+                                columns: headers
+                            }, "grid");
+                            grid.renderArray(data);
+                            grid.set("sort","userID");
+                        });
+            }
+
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                startupPage();
+            });
         </script>
 
         <style scoped="scoped">

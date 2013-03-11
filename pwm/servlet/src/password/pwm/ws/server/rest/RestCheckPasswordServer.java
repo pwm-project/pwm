@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer {
@@ -54,14 +55,15 @@ public class RestCheckPasswordServer {
     @Context
     HttpServletRequest request;
 
-    public static class JsonInput
+    public static class JsonInput implements Serializable
     {
         public String password1;
         public String password2;
         public String username;
     }
 
-    public static class JsonData {
+    public static class JsonData implements Serializable
+    {
         public int version;
         public int strength;
         public PasswordUtility.PasswordCheckInfo.MATCH_STATUS match;

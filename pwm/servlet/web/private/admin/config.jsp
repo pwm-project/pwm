@@ -133,8 +133,10 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/form/Textarea","dijit/Tooltip","dijit/TitlePane","dojo/domReady!"],function(dojoParser){
         dojoParser.parse();
+    });
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.bean.InstallManagerBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,6 +26,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% InstallManagerBean installManagerBean = (InstallManagerBean)PwmSession.getPwmSession(session).getSessionBean(InstallManagerBean.class);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
@@ -36,22 +38,33 @@
             <pwm:Display key="Title_InstallManager" bundle="Config"/>
         </div>
         <div id="header-title">
-            Configuration Mode: <%=ContextManager.getPwmApplication(session).getApplicationMode()%>
+            Select Template
         </div>
     </div>
     <div id="centerbody">
-        <pwm:Display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <p>Please begin your configuration by selecting a default template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
+        <p>Selecting an application template helps .</p>
         <br/>
-        <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-        <p><a class="menubutton" href="#" onclick="selectTemplate('<%=template.toString()%>')"><%=template.getDescription()%></a></p>
-        <% } %>
+        <select onchange="selectTemplate(this.value);">
+            <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
+            <option value="<%=template.toString()%>"<% if (template == installManagerBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
+               <%=template.getDescription()%>
+            </option>
+            <% } %>
+        </select>
         <br/>
+
+        <div id="buttonbar">
+            <button class="btn" id="button_previous" onclick="gotoStep('START')"> << Previous <<</button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP')">>> Next >></button>
+        </div>
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
-        dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('localeSelectionMenu').style.display = 'none';
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

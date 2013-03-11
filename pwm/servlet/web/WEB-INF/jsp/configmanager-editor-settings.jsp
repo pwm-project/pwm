@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.util.ServletHelper" %>
+<%@ page import="java.security.cert.X509Certificate" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -92,12 +93,14 @@
 <div id="titlePaneHeader-<%=loopSetting.getKey()%>" style="width:580px" id="title_<%=loopSetting.getKey()%>">
 </div>
 <script type="text/javascript">
-    require(["dijit/TitlePane"],function(TitlePane){
-        new TitlePane({
-            open: <%=showDesc%>,
-            content: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>',
-            title: '<%=title%>'
-        },'titlePaneHeader-<%=loopSetting.getKey()%>');
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dijit/TitlePane"],function(TitlePane){
+            new TitlePane({
+                open: <%=showDesc%>,
+                content: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>',
+                title: '<%=title%>'
+            },'titlePaneHeader-<%=loopSetting.getKey()%>');
+        });
     });
 </script>
 <div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
@@ -187,6 +190,14 @@
             });
         });
     </script>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.X509CERT) { %>
+    <div style="padding-right:15px">
+        <% for (X509Certificate certificate : (X509Certificate[])configManagerBean.getConfiguration().readSetting(loopSetting).toNativeObject()) {%>
+        <% request.setAttribute("certificate",certificate); %>
+        <jsp:include page="fragment/setting-certificate.jsp"/>
+        <br/>
+        <% } %>
+    </div>
     <% } else { %>
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
     <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>

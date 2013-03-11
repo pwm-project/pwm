@@ -84,8 +84,12 @@ public class ApplicationModeFilter implements Filter {
 
         if (mode == PwmApplication.MODE.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
+            if (req.getRequestURI().contains("CommandServlet")) {
+                return false;
+            }
+
             if (!PwmServletURLHelper.isInstallManagerURL(req)) {
-                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting to InstallManager");
+                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting " + req.getRequestURI() + " to InstallManager");
                 resp.sendRedirect(req.getContextPath() + "/config/" + PwmConstants.URL_SERVLET_INSTALL_MANAGER);
                 return true;
             }

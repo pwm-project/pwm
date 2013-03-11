@@ -50,16 +50,19 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.servlet.ResourceFileServlet;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -128,6 +131,12 @@ public class Helper {
         {
             final boolean encryptResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
             chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, encryptResponses ? ChaiResponseSet.FormatType.SHA1_SALT.toString() : ChaiResponseSet.FormatType.TEXT.toString());
+        }
+
+        final X509Certificate[] ldapServerCerts = config.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
+        if (ldapServerCerts != null && ldapServerCerts.length > 0) {
+            final X509TrustManager tm = new X509Utils.PwmTrustManager(ldapServerCerts);
+            chaiConfig.setTrustManager(new X509TrustManager[]{tm});
         }
 
         // if possible, set the ldap timeout.
@@ -327,11 +336,17 @@ public class Helper {
 
     public static String md5sum(final InputStream is)
             throws IOException {
+        return checksum(is, "MD5");
+    }
+
+    public static String checksum(final InputStream is, String algorithmName)
+            throws IOException {
+
         final InputStream bis = is instanceof BufferedInputStream ? is : new BufferedInputStream(is);
 
         final MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest = MessageDigest.getInstance(algorithmName);
         } catch (NoSuchAlgorithmException e) {
             return null;
         }
@@ -1063,11 +1078,13 @@ public class Helper {
         return result;
     }
 
-    public static String makePwmVariableJsNonce(final PwmSession pwmSession)
+    public static String makePwmVariableJsNonce(final PwmApplication pwmApplication, final PwmSession pwmSession)
             throws IOException
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
+        inputString.append(ResourceFileServlet.makeNonce(pwmApplication));
+
         if (pwmSession != null) {
             inputString.append(pwmSession.getSessionStateBean().getSessionID());
             if (pwmSession.getSessionStateBean().getLocale() != null) {

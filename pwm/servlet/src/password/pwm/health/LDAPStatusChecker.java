@@ -25,9 +25,7 @@ package password.pwm.health;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -58,6 +56,8 @@ public class LDAPStatusChecker implements HealthChecker {
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LDAPStatusChecker.class);
     final private static String TOPIC = "LDAP";
 
+    private ChaiProvider.DIRECTORY_VENDOR directoryVendor = null;
+
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
@@ -68,6 +68,10 @@ public class LDAPStatusChecker implements HealthChecker {
 
             if (returnRecords.isEmpty()) {
                 returnRecords.addAll(checkLdapServerUrls(config));
+            }
+
+            if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                returnRecords.addAll(checkAd(pwmApplication, config));
             }
 
             if (returnRecords.isEmpty()) {
@@ -242,7 +246,7 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config) {
+    private List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config) {
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         ChaiProvider chaiProvider = null;
@@ -253,6 +257,24 @@ public class LDAPStatusChecker implements HealthChecker {
                 chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW,30*1000);
                 final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),chaiProvider);
                 adminEntry.isValid();
+                directoryVendor = chaiProvider.getDirectoryVendor();
+            } catch (ChaiException e) {
+                final ChaiError chaiError = ChaiErrors.getErrorForMessage(e.getMessage());
+                final PwmError pwmError = PwmError.forChaiError(chaiError);
+                final StringBuilder errorString = new StringBuilder();
+                errorString.append("error connecting to ldap directory: ").append(e.getMessage());
+                if (chaiError != null && chaiError != ChaiError.UNKNOWN) {
+                    errorString.append(" (");
+                    errorString.append(chaiError.toString());
+                    if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
+                        errorString.append(" - ");
+                        errorString.append(PwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, pwmError, pwmApplication.getConfig()));
+                    }
+                    errorString.append(")");
+                }
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString.toString()));
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
+                return returnRecords;
             } catch (Exception e) {
                 final String errorString = "error connecting to ldap directory: " + e.getMessage();
                 returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
@@ -290,7 +312,15 @@ public class LDAPStatusChecker implements HealthChecker {
         for (final String loopURL : serverURLs) {
             try {
                 if (!urlUsingHostname(loopURL)) {
+                    final String msg = localizedString(pwmApplication,"Health_LDAP_AD_StaticIP",loopURL);
                     returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
+                }
+
+                final URI uri= URI.create(loopURL);
+                final String scheme = uri.getScheme();
+                if ("ldap".equalsIgnoreCase(scheme)) {
+                    final String msg = localizedString(pwmApplication,"Health_LDAP_AD_Unsecure",loopURL);
+                    returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, msg));
                 }
             } catch (MalformedURLException e) {
                 returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " is not a valid url"));
@@ -309,5 +339,9 @@ public class LDAPStatusChecker implements HealthChecker {
             return true;
         }
         return false;
+    }
+
+    private static String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
+        return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
     }
 }

@@ -40,15 +40,15 @@ public class LocalizedStringValue implements StoredValue {
         this.value = Collections.unmodifiableMap(values);
     }
 
-    public LocalizedStringValue(final String input) {
+    static LocalizedStringValue fromJson(final String input) {
         if (input == null) {
-            value = Collections.emptyMap();
+            return new LocalizedStringValue(Collections.<String, String>emptyMap());
         } else {
             final Gson gson = new Gson();
             Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
             }.getType());
             srcMap = srcMap == null ? Collections.<String,String>emptyMap() : new TreeMap(srcMap);
-            value = Collections.unmodifiableMap(srcMap);
+            return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
         }
     }
 

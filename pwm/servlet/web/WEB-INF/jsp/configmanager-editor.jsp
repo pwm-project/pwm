@@ -23,6 +23,7 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
+<%@ page import="password.pwm.config.value.X509CertificateValue" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
 <%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.util.ArrayList" %>
@@ -318,6 +319,22 @@ function buildMenuBar() {
             }));
             actionsMenu.addChild(new MenuSeparator());
             actionsMenu.addChild(new MenuItem({
+                label: "Import LDAP Server Certificates",
+                onClick: function() {
+                    importLdapCertificates();
+                }
+            }));
+            <% final X509CertificateValue ldapCerts = (X509CertificateValue)configManagerBean.getConfiguration().readSetting(PwmSetting.LDAP_SERVER_CERTS); %>
+            <% if (ldapCerts != null && ldapCerts.hasCertificates()) { %>
+            actionsMenu.addChild(new MenuItem({
+                label: "Clear Imported LDAP Server Certificates",
+                onClick: function() {
+                    clearLdapCertificates();
+                }
+            }));
+            <% } %>
+            actionsMenu.addChild(new MenuSeparator());
+            actionsMenu.addChild(new MenuItem({
                 label: "Save",
                 iconClass: "dijitEditorIcon dijitEditorIconSave",
                 onClick: function() {
@@ -343,13 +360,14 @@ function buildMenuBar() {
     });
 }
 
+function loadMainPageBody() {
+    window.location = '<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>';
+}
+
 PWM_GLOBAL['startupFunctions'].push(function(){
     buildMenuBar();
 });
 
-function loadMainPageBody() {
-    window.location = '<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>';
-}
 
 </script>
 <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"

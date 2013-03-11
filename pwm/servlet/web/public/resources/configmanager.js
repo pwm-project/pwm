@@ -92,7 +92,7 @@ function waitForRestart(startTime, oldEpoch) {
 
                 var epoch = data['data']['currentEpoch'];
                 if (epoch != oldEpoch) {
-                    window.location = "ConfigManager"; //refresh page
+                    window.location = PWM_GLOBAL['url-context'];
                     return;
                 }
                 var diff = currentTime - startTime;
@@ -231,3 +231,52 @@ function setConfigurationPassword(password) {
     var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';
     ChangePasswordHandler.init('configPw','Configuration Password',writeFunction);
 }
+
+function importLdapCertificates() {
+    showWaitDialog();
+    dojo.xhrPost({
+        url:"ConfigManager?processAction=manageLdapCerts&certAction=autoImport&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        contentType: "application/text;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        load: function(data){
+            closeWaitDialog();
+            if (data['error']) {
+                showError(data['errorDetail']);
+            } else {
+                showDialog('Success','Certificates Imported',function(){
+                    location = "ConfigManager";
+                });
+            }
+        },
+        error: function(errorObj) {
+            closeWaitDialog();
+            showError("error requesting certificate import: " + errorObj);
+        }
+    });
+}
+
+function clearLdapCertificates() {
+    showWaitDialog();
+    dojo.xhrPost({
+        url:"ConfigManager?processAction=manageLdapCerts&certAction=clear&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        contentType: "application/text;charset=utf-8",
+        dataType: "json",
+        handleAs: "json",
+        load: function(data){
+            closeWaitDialog();
+            if (data['error']) {
+                showError(data['errorDetail']);
+            } else {
+                showDialog('Success','Certificates Removed',function(){
+                    location = "ConfigManager";
+                });
+            }
+        },
+        error: function(errorObj) {
+            closeWaitDialog();
+            showError("error requesting certificate clear: " + errorObj);
+        }
+    });
+}
+

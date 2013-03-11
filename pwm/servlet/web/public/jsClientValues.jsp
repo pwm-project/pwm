@@ -31,10 +31,9 @@
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-if (!PWM_GLOBAL) var PWM_GLOBAL={};
-if (!PWM_STRINGS) var PWM_STRINGS={};
+var PWM_GLOBAL = PWM_GLOBAL || {};
+var PWM_STRINGS = PWM_STRINGS || {};
 function initPwmStringValues() {
-PWM_GLOBAL['startupFunctions'] = new Array();
 PWM_GLOBAL['pwmFormID'] = '<pwm:FormID/>';
 PWM_GLOBAL['MaxInactiveInterval']='<%=request.getSession().getMaxInactiveInterval()%>';
 PWM_GLOBAL['pageLeaveNotice']='<%=pwmApplication.getConfig().readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT)%>';

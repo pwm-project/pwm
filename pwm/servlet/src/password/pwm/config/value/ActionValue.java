@@ -36,13 +36,13 @@ import java.util.*;
 public class ActionValue implements StoredValue {
     final List<ActionConfiguration> values;
 
-    ActionValue(final List<ActionConfiguration> values) {
-        this.values = values;
+    public ActionValue(final List<ActionConfiguration> values) {
+        this.values = Collections.unmodifiableList(values);
     }
 
-    public ActionValue(final String input) {
+    static ActionValue fromJson(final String input) {
         if (input == null) {
-            values = Collections.emptyList();
+            return new ActionValue(Collections.<ActionConfiguration>emptyList());
         } else {
             final Gson gson = new Gson();
             List<ActionConfiguration> srcList = gson.fromJson(input, new TypeToken<List<ActionConfiguration>>() {
@@ -50,7 +50,7 @@ public class ActionValue implements StoredValue {
 
             srcList = srcList == null ? Collections.<ActionConfiguration>emptyList() : srcList;
             srcList.removeAll(Collections.singletonList(null));
-            values = Collections.unmodifiableList(srcList);
+            return new ActionValue(Collections.unmodifiableList(srcList));
         }
     }
 

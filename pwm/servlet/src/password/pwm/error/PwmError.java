@@ -103,7 +103,7 @@ public enum PwmError {
     ERROR_USER_MISMATCH("Error_UserMisMatch", 5020),
     ERROR_ACTIVATE_USER_NO_QUERY_MATCH("Error_ActivateUserNoQueryMatch", 5021),
     ERROR_NO_CHALLENGES("Error_NoChallenges", 5022),
-    ERROR_INTRUDER_USER("Error_UserIntruder", 5023),
+    ERROR_INTRUDER_USER("Error_UserIntruder", 5023, ChaiError.INTRUDER_LOCKOUT),
     ERROR_INTRUDER_ADDRESS("Error_AddressIntruder", 5024),
     ERROR_INTRUDER_SESSION("Error_SessionIntruder", 5025),
     ERROR_BAD_SESSION_PASSWORD("Error_BadSessionPassword", 5026),
@@ -139,6 +139,7 @@ public enum PwmError {
     ERROR_CLEARING_RESPONSES("Error_Clearing_Responses",5056),
     ERROR_SERVICE_UNREACHABLE("Error_ServiceUnreachable",5057),
     ERROR_CHALLENGE_IN_RESPONSE("Error_ChallengeInResponse", 5058),
+    ERROR_CERTIFICATE_ERROR("Error_CertificateError", 5059),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

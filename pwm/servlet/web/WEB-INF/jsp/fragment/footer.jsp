@@ -44,8 +44,8 @@
     <span id="idle_status">
         &nbsp;
     </span>
-        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
     <span id="localeSelectionMenu" style="white-space: nowrap">
+        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
         <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
         &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>

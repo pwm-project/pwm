@@ -52,7 +52,10 @@ public class HealthMonitor implements PwmService {
     }
 
     public HealthStatus getMostSevereHealthStatus() {
-        final Set<HealthRecord> healthRecords = getHealthRecords();
+        return getMostSevereHealthStatus(getHealthRecords());
+    }
+
+    public static HealthStatus getMostSevereHealthStatus(final Collection<HealthRecord> healthRecords) {
         HealthStatus returnStatus = HealthStatus.GOOD;
         if (healthRecords != null) {
             for (HealthRecord record : healthRecords) {
@@ -104,6 +107,7 @@ public class HealthMonitor implements PwmService {
         registerHealthCheck(new JavaChecker());
         registerHealthCheck(new ConfigurationChecker());
         registerHealthCheck(new PwmDBHealthChecker());
+        registerHealthCheck(new CertificateChecker());
 
         final Set<HealthRecord> newHealthRecords = new HashSet<HealthRecord>();
         newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started."));

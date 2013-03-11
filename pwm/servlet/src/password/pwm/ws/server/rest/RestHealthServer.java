@@ -34,6 +34,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
 import javax.servlet.ServletException;
@@ -45,6 +46,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -57,10 +59,10 @@ public class RestHealthServer {
     @Context
     HttpServletRequest request;
 
-    public static class JsonOutput {
+    public static class JsonOutput implements Serializable {
         public Date timestamp;
         public String overall;
-        public List<HealthRecord> data;
+        public List<HealthRecord> records;
     }
 
     // This method is called if TEXT_PLAIN is request
@@ -86,7 +88,7 @@ public class RestHealthServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public JsonOutput doPwmHealthJsonGet(
+    public String doPwmHealthJsonGet(
             @QueryParam("refreshImmediate") final String requestImmediateParam
     ) {
         final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
@@ -96,11 +98,13 @@ public class RestHealthServer {
             LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
             final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
 
-            final JsonOutput resultString = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
+            final JsonOutput jsonOutput = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
             if (isExternal) {
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
             }
-            return resultString;
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(jsonOutput);
+            return restResultBean.toJson();
         } catch (Exception e) {
             LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
         }
@@ -137,7 +141,7 @@ public class RestHealthServer {
         final JsonOutput returnMap = new JsonOutput();
         returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
         returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
-        returnMap.data = healthRecords;
+        returnMap.records = healthRecords;
         return returnMap;
     }
 }

@@ -129,5 +129,7 @@
                     topMenuBar.startup();
                 });
     }
-    buildMenuBar();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        buildMenuBar();
+    });
 </script>

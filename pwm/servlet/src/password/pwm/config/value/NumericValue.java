@@ -33,14 +33,18 @@ import java.util.List;
 public class NumericValue implements StoredValue {
     long value;
 
-    public NumericValue(String value) {
-        this.value = (Long)new Gson().fromJson(value,Long.class);
+    public NumericValue(long value) {
+        this.value = value;
+    }
+
+    static NumericValue fromJson(String value) {
+        return new NumericValue(new Gson().fromJson(value,Long.class));
     }
 
     static NumericValue fromXmlElement(final Element settingElement) {
         final Element valueElement = settingElement.getChild("value");
         final String value = valueElement.getText();
-        return new NumericValue(value);
+        return new NumericValue(Long.valueOf(value));
     }
 
     @Override

@@ -136,6 +136,8 @@ public enum PwmSetting {
     //ldap directory
     LDAP_SERVER_URLS(
             "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+    LDAP_SERVER_CERTS(
+            "ldap.serverCerts", PwmSettingSyntax.X509CERT, Category.LDAP),
     LDAP_PROMISCUOUS_SSL(
             "ldap.promiscuousSSL", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     LDAP_PROXY_USER_DN(

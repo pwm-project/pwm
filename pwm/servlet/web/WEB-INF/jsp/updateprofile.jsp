@@ -86,7 +86,6 @@
 
         pwmFormValidator(validationProps);
     }
-
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -20,15 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <%@ page import="password.pwm.bean.SetupResponsesBean" %>
 <!DOCTYPE html>
-
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final ChallengeSet challengeSet = PwmSession.getPwmSession(session).getUserInfoBean().getChallengeSet();
     final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
 %>
 <html dir="<pwm:LocaleOrientation/>">

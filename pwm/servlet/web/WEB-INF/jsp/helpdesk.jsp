@@ -74,7 +74,8 @@
         <div id="grid">
         </div>
         <script async="async">
-            require(["dojo/domReady!"],function(){
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dojo/domReady!"],function(){
                 getObject("waitMessage").style.display = 'inline';
                 require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                         function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -97,6 +98,7 @@
                             });
                             getObject("waitMessage").style.display = 'none';
                         });
+                });
             });
         </script>
         <style scoped="scoped">

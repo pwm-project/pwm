@@ -40,8 +40,12 @@ public class StringValue implements StoredValue {
     }
 
     public StringValue(final String value) {
-        final String newValue = new Gson().fromJson(value,String.class);
-        this.value = newValue == null ? "" : newValue;
+        this.value = value == null ? "" : value;
+    }
+
+    static StringValue fromJson(final String input) {
+        final String newValue = new Gson().fromJson(input,String.class);
+        return new StringValue(newValue);
     }
 
     static StringValue fromXmlElement(final Element settingElement) {

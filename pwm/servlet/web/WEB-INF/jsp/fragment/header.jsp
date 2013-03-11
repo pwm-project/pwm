@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.PwmServletURLHelper" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionHeader = null;
@@ -46,14 +47,15 @@
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmStyle.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmMobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-    <% if (!request.getRequestURI().contains("WEB-INF/jsp/configmanager-editor.jsp")) { %>
+    <% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
-    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmHelper.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(PwmSession.getPwmSession(request))%>"></script>
+    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
+    <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/pwmHelper.js'/>"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(pwmApplicationHeader, pwmSessionHeader)%>"></script>
     <% final String googleTrackingCode = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(password.pwm.config.PwmSetting.GOOGLE_ANAYLTICS_TRACKER); %>
     <% if (googleTrackingCode != null && googleTrackingCode.length() > 0) { %>
     <script type="text/javascript">

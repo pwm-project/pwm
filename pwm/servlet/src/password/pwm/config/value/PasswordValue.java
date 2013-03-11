@@ -38,8 +38,12 @@ public class PasswordValue extends StringValue {
     PasswordValue() {
     }
 
-    public PasswordValue(final String value) {
-        this.value = new Gson().fromJson(value,String.class);
+    public PasswordValue(String value) {
+        super(value);
+    }
+
+    static PasswordValue fromJson(final String value) {
+        return new PasswordValue(new Gson().fromJson(value, String.class));
     }
 
     static PasswordValue fromXmlValue(final Element settingElement, final String key) throws PwmOperationalException {

@@ -31,13 +31,17 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
+import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.ValueFactory;
+import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
@@ -45,6 +49,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 public class ConfigManagerServlet extends TopServlet {
@@ -52,7 +58,6 @@ public class ConfigManagerServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
-    private static final int MAX_INPUT_LENGTH = 1024 * 100;
     public static final String DEFAULT_PW = "DEFAULT-PW";
 
 // -------------------------- OTHER METHODS --------------------------
@@ -67,7 +72,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
         initialize(pwmSession, ContextManager.getContextManager(req.getSession().getServletContext()).getConfigReader(), configManagerBean);
-        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST, MAX_INPUT_LENGTH);
+        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if ("getEpoch".equalsIgnoreCase(processActionParam)) {
             restGetEpoch(req, resp);
@@ -121,6 +126,9 @@ public class ConfigManagerServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "switching to editMode " + mode);
             } else if ("setOption".equalsIgnoreCase(processActionParam)) {
                 setOptions(req);
+            } else if ("manageLdapCerts".equalsIgnoreCase(processActionParam)) {
+                restManageLdapCerts(req, resp, pwmApplication, pwmSession);
+                return;
             }
         }
 
@@ -128,8 +136,8 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private static void initialize(final PwmSession pwmSession,
-                            final ConfigurationReader configReader,
-                            final ConfigManagerBean configManagerBean
+                                   final ConfigurationReader configReader,
+                                   final ConfigManagerBean configManagerBean
     )
             throws PwmUnrecoverableException
     {
@@ -185,7 +193,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String configEpoch = storedConfig.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
-        final Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
+        final HashMap<String, Object> dataMap = new LinkedHashMap<String, Object>();
         final RestResultBean restResultBean = new RestResultBean();
 
         if (configEpoch != null && configEpoch.length() > 0) {
@@ -194,6 +202,51 @@ public class ConfigManagerServlet extends TopServlet {
 
         restResultBean.setData(dataMap);
         ServletHelper.outputJsonResult(resp,restResultBean);
+    }
+
+    private void restManageLdapCerts(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException, IOException {
+        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+        final String certAction = Validator.readStringFromRequest(req,"certAction");
+        if ("autoImport".equalsIgnoreCase(certAction)) {
+            final StringArrayValue ldapUrlsValue = (StringArrayValue)configManagerBean.getConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS);
+            final Set<X509Certificate> resultCertificates = new LinkedHashSet<X509Certificate>();
+            try {
+                if (ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null) {
+                    final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
+                    for (final String ldapUrlString : ldapUrlStrings) {
+                        final URI ldapURI = new URI(ldapUrlString);
+                        final X509Certificate[] certs = X509Utils.readLdapServerCerts(ldapURI);
+                        if (certs != null) {
+                            resultCertificates.addAll(Arrays.asList(certs));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
+                if (e instanceof PwmException) {
+                    errorInformation = ((PwmException) e).getErrorInformation();
+                }
+                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+                ServletHelper.outputJsonResult(resp, restResultBean);
+                return;
+            }
+            configManagerBean.getConfiguration().writeSetting(PwmSetting.LDAP_SERVER_CERTS,new X509CertificateValue(resultCertificates));
+            ServletHelper.outputJsonResult(resp, new RestResultBean());
+            return;
+        } else if ("clear".equalsIgnoreCase(certAction)) {
+            configManagerBean.getConfiguration().writeSetting(PwmSetting.LDAP_SERVER_CERTS,new X509CertificateValue(Collections.<X509Certificate>emptyList()));
+            ServletHelper.outputJsonResult(resp, new RestResultBean());
+            return;
+        }
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"invalid certAction parameter");
+        final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+        ServletHelper.outputJsonResult(resp, restResultBean);
     }
 
     private void doStartEditing(
@@ -289,7 +342,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String key = Validator.readStringFromRequest(req, "key");
-        final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
+        final String bodyString = ServletHelper.readRequestBody(req);
         final Gson gson = new Gson();
         final PwmSetting setting = PwmSetting.forKey(key);
         final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
@@ -332,7 +385,7 @@ public class ConfigManagerServlet extends TopServlet {
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
-        final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
+        final String bodyString = ServletHelper.readRequestBody(req);
 
         final Gson gson = new Gson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
@@ -408,12 +461,10 @@ public class ConfigManagerServlet extends TopServlet {
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         }
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(Collections.singletonMap("currentEpoch",currentEpoch));
-        restResultBean.setError(false);
+        final HashMap<String,String> resultData = new HashMap<String,String>();
+        resultData.put("currentEpoch", currentEpoch);
         LOGGER.info(pwmSession, "Configuration Locked");
-        ServletHelper.outputJsonResult(resp, restResultBean);
-        return;
+        ServletHelper.outputJsonResult(resp, new RestResultBean(resultData));
     }
 
     private void doSetConfigurationPassword(
@@ -425,7 +476,7 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        final String password = ServletHelper.readRequestBody(req, 100 * 1000);
+        final String password = ServletHelper.readRequestBody(req);
         configManagerBean.getConfiguration().setPassword(password);
     }
 
@@ -439,7 +490,9 @@ public class ConfigManagerServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(Collections.singletonMap("currentEpoch",configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH)));
+        final HashMap<String,String> resultData = new HashMap<String,String>();
+        resultData.put("currentEpoch", configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
+        restResultBean.setData(resultData);
 
         if (configManagerBean.isPasswordVerified()) {
             if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
@@ -462,6 +515,7 @@ public class ConfigManagerServlet extends TopServlet {
             restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
         }
 
+        resetInMemoryBean(pwmSession,req.getSession().getServletContext());
         LOGGER.debug(pwmSession, "save configuration operation completed");
         ServletHelper.outputJsonResult(resp, restResultBean);
     }
@@ -576,7 +630,7 @@ public class ConfigManagerServlet extends TopServlet {
             if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
                 try {
                     final Gson gson = new Gson();
-                    final String bodyString = ServletHelper.readRequestBody(req, MAX_INPUT_LENGTH);
+                    final String bodyString = ServletHelper.readRequestBody(req);
                     final String value = gson.fromJson(bodyString, new TypeToken<String>() {
                     }.getType());
                     configManagerBean.getConfiguration().writeProperty(StoredConfiguration.PROPERTY_KEY_NOTES, value);
@@ -614,6 +668,7 @@ public class ConfigManagerServlet extends TopServlet {
         pwmSession.clearUserBean(ConfigManagerBean.class);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
         initialize(pwmSession, ContextManager.getContextManager(servletContext).getConfigReader(), configManagerBean);
+        pwmSession.getConfigManagerBean().setEditMode(EDIT_MODE.NONE);
     }
 // -------------------------- ENUMERATIONS --------------------------
 

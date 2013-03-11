@@ -53,8 +53,10 @@
                 <div id="WaitDialogBlank"></div>
             </div>
             <script type="text/javascript">
-                require(["dojo/domReady!"],function(){
-                    showPwmHealth('healthBody', false, true);
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    require(["dojo/domReady!"],function(){
+                        showPwmHealth('healthBody', {showRefresh: true});
+                    });
                 });
             </script>
         </div>
@@ -102,8 +104,10 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
-        dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
+            dojoParser.parse();
+        });
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

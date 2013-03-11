@@ -276,7 +276,7 @@ public class UpdateProfileServlet extends TopServlet {
             }
         }
 
-        final String bodyString = ServletHelper.readRequestBody(req, 10 * 1024);
+        final String bodyString = ServletHelper.readRequestBody(req);
         final Map<String, String> clientValues = new Gson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
         if (clientValues == null) {

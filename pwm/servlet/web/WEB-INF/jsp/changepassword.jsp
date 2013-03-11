@@ -82,10 +82,12 @@
                             </div>
                         </div>
                         <script type="text/javascript">
-                            require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
-                                new Tooltip({
-                                    connectId: ["strengthBox"],
-                                    label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
+                                    new Tooltip({
+                                        connectId: ["strengthBox"],
+                                        label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+                                    });
                                 });
                             });
                         </script>

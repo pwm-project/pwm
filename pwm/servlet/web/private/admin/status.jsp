@@ -442,7 +442,10 @@
             }, 61 * 1000);
         });
     }
-    startupPage();
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupPage();
+    });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

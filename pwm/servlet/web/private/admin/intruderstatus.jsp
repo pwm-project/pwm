@@ -154,7 +154,9 @@
             dojoParser.parse();
         });
     }
-    startupPage();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupPage();
+    });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

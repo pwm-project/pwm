@@ -47,6 +47,7 @@ import password.pwm.util.operations.PasswordUtility;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -231,23 +232,32 @@ public class Configuration implements Serializable {
         final List<String> randomQuestions = readSettingAsLocalizedStringArray(randomChallenges, locale);
 
         final List<Challenge> challenges = new ArrayList<Challenge>();
-        for (final String question : requiredQuestions) {
-            final Challenge challenge = parseConfigStringToChallenge(question, true);
-            if (challenge != null) {
-                challenges.add(challenge);
+
+        if (requiredQuestions != null) {
+            for (final String question : requiredQuestions) {
+                final Challenge challenge = parseConfigStringToChallenge(question, true);
+                if (challenge != null) {
+                    challenges.add(challenge);
+                }
             }
         }
 
-        for (final String question : randomQuestions) {
-            final Challenge challenge = parseConfigStringToChallenge(question, false);
-            if (challenge != null) {
-                challenges.add(challenge);
+        if (randomQuestions != null) {
+            for (final String question : randomQuestions) {
+                final Challenge challenge = parseConfigStringToChallenge(question, false);
+                if (challenge != null) {
+                    challenges.add(challenge);
+                }
             }
+
+            if (minimumRands > randomQuestions.size()) {
+                minimumRands = randomQuestions.size();
+            }
+        } else {
+            minimumRands = 0;
         }
 
-        if (minimumRands > randomQuestions.size()) {
-            minimumRands = randomQuestions.size();
-        }
+
 
         try {
             return new ChaiChallengeSet(challenges, minimumRands, locale, "pwm-defined " + PwmConstants.SERVLET_VERSION);
@@ -449,6 +459,14 @@ public class Configuration implements Serializable {
         }
 
         return (Boolean)storedConfiguration.readSetting(setting).toNativeObject();
+    }
+
+    public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
+        if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read X509CERT value for setting: " + setting.toString());
+        }
+
+        return (X509Certificate[])storedConfiguration.readSetting(setting).toNativeObject();
     }
 
     public String toDebugString() {

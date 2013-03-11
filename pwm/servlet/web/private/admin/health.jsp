@@ -38,8 +38,10 @@
         <div id="WaitDialogBlank"></div>
     </div>
     <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/domReady!"],function(){
             showPwmHealth('healthBody', false, true);
+        });
         });
     </script>
     <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
@@ -61,7 +63,9 @@
             }, 61 * 1000);
         });
     }
-    startupPage();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupPage();
+    });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

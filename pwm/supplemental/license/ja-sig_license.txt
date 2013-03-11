@@ -1,9 +1,3 @@
-|
-| License for CAS
-| http://www.jasig.org/cas
-|
-
-
 Copyright (c) 2007, JA-SIG, Inc.
 
 All rights reserved.

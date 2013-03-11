@@ -138,7 +138,7 @@
             <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='admin/'/>"><pwm:Display key="Title_Admin"/></a>
+                    <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='admin/activity.jsp'/>"><pwm:Display key="Title_Admin"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_Admin"/></p>

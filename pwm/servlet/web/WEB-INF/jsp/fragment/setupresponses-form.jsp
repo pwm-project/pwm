@@ -48,8 +48,10 @@
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 410px"
           class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <script type="text/javascript">
-    require(["dojo/parse","dijit/form/Select"],function(parser){
-        parser.parse(getObject('PwmResponse_Q_<%=indexKey%>'));
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parse","dijit/form/Select"],function(parser){
+            parser.parse(getObject('PwmResponse_Q_<%=indexKey%>'));
+        });
     });
 </script>
 <% } %>
@@ -82,9 +84,11 @@
         <% } %>
     </select>
     <script type="text/javascript">
-        PWM_GLOBAL['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
-        require(["dijit/registry","dojo/parser","dijit/form/Select"],function(registry,parser){
-            parser.parse();
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_GLOBAL['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
+            require(["dijit/registry","dojo/parser","dijit/form/Select"],function(registry,parser){
+                parser.parse();
+            });
         });
     </script>
 </h2>
@@ -101,12 +105,18 @@
         final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
         if (!challenge.isRequired()) {
     %>
-    PWM_GLOBAL['simpleRandomOptions'].push('<%=StringEscapeUtils.escapeJavaScript(challenge.getChallengeText())%>')
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['simpleRandomOptions'].push('<%=StringEscapeUtils.escapeJavaScript(challenge.getChallengeText())%>')
+    });
     <% } %>
     <% } %>
-    require(["dojo/parser","dijit/form/Select"],function(parser){
-        parser.parse();
-        makeSelectOptionsDistinct();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/form/Select"],function(parser){
+                parser.parse();
+                makeSelectOptionsDistinct();
+            });
+        });
     });
 </script>
 <% } else { %>

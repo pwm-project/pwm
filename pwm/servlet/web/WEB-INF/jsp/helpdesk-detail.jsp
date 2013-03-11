@@ -301,10 +301,12 @@
     <% } else { %>
     <button id="unlockBtn" class="btn" disabled="disabled">Unlock</button>
     <script type="text/javascript">
-        require(["dojo/domReady!","dijit/Tooltip"],function(){
-            new dijit.Tooltip({
-                connectId: ["unlockBtn"],
-                label: 'User is not locked'
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+                new Tooltip({
+                    connectId: ["unlockBtn"],
+                    label: 'User is not locked'
+                });
             });
         });
     </script>
@@ -316,11 +318,13 @@
     <% for (final ActionConfiguration loopAction : actions) { %>
     <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
     <script type="text/javascript">
-        require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-            new Tooltip({
-                connectId: ["action-<%=loopAction.getName()%>"],
-                position: 'above',
-                label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+                new Tooltip({
+                    connectId: ["action-<%=loopAction.getName()%>"],
+                    position: 'above',
+                    label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
+                });
             });
         });
     </script>
@@ -523,13 +527,15 @@
         });
     }
 
-
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
             dojoParser.parse();
         });
     }
-    startupPage();
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupPage();
+    });
 </script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>

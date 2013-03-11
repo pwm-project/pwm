@@ -67,11 +67,6 @@
 
     </div>
 </div>
-<script type="text/javascript">
-    require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
-        dojoParser.parse();
-    });
-</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

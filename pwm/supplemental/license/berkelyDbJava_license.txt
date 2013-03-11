@@ -1,9 +1,6 @@
-|
-| License for Berkeley DB Java Edition
-| http://www.oracle.com/technetwork/database/berkeleydb/overview/index-093405.html
-|
+/*-
+ */
 
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 The following is the license that applies to this copy of the Berkeley
 DB Java Edition software.  For a license to use the Berkeley DB Java
 Edition software under conditions other than those described here, or
@@ -12,7 +9,7 @@ berkeleydb-info_us@oracle.com.
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 /*
- * Copyright (c) 2002-2009 Oracle.  All rights reserved.
+ * Copyright (c) 2002, 2013 Oracle and/or its affiliates.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

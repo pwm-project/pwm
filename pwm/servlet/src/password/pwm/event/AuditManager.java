@@ -99,7 +99,7 @@ public class AuditManager implements PwmService {
                 }
             };
         }
-        return new IteratorWrapper<AuditRecord>(auditDB.iterator());
+        return new IteratorWrapper<AuditRecord>(auditDB.descendingIterator());
     }
 
     public List<AuditRecord> readUserAuditRecords(final PwmSession pwmSession)

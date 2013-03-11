@@ -22,6 +22,9 @@
 
 package password.pwm.util;
 
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
@@ -35,9 +38,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -302,6 +303,10 @@ public class ServletHelper {
         throw new Exception("unable to locate resource file path=" + relativePath + ", name=" + filename);
     }
 
+    public static String readRequestBody(final HttpServletRequest request) throws IOException {
+        return readRequestBody(request, PwmConstants.HTTP_BODY_READ_LENGTH);
+    }
+
     public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
         final StringBuilder inputData = new StringBuilder();
         String line;
@@ -399,6 +404,53 @@ public class ServletHelper {
         final String outputString = restResultBean.toJson();
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
+    }
+
+    public static String readFileUpload(
+            final HttpServletRequest req,
+            final String filePartName
+
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        try {
+            if (ServletFileUpload.isMultipartContent(req)) {
+
+                // Create a new file upload handler
+                final ServletFileUpload upload = new ServletFileUpload();
+
+                String uploadFile = null;
+
+                // Parse the request
+                for (final FileItemIterator iter = upload.getItemIterator(req); iter.hasNext();) {
+                    final FileItemStream item = iter.next();
+
+                    if (filePartName.equals(item.getFieldName())) {
+                        uploadFile = streamToString(item.openStream());
+                    }
+                }
+
+                return uploadFile;
+            }
+        } catch (Exception e) {
+            LOGGER.error("error reading file upload: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static String streamToString(final InputStream stream)
+            throws IOException
+    {
+        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
+        final StringBuilder sb = new StringBuilder();
+        int charCounter = 0;
+        int nextChar = bufferedReader.read();
+        while (charCounter < PwmConstants.MAX_CONFIG_FILE_CHARS && nextChar != -1) {
+            charCounter++;
+            sb.append((char)nextChar);
+            nextChar = bufferedReader.read();
+        }
+        return sb.toString();
     }
 
 }

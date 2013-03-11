@@ -348,8 +348,19 @@
         <default>
             <value><![CDATA[ldaps://ldap.example.com:636]]></value>
         </default>
+        <default template="AD">
+            <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
+        </default>
     </setting>
-    <setting key="ldap.promiscuousSSL" level="0" required="true">
+    <setting key="ldap.serverCerts" level="2" required="true" hidden="true">
+        <label>LDAP Certificates</label>
+        <description><![CDATA[LDAP Server Certificates]]></description>
+        <default/>
+    </setting>
+    <setting key="ldap.promiscuousSSL" level="1" required="true">
         <label>LDAP Promiscuous SSL</label>
         <description><![CDATA[If true PWM will trust any LDAP SSL certificate without any verification.  Thus, with this setting set to true, it is not required to import the LDAP server's SSL certificate into the Java keystore.<br/><br/><b>WARNING:</b> using promiscuous SSL is a security risk and should never be used in a production system.]]></description>
         <default>
@@ -2311,7 +2322,7 @@
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"","userPrincipalName":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <default template="ADDB">
             <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"sAMAccountName"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>

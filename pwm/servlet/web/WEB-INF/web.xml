@@ -265,10 +265,6 @@
         <servlet-class>password.pwm.servlet.InstallManagerServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>ConfigUploadServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ConfigUploadServlet</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
         <init-param>
@@ -352,10 +348,6 @@
     <servlet-mapping>
         <servlet-name>InstallManagerServlet</servlet-name>
         <url-pattern>/config/InstallManager</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ConfigUploadServlet</servlet-name>
-        <url-pattern>/config/ConfigUpload</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>

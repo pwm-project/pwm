@@ -20,8 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-if (!PWM_GLOBAL) var PWM_GLOBAL={};
-if (!PWM_STRINGS) var PWM_STRINGS={};
+var PWM_GLOBAL = PWM_GLOBAL || {};
+var PWM_STRINGS = PWM_STRINGS || {};
 
 function pwmPageLoadHandler() {
     for (var j = 0; j < document.forms.length; j++) {
@@ -87,11 +87,15 @@ function pwmPageLoadHandler() {
         });
     }
 
-    setTimeout(function(){
-        require(["dojo/domReady!","dijit/Dialog","dijit/ProgressBar"],function(){
-            /* preloading */
-        });
-    },1000);
+    require(["dojo/domReady!","dijit/Dialog","dijit/ProgressBar"],function(){ /*preload*/
+        var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
+        var images = [prefix + 'a11y/indeterminate_progress.gif',
+            prefix + 'nihilo/images/progressBarAnim.gif',
+            prefix + 'nihilo/images/progressBarEmpty.png',
+            prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
+            prefix + 'nihilo/images/titleBar.png']
+        preloadImages(images);
+    });
 
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
         PWM_GLOBAL['startupFunctions'][i]();
@@ -381,23 +385,33 @@ function closeWaitDialog() {
     });
 }
 
-function showPwmHealth(parentDivID, refreshNow, showRefresh) {
+function showPwmHealth(parentDivID, options, refreshNow) {
+    var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
+    PWM_GLOBAL['showPwmHealthOptions'] = options;
+    var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
+    var showRefresh = inputOpts['showRefresh'];
+    var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
+    var finishFunction = inputOpts['finishFunction'];
+    console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo"],function(dojo){
-
         var parentDiv = dojo.byId(parentDivID);
         PWM_GLOBAL['healthCheckInProgress'] = "true";
+
+        if (!showRefresh) {
+            parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
+        }
 
         setTimeout(function() {
             if (PWM_GLOBAL['healthCheckInProgress']) {
                 parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
             }
-        }, refreshNow ? 1000 : 30 * 1000);
+        }, 1000);
 
-        var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
+        refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
+        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+
         if (refreshNow) {
-            refreshUrl += "?refreshImmediate=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-        } else {
-            refreshUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            refreshUrl += "&refreshImmediate=true";
         }
 
         dojo.xhrGet({
@@ -407,8 +421,8 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
             timeout: 60 * 1000,
             preventCache: true,
             load: function(data) {
-                PWM_GLOBAL['pwm-health'] = data['overall'];
-                var healthRecords = data['data'];
+                PWM_GLOBAL['pwm-health'] = data['data']['overall'];
+                var healthRecords = data['data']['records'];
                 var htmlBody = '<table width="100%" style="width=100%; border=0">';
                 for (var i = 0; i < healthRecords.length; i++) {
                     var healthData = healthRecords[i];
@@ -422,18 +436,23 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
                 }
 
                 htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-                htmlBody += new Date(data['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
+                htmlBody += new Date(data['data']['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
                 if (showRefresh) {
-                    htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',true,true)">refresh</a>';
+                    htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
                 }
                 htmlBody += "</td></tr>";
 
                 htmlBody += '</table>';
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
-                setTimeout(function() {
-                    showPwmHealth(parentDivID, false, showRefresh);
-                }, 10 * 1000);
+                if (refreshTime > 0) {
+                    setTimeout(function() {
+                        showPwmHealth(parentDivID, options);
+                    }, refreshTime);
+                }
+                if (finishFunction) {
+                    finishFunction();
+                }
             },
             error: function(error) {
                 if (error != null) {
@@ -443,15 +462,20 @@ function showPwmHealth(parentDivID, refreshNow, showRefresh) {
                 htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
                 if (showRefresh) {
-                    htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',false,true)">retry</a><br/><br/>';
+                    htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
                 }
                 htmlBody += '</div>';
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
                 PWM_GLOBAL['pwm-health'] = 'WARN';
-                setTimeout(function() {
-                    showPwmHealth(parentDivID, false);
-                }, 10 * 1000);
+                if (refreshTime > 0) {
+                    setTimeout(function() {
+                        showPwmHealth(parentDivID, options);
+                    }, refreshTime);
+                }
+                if (finishFunction) {
+                    finishFunction();
+                }
             }
         });
     });
@@ -775,13 +799,14 @@ function showStatChart(statName,days,divName) {
                             for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
                                 var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                                 var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration] * 60 * 60;
+                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
+                                var loopEphValue = loopEpsValue * 60 * 60;
                                 var loopTop = data['EPS'][loopEpsName + "_TOP"];
                                 if (loopEpsDuration == "HOURLY") {
                                     activityCount += loopEpsValue;
                                 }
                                 if (getObject(loopEpsID) != null) {
-                                    console.log('loopEps=' + loopEpsName);
+                                    console.log('loopEpsID=' + loopEpsID + ', ' + 'loopEpsValue=' + loopEpsValue + ', ' + 'loopEphValue=' + loopEphValue);
                                     if (registry.byId(loopEpsID)) {
                                         registry.byId(loopEpsID).setAttribute('value',loopEpsValue);
                                         registry.byId(loopEpsID).setAttribute('max',loopTop);
@@ -789,7 +814,7 @@ function showStatChart(statName,days,divName) {
                                         var glossyCircular = new dojox.gauges.GlossyCircularGauge({
                                             background: [255, 255, 255, 0],
                                             noChange: true,
-                                            value: Math.abs(loopEpsValue),
+                                            value: Math.abs(loopEphValue),
                                             max: Math.abs(loopTop),
                                             needleColor: '#FFDC8B',
                                             majorTicksInterval: Math.abs(loopTop / 10),
@@ -1108,6 +1133,16 @@ function getCookie(c_name)
         }
     }
 }
+
+function preloadImages(arr){
+    var newimages=[]
+    var arr=(typeof arr!="object")? [arr] : arr //force arr parameter to always be an array
+    for (var i=0; i<arr.length; i++){
+        newimages[i]=new Image()
+        newimages[i].src=arr[i]
+    }
+}
+
 
 function isEmpty(o) {
     for (var key in o) if (o.hasOwnProperty(key)) return false;

@@ -39,9 +39,9 @@ public class EmailValue implements StoredValue {
         this.values = values;
     }
 
-    public EmailValue(final String input) {
+    static EmailValue fromJson(final String input) {
         if (input == null) {
-            values = Collections.emptyMap();
+            return new EmailValue(Collections.<String,EmailItemBean>emptyMap());
         } else {
             final Gson gson = new Gson();
             Map<String,EmailItemBean> srcList = gson.fromJson(input, new TypeToken<Map<String,EmailItemBean>>() {
@@ -49,7 +49,7 @@ public class EmailValue implements StoredValue {
 
             srcList = srcList == null ? Collections.<String,EmailItemBean>emptyMap() : srcList;
             srcList.remove(null);
-            values = Collections.unmodifiableMap(srcList);
+            return new EmailValue(Collections.unmodifiableMap(srcList));
         }
     }
 

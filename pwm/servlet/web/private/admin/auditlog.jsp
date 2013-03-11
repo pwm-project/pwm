@@ -38,7 +38,7 @@
         <%@ include file="admin-nav.jsp" %>
         <%
             final Gson gson = new Gson();
-            final SimpleDateFormat timeFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
             final int maxResults = password.pwm.Validator.readIntegerFromRequest(request, "maxResults", 1000);
             boolean maxResultsExceeded = false;
@@ -49,11 +49,11 @@
                     final Map<String, String> rowData = new HashMap<String, String>();
                     rowData.put("timestamp", timeFormat.format(loopRecord.getTimestamp()));
                     rowData.put("perpID", loopRecord.getPerpetratorID());
-                    rowData.put("perpDN", loopRecord.getPerpetratorDN());
+                    //rowData.put("perpDN", loopRecord.getPerpetratorDN());
                     rowData.put("event", loopRecord.getEventCode().toString());
-                    rowData.put("message",loopRecord.getMessage());
+                    //rowData.put("message",loopRecord.getMessage());
                     rowData.put("targetID",loopRecord.getTargetID());
-                    rowData.put("targetDN",loopRecord.getTargetDN());
+                    //rowData.put("targetDN",loopRecord.getTargetDN());
                     gridData.add(rowData);
                 } catch (IllegalStateException e) { /* ignore */ }
                 if (gridData.size() >= maxResults) {
@@ -65,24 +65,33 @@
         <div id="grid">
         </div>
         <script>
-            var headers = {"timestamp":"Time","perpID":"Perpetrator ID","perpDN":"Perpetrator DN","event":"Event","message":"Message","targetID":"Target ID","targetDN":"Target DN"};
+            function startupPage() {
+                var headers = {
+                    "timestamp":"Time",
+                    "perpID":"Perpetrator ID",
+                    //"perpDN":"Perpetrator DN",
+                    "event":"Event",
+                    //"message":"Message",
+                    "targetID":"Target ID"
+                    //"targetDN":"Target DN"
+                };
+                require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                        function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                            var data = <%=gson.toJson(gridData)%>;
+                            var columnHeaders = headers;
 
-            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                        var data = <%=gson.toJson(gridData)%>;
-                        var columnHeaders = headers;
+                            // Create a new constructor by mixing in the components
+                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-                        // Create a new constructor by mixing in the components
-                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
-
-                        // Now, create an instance of our custom grid which
-                        // have the features we added!
-                        var grid = new CustomGrid({
-                            columns: columnHeaders
-                        }, "grid");
-                        grid.renderArray(data);
-                        grid.set("sort","timestamp");
-                    });
+                            // Now, create an instance of our custom grid which
+                            // have the features we added!
+                            var grid = new CustomGrid({
+                                columns: columnHeaders
+                            }, "grid");
+                            grid.set("sort","timestamp");
+                            grid.renderArray(data);
+                        });
+            };
         </script>
         <style scoped="scoped">
             .dgrid { height: auto; }
@@ -102,8 +111,11 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/registry","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,registry){
-        dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
+            dojoParser.parse();
+            startupPage();
+        });
     });
     function refresh() {
         require(["dijit/registry"],function(registry){
@@ -112,9 +124,6 @@
                 window.location = 'auditlog.jsp?maxResults=' + maxResults;
             });
         });
-    }
-    function downloadCsv() {
-        window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>?pwmFormID=<pwm:FormID/>';
     }
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

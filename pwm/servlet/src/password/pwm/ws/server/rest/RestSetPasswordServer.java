@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 
 @Path("/setpassword")
 public class RestSetPasswordServer {
@@ -51,7 +52,8 @@ public class RestSetPasswordServer {
 
     @Context
     HttpServletRequest request;
-    public static class JsonData {
+    public static class JsonData implements Serializable
+    {
         public String username;
         public int version;
         //public int strength;

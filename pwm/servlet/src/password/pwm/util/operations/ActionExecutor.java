@@ -192,7 +192,6 @@ public class ActionExecutor {
         private boolean expandPwmMacros = true;
         private ChaiUser user;
 
-
         public UserInfoBean getUserInfoBean() {
             return userInfoBean;
         }

@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import password.pwm.config.value.*;
+import password.pwm.config.value.StringValue;
 
 public enum PwmSettingSyntax {
     STRING(StringValue.class),
@@ -38,6 +39,7 @@ public enum PwmSettingSyntax {
     FORM(FormValue.class),
     ACTION(ActionValue.class),
     EMAIL(EmailValue.class),
+    X509CERT(X509CertificateValue.class),
     ;
 
     private Class storedValueImpl;

@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -59,7 +60,8 @@ public class RestStatisticsServer {
     @Context
     HttpServletResponse response;
 
-    public static class JsonOutput {
+    public static class JsonOutput implements Serializable
+    {
         public Map<String,String> EPS;
         public Map<String,Object> nameData;
         public Map<String,Object> keyData;

@@ -75,6 +75,7 @@ public abstract class PwmConstants {
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpParameterMaxReadLength"));
+    public static final int HTTP_BODY_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpBodyMaxReadLength"));
     public static final int HTTP_SESSION_VALIDATION_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpSessionValidationKeyLength"));
     public static final int CONFIG_FILE_SCAN_FREQUENCY = Integer.parseInt(readPwmConstantsBundle("configFileScanFrequency"));
     public static final int CONFIG_BACKUP_ROTATIONS = Integer.parseInt(readPwmConstantsBundle("configFileBackupRotations"));
@@ -115,6 +116,8 @@ public abstract class PwmConstants {
     public static final String TOKEN_KEY_PWD_CHG_DATE = "pwm_lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
+
+    public static final long CERTIFICATE_WARN_PERIOD_MS = Long.parseLong(readPwmConstantsBundle("certificateWarnPeriodMS"));
 
     public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
@@ -173,7 +176,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/installmanager-mode-running.jsp";
-    public static final String URL_JSP_INSTALL_MANAGER_MODE_NEW = "WEB-INF/jsp/installmanager-mode-new.jsp";
+    public static final String URL_JSP_INSTALL_MANAGER_WIZZARD = "WEB-INF/jsp/installmanager-%1%.jsp";
     public static final String URL_JSP_HELPDESK_SEARCH = "WEB-INF/jsp/helpdesk.jsp";
     public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
 

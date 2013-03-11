@@ -69,15 +69,17 @@
                        type="date" required="true" value="<%=selectedDate%>"/>
             </p>
             <script type="text/javascript">
-                require(["dijit/form/DateTextBox"],function(dojo){
-                    new dijit.form.DateTextBox({
-                        name: "__expirationDate__",
-                        constraints: {
-                            min: new Date(),
-                            max: '<%=maxValidDateString%>'
-                        },
-                        value: '<%=selectedDate%>'
-                    }, "__expirationDate__");
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    require(["dijit/form/DateTextBox"],function(dojo){
+                        new dijit.form.DateTextBox({
+                            name: "__expirationDate__",
+                            constraints: {
+                                min: new Date(),
+                                max: '<%=maxValidDateString%>'
+                            },
+                            value: '<%=selectedDate%>'
+                        }, "__expirationDate__");
+                    });
                 });
             </script>
             <% } %>

@@ -37,7 +37,14 @@ public class RestResultBean implements Serializable {
     private String errorMessage;
     private String errorDetail;
     private String successMessage;
-    private Object data;
+    private Serializable data;
+
+    public RestResultBean() {
+    }
+
+    public RestResultBean(final Serializable data) {
+        this.data = data;
+    }
 
     public boolean isError() {
         return error;
@@ -71,11 +78,11 @@ public class RestResultBean implements Serializable {
         this.successMessage = successMessage;
     }
 
-    public Object getData() {
+    public Serializable getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(Serializable data) {
         this.data = data;
     }
 

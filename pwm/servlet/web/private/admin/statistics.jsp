@@ -118,12 +118,14 @@
         </table>
     </div>
     <script type="text/javascript">
-        require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,registry){
-            dojoParser.parse();
-            registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
-            setTimeout(function(){
-                refreshChart();
-            },60 * 1000)
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,registry){
+                dojoParser.parse();
+                registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+                setTimeout(function(){
+                    refreshChart();
+                },60 * 1000)
+            });
         });
         function refreshChart() {
             require(["dijit/registry"],function(registry){

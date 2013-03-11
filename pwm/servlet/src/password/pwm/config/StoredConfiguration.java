@@ -343,6 +343,10 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
     public void writeSetting(final PwmSetting setting, final StoredValue value) {
         preModifyActions();
+        final Class correctClass = setting.getSyntax().getStoredValueImpl();
+        if (!correctClass.equals(value.getClass())) {
+            throw new IllegalArgumentException("value must be of class " + correctClass.getName() + " for setting " + setting.toString());
+        }
         settingMap.put(setting,value);
     }
 

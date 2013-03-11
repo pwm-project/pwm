@@ -80,7 +80,7 @@
 <% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
 <script type="text/javascript">
     try {
-    <%=loopConfiguration.getJavascript()%>
+        <%=loopConfiguration.getJavascript()%>
     } catch (e) {
         console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
     }
@@ -113,10 +113,12 @@
                 </div>
             </div>
             <script type="text/javascript">
-                require(["dijit/Tooltip"],function(Tooltip){
-                    new Tooltip({
-                        connectId: ["strengthBox"],
-                        label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    require(["dijit/Tooltip"],function(Tooltip){
+                        new Tooltip({
+                            connectId: ["strengthBox"],
+                            label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+                        });
                     });
                 });
             </script>

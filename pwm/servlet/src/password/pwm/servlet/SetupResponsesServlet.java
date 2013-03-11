@@ -300,7 +300,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         final Map<String, String> inputMap = new HashMap<String, String>();
 
-        final String bodyString = ServletHelper.readRequestBody(req, 100 * 1024);
+        final String bodyString = ServletHelper.readRequestBody(req);
 
         final Gson gson = new Gson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {

@@ -36,20 +36,20 @@ import java.util.*;
 public class FormValue implements StoredValue {
     final List<FormConfiguration> values;
 
-    FormValue(final List<FormConfiguration> values) {
+    public FormValue(final List<FormConfiguration> values) {
         this.values = values;
     }
 
-    public FormValue(final String input) {
+    static FormValue fromJson(final String input) {
         if (input == null) {
-            values = Collections.emptyList();
+            return new FormValue(Collections.<FormConfiguration>emptyList());
         } else {
             final Gson gson = new Gson();
             List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
             }.getType());
             srcList = srcList == null ? Collections.<FormConfiguration>emptyList() : srcList;
             srcList.removeAll(Collections.singletonList(null));
-            values = Collections.unmodifiableList(srcList);
+            return new FormValue(Collections.unmodifiableList(srcList));
         }
     }
 

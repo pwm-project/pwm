@@ -33,8 +33,10 @@
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <script type="text/javascript">
     var LOAD_TRACKER = new Array();
+    PWM_GLOBAL['startupFunctions'].push(function(){
     getObject('mainContentPane').style.display = 'none';
     showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
+    });
 </script>
 <div>
     <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
@@ -43,7 +45,9 @@
 <% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
 <% if (!isDefault) { %>
 <script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
     LOAD_TRACKER.push('<%=key%>');
+    });
 </script>
 <% } %>
 <div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
@@ -51,10 +55,12 @@
         <% if (isDefault) { %>
         <button id="loadButton-localeBundle-<%=bundleName%>-<%=key%>">Edit Text</button>
         <script type="text/javascript">
-            require(["dijit/form/Button"],function(){
-                new dijit.form.Button({
-                    onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
-                },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit/form/Button"],function(){
+                    new dijit.form.Button({
+                        onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
+                    },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
+                });
             });
         </script>
         <% } %>
@@ -102,17 +108,19 @@
         }
     }
 
-    require(["dojo/domReady!","dijit/form/Button","dijit/Dialog"],function(){
-        LOAD_TRACKER.reverse();
-        if (LOAD_TRACKER.length > 0) {
-            setTimeout(function(){
-                doLazyLoad(LOAD_TRACKER.pop());
-            },1000);
-        } else {
-            setTimeout(function(){
-                closeWaitDialog();
-                getObject('mainContentPane').style.display = 'inline';
-            },2000);
-        }
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/domReady!","dijit/form/Button","dijit/Dialog"],function(){
+            LOAD_TRACKER.reverse();
+            if (LOAD_TRACKER.length > 0) {
+                setTimeout(function(){
+                    doLazyLoad(LOAD_TRACKER.pop());
+                },1000);
+            } else {
+                setTimeout(function(){
+                    closeWaitDialog();
+                    getObject('mainContentPane').style.display = 'inline';
+                },2000);
+            }
+        });
     });
 </script>
