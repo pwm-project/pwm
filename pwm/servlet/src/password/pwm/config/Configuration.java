@@ -615,4 +615,13 @@ public class Configuration implements Serializable {
     public PwmSetting.Template getTemplate() {
         return storedConfiguration.getTemplate();
     }
+
+    public boolean shouldHaveDbConfigured() {
+        for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
+            if (getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.DB)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

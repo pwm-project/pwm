@@ -338,7 +338,7 @@ MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
         var parentDivElement = getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
     }
-    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea"],function(dojoParser){
+    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
         dojoParser.parse(parentDiv);
     });
 };

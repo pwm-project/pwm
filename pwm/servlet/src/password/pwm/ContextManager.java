@@ -90,7 +90,13 @@ public class ContextManager implements Serializable {
             throws PwmUnrecoverableException
     {
         if (pwmApplication == null) {
-            throw new PwmUnrecoverableException(startupErrorInformation);
+            final ErrorInformation errorInformation;
+            if (startupErrorInformation != null) {
+                errorInformation = startupErrorInformation;
+            } else {
+                errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"application is not yet available");
+            }
+            throw new PwmUnrecoverableException(errorInformation);
         }
         return pwmApplication;
     }

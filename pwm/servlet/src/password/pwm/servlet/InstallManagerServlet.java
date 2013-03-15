@@ -31,7 +31,6 @@ import password.pwm.bean.InstallManagerBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.config.value.*;
-import password.pwm.config.value.StringValue;
 import password.pwm.error.*;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
@@ -63,6 +62,11 @@ public class InstallManagerServlet extends TopServlet {
 
     public static final String PARAM_LDAP2_CONTEXT = "ldap-context";
     public static final String PARAM_LDAP2_TEST_USER = "ldap-testUser";
+
+    public static final String PARAM_DB_HOST = "db-host";
+    public static final String PARAM_DB_PORT = "db-port";
+    public static final String PARAM_DB_USER = "db-user";
+    public static final String PARAM_DB_PASSWORD = "db-password";
 
     public static Map<String,String> defaultForm(PwmSetting.Template template) {
         final Map<String,String> defaultLdapForm = new HashMap<String,String>();

@@ -23,25 +23,30 @@
 package password.pwm.event;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.productivity.java.syslog4j.Syslog;
+import org.productivity.java.syslog4j.SyslogConfigIF;
+import org.productivity.java.syslog4j.SyslogIF;
+import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AuditManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuditManager.class);
@@ -52,6 +57,9 @@ public class AuditManager implements PwmService {
 
     private TimeDuration maxRecordAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 30);
     private Date oldestRecord = null;
+
+    private SyslogManager syslogManager;
+    private ErrorInformation lastError;
 
     public AuditManager() {
     }
@@ -66,22 +74,49 @@ public class AuditManager implements PwmService {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         this.maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
-        if (pwmApplication.getPwmDB() != null) {
+
+        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
             this.auditDB = PwmDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getPwmDB(), PwmDB.DB.AUDIT_EVENTS);
             this.status = STATUS.OPEN;
         } else {
             this.status = STATUS.CLOSED;
         }
+
+        final List<String> syslogConfigStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
+        if (!syslogConfigStrings.isEmpty()) {
+            try {
+                syslogManager = new SyslogManager(pwmApplication.getConfig());
+            } catch (Exception e) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
+                LOGGER.error(errorInformation.toDebugStr());
+            }
+        }
     }
 
     @Override
     public void close() {
+        if (syslogManager != null) {
+            syslogManager.close();
+        }
         this.status = STATUS.CLOSED;
     }
 
     @Override
     public List<HealthRecord> healthCheck() {
-        return null;
+        if (status != STATUS.OPEN) {
+            return Collections.emptyList();
+        }
+
+        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        if (syslogManager != null) {
+            healthRecords.addAll(syslogManager.healthCheck());
+        }
+
+        if (lastError != null) {
+            healthRecords.add(new HealthRecord(HealthStatus.WARN,"AuditManager", lastError.toDebugStr()));
+        }
+
+        return healthRecords;
     }
 
     public Iterator<AuditRecord> readLocalDB() {
@@ -118,6 +153,14 @@ public class AuditManager implements PwmService {
         }
     }
 
+    public int localSize() {
+        if (status != STATUS.OPEN || auditDB == null) {
+            return -1;
+        }
+
+        return auditDB.size();
+    }
+
     public void submitAuditRecord(final AuditEvent auditEvent, final UserInfoBean userInfoBean)
             throws PwmUnrecoverableException
     {
@@ -125,18 +168,13 @@ public class AuditManager implements PwmService {
         submitAuditRecord(auditRecord);
     }
 
-    public int localSize() {
-        if (status != STATUS.OPEN || auditDB == null) {
-            return 0;
-        }
-
-        return auditDB.size();
-    }
-
     public void submitAuditRecord(final AuditRecord auditRecord)
             throws PwmUnrecoverableException
     {
         final String gsonRecord = new Gson().toJson(auditRecord);
+
+        // add to debug log
+        LOGGER.info("audit event: " + gsonRecord);
 
         // add to audit db
         if (status == STATUS.OPEN && auditDB != null) {
@@ -151,8 +189,14 @@ public class AuditManager implements PwmService {
             LOGGER.error("error updating ldap user history: " + e.getMessage());
         }
 
-        // add to debug log
-        LOGGER.info("audit event: " + gsonRecord);
+        // send to syslog
+        if (syslogManager != null) {
+            try {
+                syslogManager.add(auditRecord);
+            } catch (PwmOperationalException e) {
+                lastError = e.getErrorInformation();
+            }
+        }
     }
 
     private void trimDB() {
@@ -201,4 +245,189 @@ public class AuditManager implements PwmService {
             throw new UnsupportedOperationException();
         }
     }
+
+
+
+    public static class SyslogConfig implements Serializable {
+        public enum Protocol { tcp, udp }
+
+        private Protocol protocol;
+        private String host;
+        private int port;
+
+        public SyslogConfig(Protocol protocol, String host, int port) {
+            this.protocol = protocol;
+            this.host = host;
+            this.port = port;
+        }
+
+        public Protocol getProtocol() {
+            return protocol;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public static SyslogConfig fromConfigString(final String input) throws IllegalArgumentException {
+            if (input == null) {
+                throw new IllegalArgumentException("input cannot be null");
+            }
+
+            final String parts[] = input.split(",");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("input must have three comma separated parts.");
+            }
+
+            final Protocol protocol;
+            try {
+                protocol = Protocol.valueOf(parts[0]);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("unknown protocol '" + parts[0] + "'");
+            }
+
+            final int port;
+            try {
+                port = Integer.parseInt(parts[2]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("invalid port number '" + parts[2] + "'");
+            }
+
+            return new SyslogConfig(protocol,parts[1],port);
+        }
+
+        public String toString() {
+            final StringBuilder message = new StringBuilder();
+            message.append(this.getProtocol().toString()).append(",");
+            message.append(this.getHost()).append(",");
+            message.append(this.getPort());
+            return message.toString();
+        }
+    }
+
+
+    private static class SyslogManager extends TimerTask {
+        private static final int MAX_QUEUE_SIZE = 1000;
+        private static final int TIMER_FREQUENCY_MS = 1000;
+        private static final int WARNING_WINDOW_MS = 30 * 60 * 1000;
+        private final Map<SyslogConfig,SyslogIF> syslogInstances = new LinkedHashMap<SyslogConfig,SyslogIF>();
+        private final Map<SyslogConfig,ErrorInformation> syslogErrors = new LinkedHashMap<SyslogConfig,ErrorInformation>();
+        private final Queue<AuditRecord> syslogQueue = new ConcurrentLinkedQueue<AuditRecord>();
+
+        private final Configuration configuration;
+        private final Timer timer = new Timer("pwm-AuditManager syslog writer",true);
+
+        public SyslogManager(final Configuration configuration) {
+            this.configuration = configuration;
+            final List<String> syslogConfigStrings = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
+            for (final String loopStr : syslogConfigStrings) {
+                final SyslogConfig syslogConfig;
+                try {
+                    syslogConfig = SyslogConfig.fromConfigString(loopStr);
+                    syslogInstances.put(syslogConfig, makeSyslogInstance(syslogConfig));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("error parsing syslog configuration for '" + loopStr + "', error: " + e.getMessage());
+                    break;
+                }
+            }
+            timer.schedule(this,TIMER_FREQUENCY_MS,TIMER_FREQUENCY_MS);
+        }
+
+        private static SyslogIF makeSyslogInstance(final SyslogConfig syslogConfig)
+        {
+            final SyslogConfigIF syslogConfigIF;
+            switch (syslogConfig.getProtocol()) {
+                case tcp:
+                    final TCPNetSyslogConfig tcpConfig = new TCPNetSyslogConfig();
+                    tcpConfig.setThreaded(false);
+                    tcpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
+                    syslogConfigIF = tcpConfig;
+                    break;
+
+                case udp:
+                    final TCPNetSyslogConfig udpConfig = new TCPNetSyslogConfig();
+                    udpConfig.setThreaded(false);
+                    udpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
+                    syslogConfigIF = udpConfig;
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("unknown protocol type");
+            }
+            syslogConfigIF.setHost(syslogConfig.getHost());
+            syslogConfigIF.setPort(syslogConfig.getPort());
+            syslogConfigIF.setThrowExceptionOnWrite(true);
+
+            return Syslog.createInstance(syslogConfig.toString(),syslogConfigIF);
+        }
+
+        private void add(AuditRecord event) throws PwmOperationalException {
+            if (syslogQueue.size() >= MAX_QUEUE_SIZE) {
+                final String errorMsg = "dropping audit record event due to queue full " + event.toString() + ", queue length=" + syslogQueue.size();
+                LOGGER.warn(errorMsg);
+                throw new PwmOperationalException(PwmError.ERROR_SYSLOG_WRITE_ERROR,errorMsg);
+            }
+
+            syslogQueue.offer(event);
+        }
+
+        public List<HealthRecord> healthCheck() {
+            final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+            for (final SyslogConfig syslogConfig : syslogErrors.keySet()) {
+                final ErrorInformation errorInformation = syslogErrors.get(syslogConfig);
+                if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
+                    healthRecords.add(new HealthRecord(HealthStatus.WARN,"AuditManager",errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
+                }
+            }
+            return healthRecords;
+        }
+
+
+        @Override
+        public void run() {
+            while (!syslogQueue.isEmpty()) {
+                processEvent(syslogQueue.poll());
+            }
+        }
+
+        private void processEvent(final AuditRecord auditRecord) {
+            final Gson gs = new GsonBuilder()
+                    .disableHtmlEscaping()
+                    .create();
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append(PwmConstants.PWM_APP_NAME);
+            sb.append(" ");
+            sb.append(gs.toJson(auditRecord));
+
+            for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
+                final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
+                try {
+                    syslogIF.info(sb.toString());
+                    syslogErrors.remove(syslogConfig);
+                } catch (Exception e) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, e.getMessage(), new String[]{syslogConfig.toString(),e.getMessage()});
+                    syslogErrors.put(syslogConfig, errorInformation);
+                    LOGGER.error(errorInformation.toDebugStr());
+                }
+            }
+        }
+
+        public void close() {
+            for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
+                final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
+                Syslog.destroyInstance(syslogConfig.toString());
+                syslogIF.shutdown();
+            }
+            timer.cancel();
+            run();
+            syslogInstances.clear();
+        }
+
+    }
+
 }

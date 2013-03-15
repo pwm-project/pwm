@@ -25,12 +25,14 @@ package password.pwm.util;
 import password.pwm.PwmConstants;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public abstract class PwmServletURLHelper {
 
     public static boolean isResourceURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/public/resources/") ||
-                checkIfMatchsURL(req, "/public/jsClientValues.jsp");
+                checkIfMatchesURL(req, "/public/jsClientValues.jsp");
     }
 
     public static boolean isLogoutURL(final HttpServletRequest req) {
@@ -43,7 +45,7 @@ public abstract class PwmServletURLHelper {
     }
 
     public static boolean isConfigManagerURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/config/");
+        return checkIfStartsWithURL(req, "/config/ConfigManager", "/private/admin/ConfigManager");
     }
 
     public static boolean isInstallManagerURL(final HttpServletRequest req) {
@@ -51,8 +53,8 @@ public abstract class PwmServletURLHelper {
     }
 
     public static boolean isChangePasswordURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD) ||
-                checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD,
+                "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
     }
 
     public static boolean isSetupResponsesURL(final HttpServletRequest req) {
@@ -68,13 +70,21 @@ public abstract class PwmServletURLHelper {
             return false;
         }
 
-        final String requestedURL = req.getRequestURI();
-        if (requestedURL == null) {
+        final URI originalRequestURI;
+        try {
+            final String originalRequestValue = (String)req.getAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI);
+            originalRequestURI = new URI(originalRequestValue);
+        } catch (URISyntaxException e) {
+            return false;
+        }
+
+        final String servletRequestPath = originalRequestURI.getPath();
+        if (servletRequestPath == null) {
             return false;
         }
 
         for (final String loopURL : url) {
-            if (requestedURL.startsWith(req.getContextPath() + loopURL)) {
+            if (servletRequestPath.startsWith(req.getContextPath() + loopURL)) {
                 return true;
             }
         }
@@ -82,7 +92,7 @@ public abstract class PwmServletURLHelper {
         return false;
     }
 
-    private static boolean checkIfMatchsURL(final HttpServletRequest req, final String... url) {
+    private static boolean checkIfMatchesURL(final HttpServletRequest req, final String... url) {
         if (req == null) {
             return false;
         }

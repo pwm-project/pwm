@@ -1332,6 +1332,14 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="audit.syslog.servers" level="0" required="false">
+        <label>Syslog Audit Servers</label>
+        <description><![CDATA[Syslog audit servers]]></description>
+        <default>
+            <value>udp,127.0.0.1,514</value>
+        </default>
+        <!--<regex>^(udp|tcp)\,.+\,[0-9]*$</regex>-->
+    </setting>
     <setting key="token.storageMethod" level="0" required="true">
         <label>Token Storage Method</label>
         <description><![CDATA[Storage method used to save issued tokens.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>PwmDB</td><td>Stores the tokens in the local embedded PwmDB database.  Tokens will not across multiple PWM instances.</td></tr><tr><td>DB</td><td>Store the tokens in a configured, remote database.  Tokens will work across multiple PWM instances.</td></tr><tr><td>Crypto</td><td>Use crypto to create and read tokens, they are not stored locally.  Tokens will work across multiple PWM instances if they have the same PWM Security Key.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to store tokens.  Tokens will work across multiple PWM instances.  LDAP tokens cannot be used as New User Registration tokens.</td></tr></table>Except when using the "Crypto" method, tokens will be generated using the length and character configuration options. Whenusing the "Crypto" method, tokens will be much longer.]]></description>
@@ -2457,7 +2465,7 @@
     </setting>
     <setting key="db.url" level="0">
         <label>Database Connection String</label>
-        <description><![CDATA[Database connection string in standard JDBC format.]]></description>
+        <description><![CDATA[Database connection string in standard JDBC format.<table><tr><td class="key">Database Type</td><td class="key">Example Connection String</td></tr><tr><td>MS-SQL </td><td>jdbc:sqlserver://host.example.net:port;databaseName=SELFSERVICEDB</td></tr><tr><td>MS-SQL using jTDS</td><td>jdbc:jtds:sqlserver://host.example.net:port/SELFSERVICEDB</td></tr><tr><td>MySQL</td><td>jdbc:mysql://host.example.net:port/SELFSERVICEDB</td></tr></table>]]></description>
         <default>
             <value />
         </default>

@@ -800,7 +800,7 @@ function showStatChart(statName,days,divName) {
                                 var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                                 var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
                                 var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
-                                var loopEphValue = loopEpsValue * 60 * 60;
+                                var loopEphValue = loopEpsValue * 60;
                                 var loopTop = data['EPS'][loopEpsName + "_TOP"];
                                 if (loopEpsDuration == "HOURLY") {
                                     activityCount += loopEpsValue;

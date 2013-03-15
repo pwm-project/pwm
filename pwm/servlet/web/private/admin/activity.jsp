@@ -160,7 +160,7 @@
                 </tr>
             </table>
         </div>
-        <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per hour, this content is dynamically refreshed</div>
+        <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per minute, this content is dynamically refreshed</div>
     </div>
 </div>
 </div>

@@ -175,12 +175,8 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (!hasDbConfiguration) {
-            for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-                if (config.getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.DB)) {
-                    final String value = loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                            + " -> " + loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
-                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_MissingDB",value)));
-                }
+            if (config.shouldHaveDbConfigured()) {
+                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_MissingDB")));
             }
         }
 

@@ -244,7 +244,7 @@ function importLdapCertificates() {
             if (data['error']) {
                 showError(data['errorDetail']);
             } else {
-                showDialog('Success','Certificates Imported',function(){
+                showDialog('Success','Certificates imported',function(){
                     location = "ConfigManager";
                 });
             }
@@ -268,7 +268,7 @@ function clearLdapCertificates() {
             if (data['error']) {
                 showError(data['errorDetail']);
             } else {
-                showDialog('Success','Certificates Removed',function(){
+                showDialog('Success','Certificates removed',function(){
                     location = "ConfigManager";
                 });
             }

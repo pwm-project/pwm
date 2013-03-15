@@ -17,6 +17,7 @@ public class InstallManagerBean implements PwmSessionBean {
     private X509Certificate[] ldapCertificates = new X509Certificate[0];
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
+    private boolean needsDbConfiguration = false;
 
     public InstallManagerBean() {
         InstallManagerServlet.updateLdapInfo(this.getStoredConfiguration(),new HashMap<String,String>(InstallManagerServlet.defaultForm(storedConfiguration.getTemplate())));

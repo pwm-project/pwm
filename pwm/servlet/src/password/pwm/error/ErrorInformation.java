@@ -144,7 +144,7 @@ public class ErrorInformation implements Serializable {
         }
 
         if (fieldValues != null && fieldValues.length > 0) {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues[0]);
+            return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues);
         } else {
             return PwmError.getLocalizedMessage(userLocale, this.getError(), config);
         }

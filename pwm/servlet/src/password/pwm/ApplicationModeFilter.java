@@ -48,12 +48,16 @@ public class ApplicationModeFilter implements Filter {
             throws IOException, ServletException
     {
         // check for valid config
+        servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, ((HttpServletRequest) servletRequest).getRequestURI());
         try {
             if (checkConfigModes((HttpServletRequest)servletRequest, (HttpServletResponse)servletResponse)) {
                 return;
             }
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error(e.getMessage(),e);
+            if (e.getError() == PwmError.ERROR_UNKNOWN) {
+                try { LOGGER.error(e.getMessage()); } catch (Exception ignore) { /* noop */ }
+            }
+            throw new ServletException(e.getErrorInformation().toDebugStr());
         }
 
         filterChain.doFilter(servletRequest,servletResponse);
@@ -73,10 +77,11 @@ public class ApplicationModeFilter implements Filter {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
 
-        PwmApplication.MODE mode = PwmApplication.MODE.NEW;
-        if (theManager != null) {
-            mode = theManager.getApplicationMode();
+        if (theManager == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to load PwmApplication instance"));
         }
+
+        final PwmApplication.MODE mode = theManager.getApplicationMode();
 
         if (PwmServletURLHelper.isResourceURL(req)) {
             return false;

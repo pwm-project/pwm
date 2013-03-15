@@ -64,7 +64,7 @@
                         <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
                         <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Intruder Attempts</div>
                     </div>
-                    <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">Events Per Hour</div>
+                    <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">Events Per Minute</div>
                 </td>
             </tr>
         </table>
