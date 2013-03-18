@@ -354,7 +354,7 @@ public class HelpdeskServlet extends TopServlet {
 
         try {
             additionalUserInfo.setPwmIntruder(false);
-            pwmApplication.getIntruderManager().checkUser(userDN,pwmSession);
+            pwmApplication.getIntruderManager().check(null,userDN,pwmSession);
         } catch (Exception e) {
             additionalUserInfo.setPwmIntruder(true);
         }
@@ -402,8 +402,7 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserDN(),pwmSession);
-        pwmApplication.getIntruderManager().addGoodUserAttempt(helpdeskBean.getUserInfoBean().getUserID(),pwmSession);
+        pwmApplication.getIntruderManager().clear(helpdeskBean.getUserInfoBean().getUserID(),helpdeskBean.getUserInfoBean().getUserDN(),pwmSession);
 
         try {
             final String userDN = helpdeskBean.getUserInfoBean().getUserDN();

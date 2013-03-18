@@ -68,7 +68,7 @@
             </td>
             <td>
                 <a href="<pwm:url url='intruderstatus.jsp'/>">
-                    <%= numberFormat.format(pwmApplication.getIntruderManager().currentLockedUsers()) %>
+                    <%= numberFormat.format(pwmApplication.getIntruderManager().userRecordCount()) %>
                 </a>
             </td>
             <td class="key">
@@ -78,7 +78,7 @@
             </td>
             <td>
                 <a href="<pwm:url url='intruderstatus.jsp'/>">
-                    <%= numberFormat.format(pwmApplication.getIntruderManager().currentLockedAddresses()) %>
+                    <%= numberFormat.format(pwmApplication.getIntruderManager().addressRecordCount()) %>
                 </a>
             </td>
         </tr>

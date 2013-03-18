@@ -93,7 +93,7 @@ public class
         }
 
         if (forgottenPasswordBean.getProxiedUser() != null) {
-            pwmApplication.getIntruderManager().checkUser(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().check(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
@@ -139,7 +139,6 @@ public class
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final String usernameParam = Validator.readStringFromRequest(req, "username");
         final String contextParam = Validator.readStringFromRequest(req, "context");
 
         // clear the bean
@@ -168,9 +167,8 @@ public class
 
             if (theUser == null) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
-                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+                pwmApplication.getIntruderManager().mark(null,null,pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
                 forwardToSearchJSP(req,resp);
                 return;
             }
@@ -179,11 +177,9 @@ public class
             pwmSession.getSessionStateBean().setLastParameterValues(new Properties());
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
-            pwmApplication.getIntruderManager().addIntruderAttempt(usernameParam, pwmSession);
-            pwmApplication.getIntruderManager().checkUser(usernameParam, pwmSession);
+            pwmApplication.getIntruderManager().mark(null, null, pwmSession);
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
-            pwmApplication.getIntruderManager().delayPenalty(usernameParam, pwmSession);
             this.forwardToSearchJSP(req, resp);
             return;
         }
@@ -270,9 +266,8 @@ public class
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
         simulateBadLogin(pwmApplication, pwmSession, userDN);
-        pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
+        pwmApplication.getIntruderManager().mark(null, userDN, pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 
@@ -370,7 +365,7 @@ public class
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, "incorrect attribute value during check for " + theUser.getEntryDN());
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-            pwmApplication.getIntruderManager().addIntruderAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().mark(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
             simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
             this.forwardToResponsesJSP(req, resp);
             return;
@@ -405,9 +400,8 @@ public class
                     ssBean.setSessionError(errorInformation);
                     LOGGER.debug(pwmSession,errorInformation.toDebugStr());
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                    pwmApplication.getIntruderManager().addIntruderAttempt(forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
                     simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
-                    pwmApplication.getIntruderManager().delayPenalty(theUser.getEntryDN(), pwmSession);
+                    pwmApplication.getIntruderManager().mark(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
                     this.forwardToResponsesJSP(req, resp);
                     return;
                 }

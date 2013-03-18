@@ -77,15 +77,12 @@ public class UserAuthenticator {
                 userDN = theUser.getEntryDN();
             }
         } catch (PwmOperationalException e) {
-            intruderManager.addIntruderAttempt(username, pwmSession);
-            intruderManager.checkUser(username, pwmSession);
             statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            pwmApplication.getIntruderManager().delayPenalty(username, pwmSession);
+            intruderManager.mark(username, null, pwmSession);
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
         }
 
-        intruderManager.checkUser(userDN, pwmSession);
-        intruderManager.checkAddress(pwmSession);
+        intruderManager.check(username, userDN, pwmSession);
 
         boolean allowBindAsUser = true;
         try {
@@ -104,10 +101,9 @@ public class UserAuthenticator {
             } else {
                 // auth failed, presumably due to wrong password.
                 ssBean.setAuthenticated(false);
-                intruderManager.addIntruderAttempt(userDN, pwmSession);
                 LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-                pwmApplication.getIntruderManager().delayPenalty(userDN, pwmSession);
+                intruderManager.mark(username, userDN, pwmSession);
                 throw e;
             }
         }
@@ -158,7 +154,6 @@ public class UserAuthenticator {
                 final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
                 LOGGER.warn(pwmSession, errorInformation.toDebugStr());
-                pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
             }
@@ -298,10 +293,6 @@ public class UserAuthenticator {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        //notify the intruder manager with a successful login
-        intruderManager.addGoodAddressAttempt(pwmSession);
-        intruderManager.addGoodUserAttempt(userDN, pwmSession);
-
         if (pwmApplication.getStatisticsManager() != null) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
 
@@ -340,6 +331,9 @@ public class UserAuthenticator {
                     userDN,
                     userPassword);
         }
+
+        //notify the intruder manager with a successful login
+        intruderManager.clear(pwmSession.getUserInfoBean().getUserID(), userDN, pwmSession);
 
     }
 }

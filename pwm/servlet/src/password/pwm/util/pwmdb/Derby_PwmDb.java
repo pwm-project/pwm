@@ -29,8 +29,9 @@ import password.pwm.util.PwmLogger;
 import java.io.File;
 import java.sql.*;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -50,6 +51,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
+    private final static int ITERATOR_LIMIT = 100;
 
     private static final String WIDTH_KEY = String.valueOf(PwmDB.MAX_KEY_LENGTH);
     
@@ -60,7 +62,7 @@ public class Derby_PwmDb implements PwmDBProvider {
     private File dbDirectory;
 
     // cache of dbIterators
-    private final Map<DB, DbIterator<String>> dbIterators = new ConcurrentHashMap<DB, DbIterator<String>>();
+    private final Set<PwmDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<PwmDB.PwmDBIterator<String>, Boolean>());
 
     // sql db connection
     private Connection dbConnection;
@@ -256,15 +258,15 @@ public class Derby_PwmDb implements PwmDBProvider {
         this.status = PwmDB.Status.OPEN;
     }
 
-    public synchronized Iterator<String> iterator(final DB db)
+    public PwmDB.PwmDBIterator<String> iterator(final DB db)
             throws PwmDBException {
         try {
-            if (dbIterators.containsKey(db)) {
-                throw new IllegalArgumentException("multiple iterators per DB are not permitted");
+            if (dbIterators.size() > ITERATOR_LIMIT) {
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
 
-            final DbIterator iterator = new DbIterator(db);
-            dbIterators.put(db, iterator);
+            final PwmDB.PwmDBIterator iterator = new DbIterator(db);
+            dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
@@ -379,19 +381,6 @@ public class Derby_PwmDb implements PwmDBProvider {
         return true;
     }
 
-    public synchronized void returnIterator(final DB db)
-            throws PwmDBException
-    {
-        final DbIterator dbIterator = dbIterators.remove(db);
-        if (dbIterator != null) {
-            try {
-                dbIterator.close();
-            } catch (Exception e) {
-                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
-            }
-        }
-    }
-
     public int size(final DB db)
             throws PwmDBException
     {
@@ -488,7 +477,7 @@ public class Derby_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements Iterator<String> {
+    private class DbIterator implements PwmDB.PwmDBIterator<String> {
         private String nextItem;
         private String currentItem;
 
@@ -526,13 +515,17 @@ public class Derby_PwmDb implements PwmDBProvider {
         }
 
         public boolean hasNext() {
-            return nextItem != null;
+            boolean hasNext = nextItem != null;
+            if (!hasNext) {
+                close();
+            }
+            return hasNext;
         }
 
         public void close() {
             nextItem = null;
             Derby_PwmDb.close(resultSet);
-            dbIterators.remove(db);
+            dbIterators.remove(this);
         }
 
         public String next() {

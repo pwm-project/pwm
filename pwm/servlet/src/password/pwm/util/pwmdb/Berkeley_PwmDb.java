@@ -46,9 +46,10 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
-    private final static boolean IS_TRANSACTIONAL = true;
+    private final static boolean IS_TRANSACTIONAL = false;
     private final static int OPEN_RETRY_SECONDS = 60;
     private final static int CLOSE_RETRY_SECONDS = 120;
+    private final static int ITERATOR_LIMIT = 100;
 
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -57,7 +58,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<DB, Database>();
 
     // cache of dbIterators
-    private final Map<DB, DbIterator<String>> dbIterators = Collections.synchronizedMap(new HashMap<DB, DbIterator<String>>());
+    private final Set<PwmDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<PwmDB.PwmDBIterator<String>,Boolean>());
 
     private PwmDB.Status status = PwmDB.Status.NEW;
 
@@ -210,16 +211,16 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         status = PwmDB.Status.OPEN;
     }
 
-    public synchronized Iterator<String> iterator(final DB db)
-            throws PwmDBException {
+    public PwmDB.PwmDBIterator<String> iterator(final DB db)
+            throws PwmDBException
+    {
         preCheck(false);
         try {
-            if (dbIterators.containsKey(db)) {
-                throw new IllegalArgumentException("multiple outstanding iterators per DB are not permitted");
+            if (dbIterators.size() > ITERATOR_LIMIT) {
+                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
-
-            final DbIterator<String> iterator = new DbIterator<String>(db);
-            dbIterators.put(db, iterator);
+            final PwmDB.PwmDBIterator<String> iterator = new DbIterator<String>(db);
+            dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
@@ -274,20 +275,6 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         }
     }
 
-    public synchronized void returnIterator(final DB db)
-            throws PwmDBException {
-        try {
-            if (dbIterators.containsKey(db)) {
-                final DbIterator oldIterator = dbIterators.remove(db);
-                if (oldIterator != null) {
-                    oldIterator.close();
-                }
-            }
-        } catch (Exception e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
-        }
-    }
-
     public int size(final DB db)
             throws PwmDBException {
         preCheck(false);
@@ -321,12 +308,11 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements Iterator<String> {
+    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
+
         private Iterator<String> innerIter;
-        final private DB db;
 
         private DbIterator(final DB db) throws DatabaseException {
-            this.db = db;
             this.innerIter = cachedMaps.get(db).keySet().iterator();
         }
 
@@ -336,7 +322,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
         public void close() {
             innerIter = null;
-            dbIterators.remove(db);
+            dbIterators.remove(this);
         }
 
         public String next() {

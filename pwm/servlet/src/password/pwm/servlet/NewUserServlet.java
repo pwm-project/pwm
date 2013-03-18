@@ -284,8 +284,7 @@ public class NewUserServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().addIntruderAttempt(null, pwmSession);
-        pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+        pwmApplication.getIntruderManager().mark(null,null,pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 

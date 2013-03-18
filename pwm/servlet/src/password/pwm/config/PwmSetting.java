@@ -363,10 +363,14 @@ public enum PwmSetting {
             "intruder.user.resetTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     INTRUDER_USER_MAX_ATTEMPTS(
             "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
+    INTRUDER_USER_CHECK_TIME(
+            "intruder.user.checkTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     INTRUDER_ADDRESS_RESET_TIME(
             "intruder.address.resetTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
             "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
+    INTRUDER_ADDRESS_CHECK_TIME(
+            "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
             "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     RECAPTCHA_KEY_PUBLIC(

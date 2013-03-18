@@ -99,15 +99,14 @@ public class ForgottenUsernameServlet extends TopServlet {
 
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
-                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+                pwmApplication.getIntruderManager().mark(null,null,pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-                pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
                 forwardToJSP(req, resp);
                 return;
             }
 
             // make sure the user isn't locked.
-            pwmApplication.getIntruderManager().checkUser(theUser.getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().check(null,theUser.getEntryDN(),pwmSession);
 
             // redirect user to success page.
             LOGGER.info(pwmSession, "found user " + theUser.getEntryDN());
@@ -116,7 +115,7 @@ public class ForgottenUsernameServlet extends TopServlet {
                 final String username = theUser.readStringAttribute(usernameAttribute);
                 LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
                 ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
-                pwmApplication.getIntruderManager().addGoodAddressAttempt(pwmSession);
+                pwmApplication.getIntruderManager().clear(null,null,pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
                 ServletHelper.forwardToSuccessPage(req, resp);
                 return;
@@ -127,11 +126,10 @@ public class ForgottenUsernameServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
             ssBean.setSessionError(errorInfo);
-            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-        pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
         forwardToJSP(req, resp);
     }
 

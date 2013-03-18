@@ -158,7 +158,7 @@ public class ActivateUserServlet extends TopServlet {
             if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
                 final String errorMsg = "user " + theUser.getEntryDN() + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
-                pwmApplication.getIntruderManager().addIntruderAttempt(theUser.getEntryDN(), pwmSession);
+                pwmApplication.getIntruderManager().mark(null, theUser.getEntryDN(), pwmSession);
                 throw new PwmOperationalException(errorInformation);
             }
 
@@ -166,8 +166,7 @@ public class ActivateUserServlet extends TopServlet {
             activateUserBean.setTheUser(theUser);
             activateUserBean.setFormValidated(true);
         } catch (PwmOperationalException e) {
-            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
-            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
         }
@@ -217,10 +216,10 @@ public class ActivateUserServlet extends TopServlet {
             activateUser(pwmSession, pwmApplication, activateUserBean.getTheUser());
             ServletHelper.forwardToSuccessPage(req, resp);
         } catch (PwmOperationalException e) {
-            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+            final String userDN = activateUserBean.getTheUser() == null ? null : activateUserBean.getTheUser().getEntryDN();
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+            pwmApplication.getIntruderManager().mark(null,userDN,pwmSession);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
@@ -590,8 +589,7 @@ public class ActivateUserServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().addIntruderAttempt(userDN, pwmSession);
-        pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+        pwmApplication.getIntruderManager().mark(null, userDN, pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 

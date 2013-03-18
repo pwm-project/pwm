@@ -30,7 +30,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mmm:ss"); %>
+<% DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

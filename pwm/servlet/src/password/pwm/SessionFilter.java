@@ -173,7 +173,7 @@ public class SessionFilter implements Filter {
         //check intruder detection, if it is tripped, send user to error page
         if (pwmApplication.getIntruderManager() != null && pwmApplication.getConfig() != null) {
             try {
-                pwmApplication.getIntruderManager().checkAddress(pwmSession);
+                pwmApplication.getIntruderManager().check(null,null,pwmSession);
             } catch (PwmUnrecoverableException e) {
                 ServletHelper.forwardToErrorPage(req, resp, false);
                 return;

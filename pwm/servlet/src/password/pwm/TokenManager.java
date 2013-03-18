@@ -288,7 +288,7 @@ public class TokenManager implements PwmService {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
             if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.STORE_PWMDB) {
-                try {((PwmDBTokenMachine)tokenMachine).returnIterator(keyIterator); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
+                try {((PwmDB.PwmDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
             }
         }
 
@@ -443,7 +443,7 @@ public class TokenManager implements PwmService {
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final String md5sumToken = makeTokenHash(tokenKey);
-            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS,md5sumToken);
+            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS, md5sumToken);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
                 return TokenPayload.fromEncryptedString(TokenManager.this,storedRawValue);
@@ -470,12 +470,8 @@ public class TokenManager implements PwmService {
             return pwmDB.size(PwmDB.DB.TOKENS);
         }
 
-        public Iterator<String> keyIterator() throws PwmOperationalException {
+        public PwmDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
             return pwmDB.iterator(PwmDB.DB.TOKENS);
-        }
-
-        public void returnIterator(final Iterator<String> iterator) throws PwmOperationalException {
-            pwmDB.returnIterator(PwmDB.DB.TOKENS);
         }
 
         public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {

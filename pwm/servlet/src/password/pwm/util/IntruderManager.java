@@ -25,523 +25,337 @@ package password.pwm.util;
 import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.*;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.*;
 
-/**
- * IntruderManager watches for login errors by users and from IP addresses.  When to many bad attempts
- * occur, IntruderManager denies further login attempts.
- * <p/>
- * An singleton instance of IntruderManager is held by the PwmApplication singlenton.
- * <p/>
- * IntruderManager itself does not restrict/test logins, it relies on servlets or servlet filters
- * to call it appropriately.
- *
- * @author Jason D. Rivard
- */
-public class IntruderManager implements Serializable, PwmService {
 // ------------------------------ FIELDS ------------------------------
 
-
+public class IntruderManager implements Serializable, PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(IntruderManager.class);
-    private Timer taskMaster;
-    private STATUS status = STATUS.NEW;
+    private static final long CLEANER_RUN_FREQUENCY_MS = PwmConstants.INTRUDER_CLEANUP_FREQUENCY_MS;
+    private static final long MAX_RECORD_AGE_MS = PwmConstants.INTRUDER_RETENTION_TIME_MS;
+
     private PwmApplication pwmApplication;
-    private PwmDB pwmDB;
-    private ErrorInformation healthError;
-
-    private volatile int lockedUserCount;
-    private volatile int lockedAddressCount;
-    private volatile int recordTicks = CLEANER_MIN_RECORD_TICKS;
-
-    private long configUserResetTime;
-    private int configUserMaxAttempts;
-    private long configAddressResetTime;
-    private int configAddressMaxAttempts;
-    private int configMaxRecordAgeMS = PwmConstants.INTRUDER_RETENTION_TIME_MS;
-
-    private static final PwmDB.DB DB_USER = PwmDB.DB.INTRUDER_USER;
-    private static final PwmDB.DB DB_ADDRESS = PwmDB.DB.INTRUDER_ADDRESS;
-    private static final int CLEANER_MIN_RECORD_TICKS = 500;
-
-// --------------------------- CONSTRUCTORS ---------------------------
+    private STATUS status = STATUS.NEW;
+    private RecordManager userManager = new StubRecordManager();
+    private RecordManager addressManager = new StubRecordManager();
+    private ErrorInformation startupError;
+    private Timer timer;
 
     public IntruderManager() {
     }
 
-// -------------------------- OTHER METHODS --------------------------
-
-    /**
-     * Mark an IP address as having a bad attempt.
-     *
-     * @param pwmSession Session state
-     */
-    public void addIntruderAttempt(final String username, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        ssBean.incrementIncorrectLogins();
-        incrementStats();
-
-        final String addressString = ssBean.getSrcAddress();
-        if (addressString != null) {
-            addBadAddressAttempt(addressString, pwmSession);
-        }
-
-        if (username != null && username.length() > 0) {
-            addBadUserAttempt(username, pwmSession);
-        }
-    }
-
-    private void addBadAddressAttempt(final String addressString, final PwmSession pwmSession) {
-        if (configAddressMaxAttempts <= 0 || configAddressResetTime <= 0) {
-            return;
-        }
-
-        try {
-            final InetAddress address = InetAddress.getByName(addressString);
-            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()) {
-                LOGGER.trace(pwmSession, "disregarding local intruder attempt from: " + addressString);
-            }
-        } catch(Exception e) {
-            LOGGER.error(pwmSession, "error examining address: " + addressString);
-        }
-
-        markBadAttempt(DB_ADDRESS, addressString, configAddressResetTime);
-        final IntruderRecord record = readIntruderRecord(DB_ADDRESS, addressString);
-
-        try {
-            this.checkAddress(pwmSession);
-        } catch (PwmUnrecoverableException e) {
-            lockAddress(record, addressString);
-        }
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("incrementing count");
-            sb.append(" address=").append(addressString);
-            sb.append(", attemptCount=").append(record.getAttemptCount());
-            if (isLocked(record,configAddressResetTime, configAddressMaxAttempts)) {
-                sb.append(", locked=true");
-                sb.append(", alerted=").append(record.isAlerted());
-                sb.append(", age=").append(TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString());
-            }
-            LOGGER.debug(pwmSession, sb.toString());
-        }
-    }
-
-    private void incrementStats() {
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
-        pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
-    }
-
-    private void markBadAttempt(final PwmDB.DB table, final String key, final long maxDuration) {
-        IntruderRecord record = readIntruderRecord(table, key);
-        if (record == null) {
-            record = new IntruderRecord();
-            recordTicks++;
-        }
-        record.incrementAttemptCount(maxDuration);
-        writeIntruderRecord(table,key,record);
-    }
-
-    /**
-     * Checks to see if an ip address has been locked out.  If the ip address is locked out, a PWMException is thrown, and
-     * the ssBean's error status is set appropriately
-     *
-     * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmUnrecoverableException
-     *          if the user is locked out
-     */
-    public void checkAddress(final PwmSession pwmSession)
-            throws PwmUnrecoverableException {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String addressString = ssBean.getSrcAddress();
-
-        if (addressString != null) {
-            final IntruderRecord record = readIntruderRecord(DB_ADDRESS, addressString);
-            if (record != null && isLocked(record, configAddressResetTime, configAddressMaxAttempts)) {
-                LOGGER.warn(pwmSession, "address intruder limit exceeded for " + addressString);
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_ADDRESS);
-                ssBean.setSessionError(error);
-                incrementStats();
-                throw new PwmUnrecoverableException(error);
-            }
-        }
-    }
-
-    private void addBadUserAttempt(final String username, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        if (configUserMaxAttempts <= 0 || configUserResetTime <= 0) {
-            return;
-        }
-
-        markBadAttempt(DB_USER, username, configUserResetTime);
-        final IntruderRecord record = readIntruderRecord(DB_USER, username);
-
-        try {
-            this.checkUser(username, pwmSession);
-        } catch (PwmUnrecoverableException e) {
-            lockUser(pwmSession, record, username);
-        }
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("incrementing count");
-            sb.append(" user=").append(username);
-            sb.append(", attemptCount=").append(record.getAttemptCount());
-            if (isLocked(record, configUserResetTime, configUserMaxAttempts)) {
-                sb.append(", locked=true");
-                sb.append(", alerted=").append(record.isAlerted());
-                sb.append(", age=").append(TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString());
-            }
-            LOGGER.debug(pwmSession, sb.toString());
-        }
-    }
-
-    public void delayPenalty(final String username, final PwmSession pwmSession) {
-        Helper.pause(PwmRandom.getInstance().nextInt(2 * 1000) + 1000); // delay penalty of 1-3 seconds
-    }
-
-    private void lockUser(final PwmSession pwmSession, final IntruderRecord record, final String username) {
-        if (record.isAlerted()) {
-            return;
-        }
-        record.setAlerted(true);
-        writeIntruderRecord(DB_USER, username, record);
-
-        final Map<String, String> values = new LinkedHashMap<String, String>();
-        values.put("type", "user");
-        values.put("username", username);
-        values.put("attempts", String.valueOf(record.getAttemptCount()));
-        values.put("age", TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString());
-        AlertHandler.alertIntruder(pwmApplication, values);
-
-        lockedUserCount++;
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.LOCKED_USERS);
-
-        try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final ChaiUser user;
-            if (userSearchEngine.checkIfStringIsDN(pwmSession,username)) {
-                user =ChaiFactory.createChaiUser(username, pwmApplication.getProxyChaiProvider());
-            } else {
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setUsername(username);
-                user = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
-            }
-            if (user != null) {
-                pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.INTRUDER_LOCK, pwmSession.getUserInfoBean());
-                LOGGER.debug(pwmSession, "updated user history for " + user.getEntryDN() + " with intruder lock event");
-            }
-        } catch (ChaiUnavailableException e) {
-            LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
-        } catch (PwmException e) {
-            LOGGER.debug(pwmSession, "error updating user history for " + username + " " + e.getMessage());
-        }
-    }
-
-    private void lockAddress(final IntruderRecord record, final String addressString) {
-        if (record.isAlerted()) {
-            return;
-        }
-        record.setAlerted(true);
-        writeIntruderRecord(DB_ADDRESS, addressString, record);
-
-        final Map<String, String> values = new LinkedHashMap<String, String>();
-        values.put("type", "address");
-        values.put("address", addressString);
-        values.put("attempts", String.valueOf(record.getAttemptCount()));
-        values.put("age", TimeDuration.fromCurrent(record.getTimeStamp()).asCompactString());
-        AlertHandler.alertIntruder(pwmApplication, values);
-
-        lockedAddressCount++;
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.LOCKED_ADDRESSES);
-    }
-
-    /**
-     * Checks to see if a userDN has been locked out.  If the userDN is locked out, a PWMException is thrown, and
-     * the ssBean's error status is set appropriately
-     *
-     * @param username   the userDN to test
-     * @param pwmSession the session bean of the logged in user
-     * @throws password.pwm.error.PwmUnrecoverableException
-     *          if the user is locked out
-     */
-    public void checkUser(final String username, final PwmSession pwmSession)
-            throws PwmUnrecoverableException {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        final IntruderRecord record = readIntruderRecord(DB_USER,username);
-        if (record != null && isLocked(record, configUserResetTime, configUserMaxAttempts)) {
-            LOGGER.info(pwmSession, "user intruder limit exceeded for " + username);
-            final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INTRUDER_USER);
-            ssBean.setSessionError(error);
-            incrementStats();
-            throw new PwmUnrecoverableException(error);
-        }
-    }
-
-    public void addGoodAddressAttempt(final PwmSession pwmSession) {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        ssBean.resetIncorrectLogins();
-        doGoodAttempt(DB_ADDRESS, ssBean.getSrcAddress());
-        LOGGER.debug(pwmSession, "address intruder count reset for " + ssBean.getSrcAddress());
-    }
-
-    private void doGoodAttempt(final PwmDB.DB table, final String key) {
-        if (key != null) {
-            final IntruderRecord record = readIntruderRecord(table,key);
-            if (record != null) {
-                if (isLocked(record,table)) {
-                    if (table == DB_USER) {
-                        lockedUserCount--;
-                    } else if (table == DB_ADDRESS) {
-                        lockedAddressCount--;
-                    }
-                }
-                record.clearAttemptCount();
-                writeIntruderRecord(table,key,record);
-            }
-        }
-    }
-
-    public void addGoodUserAttempt(final String username, final PwmSession pwmSession) {
-        doGoodAttempt(DB_USER, username);
-        LOGGER.debug(pwmSession, "user intruder count reset for " + username);
-    }
-
-    public int currentLockedAddresses() {
-        return lockedAddressCount;
-    }
-
-    public Map<String, IntruderRecord> getAddressLockTable() {
-        if (status != STATUS.OPEN) {
-            return Collections.emptyMap();
-        }
-        return getViewableRecordTable(DB_ADDRESS);
-    }
-
-    public int currentLockedUsers() {
-        return lockedUserCount;
-    }
-
-    public Map<String, IntruderRecord> getUserLockTable() {
-        if (status != STATUS.OPEN) {
-            return Collections.emptyMap();
-        }
-        return getViewableRecordTable(DB_USER);
-    }
-
-    public int currentAddressTableSize() {
-        if (status != STATUS.OPEN) {
-            return 0;
-        }
-        try {
-            return pwmDB.size(DB_ADDRESS);
-        } catch (PwmDBException e) {
-            LOGGER.error("error reading table size: " + e.getMessage());
-        }
-        return 0;
-    }
-
-    public int currentUserTableSize() {
-        if (status != STATUS.OPENING) {
-            return 0;
-        }
-        try {
-            return pwmDB.size(DB_ADDRESS);
-        } catch (PwmDBException e) {
-            LOGGER.error("error reading table size: " + e.getMessage());
-        }
-        return 0;
-    }
-
+    @Override
     public STATUS status() {
         return status;
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
-        this.status = STATUS.OPENING;
+    @Override
+    public void init(PwmApplication pwmApplication)
+            throws PwmException
+    {
         this.pwmApplication = pwmApplication;
-        this.taskMaster = new Timer("pwm-IntruderManager timer",true);
-        this.pwmDB = pwmApplication.getPwmDB();
-
         final Configuration config = pwmApplication.getConfig();
-        configUserResetTime = config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME) * 1000;
-        configUserMaxAttempts = (int)config.readSettingAsLong(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS);
-        configAddressResetTime = config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_RESET_TIME) * 1000;
-        configAddressMaxAttempts = (int)config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS);
-
-        if (pwmDB == null || pwmDB.status() != PwmDB.Status.OPEN) {
-            healthError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "IntruderManager can not open, pwmDB is not open");
-            this.close();
+        status = STATUS.OPENING;
+        if (pwmApplication.getPwmDB() == null || pwmApplication.getPwmDB().status() != PwmDB.Status.OPEN) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to start IntruderManager, localDB unavailable");
+            LOGGER.error(errorInformation.toDebugStr());
+            startupError = errorInformation;
+            status = STATUS.CLOSED;
             return;
         }
 
-        taskMaster.schedule(new InitializeTables(), 1);
-        taskMaster.schedule(new CleanerTask(), 2, PwmConstants.INTRUDER_CLEANUP_FREQUENCY_MS);
-        this.status = STATUS.OPEN;
+        try {
+            final PwmDBRecordStore userStore = new PwmDBRecordStore(pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_USER);
+            final PwmDBRecordStore addressStore = new PwmDBRecordStore(pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_ADDRESS);
+            timer = new Timer("pwm-IntruderManager cleaner",true);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        userStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
+                    } catch (PwmDBException e) {
+                        LOGGER.error("error cleaning userStore: " + e.getMessage());
+                    }
+                    try {
+                        addressStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
+                    } catch (PwmDBException e) {
+                        LOGGER.error("error cleaning addressStore: " + e.getMessage());
+                    }
+                }
+            },1000,CLEANER_RUN_FREQUENCY_MS);
+            {
+                final int checkCount = (int)config.readSettingAsLong(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS);
+                final TimeDuration resetDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME));
+                final TimeDuration checkDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_USER_CHECK_TIME));
+                if (checkCount == 0 || resetDuration.getTotalMilliseconds() == 0 || checkDuration.getTotalMilliseconds() == 0) {
+                    LOGGER.info("intruder user checking will remain disabled due to configuration settings");
+                } else {
+                    userManager = new PwmDBRecordManager(userStore, checkDuration, checkCount, resetDuration);
+                }
+            }
+            {
+                final int checkCount = (int)config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS);
+                final TimeDuration resetDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_RESET_TIME));
+                final TimeDuration checkDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_ADDRESS_CHECK_TIME));
+                if (checkCount == 0 || resetDuration.getTotalMilliseconds() == 0 || checkDuration.getTotalMilliseconds() == 0) {
+                    LOGGER.info("intruder address checking will remain disabled due to configuration settings");
+                } else {
+                    addressManager = new PwmDBRecordManager(addressStore, checkDuration, checkCount, resetDuration);
+                }
+            }
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error starting intruder manager: " + e.getMessage());
+            LOGGER.error(errorInformation.toDebugStr());
+            startupError = errorInformation;
+        }
     }
 
+
+
+
+    @Override
     public void close() {
-        if (taskMaster != null) {
-            try {
-                taskMaster.cancel();
-            } catch (Exception e) {
-                LOGGER.error("error closing taskMaster: " + e.getMessage(),e);
-            }
-            taskMaster = null;
-        }
         status = STATUS.CLOSED;
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
 
+    @Override
     public List<HealthRecord> healthCheck() {
-        return healthError == null ? null : Collections.singletonList(new HealthRecord(HealthStatus.WARN, "IntruderManager", healthError.toDebugStr()));
+        return Collections.emptyList();
     }
 
-    private IntruderRecord readIntruderRecord(final PwmDB.DB table, final String key) {
-        if (status != STATUS.OPEN) {
-            return null;
-        }
+    public void clear(final String username, String userDN, final PwmSession pwmSession)
+            throws PwmUnrecoverableException
+    {
+        if (pwmSession != null) {
 
-        final String strValue;
-        try {
-            strValue = pwmDB.get(table,key);
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error reading intruder record from pwmDB: " + e.getMessage());
-            LOGGER.error(errorInformation.toDebugStr());
-            return null;
         }
+        final String address = pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null;
+        if (userDN == null && pwmSession != null && pwmSession.getSessionStateBean().isAuthenticated()) {
+            userDN = pwmSession.getUserInfoBean().getUserDN();
+        }
+        clear(username, userDN, address);
+    }
 
-        try {
-            if (strValue != null) {
-                final Gson gson = new Gson();
-                final IntruderRecord record = gson.fromJson(strValue,IntruderRecord.class);
-                if (record != null) {
-                    if (TimeDuration.fromCurrent(record.timeStamp).isLongerThan(configMaxRecordAgeMS)) {
-                        pwmDB.remove(table, key);
-                        return null;
-                    }
+    public void mark(final String username, String userDN, final PwmSession pwmSession)
+            throws PwmUnrecoverableException
+    {
+        final String address = pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null;
+        if (userDN == null && pwmSession != null && pwmSession.getSessionStateBean().isAuthenticated()) {
+            userDN = pwmSession.getUserInfoBean().getUserDN();
+        }
+        mark(username, userDN, address);
+    }
+
+
+    public void check(final String username, String userDN, final PwmSession pwmSession)
+            throws PwmUnrecoverableException
+    {
+        final String address = pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null;
+        if (userDN == null && pwmSession != null && pwmSession.getSessionStateBean().isAuthenticated()) {
+            userDN = pwmSession.getUserInfoBean().getUserDN();
+        }
+        check(username, userDN, address);
+    }
+
+    public void check(final String username, final String userDN, final String address) 
+            throws PwmUnrecoverableException 
+    {
+        if (userDN != null && userManager.checkSubject(userDN)) {
+            if (!userManager.isAlerted(userDN)) {
+                // mark audit record on user
+                try {
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
+                    final String userID = Helper.readLdapUserIDValue(pwmApplication,chaiUser);
+                    final AuditRecord auditRecord = new AuditRecord(AuditEvent.INTRUDER_LOCK ,userID, userDN);
+                    pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
+                } catch (ChaiException e) {
+                    LOGGER.error("unexpected ldap error generating audit lockout event: " + e.getMessage());
                 }
-                return record;
+                sendAlert(userManager.readIntruderRecord(userDN, IntruderRecord.Type.userDN));
+                userManager.markAlerted(userDN);
             }
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error parsing intruder record from pwmDB: " + e.getMessage());
-            LOGGER.error(errorInformation.toDebugStr());
-            try {
-                pwmDB.remove(table,key);
-            } catch (Exception e2) {
-                final ErrorInformation errorInformation2 = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error clearing malformed intruder record from pwmDB: " + e2.getMessage());
-                LOGGER.error(errorInformation2.toDebugStr());
-            }
+            delayPenalty();
+            throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
         }
-        return null;
+        if (username != null && userManager.checkSubject(username)) {
+            if (!userManager.isAlerted(username)) {
+                sendAlert(userManager.readIntruderRecord(username, IntruderRecord.Type.username));
+                userManager.markAlerted(username);
+            }
+            delayPenalty();
+            throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
+        }
+        if (address != null && addressManager.checkSubject(address)) {
+            if (!addressManager.isAlerted(address)) {
+                sendAlert(addressManager.readIntruderRecord(address, IntruderRecord.Type.address));
+                addressManager.markAlerted(address);
+            }
+            delayPenalty();
+            throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_ADDRESS);
+        }
     }
 
-    private void writeIntruderRecord(final PwmDB.DB table, final String key, final IntruderRecord record) {
-        if (status != STATUS.OPEN) {
+    public void clear(final String username, final String userDN, final String address) {
+        if (username != null) {
+            userManager.clearSubject(username);
+        }
+        if (userDN != null) {
+            userManager.clearSubject(userDN);
+        }
+        if (address != null) {
+            addressManager.clearSubject(address);
+        }
+    }
+
+    public void mark(final String username, final String userDN, final String address)
+            throws PwmUnrecoverableException
+    {
+        boolean marked = false;
+        if (username != null) {
+            userManager.markSubject(username);
+            marked = true;
+        }
+
+        if (userDN != null) {
+            userManager.markSubject(userDN);
+            marked = true;
+        }
+
+        if (address != null) {
+            try {
+                final InetAddress inetAddress = InetAddress.getByName(address);
+                if (inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
+                    LOGGER.debug("disregarding local intruder attempt from: " + address);
+                } else {
+                    addressManager.markSubject(address);
+                    marked = true;
+                }
+            } catch(Exception e) {
+                LOGGER.error("error examining address: " + address);
+            }
+        }
+
+        
+        if (marked && pwmApplication != null) {
+            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+            if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
+                pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
+                pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
+            }
+
+            check(username, userDN, address);
+
+            delayPenalty();
+        }
+    }
+
+    private void delayPenalty() {
+        int delayPenalty = 1000; // minimum
+        delayPenalty += PwmRandom.getInstance().nextInt(2 * 1000); // add some randomness;
+        Helper.pause(delayPenalty);
+    }
+
+    private void sendAlert(final IntruderRecord intruderRecord) {
+        if (intruderRecord == null) {
             return;
         }
 
-        try {
-            if (record != null) {
-                final Gson gson = new Gson();
-                pwmDB.put(table,key,gson.toJson(record));
-            } else {
-                pwmDB.remove(table,key);
-            }
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error writing intruder record to pwmDB: " + e.getMessage());
-            LOGGER.error(errorInformation.toDebugStr());
-        }
+        final Map<String,String> values = new LinkedHashMap<String, String>();
+        values.put("type", intruderRecord.getType().toString());
+        values.put(intruderRecord.getType().toString(),intruderRecord.getSubject());
+        values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
+        values.put("age", TimeDuration.fromCurrent(intruderRecord.getTimeStamp()).asCompactString());
+        AlertHandler.alertIntruder(pwmApplication, values);
     }
 
-    private Map<String,IntruderRecord> getViewableRecordTable(final PwmDB.DB table) {
-        final int maxSize = PwmConstants.INTRUDER_TABLE_SIZE_VIEW_MAX;
-        final Map<String,IntruderRecord> returnTable = new TreeMap<String,IntruderRecord>();
-        final long startTime = System.currentTimeMillis();
-
-        int counter = 0;
-        LOGGER.trace("beginning full table read of table " + table);
-        synchronized (table) {
-            Iterator<String> tableIterator = null;
-            try {
-                tableIterator = pwmDB.iterator(table);
-                while (tableIterator.hasNext() && counter < maxSize) {
-                    final String key = tableIterator.next();
-                    final IntruderRecord loopRecord = readIntruderRecord(table,key);
-                    if (loopRecord != null) {
-                        returnTable.put(key,loopRecord);
-                        counter++;
-                    }
-                }
-            } catch (PwmDBException e) {
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,  "unexpected error during lock counting for table ''" + table + ", error: " + e.getMessage());
-                LOGGER.error(errorInformation.toDebugStr());
-            } finally {
-                if (tableIterator != null) {
-                    try { pwmDB.returnIterator(table); } catch (Exception e) {/**/}
-                }
-            }
-        }
-        LOGGER.debug("completed full table read for table " + table + ", duration=" + TimeDuration.fromCurrent(startTime).asCompactString() + ", records=" + counter);
-        return Collections.unmodifiableMap(returnTable);
+    public int addressRecordCount() {
+        return addressManager.recordCount();
     }
 
-    public boolean isLocked(IntruderRecord record, PwmDB.DB table) {
-        if (table == DB_USER) {
-            return isLocked(record, configUserResetTime, configUserMaxAttempts);
-        } else if (table == DB_ADDRESS) {
-            return isLocked(record, configAddressResetTime, configAddressMaxAttempts);
-        }
-        return false;
+    public int userRecordCount() {
+        return addressManager.recordCount();
     }
 
-    private static boolean isLocked(IntruderRecord record, final long duration, final int maxCount) {
-        if (record == null) {
-            return false;
-        }
-
-        final TimeDuration recordAge = TimeDuration.fromCurrent(record.getTimeStamp());
-        if (recordAge.isShorterThan(duration)) {
-            if (record.getAttemptCount() >= maxCount) {
-                return true;
-            }
-        }
-        return false;
+    public RecordIterator<IntruderRecord> userRecordIterator() throws PwmOperationalException {
+        return userManager.iterator();
     }
 
+    public RecordIterator<IntruderRecord> addressRecordIterator() throws PwmOperationalException {
+        return addressManager.iterator();
+    }
 
-// -------------------------- INNER CLASSES --------------------------
-
-    static public class IntruderRecord implements Serializable {
-        private long timeStamp;
+    public static class IntruderRecord implements Serializable {
+        public enum Type { username, userDN, address }
+        private Type type;
+        private String subject;
+        private Date timeStamp;
         private int attemptCount;
-        private boolean alerted;
 
-        public IntruderRecord() {
-            this.timeStamp = System.currentTimeMillis();
-            this.attemptCount = 0;
-            this.alerted = false;
+        public IntruderRecord(Type type, String subject, Date timeStamp, int attemptCount) {
+            this.type = type;
+            this.subject = subject;
+            this.timeStamp = timeStamp;
+            this.attemptCount = attemptCount;
         }
 
-        public long getTimeStamp() {
+        public Type getType() {
+            return type;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public Date getTimeStamp() {
+            return timeStamp;
+        }
+
+        public int getAttemptCount() {
+            return attemptCount;
+        }
+    }
+
+    static class InternalRecord implements Serializable {
+        private String subject;
+        private Date timeStamp = new Date();
+        private int attemptCount = 0;
+        private boolean alerted = false;
+
+        private InternalRecord() {
+        }
+
+        public InternalRecord(final String subject) {
+            if (subject == null || subject.length() < 1) {
+                throw new IllegalArgumentException("subject must have a value");
+            }
+            this.subject = subject;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public Date getTimeStamp() {
             return timeStamp;
         }
 
@@ -549,11 +363,8 @@ public class IntruderManager implements Serializable, PwmService {
             return attemptCount;
         }
 
-        public void incrementAttemptCount(final long maxDuration) {
-            if (TimeDuration.fromCurrent(timeStamp).isLongerThan(maxDuration)) {
-                attemptCount = 0;
-            }
-            timeStamp = System.currentTimeMillis();
+        public void incrementAttemptCount() {
+            timeStamp = new Date();
             attemptCount++;
         }
 
@@ -566,91 +377,319 @@ public class IntruderManager implements Serializable, PwmService {
             return alerted;
         }
 
-        public void setAlerted(final boolean alerted) {
-            this.alerted = alerted;
+        public void setAlerted() {
+            this.alerted = true;
+        }
+
+        public IntruderRecord asIntruderRecord(final IntruderRecord.Type type) {
+            return new IntruderRecord(type, this.getSubject(), this.getTimeStamp(), this.getAttemptCount());
         }
     }
 
-    public class CleanerTask extends TimerTask {
-        public void run() {
-            if (recordTicks >= CLEANER_MIN_RECORD_TICKS) {
-                cleanup(DB_USER);
-                cleanup(DB_ADDRESS);
-                recordTicks = 0;
-            }
+    static interface RecordManager {
+        public boolean checkSubject(final String subject);
+        public void markSubject(final String subject);
+        public void clearSubject(final String subject);
+        public boolean isAlerted(final String subject);
+        public void markAlerted(final String subject);
+        public IntruderRecord readIntruderRecord(final String subject, final IntruderRecord.Type type);
+        public int recordCount();
+        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException;
+    }
+
+    static class StubRecordManager implements RecordManager {
+        public boolean checkSubject(String subject) {
+            return false;
         }
 
-        private void cleanup(final PwmDB.DB table) {
-            final long startTime = System.currentTimeMillis();
-            int cleanedRecords = 0;
-            LOGGER.trace("beginning intruder table cleanup process for table " + table);
-            synchronized (table) {
-                Iterator<String> tableIterator = null;
-                try {
-                    tableIterator = pwmDB.iterator(table);
-                    while (tableIterator.hasNext()) {
-                        final String key = tableIterator.next();
-                        final IntruderRecord loopRecord = readIntruderRecord(table,key);
-                        if (loopRecord != null) {
-                            //LOGGER.trace("  record key=" + key + ", timestamp=" + new Date(loopRecord.getTimeStamp()) + ", attempts=" + loopRecord.getAttemptCount());
-                            if (TimeDuration.fromCurrent(loopRecord.getTimeStamp()).isLongerThan(configMaxRecordAgeMS)) {
-                                writeIntruderRecord(table,key,null);
-                                cleanedRecords++;
-                            }
-                        }
-                    }
-                } catch (PwmDBException e) {
-                    healthError = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error during pwmDB cleanup: " + e.getMessage());
-                    LOGGER.error(healthError.toDebugStr());
-                } finally {
-                    if (tableIterator != null) {
-                        try { pwmDB.returnIterator(table); } catch (Exception e) {/**/}
-                    }
-                }
-            }
-            LOGGER.trace("completed intruder table cleanup process for table " + table + ", duration=" + TimeDuration.fromCurrent(startTime).asCompactString() + ", records removed=" + cleanedRecords);
+        public void markSubject(String subject) {
+        }
+
+        public void clearSubject(String subject) {
+        }
+
+        public boolean isAlerted(String subject) {
+            return false;
+        }
+
+        public void markAlerted(String subject) {
+        }
+
+        @Override
+        public IntruderRecord readIntruderRecord(String subject, IntruderRecord.Type type) {
+            return null;
+        }
+
+        @Override
+        public int recordCount() {
+            return 0;
+        }
+
+        @Override
+        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException {
+            return new RecordIterator<IntruderRecord>(null);
         }
     }
 
-    public class InitializeTables extends TimerTask {
-        public void run() {
-            lockedUserCount += countLocks(DB_USER);
-            lockedAddressCount += countLocks(DB_ADDRESS);
+    static class PwmDBRecordManager implements RecordManager {
+        private PwmDBRecordStore recordStore;
+        private TimeDuration setting_check_duration;
+        private int setting_check_count;
+        private TimeDuration setting_reset_duration;
+
+        PwmDBRecordManager(PwmDBRecordStore intruderStore, TimeDuration setting_check_duration, int setting_check_count, TimeDuration setting_reset_duration) {
+            this.recordStore = intruderStore;
+            this.setting_check_duration = setting_check_duration;
+            this.setting_check_count = setting_check_count;
+            this.setting_reset_duration = setting_reset_duration;
+        }
+
+        public boolean checkSubject(final String subject) {
+            return checkSubject(recordStore.read(subject));
+        }
+
+        private boolean checkSubject(final InternalRecord record) {
+            if (record == null) {
+                return false;
+            }
+            if (TimeDuration.fromCurrent(record.getTimeStamp()).isLongerThan(setting_reset_duration)) {
+                return false;
+            }
+            if (record.getAttemptCount() >= setting_check_count) {
+                return true;
+            }
+            return false;
+        }
+
+        public void markSubject(final String subject)
+        {
+            InternalRecord record = recordStore.read(subject);
+            if (record == null) {
+                record = new InternalRecord(subject);
+            }
+            if (record.isAlerted()) {
+                return;
+            }
+            if (TimeDuration.fromCurrent(record.getTimeStamp()).isShorterThan(setting_check_duration)) {
+                record.incrementAttemptCount();
+            } else {
+                record.clearAttemptCount();
+                record.incrementAttemptCount();
+            }
+
             try {
-                pwmDB.size(DB_USER);
-                pwmDB.size(DB_ADDRESS);
-            } catch (PwmDBException e) {
-                LOGGER.error("unexpected error examining intruder table sizes: " + e.getMessage());
+                recordStore.write(record);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("unexpected error attempting to mark subject '" + subject + "' to stored records: " + e.getMessage());
             }
         }
 
-        private int countLocks(final PwmDB.DB table) {
-            final long startTime = System.currentTimeMillis();
-            int counter = 0;
-            LOGGER.trace("beginning intruder count process for table " + table);
-            synchronized (table) {
-                Iterator<String> tableIterator = null;
+        public void clearSubject(final String subject) {
+            final InternalRecord record = recordStore.read(subject);
+            if (record == null) {
+                return;
+            }
+
+            if (record.getAttemptCount() == 0) {
+                return;
+            }
+
+            record.clearAttemptCount();
+            try {
+                recordStore.write(record);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("unexpected error attempting to clear subject '" + subject + "' from stored records: " + e.getMessage());
+            }
+        }
+
+        public boolean isAlerted(final String subject) {
+            final InternalRecord record = recordStore.read(subject);
+            return record != null && record.isAlerted();
+        }
+
+        public void markAlerted(final String subject)
+        {
+            final InternalRecord record = recordStore.read(subject);
+            if (record == null || record.isAlerted()) {
+                return;
+            }
+            record.setAlerted();
+            try {
+                recordStore.write(record);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("unexpected error attempting to mark subject '" + subject + "' as alerted: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public IntruderRecord readIntruderRecord(String subject, IntruderRecord.Type type) {
+            final InternalRecord record = recordStore.read(subject);
+            if (record == null) {
+                return null;
+            }
+
+            return new IntruderRecord(type,record.getSubject(),record.getTimeStamp(),record.getAttemptCount());
+        }
+
+        @Override
+        public int recordCount() {
+            return recordStore.recordCount();
+        }
+
+        @Override
+        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException {
+            return new RecordIterator(recordStore);
+        }
+    }
+
+    public static class RecordIterator<T> implements Iterator<IntruderRecord> {
+        private PwmDB.PwmDBIterator<String> keyIterator;
+        private PwmDBRecordStore recordStore;
+
+        public RecordIterator(final PwmDBRecordStore recordStore) throws PwmOperationalException {
+            this.recordStore = recordStore;
+            this.keyIterator = recordStore.keyIterator();
+        }
+
+        public boolean hasNext() {
+            boolean hasNext =  keyIterator.hasNext();
+            if (!hasNext) {
+                close();
+            }
+            return hasNext;
+        }
+
+        public void close() {
+            keyIterator.close();
+        }
+
+        public IntruderRecord next() {
+            final InternalRecord internalRecord = recordStore.readKey(keyIterator.next());
+            if (internalRecord != null) {
+                return internalRecord.asIntruderRecord(IntruderRecord.Type.userDN); //@todo dont hardcode type
+            } else {
+                return null;
+            }
+        }
+
+        public void remove() {
+        }
+    }
+
+    static class PwmDBRecordStore {
+        private final PwmDB pwmDB;
+        private final PwmDB.DB db;
+
+        public PwmDBRecordStore(PwmDB pwmDB, PwmDB.DB db) {
+            this.pwmDB = pwmDB;
+            this.db = db;
+        }
+
+        private InternalRecord read(final String subject) {
+            if (subject == null || subject.length() < 1) {
+                return null;
+            }
+
+            final String md5sum;
+            try {
+                md5sum = Helper.md5sum(subject);
+            } catch (IOException e) {
+                LOGGER.error("error generating md5sum for intruder record subject");
+                return null;
+            }
+
+            return readKey(md5sum);
+        }
+
+        private InternalRecord readKey(final String key) {
+            if (key == null || key.length() < 1) {
+                return null;
+            }
+
+            final String value;
+            try {
+                value = pwmDB.get(db, key);
+            } catch (PwmDBException e) {
+                LOGGER.error("error reading stored intruder record: " + e.getMessage());
+                return null;
+            }
+
+            if (value == null || value.length() < 1) {
+                return null;
+            }
+
+            try {
+                return new Gson().fromJson(value,InternalRecord.class);
+            } catch (Exception e) {
+                LOGGER.error("error decoding InternalRecord:" + e.getMessage());
+            }
+
+            //read failed, try to delete record
+            try { pwmDB.remove(db, key); } catch (PwmDBException e) { /*noop*/ }
+            return null;
+        }
+
+        private void write(final InternalRecord record) throws PwmOperationalException {
+            final String md5sum;
+            try {
+                md5sum = Helper.md5sum(record.getSubject());
+            } catch (IOException e) {
+                throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"error generating md5sum for intruder record: " + e.getMessage());
+            }
+
+            final String jsonRecord = new Gson().toJson(record);
+            try {
+                pwmDB.put(db, md5sum, jsonRecord);
+            } catch (PwmDBException e) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error writing to localDB: " + e.getMessage()));
+            }
+        }
+
+        private PwmDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
+            try {
+                return pwmDB.iterator(db);
+            } catch (PwmDBException e) {
+                throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"iterator unavailable:" + e.getMessage());
+            }
+        }
+
+        private void cleanup(final TimeDuration maxRecordAge)
+                throws PwmDBException
+        {
+            final List<String> recordsToRemove = new ArrayList<String>();
+            boolean complete = false;
+
+            while (!complete) {
+                PwmDB.PwmDBIterator<String> keyIterator = null;
                 try {
-                    tableIterator = pwmDB.iterator(table);
-                    while (tableIterator.hasNext()) {
-                        final String key = tableIterator.next();
-                        final IntruderRecord loopRecord = readIntruderRecord(table,key);
-                        if (loopRecord != null && isLocked(loopRecord, table)) {
-                            counter++;
+                    keyIterator = pwmDB.iterator(db);
+                    while (keyIterator.hasNext() && recordsToRemove.size() < 10 * 1000) {
+                        final String key = keyIterator.next();
+                        final InternalRecord record = read(key);
+                        if (record != null && TimeDuration.fromCurrent(record.getTimeStamp()).isLongerThan(maxRecordAge)) {
+                            recordsToRemove.add(key);
+                        }
+                        if (!keyIterator.hasNext()) {
+                            complete = true;
                         }
                     }
-                } catch (PwmDBException e) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,  "unexpected error during lock counting for table ''" + table + ", error: " + e.getMessage());
-                    LOGGER.error(errorInformation.toDebugStr());
                 } finally {
-                    if (tableIterator != null) {
-                        try { pwmDB.returnIterator(table); } catch (Exception e) {/**/}
+                    if (keyIterator != null) {
+                        keyIterator.close();
                     }
                 }
+                pwmDB.removeAll(db,recordsToRemove);
+                recordsToRemove.clear();
             }
-            LOGGER.trace("completed intruder table count process for table " + table + ", duration=" + TimeDuration.fromCurrent(startTime).asCompactString() + ", locked records=" + counter);
-            return counter;
+        }
+
+        private int recordCount() {
+            try {
+                return pwmDB.size(db);
+            } catch (PwmDBException e) {
+                LOGGER.error("error determining size count for records " + e.getMessage());
+                return -2;
+            }
         }
     }
 }
-

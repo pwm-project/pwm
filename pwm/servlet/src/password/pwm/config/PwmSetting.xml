@@ -1193,32 +1193,53 @@
     </setting>
     <setting key="intruder.user.resetTime" level="0" required="true">
         <label>Intruder User Reset Time</label>
-        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The user lockout table is marked for a user anytime a user has a failed attempt to authenticate, recover a password, or activate a user account. <br/><br/>Value is in number of seconds.  A value of zero disables the user lockout table.]]></description>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The user lockout table is marked for a user anytime a user has a failed attempt to authenticate, recover a password, or activate a user account. <br/><br/>Value is in number of seconds.  A value of zero disables the user lockout functionality.]]></description>
         <default>
             <value>300</value>
         </default>
     </setting>
     <setting key="intruder.user.maxAttempts" level="0" required="true">
         <label>Intruder User Maximum Attempts</label>
-        <description><![CDATA[The maximum number of attempts a user may make within the reset time interval.  Once this value is exceeded, the user will not be able to perform any PWM activities until the reset time interval has passed.]]></description>
+        <description><![CDATA[The maximum number of attempts a user may make before a lockout occurs.  Once this value is exceeded, the user will not be able to perform any activities until the reset time interval has passed.   A value of zero disables the user lockout functionality.]]></description>
         <default>
             <value>10</value>
         </default>
     </setting>
+    <setting key="intruder.user.checkTime" level="0" required="true">
+        <label>Intruder User Check Time</label>
+        <description><![CDATA[The maximum time period between each intruder attempt.  When this time period is exceeded, the intruder attempt count will be reset to zero.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+
+
+
     <setting key="intruder.address.resetTime" level="0" required="true">
         <label>Intruder Address Reset Time</label>
-        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how PWM is deployed it may not be able to correctly identify the IP address of the user.  You can check if it is getting the correct IP address by looking at the light text on the bottom of every screen, or by looking at the PWM logs.<br/><br/>Some scenarios where PWM would not get the correct address is where it is behind a reverse proxy that doesn't set the X-Forwarded-For header, or behind some types of NAT firewalls.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout table.]]></description>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how PWM is deployed it may not be able to correctly identify the IP address of the user.  You can check if it is getting the correct IP address by looking at the light text on the bottom of every screen, or by looking at the PWM logs.<br/><br/>Some scenarios where PWM would not get the correct address is where it is behind a reverse proxy that doesn't set the X-Forwarded-For header, or behind some types of NAT firewalls.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout functionality.]]></description>
         <default>
             <value>120</value>
         </default>
     </setting>
     <setting key="intruder.address.maxAttempts" level="0" required="true">
         <label>Intruder Address Maximum Attempts</label>
-        <description><![CDATA[The maximum number of attempts any user may make within a particular address.  Once this value is exceeded, no user from that address will be able to perform any PWM activities until the reset time interval has passed.]]></description>
+        <description><![CDATA[The maximum number of attempts any user may make within a particular address.  Once this value is exceeded, no user from that address will be able to perform any activities until the reset time interval has passed.  A value of zero disables the address lockout functionality.]]></description>
         <default>
             <value>30</value>
         </default>
     </setting>
+    <setting key="intruder.address.checkTime" level="0" required="true">
+        <label>Intruder Address Check Time</label>
+        <description><![CDATA[The maximum time period between each intruder attempt.  When this time period is exceeded, the intruder attempt count will be reset to zero.  A value of zero disables the address lockout functionality.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+
+
+
+
     <setting key="security.ldap.simulateBadPassword" level="0">
         <label>Enable Bad Password Simulation</label>
         <description><![CDATA[This feature will enable Bad Password simulation activity when a forgotten password field is entered.  When an identified user attempts to recover a forgotten password but uses incorrect data, PWM will attempt to authenticate to the directory using a known bad password value.  This is done to allow the ldap directory to trigger it's own defense mechanisms against intruders.]]></description>

@@ -22,7 +22,6 @@
 
 package password.pwm.util.pwmdb;
 
-import jdbm.PrimaryTreeMap;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
 import password.pwm.error.ErrorInformation;
@@ -33,7 +32,6 @@ import password.pwm.util.TimeDuration;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -51,9 +49,6 @@ public class JDBM_PwmDb implements PwmDBProvider {
     private RecordManager recman;
     private final Map<String, Map<String, String>> treeMap = new HashMap<String, Map<String, String>>();
     private File dbDirectory;
-
-    // cache of dbIterators
-    private final Map<DB, DbIterator<String>> dbIterators = new ConcurrentHashMap<DB, DbIterator<String>>();
 
     // operation lock
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
@@ -149,16 +144,10 @@ public class JDBM_PwmDb implements PwmDBProvider {
         }
     }
 
-    public Iterator<String> iterator(final DB db)
+    public PwmDB.PwmDBIterator<String> iterator(final DB db)
             throws PwmDBException {
         try {
-            if (dbIterators.containsKey(db)) {
-                throw new IllegalArgumentException("multiple iterators per DB are not permitted");
-            }
-
-            final DbIterator<String> iterator = new DbIterator<String>(db);
-            dbIterators.put(db, iterator);
-            return iterator;
+            return new DbIterator<String>(db);
         } catch (Exception e) {
             throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         }
@@ -214,10 +203,6 @@ public class JDBM_PwmDb implements PwmDBProvider {
         } finally {
             LOCK.writeLock().unlock();
         }
-    }
-
-    public void returnIterator(final DB db) throws PwmDBException {
-
     }
 
     public int size(final PwmDB.DB db)
@@ -289,28 +274,28 @@ public class JDBM_PwmDb implements PwmDBProvider {
             final RecordManager recman
     )
             throws IOException {
-        final PrimaryTreeMap storeMap = recman.treeMap(name);
-        return storeMap;
+        return recman.treeMap(name);
     }
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements Iterator<String> {
-        private final PwmDB.DB db;
+    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
         private Iterator<String> theIterator;
 
         private DbIterator(final DB db) throws IOException, PwmDBException {
-            this.db = db;
             this.theIterator = getHTree(db).keySet().iterator();
         }
 
         public boolean hasNext() {
-            return theIterator.hasNext();
+            final boolean hasNext = theIterator.hasNext();
+            if (!hasNext) {
+                close();
+            }
+            return hasNext;
         }
 
         public void close() {
             theIterator = null;
-            dbIterators.remove(db);
         }
 
         public String next() {

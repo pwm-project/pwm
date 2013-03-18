@@ -116,7 +116,7 @@ public class Memory_PwmDb implements PwmDBProvider {
         state = PwmDB.Status.OPEN;
     }
 
-    public Iterator<String> iterator(final DB db) throws PwmDBException {
+    public PwmDB.PwmDBIterator<String> iterator(final DB db) throws PwmDBException {
         return new DbIterator(db);
     }
 
@@ -184,7 +184,7 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements Iterator<String> {
+    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
         private final Iterator<String> iterator;
 
         private DbIterator(final DB db) {
@@ -201,6 +201,9 @@ public class Memory_PwmDb implements PwmDBProvider {
 
         public void remove() {
             iterator.remove();
+        }
+
+        public void close() {
         }
     }
 

@@ -801,7 +801,7 @@ public abstract class CrUtility {
             }
 
             try {
-                pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+                pwmApplication.getIntruderManager().mark(null, null, pwmSession);
             } catch (PwmUnrecoverableException e) {
                 // nothing to be done
             }

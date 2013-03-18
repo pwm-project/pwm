@@ -60,7 +60,7 @@
                         statusMenu.addChild(new MenuItem({
                             label: 'Intruders',
                             onClick: function() {
-                                showWaitDialog(null,null,function(){window.location = "intruderstatus.jsp";});
+                                showWaitDialog(null,null,function(){window.location = "intruders.jsp";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({

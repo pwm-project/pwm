@@ -65,7 +65,7 @@ public class CaptchaServlet extends TopServlet {
 
         //check intruder detection, if it is tripped, send user to error page
         try {
-            pwmApplication.getIntruderManager().checkAddress(pwmSession);
+            pwmApplication.getIntruderManager().check(null,null,pwmSession);
         } catch (PwmUnrecoverableException e) {
             ServletHelper.forwardToErrorPage(req, resp, false);
             return;
@@ -114,7 +114,7 @@ public class CaptchaServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
             LOGGER.debug(pwmSession, "captcha passcode verified");
-            pwmApplication.getIntruderManager().addGoodAddressAttempt(pwmSession);
+            pwmApplication.getIntruderManager().clear(null,null,pwmSession);
             writeCaptchaSkipCookie(pwmSession, pwmApplication, resp);
             forwardToOriginalLocation(req, resp);
         } else { //failed captcha
@@ -123,7 +123,7 @@ public class CaptchaServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
-            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
+            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
             forwardToJSP(req, resp);
         }
     }

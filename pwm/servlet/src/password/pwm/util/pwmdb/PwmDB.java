@@ -62,7 +62,7 @@ public interface PwmDB {
     String get(DB db, String key)
             throws PwmDBException;
 
-    Iterator<String> iterator(DB db)
+    PwmDBIterator<String> iterator(DB db)
             throws PwmDBException;
 
     @WriteOperation
@@ -94,9 +94,6 @@ public interface PwmDB {
 
     @WriteOperation
     void removeAll(DB db, Collection<String> key)
-            throws PwmDBException;
-
-    void returnIterator(DB db)
             throws PwmDBException;
 
     @ReadOperation
@@ -147,6 +144,10 @@ public interface PwmDB {
             @interface WriteOperation {
     }
 
+
+    public static interface PwmDBIterator<String> extends Iterator<String> {
+        public void close();
+    }
 
     public static class TransactionItem implements Serializable, Comparable {
         private final DB db;

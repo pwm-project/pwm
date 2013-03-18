@@ -24,7 +24,6 @@ package password.pwm.util.pwmdb;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 public interface PwmDBProvider {
@@ -44,7 +43,7 @@ public interface PwmDBProvider {
     void init(File dbDirectory, Map<String, String> initParameters, boolean readOnly)
             throws PwmDBException;
 
-    Iterator<String> iterator(PwmDB.DB db)
+    PwmDB.PwmDBIterator<String> iterator(PwmDB.DB db)
             throws PwmDBException;
 
     @PwmDB.WriteOperation
@@ -61,9 +60,6 @@ public interface PwmDBProvider {
 
     @PwmDB.WriteOperation
     void removeAll(PwmDB.DB db, Collection<String> key)
-            throws PwmDBException;
-
-    void returnIterator(PwmDB.DB db)
             throws PwmDBException;
 
     @PwmDB.ReadOperation

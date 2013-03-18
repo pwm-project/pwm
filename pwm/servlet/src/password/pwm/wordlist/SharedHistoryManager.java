@@ -35,7 +35,6 @@ import password.pwm.util.pwmdb.PwmDBException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -366,10 +365,11 @@ public class SharedHistoryManager implements Wordlist {
 
             LOGGER.debug("beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString(maxAgeMs));
 
+            PwmDB.PwmDBIterator<String> keyIterator = null;
             try {
-                final Iterator<String> iter = pwmDB.iterator(WORDS_DB);
-                while (status == STATUS.OPEN && iter.hasNext()) {
-                    final String key = iter.next();
+                keyIterator = pwmDB.iterator(WORDS_DB);
+                while (status == STATUS.OPEN && keyIterator.hasNext()) {
+                    final String key = keyIterator.next();
                     final String value = pwmDB.get(WORDS_DB, key);
                     final long timeStamp = Long.parseLong(value);
                     final long entryAge = System.currentTimeMillis() - timeStamp;
@@ -388,7 +388,9 @@ public class SharedHistoryManager implements Wordlist {
                 }
             } finally {
                 try {
-                    pwmDB.returnIterator(WORDS_DB);
+                    if (keyIterator != null) {
+                        keyIterator.close();
+                    }
                 } catch (Exception e) {
                     LOGGER.warn("error returning pwmDB iterator: " + e.getMessage());
                 }

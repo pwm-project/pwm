@@ -255,7 +255,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             if (!passed) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmApplication.getIntruderManager().addIntruderAttempt(pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                pwmApplication.getIntruderManager().mark(null,pwmSession.getUserInfoBean().getUserDN(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
                 forwardToFormJSP(req, resp);
                 return;
@@ -273,8 +273,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             cpb.setFormPassed(true);
         } catch (PwmOperationalException e) {
-            pwmApplication.getIntruderManager().addIntruderAttempt(null,pwmSession);
-            pwmApplication.getIntruderManager().delayPenalty(null, pwmSession);
+            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
             forwardToFormJSP(req, resp);

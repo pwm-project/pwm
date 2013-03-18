@@ -139,13 +139,13 @@
                 Intruder Address Table Size
             </td>
             <td>
-                <%= pwmApplication.getIntruderManager().currentAddressTableSize() %>
+                <%= pwmApplication.getIntruderManager().addressRecordCount() %>
             </td>
             <td class="key">
                 Intruder User Table Size
             </td>
             <td>
-                <%= pwmApplication.getIntruderManager().currentUserTableSize() %>
+                <%= pwmApplication.getIntruderManager().userRecordCount() %>
             </td>
         </tr>
         <tr>

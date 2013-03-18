@@ -29,7 +29,6 @@ import password.pwm.util.stats.Statistic;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -85,18 +84,18 @@ public class PwmDBAdaptor implements PwmDB {
         innerDB.init(dbDirectory, initParameters, readOnly);
     }
 
-    public Iterator<String> iterator(final DB db) throws PwmDBException {
+    public PwmDBIterator<String> iterator(final DB db) throws PwmDBException {
         ParameterValidator.validateDBValue(db);
-        final Iterator<String> innerIterator = innerDB.iterator(db);
-        return (Iterator<String>) new SizeIterator<String>(db, innerIterator);
+        final PwmDBIterator<String> innerIterator = innerDB.iterator(db);
+        return new SizeIterator<String>(db, innerIterator);
     }
 
-    private class SizeIterator<T> implements Iterator {
-        private final Iterator<T> innerIterator;
+    private class SizeIterator<T> implements PwmDBIterator {
+        private final PwmDBIterator<T> innerIterator;
         private final DB db;
         private T key;
 
-        SizeIterator(final DB db, final Iterator<T> innerIterator) {
+        SizeIterator(final DB db, final PwmDBIterator<T> innerIterator) {
             this.innerIterator = innerIterator;
             this.db = db;
         }
@@ -117,6 +116,11 @@ public class PwmDBAdaptor implements PwmDB {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public void close() {
+            innerIterator.close();
         }
     }
 
@@ -194,11 +198,6 @@ public class PwmDBAdaptor implements PwmDB {
         }
 
         markWrite(keys.size());
-    }
-
-    public void returnIterator(final DB db) throws PwmDBException {
-        ParameterValidator.validateDBValue(db);
-        innerDB.returnIterator(db);
     }
 
     public int size(final DB db) throws PwmDBException {
