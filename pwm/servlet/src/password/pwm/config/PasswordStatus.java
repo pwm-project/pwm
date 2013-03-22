@@ -26,10 +26,10 @@ import java.io.Serializable;
 
 public class PasswordStatus implements Serializable {
 
-    boolean expired;
-    boolean preExpired;
-    boolean violatesPolicy;
-    boolean warnPeriod;
+    boolean expired = false;
+    boolean preExpired = false;
+    boolean violatesPolicy = false;
+    boolean warnPeriod = false;
 
     public boolean isExpired() {
         return expired;

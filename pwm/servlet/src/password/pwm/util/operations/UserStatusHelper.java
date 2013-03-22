@@ -113,9 +113,14 @@ public class UserStatusHelper {
         }
 
         try {
-            final Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
+  				// If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
+            	ldapPasswordExpirationTime = null;
+            }
 
             if (ldapPasswordExpirationTime != null) {
+            	LOGGER.trace(String.format("ldapPasswordExpirationTime (%s): %s (%d ms)", userDN, ldapPasswordExpirationTime.toString(), ldapPasswordExpirationTime.getTime()));
                 final long diff = ldapPasswordExpirationTime.getTime() - System.currentTimeMillis();
 
                 // now check to see if the user's expire time is within the 'preExpireTime' setting.

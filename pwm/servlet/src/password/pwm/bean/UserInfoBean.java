@@ -77,9 +77,9 @@ public class UserInfoBean implements PwmSessionBean {
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<Permission, Permission.PERMISSION_STATUS>();
 
-    private boolean requiresNewPassword;
-    private boolean requiresResponseConfig;
-    private boolean requiresUpdateProfile;
+    private boolean requiresNewPassword = false;
+    private boolean requiresResponseConfig = false;
+    private boolean requiresUpdateProfile = false;
 
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<String, PostChangePasswordAction>();
 
