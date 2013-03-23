@@ -46,7 +46,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
 
-    private final static boolean IS_TRANSACTIONAL = false;
+    private final static boolean IS_TRANSACTIONAL = true;
     private final static int OPEN_RETRY_SECONDS = 60;
     private final static int CLOSE_RETRY_SECONDS = 120;
     private final static int ITERATOR_LIMIT = 100;

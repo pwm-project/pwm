@@ -54,6 +54,8 @@
                     //rowData.put("message",loopRecord.getMessage());
                     rowData.put("targetID",loopRecord.getTargetID());
                     //rowData.put("targetDN",loopRecord.getTargetDN());
+                    rowData.put("srcIP",loopRecord.getSourceAddress());
+                    //rowData.put("srcHost",loopRecord.getSourceHost());
                     gridData.add(rowData);
                 } catch (IllegalStateException e) { /* ignore */ }
                 if (gridData.size() >= maxResults) {
@@ -72,7 +74,9 @@
                     //"perpDN":"Perpetrator DN",
                     "event":"Event",
                     //"message":"Message",
-                    "targetID":"Target ID"
+                    "targetID":"Target ID",
+                    //"targetDN":"Target DN"
+                    "srcIP":"Source IP"
                     //"targetDN":"Target DN"
                 };
                 require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
@@ -103,7 +107,7 @@
         </div>
         <% } %>
         <div id="buttonbar">
-            <input id="maxResults" value="<%=maxResults%>" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
+            <input id="maxResults" value="<%=maxResults%>" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
                    data-dojo-props="constraints:{min:10,max:10000000}"/>
 
             <button class="btn" onclick="refresh()">Refresh</button>

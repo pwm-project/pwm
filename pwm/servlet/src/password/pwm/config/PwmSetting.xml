@@ -27,22 +27,22 @@
 -->
 <settings>
     <setting key="pwm.selfURL" level="0">
-        <label>PWM Site URL</label>
-        <description><![CDATA[The URL to this password servlet, as seen by users.  The value is used in email macros and other user facing communications.  Example: <i>https://password.example.com/pwm</i>.  The URL should contain the context path (usually <i>/pwm</i>).  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent PWM from accurately determining the URL.]]></description>
+        <label>Site URL</label>
+        <description><![CDATA[The URL to this password servlet, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="pwm.versionCheck.enable" level="0" required="true">
         <label>Enable Version Checking</label>
-        <description><![CDATA[Allow PWM to periodically check for new versions]]></description>
+        <description><![CDATA[Allow periodically checks for new versions.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="pwm.publishStats.enable" level="0" required="true">
         <label>Enable Anonymous Statistics Publishing</label>
-        <description><![CDATA[If true, PWM will periodically publish statics to the PWM project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps PWM developers know which features are used by administrators and understand whatPWM is used for.]]></description>
+        <description><![CDATA[If true, the statitistics of this application are periodically published statics to the project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps developers know which features are used by administrators.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -64,7 +64,7 @@
     </setting>
     <setting key="pwm.logoutURL" level="0">
         <label>Logout URL</label>
-        <description><![CDATA[URL to redirect user to upon logout.  If the site is being accessed through a web authentication gateway, the Logout URL should be set to the gateway's Logout URL. If you are using a gateway and do not include the proper Logout URL here, then users will almost certainly get authentication errors, intruder lockouts and other problems.  If things are working properly then the user should see the gateway logout screen when logging out of PWM.<br/><br/>The Logout URL can be set to any desired relative or absolute URL.  At the time the user's browser requests this url, the PWM session will have already been invalidated.<br/><br/>This setting can always be overridden for any given user session by adding a <i>logoutURL</i> parameter to any HTTP request during the session.]]></description>
+        <description><![CDATA[URL to redirect user to upon logout.  If the site is being accessed through a web authentication gateway, the Logout URL should be set to the gateway's Logout URL. If you are using a gateway and do not include the proper logout URL here, then users will almost certainly get authentication errors, intruder lockouts and other problems.  If things are working properly then the user should see the gateway logout screen when logging out.<br/><br/>The Logout URL can be set to any desired relative or absolute URL.  At the time the user's browser requests this url, the local session will have already been invalidated.<br/><br/>This setting can always be overridden for any given user session by adding a <i>logoutURL</i> parameter to any HTTP request during the session.]]></description>
         <default>
             <value />
         </default>
@@ -77,8 +77,8 @@
         </default>
     </setting>
     <setting key="pwmInstanceName" level="1">
-        <label>PWM Instance Name</label>
-        <description><![CDATA[Name of PWM instance.  If blank a persistent, randomly generated value will be used.  Recommended value is blank.]]></description>
+        <label>Instance Name</label>
+        <description><![CDATA[Name of this application instance.  If blank a persistent, randomly generated value will be used.  Recommended value is blank.]]></description>
         <default>
             <value />
         </default>
@@ -99,7 +99,7 @@
     </setting>
     <setting key="knownLocales" level="1">
         <label>Known Locales</label>
-        <description><![CDATA[List of locales available in PWM.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
+        <description><![CDATA[List of locales available.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
         <regex>^.+::.+$</regex>
         <default>
             <value><![CDATA[en::us]]></value>
@@ -124,7 +124,7 @@
     </setting>
     <setting key="interface.theme" level="0" required="true">
         <label>Interface Theme</label>
-        <description><![CDATA[Change the look and feel of PWM by selecting a theme.  Themes are provided to provide CSS customizers inspiration.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
+        <description><![CDATA[Change the look and feel by selecting a theme.  Themes are provided to provide CSS customizers inspiration.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
         <default>
             <value><![CDATA[default]]></value>
         </default>
@@ -158,7 +158,7 @@
     </setting>
     <setting key="display.password.guideText" level="0">
         <label>Password Guide Text</label>
-        <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+        <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
         <default>
             <value />
         </default>
@@ -186,7 +186,7 @@
     </setting>
     <setting key="display.showSuccessPage" level="0" required="true">
         <label>Show Success Pages</label>
-        <description><![CDATA[When an activity completes successfully, PWM will normally show a "success" page to the user informing the user the action is completed.  This page can be bypassed by changing this setting to false.]]></description>
+        <description><![CDATA[When an activity completes successfully, Normally a "success" page is shown to the user informing the user the action is completed.  This page can be bypassed by changing this setting to false.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -249,7 +249,7 @@
     </setting>
     <setting key="display.js.custom" level="1">
         <label>Embedded JavaScript</label>
-        <description><![CDATA[Contents of this setting will be injected into all PWM pages inside a <script></script> html tag near the bottom of the page.]]></description>
+        <description><![CDATA[Contents of this setting will be injected into all pages inside a <script></script> html tag near the bottom of the page.]]></description>
         <default>
             <value />
         </default>
@@ -263,7 +263,7 @@
     </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
         <label>Logout After Password Change</label>
-        <description><![CDATA[Force user to logout of PWM (and send to logoutURL) after a password change.<br/><br/>In most cases, this should be left on (default), especially if using some type of single sign on service.]]></description>
+        <description><![CDATA[Force user to logout (and be sent to logoutURL) after a password change.<br/><br/>In most cases, this should be left on (default), especially if using some type of single sign on service.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -277,7 +277,7 @@
     </setting>
     <setting key="password.change.requireCurrent" level="0" required="true">
         <label>Require Current Password during change</label>
-        <description><![CDATA[If true, the user's current password will be required on the change password page for most change password scenarios.  In most cases this is not required because the user just authenticated to pwm prior to the seeing the change password page.  The major exception is when using SSO with pwm, in that case you will probably what to set "Only when not expired" so that the current password must be supplied when the user attempts a password change during a session, but not when forced to change immediately upon authentication.]]></description>
+        <description><![CDATA[If true, the user's current password will be required on the change password page for most change password scenarios.  In most cases this is not required because the user just authenticated prior to the seeing the change password page.  The major exception is when using SSO, in that case you will probably what to set "Only when not expired" so that the current password must be supplied when the user attempts a password change during a session, but not when forced to change immediately upon authentication.]]></description>
         <default>
             <value><![CDATA[false]]></value>
         </default>
@@ -289,61 +289,61 @@
     </setting>
     <setting key="display.password.changeAgreement" level="0">
         <label>Password Change Agreement Message</label>
-        <description><![CDATA[<p>Message to display to user before being allowed to change password. If blank, the change password agreement page will not be displayed to the user. This message may include HTML tags.</p> <p>This setting may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+        <description><![CDATA[<p>Message to display to user before being allowed to change password. If blank, the change password agreement page will not be displayed to the user. This message may include HTML tags.</p> <p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="passwordSyncMinWaitTime" level="1" required="true">
         <label>Password Change Minimum Wait Time</label>
-        <description><![CDATA[During a password change, PWM will wait for at least this amount of time before forwarding the user. <br/><br/>Value is specified in seconds.]]></description>
+        <description><![CDATA[During a password change, a delay of this amount will be waited for before forwarding the user.  This gives any background synchronization processes time to execute before the user executes the next operation.<br/><br/>Value is specified in seconds.]]></description>
         <default>
             <value>15</value>
         </default>
     </setting>
     <setting key="passwordSyncMaxWaitTime" level="1" required="true">
         <label>Password Change Maximum Wait Time</label>
-        <description><![CDATA[During a password change, PWM will wait for the password to be synchronized to all configured LDAP servers.  In cases where the synchronization may take an extraordinary amount of time, this setting will prevent the page from timing out.<br/><br/>Value is specified in seconds.]]></description>
+        <description><![CDATA[During a password change, the system will wait for the password to be synchronized to all configured LDAP servers.  In cases where the synchronization may take an extraordinary amount of time, this setting will prevent the page from timing out.<br/><br/>Value is specified in seconds.]]></description>
         <default>
             <value>90</value>
         </default>
     </setting>
     <setting key="expirePreTime" level="0" required="true">
         <label>Password Pre-Expire Time</label>
-        <description><![CDATA[Number of seconds before a user's password expires in which to force the user to change their password.  If the user's password will expire within this time frame, PWM will behave as if the user's password has already expired. <br/><br/>Setting this value to a day or so will prevent most cases of a user's password expiring while they are logged in.  The recommend setting for this value is 86400 (1 day).]]></description>
+        <description><![CDATA[Number of seconds before a user's password expires in which to force the user to change their password.  If the user's password will expire within this time frame, the system will behave as if the user's password has already expired. <br/><br/>Setting this value to a day or so will prevent most cases of a user's password expiring while they are logged in.  The recommend setting for this value is 86400 (1 day).]]></description>
         <default>
             <value>86400</value>
         </default>
     </setting>
     <setting key="expireWarnTime" level="0" required="true">
         <label>Password ExpireWarn Time</label>
-        <description><![CDATA[Number of seconds before a user's password expires in which to warn the user to change their password.  If the user's password will expire within this time frame, PWM will warn the user during a CommandServlet checkExpire or checkAll operation. <br/><br/>If this time is zero or less than the expirePreTime, this feature will be disabled.  The recommended setting for this value is 432000 (5 days).]]></description>
+        <description><![CDATA[Number of seconds before a user's password expires in which to warn the user to change their password.  If the user's password will expire within this time frame, the system will warn the user during a CommandServlet checkExpire or checkAll operation. <br/><br/>If this time is zero or less than the expirePreTime, this feature will be disabled.  The recommended setting for this value is 432000 (5 days).]]></description>
         <default>
             <value>432000</value>
         </default>
     </setting>
     <setting key="expireCheckDuringAuth" level="1" required="true">
         <label>Check Expire During Authentication</label>
-        <description><![CDATA[When the user is authenticated to PWM, should there be a check to see if the user's password is expired (or about to expire based on the expirePreTime).  If this is set to true, and the user's password is expired, they will be forced to the expire password page.]]></description>
+        <description><![CDATA[When the user is authenticated, should there be a check to see if the user's password is expired (or about to expire based on the expirePreTime).  If this is set to true, and the user's password is expired, they will be forced to the expire password page.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="pwm.seedlist.location" level="1">
         <label>Seedlist File</label>
-        <description><![CDATA[PWM can generate "friendly" random password suggestions to users.  It does this by using a "seed" word or words, and then modifying that word randomly until it is sufficiently complex and meets the configured rules computed for the user.<br/><br/>Setting this to blank will result in suggested passwords being completely randomized.]]></description>
+        <description><![CDATA[When passwords are randomly generated, the system can generate "friendly" random password suggestions to users.  It does this by using a "seed" word or words, and then modifying that word randomly until it is sufficiently complex and meets the configured rules computed for the user.<br/><br/>Setting this to blank will result in suggested passwords being completely randomized.]]></description>
         <default>
             <value><![CDATA[seedlist.zip]]></value>
         </default>
     </setting>
     <setting key="changePassword.writeAttributes" level="0">
         <label>Post Password Change Actions</label>
-        <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  PwmMacros can be used within the action and will be expanded based on the loged in user.]]></description>
+        <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  Macros can be used within the action and will be expanded based on the loged in user.]]></description>
         <default />
     </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
-        <description><![CDATA[List of ldap servers in URL format.  PWM will use these servers in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable PWM will use the next available server in the list.  PWM will then periodically fall-back to the first server to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine running PWM must trust the directory server, either because it has a valid commercial certificate, or because you have manually added the public key certificate from the tree to the Java keystore.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Avoid using a virtual IP address (vip) or load balancer device whenever possible.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
+        <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because it has a valid commercial certificate, or because you have manually added the public key certificate from the tree to the Java keystore.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Avoid using a virtual IP address (vip) or load balancer device whenever possible.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <default>
             <value><![CDATA[ldaps://ldap.example.com:636]]></value>
@@ -362,14 +362,14 @@
     </setting>
     <setting key="ldap.promiscuousSSL" level="1" required="true">
         <label>LDAP Promiscuous SSL</label>
-        <description><![CDATA[If true PWM will trust any LDAP SSL certificate without any verification.  Thus, with this setting set to true, it is not required to import the LDAP server's SSL certificate into the Java keystore.<br/><br/><b>WARNING:</b> using promiscuous SSL is a security risk and should never be used in a production system.]]></description>
+        <description><![CDATA[If true any LDAP SSL certificate will be blindly trusted without any verification.  Thus, with this setting set to true, it is not required to import the LDAP server's SSL certificate into the Java keystore.<br/><br/><b>WARNING:</b> using promiscuous SSL is a security risk and should never be used in a production system.]]></description>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting key="ldap.proxy.username" level="0" required="true">
         <label>LDAP Proxy User</label>
-        <description><![CDATA[LDAP Proxy User used by PWM to access the ldap directory. This user must have rights to browse users, and manage password attributes on the user object.<br/><br/>This value should be in LDAP distinguished name format, even if your ldap directory accepts other types of values for the bind DN.  An example of this format is <i>cn=admin,o=example</i> or <i>cn=administrator,cn=users,dc=subdomain,dc=domain,dc=net</i>.<br/><br/>Generally, the proxy user needs read/browse object rights to all user objects it will manage, as well as create object rights in the new user container (if enabled).]]></description>
+        <description><![CDATA[LDAP Proxy User used to access the ldap directory. This user must have rights to browse users, and manage password attributes on the user object.<br/><br/>This value should be in LDAP distinguished name format, even if your ldap directory accepts other types of values for the bind DN.  An example of this format is <i>cn=admin,o=example</i> or <i>cn=administrator,cn=users,dc=subdomain,dc=domain,dc=net</i>.<br/><br/>Generally, the proxy user needs read/browse object rights to all user objects it will manage, as well as create object rights in the new user container (if enabled).]]></description>
         <default>
             <value><![CDATA[cn=admin,o=example]]></value>
         </default>
@@ -399,22 +399,22 @@
     </setting>
     <setting key="ldap.selectableContexts" level="1">
         <label>User Selectable Login Contexts</label>
-        <description><![CDATA[This optional setting, if configured, will add another field to the form-based PWM login screen and other user search screens.  The field will allow the user to select a specific context. This allows PWM to be used against ldap directories that do not have unique usernames throughout the entire directory. <br/><br/>Values can further be set with both a display value and a context, separated by three colons.<br/><br/>For example:<p><b>ou=sf,ou=ca,o=example:::San Francisco</b><br/<b>ou=lon,ou=uk,o=example:::London</b><br/<b>ou=nyc,ou=ny,o=example:::New York</b><br/</p>]]></description>
+        <description><![CDATA[This optional setting, if configured, will add another field to the form-based login screen and other user search screens.  The field will allow the user to select a specific context. This is for situations where the ldap directory that does not have unique usernames throughout the entire directory. <br/><br/>Values can further be set with both a display value and a context, separated by three colons.<br/><br/>For example:<p><b>ou=sf,ou=ca,o=example:::San Francisco</b><br/<b>ou=lon,ou=uk,o=example:::London</b><br/<b>ou=nyc,ou=ny,o=example:::New York</b><br/</p>]]></description>
         <regex>^.+:::.+$</regex>
         <default />
     </setting>
     <setting key="ldap.testuser.username" level="0">
         <label>LDAP Test User</label>
-        <description><![CDATA[The LDAP test user is used by PWM to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. PWM will periodically use this account to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability of PWM to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
+        <description><![CDATA[The LDAP test user is used to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. This account will periodically be usedt to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="pwmAdmin.queryMatch" level="0" required="true">
-        <label>PWM Admin Query String</label>
-        <description><![CDATA[Query string used to detect if a user is a pwmAdministrator.  An LDAP query is performed during pwm login against the logged in user to determine if the user is a pwm Admin.  If the user matches the query, then the user is considered a PWM administrator.]]></description>
+        <label>Administrator Query String</label>
+        <description><![CDATA[Query string used to detect if a user will be granted administrator rights.  An LDAP query is performed during login against the logged in user to determine if the user is an administrator.  If the user matches the query, then the user is considered an administrator.]]></description>
         <default>
-            <value><![CDATA[(groupMembership=cn=PwmAdmins,ou=Groups,o=example)]]></value>
+            <value><![CDATA[(groupMembership=cn=Admins,ou=Groups,o=example)]]></value>
         </default>
         <default template="AD">
             <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
@@ -438,14 +438,14 @@
     </setting>
     <setting key="ldap.readPasswordPolicies" level="1" required="true">
         <label>Read Password Policies</label>
-        <description><![CDATA[If this setting is true, PWM will attempt to read the password policy for the user from the ldap directory.  Support for this functionality varies based on directory vendor and directory configuration settings. <br/><br/>After successfully reading a user password policy, PWM will merge the PWM configured policy and the user policy and apply the most restrictive value for each setting.]]></description>
+        <description><![CDATA[If this setting is true, will attempt to read the password policy for the user from the ldap directory.  Support for this functionality varies based on directory vendor and directory configuration settings. <br/><br/>After successfully reading a user password policy.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.addObjectClasses" level="1">
         <label>Auto Add Object Classes</label>
-        <description><![CDATA[Object classes to automatically add to users who authenticate to the password servlet.  Typically this is the standard pwmUser aux class.  The definition for this class is in the supplied pwmSchema.ldif file.]]></description>
+        <description><![CDATA[Object classes to automatically add to users who authenticate to the password servlet.  Typically this is an auxillary ldap class that contains attributes used by to store password self service data.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmUser]]></value>
@@ -456,7 +456,7 @@
     </setting>
     <setting key="password.allowChange.queryMatch" level="1" required="true">
         <label>Change Password Query Match</label>
-        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this is ldap query or else the user will not be permitted to change the password.]]></description>
+        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this ldap query or else the user will not be permitted to change the password.]]></description>
         <default>
             <value><![CDATA[(objectClass=*)]]></value>
         </default>
@@ -489,7 +489,7 @@
     </setting>
     <setting key="ldap.guidAttribute" level="1" required="true">
         <label>LDAP GUID Attribute</label>
-        <description><![CDATA[This attribute is used by PWM to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, PWM will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as PWM can trust the directory to enforce the uniqueness.  Lastly, you can use a custom attribute such as the pwmGUID attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
+        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[VENDORGUID]]></value>
@@ -497,14 +497,7 @@
     </setting>
     <setting key="ldap.guid.autoAddValue" level="1" required="true">
         <label>Auto-Add GUID Value</label>
-        <description><![CDATA[If true, PWM will attempt to add a unique GUID value for any user attempting to authenticate that does not have a value.]]></description>
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
-    <setting key="ldap.wireTrace.enable" level="1" required="true">
-        <label>Enable LDAP Wire Trace</label>
-        <description><![CDATA[If true, PWM will enable logging of all ldap read/write values to the TRACE logging level.]]></description>
+        <description><![CDATA[If true, A unique GUID value will be created and assigned for any user attempting to authenticate that does not have a value.  The value will be written to the attribute nameed in the LDAP GUID Attribute setting.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -547,7 +540,7 @@
     </setting>
     <setting key="email.smtp.address" level="0">
         <label>SMTP Email Server Address</label>
-        <description><![CDATA[Any emails generated by PWM will be sent via this server.  Removing this setting will prevent PWM from sending any email at all.  Be sure the server listed here allows relaying.  For best results, use a local smtp server.]]></description>
+        <description><![CDATA[Any emails generated by will be sent via this server.  Removing this setting will prevent sending any email at all.  Be sure the server listed here allows relaying.  For best results, use a local smtp server.]]></description>
         <regex>^[a-zA-Z0-9.-]*$</regex>
         <default>
             <value />
@@ -555,14 +548,14 @@
     </setting>
     <setting key="email.smtp.username" level="1">
         <label>SMTP Email Server Username</label>
-        <description><![CDATA[Any emails generated by PWM will be sent by logging into server with this user.  A blank value will here will send SMTP messages without authentication.]]></description>
+        <description><![CDATA[Any emails generated will be sent by logging into server with this user.  A blank value will here will send SMTP messages without authentication.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="email.smtp.userpassword" level="1">
         <label>SMTP Email Server Password</label>
-        <description><![CDATA[Any emails generated by PWM will be sent by logging into server with this password.  A blank value will here will send SMTP messages without authentication.]]></description>
+        <description><![CDATA[Any emails generated will be sent by logging into server with this password.  A blank value will here will send SMTP messages without authentication.]]></description>
     </setting>
     <setting key="email.userMailAttribute" level="1" required="true">
         <label>User Email attribute</label>
@@ -581,7 +574,7 @@
     </setting>
     <setting key="email.adminAlert.toAddress" level="0">
         <label>Admin Alert To Address</label>
-        <description><![CDATA[During certain events, PWM will send email notifications such events include things like intruder lockout events, or ldap server unavailability Leave this setting blank to disable the alerts.]]></description>
+        <description><![CDATA[During certain events, email notifications are sent.  Leave this setting blank to disable the alerts.]]></description>
         <default>
             <value><![CDATA[admin@example.com]]></value>
         </default>
@@ -590,84 +583,84 @@
         <label>Admin Alert From Address</label>
         <description><![CDATA[Admin alert "From" email address.]]></description>
         <default>
-            <value><![CDATA[PWM Alert Notification <noreply@@PWM:SiteHost@>]]></value>
+            <value><![CDATA[Alert Notification <noreply@@SiteHost@>]]></value>
         </default>
     </setting>
     <setting key="email.changePassword" level="0">
         <label>Change Password Email</label>
         <description><![CDATA[Email sent to user when a password change occurs.  This email is only sent when the user changes their own password.]]></description>
         <default>
-            <value>{"from":"Change Password Notice \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
+            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
     <setting key="email.changePassword.helpdesk" level="0">
         <label>Helpdesk Change Password Email</label>
         <description><![CDATA[Email sent to user when the helpdesk changes the user's password.]]></description>
         <default>
-            <value>{"from":"Change Password Notice \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your help desk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your help desk."}</value>
+            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your help desk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
     <setting key="email.updateProfile" level="0">
         <label>Update Profile Email</label>
         <description><![CDATA[Email sent to users after a profile update.]]></description>
         <default>
-            <value>{"from":"Profile Update \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"from":"Profile Update \u003cnoreply@@SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser" level="0">
         <label>New User Email</label>
         <description><![CDATA[Email sent to newly created users.]]></description>
         <default>
-            <value>{"from":"New User Registration \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser.token" level="0">
         <label>New User Verification Email</label>
         <description><![CDATA[Email sent during new user verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"New User Registration \u003cnoreply@@PWM:SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@PWM:SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.activation" level="0">
         <label>Activation Email</label>
         <description><![CDATA[Email sent to a user just after a successful activation.]]></description>
         <default>
-            <value>{"from":"Activation Notification \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account.\u003c/b\u003e"}</value>
+            <value>{"from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.activation.token" level="0">
         <label>Activation Verification Email</label>
         <description><![CDATA[Email sent during activation verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"Activation Verification \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@PWM:SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"from":"Activation Verification \u003cnoreply@@SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.challenge.token" level="0">
         <label>Forgotten Password Verification Email</label>
         <description><![CDATA[Email sent during forgotten password verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"Forgotten Password \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@PWM:SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
+            <value>{"from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.guest" level="1">
         <label>Guest Registration Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
-            <value>{"from":"Guest Registration Agent \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
+            <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
     <setting key="email.updateguest" level="1">
         <label>Guest Registration Update Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
-            <value>{"from":"Guest Registration Agent \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
+            <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.sendpassword" level="1">
         <label>Send Password Email Subject</label>
         <description><![CDATA[Email sent during new user verification process if send password functionality is enabled.]]></description>
         <default>
-            <value>{"from":"Password Notifier \u003cnoreply@@PWM:SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n%PASSWORD%\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e%PASSWORD%\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003eThank you for requesting a password reset.  Your new password is:\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e \u003c/b\u003e\u003c/font\u003e"}</value>
+            <value>{"from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n%PASSWORD%\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e%PASSWORD%\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003eThank you for requesting a password reset.  Your new password is:\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e \u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
@@ -874,14 +867,14 @@
     </setting>
     <setting key="password.policy.source" level="1" required="true">
         <label>Password Policy Source</label>
-        <description><![CDATA[This setting determines where PWM should read password policy settings from.  If "LDAP" is selected, PWM will attempt to read the policy out of the ldap directory, and many of the following settings are ignored.  If "PWM" is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If "Merge" is selected, PWM will use both areas to read policy settings, and where there is any conflict, PWM will chose the <b>most restrictive</b> value of the policy.]]></description>
+        <description><![CDATA[This setting determines where password policy settings should be read from.  If <b>LDAP</b> is selected, an attempt to read the policy out of the ldap directory will be made, and many of the following settings are ignored.  If <b>Local Config</b> is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If <b>Merge</b> is selected, both policies are read, and where there is any conflict, PWM will chose the <i>most restrictive</i> value of the policy.]]></description>
         <default>
             <value><![CDATA[MERGE]]></value>
         </default>
         <options>
-            <option value="MERGE">Merge PWM and LDAP (default)</option>
+            <option value="MERGE">Merge Local and LDAP (default)</option>
             <option value="LDAP">LDAP</option>
-            <option value="PWM">PWM</option>
+            <option value="PWM">Local</option>
         </options>
     </setting>
     <setting key="password.policy.minimumLength" level="0" required="true">
@@ -1061,7 +1054,7 @@
     </setting>
     <setting key="password.policy.caseSensitivity" level="0" required="true">
         <label>Password is Case Sensitive</label>
-        <description><![CDATA[Controls if the password is case sensitive.  In most cases, this can be read from the directory, but in some cases PWM is not able to correctly determine this value, so you may override it here.]]></description>
+        <description><![CDATA[Controls if the password is case sensitive.  In most cases, this can be read from the directory, but in some cases this value is not able to correctly read, so you may override it here.]]></description>
         <default>
             <value><![CDATA[read]]></value>
         </default>
@@ -1073,7 +1066,7 @@
     </setting>
     <setting key="password.policy.checkWordlist" level="0" required="true">
         <label>Enable Wordlist</label>
-        <description><![CDATA[Check the password against the configured PWM Wordlist.]]></description>
+        <description><![CDATA[Check the password against the configured Wordlist.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1125,21 +1118,21 @@
     </setting>
     <setting key="password.sharedHistory.enable" level="0" required="true">
         <label>Enable Shared History</label>
-        <description><![CDATA[Enable a global shared password history for all PWM users.  If enabled, all pwm users will share a common password history.  This helps prevent common organizational words from being used as passwords by users. Passwords are stored as a salted encrypted hash in the PwmDB.]]></description>
+        <description><![CDATA[Enable a global shared password history for all users.  If enabled, all users will share a common password history.  This helps prevent common organizational words from being used as passwords by users.  Passwords are stored as a salted and encrypted hash in the LocalDB.]]></description>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting key="password.sharedHistory.age" level="1" required="true">
         <label>Shared History Age</label>
-        <description><![CDATA[PWM will periodically remove values older than the configured value here.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200)]]></description>
+        <description><![CDATA[The maximum age of the shared history storage.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200)]]></description>
         <default>
             <value>2419200</value>
         </default>
     </setting>
     <setting key="password.policy.minimumStrength" level="0" required="true">
         <label>Minimum Password Strength</label>
-        <description><![CDATA[PWM judges password strength on a scale of 0 to 100 irrespective of the password policy.  This setting requires that the user have a password that meets the minimum strength level specified here, regardless of other password policy rules.   45 or better is considered "good" while 70 or better is considered "strong".  A value of 0 disables this check.]]></description>
+        <description><![CDATA[Password strengths are judged on a strength on a scale of 0 to 100 irrespective of the password policy.  This setting requires that the user have a password that meets the minimum strength level specified here, regardless of other password policy rules.   45 or better is considered "good" while 70 or better is considered "strong".  A value of 0 disables this check.]]></description>
         <default>
             <value>0</value>
         </default>
@@ -1153,7 +1146,7 @@
     </setting>
     <setting key="password.policy.ruleText" level="1">
         <label>Password Rule Text</label>
-        <description><![CDATA[Rules to display to user.  By default this is blank, and PWM will construct an appropriate rule text to show to the user.  However if this setting is configured, the text in this setting will replace the automatically generated rule text.  HTML tags are permitted.]]></description>
+        <description><![CDATA[Rules to display to user.  By default this is blank, and appropriate rule text will be auto-generated to show to the user.  However if this setting is configured, the text in this setting will replace the automatically generated rule text.  HTML tags are permitted.]]></description>
         <default>
             <value />
         </default>
@@ -1167,7 +1160,7 @@
     </setting>
     <setting key="pwm.wordlist.location" level="0">
         <label>Wordlist File</label>
-        <description><![CDATA[PWM supports worldlist dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included with PWM contains commonly used English passwords.  More comprehensive wordlists are available on the <a href="http://code.google.com/p/pwm">PWM project</a> page.  Wordlists with over 10 million words have been tested. <br/><br/>The first time PWM is run with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information. The wordlist format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.]]></description>
+        <description><![CDATA[Specify a worldlist for dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included contains commonly used English passwords.  More comprehensive wordlists are available.  <br/><br/>The first time a startup occurs with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information.  The wordlist file format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.  If a full path is not specified, the applications <i>WEB-INF</i> directory is assumed.]]></description>
         <default>
             <value><![CDATA[wordlist.zip]]></value>
         </default>
@@ -1187,8 +1180,8 @@
         </default>
     </setting>
     <setting key="pwm.securityKey" level="0">
-        <label>PWM Security Key</label>
-        <description><![CDATA[<p>PWM Security Key used for tokens and other crypto functions.  A value is not required unless other features are configured to require it, such as the Crypto Token Storage Method.  This value is used similar to how a cryptographic security certificate is used.</p> <p>If configured, this value must be at least 32 characters in length.  The longer and more random this value, the more secure its use will be.  If multiple PWM instances are in use, each instance should be configured with the same value.</p>]]></description>
+        <label>Security Key</label>
+        <description><![CDATA[<p>A Security Key used for tokens and other crypto functions.  A value is not required unless other features are configured to require it, such as the Crypto Token Storage Method.  This value is used similar to how a cryptographic security certificate is used.</p> <p>If configured, this value must be at least 32 characters in length.  The longer and more random this value, the more secure its use will be.  If multiple instances are in use, each instance should be configured with the same value.</p>]]></description>
         <regex>.{32}.*</regex>
     </setting>
     <setting key="intruder.user.resetTime" level="0" required="true">
@@ -1212,12 +1205,9 @@
             <value>300</value>
         </default>
     </setting>
-
-
-
     <setting key="intruder.address.resetTime" level="0" required="true">
         <label>Intruder Address Reset Time</label>
-        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how PWM is deployed it may not be able to correctly identify the IP address of the user.  You can check if it is getting the correct IP address by looking at the light text on the bottom of every screen, or by looking at the PWM logs.<br/><br/>Some scenarios where PWM would not get the correct address is where it is behind a reverse proxy that doesn't set the X-Forwarded-For header, or behind some types of NAT firewalls.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout functionality.]]></description>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how the application is deployed it may not be able to correctly identify the IP address of the user.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout functionality.]]></description>
         <default>
             <value>120</value>
         </default>
@@ -1236,13 +1226,9 @@
             <value>300</value>
         </default>
     </setting>
-
-
-
-
     <setting key="security.ldap.simulateBadPassword" level="0">
         <label>Enable Bad Password Simulation</label>
-        <description><![CDATA[This feature will enable Bad Password simulation activity when a forgotten password field is entered.  When an identified user attempts to recover a forgotten password but uses incorrect data, PWM will attempt to authenticate to the directory using a known bad password value.  This is done to allow the ldap directory to trigger it's own defense mechanisms against intruders.]]></description>
+        <description><![CDATA[This feature will enable Bad Password simulation activity when a forgotten password field is entered.  When an identified user attempts to recover a forgotten password but uses incorrect data, the application will attempt to authenticate to the directory using a known bad password value.  This is done to allow the ldap directory to trigger it's own defense mechanisms against intruders.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1260,14 +1246,14 @@
     </setting>
     <setting key="captcha.skip.param" level="1">
         <label>Captcha Skip Parameter Value</label>
-        <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request paramater with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>https://pwmserver.example.com/pwm/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause PWM to skip the captcha check.]]></description>
+        <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request paramater with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause PWM to skip the captcha check.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="captcha.skip.cookie" level="1">
         <label>Captcha Skip Cookie</label>
-        <description><![CDATA[Allows for skipping the captcha request if a known browser cookie value is held by the browser the cookie is stored in a cookie named 'pwm-captcha-key'.  If the value is correct,then the captcha check is skipped.  The cookie value is stored in the browser after a successful captcha check.<br/><br/>If blank, then no cookie will be read/stored.  If set to 'INSTANCEID', then the instanceID of pwm (see web.xml instanceID setting) will be used.  If set to any other value, then the literal value will be used.]]></description>
+        <description><![CDATA[Allows for skipping the captcha request if a known browser cookie value is held by the browser the cookie is stored in a cookie named 'captcha-key'.  If the value is correct,then the captcha check is skipped.  The cookie value is stored in the browser after a successful captcha check.<br/><br/>If blank, then no cookie will be read/stored.  If set to 'INSTANCEID', then the instanceID is used.  If set to any other value, then the literal value will be used.]]></description>
         <default>
             <value />
         </default>
@@ -1295,7 +1281,7 @@
     </setting>
     <setting key="enableSessionVerification" level="1" required="true">
         <label>Enable Session Verification</label>
-        <description><![CDATA[If true, sessions will be verified using a session verification key and a redirect.  This verification proves that the browser can correctly establish a session with the pwm server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and pwm is 'sticky' when their are multiple pwm servers.  Additionally it helps prevent some types of XSS attacks.]]></description>
+        <description><![CDATA[If true, sessions will be verified using a session verification key and a redirect.  This verification proves that the browser can correctly establish a session with the server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and application server is 'sticky' when their are multiple server instances.  Additionally it helps prevent some types of XSS attacks.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1313,7 +1299,7 @@
     </setting>
     <setting key="pwm.requireHTTPS" level="0" required="true">
         <label>Require HTTPS</label>
-        <description><![CDATA[Require HTTPS (instead of cleartext HTTP) traffic to the PWM server.  While non-secure connections are useful during testing, production PWM servers should always have this setting set to true.]]></description>
+        <description><![CDATA[Require HTTPS (instead of cleartext HTTP) traffic to the application server server.  While non-secure connections are useful during testing, production servers should always have this setting set to true.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -1341,7 +1327,7 @@
     </setting>
     <setting key="security.page.leaveNoticeTimeout" level="1" required="true">
         <label>Page Leave Notice Timeout</label>
-        <description><![CDATA[When a user navigates away from any PWM page, a notice is sent to the PWM server.   The next time a page is requested, the timeout is checked to determine if the last page leave time was greater then the timeout, and if so, the user's session will be invalidated.  This has the effect of logging out users that navigate away from the PWM application without explicitly logging out.If set to zero, this feature is disabled.]]></description>
+        <description><![CDATA[When a user navigates away from any page, a notice is sent to the server.   The next time a page is requested, the timeout is checked to determine if the last page leave time was greater then the timeout, and if so, the user's session will be invalidated.  This has the effect of logging out users that navigate away from the application without explicitly logging out.If set to zero, this feature is disabled.]]></description>
         <default>
             <value>0</value>
         </default>
@@ -1363,12 +1349,12 @@
     </setting>
     <setting key="token.storageMethod" level="0" required="true">
         <label>Token Storage Method</label>
-        <description><![CDATA[Storage method used to save issued tokens.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>PwmDB</td><td>Stores the tokens in the local embedded PwmDB database.  Tokens will not across multiple PWM instances.</td></tr><tr><td>DB</td><td>Store the tokens in a configured, remote database.  Tokens will work across multiple PWM instances.</td></tr><tr><td>Crypto</td><td>Use crypto to create and read tokens, they are not stored locally.  Tokens will work across multiple PWM instances if they have the same PWM Security Key.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to store tokens.  Tokens will work across multiple PWM instances.  LDAP tokens cannot be used as New User Registration tokens.</td></tr></table>Except when using the "Crypto" method, tokens will be generated using the length and character configuration options. Whenusing the "Crypto" method, tokens will be much longer.]]></description>
+        <description><![CDATA[Storage method used to save issued tokens.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>LocalDB</td><td>Stores the tokens in the local embedded LocalDB database.  Tokens will not be common across multiple application instances.</td></tr><tr><td>DB</td><td>Store the tokens in a configured, remote database.  Tokens will work across multiple application instances.</td></tr><tr><td>Crypto</td><td>Use crypto to create and read tokens, they are not stored locally.  Tokens will work across multiple application instances if they have the same Security Key.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to store tokens.  Tokens will work across multiple application instances.  LDAP tokens cannot be used as New User Registration tokens.</td></tr></table>Except when using the "Crypto" method, tokens will be generated using the length and character configuration options. Whenusing the "Crypto" method, tokens will be much longer.]]></description>
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
         </default>
         <options>
-            <option value="STORE_PWMDB">PwmDB</option>
+            <option value="STORE_PWMDB">LocalDB</option>
             <option value="STORE_DB">DB</option>
             <option value="STORE_CRYPTO">Crypto</option>
             <option value="STORE_LDAP">LDAP</option>
@@ -1405,7 +1391,7 @@
     </setting>
     <setting key="events.healthCheck.minInterval" level="1">
         <label>Health Check Frequency</label>
-        <description><![CDATA[Frequency (in seconds) at which PWM performs a self-health check.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
+        <description><![CDATA[Frequency (in seconds) at which a self-health check is performed.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
         <default>
             <value>120</value>
         </default>
@@ -1428,28 +1414,28 @@
     </setting>
     <setting key="events.java.log4jconfigFile" level="1">
         <label>Log4j Configuration File</label>
-        <description><![CDATA[Location and name of a log4j xml configuration file.  If specified, PWM will use this file to configure the log4j system.  If unspecified, PWM will use a basic log4j configuration logging only to stdout. The location specified by this setting is relative to PWM's <i>WEB-INF</i> directory.  PWM includes an example <i>log4jconfig.xml</i> file.]]></description>
+        <description><![CDATA[Location and name of a log4j xml configuration file.  If specified, this file will be used to configure the log4j system.  If unspecified, a basic log4j configuration will be used logging only to stdout. The location specified by this setting is relative to the <i>WEB-INF</i> directory.  An example <i>log4jconfig.xml</i> file is included in the <i>WEB-INF</i> directory.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="events.pwmDB.maxEvents" level="1" required="true">
-        <label>Maximum PwmDB Events</label>
-        <description><![CDATA[Maximum log events stored in PwmDB.  PWM will retain this number of events in the local PwmDB database and use these to display in the admin event log screen.<br/><br/>This setting does not effect the normal log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Approximately 100MB of disk space will be consumed for each 100,000 log events.]]></description>
+        <label>Maximum LocalDB Events</label>
+        <description><![CDATA[Maximum log events stored in LocalDB.  This number of events will be retained in the LocalDB database and use these to display in the admin event log screen.<br/><br/>This setting does not effect the normal log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Approximately 100MB of disk space will be consumed for each 100,000 log events.]]></description>
         <default>
             <value>1000000</value>
         </default>
     </setting>
     <setting key="events.pwmDB.maxAge" level="1" required="true">
-        <label>Maximum Age PwmDB Events</label>
-        <description><![CDATA[Maximum age of events stored in PwmDB. <br/><br/>This setting does not effect log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>PWM will periodically remove values older than the configured value here.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200).  A value of zero will cause PWM to not remove events due to age.]]></description>
+        <label>Maximum Age LocalDB Events</label>
+        <description><![CDATA[Maximum age of events stored in LocalDB. <br/><br/>This setting does not effect log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Events older than the configured value here will be periodically purged.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200).  A value of zero will cause events not to be removed due to age.]]></description>
         <default>
             <value>2419200</value>
         </default>
     </setting>
     <setting key="events.pwmDB.logLevel" level="0" required="true">
-        <label>PwmDB Log Level</label>
-        <description><![CDATA[Level at which to log events in the PwmDB.]]></description>
+        <label>LocalDB Log Level</label>
+        <description><![CDATA[Level at which to log events in the LocalDB.]]></description>
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
@@ -1465,7 +1451,7 @@
     </setting>
     <setting key="events.ldap.attribute" level="1">
         <label>User History Attribute</label>
-        <description><![CDATA[Attribute used to write a user event attribute in ldap.  The user event log attribute will hold an XML document with the users pwm Event history.  Leave blank to disable logging event history to ldap.]]></description>
+        <description><![CDATA[Attribute used to write a user event attribute in ldap.  The user event log attribute will hold an XML document with the users Event history.  Leave blank to disable logging event history to ldap.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
@@ -1481,30 +1467,37 @@
             <value>20</value>
         </default>
     </setting>
+    <setting key="ldap.wireTrace.enable" level="1" required="true">
+        <label>Enable LDAP Wire Trace</label>
+        <description><![CDATA[If true, all ldap traffic will be output to the TRACE logging level.<br/><br/><b>WARNING:</b> enabling this option may allow user passwords and other sensitive data to be written to the log files.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="events.alert.startup.enable" level="0" required="true">
         <label>Startup Alerts</label>
-        <description><![CDATA[If true, send an alert to the PWM Administrator when PWM is started.]]></description>
+        <description><![CDATA[If true, send an during application startup.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="events.alert.shutdown.enable" level="0" required="true">
         <label>Shutdown Alerts</label>
-        <description><![CDATA[If true, send an alert to the PWM Administrator when PWM is shutdown.]]></description>
+        <description><![CDATA[If true, send an alert when application is shutdown.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="events.alert.intruder.enable" level="0" required="true">
         <label>Intruder Alerts</label>
-        <description><![CDATA[If true, send an alert to the PWM Administrator when an intruder is detected.]]></description>
+        <description><![CDATA[If true, send an alert to when an intruder is detected.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="events.alert.fatalEvent.enable" level="0" required="true">
         <label>Fatal Event Alerts</label>
-        <description><![CDATA[If true, send an alert to the PWM Administrator when a fatal event occurs.]]></description>
+        <description><![CDATA[If true, send an alert when a fatal event occurs.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1518,7 +1511,7 @@
     </setting>
     <setting key="events.alert.dailySummary.enable" level="0" required="true">
         <label>Daily Summary Alerts</label>
-        <description><![CDATA[If true, send an email once a day (at 0:00 GMT) to the PWM Administrator with a summary of the day's statistics and health.]]></description>
+        <description><![CDATA[If true, send an email alert once a day (at 0:00 GMT) summary of the day's statistics and health.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1539,7 +1532,7 @@
     </setting>
     <setting key="challenge.forceSetup" level="0" required="true">
         <label>Force Response Setup</label>
-        <description><![CDATA[If true, the user will be directed to configure challenge/response before logging out of PWM. This accounts for new user creation and activation, and other scenarios.  The user is forced check to see if eligible for allowSetup, and also if they do not have valid responses already configured.]]></description>
+        <description><![CDATA[If true, the user will be directed to configure challenge/response when logging in.  The user is forced to enter responses if they do not have a current valid response stored.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1656,7 +1649,7 @@
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
         <label>Check Responses Query Match</label>
-        <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/pwm/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
+        <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
         <default>
             <value><![CDATA[(objectClass=*)]]></value>
         </default>
@@ -1702,19 +1695,19 @@
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
-            <option value="LDAP-DB-PWMDB">LDAP, Database, PwmDB</option>
-            <option value="LDAP-PWMDB">LDAP, PwmDB</option>
-            <option value="LDAP-PWMDB-DB">LDAP, PwmDB, Database</option>
+            <option value="LDAP-DB-PWMDB">LDAP, Database, LocalDB</option>
+            <option value="LDAP-PWMDB">LDAP, LocalDB</option>
+            <option value="LDAP-PWMDB-DB">LDAP, LocalDB, Database</option>
             <option value="DB">Database</option>
             <option value="DB-LDAP">Database, LDAP</option>
-            <option value="DB-LDAP-PWMDB">Database, LDAP, PwmDB</option>
-            <option value="DB-PWMDB">Database, PwmDB</option>
-            <option value="DB-PWMDB-LDAP">Database, PwmDB, LDAP</option>
-            <option value="PWMDB">PwmDB</option>
-            <option value="PWMDB-DB">PwmDB, Database</option>
-            <option value="PWMDB-DB-LDAP">PwmDB, Database, LDAP</option>
-            <option value="PWMDB-LDAP">PwmDB, LDAP</option>
-            <option value="PWMDB-LDAP-DB">PwmDB, LDAP, Database</option>
+            <option value="DB-LDAP-PWMDB">Database, LDAP, LocalDB</option>
+            <option value="DB-PWMDB">Database, LocalDB</option>
+            <option value="DB-PWMDB-LDAP">Database, LocalDB, LDAP</option>
+            <option value="PWMDB">LocalDB</option>
+            <option value="PWMDB-DB">LocalDB, Database</option>
+            <option value="PWMDB-DB-LDAP">LocalDB, Database, LDAP</option>
+            <option value="PWMDB-LDAP">LocalDB, LDAP</option>
+            <option value="PWMDB-LDAP-DB">LocalDB, LDAP, Database</option>
         </options>
     </setting>
     <setting key="recovery.response.writePreference" level="0" required="true">
@@ -1729,11 +1722,11 @@
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
-            <option value="LDAP-PWMDB">LDAP, PwmDB</option>
-            <option value="LDAP-DB-PWMDB">LDAP, Database, PwmDB</option>
+            <option value="LDAP-PWMDB">LDAP, LocalDB</option>
+            <option value="LDAP-DB-PWMDB">LDAP, Database, LocalDB</option>
             <option value="DB">Database</option>
-            <option value="DB-PWMDB">Database, PwmDB</option>
-            <option value="PWMDB">PwmDB</option>
+            <option value="DB-PWMDB">Database, LocalDB</option>
+            <option value="PWMDB">LocalDB</option>
         </options>
     </setting>
     <setting key="challenge.userAttribute" level="0">
@@ -1755,15 +1748,15 @@
         </default>
     </setting>
     <setting key="challenge.storageHashed" level="1" required="true">
-        <label>Store PWM Responses Encrypted</label>
-        <description><![CDATA[<p>If true, the PWM responses stored will be stored as encrypted SHA1 hashed with a salt. If false, the responses will be stored in plain text.  Encrypted responses are more secure, but storing the responses as plain text may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  PWM is always able to read the responses of the users stored in either format.]]></description>
+        <label>Store Responses Encrypted</label>
+        <description><![CDATA[<p>If true, the responses stored will be stored as encrypted SHA1 hashed with a salt. If false, the responses will be stored in plain text.  Encrypted responses are more secure, but storing the responses as plain text may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  Responses of the users stored in other formats can always be read.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="challenge.requiredAttributes" level="0">
         <label>Required Attributes</label>
-        <description><![CDATA[Required ldap attributes for challenge/response.  These attributes will be required to be supplied by the user as part of the forgotten password mechanism.   The proxy user will require "compare" ldap rights to these attributes.]]></description>
+        <description><![CDATA[Required ldap attributes for challenge/response.  These attributes will be required to be supplied by the user as part of the forgotten password mechanism.   The ldap proxy user will require "compare" ldap rights to these attributes.]]></description>
         <default />
     </setting>
     <setting key="challenge.requireResponses" level="0">
@@ -1867,7 +1860,7 @@
     </setting>
     <setting key="newUser.creationUniqueAttributes" level="0">
         <label>Unique Attributes</label>
-        <description><![CDATA[Attributes that must be unique in the directory for the user to be created.  For example,if the 'mail' attribute is listed here (and is in the newUser.attributes setting), then PWM will not allow the new user to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
+        <description><![CDATA[Attributes that must be unique in the directory for the user to be created.  For example,if the 'mail' attribute is listed here (and is in the newUser.attributes setting), then the new user will not be able to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -1876,7 +1869,7 @@
     </setting>
     <setting key="newUser.writeAttributes" level="0">
         <label>New User Actions</label>
-        <description><![CDATA[Actions to be taken when a user is created.  These actions will be executed just after creating the object.<br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <description><![CDATA[Actions to be taken when a user is created.  These actions will be executed just after creating the object.<br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  Macros may be used.]]></description>
         <default />
     </setting>
     <setting key="newUser.deleteOnFail" level="1">
@@ -1888,14 +1881,14 @@
     </setting>
     <setting key="newUser.username.characters" level="1">
         <label>Random Username Characters</label>
-        <description><![CDATA[Available characters for the new username.  If blank, PWM will not generate a random username and the ldap naming attribute must be included in the form.]]></description>
+        <description><![CDATA[Available characters for the new username.  If blank, a random username will not be generated and the ldap naming attribute must be included in the form.]]></description>
         <default>
             <value><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]]></value>
         </default>
     </setting>
     <setting key="newUser.username.length" level="1">
         <label>Random Username Length</label>
-        <description><![CDATA[Length of the new username.  If set to 0, PWM will not generate a random username and the ldap naming attribute must be included in the form.]]></description>
+        <description><![CDATA[Length of the new username.  If set to 0, a random username username will not be generated and the ldap naming attribute must be included in the form.]]></description>
         <default>
             <value>16</value>
         </default>
@@ -1916,14 +1909,14 @@
     </setting>
     <setting key="newUser.passwordPolicy.user" level="0">
         <label>New User Password Policy Template</label>
-        <description><![CDATA[User to use as template for password policy.  PWM will read the configured user's password policy and use that on the new user password page.  If the value is <i>TESTUSER</i>, PWM will use the configured test user's password policy. If the value is blank, then the configured PWM password policy will be used.]]></description>
+        <description><![CDATA[User to use as template for password policy.  The user specified here will be used as a 'template' for the new user password policy.  If the value is <i>TESTUSER</i>, the configured test user's password policy will be used. If the value is blank, then the configured local password policy will be used.]]></description>
         <default>
             <value><![CDATA[TESTUSER]]></value>
         </default>
     </setting>
     <setting key="newUser.minimumWaitTime" level="0">
         <label>New User Minimum Wait Time</label>
-        <description><![CDATA[During a new user creation, PWM will wait for at least this amount of time before forwarding the user.  <br/><br/>Value is specified in seconds.]]></description>
+        <description><![CDATA[During a new user creation, the user will be delayed for at least this amount of time before forwarding the user to the next activity.  <br/><br/>Value is specified in seconds.]]></description>
         <default>
             <value>10</value>
         </default>
@@ -1958,7 +1951,7 @@
     </setting>
     <setting key="guest.adminGroup" level="0" required="true">
         <label>Guest Admin Query String</label>
-        <description><![CDATA[Query string used to detect if a user is a guest administrator. An LDAP query is performed during pwm login against the logged in user to determine if the user is a guest administrator. If the user matches the query, then the user is considered a guest administrator.]]></description>
+        <description><![CDATA[Query string used to detect if a user is a guest administrator. An LDAP query is performed during login against the logged in user to determine if the user is a guest administrator. If the user matches the query, then the user is considered a guest administrator.]]></description>
         <default>
             <value><![CDATA[(groupMembership=cn=useradmins,ou=groups,o=example)]]></value>
         </default>
@@ -1987,7 +1980,7 @@
     </setting>
     <setting key="guest.creationUniqueAttributes" level="0">
         <label>Unique Attributes</label>
-        <description><![CDATA[Attributes that must be unique in the directory for the guest user to be created.  For example,if the 'mail' attribute is listed here (and is in the guest.attributes setting), then PWM will not allow the new guest user to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
+        <description><![CDATA[Attributes that must be unique in the directory for the guest user to be created.  For example,if the 'mail' attribute is listed here (and is in the guest.attributes setting), then the new guest user will not be able to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -1996,7 +1989,7 @@
     </setting>
     <setting key="guest.writeAttributes" level="0">
         <label>Write Attributes</label>
-        <description><![CDATA[Attributes to be written to ldap when a guest user is created.  These attributes will be written to the user object just after creating the object.<br/><br/>format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
+        <description><![CDATA[Actions to be performed after a guest user is created.  Macros may be used.]]></description>
         <default />
     </setting>
     <setting key="guest.adminAttribute" level="0">
@@ -2069,23 +2062,21 @@
         <label>Activation Query Match</label>
         <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who's accounts are disabled and have not been previously activated to be activated.  The default example uses the "vehicleInformation" attribute on the user object because it is a rarely used attribute available in the default schema, but any attribute can be used for this.]]></description>
         <default>
-            <value><![CDATA[(&(loginDisabled=true)(!(vehicleInformation=pwmActivated)))]]></value>
+            <value><![CDATA[(&(loginDisabled=true)(!(vehicleInformation=activated)))]]></value>
         </default>
     </setting>
     <setting key="activateUser.writePreAttributes" level="0">
-        <label>Activation Write Attributes (Before Password Change)</label>
-        <description><![CDATA[Writes attributes to ldap after a user is activated but before the password is set.  Typically this is used to activate the account, as well as put some searchable indicator <br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*=.+$</regex>
+        <label>Activation Actions (Before Password Change)</label>
+        <description><![CDATA[Actions to execute after a user is activated but before the password is set.  Typically this is used to activate the account, as well as put some searchable indicator.<br/><br/>  Macros may be used.]]></description>
         <default>
-            <value><![CDATA[loginDisabled=false]]></value>
+            <value/>
         </default>
     </setting>
     <setting key="activateUser.writePostAttributes" level="0">
-        <label>Activation Write Attributes (After Password Change)</label>
-        <description><![CDATA[Writes attributes to ldap after a user is activated and has changed/set their initial password.  Typically this is used to activate the account, as well as put some searchable indicator <br/><br/>The format is name=value pair, multiple attributes can be specified by separating with a comma.  PwmMacros may be used.]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*=.+$</regex>
+        <label>Post-Activation Actions (After Password Change)</label>
+        <description><![CDATA[Actions to execute after a user is activated and has changed/set their initial password.  Typically this is used to activate the account, as well as put some searchable indicator.<br/><br/>  Macros may be used.]]></description>
         <default>
-            <value><![CDATA[vehicleInformation=pwmActivated]]></value>
+            <value/>
         </default>
     </setting>
     <setting key="activateUser.token.sendMethod" level="0" required="true">
@@ -2111,7 +2102,7 @@
     </setting>
     <setting key="updateAttributes.forceSetup" level="0" required="true">
         <label>Force Update Profile</label>
-        <description><![CDATA[If true, the Update Profile module will be presented to the user before the user leaves PWM if the Update Check Query Match setting evaluation returns true.]]></description>
+        <description><![CDATA[If true, the Update Profile module will be presented to the user upon login if Update Check Query Match setting evaluation returns true.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2131,8 +2122,8 @@
         </default>
     </setting>
     <setting key="updateAttributes.writeAttributes" level="0">
-        <label>Update Write Attributes</label>
-        <description><![CDATA[Writes attributes to ldap after a user's attributes are populated.  Typically this is used to put some searchable indicator on the user object.<br/><br/>format is name=value.  PwmMacros may be used.]]></description>
+        <label>Update Write Actions</label>
+        <description><![CDATA[Actions to execute after a user's attributes are populated.  Typically this is used to put some searchable indicator on the user object.<br/><br/>.  Macros may be used.]]></description>
         <default />
     </setting>
     <setting key="updateAttributes.form" level="0" required="true">
@@ -2146,7 +2137,7 @@
     </setting>
     <setting key="updateAttributes.check.queryMatch" level="0">
         <label>Update Check Query Match</label>
-        <description><![CDATA[When the "checkProfile" or "checkAll" parameter is used with the command servlet, this query match will be used to determine if the user should be required to populate the param values. <br/><br/>If this value is blank, then PWM will check that the current values meet the form requirements.]]></description>
+        <description><![CDATA[When the "checkProfile" or "checkAll" parameter is used with the command servlet, this query match will be used to determine if the user should be required to populate the param values. <br/><br/>If this value is blank, then the user's current values will be checked against the form requirements.]]></description>
         <default>
             <value />
         </default>
@@ -2176,9 +2167,9 @@
     </setting>
     <setting key="shortcut.httpHeaders" level="0">
         <label>Shortcut Headers</label>
-        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, PWM will use the values to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, PWM will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the labbel is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
+        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, these values will be used to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, the system will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the labbel is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
         <default>
-            <value><![CDATA[X-PWM-Shortcuts]]></value>
+            <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
     <setting key="peopleSearch.enable" level="0">
@@ -2255,35 +2246,35 @@
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="0" required="true">
         <label>Enable NMAS Extensions</label>
-        <description><![CDATA[When connecting to a Novell eDirectory ldap directory, this parameter will control if PWM will use NMAS extensions when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using unversal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
+        <description><![CDATA[When connecting to a Novell eDirectory ldap directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using unversal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.storeNmasResponses" level="0" required="true">
         <label>Store NMAS Responses</label>
-        <description><![CDATA[If true, PWM will save responses to the NMAS response storage container on the user.  This storage is in addition to any other configured response storage methods.  PWM will not use these stored responses during forgotten password recovery unless the "UserApp Password SOAP Service URL" setting is configured.]]></description>
+        <description><![CDATA[If true, user responses will be saved to the NMAS response storage container on the user.  This storage is in addition to any other configured response storage methods.  The NMAS stored responses will not be used during forgotten password recovery unless the "UserApp Password SOAP Service URL" setting is configured.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.readUserPwd" level="1">
         <label>Read User Passwords</label>
-        <description><![CDATA[If true, PWM will attempt to read the user's password from eDirectory before changing it. This prevents PWM from having to change the users password to a temporary random password during forgotten password sequence.  If the proxy user does not have rights to read the password, PWM will behave as if this setting is false, so it generally should not be changed.]]></description>
+        <description><![CDATA[If true, the user's password will be read from eDirectory before changing it.  This prevents an extra password change from being set to a temporary random password during forgotten password sequence.  If the proxy user does not have rights to read the password, then a temporary random password will be generated for the user anyway.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.readChallengeSets" level="0" required="true">
         <label>Read Challenge Sets</label>
-        <description><![CDATA[If true, PWM will read the challenge set configuration from eDirectory and apply it to users logging into PWM.  If an eDirectory challenge set is applied to the user, PWM will use that policy, otherwise PWM will use the PWM configured challenge questions for forgotten password.To use only NMAS configured challenge sets, be sure to blank out the pwm required and forgotten questions, or else those will be used in cases where no eDirectory policy is found or the is an error reading the policy.]]></description>
+        <description><![CDATA[If true, the challenge set configuration from eDirectory Universal Password policy will be read and applied to users.  If an eDirectory challenge set is applied to the user, that policy will be used, otherwise the policy that is a part of this configuration will be used.  To require only NMAS configured challenge sets, be sure to blank out the required and forgotten questions as part of this configuration, or else those will be used in cases where no eDirectory policy.]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.ws.pwdMgtURL" level="0">
         <label>UserApp Password SOAP Service URL</label>
-        <description><![CDATA[If supplied, this setting will change the behavior of the PWM forgotten password function. Instead of using the PWM stored response set in ldap, PWM will call the Novell UserApp forgotten password web service to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, PWM will then forward the user to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS's certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in Novell UserApp v3.7 or greater.]]></description>
+        <description><![CDATA[If supplied, this setting will change the behavior of the forgotten password function. Instead of using the normal mechanism to read the responses stored in ldap, the Novell UserApp forgotten password web service will be used to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, then the user will be forwared to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used and instead the user's new password will be set via ldap.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in Novell UserApp v3.7 or greater.]]></description>
         <default>
             <value />
         </default>
@@ -2320,7 +2311,7 @@
         <label>Helpdesk Query Match</label>
         <description><![CDATA[LDAP query string used to detect if logged in user is permitted to access the helpdesk module.  The user must be returned during this is ldap query or else the user will not be permitted to access the helpdesk module.]]></description>
         <default>
-            <value><![CDATA[(groupMembership=cn=PwmAdmins,ou=Groups,o=example)]]></value>
+            <value><![CDATA[(groupMembership=cn=Admins,ou=Groups,o=example)]]></value>
         </default>
         <default template="AD">
             <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
@@ -2438,7 +2429,7 @@
     </setting>
     <setting key="helpdesk.idleTimeout" level="0">
         <label>Idle Timeout Seconds for Helpdesk Users</label>
-        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Pwm Session Idle timeout will be set to this value once a user successfully access the helpdesk module.]]></description>
+        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Session Idle timeout will be set to this value once a user successfully access the helpdesk module.]]></description>
         <default>
             <value>3600</value>
         </default>
@@ -2456,22 +2447,22 @@
         </options>
     </setting>
     <setting key="pwmDb.location" level="0" required="true">
-        <label>PwmDB Location</label>
-        <description><![CDATA[Location of the PwmDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
+        <label>LocalDB Location</label>
+        <description><![CDATA[Location of the LocalDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
         <default>
-            <value><![CDATA[pwmDB]]></value>
+            <value><![CDATA[LocalDB]]></value>
         </default>
     </setting>
     <setting key="pwmDb.implementation" level="1" required="true">
-        <label>PwmDB Implementation Class</label>
-        <description><![CDATA[Java class implementation used by PwmDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.pwmdb.Berkeley_PwmDb</td><td>Default Implementation based on BerekelyDB Java Edition</td><tr><tr><td>password.pwm.util.pwmdb.Derby_PwmDb</td><td>Based on Apache Derby java embedded SQL database</td><tr><tr><td>password.pwm.util.pwmdb.JDBM_PwmDb</td><td>Uses JDBM2 as the embedded key store</td><tr><tr><td>password.pwm.util.pwmdb.Memory_PwmDb</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
+        <label>LocalDB Implementation Class</label>
+        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.pwmdb.Berkeley_PwmDb</td><td>Default Implementation based on BerekelyDB Java Edition</td><tr><tr><td>password.pwm.util.pwmdb.Derby_PwmDb</td><td>Based on Apache Derby java embedded SQL database</td><tr><tr><td>password.pwm.util.pwmdb.JDBM_PwmDb</td><td>Uses JDBM2 as the embedded key store</td><tr><tr><td>password.pwm.util.pwmdb.Memory_PwmDb</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
         <default>
             <value><![CDATA[password.pwm.util.pwmdb.Berkeley_PwmDb]]></value>
         </default>
     </setting>
     <setting key="pwmDb.initParameters" level="1">
-        <label>PwmDB Initialization String</label>
-        <description><![CDATA[Value passed to the pwmDbImplementation class during initialization.  Value format is specific to the implementation.]]></description>
+        <label>LocalDB Initialization String</label>
+        <description><![CDATA[Value passed to the LocalDB Implementation class during initialization.  Value format is specific to the implementation.]]></description>
         <default>
             <value><![CDATA[je.maxMemory=10000000]]></value>
             <value><![CDATA[je.cleaner.minUtilization=70]]></value>
@@ -2479,7 +2470,7 @@
     </setting>
     <setting key="db.classname" level="0">
         <label>Database Class</label>
-        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC drivar JAR or ZIP file must be included in PWM's classpath, typically in PWM's <i>WEB-INF/lib</i> or the application server's lib directory.]]></description>
+        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC drivar JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.]]></description>
         <default>
             <value />
         </default>
@@ -2511,14 +2502,14 @@
     </setting>
     <setting key="externalJudgeMethod" level="0">
         <label>External Judge Method</label>
-        <description><![CDATA[Java classes to call to determine the strength of a given password.  External judge methods must implement the interface <i>password.pwm.ExternalJudgeMethod</i>. During password judge checks, pwm will call all listed judge classes.  If multiple results are returned, the lowest returned value will be used as the result.]]></description>
+        <description><![CDATA[Java classes to call to determine the strength of a given password.  External judge methods must implement the interface <i>password.pwm.ExternalJudgeMethod</i>. During password judge checks, all listed classes will be invoked.  If multiple results are returned, the lowest returned value will be used as the result.]]></description>
         <default>
             <value><![CDATA[password.pwm.PwmPasswordJudge]]></value>
         </default>
     </setting>
     <setting key="externalRuleMethod" level="0">
         <label>External Rule Method</label>
-        <description><![CDATA[Java classes to call to determine any rule violations of a given password.  External rule methods must implement the interface <i>password.pwm.ExternalRuleMethod</i>.<br/><br/>Unless your adding custom Java code to PWM, you should leave this blank.]]></description>
+        <description><![CDATA[Java classes to call to determine any rule violations of a given password.  External rule methods must implement the interface <i>password.pwm.ExternalRuleMethod</i>.<br/><br/>Unless your adding custom Java code, you should leave this blank.]]></description>
         <default>
             <value />
         </default>
@@ -2539,7 +2530,7 @@
     </setting>
     <setting key="urlshortener.classname" level="1">
         <label>Enable URL Shortening Service Class</label>
-        <description><![CDATA[URL Shortening Service class name. The Java full class name that implements a short url service. The corresponding JAR or ZIP file must be included in PWM's classpath, typically in PWM's <i>WEB-INF/pwm</i> or the application server's lib directory.]]></description>
+        <description><![CDATA[URL Shortening Service class name. The Java full class name that implements a short url service. The corresponding JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.]]></description>
         <default>
             <value />
         </default>
@@ -2561,7 +2552,7 @@
     </setting>
     <setting key="external.webservices.enable" level="0">
         <label>Enable External Web Services</label>
-        <description><![CDATA[Allow public use of the PWM web services.  When false, the PWM form nonce is required for all web services.  The form nonce is difficult (though not impossible) for a client to retreive programmatically.  Therefore it is difficult, though not impossible to use the web services.  When true, the form nonce is not required to invoke the PWM web services.]]></description>
+        <description><![CDATA[Allow public use of web services.  When false, the form nonce is required for all web services.  The form nonce is difficult (though not impossible) for a client to retreive programmatically.  Therefore it is difficult, though not impossible to use the web services.  When true, the form nonce is not required to invoke the web services.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2573,11 +2564,11 @@
     </setting>
     <category key="LDAP">
         <label>LDAP Directory</label>
-        <description><![CDATA[Settings that control PWM's interaction with an LDAP directory.  PWM will auto-detect the LDAP directory vendor and type.  Vendor specific settings have their own category.]]></description>
+        <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="GENERAL">
         <label>General</label>
-        <description><![CDATA[General settings for the PWM application.  Settings here control the functionality and behavior of the system.]]></description>
+        <description><![CDATA[General settings for the application.  Settings here control the functionality and behavior of the system.]]></description>
     </category>
     <category key="USER_INTERFACE">
         <label>User Interface</label>
@@ -2585,7 +2576,7 @@
     </category>
     <category key="PASSWORD_POLICY">
         <label>Password Policy</label>
-        <description><![CDATA[This password policy is applied to all PWM users, regardless of any other password policy that may be configured in the directory.  If so configured, PWM reads the password policy configured for the user in the directory and <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
+        <description><![CDATA[This password policy is applied to all users, regardless of any other password policy that may be configured in the directory.  If so configured, The password policy configured for the user in the directory is read and is <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
     </category>
     <category key="CHALLENGE">
         <label>Challenge Policy</label>
@@ -2593,15 +2584,15 @@
     </category>
     <category key="EMAIL">
         <label>Email</label>
-        <description><![CDATA[<p>Configuration settings for all PWM sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and (if desired) HTML email bodies are configured.  PWM will deliver the email body in both formats and the email client can choose which to display.</p> <p>The body (plaintext or HTML), subject and from values of emails may use PWM Macros.  See the "View" menu "Show PWM Macro Help" for more information about PWM Macros.</p>]]></description>
+        <description><![CDATA[<p>Configuration settings for all sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and (if desired) HTML email bodies are configured.  Email will be delivered in both formats and the email client can choose which to display.</p> <p>The body (plaintext or HTML), subject and from values of emails may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
     </category>
     <category key="SMS">
         <label>SMS</label>
-        <description><![CDATA[Configuration settings for all PWM sent SMS messages. For SMS message text configuration settings are provided.  It is encouraged that for each configured setting and locale, SMS texts are configured.  PWM will deliver the message using the configured short message service gateway.]]></description>
+        <description><![CDATA[Configuration settings for all sent SMS messages. For SMS message text configuration settings are provided.  It is encouraged that for each configured setting and locale, SMS texts are configured.  Messages will be delivered using the configured short message service gateway.]]></description>
     </category>
     <category key="SECURITY">
         <label>Security</label>
-        <description><![CDATA[PWM has built in intruder detection independent of what a directory may provide.  Because PWM may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  PWM will always deny a password based authentication if the directory's intruder detection is enabled. <br/><br/>PWM's own intruder detection mechanisms are only stored in memory, and are not resetable, thus, the timeouts should be relatively short.  The goal for PWM intruder detection isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>PWM uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.  Additionally, the PWM servlet will need to be able to make HTTP requests to <i>http://www.google.com/recaptcha/api/verify</i> during operation or captcha verification will fail.]]></description>
+        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directorie's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
     </category>
     <category key="TOKEN">
         <label>Tokens</label>
@@ -2609,7 +2600,7 @@
     </category>
     <category key="LOGGING">
         <label>Logging &amp; Alerts</label>
-        <description><![CDATA[PWM will log events to three different places:<ul><li><b>PwmDB</b> - PWM's local embedded database</li><li><b>ldap</b> - User events get saved to an attribute on the user entry</li><li><b>java</b> - PWM utilizes the standard Apache <a href="http://logging.apache.org/log4j/">log4j</a> library</li></ul>Additionally, PWM's use of the log4j library allows directing log events to file, database, syslog, Windows event log and other systems.  Visit the <a href="http://logging.apache.org/log4j/">log4j</a> website for more information.<br/><br/>If enabled, alerts are sent to the Admin Alert To Address configured in the Email Settings.<br/><br/>]]></description>
+        <description><![CDATA[Alert and Logging settings.]]></description>
     </category>
     <category key="EDIRECTORY">
         <label>Novell eDirectory</label>
@@ -2621,7 +2612,7 @@
     </category>
     <category key="DATABASE">
         <label>Database</label>
-        <description><![CDATA[Optional database configuration settings.  Two types of databases are used by PWM.<h2>PwmDB</h2>The PwmDB is a local, embedded database that is used by PWM for storage of local data.  In most cases, the PwmDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured, PWM can use a traditional RDBMS database to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, PWM will connect to the database and create any necessary tables.  Multiple PWM server instances can be configured for the same database instance.]]></description>
+        <description><![CDATA[Optional database configuration settings.  Two types of databases are used.<h2>LocalDB</h2>The LocalDB is a local, embedded database that is used for storage of local data.  In most cases, the LocalDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured,  a traditional RDBMS database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple server instances can be configured for the same database instance.]]></description>
     </category>
     <category key="MISC" level="1">
         <label>Integration / Developer</label>
@@ -2653,7 +2644,7 @@
     </category>
     <category key="UPDATE">
         <label>Update Profile</label>
-        <description><![CDATA[The update user profile module will force/allow the user to update the attributes configured here.  This is useful for forcing the user to populate to update some piece of information while they are using PWM.]]></description>
+        <description><![CDATA[The update user profile module will force/allow the user to update the attributes configured here.  This is useful for forcing the user to populate to update some piece of information.]]></description>
     </category>
     <category key="SHORTCUT">
         <label>Shortcut Menu</label>

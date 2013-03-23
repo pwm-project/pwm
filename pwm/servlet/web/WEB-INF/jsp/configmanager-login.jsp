@@ -58,7 +58,7 @@
                 <% } %>
                 <input type="hidden" name="processAction" value="startEditing">
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="document.location='<%=request.getContextPath()%>/private/admin'">
+                        onclick="document.location='<%=request.getContextPath()%>/private/admin';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

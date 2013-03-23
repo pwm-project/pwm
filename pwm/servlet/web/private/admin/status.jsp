@@ -36,7 +36,7 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler();">
+<body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="System"/>
@@ -189,7 +189,7 @@
                 <%= oldestEntryAge == 0 ? "n/a" : TimeDuration.asCompactString(oldestEntryAge) %>
             </td>
             <td class="key">
-                PwmDB Size On Disk
+                LocalDB Size On Disk
             </td>
             <td>
                 <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getPwmDB().getFileLocation())) %>
@@ -197,7 +197,7 @@
         </tr>
         <tr>
             <td class="key">
-                User Responses in PwmDB
+                User Responses in LocalDB
             </td>
             <td>
                 <%
@@ -209,14 +209,14 @@
                 <%= responseCount %>
             </td>
             <td class="key">
-                PwmDB Free Space
+                LocalDB Free Space
             </td>
             <td>
                 <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getPwmDB().getFileLocation())) %>
             </td>
         </tr>
     </table>
-    <% if (pwmApplication.getPwmDB() != null && "true".equalsIgnoreCase(request.getParameter("showPwmDBCounts"))) { %>
+    <% if (pwmApplication.getPwmDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
     <table class="tablemain">
         <tr>
             <td class="key">
@@ -239,7 +239,7 @@
     </table>
     <% } else { %>
     <div style="text-align:center; width:100%; border: 0">
-        <a onclick="showWaitDialog()" href="status.jsp?showPwmDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
+        <a onclick="showWaitDialog()" href="status.jsp?showLocalDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
     </div>
     <% } %>
 </div>

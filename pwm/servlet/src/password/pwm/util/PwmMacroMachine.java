@@ -91,7 +91,7 @@ public class PwmMacroMachine {
 
     private static class PwmInstanceIDMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:InstanceID@");
+            return Pattern.compile("@InstanceID@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -106,7 +106,7 @@ public class PwmMacroMachine {
 
     private static class PwmCurrentTimeMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentTime:.*?@");
+            return Pattern.compile("@CurrentTime:.*?@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -129,7 +129,7 @@ public class PwmMacroMachine {
 
     private static class PwmCurrentTimeDefaultMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:CurrentTime@");
+            return Pattern.compile("@CurrentTime@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -237,7 +237,7 @@ public class PwmMacroMachine {
 
     private static class PwmSiteURLMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:SiteURL@");
+            return Pattern.compile("@SiteURL@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
@@ -247,7 +247,7 @@ public class PwmMacroMachine {
 
     private static class PwmSiteHostMacro implements MacroImplementation {
         public Pattern getRegExPattern() {
-            return Pattern.compile("@PWM:SiteHost@");
+            return Pattern.compile("@SiteHost@");
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {

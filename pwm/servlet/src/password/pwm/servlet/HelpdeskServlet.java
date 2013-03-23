@@ -419,7 +419,9 @@ public class HelpdeskServlet extends TopServlet {
                         new Date(),
                         null,
                         userID,
-                        chaiUser.getEntryDN()
+                        chaiUser.getEntryDN(),
+                        pwmSession.getSessionStateBean().getSrcAddress(),
+                        pwmSession.getSessionStateBean().getSrcHostname()
                 );
                 pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
             }

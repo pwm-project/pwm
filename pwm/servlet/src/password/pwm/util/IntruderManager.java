@@ -89,12 +89,12 @@ public class IntruderManager implements Serializable, PwmService {
                 public void run() {
                     try {
                         userStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
-                    } catch (PwmDBException e) {
+                    } catch (Exception e) {
                         LOGGER.error("error cleaning userStore: " + e.getMessage());
                     }
                     try {
                         addressStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
-                    } catch (PwmDBException e) {
+                    } catch (Exception e) {
                         LOGGER.error("error cleaning addressStore: " + e.getMessage());
                     }
                 }
@@ -163,7 +163,7 @@ public class IntruderManager implements Serializable, PwmService {
         if (userDN == null && pwmSession != null && pwmSession.getSessionStateBean().isAuthenticated()) {
             userDN = pwmSession.getUserInfoBean().getUserDN();
         }
-        mark(username, userDN, address);
+        mark(username, userDN, address, pwmSession);
     }
 
 
@@ -174,10 +174,10 @@ public class IntruderManager implements Serializable, PwmService {
         if (userDN == null && pwmSession != null && pwmSession.getSessionStateBean().isAuthenticated()) {
             userDN = pwmSession.getUserInfoBean().getUserDN();
         }
-        check(username, userDN, address);
+        check(username, userDN, address, pwmSession);
     }
 
-    public void check(final String username, final String userDN, final String address) 
+    public void check(final String username, final String userDN, final String address, final PwmSession pwmSession)
             throws PwmUnrecoverableException 
     {
         if (userDN != null && userManager.checkSubject(userDN)) {
@@ -186,7 +186,7 @@ public class IntruderManager implements Serializable, PwmService {
                 try {
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
                     final String userID = Helper.readLdapUserIDValue(pwmApplication,chaiUser);
-                    final AuditRecord auditRecord = new AuditRecord(AuditEvent.INTRUDER_LOCK ,userID, userDN);
+                    final AuditRecord auditRecord = new AuditRecord(AuditEvent.INTRUDER_LOCK ,userID, userDN, pwmSession);
                     pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
                 } catch (ChaiException e) {
                     LOGGER.error("unexpected ldap error generating audit lockout event: " + e.getMessage());
@@ -227,7 +227,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
     }
 
-    public void mark(final String username, final String userDN, final String address)
+    public void mark(final String username, final String userDN, final String address, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
         boolean marked = false;
@@ -263,7 +263,7 @@ public class IntruderManager implements Serializable, PwmService {
                 pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
             }
 
-            check(username, userDN, address);
+            check(username, userDN, address, pwmSession);
 
             delayPenalty();
         }

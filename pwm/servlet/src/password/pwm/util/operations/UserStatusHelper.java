@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
@@ -257,15 +256,21 @@ public class UserStatusHelper {
             uiBean.setUserSmsNumber(uiBean.getAllUserAttributes().get(ldapSmsAttribute));
         }
 
-        // read  password state
-        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
-
-        final String userPasswordExpireTime = uiBean.getAllUserAttributes().get(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-        if (userPasswordExpireTime != null && userPasswordExpireTime.length() > 0) {
-            uiBean.setPasswordExpirationTime(EdirEntries.convertZuluToDate(userPasswordExpireTime));
-        } else {
-            uiBean.setPasswordExpirationTime(null);
+        // read password expiration time
+        Date ldapPasswordExpirationTime = null;
+        try {
+            ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
+                // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
+                ldapPasswordExpirationTime = null;
+            }
+            uiBean.setPasswordExpirationTime(ldapPasswordExpirationTime);
+        } catch (Exception e) {
+            LOGGER.warn(pwmSession, "error reading password expiration time: " + e.getMessage());
         }
+
+        // read password state
+        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
 
         // read response state
         uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, theUser, uiBean.getChallengeSet()));

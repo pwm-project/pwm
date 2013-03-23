@@ -275,7 +275,10 @@ public class PasswordUtility {
                     new Date(),
                     null,
                     userID,
-                    chaiUser.getEntryDN());
+                    chaiUser.getEntryDN(),
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+                    );
             pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
         }
 
@@ -319,7 +322,6 @@ public class PasswordUtility {
             CrUtility.clearResponses(pwmSession, pwmApplication, proxiedUser, userGUID);
 
             // mark the event log
-            final String message = "(" + pwmSession.getUserInfoBean().getUserID() + ")";
             final AuditRecord auditRecord = new AuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmSession.getUserInfoBean().getUserID(),
@@ -327,7 +329,10 @@ public class PasswordUtility {
                     new Date(),
                     null,
                     userID,
-                    chaiUser.getEntryDN());
+                    chaiUser.getEntryDN(),
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+            );
             pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
         }
 

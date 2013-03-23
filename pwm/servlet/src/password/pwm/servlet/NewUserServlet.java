@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Message;
@@ -411,6 +412,9 @@ public class NewUserServlet extends TopServlet {
 
         //everything good so forward to change password page.
         sendNewUserEmailConfirmation(pwmSession, pwmApplication);
+
+        // add audit record
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
 
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);

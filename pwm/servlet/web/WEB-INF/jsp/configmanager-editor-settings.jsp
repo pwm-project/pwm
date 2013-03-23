@@ -38,7 +38,7 @@
     final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory();
     final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0;
 %>
-<% if (showDesc) { %><p><%= category.getDescription(locale)%></p><% } %>
+<% if (level < 1) { %><p><%= category.getDescription(locale)%></p><% } %>
 <% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true")) { %>
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>

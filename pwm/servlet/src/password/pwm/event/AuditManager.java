@@ -41,10 +41,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBStoredQueue;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -161,10 +164,10 @@ public class AuditManager implements PwmService {
         return auditDB.size();
     }
 
-    public void submitAuditRecord(final AuditEvent auditEvent, final UserInfoBean userInfoBean)
+    public void submitAuditRecord(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        final AuditRecord auditRecord = new AuditRecord(auditEvent, userInfoBean);
+        final AuditRecord auditRecord = new AuditRecord(auditEvent, userInfoBean, pwmSession);
         submitAuditRecord(auditRecord);
     }
 
@@ -430,4 +433,42 @@ public class AuditManager implements PwmService {
 
     }
 
+    public int outputLocalDBToCsv(final Writer writer, final boolean includeHeader)
+            throws IOException
+    {
+        CsvWriter csvWriter = new CsvWriter(writer,',');
+
+        if (includeHeader) {
+            final List<String> headers = new ArrayList<String>();
+            headers.add("Event");
+            headers.add("Timestamp");
+            headers.add("Perpetrator ID");
+            headers.add("Perpetrator DN");
+            headers.add("Target ID");
+            headers.add("Target DN");
+            headers.add("Source Address");
+            headers.add("Source Hostname");
+            headers.add("Message");
+            csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
+        }
+
+        int counter = 0;
+        for (final Iterator<AuditRecord> recordIterator = readLocalDB(); recordIterator.hasNext();) {
+            final AuditRecord loopRecord = recordIterator.next();
+            counter++;
+            final List<String> lineOutput = new ArrayList<String>();
+            lineOutput.add(loopRecord.getEventCode().toString());
+            lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
+            lineOutput.add(loopRecord.getPerpetratorID());
+            lineOutput.add(loopRecord.getPerpetratorDN());
+            lineOutput.add(loopRecord.getTargetID());
+            lineOutput.add(loopRecord.getTargetDN());
+            lineOutput.add(loopRecord.getSourceAddress());
+            lineOutput.add(loopRecord.getSourceHost());
+            lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
+            csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
+        }
+
+        return counter;
+    }
 }

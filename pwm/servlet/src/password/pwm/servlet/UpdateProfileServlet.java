@@ -345,7 +345,7 @@ public class UpdateProfileServlet extends TopServlet {
         sendProfileUpdateEmailNotice(pwmSession, pwmApplication);
 
         // mark the event log
-        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfoBean());
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfoBean(), pwmSession);
 
         // mark the uiBean so we user isn't recycled to the update profile page by the CommandServlet
         uiBean.setRequiresUpdateProfile(false);

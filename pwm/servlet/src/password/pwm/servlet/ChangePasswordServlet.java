@@ -333,7 +333,7 @@ public class ChangePasswordServlet extends TopServlet {
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 
         ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean());
+        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 

@@ -61,6 +61,8 @@ class UserLdapHistory implements Serializable {
 
     private static final String XML_ATTR_TIMESTAMP = "timestamp";
     private static final String XML_ATTR_TRANSACTION = "eventCode";
+    private static final String XML_ATTR_SRC_IP = "srcIP";
+    private static final String XML_ATTR_SRC_HOST = "srcHost";
     private static final String XML_NODE_ROOT = "history";
     private static final String XML_NODE_RECORD = "record";
 
@@ -190,6 +192,12 @@ class UserLdapHistory implements Serializable {
                     final Element hrElement = new Element(XML_NODE_RECORD);
                     hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(loopEvent.getTimestamp()));
                     hrElement.setAttribute(XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getResourceKey());
+                    if (loopEvent.getSourceAddress() != null && loopEvent.getSourceAddress().length() > 0) {
+                        hrElement.setAttribute(XML_ATTR_SRC_IP,loopEvent.getSourceAddress());
+                    }
+                    if (loopEvent.getSourceHost() != null && loopEvent.getSourceHost().length() > 0) {
+                        hrElement.setAttribute(XML_ATTR_SRC_HOST,loopEvent.getSourceHost());
+                    }
                     if (loopEvent.getMessage() != null) {
                         hrElement.setContent(new CDATA(loopEvent.getMessage()));
                     }
@@ -219,8 +227,10 @@ class UserLdapHistory implements Serializable {
                     final long timeStamp = hrElement.getAttribute(XML_ATTR_TIMESTAMP).getLongValue();
                     final String transactionCode = hrElement.getAttribute(XML_ATTR_TRANSACTION).getValue();
                     final AuditEvent eventCode = AuditEvent.forKey(transactionCode);
+                    final String srcAddr = hrElement.getAttribute(XML_ATTR_SRC_IP) != null ? hrElement.getAttribute(XML_ATTR_SRC_IP).toString() : "";
+                    final String srcHost = hrElement.getAttribute(XML_ATTR_SRC_HOST) != null ? hrElement.getAttribute(XML_ATTR_SRC_HOST).toString() : "";
                     final String message = hrElement.getText();
-                    final StoredEvent storedEvent = new StoredEvent(eventCode,timeStamp,message);
+                    final StoredEvent storedEvent = new StoredEvent(eventCode,timeStamp,message,srcAddr,srcHost);
                     returnHistory.addEvent(storedEvent);
                 }
             } catch (JDOMException e) {
@@ -236,11 +246,16 @@ class UserLdapHistory implements Serializable {
         private AuditEvent auditEvent;
         private long timestamp;
         private String message;
+        private String sourceAddress;
+        private String sourceHost;
 
-        private StoredEvent(AuditEvent auditEvent, long timestamp, String message) {
+
+        private StoredEvent(AuditEvent auditEvent, long timestamp, String message, String sourceAddress, String sourceHost) {
             this.auditEvent = auditEvent;
             this.timestamp = timestamp;
             this.message = message;
+            this.sourceAddress = sourceAddress;
+            this.sourceHost = sourceHost;
         }
 
         public AuditEvent getAuditEvent() {
@@ -255,14 +270,23 @@ class UserLdapHistory implements Serializable {
             return message;
         }
 
+        public String getSourceAddress() {
+            return sourceAddress;
+        }
+
+        public String getSourceHost() {
+            return sourceHost;
+        }
+
         public static StoredEvent fromAuditRecord(final AuditRecord auditRecord) {
-            return new StoredEvent(auditRecord.getEventCode(),auditRecord.getTimestamp().getTime(),auditRecord.getMessage());
+            return new StoredEvent(auditRecord.getEventCode(),auditRecord.getTimestamp().getTime(),auditRecord.getMessage(),auditRecord.getSourceAddress(),auditRecord.getSourceHost());
         }
 
         public AuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
             final String userID = userInfoBean.getUserID();
             final String userDN = userInfoBean.getUserDN();
-            return new AuditRecord(this.getAuditEvent(), userID, userDN, new Date(this.getTimestamp()),this.getMessage(),null,null);
+
+            return new AuditRecord(this.getAuditEvent(), userID, userDN, new Date(this.getTimestamp()),this.getMessage(),null,null,this.getSourceAddress(),this.getSourceHost());
         }
     }
 

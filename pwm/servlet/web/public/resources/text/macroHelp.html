@@ -83,7 +83,7 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:InstanceID@
+            @InstanceID@
         </td>
         <td>
             Instance ID of the application
@@ -91,7 +91,7 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:CurrentTime@
+            @CurrentTime@
         </td>
         <td>
             Current time in default format.
@@ -99,7 +99,7 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:CurrentTime:&lt;pattern&gt;@
+            @CurrentTime:&lt;pattern&gt;@
         </td>
         <td>
             Current time where &lt;pattern&gt; is a <a onclick="window.open('http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html')" href="#">SimpleDateFormat</a> pattern
@@ -107,7 +107,7 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:SiteURL@
+            @SiteURL@
         </td>
         <td>
             URL of the site (<span style="font-style: italic;">http://www.example.com/pwm</span>)
@@ -115,7 +115,7 @@
     </tr>
     <tr>
         <td class="key">
-            @PWM:SiteHost@
+            @SiteHost@
         </td>
         <td>
             Hostname of the site (<span style="font-style: italic;">www.example.com</span>)
@@ -125,7 +125,7 @@
 <p>To use a macro, just place the macro into the configuration value such as:
     <br/>
         <span style="font-family: Courrier">
-            Dear, @LDAP:givenName@, Thank you for your activity today, @PWM:CurrentTime:EEE, MMM d, yyyy@.
+            Dear, @LDAP:givenName@, Thank you for your activity today, @CurrentTime:EEE, MMM d, yyyy@.
         </span>
         </p>
 <p>This macro will then be expanded to:

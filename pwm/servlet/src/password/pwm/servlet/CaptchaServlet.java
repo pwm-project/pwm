@@ -51,7 +51,7 @@ public class CaptchaServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CaptchaServlet.class.getName());
 
-    private static final String SKIP_COOKIE_NAME = "pwm-captcha-key";
+    private static final String SKIP_COOKIE_NAME = "captcha-key";
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
     private static final String RECAPTCHA_VALIDATE_URL = "http://www.google.com/recaptcha/api/verify";

@@ -170,8 +170,6 @@ public enum PwmSetting {
             "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP),
     LDAP_GUID_AUTO_ADD(
             "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP),
-    LDAP_ENABLE_WIRE_TRACE(
-            "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     LDAP_CHAI_SETTINGS(
             "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
     LDAP_USERNAME_ATTRIBUTE(
@@ -434,6 +432,8 @@ public enum PwmSetting {
             "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
     EVENTS_LDAP_MAX_EVENTS(
             "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
+    LDAP_ENABLE_WIRE_TRACE(
+            "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
     EVENTS_ALERT_STARTUP(
             "events.alert.startup.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
     EVENTS_ALERT_SHUTDOWN(
@@ -597,9 +597,9 @@ public enum PwmSetting {
     ACTIVATE_USER_QUERY_MATCH(
             "activateUser.queryMatch", PwmSettingSyntax.STRING, Category.ACTIVATION),
     ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
-            "activateUser.writePreAttributes", PwmSettingSyntax.STRING_ARRAY, Category.ACTIVATION),
+            "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, Category.ACTIVATION),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
-            "activateUser.writePostAttributes", PwmSettingSyntax.STRING_ARRAY, Category.ACTIVATION),
+            "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, Category.ACTIVATION),
     ACTIVATE_TOKEN_SEND_METHOD(
             "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, Category.ACTIVATION),
 

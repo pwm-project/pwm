@@ -568,7 +568,7 @@ public class
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
             // mark the event log
-            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean());
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
 
             // redirect user to change password screen.
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
@@ -621,7 +621,7 @@ public class
             PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
 
             // mark the event log
-            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean());
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
 
             // send email or SMS
             this.sendNewPassword(pwmSession, pwmApplication, newPassword, toAddress, toSmsNumber);

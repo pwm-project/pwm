@@ -22,23 +22,25 @@
 
 package password.pwm.event;
 
+import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Sortable list of records.  Since we allow duplicate records with the same timestamp in a Set,
- * this Comparable implementation has a compareTo() that is NOT consistent with equals
+ * AuditRecord data
  */
-public class AuditRecord implements Comparable, Serializable {
-    private final AuditEvent eventCode;
-    private final String perpetratorID;
-    private final String perpetratorDN;
-    private final Date timestamp;
-    private final String message;
-    private final String targetID;
-    private final String targetDN;
+public class AuditRecord implements Serializable {
+    private AuditEvent eventCode;
+    private String perpetratorID;
+    private String perpetratorDN;
+    private Date timestamp = new Date();
+    private String message;
+    private String targetID;
+    private String targetDN;
+    private String sourceAddress;
+    private String sourceHost;
 
     public AuditRecord(
             final AuditEvent eventCode,
@@ -47,7 +49,9 @@ public class AuditRecord implements Comparable, Serializable {
             final Date timestamp,
             final String message,
             final String targetID,
-            final String targetDN
+            final String targetDN,
+            final String sourceAddress,
+            final String sourceHost
     ) {
         this.eventCode = eventCode;
         this.perpetratorID = perpetratorID;
@@ -56,60 +60,116 @@ public class AuditRecord implements Comparable, Serializable {
         this.message = message;
         this.targetID = targetID;
         this.targetDN = targetDN;
-
+        this.sourceAddress = sourceAddress;
+        this.sourceHost = sourceHost;
     }
 
     public AuditRecord(
             final AuditEvent eventCode,
             final String perpetratorID,
-            final String perpetratorDN
+            final String perpetratorDN,
+            final PwmSession pwmSession
     ) {
-        this(eventCode,perpetratorID,perpetratorDN,new Date(),null,perpetratorID,perpetratorDN);
+        this(
+                eventCode,
+                perpetratorID,
+                perpetratorDN,
+                new Date(),
+                null,
+                perpetratorID,
+                perpetratorDN,
+                pwmSession.getSessionStateBean().getSrcAddress(),
+                pwmSession.getSessionStateBean().getSrcHostname()
+        );
     }
 
     public AuditRecord(
             final AuditEvent eventCode,
-            final UserInfoBean userInfoBean
+            final UserInfoBean userInfoBean,
+            final PwmSession pwmSession
     ) {
-        this(eventCode,userInfoBean.getUserID(),userInfoBean.getUserDN(),new Date(),null,userInfoBean.getUserID(),userInfoBean.getUserDN());
+        this(eventCode,
+                userInfoBean.getUserID(),
+                userInfoBean.getUserDN(),
+                new Date(),
+                null,
+                userInfoBean.getUserID(),
+                userInfoBean.getUserDN(),
+                pwmSession.getSessionStateBean().getSrcAddress(),
+                pwmSession.getSessionStateBean().getSrcHostname()
+        );
     }
 
     public AuditEvent getEventCode() {
         return eventCode;
     }
 
+    public void setEventCode(AuditEvent eventCode) {
+        this.eventCode = eventCode;
+    }
+
     public String getPerpetratorID() {
         return perpetratorID;
+    }
+
+    public void setPerpetratorID(String perpetratorID) {
+        this.perpetratorID = perpetratorID;
     }
 
     public String getPerpetratorDN() {
         return perpetratorDN;
     }
 
+    public void setPerpetratorDN(String perpetratorDN) {
+        this.perpetratorDN = perpetratorDN;
+    }
+
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getMessage() {
         return message;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public String getTargetID() {
         return targetID;
+    }
+
+    public void setTargetID(String targetID) {
+        this.targetID = targetID;
     }
 
     public String getTargetDN() {
         return targetDN;
     }
 
-    public int compareTo(final Object o) {
-        final AuditRecord otherRecord = (AuditRecord) o;
+    public void setTargetDN(String targetDN) {
+        this.targetDN = targetDN;
+    }
 
-        if (otherRecord.equals(this)) {
-            return 0;
-        }
+    public String getSourceAddress() {
+        return sourceAddress;
+    }
 
-        return otherRecord.getTimestamp().compareTo(this.getTimestamp());
+    public void setSourceAddress(String sourceAddress) {
+        this.sourceAddress = sourceAddress;
+    }
+
+    public String getSourceHost() {
+        return sourceHost;
+    }
+
+    public void setSourceHost(String sourceHost) {
+        this.sourceHost = sourceHost;
     }
 
     @Override

@@ -100,7 +100,9 @@ public class RestClearResponsesServer {
                             new Date(),
                             null,
                             userID,
-                            chaiUser.getEntryDN()
+                            chaiUser.getEntryDN(),
+                            request.getRemoteAddr(),
+                            request.getRemoteHost()
                             );
                     pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
 
@@ -111,7 +113,7 @@ public class RestClearResponsesServer {
                             pwmSession.getSessionManager().getActor(),
                             pwmSession.getUserInfoBean().getUserGuid()
                     );
-                    pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.HELPDESK_CLEAR_RESPONSES, pwmSession.getUserInfoBean());
+                    pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.HELPDESK_CLEAR_RESPONSES, pwmSession.getUserInfoBean(),pwmSession);
                 }
                 if (isExternal) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CLEARRESPONSE);

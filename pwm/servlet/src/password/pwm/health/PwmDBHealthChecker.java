@@ -43,7 +43,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         if (pwmDB == null) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.GOOD,
-                    "PwmDB",
+                    "LocalDB",
                     LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_BAD",pwmApplication.getConfig(),Admin.class)
             ));
             return healthRecords;
@@ -52,7 +52,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         if (PwmDB.Status.NEW == pwmDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
-                    "PwmDB",
+                    "LocalDB",
                     LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_NEW",pwmApplication.getConfig(),Admin.class)
             ));
             return healthRecords;
@@ -61,7 +61,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         if (PwmDB.Status.CLOSED == pwmDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
-                    "PwmDB",
+                    "LocalDB",
                     LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_WARN",pwmApplication.getConfig(),Admin.class)
             ));
             return healthRecords;
@@ -70,7 +70,7 @@ public class PwmDBHealthChecker implements HealthChecker {
         if (healthRecords.isEmpty()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.GOOD,
-                    "PwmDB",
+                    "LocalDB",
                     LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_OK",pwmApplication.getConfig(),Admin.class)
             ));
         }

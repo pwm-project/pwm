@@ -29,16 +29,17 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.*;
 import password.pwm.bean.*;
+import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.UserAuthenticator;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
@@ -240,19 +241,23 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         try {
-            // write out configured attributes.
-            {
-                LOGGER.debug(pwmSession, "writing pre-activate user attribute write values to user " + theUser.getEntryDN());
-                final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
-                final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                Helper.writeMapToLdap(pwmApplication, theUser, writeAttributesSettings, pwmSession.getUserInfoBean(), true);
+            {  // execute configured actions
+                final ChaiUser proxiedUser = ChaiFactory.createChaiUser(theUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
+                LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
+                final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
+                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+                settings.setExpandPwmMacros(true);
+                settings.setUserInfoBean(pwmSession.getUserInfoBean());
+                settings.setUser(proxiedUser);
+                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                actionExecutor.executeActions(configValues, settings, pwmSession);
             }
 
             //authenticate the pwm session
             UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true);
 
             // mark the event log
-            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean());
+            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(),pwmSession);
 
             // set the session success message
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_ACTIVATE_USER, null);
@@ -273,11 +278,17 @@ public class ActivateUserServlet extends TopServlet {
                 public boolean doAction(final PwmSession pwmSession, final String newPassword)
                         throws PwmUnrecoverableException {
                     try {
-                        final ChaiUser theUser = pwmApplication.getProxyChaiUserActor(pwmSession);
-                        LOGGER.debug(pwmSession, "writing post-activate user attribute write values to user " + theUser.getEntryDN());
-                        final Collection<String> configValues = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
-                        final Map<String, String> writeAttributesSettings = Configuration.convertStringListToNameValuePair(configValues, "=");
-                        Helper.writeMapToLdap(pwmApplication, theUser, writeAttributesSettings, pwmSession.getUserInfoBean(), true);
+                        {  // execute configured actions
+                            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(theUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
+                            LOGGER.debug(pwmSession, "executing post-activate configured actions to user " + proxiedUser.getEntryDN());
+                            final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
+                            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+                            settings.setExpandPwmMacros(true);
+                            settings.setUserInfoBean(pwmSession.getUserInfoBean());
+                            settings.setUser(proxiedUser);
+                            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                            actionExecutor.executeActions(configValues, settings, pwmSession);
+                        }
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
                         final PwmUnrecoverableException newException = new PwmUnrecoverableException(info);
@@ -392,7 +403,7 @@ public class ActivateUserServlet extends TopServlet {
             LOGGER.warn(pwmSession, "skipping send activation message for '" + userInfoBean.getUserDN() + "' no email or SMS number configured");
         }
     }
-    
+
     private Boolean sendActivationEmail(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
@@ -593,8 +604,8 @@ public class ActivateUserServlet extends TopServlet {
         this.forwardToEnterCodeJSP(req, resp);
     }
 
-    private static void sendToken(final PwmSession pwmSession, final PwmApplication pwmApplication, 
-            final String toAddress, final String toSmsNumber, final String tokenKey)
+    private static void sendToken(final PwmSession pwmSession, final PwmApplication pwmApplication,
+                                  final String toAddress, final String toSmsNumber, final String tokenKey)
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();

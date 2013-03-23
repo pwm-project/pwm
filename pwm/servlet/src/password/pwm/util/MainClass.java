@@ -32,6 +32,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.event.AuditManager;
 import password.pwm.util.pwmdb.*;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -50,23 +51,24 @@ public class MainClass {
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
-        out("PWM Command Line - v" + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
+        out(PwmConstants.PWM_APP_NAME + " Command Line - v" + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
         if (args == null || args.length < 1) {
             out("");
             out(" [command] option option");
-            out("  | PwmDbInfo                     Report information about the PwmDB");
-            out("  | ExportLogs      [outputFile]  Export all logs in the PwmDB");
-            out("  | ExportResponses [location]    Export all saved responses in the PwmDB");
-            out("  | ImportResponses [location]    Import responses from files into the PwmDB");
-            out("  | ClearResponses                Clear all responses from the PwmDB");
+            out("  | LocalDbInfo                   Report information about the LocalDB");
+            out("  | ExportLogs      [outputFile]  Export all logs in the LocalDB");
+            out("  | ExportResponses [location]    Export all saved responses in the LocalDB");
+            out("  | ImportResponses [location]    Import responses from files into the LocalDB");
+            out("  | ClearResponses                Clear all responses from the LocalDB");
             out("  | UserReport      [outputFile]  Dump a user report to the output file (csv format)");
-            out("  | ExportPwmDB     [outputFile]  Export the entire PwmDB contents to a backup file");
-            out("  | ImportPwmDB     [inputFile]   Import the entire PwmDB contents from a backup file");
+            out("  | ExportLocalDB   [outputFile]  Export the entire LocalDB contents to a backup file");
+            out("  | ImportLocalDB   [inputFile]   Import the entire LocalDB contents from a backup file");
             out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
-            out("  | ExportStats     [outputFile]  Dump all statistics in the PwmDB to a csv file");
+            out("  | ExportStats     [outputFile]  Dump all statistics in the LocalDB to a csv file");
+            out("  | ExportAudit     [outputFile]  Dump all audit records in the LocalDB to a csv file");
             out("");
         } else {
-            if ("PwmDbInfo".equalsIgnoreCase(args[0])) {
+            if ("LocalDbInfo".equalsIgnoreCase(args[0])) {
                 handlePwmDbInfo();
             } else if ("ExportLogs".equalsIgnoreCase(args[0])) {
                 handleExportLogs(args);
@@ -78,14 +80,16 @@ public class MainClass {
                 handleClearResponses();
             } else if ("UserReport".equalsIgnoreCase(args[0])) {
                 handleUserReport(args);
-            } else if ("ExportPwmDB".equalsIgnoreCase(args[0])) {
-                handleExportPwmDB(args);
-            } else if ("ImportPwmDB".equalsIgnoreCase(args[0])) {
-                handleImportPwmDB(args);
+            } else if ("ExportLocalDB".equalsIgnoreCase(args[0])) {
+                handleExportLocalDB(args);
+            } else if ("ImportLocalDB".equalsIgnoreCase(args[0])) {
+                handleImportLocalDB(args);
             } else if ("TokenInfo".equalsIgnoreCase(args[0])) {
                 handleTokenKey(args);
             } else if ("ExportStats".equalsIgnoreCase(args[0])) {
                 handleExportStats(args);
+            } else if ("ExportAudit".equalsIgnoreCase(args[0])) {
+                handleExportAudit(args);
             } else {
                 out("unknown command '" + args[0] + "'");
             }
@@ -123,7 +127,7 @@ public class MainClass {
         final Configuration config = loadConfiguration();
         final PwmDB pwmDB = loadPwmDB(config, true);
         final long pwmDBdiskSpace = Helper.getFileDirectorySize(pwmDB.getFileLocation());
-        out("PwmDB Total Disk Space = " + pwmDBdiskSpace + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
+        out("LocalDB Total Disk Space = " + pwmDBdiskSpace + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
         out("Checking row counts, this may take a moment.... ");
         for (final PwmDB.DB db : PwmDB.DB.values()) {
             out("  " + db.toString() + "=" + pwmDB.size(db));
@@ -255,10 +259,10 @@ public class MainClass {
     static void handleClearResponses() throws Exception {
         final Configuration config = loadConfiguration();
 
-        out("Proceeding with this operation will clear all stored responses from the PwmDB.");
+        out("Proceeding with this operation will clear all stored responses from the LocalDB.");
         out("Please consider exporting the responses before proceeding. ");
         out("");
-        out("PWM must be stopped for this operation to succeed.");
+        out("The application must be stopped for this operation to succeed.");
         out("");
         out("To proceed, type 'continue'");
         final Scanner scanner = new Scanner(System.in);
@@ -272,7 +276,7 @@ public class MainClass {
         final PwmDB pwmDB = loadPwmDB(config, false);
 
         if (pwmDB.size(PwmDB.DB.RESPONSE_STORAGE) == 0) {
-            out("The PwmDB response database is already empty");
+            out("The LocalDB response database is already empty");
             return;
         }
 
@@ -323,12 +327,12 @@ public class MainClass {
         return new PwmApplication(config, mode, workingDirectory);
     }
 
-    static void handleExportPwmDB(final String[] args) throws Exception {
+    static void handleExportLocalDB(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
         final PwmDB pwmDB = loadPwmDB(config, true);
 
         if (args.length < 2) {
-            out("must specify file to write PwmDB data to");
+            out("must specify file to write LocalDB data to");
             return;
         }
 
@@ -341,19 +345,19 @@ public class MainClass {
         }
     }
 
-    static void handleImportPwmDB(final String[] args) throws Exception {
+    static void handleImportLocalDB(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
         final PwmDB pwmDB = loadPwmDB(config, false);
 
         if (args.length < 2) {
-            out("must specify file to read PwmDB data from");
+            out("must specify file to read LocalDB data from");
             return;
         }
 
-        out("Proceeding with this operation will clear ALL data from the PwmDB.");
-        out("Please consider backing up the PwmDB before proceeding. ");
+        out("Proceeding with this operation will clear ALL data from the LocalDB.");
+        out("Please consider backing up the LocalDB before proceeding. ");
         out("");
-        out("PWM must be stopped for this operation to succeed.");
+        out("The application must be stopped for this operation to succeed.");
         out("");
         out("To proceed, type 'continue'");
         final Scanner scanner = new Scanner(System.in);
@@ -445,5 +449,31 @@ public class MainClass {
         final int counter = statsManger.outputStatsToCsv(fileWriter,false);
         fileWriter.close();
         out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
+    }
+
+    static void handleExportAudit(final String[] args) throws Exception {
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+        final AuditManager auditManager = pwmApplication.getAuditManager();
+        Helper.pause(1000);
+
+        if (args.length < 2) {
+            out("must specify file to write audit data to");
+            return;
+        }
+
+        final File outputFile = new File(args[1]);
+        if (outputFile.exists()) {
+            out("outputFile '" + outputFile.getAbsolutePath() + "' already exists");
+            return;
+        }
+
+        final long startTime = System.currentTimeMillis();
+        out("beginning output to " + outputFile.getAbsolutePath());
+        final FileWriter fileWriter = new FileWriter(outputFile,true);
+        final int counter = auditManager.outputLocalDBToCsv(fileWriter,false);
+        fileWriter.close();
+        out("completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 }

@@ -57,7 +57,7 @@
                     rowData.put("timestamp",dateFormat.format(intruderRecord.getTimeStamp()));
                     rowData.put("count",String.valueOf(intruderRecord.getAttemptCount()));
                     try {
-                        pwmApplicationHeader.getIntruderManager().check(intruderRecord.getSubject(), intruderRecord.getSubject(), "");
+                        pwmApplicationHeader.getIntruderManager().check(intruderRecord.getSubject(), intruderRecord.getSubject(), "",null);
                         rowData.put("status","watching");
                     } catch (PwmException e) {
                         rowData.put("status","locked");
@@ -76,7 +76,7 @@
                     rowData.put("timestamp",dateFormat.format(intruderRecord.getTimeStamp()));
                     rowData.put("count",String.valueOf(intruderRecord.getAttemptCount()));
                     try {
-                        pwmApplicationHeader.getIntruderManager().check(null,null,intruderRecord.getSubject());
+                        pwmApplicationHeader.getIntruderManager().check(intruderRecord.getSubject(), intruderRecord.getSubject(), "",null);
                         rowData.put("status","watching");
                     } catch (PwmException e) {
                         rowData.put("status","locked");

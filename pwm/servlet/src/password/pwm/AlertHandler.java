@@ -26,6 +26,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
+import password.pwm.i18n.Display;
 import password.pwm.util.PwmLogEvent;
 
 import java.util.Collection;
@@ -146,7 +147,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM - Daily Summary";
+            final String subject = Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Title_Application",pwmApplication.getConfig()) + " - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
             final StringBuilder htmlBody = new StringBuilder();
 

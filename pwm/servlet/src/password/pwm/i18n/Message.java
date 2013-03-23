@@ -58,6 +58,7 @@ public enum Message {
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
     EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),
     EVENT_LOG_ACTIVATE_USER("EventLog_ActivateUser"),
+    EVENT_LOG_CREATE_USER("EventLog_CreateUser"),
     EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
     EVENT_LOG_HELPDESK_SET_PASSWORD("EventLog_HelpdeskSetPassword"),

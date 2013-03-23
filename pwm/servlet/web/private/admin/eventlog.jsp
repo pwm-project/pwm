@@ -53,19 +53,19 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <p>
-    This page shows PWM debug log
-    history. This history is stored in the pwmDB cache of the debug log. For a
+    This page shows the debug log
+    history. This history is stored in the LocalDB cache of the debug log. For a
     permanent log
     record of events, see the application server's log file.
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-    timezone. The pwmDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
+    timezone. The LocalDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
     <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailDate()) %>
     .
 </p>
 
 <p>
-    The pwmDB is configured to capture events of level
+    The LocalDB is configured to capture events of level
     <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
     </b> and higher.
 </p>
