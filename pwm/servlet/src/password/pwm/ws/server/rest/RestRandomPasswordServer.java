@@ -25,18 +25,14 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.ContextManager;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -50,8 +46,6 @@ import java.util.List;
 
 @Path("/randompassword")
 public class RestRandomPasswordServer {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestRandomPasswordServer.class);
-
     @Context
     HttpServletRequest request;
 
@@ -81,10 +75,13 @@ public class RestRandomPasswordServer {
     )
             throws PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, username);
+        } catch (PwmUnrecoverableException e) {
+            RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
+            return null;
+        }
 
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = username;
@@ -94,9 +91,12 @@ public class RestRandomPasswordServer {
         jsonInput.chars = chars;
 
         try {
-            return doOperation(pwmApplication, pwmSession, isExternal, jsonInput).password;
+            return doOperation(restRequestBean, jsonInput).password;
         } catch (Exception e) {
-            throw new WebApplicationException(500);
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            RestServerHelper.handleNonJsonErrorResult(errorInformation);
+            return null;
         }
     }
 
@@ -112,10 +112,13 @@ public class RestRandomPasswordServer {
     )
             throws PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, username);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
+
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = username;
         jsonInput.strength = strength;
@@ -124,19 +127,16 @@ public class RestRandomPasswordServer {
         jsonInput.chars = chars;
 
         try {
-            final JsonOutput jsonOutput = doOperation(pwmApplication, pwmSession, isExternal, jsonInput);
+            final JsonOutput jsonOutput = doOperation(restRequestBean, jsonInput);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);
             return restResultBean.toJson();
         } catch (PwmException e) {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
-            return restResultBean.toJson();
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
-            final String errorMsg = "unexpected error building json response for /randompassword rest service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
-            return restResultBean.toJson();
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
     }
 
@@ -148,32 +148,29 @@ public class RestRandomPasswordServer {
     )
             throws PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-        final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, jsonInput.username);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
 
         try {
-            final JsonOutput jsonOutput = doOperation(pwmApplication, pwmSession, isExternal, jsonInput);
+            final JsonOutput jsonOutput = doOperation(restRequestBean, jsonInput);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);
             return restResultBean.toJson();
         } catch (PwmException e) {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
-            return restResultBean.toJson();
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
-            final String errorMsg = "unexpected error building json response for /randompassword rest service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
-            return restResultBean.toJson();
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
     }
 
     private static JsonOutput doOperation(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final boolean isExternal,
+            final RestRequestBean restRequestBean,
             final JsonInput jsonInput
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
@@ -196,23 +193,27 @@ public class RestRandomPasswordServer {
             randomConfig.setSeedlistPhrases(charValues);
         }
 
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (restRequestBean.getPwmSession().getSessionStateBean().isAuthenticated()) {
             if (jsonInput.username != null && jsonInput.username.length() > 0) {
-                final ChaiUser theUser = ChaiFactory.createChaiUser(jsonInput.username, pwmSession.getSessionManager().getChaiProvider());
-                randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale()));
+                final ChaiUser theUser = ChaiFactory.createChaiUser(jsonInput.username, restRequestBean.getPwmSession().getSessionManager().getChaiProvider());
+                randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession(),
+                        theUser,
+                        restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
             } else {
-                randomConfig.setPasswordPolicy(pwmSession.getUserInfoBean().getPasswordPolicy());
+                randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfoBean().getPasswordPolicy());
             }
         } else {
-            randomConfig.setPasswordPolicy(pwmApplication.getConfig().getGlobalPasswordPolicy(pwmSession.getSessionStateBean().getLocale()));
+            randomConfig.setPasswordPolicy(restRequestBean.getPwmApplication().getConfig().getGlobalPasswordPolicy(restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
         }
 
-        final String randomPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, randomConfig, pwmApplication);
+        final String randomPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), randomConfig, restRequestBean.getPwmApplication());
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword;
 
-        if (isExternal) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_RANDOMPASSWORD);
+        if (restRequestBean.isExternal()) {
+            restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_RANDOMPASSWORD);
         }
 
         return outputMap;

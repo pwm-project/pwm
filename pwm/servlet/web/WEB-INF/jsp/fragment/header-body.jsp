@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
@@ -47,7 +48,7 @@
 <% if (showConfigHeader) { %>
 <div id="header-warning">
     <% final String configManagerUrl = request.getContextPath() + "/config/ConfigManager"; %>
-    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=configManagerUrl%>"/> &nbsp;&nbsp; <a href="#" style="font-size: 70%" onclick="getObject('header-warning').style.display='none'">hide</a>
+    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/> &nbsp;&nbsp; <a href="#" style="font-size: 70%" onclick="getObject('header-warning').style.display='none'">hide</a>
 </div>
 <% } %>
 <div id="header">

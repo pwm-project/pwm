@@ -36,10 +36,6 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
-<style scoped="scoped">
-    .dgrid { height: auto; }
-    .dgrid .dgrid-scroller { position: relative; overflow: visible; }
-</style>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Intruders"/>
@@ -148,6 +144,10 @@
         </div>
     </div>
 </div>
+<style scoped="scoped">
+    .dgrid { height: auto; }
+    .dgrid .dgrid-scroller { position: relative; overflow: visible; }
+</style>
 <script type="text/javascript">
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){

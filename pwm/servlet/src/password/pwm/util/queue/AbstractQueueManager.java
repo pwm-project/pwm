@@ -24,6 +24,7 @@ package password.pwm.util.queue;
 
 import com.google.gson.Gson;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
@@ -111,7 +112,7 @@ public abstract class AbstractQueueManager implements PwmService {
 
         if (pwmDB == null || pwmDB.status() != PwmDB.Status.OPEN) {
             status = STATUS.CLOSED;
-            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, PwmDB is not open");
+            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, LocalDB is not open");
             return;
         }
 
@@ -126,7 +127,7 @@ public abstract class AbstractQueueManager implements PwmService {
         {
             final QueueThread emailSendThread = new QueueThread();
             emailSendThread.setDaemon(true);
-            emailSendThread.setName("pwm-" + SERVICE_NAME);
+            emailSendThread.setName(PwmConstants.PWM_APP_NAME + "-" + SERVICE_NAME);
             emailSendThread.start();
             threadActive = true;
         }

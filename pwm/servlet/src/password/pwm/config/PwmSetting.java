@@ -60,8 +60,6 @@ public enum PwmSetting {
             "pwm.forwardURL", PwmSettingSyntax.STRING, Category.GENERAL),
     URL_LOGOUT(
             "pwm.logoutURL", PwmSettingSyntax.STRING, Category.GENERAL),
-    GOOGLE_ANAYLTICS_TRACKER(
-            "google.analytics.tracker", PwmSettingSyntax.STRING, Category.GENERAL),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", PwmSettingSyntax.STRING, Category.GENERAL),
     IDLE_TIMEOUT_SECONDS(
@@ -505,7 +503,7 @@ public enum PwmSetting {
     CHALLENGE_ALLOW_UNLOCK(
             "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
     CHALLENGE_STORAGE_HASHED(
-            "challenge.storageHashed", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
+            "response.hashMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
     CHALLENGE_REQUIRED_ATTRIBUTES(
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, Category.RECOVERY),
     CHALLENGE_REQUIRE_RESPONSES(
@@ -733,6 +731,8 @@ public enum PwmSetting {
             "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
     ENABLE_EXTERNAL_WEBSERVICES(
             "external.webservices.enable", PwmSettingSyntax.BOOLEAN, Category.MISC),
+    ENABLE_WEBSERVICES_READANSWERS(
+            "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, Category.MISC),
     EXTERNAL_WEB_AUTH_METHODS(
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
 

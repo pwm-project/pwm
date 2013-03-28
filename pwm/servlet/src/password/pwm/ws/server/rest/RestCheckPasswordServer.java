@@ -27,18 +27,18 @@ import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -47,6 +47,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer {
@@ -85,6 +87,13 @@ public class RestCheckPasswordServer {
         }
     }
 
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
+        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
+        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -114,49 +123,48 @@ public class RestCheckPasswordServer {
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final RestRequestBean restRequestBean;
         try {
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
 
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
-            }
-
+        try {
             final String userDN;
             final UserInfoBean uiBean;
             if (username != null && username.length() > 0) { // check for another user
                 userDN = username;
                 uiBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(
-                        pwmSession,
+                        restRequestBean.getPwmSession(),
                         uiBean,
-                        pwmApplication,
-                        pwmSession.getSessionStateBean().getLocale(),
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,
                         null,
-                        pwmSession.getSessionManager().getChaiProvider()
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = pwmSession.getUserInfoBean().getUserDN();
-                uiBean = pwmSession.getUserInfoBean();
+                userDN = restRequestBean.getUserDN();
+                uiBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, password1, password2, uiBean);
 
-            final JsonData jsonData = doPasswordRuleCheck(pwmApplication, pwmSession, checkRequest);
-            if (!isExternal) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
+            final JsonData jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
+            if (!restRequestBean.isExternal()) {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonData);
             return restResultBean.toJson();
+        } catch (PwmException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
-            final String errorMessage = "unexpected error building json response for /checkpassword rest service: " + e.getMessage();
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
-            return restResultBean.toJson();
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
     }
 

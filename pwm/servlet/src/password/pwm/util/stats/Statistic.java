@@ -65,7 +65,7 @@ public enum Statistic {
     REST_CHECKPASSWORD(Type.INCREMENTOR, "RestCheckPassword"),
     REST_SETPASSWORD(Type.INCREMENTOR, "RestSetPassword"),
     REST_RANDOMPASSWORD(Type.INCREMENTOR, "RestRandomPassword"),
-    REST_CLEARRESPONSE(Type.INCREMENTOR, "RestClearResponses"),
+    REST_CHALLENGES(Type.INCREMENTOR, "RestChallenges"),
     REST_HEALTH(Type.INCREMENTOR, "RestHealth"),
     REST_STATISTICS(Type.INCREMENTOR, "RestStatistics"),
     INTRUDER_ATTEMPTS(Type.INCREMENTOR, "IntruderAttempts"),

@@ -102,7 +102,7 @@ public class EmailQueueManager extends AbstractQueueManager {
             final String jsonEvent = (new Gson()).toJson(event);
             sendQueue.addLast(jsonEvent);
         } catch (Exception e) {
-            LOGGER.error("error writing to pwmDB queue, discarding email send request: " + e.getMessage());
+            LOGGER.error("error writing to LocalDB queue, discarding email send request: " + e.getMessage());
         }
     }
 

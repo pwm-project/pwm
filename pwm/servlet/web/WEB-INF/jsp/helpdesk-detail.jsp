@@ -318,8 +318,8 @@
             });
         });
     </script>
-    <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
     <% } %>
+    <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
     <% } %>
     <br/>
     <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
@@ -343,7 +343,7 @@
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded">
+    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('unlockBtn', this)">
         <input type="hidden" name="processAction" value="doUnlock"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
@@ -471,8 +471,8 @@
             showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
             var inputValues = { 'username':username };
             setTimeout(function(){
-                dojo.xhrPost({
-                    url: PWM_GLOBAL['url-restservice'] + "/clearresponses?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                dojo.xhrDelete({
+                    url: PWM_GLOBAL['url-restservice'] + "/challenges?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                     headers: {"Accept":"application/json"},
                     content: inputValues,
                     preventCache: true,

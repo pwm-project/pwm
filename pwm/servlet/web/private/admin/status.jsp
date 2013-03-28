@@ -36,7 +36,7 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body class="nihilo" onload="pwmPageLoadHandler()">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="System"/>
@@ -239,7 +239,7 @@
     </table>
     <% } else { %>
     <div style="text-align:center; width:100%; border: 0">
-        <a onclick="showWaitDialog()" href="status.jsp?showLocalDBCounts=true">Show PwmDB record counts</a> (may be slow to load)
+        <a onclick="showWaitDialog()" href="status.jsp?showLocalDBCounts=true">Show LocalDB record counts</a> (may be slow to load)
     </div>
     <% } %>
 </div>

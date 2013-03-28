@@ -24,11 +24,10 @@
 <div id="TopMenu" style="width: 600px">
 </div>
 <br/>
-<br/>
 <script type="text/javascript" async="async">
     function buildMenuBar() {
         require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator","dojo/domReady!"],
-                function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem){
+                function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem,CheckedMenuItem,MenuSeparator){
                     clearDijitWidget('topMenuBar');
                     var topMenuBar = new MenuBar({id:"topMenuBar"});
                     { // Status Menu
@@ -64,13 +63,19 @@
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({
-                            label: "Status",
+                            label: "Current Status",
                             popup: statusMenu
                         }));
                     }
 
                     { // System Menu
                         var systemMenu = new Menu({});
+                        systemMenu.addChild(new MenuItem({
+                            label: 'About',
+                            onClick: function() {
+                                showWaitDialog(null,null,function(){window.location = "about.jsp";});
+                            }
+                        }));
                         systemMenu.addChild(new MenuItem({
                             label: 'System Details',
                             onClick: function() {
@@ -95,6 +100,7 @@
                                 showWaitDialog(null,null,function(){window.location = "userreport.jsp";});
                             }
                         }));
+                        systemMenu.addChild(new MenuSeparator());
                         systemMenu.addChild(new MenuItem({
                             label: 'Edit Configuration',
                             onClick: function() {
@@ -109,15 +115,22 @@
                     { // Other Menu
                         var exitMenu = new Menu({});
                         exitMenu.addChild(new MenuItem({
-                            label: 'About',
-                            onClick: function() {
-                                showWaitDialog(null,null,function(){window.location = "about.jsp";});
-                            }
-                        }));
-                        exitMenu.addChild(new MenuItem({
                             label: 'Main Menu',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>";});
+                            }
+                        }));
+                        exitMenu.addChild(new MenuSeparator());
+                        exitMenu.addChild(new MenuItem({
+                            label: 'REST Services Reference',
+                            onClick: function() {
+                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/public/rest.jsp";});
+                            }
+                        }));
+                        exitMenu.addChild(new MenuItem({
+                            label: 'Software License Reference',
+                            onClick: function() {
+                                showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/public/license.jsp";});
                             }
                         }));
                         topMenuBar.addChild(new PopupMenuBarItem({

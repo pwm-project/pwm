@@ -62,22 +62,22 @@
         </tr>
         <tr>
             <td class="key">
-                <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <a href="<pwm:url url='intruders.jsp'/>">
                     Locked Users
                 </a>
             </td>
             <td>
-                <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <a href="<pwm:url url='intruders.jsp'/>">
                     <%= numberFormat.format(pwmApplication.getIntruderManager().userRecordCount()) %>
                 </a>
             </td>
             <td class="key">
-                <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <a href="<pwm:url url='intruders.jsp'/>">
                     Locked Addresses
                 </a>
             </td>
             <td>
-                <a href="<pwm:url url='intruderstatus.jsp'/>">
+                <a href="<pwm:url url='intruders.jsp'/>">
                     <%= numberFormat.format(pwmApplication.getIntruderManager().addressRecordCount()) %>
                 </a>
             </td>

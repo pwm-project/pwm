@@ -24,19 +24,16 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import password.pwm.ContextManager;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -48,78 +45,86 @@ import java.io.Serializable;
 
 @Path("/setpassword")
 public class RestSetPasswordServer {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestSetPasswordServer.class);
-
     @Context
     HttpServletRequest request;
-    public static class JsonData implements Serializable
+    public static class JsonInputData implements Serializable
     {
         public String username;
-        public int version;
-        //public int strength;
-        //public PasswordUtility.PasswordCheckInfo.MATCH_STATUS match;
+        public String password;
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPostSetPassword(
+    public String doPostSetPasswordForm(
             final @FormParam("username") String username,
             final @FormParam("password") String password
     )
             throws PwmUnrecoverableException
     {
-        RestServerHelper.initializeRestRequest(request,"");
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-
+        final RestRequestBean restRequestBean;
         try {
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                final ErrorInformation errorInformation = PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo();
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation,pwmApplication,pwmSession);
-                return restResultBean.toJson();
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
+
+        return doSetPassword(restRequestBean, request, password);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String doPostSetPasswordJson(
+            final JsonInputData jsonInputData
+    )
+            throws PwmUnrecoverableException
+    {
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, jsonInputData.username);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
+
+        return doSetPassword(restRequestBean, request, jsonInputData.password);
+    }
+
+    private static String doSetPassword(
+            final RestRequestBean restRequestBean,
+            final HttpServletRequest request,
+            final String password
+    )
+    {
+        try {
+            if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
-            try {
-                final JsonData jsonData = new JsonData();
-                if (username != null && username.length() > 0) {
+            if (restRequestBean.getUserDN() != null) {
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(restRequestBean.getUserDN(), restRequestBean.getPwmSession().getSessionManager().getChaiProvider());
+                PasswordUtility.helpdeskSetUserPassword(restRequestBean.getPwmSession(), chaiUser, restRequestBean.getPwmApplication(), password);
+            } else {
+                PasswordUtility.setUserPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(), password);
+                restRequestBean.getPwmApplication().getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(),restRequestBean.getPwmSession());
 
-                    if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
-                        final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
-                        final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation,pwmApplication,pwmSession);
-                        return restResultBean.toJson();
-                    }
-
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(username, pwmSession.getSessionManager().getChaiProvider());
-                    jsonData.username = chaiUser.readCanonicalDN();
-                    PasswordUtility.helpdeskSetUserPassword(pwmSession, chaiUser, pwmApplication, password);
-                } else {
-                    jsonData.username = pwmSession.getUserInfoBean().getUserDN();
-                    PasswordUtility.setUserPassword(pwmSession, pwmApplication, password);
-                }
-                if (isExternal) {
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_SETPASSWORD);
-                }
-                final RestResultBean restResultBean = new RestResultBean();
-                restResultBean.setSuccessMessage(Message.getLocalizedMessage(
-                        pwmSession.getSessionStateBean().getLocale(),
-                        Message.SUCCESS_PASSWORDCHANGE,
-                        pwmApplication.getConfig()));
-                restResultBean.setData(jsonData);
-                return restResultBean.toJson();
-            } catch (PwmOperationalException e) {
-                final ErrorInformation errorInformation = e.getErrorInformation();
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation,pwmApplication,pwmSession);
-                return restResultBean.toJson();
             }
-
-        } catch (Exception e) {
-            final String errorMsg = "unexpected error building json response for /setpassword rest service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation,pwmApplication,pwmSession);
+            if (restRequestBean.isExternal()) {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_SETPASSWORD);
+            }
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setError(false);
+            restResultBean.setSuccessMessage(Message.getLocalizedMessage(
+                    restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
+                    Message.SUCCESS_PASSWORDCHANGE,
+                    restRequestBean.getPwmApplication().getConfig()));
             return restResultBean.toJson();
+        } catch (PwmException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        } catch (Exception e) {
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
     }
 }

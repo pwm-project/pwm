@@ -33,6 +33,7 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
 import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
 import password.pwm.util.pwmdb.PwmDB;
 import password.pwm.util.pwmdb.PwmDBException;
 import password.pwm.util.stats.Statistic;
@@ -73,7 +74,7 @@ public class IntruderManager implements Serializable, PwmService {
         final Configuration config = pwmApplication.getConfig();
         status = STATUS.OPENING;
         if (pwmApplication.getPwmDB() == null || pwmApplication.getPwmDB().status() != PwmDB.Status.OPEN) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to start IntruderManager, localDB unavailable");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to start IntruderManager, LocalDB unavailable");
             LOGGER.error(errorInformation.toDebugStr());
             startupError = errorInformation;
             status = STATUS.CLOSED;
@@ -81,24 +82,8 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final PwmDBRecordStore userStore = new PwmDBRecordStore(pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_USER);
-            final PwmDBRecordStore addressStore = new PwmDBRecordStore(pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_ADDRESS);
-            timer = new Timer("pwm-IntruderManager cleaner",true);
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        userStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
-                    } catch (Exception e) {
-                        LOGGER.error("error cleaning userStore: " + e.getMessage());
-                    }
-                    try {
-                        addressStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
-                    } catch (Exception e) {
-                        LOGGER.error("error cleaning addressStore: " + e.getMessage());
-                    }
-                }
-            },1000,CLEANER_RUN_FREQUENCY_MS);
+            final PwmDBRecordStore userStore = new PwmDBRecordStore(this, pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_USER);
+            final PwmDBRecordStore addressStore = new PwmDBRecordStore(this, pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_ADDRESS);
             {
                 final int checkCount = (int)config.readSettingAsLong(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS);
                 final TimeDuration resetDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME));
@@ -119,10 +104,28 @@ public class IntruderManager implements Serializable, PwmService {
                     addressManager = new PwmDBRecordManager(addressStore, checkDuration, checkCount, resetDuration);
                 }
             }
+            timer = new Timer(PwmConstants.PWM_APP_NAME + "-IntruderManager cleaner",true);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        userStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
+                    } catch (Exception e) {
+                        LOGGER.error("error cleaning userStore: " + e.getMessage());
+                    }
+                    try {
+                        addressStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
+                    } catch (Exception e) {
+                        LOGGER.error("error cleaning addressStore: " + e.getMessage());
+                    }
+                }
+            },1000,CLEANER_RUN_FREQUENCY_MS);
+            status = STATUS.OPEN;
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error starting intruder manager: " + e.getMessage());
             LOGGER.error(errorInformation.toDebugStr());
             startupError = errorInformation;
+            close();
         }
     }
 
@@ -140,6 +143,9 @@ public class IntruderManager implements Serializable, PwmService {
 
     @Override
     public List<HealthRecord> healthCheck() {
+        if (startupError != null && status != STATUS.OPEN) {
+            return Collections.singletonList(new HealthRecord(HealthStatus.WARN,this.getClass().getSimpleName(),"unable to start: " + startupError.toDebugStr()));
+        }
         return Collections.emptyList();
     }
 
@@ -178,7 +184,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     public void check(final String username, final String userDN, final String address, final PwmSession pwmSession)
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         if (userDN != null && userManager.checkSubject(userDN)) {
             if (!userManager.isAlerted(userDN)) {
@@ -255,7 +261,7 @@ public class IntruderManager implements Serializable, PwmService {
             }
         }
 
-        
+
         if (marked && pwmApplication != null) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
@@ -577,10 +583,12 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     static class PwmDBRecordStore {
+        private final IntruderManager intruderManager;
         private final PwmDB pwmDB;
         private final PwmDB.DB db;
 
-        public PwmDBRecordStore(PwmDB pwmDB, PwmDB.DB db) {
+        public PwmDBRecordStore(final IntruderManager intruderManager, PwmDB pwmDB, PwmDB.DB db) {
+            this.intruderManager = intruderManager;
             this.pwmDB = pwmDB;
             this.db = db;
         }
@@ -641,7 +649,7 @@ public class IntruderManager implements Serializable, PwmService {
             try {
                 pwmDB.put(db, md5sum, jsonRecord);
             } catch (PwmDBException e) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error writing to localDB: " + e.getMessage()));
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error writing to LocalDB: " + e.getMessage()));
             }
         }
 
@@ -656,14 +664,24 @@ public class IntruderManager implements Serializable, PwmService {
         private void cleanup(final TimeDuration maxRecordAge)
                 throws PwmDBException
         {
+            final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
+
+            final long startTime = System.currentTimeMillis();
+            int recordsExamined = 0;
+            int recordsRemoved = 0;
+
             final List<String> recordsToRemove = new ArrayList<String>();
             boolean complete = false;
 
-            while (!complete) {
+            while (!complete && intruderManager.status() == STATUS.OPEN) {
                 PwmDB.PwmDBIterator<String> keyIterator = null;
                 try {
                     keyIterator = pwmDB.iterator(db);
-                    while (keyIterator.hasNext() && recordsToRemove.size() < 10 * 1000) {
+                    if (!keyIterator.hasNext()) {
+                        complete = true;
+                    }
+                    while (keyIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE && intruderManager.status == STATUS.OPEN) {
+                        recordsExamined++;
                         final String key = keyIterator.next();
                         final InternalRecord record = read(key);
                         if (record != null && TimeDuration.fromCurrent(record.getTimeStamp()).isLongerThan(maxRecordAge)) {
@@ -679,8 +697,11 @@ public class IntruderManager implements Serializable, PwmService {
                     }
                 }
                 pwmDB.removeAll(db,recordsToRemove);
+                recordsRemoved += recordsToRemove.size();
                 recordsToRemove.clear();
             }
+            final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
+            LOGGER.trace("completed cleanup of " + db.toString() + " in " + totalDuration.asCompactString() + ", recordsExamined=" + recordsExamined + ", recordsRemoved=" + recordsRemoved + ", dbSize=" + pwmDB.size(db));
         }
 
         private int recordCount() {

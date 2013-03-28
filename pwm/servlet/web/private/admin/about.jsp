@@ -32,144 +32,139 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="About"/>
-</jsp:include>
-<div id="centerbody">
-<%@ include file="admin-nav.jsp" %>
-    <table>
-        <tr>
-            <td class="key">
-                PWM Version
-            </td>
-            <td>
-                <%= PwmConstants.SERVLET_VERSION %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Current Published Version
-            </td>
-            <td>
-                <%
-                    String publishedVersion = "n/a";
-                    if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
-                        publishedVersion = pwmApplication.getVersionChecker().currentVersion();
-                    }
-                %>
-                <%= publishedVersion %>
-            </td>
-
-        </tr>
-        <tr>
-            <td class="key">
-                Current Time
-            </td>
-            <td>
-                <%= dateFormat.format(new java.util.Date()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Start Time
-            </td>
-            <td>
-                <%= dateFormat.format(pwmApplication.getStartupTime()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Up Time
-            </td>
-            <td>
-                <%= TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Install Time
-            </td>
-            <td>
-                <%= dateFormat.format(pwmApplication.getInstallTime()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Server Timezone
-            </td>
-            <td>
-                <%= dateFormat.getTimeZone().getDisplayName() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Instance ID
-            </td>
-            <td>
-                <%= pwmApplication.getInstanceID() %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Last LDAP Unavailable Time
-            </td>
-            <td>
-                <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : "n/a" %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                LDAP Vendor
-            </td>
-            <td>
-                <%
-                    String vendor = "[detection error]";
-                    try {
-                        vendor = pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString();
-                    } catch (Exception e) { /* nothing */ }
-                %>
-                <%= vendor %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Chai API Version
-            </td>
-            <td>
-                <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %> (<%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>)
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Dojo API Version
-            </td>
-            <td>
-                <span id="dojoVersionSpan"></span>
-                <script type="text/javascript">
-                    require(["dojo"],function(dojo){
-                        dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
-                    });
-                </script>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Website
-            </td>
-            <td>
-                <a target="pwmproject" href="<%=PwmConstants.PWM_URL_HOME%>">PWM Project</a>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                License Information
-            </td>
-            <td>
-                <a href="<%=request.getContextPath()%><pwm:url url="/public/license.jsp"/>">License Information</a>
-            </td>
-        </tr>
-    </table>
-</div>
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="About"/>
+    </jsp:include>
+    <div id="centerbody">
+        <%@ include file="admin-nav.jsp" %>
+        <table>
+            <tr>
+                <td class="key">
+                    <%=PwmConstants.PWM_APP_NAME%> Version
+                </td>
+                <td>
+                    <%= PwmConstants.SERVLET_VERSION %>
+                </td>
+            </tr>
+            <% if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { %>
+            <tr>
+                <td class="key">
+                    Current Published Version
+                </td>
+                <td>
+                    <%
+                        String publishedVersion = "n/a";
+                        if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
+                            publishedVersion = pwmApplication.getVersionChecker().currentVersion();
+                        }
+                    %>
+                    <%= publishedVersion %>
+                </td>
+            </tr>
+            <% } %>
+            <tr>
+                <td class="key">
+                    Current Time
+                </td>
+                <td>
+                    <%= dateFormat.format(new java.util.Date()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Start Time
+                </td>
+                <td>
+                    <%= dateFormat.format(pwmApplication.getStartupTime()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Up Time
+                </td>
+                <td>
+                    <%= TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Install Time
+                </td>
+                <td>
+                    <%= dateFormat.format(pwmApplication.getInstallTime()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Server Timezone
+                </td>
+                <td>
+                    <%= dateFormat.getTimeZone().getDisplayName() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Instance ID
+                </td>
+                <td>
+                    <%= pwmApplication.getInstanceID() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Last LDAP Unavailable Time
+                </td>
+                <td>
+                    <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : "n/a" %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    LDAP Vendor
+                </td>
+                <td>
+                    <%
+                        String vendor = "[detection error]";
+                        try {
+                            vendor = pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString();
+                        } catch (Exception e) { /* nothing */ }
+                    %>
+                    <%= vendor %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Chai API Version
+                </td>
+                <td>
+                    <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %> (<%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>)
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Dojo API Version
+                </td>
+                <td>
+                    <span id="dojoVersionSpan"></span>
+                    <script type="text/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            require(["dojo"],function(dojo){
+                                dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
+                            });
+                        });
+                    </script>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    License Information
+                </td>
+                <td>
+                    <a href="<%=request.getContextPath()%><pwm:url url="/public/license.jsp"/>">License Information</a>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

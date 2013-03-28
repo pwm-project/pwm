@@ -69,13 +69,6 @@
             <value />
         </default>
     </setting>
-    <setting key="google.analytics.tracker" level="0">
-        <label>Google Analytics Code</label>
-        <description><![CDATA[Google tracking cookie code.  Used for Google Analytics.  See <a href="http://www.google.com/analytics/">http://www.google.com/analytics/</a>.  If this setting is blank, this feature will be disabled.]]></description>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting key="pwmInstanceName" level="1">
         <label>Instance Name</label>
         <description><![CDATA[Name of this application instance.  If blank a persistent, randomly generated value will be used.  Recommended value is blank.]]></description>
@@ -1188,7 +1181,7 @@
         <label>Intruder User Reset Time</label>
         <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The user lockout table is marked for a user anytime a user has a failed attempt to authenticate, recover a password, or activate a user account. <br/><br/>Value is in number of seconds.  A value of zero disables the user lockout functionality.]]></description>
         <default>
-            <value>300</value>
+            <value>1800</value>
         </default>
     </setting>
     <setting key="intruder.user.maxAttempts" level="0" required="true">
@@ -1209,7 +1202,7 @@
         <label>Intruder Address Reset Time</label>
         <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how the application is deployed it may not be able to correctly identify the IP address of the user.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout functionality.]]></description>
         <default>
-            <value>120</value>
+            <value>1800</value>
         </default>
     </setting>
     <setting key="intruder.address.maxAttempts" level="0" required="true">
@@ -1343,9 +1336,9 @@
         <label>Syslog Audit Servers</label>
         <description><![CDATA[Syslog audit servers]]></description>
         <default>
-            <value>udp,127.0.0.1,514</value>
+            <value/>
         </default>
-        <!--<regex>^(udp|tcp)\,.+\,[0-9]*$</regex>-->
+        <regex>^(udp|tcp)\,.+\,[0-9]*$</regex>
     </setting>
     <setting key="token.storageMethod" level="0" required="true">
         <label>Token Storage Method</label>
@@ -1747,12 +1740,18 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="challenge.storageHashed" level="1" required="true">
-        <label>Store Responses Encrypted</label>
-        <description><![CDATA[<p>If true, the responses stored will be stored as encrypted SHA1 hashed with a salt. If false, the responses will be stored in plain text.  Encrypted responses are more secure, but storing the responses as plain text may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  Responses of the users stored in other formats can always be read.]]></description>
+    <setting key="response.hashMethod" level="1" required="true">
+        <label>Responses Storage Hashing Method</label>
+        <description><![CDATA[<p>The method of Hashing used to store responses.  Storing the responses as plaintext may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  Stored responses in other formats can always be read.]]></description>
         <default>
-            <value>true</value>
+            <value>SHA1_SALT</value>
         </default>
+        <options>
+            <option value="TEXT">None (Plaintext)</option>
+            <option value="SHA1">SHA1</option>
+            <option value="SHA1_SALT">SHA1 with Salt</option>
+            <option value="BCRYPT">BCrypt</option>
+        </options>
     </setting>
     <setting key="challenge.requiredAttributes" level="0">
         <label>Required Attributes</label>
@@ -2553,6 +2552,13 @@
     <setting key="external.webservices.enable" level="0">
         <label>Enable External Web Services</label>
         <description><![CDATA[Allow public use of web services.  When false, the form nonce is required for all web services.  The form nonce is difficult (though not impossible) for a client to retreive programmatically.  Therefore it is difficult, though not impossible to use the web services.  When true, the form nonce is not required to invoke the web services.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="webservices.enableReadAnswers" level="0">
+        <label>Allow WebServices Read Answers</label>
+        <description><![CDATA[Allow web services to be used to read stored challenge/response answers of users.  The read responses will be available in whatever hashing method format is being used.]]></description>
         <default>
             <value>false</value>
         </default>

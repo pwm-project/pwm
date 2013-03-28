@@ -234,7 +234,7 @@ public class SharedHistoryManager implements Wordlist {
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
             LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
-            cleanerTimer = new Timer("pwm-SharedHistoryManager timer", true);
+            cleanerTimer = new Timer(PwmConstants.PWM_APP_NAME + "-SharedHistoryManager timer", true);
             cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
     }
@@ -441,7 +441,7 @@ public class SharedHistoryManager implements Wordlist {
                         LOGGER.error("error during wordlist truncate", e);
                     }
                 }
-            }, "pwm-SharedHistoryManager wordlist truncate").start();
+            }, PwmConstants.PWM_APP_NAME + "-SharedHistoryManager wordlist truncate").start();
             return;
         }
 
@@ -450,6 +450,6 @@ public class SharedHistoryManager implements Wordlist {
                 LOGGER.debug("starting up in background thread");
                 init(maxAgeMs);
             }
-        }, "pwm-SharedHistoryManager initializer").start();
+        }, PwmConstants.PWM_APP_NAME + "-SharedHistoryManager initializer").start();
     }
 }

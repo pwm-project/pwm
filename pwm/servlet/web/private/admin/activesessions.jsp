@@ -38,6 +38,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
+        <br/>
         <%
             final Gson gson = new Gson();
             final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");

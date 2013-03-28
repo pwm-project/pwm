@@ -55,7 +55,11 @@ function validatePasswords(userDN)
         return returnObj;
     };
     validationProps['processResultsFunction'] = function(data){
-        updateDisplay(data['data']);
+        if (data) {
+            updateDisplay(data['data']);
+        } else {
+            updateDisplay(null);
+        }
     };
 
     pwmFormValidator(validationProps);

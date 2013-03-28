@@ -22,49 +22,147 @@
 
 package password.pwm.ws.server;
 
+import com.novell.ldapchai.ChaiFactory;
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.UserSearchEngine;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.Serializable;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Locale;
 
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
 
-    public static void initializeRestRequest(
+    public static RestRequestBean initializeRestRequest(
             final HttpServletRequest request,
-            final String username
+            final boolean requiresAuthentication,
+            final String requestedUsername
     )
-            throws PwmUnrecoverableException {
-        final boolean external = determineIfRestClientIsExternal(request);
-        handleBasicAuthentication(request);
-    }
-
-    private static void handleBasicAuthentication(HttpServletRequest request)
             throws PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
         final PwmSession pwmSession = PwmSession.getPwmSession(request);
+
+        if (pwmSession.getSessionStateBean().getLocale() == null) {
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+            final Locale userLocale = Helper.localeResolver(request.getLocale(), knownLocales);
+            pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
+        }
+
+        final StringBuilder logMsg = new StringBuilder();
+        logMsg.append("REST WebService Request: ");
+        logMsg.append(ServletHelper.debugHttpRequest(request));
+        LOGGER.debug(pwmSession,logMsg);
+
+        if (requiresAuthentication) {
+            try {
+                handleAuthentication(request,pwmSession);
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+            }
+        }
+
+        final RestRequestBean restRequestBean = new RestRequestBean();
+        restRequestBean.setAuthenticated(pwmSession.getSessionStateBean().isAuthenticated());
+        restRequestBean.setExternal(determineIfRestClientIsExternal(request, pwmSession));
+        restRequestBean.setUserDN(lookupUsername(pwmApplication, pwmSession, requestedUsername));
+        restRequestBean.setPwmApplication(pwmApplication);
+        restRequestBean.setPwmSession(pwmSession);
+
+        return restRequestBean;
+    }
+
+    private static String lookupUsername(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final String username
+    )
+            throws PwmUnrecoverableException
+    {
+        if (username == null || username.length() < 1) {
+            return null;
+        }
+
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
+        }
+
+        pwmApplication.getIntruderManager().check(username,null,null);
+
+        try {
+            if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
+            }
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+        }
+
+        try {
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
+            //see if we need to a contextless search.
+            if (userSearchEngine.checkIfStringIsDN(pwmSession, username)) {
+                final ChaiUser theUser = ChaiFactory.createChaiUser(username,chaiProvider);
+                pwmApplication.getIntruderManager().check(null,theUser.getEntryDN(),null);
+                if (theUser.isValid()) {
+                    return theUser.getEntryDN();
+                } else {
+                    throw new PwmUnrecoverableException(PwmError.ERROR_CANT_MATCH_USER);
+                }
+            } else {
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setUsername(username);
+                searchConfiguration.setChaiProvider(chaiProvider);
+                final ChaiUser theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+                return theUser.readCanonicalDN();
+            }
+        } catch (ChaiOperationException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+        }
+    }
+
+
+    private static void handleAuthentication(HttpServletRequest request, PwmSession pwmSession)
+            throws PwmUnrecoverableException, ChaiUnavailableException {
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            return;
+        }
+
         if (!pwmSession.getSessionStateBean().isAuthenticated() && BasicAuthInfo.parseAuthHeader(request) != null) {
             try {
                 AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(request));
             } catch (PwmOperationalException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (ChaiUnavailableException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new PwmUnrecoverableException(e.getErrorInformation());
             }
+        }
+
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
         }
     }
 
-    public static boolean determineIfRestClientIsExternal(HttpServletRequest request)
+    public static boolean determineIfRestClientIsExternal(HttpServletRequest request, PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
 
         final boolean allowExternal = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES);
@@ -76,8 +174,9 @@ public abstract class RestServerHelper {
         } catch (PwmUnrecoverableException e) {
             if (e.getError() == PwmError.ERROR_INVALID_FORMID) {
                 if (!allowExternal) {
-                    LOGGER.warn(pwmSession, "attempt to use web service without correct FormID value and external web services are disabled");
-                    throw e;
+                    final String errorMsg = "external web services are not enabled";
+                    LOGGER.warn(pwmSession, errorMsg);
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg));
                 }
             } else {
                 throw e;
@@ -87,42 +186,22 @@ public abstract class RestServerHelper {
         return !requestHasCorrectID;
     }
 
-    public static class RestRequestBean implements Serializable {
-        private boolean authenticated;
-        private boolean external;
-        private boolean actorIsSelf;
-        private String username;
-
-        public boolean isAuthenticated() {
-            return authenticated;
+    public static String outputJsonErrorResult(final ErrorInformation errorInformation, HttpServletRequest request) {
+        try {
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            return RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession).toJson();
+        } catch (Exception e) {
+            RestResultBean restRequestBean = new RestResultBean();
+            restRequestBean.setError(true);
+            restRequestBean.setErrorCode(errorInformation.getError().getErrorCode());
+            return restRequestBean.toJson();
         }
+    }
 
-        public void setAuthenticated(boolean authenticated) {
-            this.authenticated = authenticated;
-        }
-
-        public boolean isExternal() {
-            return external;
-        }
-
-        public void setExternal(boolean external) {
-            this.external = external;
-        }
-
-        public boolean isActorIsSelf() {
-            return actorIsSelf;
-        }
-
-        public void setActorIsSelf(boolean actorIsSelf) {
-            this.actorIsSelf = actorIsSelf;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
+    public static void handleNonJsonErrorResult(final ErrorInformation errorInformation) {
+        Response.ResponseBuilder responseBuilder = Response.serverError();
+        responseBuilder.entity(errorInformation.toDebugStr());
+        throw new WebApplicationException(responseBuilder.build());
     }
 }

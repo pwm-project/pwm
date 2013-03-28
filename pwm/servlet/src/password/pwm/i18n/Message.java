@@ -38,6 +38,7 @@ import java.util.Locale;
 public enum Message {
     SUCCESS_PASSWORDCHANGE("Success_PasswordChange"),
     SUCCESS_SETUP_RESPONSES("Success_SetupResponse"),
+    SUCCESS_CLEAR_RESPONSES("Success_ClearResponse"),
     SUCCESS_UNKNOWN("Success_Unknown"),
     SUCCESS_CREATE_USER("Success_CreateUser"),
     SUCCESS_NEWUSER_FORM("Success_NewUserForm"),

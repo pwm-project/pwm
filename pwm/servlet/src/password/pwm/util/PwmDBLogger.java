@@ -102,7 +102,7 @@ public class PwmDBLogger implements PwmService {
         status = STATUS.OPEN;
 
         { // start the writer thread
-            final Thread writerThread = new Thread(new WriterThread(), "pwm-PwmDBLogger writer");
+            final Thread writerThread = new Thread(new WriterThread(), PwmConstants.PWM_APP_NAME + "-PwmDBLogger writer");
             writerThread.setDaemon(true);
             writerThread.start();
         }

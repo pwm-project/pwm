@@ -22,14 +22,17 @@
 
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.util.UserReport" %>
-<%@ page import="java.util.*" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.TimeZone" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body class="nihilo" onload="pwmPageLoadHandler()">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="User Report"/>
@@ -37,27 +40,33 @@
     <% if ("true".equalsIgnoreCase(request.getParameter("doReport"))) { %>
     <div id="centerbody" style="width:98%">
         <%@ include file="admin-nav.jsp" %>
-        <br class="clear"/>
-        <%
-            final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session));
-            final List<Map<String,Object>> gridData = new ArrayList<Map<String, Object>>();
-            for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(50*1000); resultIterator.hasNext(); ) {
-                final UserReport.UserInformation userInformation = resultIterator.next();
-                final Map<String,Object> rowData = new HashMap<String,Object>();
-                rowData.put("userID",userInformation.getUserInfoBean().getUserID());
-                rowData.put("userDN",userInformation.getUserInfoBean().getUserDN());
-                rowData.put("userGUID",userInformation.getUserInfoBean().getUserGuid());
-                rowData.put("pet",userInformation.getUserInfoBean().getPasswordExpirationTime());
-                rowData.put("pct",userInformation.getPasswordChangeTime());
-                rowData.put("rst",userInformation.getResponseSetTime());
-                rowData.put("hasResponses",userInformation.isHasValidResponses());
-                rowData.put("expired",userInformation.getPasswordStatus().isExpired());
-                rowData.put("preExpired",userInformation.getPasswordStatus().isPreExpired());
-                rowData.put("violatesPolicy",userInformation.getPasswordStatus().isViolatesPolicy());
-                rowData.put("passwordWarn",userInformation.getPasswordStatus().isWarnPeriod());
-                gridData.add(rowData);
-            }
-        %>
+        <script type="text/javascript">
+            var data = [];
+            <%
+                final UserReport userReport = new UserReport(ContextManager.getPwmApplication(session));
+                final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+                final Gson gson = new Gson();
+                for (final Iterator<UserReport.UserInformation> resultIterator = userReport.resultIterator(50*1000); resultIterator.hasNext(); ) {
+                    final UserReport.UserInformation userInformation = resultIterator.next();
+                    final Map<String,Object> rowData = new HashMap<String,Object>();
+                    rowData.put("userID",userInformation.getUserInfoBean().getUserID());
+                    rowData.put("userDN",userInformation.getUserInfoBean().getUserDN());
+                    rowData.put("userGUID",userInformation.getUserInfoBean().getUserGuid());
+                    rowData.put("pet",userInformation.getUserInfoBean().getPasswordExpirationTime() == null ? "" : timeFormat.format(userInformation.getUserInfoBean().getPasswordExpirationTime()));
+                    rowData.put("pct",userInformation.getPasswordChangeTime() == null ? "" : timeFormat.format(userInformation.getPasswordChangeTime()));
+                    rowData.put("rst",userInformation.getResponseSetTime() == null ? "" : timeFormat.format(userInformation.getResponseSetTime()));
+                    rowData.put("hasResponses",userInformation.isHasValidResponses());
+                    rowData.put("expired",userInformation.getPasswordStatus().isExpired());
+                    rowData.put("preExpired",userInformation.getPasswordStatus().isPreExpired());
+                    rowData.put("violatesPolicy",userInformation.getPasswordStatus().isViolatesPolicy());
+                    rowData.put("passwordWarn",userInformation.getPasswordStatus().isWarnPeriod());
+            %>
+            data.push(<%=gson.toJson(rowData)%>);
+            <%
+                }
+            %>
+        </script>
         <div id="grid">
         </div>
         <script type="text/javascript">
@@ -67,7 +76,6 @@
 
                 require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                         function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                            var data = <%=new Gson().toJson(gridData)%>;
 
                             // Create a new constructor by mixing in the components
                             var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
@@ -103,11 +111,7 @@
     <% } else { %>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <br/>
-        <p>This report may take a long time to generate depending on the number of users in the search.</p>
-        <p>If the user count is large, PWM may need large sizes of Java memory (heap size) to run the report.  It is also possible to run
-            this report from the <i>PwmCommand</i> command line utility.
-        </p>
+        <p>This report may take a long time to generate depending on the number of users in the ldap directory.</p>
         <div id="buttonbar" style="align: center">
             <form action="userreport.jsp" onclick="showWaitDialog()" method="GET">
                 <input type="hidden" name="doReport" value="true"/>

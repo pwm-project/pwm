@@ -180,6 +180,7 @@
     </div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_GLOBAL['idle_suspendTimeout'] = true;
             require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
                 dojoParser.parse();
             });

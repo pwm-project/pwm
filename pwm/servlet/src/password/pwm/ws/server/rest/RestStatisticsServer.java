@@ -23,16 +23,15 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.ContextManager;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
+import password.pwm.Permission;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsBundle;
 import password.pwm.util.stats.StatisticsManager;
+import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -51,8 +50,6 @@ import java.util.TreeMap;
 
 @Path("/statistics")
 public class RestStatisticsServer {
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestStatisticsServer.class);
 
     @Context
     HttpServletRequest request;
@@ -75,17 +72,22 @@ public class RestStatisticsServer {
             final @QueryParam("statName") String statName,
             final @QueryParam("days") String days
     )
-            throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+        final RestRequestBean restRequestBean;
         try {
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        }
 
-            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+        try {
+            final StatisticsManager statisticsManager = restRequestBean.getPwmApplication().getStatisticsManager();
             JsonOutput jsonOutput = new JsonOutput();
             jsonOutput.EPS = addEpsStats(statisticsManager);
+
+            if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            }
 
             if (statName != null && statName.length() > 0) {
                 jsonOutput.nameData = doNameStat(statisticsManager, statName, days);
@@ -93,17 +95,49 @@ public class RestStatisticsServer {
                 jsonOutput.keyData = doKeyStat(statisticsManager, statKey);
             }
 
-            if (isExternal) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_STATISTICS);
+            if (restRequestBean.isExternal()) {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_STATISTICS);
             }
 
             final RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonOutput);
             return resultBean.toJson();
         } catch (PwmException e) {
-            final RestResultBean resultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(),pwmApplication,pwmSession);
-            LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            return resultBean.toJson();
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error building json response: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+        }
+    }
+
+    @GET
+    @Produces("text/csv")
+    @Path("/file")
+    public String doPwmStatisticFileGet() {
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+        } catch (PwmUnrecoverableException e) {
+            RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
+            return null;
+        }
+
+        try {
+            if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            }
+
+            final StatisticsManager statsManager = restRequestBean.getPwmApplication().getStatisticsManager();
+            final StringWriter stringWriter = new StringWriter();
+            statsManager.outputStatsToCsv(stringWriter, true);
+            response.setHeader("Content-Disposition","attachment; fileName=statistics.csv");
+            return stringWriter.toString();
+        } catch (Exception e) {
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            RestServerHelper.handleNonJsonErrorResult(errorInformation);
+            return null;
         }
     }
 
@@ -180,24 +214,4 @@ public class RestStatisticsServer {
 
         return counter;
     }
-
-    @GET
-    @Produces("text/csv")
-    @Path("/file")
-    public String doPwmStatisticFileGet() {
-        try {
-            RestServerHelper.determineIfRestClientIsExternal(request);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
-            final StringWriter stringWriter = new StringWriter();
-            statsManager.outputStatsToCsv(stringWriter,true);
-            response.setHeader("Content-Disposition","attachment; fileName=statistics.csv");
-            return stringWriter.toString();
-        } catch (Exception e) {
-            LOGGER.error("unexpected error building response for /statistics/file rest service: " + e.getMessage());
-        }
-        return "";
-
-    }
-
 }

@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -86,6 +87,8 @@ public class CommandServlet extends TopServlet {
             processContinue(req, resp);
         } else if (action.equalsIgnoreCase("outputUserReportCsv")) {
             outputUserReportCsv(req, resp);
+        } else if (action.equalsIgnoreCase("outputAuditLogCsv")) {
+            outputAuditLogCsv(req, resp);
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
             processPageLeaveNotice(req, resp);
         } else if (action.equalsIgnoreCase("viewLog")) {
@@ -422,5 +425,38 @@ public class CommandServlet extends TopServlet {
         servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGVIEW).forward(req, resp);
     }
 
+    private void outputAuditLogCsv(final HttpServletRequest req, final HttpServletResponse resp)
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        Validator.validatePwmFormID(req);
+        if (!preCheckUser(req, resp)) {
+            return;
+        }
+
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+            LOGGER.info(pwmSession, "unable to execute output audit log csv, user unauthorized");
+            return;
+        }
+
+        resp.setHeader("content-disposition", "attachment;filename=AuditLog.csv");
+        resp.setContentType("text/csv;charset=utf-8");
+
+        final OutputStream outputStream = new BufferedOutputStream(resp.getOutputStream());
+
+        try {
+            pwmApplication.getAuditManager().outputLocalDBToCsv(new OutputStreamWriter(outputStream), true);
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
+            ssBean.setSessionError(errorInformation);
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+        }
+
+        outputStream.flush();
+        outputStream.close();
+    }
 }
 

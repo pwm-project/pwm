@@ -175,6 +175,7 @@ public class SessionFilter implements Filter {
             try {
                 pwmApplication.getIntruderManager().check(null,null,pwmSession);
             } catch (PwmUnrecoverableException e) {
+                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 ServletHelper.forwardToErrorPage(req, resp, false);
                 return;
             }

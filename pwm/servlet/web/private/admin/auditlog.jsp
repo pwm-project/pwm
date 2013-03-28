@@ -77,7 +77,7 @@
                     "targetID":"Target ID",
                     //"targetDN":"Target DN"
                     "srcIP":"Source IP"
-                    //"targetDN":"Target DN"
+                    //"srcHost":"Source Host"
                 };
                 require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                         function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -107,10 +107,18 @@
         </div>
         <% } %>
         <div id="buttonbar">
-            <input id="maxResults" value="<%=maxResults%>" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
-                   data-dojo-props="constraints:{min:10,max:10000000}"/>
-
-            <button class="btn" onclick="refresh()">Refresh</button>
+            <form action="auditlog.jsp" method="GET">
+                <input name="maxResults" id="maxResults" value="<%=maxResults%>" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                       data-dojo-props="constraints:{min:10,max:10000000},smallDelta:100"/>
+                Rows
+                <button class="btn" type="submit">Refresh</button>
+            </form>
+            <br/>
+            <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                <button type="submit" class="btn">Download as CSV</button>
+                <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
         </div>
     </div>
 </div>

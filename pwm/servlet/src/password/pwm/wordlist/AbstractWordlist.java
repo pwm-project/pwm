@@ -69,7 +69,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         wlStatus = STATUS.OPENING;
 
         if (pwmDB == null) {
-            final String errorMsg = "pwmDB is not available, " + DEBUG_LABEL + " will remain closed";
+            final String errorMsg = "LocalDB is not available, " + DEBUG_LABEL + " will remain closed";
             LOGGER.warn(errorMsg);
             lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             close();
@@ -194,7 +194,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private boolean checkChecksum(final String checksum)
             throws Exception {
-        LOGGER.trace("checking wordlist file checksum stored in pwmDB");
+        LOGGER.trace("checking wordlist file checksum stored in LocalDB");
 
         final Object checksumInDb = pwmDB.get(META_DB, KEY_CHECKSUM);
         final boolean result = checksum.equals(checksumInDb);
@@ -225,7 +225,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private boolean checkDbVersion()
             throws Exception {
-        LOGGER.trace("checking version number stored in pwmDB");
+        LOGGER.trace("checking version number stored in LocalDB");
 
         final Object versionInDB = pwmDB.get(META_DB, KEY_VERSION);
         final boolean result = VALUE_VERSION.equals(versionInDB);

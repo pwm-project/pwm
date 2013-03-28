@@ -51,7 +51,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
     public void init(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
-        this.DEBUG_LABEL = "pwm-wordlist";
+        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
         this.META_DB = PwmDB.DB.WORDLIST_META;
         this.WORD_DB = PwmDB.DB.WORDLIST_WORDS;
 
@@ -67,7 +67,7 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
                     } catch (Exception moreE) { /* probably due to shut down */ }
                 }
             }
-        }, "pwm-WordlistManager initializer/populator");
+        }, PwmConstants.PWM_APP_NAME + "-WordlistManager initializer/populator");
 
         t.start();
     }

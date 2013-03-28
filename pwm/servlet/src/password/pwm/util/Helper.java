@@ -25,7 +25,7 @@ package password.pwm.util;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChaiResponseSet;
+import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
@@ -128,9 +128,13 @@ public class Helper {
         chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
         chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(PwmConstants.RESPONSES_HASH_LOOP_COUNT));
 
-        {
-            final boolean encryptResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_STORAGE_HASHED);
-            chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, encryptResponses ? ChaiResponseSet.FormatType.SHA1_SALT.toString() : ChaiResponseSet.FormatType.TEXT.toString());
+        chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
+        final String storageMethodString = config.readSettingAsString(PwmSetting.CHALLENGE_STORAGE_HASHED);
+        try {
+            final Answer.FormatType formatType = Answer.FormatType.valueOf(storageMethodString);
+            chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, formatType.toString());
+        } catch (Exception e) {
+            LOGGER.error("unknown CR storage format type '" + storageMethodString + "' ");
         }
 
         final X509Certificate[] ldapServerCerts = config.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);

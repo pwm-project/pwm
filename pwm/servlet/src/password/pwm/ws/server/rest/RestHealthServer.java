@@ -23,17 +23,17 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.util.StringHelper;
-import password.pwm.ContextManager;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 
@@ -54,94 +54,118 @@ import java.util.List;
 @Path("/health")
 public class RestHealthServer {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
-
-    @Context
-    HttpServletRequest request;
-
     public static class JsonOutput implements Serializable {
         public Date timestamp;
         public String overall;
         public List<HealthRecord> records;
     }
 
-    // This method is called if TEXT_PLAIN is request
+    @Context
+    HttpServletRequest request;
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String doPwmHealthPlainGet() {
+    public String doPwmHealthPlainGet(
+            @QueryParam("refreshImmediate") final boolean requestImmediateParam
+    ) {
+        final RestRequestBean restRequestBean;
         try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+        } catch (PwmUnrecoverableException e) {
+            RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
+            return null;
+        }
 
-            final String resultString = pwmApplication.getHealthMonitor().getMostSevereHealthStatus().toString();
-            if (isExternal) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+        try {
+            if (restRequestBean.isExternal() && !Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            }
+
+            processRefreshImmediate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),requestImmediateParam);
+            final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString();
+            if (restRequestBean.isExternal()) {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
             }
             return resultString;
         } catch (Exception e) {
-            LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            RestServerHelper.handleNonJsonErrorResult(errorInformation);
+            return null;
         }
-        return "";
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String doPwmHealthJsonGet(
-            @QueryParam("refreshImmediate") final String requestImmediateParam
+            @QueryParam("refreshImmediate") final boolean requestImmediateParam
     ) {
-        final boolean requestImmediate = StringHelper.convertStrToBoolean(requestImmediateParam);
+        final RestRequestBean restRequestBean;
         try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            LOGGER.trace(pwmSession,ServletHelper.debugHttpRequest(request));
-            final boolean isExternal = RestServerHelper.determineIfRestClientIsExternal(request);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+        } catch (PwmUnrecoverableException e) {
+            return e.getMessage();
+        }
 
-            final JsonOutput jsonOutput = processGetHealthCheckData(pwmApplication, pwmSession, requestImmediate);
-            if (isExternal) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+        try {
+            if (restRequestBean.isExternal() && !Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            }
+
+            processRefreshImmediate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),requestImmediateParam);
+            final JsonOutput jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication());
+            if (restRequestBean.isExternal()) {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);
             return restResultBean.toJson();
+        } catch (PwmException e) {
+            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
-            LOGGER.error("unexpected error building json response for /health rest service: " + e.getMessage());
+            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
-
-        return null;
     }
 
     private static JsonOutput processGetHealthCheckData(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final boolean refreshImmediate
+            final PwmApplication pwmApplication
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
+        final List<HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(false));
+        final JsonOutput returnMap = new JsonOutput();
+        returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
+        returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
+        returnMap.records = healthRecords;
+        return returnMap;
+    }
 
+    private static void processRefreshImmediate(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final boolean refreshImmediate
+    ) {
         boolean doRefresh = false;
         if (refreshImmediate) {
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-                LOGGER.trace(pwmSession, "allowing configuration refresh (ConfigurationMode=CONFIGURATION)");
                 doRefresh = true;
             } else {
                 if (pwmSession.getSessionStateBean().isAuthenticated()) {
                     try {
                         doRefresh = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
                     } catch (Exception e) {
-                        LOGGER.warn(pwmSession, "error during authorization check: " + e.getMessage());
+                        /* nooop */
                     }
                 }
             }
         }
 
-        final List<HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(doRefresh));
-        final JsonOutput returnMap = new JsonOutput();
-        returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
-        returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
-        returnMap.records = healthRecords;
-        return returnMap;
+        if (doRefresh) {
+            final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
+            healthMonitor.getHealthRecords(true);
+        }
     }
 }

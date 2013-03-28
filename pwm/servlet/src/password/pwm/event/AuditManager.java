@@ -322,7 +322,7 @@ public class AuditManager implements PwmService {
         private final Queue<AuditRecord> syslogQueue = new ConcurrentLinkedQueue<AuditRecord>();
 
         private final Configuration configuration;
-        private final Timer timer = new Timer("pwm-AuditManager syslog writer",true);
+        private final Timer timer = new Timer(PwmConstants.PWM_APP_NAME + "-AuditManager syslog writer",true);
 
         public SyslogManager(final Configuration configuration) {
             this.configuration = configuration;
@@ -468,6 +468,8 @@ public class AuditManager implements PwmService {
             lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
             csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
         }
+
+        writer.flush();
 
         return counter;
     }

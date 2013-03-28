@@ -20,9 +20,14 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.util.PwmDBLogger" %>
+<%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.LinkedHashMap" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.TimeZone" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -32,53 +37,20 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
-<script type="text/javascript">
-    var advancedPanelVisible = false;
-    function toggleAdvancedPanel() {
-        advancedPanelVisible = !advancedPanelVisible;
-        if (advancedPanelVisible) {
-            getObject('advanced_panel').style.visibility = 'visible';
-            getObject('advanced_button').innerHTML = "Simple";
-        } else {
-            getObject('advanced_panel').style.visibility = 'hidden';
-            getObject('advanced_button').innerHTML = "Advanced";
-        }
-        return false;
-    }
-</script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="PWM Event Log"/>
+    <jsp:param name="pwm.PageName" value="Event Log"/>
 </jsp:include>
-<div id="centerbody">
+<br/>
 <%@ include file="admin-nav.jsp" %>
-<p>
-    This page shows the debug log
-    history. This history is stored in the LocalDB cache of the debug log. For a
-    permanent log
-    record of events, see the application server's log file.
-    All times listed are in
-    the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-    timezone. The LocalDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
-    <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailDate()) %>
-    .
-</p>
-
-<p>
-    The LocalDB is configured to capture events of level
-    <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
-    </b> and higher.
-</p>
-<br class="clear"/>
-
-<form action="<pwm:url url='eventlog.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
-      name="eventlogParameters" onsubmit="handleFormSubmit('submit_button',this)">
-    <table style="border: 0; max-width:600px; width:600px">
-        <tr style="border: 0">
-            <td class="key" style="border: 0">
+<div style="width: 96%; margin-left: 2%; margin-right: 2%">
+<form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
+      name="searchForm" id="searchForm" onsubmit="handleFormSubmit('submit_button',this)">
+    <table style="">
+        <tr style="width:0">
+            <td class="key" style="border:0">
                 <label for="level">Level</label>
-            </td>
-            <td style="border: 0">
+                <br/>
                 <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "INFO");%>
                 <select id="level" name="level" style="width: auto;">
                     <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
@@ -95,106 +67,77 @@
                     </option>
                 </select>
             </td>
-        </tr>
-        <tr style="border: 0">
             <td class="key" style="border: 0">
                 <label for="type">Type</label>
-            </td>
-            <td style="border: 0">
+                <br/>
                 <% final String selectedType = password.pwm.Validator.readStringFromRequest(request, "type", 255, "Both");%>
-                <select id="type" name="type">
+                <select id="type" name="type" style="width:auto">
                     <option value="User" <%= "User".equals(selectedType) ? "selected=\"selected\"" : "" %>>User</option>
                     <option value="System" <%= "System".equals(selectedType) ? "selected=\"selected\"" : "" %>>System
                     </option>
                     <option value="Both" <%= "Both".equals(selectedType) ? "selected=\"selected\"" : "" %>>Both</option>
                 </select>
             </td>
-        </tr>
-        <tr style="border: 0">
             <td class="key" style="border: 0">
                 Username
-            </td>
-            <td style="border: 0">
+                <br/>
                 <input name="username" type="text"
                        value="<%=password.pwm.Validator.readStringFromRequest(request,"username")%>"/>
             </td>
-        </tr>
-        <tr style="border: 0">
             <td class="key" style="border: 0">
                 Containing text
-            </td>
-            <td style="border: 0">
+                <br/>
                 <input name="text" type="text"
                        value="<%=password.pwm.Validator.readStringFromRequest(request,"text")%>"/>
             </td>
-        </tr>
-        <tr style="border: 0">
             <td class="key" style="border: 0">
-                &nbsp;
+                Max Count
+                <br/>
+                <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count");%>
+                <select name="count" style="width:auto">
+                    <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
+                    <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
+                    <option value="2000" <%= "2000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>2000
+                    </option>
+                    <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000
+                    </option>
+                    <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000
+                    </option>
+                    <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000
+                    </option>
+                </select>
             </td>
-            <td style="border: 0">
-                <input type="submit" name="submit" id="submit_button" value=" Search " class="btn"/>
-                &nbsp;&nbsp;
-                <button type="button" id="advanced_button" class="btn" onclick="toggleAdvancedPanel()">Advanced</button>
+            <td class="key" style="border: 0">
+                Max Time
+                <br/>
+                <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime");%>
+                <select name="maxTime" style="width: auto">
+                    <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
+                    </option>
+                    <option value="30000" <%= "30000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>30 seconds
+                    </option>
+                    <option value="60000" <%= "60000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>1 minute
+                    </option>
+                    <option value="120000" <%= "120000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>2 minutes
+                    </option>
+                </select>
+            </td>
+            <td class="key" style="border: 0">
+                <label for="displayText">Display</label>
+                <br/>
+                <% final String displayText = password.pwm.Validator.readStringFromRequest(request, "displayText", 255, "Both");%>
+                <select id="displayText" name="displayText" style="width: auto">
+                    <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>Table</option>
+                    <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Text</option>
+                </select>
+            </td>
+            <td class="key" style="border: 0; vertical-align: middle">
+                <input type="submit" name="submit_button" id="submit_button" value=" Search " class="btn"/>
             </td>
         </tr>
     </table>
-    <div id="advanced_panel" style="visibility: hidden;">
-        <table style="border: 0; max-width:600px; width:600px">
-            <tr style="border: 0" id="ad">
-                <td class="key" style="border: 0">
-                    Maximum Count
-                </td>
-                <td style="border: 0">
-                    <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count");%>
-                    <select name="count">
-                        <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
-                        <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
-                        <option value="2000" <%= "2000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>2000
-                        </option>
-                        <option value="5000" <%= "5000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>5000
-                        </option>
-                        <option value="10000" <%= "10000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>10000
-                        </option>
-                        <option value="100000" <%= "100000".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100000
-                        </option>
-                    </select>
-                </td>
-            </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    Maximum Search Time
-                </td>
-                <td style="border: 0">
-                    <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime");%>
-                    <select name="maxTime">
-                        <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
-                        </option>
-                        <option value="30000" <%= "30000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>30 seconds
-                        </option>
-                        <option value="60000" <%= "60000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>1 minute
-                        </option>
-                        <option value="120000" <%= "120000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>2 minutes
-                        </option>
-                    </select>
-                </td>
-            </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    <label for="displayText">Display text</label>
-                </td>
-                <td style="border: 0">
-                    <% final String displayText = password.pwm.Validator.readStringFromRequest(request, "displayText", 255, "Both");%>
-                    <select id="displayText" name="displayText">
-                        <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>No</option>
-                        <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Yes</option>
-                    </select>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <br/>
 </form>
+<br/>
 <%
     PwmLogLevel logLevel = PwmLogLevel.INFO;
     PwmDBLogger.EventType logType = PwmDBLogger.EventType.Both;
@@ -228,91 +171,104 @@
     }
 %>
 <% if (searchResults == null || searchResults.getEvents().isEmpty()) { %>
-<p>No events matched your search. Please refine your search query and try again.</p>
+<p style="text-align:center;">No events matched your search. Please refine your search query and try again.</p>
 <% } else { %>
-<p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getEvents().size()) %> entries after
-    searching <%= numberFormat.format(searchResults.getSearchedEvents()) %> log entries
-    in <%= searchResults.getSearchTime().asCompactString() %>.</p>
-<br class="clear"/>
-<%--
 <% if (displayAsText) { %>
 <hr/>
 <pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
 <hr/>
 <% } else {%>
-<table>
-    <tr>
-        <td class="title" style="width: 1px">
-            &nbsp;
-        </td>
-        <td class="title">
-            Timestamp
-        </td>
-        <td class="title">
-            Level
-        </td>
-        <td class="title">
-            Src
-        <td class="title">
-            User
-        </td>
-        <td class="title">
-            Component
-        </td>
-        <td class="title">
-            Detail
-        </td>
-    </tr>
-    <% int counter = 0;
-        for (final PwmLogEvent event : searchResults.getEvents()) { %>
-    <tr>
-        <td class="key" style="font-family: Courier, sans-serif; width: 1px">
-            <%= ++counter %>
-        </td>
-        <td>
-            <%= DateFormat.getDateTimeInstance().format(event.getDate()) %>
-        </td>
-        <td>
-            <%= event.getLevel() %>
-        </td>
-        <td>
-            <%= event.getSource() %>
-        </td>
-        <td>
-            <%= event.getActor() %>
-        </td>
-        <td>
-            <%
+<script type="text/javascript">
+    var data = [];
+    <%
+        final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        final Gson gson = new Gson();
+        timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+        for (final PwmLogEvent event : searchResults.getEvents()) {
+            try {
+                final Map<String, String> rowData = new LinkedHashMap<String, String>();
+                rowData.put("timestamp", timeFormat.format(event.getDate()));
+                rowData.put("level", event.getLevel().toString());
+                rowData.put("src", event.getSource());
+                rowData.put("user", event.getActor());
                 final int lastDot = event.getTopic().lastIndexOf(".");
-                out.write(lastDot != -1 ? event.getTopic().substring(lastDot + 1, event.getTopic().length()) : event.getTopic());
-            %>
-        </td>
-        <td>
-            <%
-                final String eventMessage = event.getHtmlSafeMessage();
-                if (eventMessage.contains("\n")) {
-                    out.append("<pre>").append(eventMessage).append("</pre>");
-                } else {
-                    out.append(eventMessage);
-                }
-                //noinspection ThrowableResultOfMethodCallIgnored
-                if (event.getThrowable() != null) {
-                    out.append("<br/>Throwable: ");
-                    out.append("<pre>");
-                    final PrintWriter strWriter = new PrintWriter(new StringWriter());
-                    //noinspection ThrowableResultOfMethodCallIgnored
-                    event.getThrowable().printStackTrace(strWriter);
-                    out.append(strWriter.toString());
-                    out.append("</pre>");
-                }
-            %>
-        </td>
-    </tr>
-    <% } %>
-</table>
+                rowData.put("component",lastDot != -1 ? event.getTopic().substring(lastDot + 1, event.getTopic().length()) : event.getTopic());
+                rowData.put("detail",event.getMessage());
+    %>
+    data.push(<%=gson.toJson(rowData)%>)
+    <%
+            } catch (IllegalStateException e) { /* ignore */ }
+        }
+    %>
+</script>
+    <div id="grid">
+    </div>
+    <script>
+        function startupPage() {
+            var headers = {
+                "timestamp":"Time",
+                "level":"Level",
+                "src":"Source Address",
+                "user":"User",
+                "component":"Component",
+                "detail":"Detail"
+            };
+            require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                    function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                        var columnHeaders = headers;
+
+                        // Create a new constructor by mixing in the components
+                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                        // Now, create an instance of our custom grid which
+                        // have the features we added!
+                        var grid = new CustomGrid({
+                            columns: columnHeaders
+                        }, "grid");
+                        grid.set("sort","timestamp");
+                        grid.renderArray(data);
+                    });
+        };
+    </script>
+<style scoped="scoped">
+    .dgrid { height: auto; }
+    .dgrid .dgrid-scroller { position: relative;  overflow: visible; }
+    .dgrid-column-timestamp {width: 80px;}
+    .dgrid-column-level {width: 50px;}
+    .dgrid-column-src {width: 80px;}
+    .dgrid-column-user {width: 70px;}
+    .dgrid-column-component {width: 100px;}
+</style>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
+                dojoParser.parse();
+                startupPage();
+            });
+        });
+    </script>
 <% } %>
---%>
+<p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getEvents().size()) %> entries after
+    searching <%= numberFormat.format(searchResults.getSearchedEvents()) %> log entries
+    in <%= searchResults.getSearchTime().asCompactString() %>.</p>
 <% } %>
+</div>
+<div id="centerbody">
+<p>
+    This page shows the debug log
+    history. This history is stored in the LocalDB cache of the debug log. For a
+    permanent log
+    record of events, see the application server's log file.
+    All times listed are in
+    the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
+    timezone. The LocalDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
+    <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailDate()) %>
+    .
+    </p><p>
+    The LocalDB is configured to capture events of level
+    <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
+    </b> and higher.
+</p>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
