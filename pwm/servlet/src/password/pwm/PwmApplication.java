@@ -92,6 +92,7 @@ public class PwmApplication {
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private ErrorInformation lastLdapFailure = null;
+    private ErrorInformation lastPwmDBFailure = null;
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
     private MODE applicationMode;
@@ -230,6 +231,10 @@ public class PwmApplication {
         return lastLdapFailure;
     }
 
+    public ErrorInformation getLastPwmDBFailure() {
+        return lastPwmDBFailure;
+    }
+
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
         this.lastLdapFailure = errorInformation;
         if (pwmDB != null) {
@@ -293,7 +298,6 @@ public class PwmApplication {
             final String logLevel;
             switch (getApplicationMode()) {
                 case ERROR:
-                case NEW:
                     logLevel = PwmLogLevel.TRACE.toString();
                     break;
 
@@ -366,7 +370,7 @@ public class PwmApplication {
         }
 
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
-        LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
         getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
         LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", pwmDefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
@@ -671,11 +675,12 @@ public class PwmApplication {
                 final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
                 databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.pwmApplicationPath);
             } catch (Exception e) {
-                LOGGER.warn("error locating configured pwmDB directory: " + e.getMessage());
+                pwmApplication.lastPwmDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
+                LOGGER.warn(pwmApplication.lastPwmDBFailure.toDebugStr());
                 return;
             }
 
-            LOGGER.debug("using pwmDB path " + databaseDirectory);
+            LOGGER.debug("using localDB path " + databaseDirectory);
 
             // initialize the pwmDB
             try {
@@ -685,7 +690,8 @@ public class PwmApplication {
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
                 pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly, pwmApplication);
             } catch (Exception e) {
-                LOGGER.warn("unable to initialize pwmDB: " + e.getMessage());
+                pwmApplication.lastPwmDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
+                LOGGER.warn(pwmApplication.lastPwmDBFailure.toDebugStr());
             }
         }
 

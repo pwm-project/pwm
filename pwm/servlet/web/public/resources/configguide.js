@@ -24,14 +24,14 @@ function selectTemplate(template) {
     showWaitDialog('Loading...','',function(){
         require(["dojo"],function(dojo){
             dojo.xhrGet({
-                url:"InstallManager?processAction=selectTemplate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
+                url:"ConfigGuide?processAction=selectTemplate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
                 preventCache: true,
                 error: function(errorObj) {
                     showError("error starting configuration editor: " + errorObj);
                 },
                 load: function(result) {
                     if (!result['error']) {
-                        window.location = "InstallManager";
+                        window.location = "ConfigGuide";
                     } else {
                         showError(result['errorDetail']);
                     }
@@ -41,33 +41,11 @@ function selectTemplate(template) {
     });
 }
 
-function updateLdapForm() {
-    require(["dojo","dojo/dom-form"],function(dojo,domForm){
-        var formJson = dojo.formToJson('ldapForm');
+function updateForm() {
+    require(["dojo","dijit/registry","dojo/dom-form"],function(dojo,registry,domForm){
+        var formJson = dojo.formToJson('configForm');
         dojo.xhrPost({
-            url: "InstallManager?processAction=updateLdapForm&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            postData: formJson,
-            headers: {"Accept":"application/json"},
-            contentType: "application/json;charset=utf-8",
-            encoding: "utf-8",
-            handleAs: "json",
-            dataType: "json",
-            preventCache: true,
-            error: function(errorObj) {
-                showError("error reaching server: " + errorObj);
-            },
-            load: function(result) {
-                console.log("sent form params to server: " + formJson);
-            }
-        });
-    });
-}
-
-function updateLdap2Form() {
-    require(["dojo","dojo/dom-form"],function(dojo,domForm){
-        var formJson = dojo.formToJson('ldap2Form');
-        dojo.xhrPost({
-            url: "InstallManager?processAction=updateLdap2Form&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            url: "ConfigGuide?processAction=updateForm&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: formJson,
             headers: {"Accept":"application/json"},
             contentType: "application/json;charset=utf-8",
@@ -89,7 +67,7 @@ function gotoStep(step) {
     showWaitDialog();
     require(["dojo"],function(dojo){
         dojo.xhrGet({
-            url: "InstallManager?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
+            url: "ConfigGuide?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
             headers: {"Accept":"application/json"},
             contentType: "application/json;charset=utf-8",
             encoding: "utf-8",
@@ -101,7 +79,7 @@ function gotoStep(step) {
                 showError("error while selecting step: " + errorObj);
             },
             load: function(result) {
-                var redirectLocation = "InstallManager";
+                var redirectLocation = "ConfigGuide";
                 if (result['data'] && result['data']['redirectLocation']) {
                     redirectLocation = result['data']['redirectLocation'];
                 }
@@ -125,14 +103,14 @@ function setUseConfiguredCerts(value) {
     showWaitDialog('Loading...','',function(){
         require(["dojo"],function(dojo){
             dojo.xhrGet({
-                url:"InstallManager?processAction=useConfiguredCerts&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&value=" + value,
+                url:"ConfigGuide?processAction=useConfiguredCerts&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&value=" + value,
                 preventCache: true,
                 error: function(errorObj) {
                     showError("error starting configuration editor: " + errorObj);
                 },
                 load: function(result) {
                     if (!result['error']) {
-                        window.location = "InstallManager";
+                        window.location = "ConfigGuide";
                     } else {
                         showError(result['errorDetail']);
                     }
@@ -144,7 +122,7 @@ function setUseConfiguredCerts(value) {
 }
 
 function uploadConfigDialog() {
-    var body = '<div id="uploadFormWrapper"><form action="InstallManager" enctype="multipart/form-data">';
+    var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
     body += '<div id="fileList"></div>';
     body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<input type="submit" id="uploadButton" name="Upload"/>';
@@ -171,7 +149,7 @@ function uploadConfigDialog() {
             label: 'Select File',
             required:true,
             fileMask: fileMask,
-            url: 'InstallManager' + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'],
+            url: 'ConfigGuide' + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'],
             isDebug: true,
             devMode: true
         },'uploadFile');

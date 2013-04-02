@@ -624,4 +624,10 @@ public class Configuration implements Serializable {
         }
         return false;
     }
+
+    public String getUsernameAttribute() {
+        final String configUsernameAttr = readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        final String ldapNamingAttribute = readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+    }
 }

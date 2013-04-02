@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.InstallManagerBean" %>
+<%@ page import="password.pwm.bean.ConfigGuideBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,29 +26,28 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% InstallManagerBean installManagerBean = (InstallManagerBean)PwmSession.getPwmSession(session).getSessionBean(InstallManagerBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_InstallManager" bundle="Config"/>
+            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
         </div>
         <div id="header-title">
-            Select Template
+            <pwm:Display key="Title_ConfigGuide_template" bundle="Config"/>
         </div>
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p>Please begin your configuration by selecting a default template below.  If you decide to change your selection later, you can choose a different template at any time.</p>
-        <p>Selecting an application template helps .</p>
+        <pwm:Display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
         <select onchange="selectTemplate(this.value);">
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-            <option value="<%=template.toString()%>"<% if (template == installManagerBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
+            <option value="<%=template.toString()%>"<% if (template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
                <%=template.getDescription()%>
             </option>
             <% } %>
@@ -56,9 +55,9 @@
         <br/>
 
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('START')"> << Previous <<</button>
+            <button class="btn" id="button_previous" onclick="gotoStep('START')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP')">>> Next >></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP')"><pwm:Display key="Button_Next" bundle="Config"/></button>
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.InstallManagerBean" %>
+<%@ page import="password.pwm.bean.ConfigGuideBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,16 +26,16 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% InstallManagerBean installManagerBean = (InstallManagerBean)PwmSession.getPwmSession(session).getSessionBean(InstallManagerBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_InstallManager" bundle="Config"/>
+            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
         </div>
         <div id="header-title">
             Save Configuration
@@ -49,7 +49,7 @@
         <br/>
 
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2')"> << Previous <<</button>
+            <button class="btn" id="button_previous" onclick="gotoStep('PASSWORD')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next" onclick="gotoStep('FINISH')"> Save Configuration </button>
         </div>

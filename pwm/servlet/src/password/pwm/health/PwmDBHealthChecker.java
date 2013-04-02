@@ -41,10 +41,11 @@ public class PwmDBHealthChecker implements HealthChecker {
         final PwmDB pwmDB = pwmApplication.getPwmDB();
 
         if (pwmDB == null) {
+            final String detailedError = pwmApplication.getLastPwmDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastPwmDBFailure().toDebugStr();
             healthRecords.add(new HealthRecord(
-                    HealthStatus.GOOD,
+                    HealthStatus.WARN,
                     "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_BAD",pwmApplication.getConfig(),Admin.class)
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_BAD",pwmApplication.getConfig(),Admin.class,new String[]{detailedError})
             ));
             return healthRecords;
         }
@@ -62,7 +63,7 @@ public class PwmDBHealthChecker implements HealthChecker {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_WARN",pwmApplication.getConfig(),Admin.class)
+                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_CLOSED",pwmApplication.getConfig(),Admin.class)
             ));
             return healthRecords;
         }

@@ -28,54 +28,54 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_InstallManager" bundle="Config"/>
+            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
         </div>
         <div id="header-title">
-            Welcome
+            <pwm:Display key="Title_ConfigGuide_start" bundle="Config"/>
         </div>
     </div>
     <div id="centerbody">
-        <pwm:Display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
+        <pwm:Display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="gotoStep('TEMPLATE')">Start Install Wizard</button>
+                    <button class="menubutton" href="#" onclick="gotoStep('TEMPLATE')"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></button>
                 </td>
                 <td style="border:0">
-                    <p>Start the installer to configure your ldap server, certificates and basic settings.</p>
+                    <p><pwm:Display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="skipWizard()">Manual Configuration</button>
+                    <button class="menubutton" href="#" onclick="skipWizard()">
+                        <pwm:Display key="MenuItem_ManualConfig" bundle="Config"/>
+                    </button>
                 </td>
                 <td style="border:0">
-                    <p>Start the installation wizard and manually configure the application</p>
+                    <p><pwm:Display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="uploadConfigDialog()">Upload Configuration</button>
+                    <button class="menubutton" href="#" onclick="uploadConfigDialog()"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></button>
                 </td>
                 <td style="border:0">
-                    <p>If you have a previously created configuration file, you can use this option to upload the configuration to
-                    this server.  The wizard will be skipped and you can manually configure the server after the upload is completed.</p>
+                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
                 </td>
             </tr>
             </table>
-
     </div>
 </div>
 <script type="text/javascript">
     function skipWizard() {
-        showConfirmDialog('Skip Wizard','Are you sure you want to skip the installation wizard?',function(){
+        showConfirmDialog(null,'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',function(){
             gotoStep('FINISH');
         });
     }

@@ -128,11 +128,11 @@ public abstract class CrUtility {
         { // check for missing question texts
             for (final Challenge challenge : responseMap.keySet()) {
                 if (!challenge.isAdminDefined()) {
-                final String text = challenge.getChallengeText();
-                if (text == null || text.length() < 1) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT);
-                    throw new PwmDataValidationException(errorInformation);
-                }
+                    final String text = challenge.getChallengeText();
+                    if (text == null || text.length() < 1) {
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_CHALLENGE_TEXT);
+                        throw new PwmDataValidationException(errorInformation);
+                    }
                 }
             }
         }
@@ -427,9 +427,6 @@ public abstract class CrUtility {
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
-        int attempts = 0, successes = 0;
-        final Configuration config = pwmApplication.getConfig();
-
         final ChaiResponseSet chaiResponseSet = ChaiCrFactory.newChaiResponseSet(
                 responseInfoBean.getCrMap(),
                 responseInfoBean.getHelpdeskCrMap(),
@@ -438,6 +435,21 @@ public abstract class CrUtility {
                 theUser.getChaiProvider().getChaiConfiguration(),
                 responseInfoBean.getCsIdentifier()
         );
+        writeResponses(pwmSession,pwmApplication,theUser,userGUID,chaiResponseSet);
+    }
+
+    public static void writeResponses(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser,
+            final String userGUID,
+            final ChaiResponseSet responseSet
+    )
+            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
+    {
+        int attempts = 0, successes = 0;
+        final Configuration config = pwmApplication.getConfig();
+
 
         final List<Configuration.STORAGE_METHOD> writeMethods = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
         for (final Configuration.STORAGE_METHOD loopWriteMethod : writeMethods) {
@@ -451,7 +463,7 @@ public abstract class CrUtility {
                     }
                     try {
                         attempts++;
-                        ChaiCrFactory.writeChaiResponseSet(chaiResponseSet, theUser);
+                        ChaiCrFactory.writeChaiResponseSet(responseSet, theUser);
                         LOGGER.info(pwmSession, "saved responses for user to chai-ldap format");
                         successes++;
                     } catch (ChaiOperationException e) {
@@ -482,7 +494,7 @@ public abstract class CrUtility {
                     }
 
                     try {
-                        pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, chaiResponseSet.stringValue());
+                        pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue());
                         LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
                         successes++;
                     } catch (PwmDBException e) {
@@ -507,7 +519,7 @@ public abstract class CrUtility {
 
                     try {
                         final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-                        databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, chaiResponseSet.stringValue());
+                        databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responseSet.stringValue());
                         LOGGER.info(pwmSession, "saved responses for user in remote database");
                         successes++;
                     } catch (PwmUnrecoverableException e) {
@@ -530,12 +542,25 @@ public abstract class CrUtility {
             try {
                 if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                     attempts++;
+                    final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
+                    for (final Challenge challenge : responseSet.getChallengeAnswers().keySet()) {
+                        String answerString = null;
+                        {
+                            final Answer answer = responseSet.getChallengeAnswers().get(challenge);
+                            answerString = answer.asAnswerBean().getAnswerText();
+                        }
+                        if (answerString == null) {
+                            throw new IllegalArgumentException("cannot save response for '" + challenge.getChallengeText() + "' to NMAS, cleartext answer is not available");
+                        }
+                        crMap.put(challenge,answerString);
+                    }
+
                     final NmasResponseSet nmasResponseSet = NmasCrFactory.newNmasResponseSet(
-                            responseInfoBean.getCrMap(),
-                            responseInfoBean.getLocale(),
-                            responseInfoBean.getMinRandoms(),
+                            crMap,
+                            responseSet.getLocale(),
+                            responseSet.getChallengeSet().getMinRandomRequired(),
                             theUser,
-                            responseInfoBean.getCsIdentifier()
+                            responseSet.getChallengeSet().getIdentifier()
                     );
                     NmasCrFactory.writeResponseSet(nmasResponseSet);
                     LOGGER.info(pwmSession, "saved responses for user using NMAS method ");

@@ -570,6 +570,9 @@ public class
             // mark the event log
             pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
 
+            // mark user as requiring a new password.
+            pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+
             // redirect user to change password screen.
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         } catch (PwmUnrecoverableException e) {

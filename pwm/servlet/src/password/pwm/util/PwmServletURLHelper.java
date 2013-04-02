@@ -48,8 +48,8 @@ public abstract class PwmServletURLHelper {
         return checkIfStartsWithURL(req, "/config/ConfigManager", "/private/admin/ConfigManager");
     }
 
-    public static boolean isInstallManagerURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/config/" + PwmConstants.URL_SERVLET_INSTALL_MANAGER);
+    public static boolean isConfigGuideURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
     }
 
     public static boolean isChangePasswordURL(final HttpServletRequest req) {
@@ -110,5 +110,4 @@ public abstract class PwmServletURLHelper {
 
         return false;
     }
-
 }

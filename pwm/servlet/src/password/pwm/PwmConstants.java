@@ -101,8 +101,11 @@ public abstract class PwmConstants {
     public static final int CLIENT_AJAX_TYPING_WAIT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingWait"));
 
     public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
-    public static final int INTRUDER_RETENTION_TIME_MS = Integer.parseInt(readPwmConstantsBundle("intruderRetentionTimeMS"));
-    public static final int INTRUDER_CLEANUP_FREQUENCY_MS = Integer.parseInt(readPwmConstantsBundle("intruderCleanupFrequencyMS"));
+    public static final long INTRUDER_RETENTION_TIME_MS = Long.parseLong(readPwmConstantsBundle("intruderRetentionTimeMS"));
+    public static final long INTRUDER_CLEANUP_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("intruderCleanupFrequencyMS"));
+    public static final long INTRUDER_MIN_DELAY_PENALTY_MS = Long.parseLong(readPwmConstantsBundle("intruderMinimumDelayPenaltyMS"));
+    public static final long INTRUDER_MAX_DELAY_PENALTY_MS = Long.parseLong(readPwmConstantsBundle("intruderMaximumDelayPenaltyMS"));
+    public static final long INTRUDER_DELAY_MAX_JITTER_MS = Long.parseLong(readPwmConstantsBundle("intruderDelayMaxJitterMS"));
 
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
@@ -177,8 +180,8 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/installmanager-mode-running.jsp";
-    public static final String URL_JSP_INSTALL_MANAGER_WIZZARD = "WEB-INF/jsp/installmanager-%1%.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configguide-mode-running.jsp";
+    public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
     public static final String URL_JSP_HELPDESK_SEARCH = "WEB-INF/jsp/helpdesk.jsp";
     public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
 
@@ -194,7 +197,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
     public static final String URL_SERVLET_COMMAND = "CommandServlet";
     public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
-    public static final String URL_SERVLET_INSTALL_MANAGER = "InstallManager";
+    public static final String URL_SERVLET_CONFIG_GUIDE = "ConfigGuide";
 
     public static final String URL_THEMES = "/public/resources/themes/";
 

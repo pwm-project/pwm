@@ -29,6 +29,8 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.ws.server.RestResultBean;
@@ -408,8 +410,8 @@ public class ServletHelper {
 
     public static String readFileUpload(
             final HttpServletRequest req,
-            final String filePartName
-
+            final String filePartName,
+            int maxFileChars
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
@@ -426,7 +428,7 @@ public class ServletHelper {
                     final FileItemStream item = iter.next();
 
                     if (filePartName.equals(item.getFieldName())) {
-                        uploadFile = streamToString(item.openStream());
+                        uploadFile = streamToString(item.openStream(),maxFileChars);
                     }
                 }
 
@@ -438,17 +440,20 @@ public class ServletHelper {
         return null;
     }
 
-    private static String streamToString(final InputStream stream)
-            throws IOException
-    {
+    private static String streamToString(final InputStream stream, final int maxFileChars)
+            throws IOException, PwmUnrecoverableException {
         final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
         final StringBuilder sb = new StringBuilder();
         int charCounter = 0;
         int nextChar = bufferedReader.read();
-        while (charCounter < PwmConstants.MAX_CONFIG_FILE_CHARS && nextChar != -1) {
+        while (nextChar != -1) {
             charCounter++;
             sb.append((char)nextChar);
             nextChar = bufferedReader.read();
+            if (charCounter > maxFileChars) {
+                stream.close();
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,"file too large"));
+            }
         }
         return sb.toString();
     }

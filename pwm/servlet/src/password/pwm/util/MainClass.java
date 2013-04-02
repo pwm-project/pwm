@@ -22,31 +22,34 @@
 
 package password.pwm.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiResponseSet;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import org.apache.log4j.*;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmPasswordPolicy;
 import password.pwm.TokenManager;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
+import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.pwmdb.*;
 import password.pwm.util.stats.StatisticsManager;
+import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.*;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class MainClass {
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(MainClass.class);
-    private static final String RESPONSE_FILE_ENCODING = "UTF-8";
-    private static int staticCounter = 0;
 
     public static void main(final String[] args)
             throws Exception {
@@ -57,9 +60,9 @@ public class MainClass {
             out(" [command] option option");
             out("  | LocalDbInfo                   Report information about the LocalDB");
             out("  | ExportLogs      [outputFile]  Export all logs in the LocalDB");
-            out("  | ExportResponses [location]    Export all saved responses in the LocalDB");
-            out("  | ImportResponses [location]    Import responses from files into the LocalDB");
-            out("  | ClearResponses                Clear all responses from the LocalDB");
+            out("  | ExportResponses [location]    Export all saved responses");
+            out("  | ImportResponses [location]    Import responses from files");
+            out("  | ClearLocalResponses           Clear all responses from the LocalDB");
             out("  | UserReport      [outputFile]  Dump a user report to the output file (csv format)");
             out("  | ExportLocalDB   [outputFile]  Export the entire LocalDB contents to a backup file");
             out("  | ImportLocalDB   [inputFile]   Import the entire LocalDB contents from a backup file");
@@ -76,8 +79,8 @@ public class MainClass {
                 handleExportResponses(args);
             } else if ("ImportResponses".equalsIgnoreCase(args[0])) {
                 handleImportResponses(args);
-            } else if ("ClearResponses".equalsIgnoreCase(args[0])) {
-                handleClearResponses();
+            } else if ("ClearLocalResponses".equalsIgnoreCase(args[0])) {
+                handleClearLocalResponses();
             } else if ("UserReport".equalsIgnoreCase(args[0])) {
                 handleUserReport(args);
             } else if ("ExportLocalDB".equalsIgnoreCase(args[0])) {
@@ -173,90 +176,114 @@ public class MainClass {
     }
 
     static void handleExportResponses(final String[] args) throws Exception {
-        final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, true);
 
         if (args.length < 2) {
-            out("must specify a directory to write responses to");
+            out("must specify a file to write responses to");
             return;
         }
 
-        if (pwmDB.size(PwmDB.DB.RESPONSE_STORAGE) == 0) {
-            out("no stored responses");
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+
+        final File outputFile = new File(args[1]);
+        if (outputFile.exists()) {
+            out(outputFile.getAbsolutePath() + " already exists");
             return;
         }
 
-        final File outputDirectory = new File(args[1]);
+        Helper.pause(2000);
 
-        if (!outputDirectory.isDirectory()) {
-            out(outputDirectory.getAbsolutePath() + " is not a valid directory");
-            return;
+        final long startTime = System.currentTimeMillis();
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setChaiProvider(pwmApplication.getProxyChaiProvider());
+        searchConfiguration.setEnableValueEscaping(false);
+        searchConfiguration.setUsername("*");
+
+        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+        final String systemRecordDelimiter = System.getProperty("line.separator");
+        final Writer writer = new BufferedWriter(new PrintWriter(outputFile,"UTF-8"));
+        final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
+        out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
+        int counter = 0;
+        for (final ChaiUser user : results.keySet()) {
+            final ResponseSet responseSet = CrUtility.readUserResponseSet(null, pwmApplication, user);
+            if (responseSet != null) {
+                counter++;
+                out("found responses for '" + user.getEntryDN() + "', writing to output.");
+                final RestChallengesServer.JsonChallengesData outputData = new RestChallengesServer.JsonChallengesData();
+                outputData.challenges = responseSet.asChallengeBeans(true);
+                outputData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(true);
+                outputData.minimumRandoms = responseSet.getChallengeSet().minimumResponses();
+                outputData.username = user.getEntryDN();
+                writer.write(gson.toJson(outputData));
+                writer.write(systemRecordDelimiter);
+            } else {
+                out("skipping '" + user.getEntryDN() + "', no stored responses.");
+            }
         }
+        writer.close();
 
-        out("outputting " + pwmDB.size(PwmDB.DB.RESPONSE_STORAGE) + " stored responses to " + outputDirectory.getAbsolutePath() + "....");
-
-        for (final Iterator<String> iter = pwmDB.iterator(PwmDB.DB.RESPONSE_STORAGE); iter.hasNext();) {
-            final String key = iter.next();
-            final String value = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, key);
-            final File outputFile = new File(outputDirectory.getAbsolutePath() + File.separator + key + ".xml");
-
-            Helper.writeFileAsString(outputFile, value, RESPONSE_FILE_ENCODING);
-        }
-
-        out("output complete");
+        out("output complete, " + counter + " responses exported in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     static void handleImportResponses(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, false);
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, false);
 
         if (args.length < 2) {
-            out("must specify a directory to read responses from");
+            out("must specify a file to read responses from");
             return;
         }
 
-        final File outputDirectory = new File(args[1]);
+        final File inputFile = new File(args[1]);
 
-        if (!outputDirectory.isDirectory()) {
-            out(outputDirectory.getAbsolutePath() + " is not a valid directory");
+        if (!inputFile.exists()) {
+            out(inputFile.getAbsolutePath() + " does not exist");
             return;
         }
 
-        out("importing stored responses from " + outputDirectory.getAbsolutePath() + "....");
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),"UTF-8"));
+        out("importing stored responses from " + inputFile.getAbsolutePath() + "....");
 
         int counter = 0;
-        for (final File loopFile : outputDirectory.listFiles()) {
-            final String fileContents = Helper.readFileAsString(loopFile, PwmDB.MAX_VALUE_LENGTH, RESPONSE_FILE_ENCODING);
-            boolean validResponses = false;
-
+        String line;
+        final Gson gson = new Gson();
+        final long startTime = System.currentTimeMillis();
+        while ((line = reader.readLine()) != null) {
+            counter++;
+            final RestChallengesServer.JsonChallengesData inputData;
             try {
-                ChaiResponseSet.parseChaiResponseSetXML(fileContents, null);
-                validResponses = true;
-            } catch (Exception e) {
-                out("file " + loopFile.getAbsolutePath() + " has invalid responses: " + e.getMessage());
+                inputData = gson.fromJson(line, RestChallengesServer.JsonChallengesData.class);
+            } catch (JsonSyntaxException e) {
+                out("error parsing line " + counter + ", error: " + e.getMessage());
+                return;
             }
 
-            if (validResponses) {
-                String keyName = loopFile.getName();
-                if (keyName.contains(".")) {
-                    keyName = keyName.substring(0, keyName.indexOf("."));
+            final ChaiUser user = ChaiFactory.createChaiUser(inputData.username,pwmApplication.getProxyChaiProvider());
+            if (user.isValid()) {
+                out("writing responses to user '" + user.getEntryDN() + "'");
+                try {
+                    final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(null, pwmApplication.getConfig(), user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                    final String userGuid = Helper.readLdapGuidValue(pwmApplication, user.getEntryDN());
+                    final ChaiResponseSet chaiResponseSet = inputData.toResponseSet(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
+                    CrUtility.writeResponses(null,pwmApplication,user,userGuid,chaiResponseSet);
+                } catch (Exception e) {
+                    out("error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage());
+                    return;
                 }
-
-                if (pwmDB.contains(PwmDB.DB.RESPONSE_STORAGE, keyName)) {
-                    out("updating value for PwmGUID " + keyName);
-                } else {
-                    out("importing value for PwmGUID " + keyName);
-                }
-                pwmDB.put(PwmDB.DB.RESPONSE_STORAGE, keyName, fileContents);
-
-                counter++;
+            } else {
+                out("user '" + user.getEntryDN() + "' is not a valid userDN");
+                return;
             }
         }
 
-        out("finished import of " + counter + " stored responses");
+        out("output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
-    static void handleClearResponses() throws Exception {
+    static void handleClearLocalResponses() throws Exception {
         final Configuration config = loadConfiguration();
 
         out("Proceeding with this operation will clear all stored responses from the LocalDB.");

@@ -3,32 +3,33 @@ package password.pwm.bean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.value.BooleanValue;
-import password.pwm.servlet.InstallManagerServlet;
+import password.pwm.servlet.ConfigGuideServlet;
 
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InstallManagerBean implements PwmSessionBean {
+public class ConfigGuideBean implements PwmSessionBean {
 
-    private InstallManagerServlet.STEP step = InstallManagerServlet.STEP.START;
+    private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
     private StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
-    private Map<String,String> formData = InstallManagerServlet.defaultForm(storedConfiguration.getTemplate());
-    private X509Certificate[] ldapCertificates = new X509Certificate[0];
+    private Map<String,String> formData = ConfigGuideServlet.defaultForm(storedConfiguration.getTemplate());
+    private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private boolean needsDbConfiguration = false;
 
-    public InstallManagerBean() {
-        InstallManagerServlet.updateLdapInfo(this.getStoredConfiguration(),new HashMap<String,String>(InstallManagerServlet.defaultForm(storedConfiguration.getTemplate())));
+    public ConfigGuideBean() {
+        ConfigGuideServlet.updateLdapInfo(this.getStoredConfiguration(), new HashMap<String, String>(ConfigGuideServlet.defaultForm(storedConfiguration.getTemplate())), Collections.<String,String>emptyMap());
         this.getStoredConfiguration().writeSetting(PwmSetting.LDAP_PROMISCUOUS_SSL,new BooleanValue(true));
     }
 
-    public InstallManagerServlet.STEP getStep() {
+    public ConfigGuideServlet.STEP getStep() {
         return step;
     }
 
-    public void setStep(InstallManagerServlet.STEP step) {
+    public void setStep(ConfigGuideServlet.STEP step) {
         this.step = step;
     }
 

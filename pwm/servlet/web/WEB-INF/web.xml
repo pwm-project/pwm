@@ -261,8 +261,8 @@
         <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>InstallManagerServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.InstallManagerServlet</servlet-class>
+        <servlet-name>ConfigGuideServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ConfigGuideServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ResourceFileServlet</servlet-name>
@@ -346,8 +346,8 @@
         <url-pattern>/private/admin/ConfigManager</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>InstallManagerServlet</servlet-name>
-        <url-pattern>/config/InstallManager</url-pattern>
+        <servlet-name>ConfigGuideServlet</servlet-name>
+        <url-pattern>/config/ConfigGuide</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>

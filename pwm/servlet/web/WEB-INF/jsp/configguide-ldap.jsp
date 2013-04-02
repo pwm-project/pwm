@@ -1,6 +1,7 @@
-<%@ page import="password.pwm.bean.InstallManagerBean" %>
-<%@ page import="password.pwm.servlet.InstallManagerServlet" %>
+<%@ page import="password.pwm.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="com.google.gson.Gson" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,100 +28,104 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% InstallManagerBean installManagerBean = (InstallManagerBean)PwmSession.getPwmSession(session).getSessionBean(InstallManagerBean.class);%>
-<% Map<String,String> DEFAULT_FORM = InstallManagerServlet.defaultForm(installManagerBean.getStoredConfiguration().getTemplate()); %>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_InstallManager" bundle="Config"/>
+            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
         </div>
         <div id="header-title">
-            LDAP Configuration
+            <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
         </div>
     </div>
     <div id="centerbody">
-        <form id="ldapForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
-            <div id="outline_ldap-server" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+            <div id="outline_ldap-server" class="configDiv">
                 <div id="titlePaneHeader-ldap-server" title="Server Information" style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="open:false">
                     Please enter the connection information for your ldap server.
                 </div>
+                <br/>
                 <div style="padding-left: 10px; padding-bottom: 5px">
-                <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                    LDAP Hostname / Server Address
+                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                    <b>LDAP Hostname / Server Address</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="value_<%=InstallManagerServlet.PARAM_LDAP_HOST%>" name="setting_<%=InstallManagerServlet.PARAM_LDAP_HOST%>"/>
+                    <input id="value_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
                                 new ValidationTextBox({
-                                    id: '<%=InstallManagerServlet.PARAM_LDAP_HOST%>',
-                                    name: '<%=InstallManagerServlet.PARAM_LDAP_HOST%>',
+                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_HOST%>',
+                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_HOST%>',
                                     required: true,
                                     style: "width: 300px",
-                                    placeholder: '<%=DEFAULT_FORM.get(InstallManagerServlet.PARAM_LDAP_HOST)%>',
+                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_HOST)%>',
                                     onKeyUp: function() {
-                                        updateLdapForm();
+                                        handleFormActivity();
                                     },
-                                    value: '<%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_HOST)%>'
-                                }, "value_<%=InstallManagerServlet.PARAM_LDAP_HOST%>");
+                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>'
+                                }, "value_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>");
                             });
                         });
                     </script>
                 </div>
 
-                <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_PORT%>" style="padding-left: 5px; padding-top: 5px">
-                    LDAP Port
+                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" style="padding-left: 5px; padding-top: 5px">
+                    <b>LDAP Port</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=InstallManagerServlet.PARAM_LDAP_PORT%>" name="<%=InstallManagerServlet.PARAM_LDAP_PORT%>"/>
+                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             require(["dijit/form/NumberSpinner"],function(ValidationTextBox){
                                 new ValidationTextBox({
-                                    id: '<%=InstallManagerServlet.PARAM_LDAP_PORT%>',
-                                    name: '<%=InstallManagerServlet.PARAM_LDAP_PORT%>',
+                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_PORT%>',
+                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_PORT%>',
                                     required: true,
                                     style: "width: 80px",
-                                    placeholder: '<%=DEFAULT_FORM.get(InstallManagerServlet.PARAM_LDAP_PORT)%>',
+                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_PORT)%>',
                                     onKeyUp: function() {
-                                        updateLdapForm();
+                                        handleFormActivity();
                                     },
-                                    value: '<%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_PORT)%>'
-                                }, "<%=InstallManagerServlet.PARAM_LDAP_PORT%>");
+                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>'
+                                }, "<%=ConfigGuideServlet.PARAM_LDAP_PORT%>");
                             });
                         });
                     </script>
                 </div>
-                <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_SECURE%>" style="padding-left: 5px; padding-top: 5px">
-                    Secure Connection
+                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" style="padding-left: 5px; padding-top: 5px">
+                    <b>Secure (SSL) Connection</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=InstallManagerServlet.PARAM_LDAP_SECURE%>" name="<%=InstallManagerServlet.PARAM_LDAP_SECURE%>"/>
+                    <input type="hidden" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
+                    <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/registry","dijit/form/CheckBox"],function(registry,CheckBox){
-                                new CheckBox({
-                                    id: '<%=InstallManagerServlet.PARAM_LDAP_SECURE%>',
-                                    name: '<%=InstallManagerServlet.PARAM_LDAP_SECURE%>',
-                                    required: true,
-                                    placeholder: '<%=DEFAULT_FORM.get(InstallManagerServlet.PARAM_LDAP_SECURE)%>',
+                            require(["dijit/registry","dijit/form/ToggleButton"],function(registry,ToggleButton){
+                                new ToggleButton({
+                                    id: 'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>',
+                                    iconClass:'dijitCheckBoxIcon',
+                                    label: 'Secure',
+                                    style: 'width:100px',
                                     onChange: function() {
                                         if (this.checked) {
-                                            registry.byId('<%=InstallManagerServlet.PARAM_LDAP_PORT%>').set('value','636');
+                                            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="true";
+                                            registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','636');
                                         } else {
-                                            registry.byId('<%=InstallManagerServlet.PARAM_LDAP_PORT%>').set('value','389');
+                                            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="false";
+                                            registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','389');
                                         }
-                                        updateLdapForm();
+                                        handleFormActivity();
                                     },
-                                    checked: <%=("on".equalsIgnoreCase(installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_SECURE))) ? "true" : "false"%>
-                                }, "<%=InstallManagerServlet.PARAM_LDAP_SECURE%>");
+                                    checked: <%="true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))%>
+                                },'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>');
                             });
                         });
                     </script>
@@ -129,55 +134,56 @@
             </div>
 
             <br class="clear"/>
-            <div id="outline_ldap-user" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+            <div id="outline_ldap-user" class="configDiv">
                 <div id="titlePaneHeader-ldap-user" style="width:580px" data-dojo-type="dijit/TitlePane" title="Admin/Proxy Account" data-dojo-props="open:false">
-                    Please enter the connection information for your proxy account information.  You must enter the full LDAP DN of the
+                    Please enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
                     admin account here.  In most cases, you should use an account created specially for this purpose, with enough rights to
                     administer the users that will be logging into this system.
                 </div>
+                <br/>
                 <div style="padding-left: 10px; padding-bottom: 5px">
-                <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
-                    Proxy/Admin LDAP DN
+                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <b>Proxy/Admin LDAP DN</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>" name="setting_<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>"/>
+                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
                                 new ValidationTextBox({
-                                    id: '<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>',
-                                    name: '<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>',
+                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>',
+                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>',
                                     required: true,
                                     style: "width: 500px",
-                                    placeholder: '<%=DEFAULT_FORM.get(InstallManagerServlet.PARAM_LDAP_ADMIN_DN)%>',
+                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>',
                                     onKeyUp: function() {
-                                        updateLdapForm();
+                                        handleFormActivity();
                                     },
-                                    value: '<%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_ADMIN_DN)%>'
-                                }, "<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>");
+                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>'
+                                }, "<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>");
                             });
                         });
                     </script>
                 </div>
 
-                <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
-                    Password
+                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
+                    <b>Password</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
+                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
                                 new ValidationTextBox({
-                                    id: '<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>',
-                                    name: '<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>',
+                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>',
+                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>',
                                     required: true,
                                     type: "password",
                                     style: "width: 200px",
-                                    placeholder: '<%=DEFAULT_FORM.get(InstallManagerServlet.PARAM_LDAP_ADMIN_PW)%>',
+                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>',
                                     onKeyUp: function() {
-                                        updateLdapForm();
+                                        handleFormActivity();
                                     },
-                                    value: '<%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_ADMIN_PW)%>'
-                                }, "<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>");
+                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>'
+                                }, "<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>");
                             });
                         });
                     </script>
@@ -188,21 +194,34 @@
         <br/>
         <div id="healthBody" style="border:0; margin:0; padding:0" onclick="loadHealth()">
             <div style="text-align: center">
-                <button class="menubutton" onclick="enhanceHealthDiv()">Check Settings</button>
+                <button class="menubutton" onclick="loadHealth()">Check Settings</button>
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('TEMPLATE')"> << Previous <<</button>
+            <button class="btn" id="button_previous" onclick="gotoStep('TEMPLATE')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT')">>> Next >></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT')"><pwm:Display key="Button_Next" bundle="Config"/></button>
         </div>
     </div>
 </div>
 <script type="text/javascript">
+    function handleFormActivity() {
+        updateForm();
+        clearHealthDiv();
+    }
+
+    function clearHealthDiv() {
+        var healthBodyObj = getObject('healthBody');
+        var newHtml = '<div style="text-align: center">';
+        newHtml += '<button class="menubutton">Check Settings</button>';
+        newHtml += '</div>'
+        healthBodyObj.innerHTML = newHtml;
+    }
+
     PWM_GLOBAL['startupFunctions'].push(function(){
         getObject('localeSelectionMenu').style.display = 'none';
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
+            clearHealthDiv();
         });
         checkIfNextEnabled();
     });
@@ -213,30 +232,11 @@
         } else {
             getObject('button_next').disabled = true;
         }
-    };
-
-    function enhanceHealthDiv() {
-        require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-            new Tooltip({
-                connectId: ["healthBody"],
-                label: 'click to refresh'
-            });
-        });
-        /*
-        require(["dojo/_base/fx","dojo/mouse", "dojo/on", "dojo/dom"], function(fx, mouse, on, dom){
-            on(dom.byId("healthBody"), mouse.enter, function(evt){
-                fx.fadeOut({node:'healthBody'}).play();
-            });
-            on(dom.byId("healthBody"), mouse.leave, function(evt){
-                fx.fadeIn({node:'healthBody'}).play();
-            });
-        });
-        */
     }
 
     function loadHealth() {
         var options = {};
-        options['sourceUrl'] = 'InstallManager?processAction=ldapHealth';
+        options['sourceUrl'] = 'ConfigGuide?processAction=ldapHealth';
         options['showRefresh'] = false;
         options['refreshTime'] = -1;
         options['finishFunction'] = function(){
@@ -246,8 +246,6 @@
         showWaitDialog();
         showPwmHealth('healthBody', options);
     }
-
-
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

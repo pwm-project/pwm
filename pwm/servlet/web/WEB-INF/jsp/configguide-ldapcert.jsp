@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.InstallManagerBean" %>
-<%@ page import="password.pwm.servlet.InstallManagerServlet" %>
+<%@ page import="password.pwm.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,40 +27,38 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% InstallManagerBean installManagerBean = (InstallManagerBean)PwmSession.getPwmSession(session).getSessionBean(InstallManagerBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/installmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
         <div id="header-page">
-            <pwm:Display key="Title_InstallManager" bundle="Config"/>
+            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
         </div>
         <div id="header-title">
-            LDAP Certificates
+            <pwm:Display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
         </div>
     </div>
     <div id="centerbody">
-        <% if (installManagerBean.getLdapCertificates() == null) { %>
+        <% if (configGuideBean.getLdapCertificates() == null) { %>
         <div>
-            LDAP Server connection is not configured to be secure.  If you wish to secure the connection between
-            this system and your LDAP server, return to the previous page and enable secure connections.
+            <pwm:Display key="Display_ConfigGuideNotSecureLDAP" bundle="Config"/>
         </div>
         <% } else { %>
         <form id="formData" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
-            <div id="outline_ldap-server" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
-                <div id="titlePaneHeader-ldap-server" title="LDAP Server Certificates for <%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_HOST)%>:<%=installManagerBean.getFormData().get(InstallManagerServlet.PARAM_LDAP_PORT)%>" style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="open:false">
-                    Please verify the certificates below match those installed on your LDAP server.
-                </div>
-                <div style="padding: 5px; padding-left: 10px;">
-                    <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                        <% for (X509Certificate certificate : installManagerBean.getLdapCertificates()) {%>
+            <div id="outline_ldap-server" class="configDiv">
+                LDAP Server Certificates for <%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>.
+                Please verify these certificates match your LDAP server.
+                <div>
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <% for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
                         <% request.setAttribute("certificate",certificate); %>
                         <jsp:include page="fragment/setting-certificate.jsp"/>
                         <br/>
@@ -68,24 +66,19 @@
                     </div>
                 </div>
             </div>
-
-
             <br class="clear"/>
-            <div id="outline_ldapcert-options" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
-                <div id="titlePaneHeader-ldap-user" style="width:580px" data-dojo-type="dijit/TitlePane" title="Certificate Trust Options" data-dojo-props="open:false">
-                    &nbsp;
-                </div>
+            <div id="outline_ldapcert-options" class="configDiv">
                 <div style="padding-left: 10px; padding-bottom: 5px">
-                    <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default keystore
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into java keystore to change)
                     </div>
-                    <div id="titlePane_<%=InstallManagerServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
                         Use application configuration to manage certificate(s) and import certificates into configuration
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <button id="button_useConfig">Enabled</button>
-                        <% if (!installManagerBean.isUseConfiguredCerts()) { %>
+                        <% if (!configGuideBean.isUseConfiguredCerts()) { %>
                         <span id="span_useConfig_unselected">(LDAP Promiscuous mode will be enabled)</span>
                         <% } %>
                     </div>
@@ -98,16 +91,16 @@
                                 iconClass:'dijitCheckBoxIcon',
                                 showLabel: 'Enabled',
                                 disabled: true,
-                                checked: <%=installManagerBean.isCertsTrustedbyKeystore()%>
+                                checked: <%=configGuideBean.isCertsTrustedbyKeystore()%>
                             },'button_defaultTrustStore');
 
                             new ToggleButton({
                                 id: 'button_useConfig',
                                 iconClass:'dijitCheckBoxIcon',
                                 showLabel: 'Enabled',
-                                checked: <%=installManagerBean.isUseConfiguredCerts()%>,
+                                checked: <%=configGuideBean.isUseConfiguredCerts()%>,
                                 onChange: function(){
-                                    setUseConfiguredCerts(<%=!installManagerBean.isUseConfiguredCerts()%>);
+                                    setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
                                 }
                             },'button_useConfig');
                         });
@@ -118,13 +111,14 @@
         <% } %>
         <br/>
         <div id="buttonbar">
-            <button class="btn" onclick="gotoStep('LDAP')"><< Previous <<</button>
-            <button class="btn" onclick="gotoStep('LDAP2')">>> Next >></button>
+            <button class="btn" onclick="gotoStep('LDAP')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
+            <button class="btn" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('localeSelectionMenu').style.display = 'none';
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });

@@ -265,7 +265,7 @@
         <label>Change Password Required Values Form</label>
         <description><![CDATA[Values required to be entered prior to password change.]]></description>
         <default>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value />
         </default>
     </setting>
     <setting key="password.change.requireCurrent" level="0" required="true">
@@ -520,15 +520,9 @@
     <setting key="ldap.followReferrals" level="1" required="true">
         <label>Follow LDAP Referrals</label>
         <description><![CDATA[Follow LDAP Referrals]]></description>
-        <regex>Follow LDAP Referrals.  Not typically required except for Active Directory.</regex>
+        <regex>Follow LDAP Referrals.  Not typically required.</regex>
         <default>
             <value>false</value>
-        </default>
-        <default template="AD">
-            <value>true</value>
-        </default>
-        <default template="ADDB">
-            <value>true</value>
         </default>
     </setting>
     <setting key="email.smtp.address" level="0">
@@ -2159,9 +2153,9 @@
         <label>Shortcut Items</label>
         <description><![CDATA[List of available shortcuts.<br/><br/>Format: <b>label::url::ldapQuery::description</b><table style="width: 400px"><tr><td>label</td><td>Label to show to user</td></tr><tr><td>ldapQuery</td><td>Valid ldap syntax style query, if the user matches this query, then the shortcut will be shown to the user.</td></tr><tr><td>url</td><td>http shortcut to direct the user to</td></tr><tr><td>description</td><td>Long description of the shortcut</td></tr></table>]]></description>
         <default>
-            <value><![CDATA[Google::http://www.google.com::(objectClass=inetOrgPerson)::Google Search]]></value>
-            <value><![CDATA[Example::http://www.Example.com::(&(objectClass=inetOrgPerson)(cn=n*))::Example Page]]></value>
-            <value><![CDATA[Yahoo::http://www.yahoo.com::(objectClass=inetOrgPerson)::Yahoo Home Page]]></value>
+            <value><![CDATA[Google::http://www.google.com::(objectClass=person)::Google Search]]></value>
+            <value><![CDATA[Example::http://www.Example.com::(&(objectClass=person)(cn=n*))::Example Page]]></value>
+            <value><![CDATA[Yahoo::http://www.yahoo.com::(objectClass=person)::Yahoo Home Page]]></value>
         </default>
     </setting>
     <setting key="shortcut.httpHeaders" level="0">

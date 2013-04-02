@@ -49,13 +49,13 @@
                     final Map<String, String> rowData = new HashMap<String, String>();
                     rowData.put("timestamp", timeFormat.format(loopRecord.getTimestamp()));
                     rowData.put("perpID", loopRecord.getPerpetratorID());
-                    //rowData.put("perpDN", loopRecord.getPerpetratorDN());
+                    rowData.put("perpDN", loopRecord.getPerpetratorDN());
                     rowData.put("event", loopRecord.getEventCode().toString());
-                    //rowData.put("message",loopRecord.getMessage());
+                    rowData.put("message",loopRecord.getMessage());
                     rowData.put("targetID",loopRecord.getTargetID());
-                    //rowData.put("targetDN",loopRecord.getTargetDN());
+                    rowData.put("targetDN",loopRecord.getTargetDN());
                     rowData.put("srcIP",loopRecord.getSourceAddress());
-                    //rowData.put("srcHost",loopRecord.getSourceHost());
+                    rowData.put("srcHost",loopRecord.getSourceHost());
                     gridData.add(rowData);
                 } catch (IllegalStateException e) { /* ignore */ }
                 if (gridData.size() >= maxResults) {
@@ -71,13 +71,13 @@
                 var headers = {
                     "timestamp":"Time",
                     "perpID":"Perpetrator ID",
-                    //"perpDN":"Perpetrator DN",
+                    "perpDN":"Perpetrator DN",
                     "event":"Event",
-                    //"message":"Message",
+                    "message":"Message",
                     "targetID":"Target ID",
-                    //"targetDN":"Target DN"
-                    "srcIP":"Source IP"
-                    //"srcHost":"Source Host"
+                    "targetDN":"Target DN",
+                    "srcIP":"Source IP",
+                    "srcHost":"Source Host"
                 };
                 require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                         function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -94,12 +94,18 @@
                             }, "grid");
                             grid.set("sort","timestamp");
                             grid.renderArray(data);
+
+                            // unclick superfluous fields
+                            getObject('grid-hider-menu-check-perpDN').click();
+                            getObject('grid-hider-menu-check-message').click();
+                            getObject('grid-hider-menu-check-targetDN').click();
+                            getObject('grid-hider-menu-check-srcHost').click();
                         });
             };
         </script>
         <style scoped="scoped">
-            .dgrid { height: auto; }
-            .dgrid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
+            .grid { height: auto; }
+            .grid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
         </style>
         <% if (maxResultsExceeded) { %>
         <div style="width:100%; text-align: center">

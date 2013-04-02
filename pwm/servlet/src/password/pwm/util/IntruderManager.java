@@ -74,7 +74,7 @@ public class IntruderManager implements Serializable, PwmService {
         final Configuration config = pwmApplication.getConfig();
         status = STATUS.OPENING;
         if (pwmApplication.getPwmDB() == null || pwmApplication.getPwmDB().status() != PwmDB.Status.OPEN) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to start IntruderManager, LocalDB unavailable");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to start IntruderManager, LocalDB unavailable");
             LOGGER.error(errorInformation.toDebugStr());
             startupError = errorInformation;
             status = STATUS.CLOSED;
@@ -122,7 +122,7 @@ public class IntruderManager implements Serializable, PwmService {
             },1000,CLEANER_RUN_FREQUENCY_MS);
             status = STATUS.OPEN;
         } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error starting intruder manager: " + e.getMessage());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unexpected error starting intruder manager: " + e.getMessage());
             LOGGER.error(errorInformation.toDebugStr());
             startupError = errorInformation;
             close();
@@ -276,8 +276,9 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     private void delayPenalty() {
-        int delayPenalty = 1000; // minimum
-        delayPenalty += PwmRandom.getInstance().nextInt(2 * 1000); // add some randomness;
+        long delayPenalty = PwmConstants.INTRUDER_MIN_DELAY_PENALTY_MS; // minimum
+        delayPenalty += PwmRandom.getInstance().nextInt((int)PwmConstants.INTRUDER_DELAY_MAX_JITTER_MS); // add some randomness;
+        delayPenalty = delayPenalty > PwmConstants.INTRUDER_MAX_DELAY_PENALTY_MS ? PwmConstants.INTRUDER_MAX_DELAY_PENALTY_MS : delayPenalty;
         Helper.pause(delayPenalty);
     }
 

@@ -93,9 +93,9 @@ public class ApplicationModeFilter implements Filter {
                 return false;
             }
 
-            if (!PwmServletURLHelper.isInstallManagerURL(req)) {
-                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting " + req.getRequestURI() + " to InstallManager");
-                resp.sendRedirect(req.getContextPath() + "/config/" + PwmConstants.URL_SERVLET_INSTALL_MANAGER);
+            if (!PwmServletURLHelper.isConfigGuideURL(req)) {
+                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting " + req.getRequestURI() + " to ConfigGuide");
+                resp.sendRedirect(req.getContextPath() + "/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
                 return true;
             }
         }

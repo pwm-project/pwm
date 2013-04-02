@@ -24,20 +24,14 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChaiChallenge;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
+import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.operations.CrUtility;
@@ -53,53 +47,26 @@ import javax.ws.rs.core.MediaType;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @Path("/challenges")
 public class RestChallengesServer {
-    public static class JsonPutChallengesInput implements Serializable {
-        public List<ChallengeBean> challenges;
-        public List<ChallengeBean> helpdeskChallenges;
-        public int minimumRandoms;
+    public static class JsonChallengesData implements Serializable {
         public String username;
-
-        public ResponseInfoBean toResponseInfoBean(final Locale locale, final String csIdentififer)
-        {
-            final Map<Challenge,String> crMap = new LinkedHashMap<Challenge, String>();
-            final Map<Challenge,String> crHelpdeskMap = new LinkedHashMap<Challenge, String>();
-            if (challenges != null) {
-                for (final ChallengeBean challengeBean : challenges) {
-                    if (challengeBean.getAnswer() == null) {
-                        throw new IllegalArgumentException("json challenge object must include an answer object");
-                    }
-                    if (challengeBean.getAnswer().getAnswerText() == null) {
-                        throw new IllegalArgumentException("json answer object must include answerText property");
-                    }
-                    final String answerText = challengeBean.getAnswer().getAnswerText();
-                    final Challenge challenge = ChaiChallenge.fromChallengeBean(challengeBean);
-                    crMap.put(challenge,answerText);
-                }
-            }
-            if (helpdeskChallenges != null) {
-                for (final ChallengeBean challengeBean : helpdeskChallenges) {
-                    final String answerText = challengeBean.getAnswer().getAnswerText();
-                    final Challenge challenge = ChaiChallenge.fromChallengeBean(challengeBean);
-                    crHelpdeskMap.put(challenge,answerText);
-                }
-            }
-
-            return new ResponseInfoBean(crMap,crHelpdeskMap,locale,minimumRandoms,csIdentififer);
-        }
-    }
-
-    public static class JsonOutputData implements Serializable
-    {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
         public int minimumRandoms;
+
+        public ChaiResponseSet toResponseSet(final Locale locale, final String csIdentifier)
+                throws PwmOperationalException
+        {
+            try {
+                return ChaiCrFactory.newChaiResponseSet(this.challenges,this.helpdeskChallenges,locale,this.minimumRandoms,csIdentifier);
+            } catch (ChaiValidationException e) {
+                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR,e.getMessage());
+            }
+        }
     }
 
     @Context
@@ -137,7 +104,8 @@ public class RestChallengesServer {
             final String userDN = restRequestBean.getUserDN() != null ? restRequestBean.getUserDN() : restRequestBean.getPwmSession().getUserInfoBean().getUserDN();
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, actorProvider);
             final ResponseSet responseSet = CrUtility.readUserResponseSet(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(), chaiUser);
-            final JsonOutputData jsonData = new JsonOutputData();
+            final JsonChallengesData jsonData = new JsonChallengesData();
+            jsonData.username = chaiUser.getEntryDN();
             jsonData.challenges = responseSet.asChallengeBeans(answers);
             jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
             if (helpdesk) {
@@ -164,7 +132,7 @@ public class RestChallengesServer {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String doSetChallengeDataJson(
-            final JsonPutChallengesInput jsonInput
+            final JsonChallengesData jsonInput
     )
     {
         final RestRequestBean restRequestBean;
@@ -200,12 +168,13 @@ public class RestChallengesServer {
                 csIdentifer = challengeSet.getIdentifier();
             }
 
-            final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean(request.getLocale(),csIdentifer);
+            final ChaiResponseSet chaiResponseSet = jsonInput.toResponseSet(request.getLocale(), csIdentifer);
             CrUtility.writeResponses(
                     restRequestBean.getPwmSession(),
                     restRequestBean.getPwmApplication(),
                     chaiUser,
-                    userGUID,responseInfoBean
+                    userGUID,
+                    chaiResponseSet
             );
 
             final String successMsg = Message.SUCCESS_SETUP_RESPONSES.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());

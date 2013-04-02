@@ -136,7 +136,7 @@
                                     }, "addressGrid");
                                     grid.renderArray(addressData);
                                     grid.set("subject","userID");
-                                });
+                                    });
                     }
                 </script>
                 <% } %>
@@ -145,8 +145,10 @@
     </div>
 </div>
 <style scoped="scoped">
-    .dgrid { height: auto; }
-    .dgrid .dgrid-scroller { position: relative; overflow: visible; }
+    .addressGrid { height: auto; }
+    .addressGrid .dgrid-scroller { position: relative; overflow: visible; }
+    .userGrid { height: auto; }
+    .userGrid .dgrid-scroller { position: relative; overflow: visible; }
 </style>
 <script type="text/javascript">
     function startupPage() {
