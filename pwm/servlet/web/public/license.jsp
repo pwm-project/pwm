@@ -24,12 +24,17 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
+<head>
+    <title>Licenses</title>
+    <link href="/sspr/public/resources/pwmStyle.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link href="/sspr/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
+    <script defer data-dojo-config="async: true" type="text/javascript" src="/sspr/public/resources/dojo/dojo/dojo.js"></script>
+    <script defer type="text/javascript" src="/sspr/public/resources/pwmHelper.js"></script>
+    <script defer type="text/javascript" src="/sspr/public/jsClientValues.jsp"></script>
+</head>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
-    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Licenses"/>
-    </jsp:include>
     <div id="centerbody">
         <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
             <h1>PWM License</h1>

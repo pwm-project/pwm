@@ -2241,6 +2241,9 @@
         <label>Enable NMAS Extensions</label>
         <description><![CDATA[When connecting to a Novell eDirectory ldap directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using unversal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
         <default>
+            <value>false</value>
+        </default>
+        <default template="NOVL">
             <value>true</value>
         </default>
     </setting>
@@ -2248,6 +2251,9 @@
         <label>Store NMAS Responses</label>
         <description><![CDATA[If true, user responses will be saved to the NMAS response storage container on the user.  This storage is in addition to any other configured response storage methods.  The NMAS stored responses will not be used during forgotten password recovery unless the "UserApp Password SOAP Service URL" setting is configured.]]></description>
         <default>
+            <value>false</value>
+        </default>
+        <default template="NOVL">
             <value>true</value>
         </default>
     </setting>
@@ -2255,6 +2261,9 @@
         <label>Read User Passwords</label>
         <description><![CDATA[If true, the user's password will be read from eDirectory before changing it.  This prevents an extra password change from being set to a temporary random password during forgotten password sequence.  If the proxy user does not have rights to read the password, then a temporary random password will be generated for the user anyway.]]></description>
         <default>
+            <value>false</value>
+        </default>
+        <default template="NOVL">
             <value>true</value>
         </default>
     </setting>
@@ -2262,6 +2271,9 @@
         <label>Read Challenge Sets</label>
         <description><![CDATA[If true, the challenge set configuration from eDirectory Universal Password policy will be read and applied to users.  If an eDirectory challenge set is applied to the user, that policy will be used, otherwise the policy that is a part of this configuration will be used.  To require only NMAS configured challenge sets, be sure to blank out the required and forgotten questions as part of this configuration, or else those will be used in cases where no eDirectory policy.]]></description>
         <default>
+            <value>false</value>
+        </default>
+        <default template="NOVL">
             <value>true</value>
         </default>
     </setting>
@@ -2458,6 +2470,7 @@
         <description><![CDATA[Value passed to the LocalDB Implementation class during initialization.  Value format is specific to the implementation.]]></description>
         <default>
             <value><![CDATA[je.maxMemory=10000000]]></value>
+            <value><![CDATA[je.log.fileMax=10000000]]></value>
             <value><![CDATA[je.cleaner.minUtilization=70]]></value>
         </default>
     </setting>

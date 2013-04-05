@@ -39,7 +39,7 @@
                             }
                         }));
                         statusMenu.addChild(new MenuItem({
-                            label: 'Statistics',
+                            label: 'Usage Statistics',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "statistics.jsp";});
                             }

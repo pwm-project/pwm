@@ -435,7 +435,26 @@ public abstract class CrUtility {
                 theUser.getChaiProvider().getChaiConfiguration(),
                 responseInfoBean.getCsIdentifier()
         );
-        writeResponses(pwmSession,pwmApplication,theUser,userGUID,chaiResponseSet);
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                writeNmasResponses(
+                        pwmSession,
+                        pwmApplication,
+                        theUser,
+                        responseInfoBean.getCrMap(),
+                        responseInfoBean.getLocale(),
+                        responseInfoBean.getMinRandoms(),
+                        responseInfoBean.getCsIdentifier()
+                );
+            }
+        }
+        writeChaiResponses(
+                pwmSession,
+                pwmApplication,
+                theUser,
+                userGUID,
+                chaiResponseSet
+        );
     }
 
     public static void writeResponses(
@@ -447,9 +466,49 @@ public abstract class CrUtility {
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
+                for (final Challenge challenge : responseSet.getChallengeAnswers().keySet()) {
+                    final Answer answer = responseSet.getChallengeAnswers().get(challenge);
+                    final String answerString = answer.asAnswerBean().getAnswerText();
+                    if (answerString == null) {
+                        throw new IllegalArgumentException("cannot save response for '" + challenge.getChallengeText() + "' to NMAS, cleartext answer is not available");
+                    }
+                    crMap.put(challenge,answerString);
+                }
+                writeNmasResponses(
+                        pwmSession,
+                        pwmApplication,
+                        theUser,
+                        crMap,
+                        responseSet.getLocale(),
+                        responseSet.getChallengeSet().getMinRandomRequired(),
+                        responseSet.getChallengeSet().getIdentifier()
+                );
+            }
+        }
+        writeChaiResponses(
+                pwmSession,
+                pwmApplication,
+                theUser,
+                userGUID,
+                responseSet
+        );
+    }
+
+    private static void writeChaiResponses(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser,
+            final String userGUID,
+            final ChaiResponseSet responseSet
+    )
+            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
+    {
+
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
-
 
         final List<Configuration.STORAGE_METHOD> writeMethods = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
         for (final Configuration.STORAGE_METHOD loopWriteMethod : writeMethods) {
@@ -538,43 +597,6 @@ public abstract class CrUtility {
             }
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
-            try {
-                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                    attempts++;
-                    final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
-                    for (final Challenge challenge : responseSet.getChallengeAnswers().keySet()) {
-                        String answerString = null;
-                        {
-                            final Answer answer = responseSet.getChallengeAnswers().get(challenge);
-                            answerString = answer.asAnswerBean().getAnswerText();
-                        }
-                        if (answerString == null) {
-                            throw new IllegalArgumentException("cannot save response for '" + challenge.getChallengeText() + "' to NMAS, cleartext answer is not available");
-                        }
-                        crMap.put(challenge,answerString);
-                    }
-
-                    final NmasResponseSet nmasResponseSet = NmasCrFactory.newNmasResponseSet(
-                            crMap,
-                            responseSet.getLocale(),
-                            responseSet.getChallengeSet().getMinRandomRequired(),
-                            theUser,
-                            responseSet.getChallengeSet().getIdentifier()
-                    );
-                    NmasCrFactory.writeResponseSet(nmasResponseSet);
-                    LOGGER.info(pwmSession, "saved responses for user using NMAS method ");
-                    successes++;
-                }
-            } catch (ChaiOperationException e) {
-                final String errorMsg = "error writing responses to nmas: " + e.getMessage();
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
-                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
-                pwmOE.initCause(e);
-                throw pwmOE;
-            }
-        }
-
         if (attempts == 0) {
             final String errorMsg = "no response save methods are available or configured";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
@@ -585,6 +607,43 @@ public abstract class CrUtility {
             final String errorMsg = "response storage only partially successful; attempts=" + attempts + ", successes=" + successes;
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
             throw new PwmOperationalException(errorInfo);
+        }
+    }
+
+    private static void writeNmasResponses(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser,
+            final Map<Challenge,String> crMap,
+            final Locale locale,
+            final int minRandomRequired,
+            final String csIdentifer
+    )
+            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
+    {
+        final Configuration config = pwmApplication.getConfig();
+
+        if (config.readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+            try {
+                if (theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+
+                    final NmasResponseSet nmasResponseSet = NmasCrFactory.newNmasResponseSet(
+                            crMap,
+                            locale,
+                            minRandomRequired,
+                            theUser,
+                            csIdentifer
+                    );
+                    NmasCrFactory.writeResponseSet(nmasResponseSet);
+                    LOGGER.info(pwmSession, "saved responses for user using NMAS method ");
+                }
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "error writing responses to nmas: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+                final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
+                pwmOE.initCause(e);
+                throw pwmOE;
+            }
         }
     }
 
