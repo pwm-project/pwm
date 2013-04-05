@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -30,11 +31,10 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.util.operations.UserStatusHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -265,7 +265,7 @@ public class Validator {
         String theString = input == null ? "" : input.trim();
 
         if (maxLength < 1) {
-           maxLength = 10 * 1024;
+            maxLength = 10 * 1024;
         }
 
         // strip off any length beyond the specified maxLength.
@@ -313,39 +313,84 @@ public class Validator {
 
 
     public static void validateAttributeUniqueness(
+            final PwmApplication pwmApplication,
             final ChaiProvider chaiProvider,
-            final Configuration config,
             final Map<FormConfiguration,String> formValues,
             final List<String> uniqueAttributes,
             final Locale locale
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
-        final Map<String,String> objectClasses = new HashMap<String,String>();
-        for (final String loopStr : config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
-            objectClasses.put("objectClass",loopStr);
-        }
-
+        final Map<String, String> filterClauses = new HashMap<String, String>();
+        final Map<String,String> labelMap = new HashMap<String,String>();
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (uniqueAttributes.contains(formItem.getName())) {
                 final String value = formValues.get(formItem);
+                if (value != null && value.length() > 0) {
+                    filterClauses.put(formItem.getName(), value);
+                    labelMap.put(formItem.getName(), formItem.getLabel(locale));
+                }
+            }
+        }
 
-                final Map<String, String> filterClauses = new HashMap<String, String>();
-                filterClauses.put(formItem.getName(), value);
-                filterClauses.putAll(objectClasses);
-                final SearchHelper searchHelper = new SearchHelper();
-                searchHelper.setFilterAnd(filterClauses);
+        if (filterClauses.isEmpty()) { // nothing to search
+            return;
+        }
 
-                final List<String> searchBases = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-                for (final String loopBase : searchBases) {
-                    final Set<String> resultDNs = new HashSet<String>(chaiProvider.search(loopBase, searchHelper).keySet());
-                    if (resultDNs.size() > 0) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{formItem.getLabel(locale)});
+        final StringBuilder filter = new StringBuilder();
+        {
+            filter.append("(&"); // outer;
+
+            // object classes;
+            filter.append("(|");
+            for (final String objectClass : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
+                filter.append("(objectClass=").append(objectClass).append(")");
+            }
+            filter.append(")");
+
+            // attributes
+            filter.append("(|");
+            for (final String name : filterClauses.keySet()) {
+                final String value = filterClauses.get(name);
+                filter.append("(").append(name).append("=").append(UserSearchEngine.escapeLdapString(value)).append(")");
+            }
+            filter.append(")");
+
+            filter.append(")");
+        }
+
+        final SearchHelper searchHelper = new SearchHelper();
+        searchHelper.setFilterAnd(filterClauses);
+
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setFilter(filter.toString());
+        searchConfiguration.setChaiProvider(chaiProvider);
+
+        try {
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration,1,Collections.<String>emptyList());
+            if (!results.isEmpty()) {
+                if (labelMap.size() == 1) { // since only one value searched, it must be that one value
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.values().iterator().next()});
+                    throw new PwmDataValidationException(error);
+                }
+
+                // do a compare on a user values to find one that matches.
+                final ChaiUser theUser = results.keySet().iterator().next();
+                for (final String name : filterClauses.keySet()) {
+                    final String value = filterClauses.get(name);
+                    if (theUser.compareStringAttribute(name,value)) {
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.get(name)});
                         throw new PwmDataValidationException(error);
                     }
                 }
 
+                // user didn't match on the compare.. shouldn't get here but just in came
+                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
+                throw new PwmDataValidationException(error);
             }
+        } catch (PwmOperationalException e) {
+            throw new PwmDataValidationException(e.getError());
         }
     }
 

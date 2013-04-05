@@ -28,6 +28,7 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.*;
 import password.pwm.config.ActionConfiguration;
@@ -47,6 +48,7 @@ import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserAuthenticator;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 
 import javax.servlet.ServletException;
@@ -115,7 +117,8 @@ public class NewUserServlet extends TopServlet {
             if ("create".equalsIgnoreCase(processAction)) {
                 handleCreateRequest(req,resp);
             } else if ("validate".equalsIgnoreCase(processAction)) {
-                handleValidateForm(req, resp);
+                restValidateForm(req, resp);
+                return;
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterCodeRequest(req, resp);
             } else if ("doCreate".equalsIgnoreCase(processAction)) {
@@ -198,7 +201,7 @@ public class NewUserServlet extends TopServlet {
      * @throws password.pwm.error.PwmUnrecoverableException             for any unexpected error
      * @throws ChaiUnavailableException if the ldap directory becomes unavailable
      */
-    protected static void handleValidateForm(
+    protected static void restValidateForm(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -209,7 +212,6 @@ public class NewUserServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final Map<String,String> userValues = readResponsesFromJsonRequest(req);
 
-        String output = "";
         try {
             verifyFormAttributes(userValues, pwmSession, pwmApplication);
             { // no form errors, so check the password
@@ -224,19 +226,15 @@ public class NewUserServlet extends TopServlet {
                         userValues.get("password1"),
                         userValues.get("password2")
                 );
-                output = new Gson().toJson(RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo));
+                final RestCheckPasswordServer.JsonData jsonData = RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo);
+                final RestResultBean restResultBean = new RestResultBean();
+                restResultBean.setData(jsonData);
+                ServletHelper.outputJsonResult(resp,restResultBean);
             }
         } catch (PwmOperationalException e) {
-            final Map<String, String> outputMap = new HashMap<String, String>();
-            outputMap.put("version", "2");
-            outputMap.put("message", e.getErrorInformation().toUserStr(pwmSession, pwmApplication));
-            outputMap.put("passed", String.valueOf(false));
-            output = (new Gson()).toJson(outputMap);
+            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(),pwmApplication,pwmSession);
+            ServletHelper.outputJsonResult(resp,restResultBean);
         }
-
-        resp.setContentType("text/plain;charset=utf-8");
-        resp.getWriter().print(output);
-        LOGGER.trace(pwmSession, "ajax validate responses: " + output);
     }
 
     private void handleEnterCodeRequest(final HttpServletRequest req, final HttpServletResponse resp)
@@ -376,28 +374,30 @@ public class NewUserServlet extends TopServlet {
         }
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
-        final String temporaryPassword = RandomPasswordGenerator.createRandomPassword(
-                pwmSession,
-                pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale()),
-                pwmApplication
-        );
 
         try { //set password
-            theUser.setPassword(temporaryPassword);
-            LOGGER.debug(pwmSession, "set temporary password for new user entry: " + newUserDN);
+            theUser.setPassword(userPassword);
+            LOGGER.debug(pwmSession, "set user requested password for new user entry: " + newUserDN);
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error setting password for new user entry: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage);
             throw new PwmOperationalException(errorInformation);
         }
 
-        LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user to PWM using temporary password");
+        // add AD-specific attributes
+        if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == pwmApplication.getProxyChaiProvider().getDirectoryVendor()) {
+            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
+            try {
+                proxiedUser.writeStringAttribute("userAccountControl", "512");
+            } catch (ChaiOperationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+
+        LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user");
 
         //authenticate the user to pwm
-        UserAuthenticator.authenticateUser(theUser.getEntryDN(), temporaryPassword, null, pwmSession, pwmApplication, true);
-
-        //set user requested password
-        PasswordUtility.setUserPassword(pwmSession, pwmApplication, userPassword);
+        UserAuthenticator.authenticateUser(theUser.getEntryDN(), userPassword, null, pwmSession, pwmApplication, true);
 
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
@@ -442,38 +442,16 @@ public class NewUserServlet extends TopServlet {
         final List<FormConfiguration> newUserForm = config.readSettingAsForm(PwmSetting.NEWUSER_FORM);
         final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromMap(userValues, newUserForm,userLocale);
 
+        // see if the values meet form requirements.
+        Validator.validateParmValuesMeetRequirements(formValues, userLocale);
+
         // check unique fields against ldap
         try {
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES),userLocale);
+            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES),userLocale);
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
         }
-
-        // see if the values meet form requirements.
-        Validator.validateParmValuesMeetRequirements(formValues, userLocale);
-
-        // test the password
-        /*
-        final String password = userValues.get(FIELD_PASSWORD);
-        final String passwordConfirm = userValues.get(FIELD_PASSWORD_CONFIRM);
-
-        if (password == null || password.length() <1 ) {
-            throw new PwmOperationalException(PwmError.PASSWORD_MISSING);
-        }
-
-        final PwmPasswordPolicy passwordPolicy = pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
-        final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
-        pwmPasswordRuleValidator.testPassword(password, null, null, null);
-
-        if (passwordConfirm == null || passwordConfirm.length() <1 ) {
-            throw new PwmOperationalException(PwmError.PASSWORD_MISSING_CONFIRM);
-        }
-
-        if (!password.equals(passwordConfirm)) {
-            throw new PwmOperationalException(PwmError.PASSWORD_DOESNOTMATCH);
-        }
-        */
     }
 
     private static void deleteUserAccount(final String userDN, PwmSession pwmSession, final PwmApplication pwmApplication)
@@ -488,6 +466,8 @@ public class NewUserServlet extends TopServlet {
         } catch (ChaiOperationException e) {
             LOGGER.error(pwmSession, "error deleting ldap user account " + userDN + ", " + e.getMessage());
         }
+
+        pwmSession.unauthenticateUser();
     }
 
     private static String determineUserDN(final Map<String, String> formValues, final Configuration config)

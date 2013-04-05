@@ -42,7 +42,7 @@
 </script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
+        <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>

@@ -110,7 +110,7 @@ public class ConfigGuideServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
 
-        req.getSession().setMaxInactiveInterval(15 * 60);
+        req.getSession().setMaxInactiveInterval(30 * 60);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");

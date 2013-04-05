@@ -169,7 +169,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
             // check unique fields against ldap
             final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, uniqueAttributes, ssBean.getLocale());
+            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, uniqueAttributes, ssBean.getLocale());
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
@@ -338,7 +338,7 @@ public class GuestRegistrationServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formValues, locale);
 
             // check unique fields against ldap
-            Validator.validateAttributeUniqueness(pwmApplication.getProxyChaiProvider(), config, formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES),locale);
+            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES),locale);
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);

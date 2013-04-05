@@ -52,32 +52,33 @@ function makeFormData() {
     return paramData;
 }
 
-function updateDisplay(resultInfo)
+function updateDisplay(data)
 {
-    if (resultInfo == null) {
-        markConfirmationCheck(null);
-        markStrength(null);
-        return;
-    }
+    markConfirmationCheck(null);
+    markStrength(null);
 
-    var message = resultInfo["message"];
+    if (data['error']) {
+        showError(data['errorMessage']);
+    } else {
+        var resultInfo = data['data'];
+        var message = resultInfo["message"];
 
-    if (resultInfo["passed"] == true) {
-        if (resultInfo["match"] == "MATCH") {
-            getObject("submitBtn").disabled = false;
-            showSuccess(message);
+        if (resultInfo["passed"] == true) {
+            if (resultInfo["match"] == "MATCH") {
+                getObject("submitBtn").disabled = false;
+                showSuccess(message);
+            } else {
+                getObject("submitBtn").disabled = true;
+                showInfo(message);
+            }
         } else {
             getObject("submitBtn").disabled = true;
-            showInfo(message);
+            showError(message);
         }
-    } else {
-        getObject("submitBtn").disabled = true;
-        showError(message);
+
+        markConfirmationCheck(resultInfo["match"]);
+        markStrength(resultInfo["strength"]);
     }
-
-
-    markConfirmationCheck(resultInfo["match"]);
-    markStrength(resultInfo["strength"]);
 }
 
 function markConfirmationCheck(matchStatus) {
