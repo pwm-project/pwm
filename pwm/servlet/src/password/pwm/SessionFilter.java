@@ -438,12 +438,14 @@ public class SessionFilter implements Filter {
         }
 
         if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
-            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
-                if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
-                    if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
-                        LOGGER.debug(pwmSession, "user is required to update profile, redirecting to profile update servlet");
-                        resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
-                        return true;
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
+                    if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+                        if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
+                            LOGGER.debug(pwmSession, "user is required to update profile, redirecting to profile update servlet");
+                            resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+                            return true;
+                        }
                     }
                 }
             }
