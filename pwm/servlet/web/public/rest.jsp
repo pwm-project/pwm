@@ -1134,7 +1134,7 @@ cLi2mbers
                     </tr>
                     <tr>
                         <td class="key">Authentication</td>
-                        <td>Required</td>
+                        <td>Not Required</td>
                     </tr>
                     <tr>
                         <td class="key">Locale Header</td>

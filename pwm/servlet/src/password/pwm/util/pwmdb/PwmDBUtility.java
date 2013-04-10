@@ -44,7 +44,6 @@ public class PwmDBUtility {
 
     static {
         final PwmDB.DB[] ignoredDBsArray = {
-                PwmDB.DB.EVENTLOG_EVENTS,
                 PwmDB.DB.SEEDLIST_META,
                 PwmDB.DB.SEEDLIST_WORDS,
                 PwmDB.DB.WORDLIST_META,

@@ -398,14 +398,16 @@ function showPwmHealth(parentDivID, options, refreshNow) {
         PWM_GLOBAL['healthCheckInProgress'] = "true";
 
         if (!showRefresh) {
-            parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
+            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
         }
 
-        setTimeout(function() {
-            if (PWM_GLOBAL['healthCheckInProgress']) {
-                parentDiv.innerHTML = '<div id="WaitDialogBlank"/>';
-            }
-        }, 1000);
+        if (!PWM_GLOBAL['healthCheckInProgress']) {
+            setTimeout(function() {
+                if (PWM_GLOBAL['healthCheckInProgress']) {
+                    parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
+                }
+            }, 11 * 1000);
+        }
 
         refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
         refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];

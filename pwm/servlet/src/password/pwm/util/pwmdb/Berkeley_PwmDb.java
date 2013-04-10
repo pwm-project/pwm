@@ -131,7 +131,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
     public void close()
             throws PwmDBException {
-        LOGGER.debug("pwmDB closing....");
+        LOGGER.debug("LocalDB closing....");
         status = PwmDB.Status.CLOSED;
 
         for (final DB key : cachedDatabases.keySet()) {

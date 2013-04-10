@@ -134,7 +134,7 @@ public class RestCheckPasswordServer {
             final String userDN;
             final UserInfoBean uiBean;
             if (username != null && username.length() > 0) { // check for another user
-                userDN = username;
+                userDN = restRequestBean.getUserDN();
                 uiBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(
                         restRequestBean.getPwmSession(),
@@ -146,7 +146,7 @@ public class RestCheckPasswordServer {
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = restRequestBean.getUserDN();
+                userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserDN();
                 uiBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
 

@@ -26,7 +26,6 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.Permission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsBundle;
@@ -75,7 +74,7 @@ public class RestStatisticsServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
         } catch (PwmUnrecoverableException e) {
             return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         }
@@ -84,10 +83,6 @@ public class RestStatisticsServer {
             final StatisticsManager statisticsManager = restRequestBean.getPwmApplication().getStatisticsManager();
             JsonOutput jsonOutput = new JsonOutput();
             jsonOutput.EPS = addEpsStats(statisticsManager);
-
-            if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-            }
 
             if (statName != null && statName.length() > 0) {
                 jsonOutput.nameData = doNameStat(statisticsManager, statName, days);
@@ -102,8 +97,8 @@ public class RestStatisticsServer {
             final RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonOutput);
             return resultBean.toJson();
-        } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        //} catch (PwmException e) {
+        //    return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
