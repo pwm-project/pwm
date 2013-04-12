@@ -40,6 +40,5 @@
     </div>
     <br class="clear"/>
 </div>
-<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

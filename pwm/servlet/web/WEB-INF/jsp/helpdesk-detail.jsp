@@ -33,6 +33,7 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.config.PwmPasswordRule" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -254,33 +255,45 @@
     <% } %>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
-    <table>
-        <tr>
-            <td class="key">
-                Policy DN
-            </td>
-            <td>
-                <% if ((searchedUserInfo.getPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
-                <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>n/a
-                <% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Display
-            </td>
-            <td>
-                <ul>
-                    <%
-                        final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
-                    <% for (final String requirementLine : requirementLines) { %>
-                    <li><%=requirementLine%>
-                    </li>
+    <div style="max-height: 400px; overflow: auto;">
+        <table>
+            <tr>
+                <td class="key">
+                    Policy DN
+                </td>
+                <td>
+                    <% if ((searchedUserInfo.getPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
+                    <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>n/a
                     <% } %>
-                </ul>
-            </td>
-        </tr>
-    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Display
+                </td>
+                <td>
+                    <ul>
+                        <%
+                            final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
+                        <% for (final String requirementLine : requirementLines) { %>
+                        <li><%=requirementLine%>
+                        </li>
+                        <% } %>
+                    </ul>
+                </td>
+            </tr>
+            <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+            <tr>
+                <td class="key">
+                    <%= rule.name() %>
+                </td>
+                <td>
+                    <%= searchedUserInfo.getPasswordPolicy().getValue(rule) != null ? StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) : "" %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
 </div>
 <% if (!helpdeskBean.getHelpdeskResponses().isEmpty()) { %>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_SecurityResponses"/>">

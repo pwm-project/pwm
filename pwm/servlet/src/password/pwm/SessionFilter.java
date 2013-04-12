@@ -223,7 +223,7 @@ public class SessionFilter implements Filter {
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING || pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
             try {
-                resp.setHeader("X-Pwm-Debug", pwmSession.toString());
+                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Debug", pwmSession.toString());
             } catch(Exception e) {
                 LOGGER.debug(pwmSession, "error adding debug header: " + e.getMessage());
             }

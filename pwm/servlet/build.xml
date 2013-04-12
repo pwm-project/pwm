@@ -38,6 +38,32 @@
         <delete file="${destination.war}"/>
     </target>
 
+    <target name="googleSvnExport" depends="init">
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml">
+            <classpath>
+                <fileset dir="${build_lib}/ant" includes="*.jar"/>
+            </classpath>
+        </typedef>
+        <echo> svn source: ${build_lib}</echo>
+
+        <property name="svnExportDir" value="${destination}/svn-current"/>
+        <delete dir="${svnExportDir}"/>
+        <mkdir dir="${svnExportDir}"/>
+        <svnSetting javahl="false" svnkit="true" username="" password="" id="svn.settings"/>
+        <svn refid="svn.settings"> <!-- single checkout to determine revision -->
+            <checkout url="${svn.source}" destpath="${svnExportDir}/checkout" recurse="false"/>
+            <status path="${svnExportDir}/checkout" revisionproperty="svn.revision"/>
+        </svn>
+
+        <echo>Beginning export of revision ${svn.revision}</echo>
+        <delete dir="${svnExportDir}"/>
+        <mkdir dir="${svnExportDir}"/>
+        <svn refid="svn.settings">
+            <export srcurl="https://pwm.googlecode.com/svn/trunk"  destPath="${svnExportDir}"/>
+        </svn>
+        <echo>Read revision ${svn.revision}</echo>
+    </target>
+
     <target name="compileCode" depends="init">
         <mkdir dir="${destination}/bin"/>
         <javac srcdir="${src.root}/src" destdir="${destination}/bin" debug="true" target="1.5" source="1.5">

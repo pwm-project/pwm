@@ -174,6 +174,8 @@ public enum PwmSetting {
             "ldap.username.attr", PwmSettingSyntax.STRING, Category.LDAP),
     LDAP_FOLLOW_REFERRALS(
             "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP),
+    DEFAULT_OBJECT_CLASSES(
+            "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
 
     // email settings
     EMAIL_SERVER_ADDRESS(
@@ -553,8 +555,6 @@ public enum PwmSetting {
             "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, Category.NEWUSER),
     NEWUSER_MINIMUM_WAIT_TIME(
             "newUser.minimumWaitTime", PwmSettingSyntax.NUMERIC, Category.NEWUSER),
-    DEFAULT_OBJECT_CLASSES(
-            "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.NEWUSER),
 
 
     // guest settings

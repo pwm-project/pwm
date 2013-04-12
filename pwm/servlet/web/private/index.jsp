@@ -69,16 +69,6 @@
             </tr>
             <% } %>
             <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
-            <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='history.jsp'/>"><pwm:Display key="Title_UserEventHistory"/></a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:Display key="Long_Title_UserEventHistory"/></p>
-                </td>
-            </tr>
-            <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right">

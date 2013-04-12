@@ -36,7 +36,7 @@ public interface Wordlist extends PwmService {
     static final String KEY_SIZE = "SIZE";
 
     // string used as pwmdb version checksum, if different then value in pwmdb, pwmdb will be cleared.
-    static final String VALUE_VERSION = PwmConstants.PWM_APP_NAME + "-wordlist-db-11" + "_" + PwmConstants.SERVLET_VERSION;
+    static final String VALUE_VERSION = "wordlist-db-12" + "_" + PwmConstants.SERVLET_VERSION;
 
     public boolean containsWord(final String word);
 
