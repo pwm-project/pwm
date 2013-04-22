@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
@@ -36,15 +36,15 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static password.pwm.util.pwmdb.PwmDB.DB;
+import static password.pwm.util.localdb.LocalDB.DB;
 
 /**
  * @author Jason D. Rivard
  */
-public class Berkeley_PwmDb implements PwmDBProvider {
+public class Berkeley_LocalDB implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_PwmDb.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_LocalDB.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
     private final static int OPEN_RETRY_SECONDS = 60;
@@ -58,9 +58,9 @@ public class Berkeley_PwmDb implements PwmDBProvider {
     private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<DB, Database>();
 
     // cache of dbIterators
-    private final Set<PwmDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<PwmDB.PwmDBIterator<String>,Boolean>());
+    private final Set<LocalDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.PwmDBIterator<String>,Boolean>());
 
-    private PwmDB.Status status = PwmDB.Status.NEW;
+    private LocalDB.Status status = LocalDB.Status.NEW;
 
     private boolean readOnly;
 
@@ -120,7 +120,7 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    Berkeley_PwmDb()
+    Berkeley_LocalDB()
             throws Exception {
     }
 
@@ -130,9 +130,9 @@ public class Berkeley_PwmDb implements PwmDBProvider {
 // --------------------- Interface PwmDB ---------------------
 
     public void close()
-            throws PwmDBException {
+            throws LocalDBException {
         LOGGER.debug("LocalDB closing....");
-        status = PwmDB.Status.CLOSED;
+        status = LocalDB.Status.CLOSED;
 
         for (final DB key : cachedDatabases.keySet()) {
             try {
@@ -164,34 +164,34 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         LOGGER.info("closed (" + td.asCompactString() + ")");
     }
 
-    public PwmDB.Status getStatus() {
+    public LocalDB.Status getStatus() {
         return status;
     }
 
     public boolean contains(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(false);
         try {
             return cachedMaps.get(db).containsKey(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during contains check: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public String get(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(false);
         try {
             return cachedMaps.get(db).get(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during contains check: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
-            throws PwmDBException {
+            throws LocalDBException {
         LOGGER.trace("begin initialization");
 
         this.readOnly = readOnly;
@@ -205,42 +205,42 @@ public class Berkeley_PwmDb implements PwmDBProvider {
                 LOGGER.trace("database '" + db.toString() + "' open");
             }
         } catch (DatabaseException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
 
-        status = PwmDB.Status.OPEN;
+        status = LocalDB.Status.OPEN;
     }
 
-    public PwmDB.PwmDBIterator<String> iterator(final DB db)
-            throws PwmDBException
+    public LocalDB.PwmDBIterator<String> iterator(final DB db)
+            throws LocalDBException
     {
         preCheck(false);
         try {
             if (dbIterators.size() > ITERATOR_LIMIT) {
-                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
-            final PwmDB.PwmDBIterator<String> iterator = new DbIterator<String>(db);
+            final LocalDB.PwmDBIterator<String> iterator = new DbIterator<String>(db);
             dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public void putAll(final DB db, final Map<String, String> keyValueMap)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(true);
 
         try {
             cachedMaps.get(db).putAll(keyValueMap);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during multiple-put: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public boolean put(final DB db, final String key, final String value)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(true);
 
         try {
@@ -248,35 +248,35 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return null != transactionDB.put(key, value);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during put: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public boolean remove(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(true);
         try {
             return cachedMaps.get(db).keySet().remove(key);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during remove: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public void removeAll(final DB db, final Collection<String> keys)
 
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(true);
         try {
             cachedMaps.get(db).keySet().removeAll(keys);
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during removeAll: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public int size(final DB db)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(false);
         try {
             final StoredMap<String, String> dbMap = cachedMaps.get(db);
@@ -284,12 +284,12 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             return dbMap.size();
         } catch (RuntimeExceptionWrapper e) {
             LOGGER.error("error during size: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
     public void truncate(final DB db)
-            throws PwmDBException {
+            throws LocalDBException {
         preCheck(true);
         try {
             cachedMaps.remove(db);
@@ -302,13 +302,13 @@ public class Berkeley_PwmDb implements PwmDBProvider {
             cachedMaps.put(db, openStoredMap(database));
         } catch (DatabaseException e) {
             LOGGER.error("error during truncate: " + e.toString());
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
         }
     }
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
+    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
 
         private Iterator<String> innerIter;
 
@@ -341,9 +341,9 @@ public class Berkeley_PwmDb implements PwmDBProvider {
         return environment.getHome();
     }
 
-    private void preCheck(final boolean write) throws PwmDBException {
-        if (status != PwmDB.Status.OPEN) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
+    private void preCheck(final boolean write) throws LocalDBException {
+        if (status != LocalDB.Status.OPEN) {
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
         }
 
         if (write && readOnly) {

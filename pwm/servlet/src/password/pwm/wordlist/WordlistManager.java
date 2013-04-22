@@ -28,7 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;
 import java.util.Collections;
@@ -49,11 +49,11 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
     }
 
 
-    public void init(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
+    public void init(final LocalDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
         this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
-        this.META_DB = PwmDB.DB.WORDLIST_META;
-        this.WORD_DB = PwmDB.DB.WORDLIST_WORDS;
+        this.META_DB = LocalDB.DB.WORDLIST_META;
+        this.WORD_DB = LocalDB.DB.WORDLIST_WORDS;
 
         final Thread t = new Thread(new Runnable() {
             public void run()
@@ -84,6 +84,6 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
         final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
         final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive, checkSize);
 
-        init(pwmApplication.getPwmDB(),wordlistConfiguration);
+        init(pwmApplication.getLocalDB(),wordlistConfiguration);
     }
 }

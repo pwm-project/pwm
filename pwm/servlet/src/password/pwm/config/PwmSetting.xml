@@ -1355,7 +1355,7 @@
             <value><![CDATA[STORE_CRYPTO]]></value>
         </default>
         <options>
-            <option value="STORE_PWMDB">LocalDB</option>
+            <option value="STORE_LOCALDB">LocalDB</option>
             <option value="STORE_DB">DB</option>
             <option value="STORE_CRYPTO">Crypto</option>
             <option value="STORE_LDAP">LDAP</option>
@@ -1696,19 +1696,19 @@
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
-            <option value="LDAP-DB-PWMDB">LDAP, Database, LocalDB</option>
-            <option value="LDAP-PWMDB">LDAP, LocalDB</option>
-            <option value="LDAP-PWMDB-DB">LDAP, LocalDB, Database</option>
+            <option value="LDAP-DB-LOCALDB">LDAP, Database, LocalDB</option>
+            <option value="LDAP-LOCALDB">LDAP, LocalDB</option>
+            <option value="LDAP-LOCALDB-DB">LDAP, LocalDB, Database</option>
             <option value="DB">Database</option>
             <option value="DB-LDAP">Database, LDAP</option>
-            <option value="DB-LDAP-PWMDB">Database, LDAP, LocalDB</option>
-            <option value="DB-PWMDB">Database, LocalDB</option>
-            <option value="DB-PWMDB-LDAP">Database, LocalDB, LDAP</option>
-            <option value="PWMDB">LocalDB</option>
-            <option value="PWMDB-DB">LocalDB, Database</option>
-            <option value="PWMDB-DB-LDAP">LocalDB, Database, LDAP</option>
-            <option value="PWMDB-LDAP">LocalDB, LDAP</option>
-            <option value="PWMDB-LDAP-DB">LocalDB, LDAP, Database</option>
+            <option value="DB-LDAP-LOCALDB">Database, LDAP, LocalDB</option>
+            <option value="DB-LOCALDB">Database, LocalDB</option>
+            <option value="DB-LOCALDB-LDAP">Database, LocalDB, LDAP</option>
+            <option value="LOCALDB">LocalDB</option>
+            <option value="LOCALDB-DB">LocalDB, Database</option>
+            <option value="LOCALDB-DB-LDAP">LocalDB, Database, LDAP</option>
+            <option value="LOCALDB-LDAP">LocalDB, LDAP</option>
+            <option value="LOCALDB-LDAP-DB">LocalDB, LDAP, Database</option>
         </options>
     </setting>
     <setting key="recovery.response.writePreference" level="0" required="true">
@@ -1723,11 +1723,11 @@
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
-            <option value="LDAP-PWMDB">LDAP, LocalDB</option>
-            <option value="LDAP-DB-PWMDB">LDAP, Database, LocalDB</option>
+            <option value="LDAP-LOCALDB">LDAP, LocalDB</option>
+            <option value="LDAP-DB-LOCALDB">LDAP, Database, LocalDB</option>
             <option value="DB">Database</option>
-            <option value="DB-PWMDB">Database, LocalDB</option>
-            <option value="PWMDB">LocalDB</option>
+            <option value="DB-LOCALDB">Database, LocalDB</option>
+            <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
     <setting key="challenge.userAttribute" level="0">
@@ -2460,9 +2460,9 @@
     </setting>
     <setting key="pwmDb.implementation" level="1" required="true">
         <label>LocalDB Implementation Class</label>
-        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.pwmdb.Berkeley_PwmDb</td><td>Default Implementation based on BerekelyDB Java Edition</td><tr><tr><td>password.pwm.util.pwmdb.Derby_PwmDb</td><td>Based on Apache Derby java embedded SQL database</td><tr><tr><td>password.pwm.util.pwmdb.JDBM_PwmDb</td><td>Uses JDBM2 as the embedded key store</td><tr><tr><td>password.pwm.util.pwmdb.Memory_PwmDb</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
+        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.localdb.Berkeley_LocalDB</td><td>Default Implementation based on BerekelyDB Java Edition</td></tr><tr><td>password.pwm.util.localdb.Derby_LocalDB</td><td>Based on Apache Derby java embedded SQL database</td></tr><tr><td>password.pwm.util.localdb.JDBM_LocalDB</td><td>Uses JDBM2 as the embedded key store</td></tr><tr><td>password.pwm.util.localdb.Memory_LocalDB</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
         <default>
-            <value><![CDATA[password.pwm.util.pwmdb.Berkeley_PwmDb]]></value>
+            <value><![CDATA[password.pwm.util.localdb.Berkeley_LocalDB]]></value>
         </default>
     </setting>
     <setting key="pwmDb.initParameters" level="1">

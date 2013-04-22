@@ -23,7 +23,7 @@
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.util.pwmdb.PwmDB" %>
+<%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
@@ -44,7 +44,7 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="Local PwmDB">
+<div data-dojo-type="dijit.layout.ContentPane" title="LocalDB">
     <table class="tablemain">
         <tr>
             <td class="key">
@@ -153,7 +153,7 @@
                 Log Events in Write Queue
             </td>
             <td>
-                <%= pwmApplication.getPwmDBLogger() != null ? numberFormat.format(pwmApplication.getPwmDBLogger().getPendingEventCount()) : "n/a" %>
+                <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getPendingEventCount()) : "n/a" %>
             </td>
             <td class="key">
                 <a href="<pwm:url url='eventlog.jsp'/>">
@@ -162,7 +162,7 @@
             </td>
             <td>
                 <a href="<pwm:url url='eventlog.jsp'/>">
-                    <%= pwmApplication.getPwmDBLogger() != null ? numberFormat.format(pwmApplication.getPwmDBLogger().getStoredEventCount()) : "n/a" %>
+                    <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getStoredEventCount()) : "n/a" %>
                 </a>
             </td>
         </tr>
@@ -171,13 +171,13 @@
                 Oldest Log Event in Write Queue
             </td>
             <td>
-                <%= pwmApplication.getPwmDBLogger() != null ? pwmApplication.getPwmDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
+                <%= pwmApplication.getLocalDBLogger() != null ? pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
             </td>
             <td class="key">
                 Oldest Log Event
             </td>
             <td>
-                <%= pwmApplication.getPwmDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getPwmDBLogger().getTailDate()).asCompactString() : "n/a" %>
+                <%= pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : "n/a" %>
             </td>
         </tr>
         <tr>
@@ -192,7 +192,7 @@
                 LocalDB Size On Disk
             </td>
             <td>
-                <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getPwmDB().getFileLocation())) %>
+                <%= pwmApplication.getLocalDB() == null ? "n/a" : pwmApplication.getLocalDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())) %>
             </td>
         </tr>
         <tr>
@@ -203,7 +203,7 @@
                 <%
                     String responseCount = "n/a";
                     try {
-                        responseCount = String.valueOf(pwmApplication.getPwmDB().size(PwmDB.DB.RESPONSE_STORAGE));
+                        responseCount = String.valueOf(pwmApplication.getLocalDB().size(LocalDB.DB.RESPONSE_STORAGE));
                     } catch (Exception e) { /* na */ }
                 %>
                 <%= responseCount %>
@@ -212,11 +212,11 @@
                 LocalDB Free Space
             </td>
             <td>
-                <%= pwmApplication.getPwmDB() == null ? "n/a" : pwmApplication.getPwmDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getPwmDB().getFileLocation())) %>
+                <%= pwmApplication.getLocalDB() == null ? "n/a" : pwmApplication.getLocalDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
             </td>
         </tr>
     </table>
-    <% if (pwmApplication.getPwmDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
+    <% if (pwmApplication.getLocalDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
     <table class="tablemain">
         <tr>
             <td class="key">
@@ -226,13 +226,13 @@
                 Record Count
             </td>
         </tr>
-        <% for (final PwmDB.DB loopDB : PwmDB.DB.values()) { %>
+        <% for (final LocalDB.DB loopDB : LocalDB.DB.values()) { %>
         <tr>
             <td style="text-align: right">
                 <%= loopDB %>
             </td>
             <td>
-                <%= pwmApplication.getPwmDB().size(loopDB) %>
+                <%= pwmApplication.getLocalDB().size(loopDB) %>
             </td>
         </tr>
         <% } %>

@@ -28,6 +28,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -119,11 +120,11 @@ public abstract class TopServlet extends HttpServlet {
 
     private void setLastParameters(final HttpServletRequest req, final SessionStateBean ssBean) throws PwmUnrecoverableException {
         final Set keyNames = req.getParameterMap().keySet();
-        final Properties newParamProperty = new Properties();
+        final FormMap newParamProperty = new FormMap();
 
         for (final Object name : keyNames) {
             final String value = Validator.readStringFromRequest(req, (String) name);
-            newParamProperty.setProperty((String) name, value);
+            newParamProperty.put((String) name, value);
         }
 
         ssBean.setLastParameterValues(newParamProperty);

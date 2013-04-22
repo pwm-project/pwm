@@ -95,8 +95,8 @@
             });
         </script>
         <style scoped="scoped">
-            .dgrid { height: auto; }
-            .dgrid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
+            .grid { height: auto; }
+            .grid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
         </style>
         <% if (maxResultsExceeded) { %>
         <div style="width:100%; text-align: center">

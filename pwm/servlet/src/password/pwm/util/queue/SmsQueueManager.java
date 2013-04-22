@@ -45,7 +45,7 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -90,7 +90,7 @@ public class SmsQueueManager extends AbstractQueueManager {
 // --------------------- Interface PwmService ---------------------
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        super.init(pwmApplication, PwmDB.DB.SMS_QUEUE);
+        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE);
         this.maxErrorWaitTimeMS = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
     }
 

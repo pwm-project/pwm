@@ -27,12 +27,12 @@ import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
 import password.pwm.i18n.Message;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.FormMap;
 import password.pwm.util.PwmRandom;
 
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Only information that is particular to the http session is stored in the
@@ -64,9 +64,7 @@ public class SessionStateBean implements PwmSessionBean {
     private String sessionID;
     private String theme;
 
-    private int incorrectLogins;
-
-    private Properties lastParameterValues = new Properties();
+    private FormMap lastParameterValues = new FormMap();
     private Map<String, ShortcutItem> visibleShortcutItems;
     private BasicAuthInfo originalBasicAuthInfo;
 
@@ -99,11 +97,7 @@ public class SessionStateBean implements PwmSessionBean {
         this.forwardURL = forwardURL;
     }
 
-    public int getIncorrectLogins() {
-        return incorrectLogins;
-    }
-
-    public Properties getLastParameterValues() {
+    public FormMap getLastParameterValues() {
         return lastParameterValues;
     }
 
@@ -202,21 +196,8 @@ public class SessionStateBean implements PwmSessionBean {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public String getLastParameterValue(final String name) {
-        final Properties props = this.lastParameterValues;
-        return props.getProperty(name, "");
-    }
-
-    public void incrementIncorrectLogins() {
-        this.incorrectLogins++;
-    }
-
-    public void resetIncorrectLogins() {
-        this.incorrectLogins = 0;
-    }
-
-    public void setLastParameterValues(final Properties props) {
-        final Properties newProps = new Properties();
+    public void setLastParameterValues(final Map<String,String> props) {
+        final FormMap newProps = new FormMap();
         newProps.putAll(props);
         this.lastParameterValues = newProps;
     }

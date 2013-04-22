@@ -111,7 +111,6 @@ public class NewUserServlet extends TopServlet {
             }
         }
 
-
         if (processAction != null && processAction.length() > 1) {
             Validator.validatePwmFormID(req);
             if ("create".equalsIgnoreCase(processAction)) {
@@ -123,11 +122,14 @@ public class NewUserServlet extends TopServlet {
                 handleEnterCodeRequest(req, resp);
             } else if ("doCreate".equalsIgnoreCase(processAction)) {
                 handleDoCreateRequest(req, resp);
+            } else if ("reset".equalsIgnoreCase(processAction)) {
+                pwmSession.clearUserBean(NewUserBean.class);
+                advancedToNextStage(req,resp);
             } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted newuser agreement");
                 final NewUserBean newUserBean = pwmSession.getNewUserBean();
                 newUserBean.setAgreementPassed(true);
-                this.advancedToNextStage(req,resp);
+                advancedToNextStage(req,resp);
             }
             return;
         }

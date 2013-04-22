@@ -116,7 +116,7 @@
                     <pwm:Display key="Field_PasswordSetTimeDelta"/>
                 </td>
                 <td>
-                    <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString() + " ago" : "n/a"%>
+                    <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : "n/a"%>
                 </td>
             </tr>
             <tr>
@@ -198,7 +198,7 @@
             <table>
                 <tr>
                     <td class="key">
-                        Summary
+                        <pwm:Display key="Title_PasswordPolicy"/>
                     </td>
                     <td>
                         <ul>
@@ -221,8 +221,8 @@
             <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
                 <% for (final AuditRecord record : auditRecords) { %>
                 <tr>
-                    <td class="key" style="width: 200px">
-                        <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, userLocale)).format(record.getTimestamp()) %>
+                    <td class="key">
+                        <%= dateFormatter.format(record.getTimestamp()) %>
                     </td>
                     <td>
                         <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(),userLocale) %>

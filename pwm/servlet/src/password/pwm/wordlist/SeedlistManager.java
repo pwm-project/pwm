@@ -29,7 +29,7 @@ import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;
 import java.util.Collections;
@@ -44,13 +44,13 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
     public void init(
             final WordlistConfiguration wordlistConfiguration,
-            final PwmDB pwmDB
+            final LocalDB pwmDB
 
     ) {
         this.LOGGER = PwmLogger.getLogger(this.getClass());
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
-        this.META_DB = PwmDB.DB.SEEDLIST_META;
-        this.WORD_DB = PwmDB.DB.SEEDLIST_WORDS;
+        this.META_DB = LocalDB.DB.SEEDLIST_META;
+        this.WORD_DB = LocalDB.DB.SEEDLIST_WORDS;
 
         final Thread t = new Thread(new Runnable() {
             public void run() {
@@ -109,6 +109,6 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
         final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true, 0);
 
-        init(wordlistConfiguration, pwmApplication.getPwmDB());
+        init(wordlistConfiguration, pwmApplication.getLocalDB());
     }
 }

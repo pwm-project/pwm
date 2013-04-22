@@ -30,8 +30,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.*;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -54,14 +54,14 @@ public class SharedHistoryManager implements Wordlist {
     private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60; // 1 hour
     private static final int MAX_CLENAER_FREQUENCY = 1000 * 60 * 60 * 24; // 1 day
 
-    private static final PwmDB.DB META_DB = PwmDB.DB.SHAREDHISTORY_META;
-    private static final PwmDB.DB WORDS_DB = PwmDB.DB.SHAREDHISTORY_WORDS;
+    private static final LocalDB.DB META_DB = LocalDB.DB.SHAREDHISTORY_META;
+    private static final LocalDB.DB WORDS_DB = LocalDB.DB.SHAREDHISTORY_WORDS;
 
     private volatile PwmService.STATUS status = STATUS.NEW;
 
     private volatile Timer cleanerTimer = null;
 
-    private PwmDB pwmDB;
+    private LocalDB pwmDB;
     private String salt;
     private long oldestEntry;
     private long maxAgeMs;
@@ -71,7 +71,7 @@ public class SharedHistoryManager implements Wordlist {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SharedHistoryManager() throws PwmDBException {
+    public SharedHistoryManager() throws LocalDBException {
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -206,7 +206,7 @@ public class SharedHistoryManager implements Wordlist {
                 oldestEntry = Long.parseLong(oldestEntryStr);
                 LOGGER.trace("oldest timestamp loaded from pwmDB, age is " + TimeDuration.fromCurrent(oldestEntry).asCompactString());
             }
-        } catch (PwmDBException e) {
+        } catch (LocalDBException e) {
             LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e);
             status = STATUS.CLOSED;
             return;
@@ -220,7 +220,7 @@ public class SharedHistoryManager implements Wordlist {
             sb.append(", maxAgeMs=").append(new TimeDuration(maxAgeMs).asCompactString());
             sb.append(", oldestEntry=").append(new TimeDuration(System.currentTimeMillis(), oldestEntry).asCompactString());
             LOGGER.info(sb.toString());
-        } catch (PwmDBException e) {
+        } catch (LocalDBException e) {
             LOGGER.error("unexpected error examing size of DB, will remain closed: " + e.getMessage(), e);
             status = STATUS.CLOSED;
             return;
@@ -341,14 +341,14 @@ public class SharedHistoryManager implements Wordlist {
         public void run() {
             try {
                 reduceWordDB();
-            } catch (PwmDBException e) {
+            } catch (LocalDBException e) {
                 LOGGER.error("error during execution of reduce: " + e.getMessage(), e);
             }
         }
 
 
         private void reduceWordDB()
-                throws PwmDBException {
+                throws LocalDBException {
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
             if (oldestEntryAge < maxAgeMs) {
                 LOGGER.debug("skipping wordDB reduce operation, eldestEntry="
@@ -365,7 +365,7 @@ public class SharedHistoryManager implements Wordlist {
 
             LOGGER.debug("beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString(maxAgeMs));
 
-            PwmDB.PwmDBIterator<String> keyIterator = null;
+            LocalDB.PwmDBIterator<String> keyIterator = null;
             try {
                 keyIterator = pwmDB.iterator(WORDS_DB);
                 while (status == STATUS.OPEN && keyIterator.hasNext()) {
@@ -421,7 +421,7 @@ public class SharedHistoryManager implements Wordlist {
     {
         this.maxAgeMs = 1000 *  pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE); // convert to MS;
         this.caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-        this.pwmDB = pwmApplication.getPwmDB();
+        this.pwmDB = pwmApplication.getLocalDB();
 
         if (pwmDB == null) {
             LOGGER.info("pwmDB is not available, will remain closed");

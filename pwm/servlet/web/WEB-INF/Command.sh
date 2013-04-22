@@ -1,8 +1,8 @@
 #!/bin/sh
-# PwmCommand.sh
+# Command.sh
 #
-# This script can be used to execute the PWM command line tool.
-# It must be run from within the pwm/WEB-INF directory.
+# This script can be used to execute the command line tool.
+# It must be run from within the WEB-INF directory.
 #
 # Krowten's fault
 

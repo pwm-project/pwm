@@ -22,7 +22,6 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 
 
@@ -35,8 +34,8 @@ public interface Wordlist extends PwmService {
     static final String KEY_ELAPSEDSECONDS = "RUNTIME";
     static final String KEY_SIZE = "SIZE";
 
-    // string used as pwmdb version checksum, if different then value in pwmdb, pwmdb will be cleared.
-    static final String VALUE_VERSION = "wordlist-db-12" + "_" + PwmConstants.SERVLET_VERSION;
+    // string used as localdb version checksum, if different then value in localdb, localdb will be cleared.
+    static final String VALUE_VERSION = "wordlist-db-12";
 
     public boolean containsWord(final String word);
 

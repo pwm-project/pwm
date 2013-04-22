@@ -47,7 +47,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <script type="text/javascript"
-        src="<%=request.getContextPath()%><pwm:url url='/public/resources/changepassword.js'/>"></script>
+        src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
@@ -133,7 +133,7 @@
                 <pwm:Display key="Field_LastLoginTimeDelta"/>
             </td>
             <td>
-                <%= TimeDuration.fromCurrent(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()).asLongString() + " ago"%>
+                <%= TimeDuration.fromCurrent(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) %>
             </td>
         </tr>
         <% } %>
@@ -182,7 +182,7 @@
                 <pwm:Display key="Field_PasswordSetTimeDelta"/>
             </td>
             <td>
-                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString() + " ago" : "n/a"%>
+                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) : "n/a"%>
             </td>
         </tr>
         <tr>
@@ -212,7 +212,11 @@
                 <pwm:Display key="Field_ResponsesStored"/>
             </td>
             <td>
-                <%= helpdeskBean.getAdditionalUserInfo().getResponseSet() != null %>
+                <% if (helpdeskBean.getAdditionalUserInfo().getResponseSet() != null) { %>
+                <pwm:Display key="Value_True"/>
+                <% } else { %>
+                <pwm:Display key="Value_False"/>
+                <% } %>
             </td>
         </tr>
         <tr>
@@ -220,7 +224,11 @@
                 <pwm:Display key="Field_ResponsesNeeded"/>
             </td>
             <td>
-                <%= helpdeskBean.getUserInfoBean().isRequiresResponseConfig() %>
+                <% if (helpdeskBean.getUserInfoBean().isRequiresResponseConfig()) { %>
+                <pwm:Display key="Value_True"/>
+                <% } else { %>
+                <pwm:Display key="Value_False"/>
+                <% } %>
             </td>
         </tr>
         <tr>
@@ -235,19 +243,21 @@
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
     <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().isEmpty()) { %>
-    <table>
-        <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
-        <tr>
-            <td class="key" style="width: 200px">
-                <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, pwmSession.getSessionStateBean().getLocale())).format(record.getTimestamp()) %>
-            </td>
-            <td>
-                <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                <%= record.getMessage() != null && record.getMessage().length() > 1 ? " (" + record.getMessage() + ") " : "" %>
-            </td>
-        </tr>
-        <% } %>
-    </table>
+    <div style="max-height: 400px; overflow: auto;">
+        <table>
+            <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
+            <tr>
+                <td class="key">
+                    <%= dateFormatter.format(record.getTimestamp()) %>
+                </td>
+                <td>
+                    <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
+                    <%= record.getMessage() != null && record.getMessage().length() > 1 ? " (" + record.getMessage() + ") " : "" %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
     <% } else { %>
     <div style="width:100%; text-align: center">
         <pwm:Display key="Display_SearchResultsNone"/>

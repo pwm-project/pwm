@@ -42,7 +42,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
 import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.pwmdb.*;
+import password.pwm.util.localdb.*;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -128,19 +128,19 @@ public class MainClass {
 
     static void handlePwmDbInfo() throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, true);
+        final LocalDB pwmDB = loadPwmDB(config, true);
         final long pwmDBdiskSpace = Helper.getFileDirectorySize(pwmDB.getFileLocation());
         out("LocalDB Total Disk Space = " + pwmDBdiskSpace + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
         out("Checking row counts, this may take a moment.... ");
-        for (final PwmDB.DB db : PwmDB.DB.values()) {
+        for (final LocalDB.DB db : LocalDB.DB.values()) {
             out("  " + db.toString() + "=" + pwmDB.size(db));
         }
     }
 
     static void handleExportLogs(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, true);
-        final PwmDBStoredQueue logQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
+        final LocalDB pwmDB = loadPwmDB(config, true);
+        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (args.length < 2) {
             out("must specify file to write log data to");
@@ -300,15 +300,15 @@ public class MainClass {
             return;
         }
 
-        final PwmDB pwmDB = loadPwmDB(config, false);
+        final LocalDB pwmDB = loadPwmDB(config, false);
 
-        if (pwmDB.size(PwmDB.DB.RESPONSE_STORAGE) == 0) {
+        if (pwmDB.size(LocalDB.DB.RESPONSE_STORAGE) == 0) {
             out("The LocalDB response database is already empty");
             return;
         }
 
-        out("clearing " + pwmDB.size(PwmDB.DB.RESPONSE_STORAGE) + " responses");
-        pwmDB.truncate(PwmDB.DB.RESPONSE_STORAGE);
+        out("clearing " + pwmDB.size(LocalDB.DB.RESPONSE_STORAGE) + " responses");
+        pwmDB.truncate(LocalDB.DB.RESPONSE_STORAGE);
         out("all saved responses are now removed from PwmDB");
     }
 
@@ -317,7 +317,7 @@ public class MainClass {
         System.out.println(out);
     }
 
-    static PwmDB loadPwmDB(final Configuration config, final boolean readonly) throws Exception {
+    static LocalDB loadPwmDB(final Configuration config, final boolean readonly) throws Exception {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
         databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
@@ -325,7 +325,7 @@ public class MainClass {
         final String classname = config.readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
         final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
         final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-        return PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly, null);
+        return LocalDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly, null);
     }
 
     static Configuration loadConfiguration() throws Exception {
@@ -348,7 +348,7 @@ public class MainClass {
     }
 
     static PwmApplication loadPwmApplication(final Configuration config, final File workingDirectory, final boolean readonly)
-            throws PwmDBException
+            throws LocalDBException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
         return new PwmApplication(config, mode, workingDirectory);
@@ -356,7 +356,7 @@ public class MainClass {
 
     static void handleExportLocalDB(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, true);
+        final LocalDB pwmDB = loadPwmDB(config, true);
 
         if (args.length < 2) {
             out("must specify file to write LocalDB data to");
@@ -364,7 +364,7 @@ public class MainClass {
         }
 
         final File outputFile = new File(args[1]);
-        final PwmDBUtility pwmDBUtility = new PwmDBUtility(pwmDB);
+        final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
         try {
             pwmDBUtility.exportPwmDB(outputFile, System.out);
         } catch (PwmOperationalException e) {
@@ -374,7 +374,7 @@ public class MainClass {
 
     static void handleImportLocalDB(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
-        final PwmDB pwmDB = loadPwmDB(config, false);
+        final LocalDB pwmDB = loadPwmDB(config, false);
 
         if (args.length < 2) {
             out("must specify file to read LocalDB data from");
@@ -395,7 +395,7 @@ public class MainClass {
             return;
         }
 
-        final PwmDBUtility pwmDBUtility = new PwmDBUtility(pwmDB);
+        final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
         final File inputFile = new File(args[1]);
         try {
             pwmDBUtility.importPwmDB(inputFile, System.out);

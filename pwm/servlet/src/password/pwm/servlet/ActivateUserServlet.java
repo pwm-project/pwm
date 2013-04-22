@@ -109,6 +109,9 @@ public class ActivateUserServlet extends TopServlet {
                 handleActivationRequest(req, resp);
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterForgottenCode(req,resp);
+            } else if ("reset".equalsIgnoreCase(processAction)) {
+                pwmSession.clearUserBean(ActivateUserBean.class);
+                advanceToNextStage(req, resp);
             } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted activate user agreement");
                 activateUserBean.setAgreementPassed(true);

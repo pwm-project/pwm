@@ -46,7 +46,7 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 410px"
-          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parse","dijit/form/Select"],function(parser){
@@ -75,7 +75,7 @@
             for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
                 final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
                 if (!challenge.isRequired()) {
-                    final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_Random_" + index, ""));
+                    final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().get("PwmResponse_Q_Random_" + index, ""));
         %>
         <option <%=selected ? "selected=\"selected\"" : ""%>
                 value="<%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>"><%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>
@@ -134,7 +134,7 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 410px"
-          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <% } %>
 <p>
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>

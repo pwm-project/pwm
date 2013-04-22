@@ -41,10 +41,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.*;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserSearchEngine;
@@ -262,7 +259,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
         try {
             final ChaiUser theGuest = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
-            final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
+            final FormMap formProps = pwmSession.getSessionStateBean().getLastParameterValues();
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<String>();
@@ -295,7 +292,7 @@ public class GuestRegistrationServlet extends TopServlet {
                     final String key = formItem.getName();
                     final String value = userAttrValues.get(key);
                     if (value != null) {
-                        formProps.setProperty(key, value);
+                        formProps.put(key, value);
                     }
                 }
 

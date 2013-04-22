@@ -32,7 +32,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo"
       onload="pwmPageLoadHandler();startupResponsesPage();document.forms[0].elements[0].focus()">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/responses.js'/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>

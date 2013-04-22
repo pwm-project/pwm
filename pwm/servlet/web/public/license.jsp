@@ -26,12 +26,12 @@
 <html dir="<pwm:LocaleOrientation/>">
 <head>
     <title>Licenses</title>
-    <link href="/sspr/public/resources/pwmStyle.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="/sspr/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
+    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link href="<%=request.getContextPath()%>/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
-    <script defer data-dojo-config="async: true" type="text/javascript" src="/sspr/public/resources/dojo/dojo/dojo.js"></script>
-    <script defer type="text/javascript" src="/sspr/public/resources/pwmHelper.js"></script>
-    <script defer type="text/javascript" src="/sspr/public/jsClientValues.jsp"></script>
+    <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%>/public/resources/dojo/dojo/dojo.js"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/resources/js/main.js"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/jsClientValues.jsp"></script>
 </head>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">

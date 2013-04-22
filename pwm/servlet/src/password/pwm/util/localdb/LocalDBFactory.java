@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
 import password.pwm.util.Helper;
@@ -33,14 +33,14 @@ import java.util.Map;
 /**
  * @author Jason D. Rivard
  */
-public class PwmDBFactory {
+public class LocalDBFactory {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBFactory.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBFactory.class);
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static synchronized PwmDB getInstance(
+    public static synchronized LocalDB getInstance(
             final File dbDirectory,
             final String className,
             final Map<String, String> initParameters,
@@ -50,21 +50,21 @@ public class PwmDBFactory {
             throws Exception {
 
         final long startTime = System.currentTimeMillis();
-        final PwmDBProvider dbProvider = createInstance(className);
-        LOGGER.debug("initializing " + className + " pwmDBProvider instance");
+        final LocalDBProvider dbProvider = createInstance(className);
+        LOGGER.debug("initializing " + className + " localDBProvider instance");
 
-        final PwmDB db = new PwmDBAdaptor(dbProvider, pwmApplication);
+        final LocalDB db = new LocalDBAdaptor(dbProvider, pwmApplication);
 
         initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
         LOGGER.trace("clearing TEMP db");
         if (!readonly) {
-            db.truncate(PwmDB.DB.TEMP);
+            db.truncate(LocalDB.DB.TEMP);
         }
 
         final StringBuilder debugText = new StringBuilder();
-        debugText.append("pwmDB open in ").append(openTime.asCompactString());
+        debugText.append("LocalDB open in ").append(openTime.asCompactString());
         debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
         debugText.append(" at ").append(dbDirectory.toString());
         final long freeSpace = Helper.diskSpaceRemaining(db.getFileLocation());
@@ -76,25 +76,25 @@ public class PwmDBFactory {
         return db;
     }
 
-    private static PwmDBProvider createInstance(final String className)
+    private static LocalDBProvider createInstance(final String className)
             throws Exception {
-        final PwmDBProvider pwmDB;
+        final LocalDBProvider pwmDB;
         try {
             final Class c = Class.forName(className);
             final Object impl = c.newInstance();
-            if (!(impl instanceof PwmDBProvider)) {
-                throw new Exception("unable to createSharedHistoryManager new PwmDB, " + className + " is not instance of " + PwmDBProvider.class.getName());
+            if (!(impl instanceof LocalDBProvider)) {
+                throw new Exception("unable to createSharedHistoryManager new LocalDB, " + className + " is not instance of " + LocalDBProvider.class.getName());
             }
-            pwmDB = (PwmDBProvider) impl;
+            pwmDB = (LocalDBProvider) impl;
         } catch (Exception e) {
-            LOGGER.warn("error creating new PwmDB instance: " + e.getClass().getName() + ":" + e.getMessage());
-            throw new Exception("Messages instantiating new PwmDB instance: " + e.getMessage(), e);
+            LOGGER.warn("error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage());
+            throw new Exception("Messages instantiating new LocalDB instance: " + e.getMessage(), e);
         }
 
         return pwmDB;
     }
 
-    private static void initInstance(final PwmDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass, final boolean readonly)
+    private static void initInstance(final LocalDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass, final boolean readonly)
             throws Exception {
         try {
             if (dbFileLocation.mkdir()) {
@@ -102,7 +102,7 @@ public class PwmDBFactory {
             }
             pwmDBProvider.init(dbFileLocation, initParameters, readonly);
         } catch (Exception e) {
-            LOGGER.warn("error while initializing pwmDB instance: " + e.getMessage());
+            LOGGER.warn("error while initializing LocalDB instance: " + e.getMessage());
             throw e;
         }
 

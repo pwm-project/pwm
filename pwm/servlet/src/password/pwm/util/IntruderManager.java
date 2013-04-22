@@ -34,8 +34,8 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -73,7 +73,7 @@ public class IntruderManager implements Serializable, PwmService {
         this.pwmApplication = pwmApplication;
         final Configuration config = pwmApplication.getConfig();
         status = STATUS.OPENING;
-        if (pwmApplication.getPwmDB() == null || pwmApplication.getPwmDB().status() != PwmDB.Status.OPEN) {
+        if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to start IntruderManager, LocalDB unavailable");
             LOGGER.error(errorInformation.toDebugStr());
             startupError = errorInformation;
@@ -82,8 +82,8 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final PwmDBRecordStore userStore = new PwmDBRecordStore(this, pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_USER);
-            final PwmDBRecordStore addressStore = new PwmDBRecordStore(this, pwmApplication.getPwmDB(), PwmDB.DB.INTRUDER_ADDRESS);
+            final PwmDBRecordStore userStore = new PwmDBRecordStore(this, pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER_USER);
+            final PwmDBRecordStore addressStore = new PwmDBRecordStore(this, pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER_ADDRESS);
             {
                 final int checkCount = (int)config.readSettingAsLong(PwmSetting.INTRUDER_USER_MAX_ATTEMPTS);
                 final TimeDuration resetDuration = new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_USER_RESET_TIME));
@@ -303,11 +303,11 @@ public class IntruderManager implements Serializable, PwmService {
         return addressManager.recordCount();
     }
 
-    public RecordIterator<IntruderRecord> userRecordIterator() throws PwmOperationalException {
+    public RecordIterator userRecordIterator() throws PwmOperationalException {
         return userManager.iterator();
     }
 
-    public RecordIterator<IntruderRecord> addressRecordIterator() throws PwmOperationalException {
+    public RecordIterator addressRecordIterator() throws PwmOperationalException {
         return addressManager.iterator();
     }
 
@@ -401,7 +401,7 @@ public class IntruderManager implements Serializable, PwmService {
         public void markAlerted(final String subject);
         public IntruderRecord readIntruderRecord(final String subject, final IntruderRecord.Type type);
         public int recordCount();
-        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException;
+        public RecordIterator iterator() throws PwmOperationalException;
     }
 
     static class StubRecordManager implements RecordManager {
@@ -430,11 +430,12 @@ public class IntruderManager implements Serializable, PwmService {
         @Override
         public int recordCount() {
             return 0;
+
         }
 
         @Override
-        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException {
-            return new RecordIterator<IntruderRecord>(null);
+        public RecordIterator iterator() throws PwmOperationalException {
+            return new RecordIterator(null);
         }
     }
 
@@ -544,13 +545,13 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         @Override
-        public RecordIterator<IntruderRecord> iterator() throws PwmOperationalException {
+        public RecordIterator iterator() throws PwmOperationalException {
             return new RecordIterator(recordStore);
         }
     }
 
-    public static class RecordIterator<T> implements Iterator<IntruderRecord> {
-        private PwmDB.PwmDBIterator<String> keyIterator;
+    public static class RecordIterator implements Iterator<IntruderRecord> {
+        private LocalDB.PwmDBIterator<String> keyIterator;
         private PwmDBRecordStore recordStore;
 
         public RecordIterator(final PwmDBRecordStore recordStore) throws PwmOperationalException {
@@ -584,13 +585,17 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     static class PwmDBRecordStore {
-        private final IntruderManager intruderManager;
-        private final PwmDB pwmDB;
-        private final PwmDB.DB db;
+        private static final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
 
-        public PwmDBRecordStore(final IntruderManager intruderManager, PwmDB pwmDB, PwmDB.DB db) {
+        private final IntruderManager intruderManager;
+        private final LocalDB localDB;
+        private final LocalDB.DB db;
+
+        private Date eldestRecord = new Date(0);
+
+        public PwmDBRecordStore(final IntruderManager intruderManager, LocalDB localDB, LocalDB.DB db) {
             this.intruderManager = intruderManager;
-            this.pwmDB = pwmDB;
+            this.localDB = localDB;
             this.db = db;
         }
 
@@ -617,8 +622,8 @@ public class IntruderManager implements Serializable, PwmService {
 
             final String value;
             try {
-                value = pwmDB.get(db, key);
-            } catch (PwmDBException e) {
+                value = localDB.get(db, key);
+            } catch (LocalDBException e) {
                 LOGGER.error("error reading stored intruder record: " + e.getMessage());
                 return null;
             }
@@ -634,7 +639,7 @@ public class IntruderManager implements Serializable, PwmService {
             }
 
             //read failed, try to delete record
-            try { pwmDB.remove(db, key); } catch (PwmDBException e) { /*noop*/ }
+            try { localDB.remove(db, key); } catch (LocalDBException e) { /*noop*/ }
             return null;
         }
 
@@ -648,24 +653,27 @@ public class IntruderManager implements Serializable, PwmService {
 
             final String jsonRecord = new Gson().toJson(record);
             try {
-                pwmDB.put(db, md5sum, jsonRecord);
-            } catch (PwmDBException e) {
+                localDB.put(db, md5sum, jsonRecord);
+            } catch (LocalDBException e) {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error writing to LocalDB: " + e.getMessage()));
             }
         }
 
-        private PwmDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
+        private LocalDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
             try {
-                return pwmDB.iterator(db);
-            } catch (PwmDBException e) {
+                return localDB.iterator(db);
+            } catch (LocalDBException e) {
                 throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"iterator unavailable:" + e.getMessage());
             }
         }
 
         private void cleanup(final TimeDuration maxRecordAge)
-                throws PwmDBException
+                throws LocalDBException
         {
-            final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
+            if (TimeDuration.fromCurrent(eldestRecord).isShorterThan(maxRecordAge)) {
+                return;
+            }
+            eldestRecord = new Date();
 
             final long startTime = System.currentTimeMillis();
             int recordsExamined = 0;
@@ -675,19 +683,25 @@ public class IntruderManager implements Serializable, PwmService {
             boolean complete = false;
 
             while (!complete && intruderManager.status() == STATUS.OPEN) {
-                PwmDB.PwmDBIterator<String> keyIterator = null;
+                LocalDB.PwmDBIterator<String> keyIterator = null;
                 try {
-                    keyIterator = pwmDB.iterator(db);
+                    keyIterator = localDB.iterator(db);
                     if (!keyIterator.hasNext()) {
                         complete = true;
                     }
                     while (keyIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE && intruderManager.status == STATUS.OPEN) {
                         recordsExamined++;
                         final String key = keyIterator.next();
-                        final InternalRecord record = read(key);
-                        if (record != null && TimeDuration.fromCurrent(record.getTimeStamp()).isLongerThan(maxRecordAge)) {
-                            recordsToRemove.add(key);
+                        final InternalRecord record = readKey(key);
+                        if (record != null) {
+                            if (TimeDuration.fromCurrent(record.getTimeStamp()).isLongerThan(maxRecordAge)) {
+                                recordsToRemove.add(key);
+                            }
+                            if (eldestRecord.compareTo(record.getTimeStamp()) == 1) {
+                                eldestRecord = record.getTimeStamp();
+                            }
                         }
+
                         if (!keyIterator.hasNext()) {
                             complete = true;
                         }
@@ -697,18 +711,18 @@ public class IntruderManager implements Serializable, PwmService {
                         keyIterator.close();
                     }
                 }
-                pwmDB.removeAll(db,recordsToRemove);
+                localDB.removeAll(db, recordsToRemove);
                 recordsRemoved += recordsToRemove.size();
                 recordsToRemove.clear();
             }
             final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
-            LOGGER.trace("completed cleanup of " + db.toString() + " in " + totalDuration.asCompactString() + ", recordsExamined=" + recordsExamined + ", recordsRemoved=" + recordsRemoved + ", dbSize=" + pwmDB.size(db));
+            LOGGER.trace("completed cleanup of " + db.toString() + " in " + totalDuration.asCompactString() + ", recordsExamined=" + recordsExamined + ", recordsRemoved=" + recordsRemoved);
         }
 
         private int recordCount() {
             try {
-                return pwmDB.size(db);
-            } catch (PwmDBException e) {
+                return localDB.size(db);
+            } catch (LocalDBException e) {
                 LOGGER.error("error determining size count for records " + e.getMessage());
                 return -2;
             }

@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
@@ -35,15 +35,15 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static password.pwm.util.pwmdb.PwmDB.DB;
+import static password.pwm.util.localdb.LocalDB.DB;
 
 /**
  * @author Jason D. Rivard
  */
-public class JDBM_PwmDb implements PwmDBProvider {
+public class JDBM_LocalDB implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(JDBM_PwmDb.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(JDBM_LocalDB.class, true);
     private static final String FILE_NAME = "jdbm";
 
     private RecordManager recman;
@@ -53,11 +53,11 @@ public class JDBM_PwmDb implements PwmDBProvider {
     // operation lock
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
-    private PwmDB.Status status = PwmDB.Status.NEW;
+    private LocalDB.Status status = LocalDB.Status.NEW;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    JDBM_PwmDb() {
+    JDBM_LocalDB() {
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -66,8 +66,8 @@ public class JDBM_PwmDb implements PwmDBProvider {
 // --------------------- Interface PwmDB ---------------------
 
     public void close()
-            throws PwmDBException {
-        status = PwmDB.Status.CLOSED;
+            throws LocalDBException {
+        status = LocalDB.Status.CLOSED;
 
         if (recman == null) {
             return;
@@ -83,18 +83,18 @@ public class JDBM_PwmDb implements PwmDBProvider {
             LOGGER.info("pwmDB closed in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } catch (Exception e) {
             LOGGER.error("error while closing pwmDB: " + e.getMessage(), e);
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
     }
 
-    public PwmDB.Status getStatus() {
+    public LocalDB.Status getStatus() {
         return status;
     }
 
-    public boolean contains(final PwmDB.DB db, final String key)
-            throws PwmDBException {
+    public boolean contains(final LocalDB.DB db, final String key)
+            throws LocalDBException {
         try {
             LOCK.readLock().lock();
             return get(db, key) != null;
@@ -103,27 +103,27 @@ public class JDBM_PwmDb implements PwmDBProvider {
         }
     }
 
-    public String get(final PwmDB.DB db, final String key)
-            throws PwmDBException {
+    public String get(final LocalDB.DB db, final String key)
+            throws LocalDBException {
         try {
             LOCK.readLock().lock();
             final Map<String, String> tree = getHTree(db);
             final Object value = tree.get(key);
             return value == null ? null : value.toString();
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.readLock().unlock();
         }
     }
 
     public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
-            throws PwmDBException {
+            throws LocalDBException {
         if (readOnly) {
             throw new UnsupportedOperationException("readOnly not supported");
         }
 
-        if (status != PwmDB.Status.NEW) {
+        if (status != LocalDB.Status.NEW) {
             throw new IllegalStateException("already initialized");
         }
 
@@ -135,26 +135,26 @@ public class JDBM_PwmDb implements PwmDBProvider {
             recman = RecordManagerFactory.createRecordManager(dbFileName, new Properties());
 
             LOGGER.info("pwmDB opened in " + TimeDuration.fromCurrent(startTime).asCompactString());
-            status = PwmDB.Status.OPEN;
+            status = LocalDB.Status.OPEN;
         } catch (Exception e) {
             LOGGER.error("error while opening pwmDB: " + e.getMessage(), e);
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
     }
 
-    public PwmDB.PwmDBIterator<String> iterator(final DB db)
-            throws PwmDBException {
+    public LocalDB.PwmDBIterator<String> iterator(final DB db)
+            throws LocalDBException {
         try {
             return new DbIterator<String>(db);
         } catch (Exception e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         }
     }
 
     public void putAll(final DB db, final Map<String, String> keyValueMap)
-            throws PwmDBException {
+            throws LocalDBException {
         try {
             LOCK.writeLock().lock();
             final Map<String, String> tree = getHTree(db);
@@ -164,15 +164,15 @@ public class JDBM_PwmDb implements PwmDBProvider {
             try {
                 recman.rollback();
             } catch (IOException e2) {
-                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e2.getMessage()));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e2.getMessage()));
             }
         } finally {
             LOCK.writeLock().unlock();
         }
     }
 
-    public boolean put(final PwmDB.DB db, final String key, final String value)
-            throws PwmDBException {
+    public boolean put(final LocalDB.DB db, final String key, final String value)
+            throws LocalDBException {
         final boolean preExists;
         try {
             LOCK.writeLock().lock();
@@ -181,7 +181,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             tree.put(key, value);
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -190,8 +190,8 @@ public class JDBM_PwmDb implements PwmDBProvider {
     }
 
 
-    public boolean remove(final PwmDB.DB db, final String key)
-            throws PwmDBException {
+    public boolean remove(final LocalDB.DB db, final String key)
+            throws LocalDBException {
         try {
             LOCK.writeLock().lock();
             final Map<String, String> tree = getHTree(db);
@@ -199,26 +199,26 @@ public class JDBM_PwmDb implements PwmDBProvider {
             recman.commit();
             return removedValue != null;
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
     }
 
-    public int size(final PwmDB.DB db)
-            throws PwmDBException {
+    public int size(final LocalDB.DB db)
+            throws LocalDBException {
         try {
             LOCK.readLock().lock();
             return getHTree(db).size();
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.readLock().unlock();
         }
     }
 
-    public void truncate(final PwmDB.DB db)
-            throws PwmDBException {
+    public void truncate(final LocalDB.DB db)
+            throws LocalDBException {
         final int startSize = size(db);
 
         LOGGER.info("beginning truncate of " + startSize + " records in " + db.toString() + " database, this may take a while...");
@@ -231,7 +231,7 @@ public class JDBM_PwmDb implements PwmDBProvider {
             tree.keySet().clear();
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -244,14 +244,14 @@ public class JDBM_PwmDb implements PwmDBProvider {
     }
 
     public void removeAll(final DB db, final Collection<String> keys)
-            throws PwmDBException {
+            throws LocalDBException {
         try {
             LOCK.writeLock().lock();
             final Map<String, String> tree = getHTree(db);
             tree.keySet().removeAll(keys);
             recman.commit();
         } catch (IOException e) {
-            throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -279,10 +279,10 @@ public class JDBM_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
+    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
         private Iterator<String> theIterator;
 
-        private DbIterator(final DB db) throws IOException, PwmDBException {
+        private DbIterator(final DB db) throws IOException, LocalDBException {
             this.theIterator = getHTree(db).keySet().iterator();
         }
 

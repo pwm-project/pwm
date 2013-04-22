@@ -43,7 +43,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/responses.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
 
@@ -59,7 +59,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             </label></h2>
             <input type="password" name="<%= paramConfig.getName()%>" class="inputfield" maxlength="255"
                    id="attribute-<%= paramConfig.getName()%>" required="required"
-                   value="<%= ssBean.getLastParameterValues().getProperty(paramConfig.getName(),"") %>"/>
+                   value="<%= ssBean.getLastParameterValues().get(paramConfig.getName(),"") %>"/>
             <% } %>
 
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) { %>
@@ -72,7 +72,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             </label></h2>
             <input type="password" name="PwmResponse_R_<%= counter %>" class="inputfield" maxlength="255"
                    id="PwmResponse_R_<%=counter%>" required="required"
-                   value="<%= ssBean.getLastParameterValues().getProperty("PwmResponse_R_" + counter,"") %>"/>
+                   value="<%= ssBean.getLastParameterValues().get("PwmResponse_R_" + counter,"") %>"/>
             <% } %>
             <% } %>
 

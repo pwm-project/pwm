@@ -39,6 +39,7 @@
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
               onsubmit="return false">
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
+            <% request.setAttribute("formData",pwmSessionHeader.getUpdateProfileBean().getFormData()); %>
             <% request.setAttribute("form-readonly","true"); %>
             <jsp:include page="fragment/form.jsp"/>
         </form>

@@ -20,21 +20,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 
-public class PwmDBException extends PwmOperationalException {
+public class LocalDBException extends PwmOperationalException {
 // --------------------------- CONSTRUCTORS ---------------------------
 
 
-    public PwmDBException(ErrorInformation error) {
+    public LocalDBException(ErrorInformation error) {
         super(error);
     }
 
-    public PwmDBException(PwmError error) {
+    public LocalDBException(PwmError error) {
         super(error);
     }
 }

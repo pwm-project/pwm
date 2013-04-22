@@ -31,8 +31,8 @@ import password.pwm.config.Configuration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmMacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -110,7 +110,7 @@ public class DisplayTag extends PwmAbstractTag {
 
             final Class bundle = readBundle();
             final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);
-            final String expandedMessage = PwmMacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
+            final String expandedMessage = MacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
 
             pageContext.getOut().write(expandedMessage);
         } catch (PwmUnrecoverableException e) { {

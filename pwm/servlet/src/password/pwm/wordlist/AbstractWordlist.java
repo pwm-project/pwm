@@ -32,21 +32,21 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 abstract class AbstractWordlist implements Wordlist, PwmService {
-    protected PwmDB.DB META_DB = null;
-    protected PwmDB.DB WORD_DB = null;
+    protected LocalDB.DB META_DB = null;
+    protected LocalDB.DB WORD_DB = null;
 
     protected WordlistConfiguration wordlistConfiguration;
 
     protected volatile STATUS wlStatus = STATUS.NEW;
-    protected PwmDB pwmDB;
+    protected LocalDB pwmDB;
     protected Populator populator;
 
     protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
@@ -62,7 +62,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected AbstractWordlist() {
     }
 
-    protected final void startup(final PwmDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
+    protected final void startup(final LocalDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
         this.wordlistConfiguration = wordlistConfiguration;
         this.pwmDB = pwmDB;
         final long startTime = System.currentTimeMillis();
@@ -101,7 +101,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             checkPopulation();
         } catch (Exception e) {
             final String errorMsg = "unexpected error while examining wordlist db: " + e.getMessage();
-            if ((e instanceof PwmUnrecoverableException) || (e instanceof NullPointerException) || (e instanceof PwmDBException)) {
+            if ((e instanceof PwmUnrecoverableException) || (e instanceof NullPointerException) || (e instanceof LocalDBException)) {
                 LOGGER.warn(errorMsg);
             } else {
                 LOGGER.warn(errorMsg,e);
@@ -116,7 +116,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         try {
             final String storedSizeStr = pwmDB.get(META_DB, KEY_SIZE);
             storedSize = Integer.valueOf(storedSizeStr);
-        } catch (PwmDBException e) {
+        } catch (LocalDBException e) {
             final String errorMsg = DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage();
             LOGGER.warn(errorMsg);
             lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
@@ -243,7 +243,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             throws Exception {
         pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
 
-        for (final PwmDB.DB db : new PwmDB.DB[]{META_DB, WORD_DB}) {
+        for (final LocalDB.DB db : new LocalDB.DB[]{META_DB, WORD_DB}) {
             LOGGER.debug("clearing " + db);
             pwmDB.truncate(db);
         }

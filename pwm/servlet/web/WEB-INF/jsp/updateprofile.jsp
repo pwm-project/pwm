@@ -41,6 +41,7 @@
               onchange="validateForm()" onkeyup="validateForm()">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
+            <% request.setAttribute("formData",pwmSessionHeader.getUpdateProfileBean().getFormData()); %>
             <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">

@@ -41,8 +41,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
+import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmMacroMachine;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -123,17 +123,17 @@ public class ActionExecutor {
         try {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
-                url = PwmMacroMachine.expandMacros(url, pwmApplication, userInfoBean, new PwmMacroMachine.StringReplacer() {
+                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, new MacroMachine.StringReplacer() {
                     public String replace(String matchedMacro, String newValue) {
                         try {
-                            return URLEncoder.encode(newValue,"UTF8"); // make sure replacement values are properly encoded
+                            return URLEncoder.encode(newValue, "UTF8"); // make sure replacement values are properly encoded
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                         }
                         return newValue;
                     }
                 });
-                body = body == null ? "" : PwmMacroMachine.expandMacros(body, pwmApplication, userInfoBean);
+                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean);
             }
 
             LOGGER.debug("sending HTTP request: " + url);
@@ -162,13 +162,21 @@ public class ActionExecutor {
                     throw new IllegalStateException("method not yet implemented");
             }
 
+            if (actionConfiguration.getHeaders() != null) {
+                for (final String headerName : actionConfiguration.getHeaders().keySet()) {
+                    String headerValue = actionConfiguration.getHeaders().get(headerName);
+                    headerValue = headerValue == null ? "" : MacroMachine.expandMacros(headerValue, pwmApplication, userInfoBean);
+                    httpRequest.setHeader(headerName,headerValue);
+                }
+            }
+
             final HttpClient httpClient = Helper.getHttpClient(pwmApplication.getConfig());
             final HttpResponse httpResponse = httpClient.execute(httpRequest);
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new PwmOperationalException(new ErrorInformation(
                         PwmError.ERROR_UNKNOWN,
                         "unexpected HTTP status code while calling external web service: "
-                        + httpResponse.getStatusLine().getStatusCode() + " " + httpResponse.getStatusLine().getReasonPhrase()
+                                + httpResponse.getStatusLine().getStatusCode() + " " + httpResponse.getStatusLine().getReasonPhrase()
                 ));
             }
 

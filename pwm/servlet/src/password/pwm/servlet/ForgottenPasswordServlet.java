@@ -42,6 +42,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.util.FormMap;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.ServletHelper;
@@ -122,6 +123,9 @@ public class
             } else if (processAction.equalsIgnoreCase("enterCode")) {
                 this.processEnterForgottenCode(req, resp);
                 return;
+            } else if (processAction.equalsIgnoreCase("reset")) {
+                pwmSession.clearUserBean(ForgottenPasswordBean.class);
+                return;
             } else if (!tokenNeeded && !responsesNeeded && processAction.equalsIgnoreCase("selectUnlock")) {
                 this.processUnlock(req, resp);
                 return;
@@ -174,7 +178,7 @@ public class
             }
 
             forgottenPasswordBean.setProxiedUser(theUser);
-            pwmSession.getSessionStateBean().setLastParameterValues(new Properties());
+            pwmSession.getSessionStateBean().setLastParameterValues(new FormMap());
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
             pwmApplication.getIntruderManager().mark(null, null, pwmSession);

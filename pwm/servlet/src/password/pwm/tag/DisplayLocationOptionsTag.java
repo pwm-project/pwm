@@ -86,7 +86,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-            final String selectedValue = ssBean.getLastParameterValue(name);
+            final String selectedValue = ssBean.getLastParameterValues().get(name);
             final String optionListHtml = buildOptionListHTML(req, selectedValue);
             pageContext.getOut().write(optionListHtml);
         } catch (Exception e) {

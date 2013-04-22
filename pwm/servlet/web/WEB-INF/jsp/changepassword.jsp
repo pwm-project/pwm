@@ -29,7 +29,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler(); startupChangePasswordPage('<pwm:Display key="Display_PasswordPrompt"/>');" class="nihilo">
 <script type="text/javascript"
-        src="<%=request.getContextPath()%><pwm:url url='/public/resources/changepassword.js'/>"></script>
+        src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>

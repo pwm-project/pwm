@@ -777,7 +777,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '<td style="border:0; text-align: right">JavaScript</td><td style="border:0;"><input type="text" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (clientSettingCache[keyName][iteration]['type'] == 'select') {
-            bodyText += '<td style="border:0; text-align: right">Select Options</td><td style="border:0;"><input class="btn" type="button" id="' + inputID + 'selectOptions' + '" value="Edit Options" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
+            bodyText += '<td style="border:0; text-align: right">Select Options</td><td style="border:0;"><input class="menubutton" type="button" id="' + inputID + 'selectOptions' + '" value="Edit" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
             bodyText += '</tr>';
         }
         bodyText += '</table>';
@@ -1571,6 +1571,8 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '</tr><tr>';
             //bodyText += '<td style="border:0; text-align: right">Client Side</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'clientSide' + '"/></td>';
             //bodyText += '</tr><tr>';
+            bodyText += '<td style="border:0; text-align: right">Headers</td><td style="border:0;"><button class="menubutton" onclick="ActionHandler.showHeadersDialog(\'' + keyName + '\',\'' + iteration + '\')">Edit</button></td>';
+            bodyText += '</tr><tr>';
             bodyText += '<td style="border:0; text-align: right">URL</td><td style="border:0;"><input type="text" id="' + inputID + 'url' + '"/></td>';
             bodyText += '</tr><tr>';
             bodyText += '<td style="border:0; text-align: right">Body</td><td style="border:0;"><input type="text" id="' + inputID + 'body' + '"/></td>';
@@ -1658,6 +1660,109 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
     });
 };
 
+ActionHandler.showHeadersDialog = function(keyName, iteration) {
+    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button","dijit/form/TextBox"],function(Dialog,ValidationTextBox,Button,TextBox){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
+
+        var bodyText = '';
+        bodyText += '<table style="border:0" id="' + inputID + 'table">';
+        bodyText += '<tr>';
+        bodyText += '<td style="border:0"><b>Name</b></td><td style="border:0"><b>Value</b></td>';
+        bodyText += '</tr><tr>';
+        for (var headerName in clientSettingCache[keyName][iteration]['headers']) {
+            var value = clientSettingCache[keyName][iteration]['headers'][headerName];
+            var optionID = inputID + headerName;
+            bodyText += '<td style="border:1px">' + headerName + '</td><td style="border:1px">' + value + '</td>';
+            bodyText += '<td style="border:0">';
+            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
+            bodyText += ' onclick="ActionHandler.removeHeader(\'' + keyName + '\',' + iteration + ',\'' + headerName + '\')" />';
+            bodyText += '</td>';
+            bodyText += '</tr><tr>';
+        }
+        bodyText += '</tr></table>';
+        bodyText += '<br/>';
+        bodyText += '<br/>';
+        bodyText += '<input type="text" id="addHeaderName"/>';
+        bodyText += '<input type="text" id="addHeaderValue"/>';
+        bodyText += '<input type="button" id="addHeaderButton" value="Add"/>';
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="ActionHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+
+        clearDijitWidget('dialogPopup');
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Http Headers for webservice ' + clientSettingCache[keyName][iteration]['name'],
+            style: "width: 450px",
+            content: bodyText,
+            hide: function(){
+                clearDijitWidget('dialogPopup');
+                ActionHandler.showOptionsDialog(keyName,iteration);
+            }
+        });
+        theDialog.show();
+
+        for (var headerName in clientSettingCache[keyName][iteration]['headers']) {
+            var value = clientSettingCache[keyName][iteration]['headers'][headerName];
+            var loopID = inputID + headerName;
+            clearDijitWidget(loopID);
+            new TextBox({
+                onChange: function(){clientSettingCache[keyName][iteration]['headers'][headerName] = this.value;ActionHandler.writeFormSetting(keyName)}
+            },loopID);
+        }
+
+        clearDijitWidget("addHeaderName");
+        new ValidationTextBox({
+            placeholder: "Name",
+            id: "addHeaderName",
+            constraints: {min: 1}
+        },"addHeaderName");
+
+        clearDijitWidget("addHeaderValue");
+        new ValidationTextBox({
+            placeholder: "Display Value",
+            id: "addHeaderValue",
+            constraints: {min: 1}
+        },"addHeaderValue");
+
+        clearDijitWidget("addHeaderButton");
+        new Button({
+            label: "Add",
+            onClick: function() {
+                require(["dijit/registry"],function(registry){
+                    var name = registry.byId('addHeaderName').value;
+                    var value = registry.byId('addHeaderValue').value;
+                    ActionHandler.addHeader(keyName, iteration, name, value);
+                });
+            }
+        },"addHeaderButton");
+    });
+};
+
+ActionHandler.addHeader = function(keyName, iteration, headerName, headerValue) {
+    if (headerName == null || headerName.length < 1) {
+        alert('Name field is required');
+        return;
+    }
+
+    if (headerValue == null || headerValue.length < 1) {
+        alert('Value field is required');
+        return;
+    }
+
+    if (!clientSettingCache[keyName][iteration]['headers']) {
+        clientSettingCache[keyName][iteration]['headers'] = {};
+    }
+
+    clientSettingCache[keyName][iteration]['headers'][headerName] = headerValue;
+    ActionHandler.writeFormSetting(keyName);
+    ActionHandler.showHeadersDialog(keyName, iteration);
+};
+
+ActionHandler.removeHeader = function(keyName, iteration, headerName) {
+    delete clientSettingCache[keyName][iteration]['headers'][headerName];
+    ActionHandler.writeFormSetting(keyName);
+    ActionHandler.showHeadersDialog(keyName, iteration);
+};
 
 // -------------------------- email table handler ------------------------------------
 

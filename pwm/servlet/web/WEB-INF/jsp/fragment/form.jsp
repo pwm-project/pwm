@@ -5,6 +5,7 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -28,12 +29,20 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% // read parameters from calling jsp;
+    final PwmSetting formSetting = (PwmSetting)request.getAttribute("form");
+    final boolean forceReadOnly = "true".equalsIgnoreCase((String)request.getAttribute("form-readonly"));
+    final boolean showPasswordFields = "true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"));
+    final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)request.getAttribute("formData");
+%>
 <%
     final PwmSession pwmSession = PwmSession.getPwmSession(session);
     final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-    List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm((PwmSetting)request.getAttribute("form"));
+    final List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm(formSetting);
     for (FormConfiguration loopConfiguration : formConfigurationList) {
-        final String currentValue = StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().getProperty(loopConfiguration.getName(),""));
+        String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : ssBean.getLastParameterValues().get(loopConfiguration.getName(),"");
+        currentValue = currentValue == null ? "" : currentValue;
+        currentValue = StringEscapeUtils.escapeHtml(currentValue);
 
 %>
 <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
@@ -46,7 +55,7 @@
 <% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
 <p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
 <% } %>
-<% boolean readonly = loopConfiguration.isReadonly() || "true".equalsIgnoreCase((String)request.getAttribute("form-readonly")); %>
+<% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
 <% if (readonly) { %>
 <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;<%= currentValue %></span>
 <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
@@ -64,12 +73,12 @@
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
-<% if (loopConfiguration.isConfirmationRequired()) { %>
+<% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
 <h1>
     <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %></label>
 </h1>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
-       name="<%=loopConfiguration.getName()%>_confirm" value="<%= currentValue %>"
+       name="<%=loopConfiguration.getName()%>_confirm" value="<%= ssBean.getLastParameterValues().get(loopConfiguration.getName() + "confirm","")%>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
@@ -88,7 +97,7 @@
 <% } %>
 <% } %>
 
-<% if ("true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"))) { %>
+<% if (showPasswordFields) { %>
 <h1>
     <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
 </h1>

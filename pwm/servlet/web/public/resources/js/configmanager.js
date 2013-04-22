@@ -147,7 +147,7 @@ function startConfigurationEditor() {
             document.forms['cancelEditing'].submit();
         } else {
             showWaitDialog('Loading...','');
-            window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
+            window.location = "ConfigManager?processAction=startEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         }
     });
 }
@@ -211,6 +211,8 @@ function showConfigurationNotes() {
 
 function setConfigurationPassword(password) {
     if (password) {
+        clearDijitWidget('dialogPopup');
+        showWaitDialog();
         dojo.xhrPost({
             url:"ConfigManager?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: password,
@@ -218,14 +220,15 @@ function setConfigurationPassword(password) {
             dataType: "text",
             handleAs: "text",
             load: function(data){
-                clearDijitWidget('dialogPopup');
+                closeWaitDialog();
                 showInfo('Configuration password set successfully.')
             },
             error: function(errorObj) {
-                clearDijitWidget('dialogPopup');
+                closeWaitDialog();
                 showError("error saving notes text: " + errorObj);
             }
         });
+        return;
     }
 
     var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';

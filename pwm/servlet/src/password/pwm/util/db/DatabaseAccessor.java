@@ -24,6 +24,7 @@ package password.pwm.util.db;
 
 import com.google.gson.Gson;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -146,7 +147,7 @@ public class DatabaseAccessor implements PwmService {
             final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
 
             if (errorAge.isShorterThan(TimeDuration.HOUR)) {
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString() + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE) + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
             }
         }
 

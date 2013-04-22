@@ -29,9 +29,9 @@ import password.pwm.PwmSession;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -46,14 +46,14 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author Jason D. Rivard
  */
-public class PwmDBLogger implements PwmService {
+public class LocalDBLogger implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static PwmLogger LOGGER = PwmLogger.getLogger(PwmDBLogger.class);
+    private final static PwmLogger LOGGER = PwmLogger.getLogger(LocalDBLogger.class);
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
 
-    private final PwmDB pwmDB;
+    private final LocalDB pwmDB;
 
     private volatile long tailTimestampMs = -1L;
     private long lastQueueFlushTimestamp = System.currentTimeMillis();
@@ -63,7 +63,7 @@ public class PwmDBLogger implements PwmService {
 
     private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
-    private final PwmDBStoredQueue pwmDBListQueue;
+    private final LocalDBStoredQueue pwmDBListQueue;
 
     private volatile STATUS status = STATUS.NEW;
     private volatile boolean writerThreadActive = false;
@@ -73,13 +73,13 @@ public class PwmDBLogger implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmDBLogger(final PwmDB pwmDB, final int maxEvents, final long maxAgeMS)
-            throws PwmDBException {
+    public LocalDBLogger(final LocalDB pwmDB, final int maxEvents, final long maxAgeMS)
+            throws LocalDBException {
         final long startTime = System.currentTimeMillis();
         status = STATUS.OPENING;
         this.pwmDB = pwmDB;
         this.setting_maxAgeMs = maxAgeMS;
-        this.pwmDBListQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.EVENTLOG_EVENTS);
+        this.pwmDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents set to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
@@ -193,7 +193,7 @@ public class PwmDBLogger implements PwmService {
         try {
             for (final PwmLogEvent event : events) {
                 final String encodedString = event.toEncodedString();
-                if (encodedString.length() < PwmDB.MAX_VALUE_LENGTH) {
+                if (encodedString.length() < LocalDB.MAX_VALUE_LENGTH) {
                     transactions.add(encodedString);
                 }
             }
@@ -441,7 +441,7 @@ public class PwmDBLogger implements PwmService {
             writerThreadActive = false;
         }
 
-        private void loop() throws PwmDBException {
+        private void loop() throws LocalDBException {
             LOGGER.debug("starting writer thread loop");
             long lastFlushTime = System.currentTimeMillis();
 

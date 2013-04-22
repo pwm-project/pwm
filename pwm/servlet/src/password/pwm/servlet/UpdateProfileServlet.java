@@ -41,6 +41,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -174,7 +175,8 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         if (!updateProfileBean.isFormSubmitted()) {
-            populateFormFromLdap(req);
+            final FormMap formProps = pwmSession.getSessionStateBean().getLastParameterValues();
+            populateFormFromLdap(pwmApplication, pwmSession, formProps);
             forwardToJSP(req,resp);
             return;
         }
@@ -202,7 +204,10 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         try {
-            doProfileUpdate(pwmApplication, pwmSession, updateProfileBean, req, resp);
+            final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
+            doProfileUpdate(pwmApplication, pwmSession, formValues);
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
+            ServletHelper.forwardToSuccessPage(req, resp);
             return;
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
@@ -217,26 +222,27 @@ public class UpdateProfileServlet extends TopServlet {
     }
 
 
-    private void populateFormFromLdap(final HttpServletRequest req)
+    public static void populateFormFromLdap(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final FormMap formMap
+    )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-
         final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Properties formProps = pwmSession.getSessionStateBean().getLastParameterValues();
         final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
         for (final FormConfiguration formItem : formFields) {
             final String attrName = formItem.getName();
-            if (!formProps.containsKey(attrName)) {
+            if (!formMap.containsKey(attrName)) {
                 final String userCurrentValue = currentUserAttributes.get(attrName);
                 if (userCurrentValue != null) {
-                    formProps.setProperty(attrName, userCurrentValue);
+                    formMap.put(attrName, userCurrentValue);
                 }
             }
         }
     }
+
 
     private Map<FormConfiguration,String> readFormParametersFromRequest(
             final PwmApplication pwmApplication,
@@ -306,17 +312,17 @@ public class UpdateProfileServlet extends TopServlet {
         updateProfileBean.setFormSubmitted(true);
     }
 
-    private void doProfileUpdate(
+    public static void doProfileUpdate(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final UpdateProfileBean updateProfileBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final Map<FormConfiguration, String> formValues
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException, PwmOperationalException
     {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
+
+        // verify form meets the form requirements (may be redundant, but shouldn't hurt)
+        Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
 
         // write values.
         LOGGER.info("updating profile for " + pwmSession.getUserInfoBean().getUserDN());
@@ -355,8 +361,6 @@ public class UpdateProfileServlet extends TopServlet {
 
         // success, so forward to success page
         pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
-        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
-        ServletHelper.forwardToSuccessPage(req, resp);
     }
 
     private void forwardToJSP(

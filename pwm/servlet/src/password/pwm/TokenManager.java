@@ -39,7 +39,7 @@ import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -106,8 +106,8 @@ public class TokenManager implements PwmService {
             secretKey = configuration.getSecurityKey();
 
             switch (storageMethod) {
-                case STORE_PWMDB:
-                    tokenMachine = new PwmDBTokenMachine(pwmApplication.getPwmDB());
+                case STORE_LOCALDB:
+                    tokenMachine = new PwmDBTokenMachine(pwmApplication.getLocalDB());
                     break;
 
                 case STORE_DB:
@@ -287,8 +287,8 @@ public class TokenManager implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
-            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.STORE_PWMDB) {
-                try {((PwmDB.PwmDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
+            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.STORE_LOCALDB) {
+                try {((LocalDB.PwmDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning pwmDB token DB iterator: " + e.getMessage());}
             }
         }
 
@@ -429,9 +429,9 @@ public class TokenManager implements PwmService {
     }
 
     private class PwmDBTokenMachine implements TokenMachine {
-        private PwmDB pwmDB;
+        private LocalDB pwmDB;
 
-        private PwmDBTokenMachine(PwmDB pwmDB) {
+        private PwmDBTokenMachine(LocalDB pwmDB) {
             this.pwmDB = pwmDB;
         }
 
@@ -443,7 +443,7 @@ public class TokenManager implements PwmService {
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final String md5sumToken = makeTokenHash(tokenKey);
-            final String storedRawValue = pwmDB.get(PwmDB.DB.TOKENS, md5sumToken);
+            final String storedRawValue = pwmDB.get(LocalDB.DB.TOKENS, md5sumToken);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
                 return TokenPayload.fromEncryptedString(TokenManager.this,storedRawValue);
@@ -455,23 +455,23 @@ public class TokenManager implements PwmService {
         public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
             final String rawValue = tokenPayload.toEncryptedString(TokenManager.this);
             final String md5sumToken = makeTokenHash(tokenKey);
-            pwmDB.put(PwmDB.DB.TOKENS, md5sumToken, rawValue);
+            pwmDB.put(LocalDB.DB.TOKENS, md5sumToken, rawValue);
         }
 
         public void removeToken(String tokenKey)
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final String md5sumToken = makeTokenHash(tokenKey);
-            pwmDB.remove(PwmDB.DB.TOKENS,tokenKey);
-            pwmDB.remove(PwmDB.DB.TOKENS,md5sumToken);
+            pwmDB.remove(LocalDB.DB.TOKENS,tokenKey);
+            pwmDB.remove(LocalDB.DB.TOKENS,md5sumToken);
         }
 
         public int size() throws PwmOperationalException {
-            return pwmDB.size(PwmDB.DB.TOKENS);
+            return pwmDB.size(LocalDB.DB.TOKENS);
         }
 
-        public PwmDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
-            return pwmDB.iterator(PwmDB.DB.TOKENS);
+        public LocalDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
+            return pwmDB.iterator(LocalDB.DB.TOKENS);
         }
 
         public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {

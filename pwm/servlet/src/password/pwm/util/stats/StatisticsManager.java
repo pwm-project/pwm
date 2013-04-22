@@ -40,8 +40,8 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -70,7 +70,7 @@ public class StatisticsManager implements PwmService {
     public static final String KEY_CUMULATIVE = "CUMULATIVE";
     public static final String KEY_CLOUD_PUBLISH_TIMESTAMP = "CLOUD_PUB_TIMESTAMP";
 
-    private PwmDB pwmDB;
+    private LocalDB pwmDB;
 
     private DailyKey currentDailyKey = new DailyKey(new Date());
     private DailyKey initialDailyKey = new DailyKey(new Date());
@@ -149,7 +149,7 @@ public class StatisticsManager implements PwmService {
         }
 
         try {
-            final String storedStat = pwmDB.get(PwmDB.DB.PWM_STATS, key);
+            final String storedStat = pwmDB.get(LocalDB.DB.PWM_STATS, key);
             final StatisticsBundle returnBundle;
             if (storedStat != null && storedStat.length() > 0) {
                 returnBundle = StatisticsBundle.input(storedStat);
@@ -158,7 +158,7 @@ public class StatisticsManager implements PwmService {
             }
             cachedStoredStats.put(key, returnBundle);
             return returnBundle;
-        } catch (PwmDBException e) {
+        } catch (LocalDBException e) {
             LOGGER.error("error retrieving stored stat for " + key + ": " + e.getMessage());
         }
 
@@ -209,7 +209,7 @@ public class StatisticsManager implements PwmService {
         }
 
         status = STATUS.OPENING;
-        this.pwmDB = pwmApplication.getPwmDB();
+        this.pwmDB = pwmApplication.getLocalDB();
         this.pwmApplication = pwmApplication;
 
         if (pwmDB == null) {
@@ -219,7 +219,7 @@ public class StatisticsManager implements PwmService {
         }
 
         {
-            final String storedCummulativeBundleStr = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE);
+            final String storedCummulativeBundleStr = pwmDB.get(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE);
             if (storedCummulativeBundleStr != null && storedCummulativeBundleStr.length() > 0) {
                 statsCummulative = StatisticsBundle.input(storedCummulativeBundleStr);
             }
@@ -230,7 +230,7 @@ public class StatisticsManager implements PwmService {
             for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                 for (final Statistic.EpsType loopEpsDuration : Statistic.EpsType.values()) {
                     final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
-                    final String storedValue = pwmDB.get(PwmDB.DB.PWM_STATS,key);
+                    final String storedValue = pwmDB.get(LocalDB.DB.PWM_STATS,key);
                     if (storedValue != null && storedValue.length() > 0) {
                         try {
                             final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
@@ -245,7 +245,7 @@ public class StatisticsManager implements PwmService {
         }
 
         {
-            final String storedInitialString = pwmDB.get(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY);
+            final String storedInitialString = pwmDB.get(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY);
             if (storedInitialString != null && storedInitialString.length() > 0) {
                 initialDailyKey = new DailyKey(storedInitialString);
             }
@@ -253,22 +253,22 @@ public class StatisticsManager implements PwmService {
 
         {
             currentDailyKey = new DailyKey(new Date());
-            final String storedDailyStr = pwmDB.get(PwmDB.DB.PWM_STATS, currentDailyKey.toString());
+            final String storedDailyStr = pwmDB.get(LocalDB.DB.PWM_STATS, currentDailyKey.toString());
             if (storedDailyStr != null && storedDailyStr.length() > 0) {
                 statsDaily = StatisticsBundle.input(storedDailyStr);
             }
         }
 
         try {
-            pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            pwmDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
         } catch (IllegalStateException e) {
             LOGGER.error("unable to write to pwmDB, will remain closed, error: " + e.getMessage());
             status = STATUS.CLOSED;
             return;
         }
 
-        pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
-        pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
+        pwmDB.put(LocalDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
+        pwmDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to rull over at 0Zula and one to write current stats every 10 seconds
             daemonTimer = new Timer(PwmConstants.PWM_APP_NAME + "-StatisticsManager timer",true);
@@ -280,7 +280,7 @@ public class StatisticsManager implements PwmService {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
                 long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
                 {
-                    final String lastPublishDateStr = pwmDB.get(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
+                    final String lastPublishDateStr = pwmDB.get(LocalDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                     if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
                         try {
                             lastPublishTimestamp = Long.parseLong(lastPublishDateStr);
@@ -310,18 +310,18 @@ public class StatisticsManager implements PwmService {
     private void writeDbValues() {
         if (pwmDB != null) {
             try {
-                pwmDB.put(PwmDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
-                pwmDB.put(PwmDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
+                pwmDB.put(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
+                pwmDB.put(LocalDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
 
                 final Gson gson = new Gson();
                 for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                     for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
                         final String key = "EPS-" + loopEpsType.toString();
                         final String value = gson.toJson(this.epsMeterMap.get(loopEpsType.toString() + loopEpsDuration.toString()));
-                        pwmDB.put(PwmDB.DB.PWM_STATS, key, value);
+                        pwmDB.put(LocalDB.DB.PWM_STATS, key, value);
                     }
                 }
-            } catch (PwmDBException e) {
+            } catch (LocalDBException e) {
                 LOGGER.error("error outputting pwm statistics: " + e.getMessage());
             }
         }
@@ -513,8 +513,8 @@ public class StatisticsManager implements PwmService {
         }
         LOGGER.info("published anonymous statistics to " + requestURI.toString());
         try {
-            pwmDB.put(PwmDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP,String.valueOf(System.currentTimeMillis()));
-        } catch (PwmDBException e) {
+            pwmDB.put(LocalDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP,String.valueOf(System.currentTimeMillis()));
+        } catch (LocalDBException e) {
             LOGGER.error("unexpected error trying to save last statistics published time to PwmDB: " + e.getMessage());
         }
     }

@@ -27,8 +27,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,9 +68,9 @@ class Populator {
 
     private final Sleeper sleeper;
 
-    private final PwmDB.DB wordlistDB;
-    private final PwmDB.DB wordlistMetaDB;
-    private final PwmDB pwmDB;
+    private final LocalDB.DB wordlistDB;
+    private final LocalDB.DB wordlistMetaDB;
+    private final LocalDB pwmDB;
 
     private final String DEBUG_LABEL;
 
@@ -224,7 +224,7 @@ class Populator {
         return sb.toString();
     }
 
-    void populate() throws IOException, PwmDBException, PwmUnrecoverableException {
+    void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
 
         try {
             long lastReportTime = System.currentTimeMillis() - (long)(DEBUG_OUTPUT_FREQUENCY * 0.33);
@@ -281,14 +281,14 @@ class Populator {
     }
 
     private void flushBuffer()
-            throws PwmDBException
+            throws LocalDBException
     {
         final long startTime = System.currentTimeMillis();
 
         //add the elements
         pwmDB.putAll(wordlistDB, bufferedWords);
 
-        //update the src ZIP line counter in the pwmdb.
+        //update the src ZIP line counter in the localdb.
         pwmDB.put(wordlistMetaDB, WordlistManager.KEY_LASTLINE, String.valueOf(overallStats.getLines()));
 
         if (abortFlag) {
@@ -317,9 +317,10 @@ class Populator {
     }
 
     private void populationComplete()
-            throws PwmDBException, PwmUnrecoverableException
+            throws LocalDBException, PwmUnrecoverableException
     {
         flushBuffer();
+        pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
         LOGGER.info(makeStatString());
         LOGGER.trace("beginning wordlist size query");
         final int wordlistSize = pwmDB.size(wordlistDB);

@@ -65,11 +65,11 @@ public class Configuration implements Serializable {
     private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
-    public enum STORAGE_METHOD { DB, LDAP, PWMDB }
+    public enum STORAGE_METHOD { DB, LDAP, LOCALDB}
 
     public enum RECOVERY_ACTION { RESETPW, SENDNEW }
 
-    public enum TokenStorageMethod {STORE_PWMDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
+    public enum TokenStorageMethod {STORE_LOCALDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -193,7 +193,7 @@ public class Configuration implements Serializable {
     }
 
     public PwmLogLevel getEventLogLocalLevel() {
-        final String value = readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL);
+        final String value = readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL);
         for (final PwmLogLevel logLevel : PwmLogLevel.values()) {
             if (logLevel.toString().equalsIgnoreCase(value)) {
                 return logLevel;
@@ -480,13 +480,13 @@ public class Configuration implements Serializable {
     public SecretKey getSecurityKey() throws PwmOperationalException {
         final String configValue = readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
         if (configValue == null || configValue.length() <= 0) {
-            final String errorMsg = "PWM Security Key value is not configured";
+            final String errorMsg = "Security Key value is not configured";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }
 
         if (configValue.length() < 32) {
-            final String errorMsg = "PWM Security Key must be greater than 32 characters in length";
+            final String errorMsg = "Security Key must be greater than 32 characters in length";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }
@@ -494,7 +494,7 @@ public class Configuration implements Serializable {
         try {
             return Helper.SimpleTextCrypto.makeKey(configValue);
         } catch (Exception e) {
-            final String errorMsg = "unexpected error generating PWM Security Key crypto: " + e.getMessage();
+            final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             LOGGER.error(errorInfo,e);
             throw new PwmOperationalException(errorInfo);
@@ -505,7 +505,11 @@ public class Configuration implements Serializable {
         final String input = readSettingAsString(setting);
         final List<STORAGE_METHOD> storageMethods = new ArrayList<STORAGE_METHOD>();
         for (final String rawValue : input.split("-")) {
-            storageMethods.add(STORAGE_METHOD.valueOf(rawValue));
+            try {
+                storageMethods.add(STORAGE_METHOD.valueOf(rawValue));
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("unknown STORAGE_METHOD found: " + rawValue);
+            }
         }
         return storageMethods;
     }

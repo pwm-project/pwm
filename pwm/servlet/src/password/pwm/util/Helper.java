@@ -585,7 +585,9 @@ public class Helper {
         final Map<String,String> tempMap = new HashMap<String,String>();
 
         for (final FormConfiguration formItem : formValues.keySet()) {
-            tempMap.put(formItem.getName(),formValues.get(formItem));
+            if (!formItem.isReadonly()) {
+                tempMap.put(formItem.getName(),formValues.get(formItem));
+            }
         }
 
         writeMapToLdap(pwmApplication, theUser, tempMap, pwmSession.getUserInfoBean(), expandPwmMacros);
@@ -626,7 +628,7 @@ public class Helper {
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
             if (expandPwmMacros) {
-                attrValue = PwmMacroMachine.expandMacros(attrValue, pwmApplication, userInfoBean, null);
+                attrValue = MacroMachine.expandMacros(attrValue, pwmApplication, userInfoBean, null);
             }
             if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {

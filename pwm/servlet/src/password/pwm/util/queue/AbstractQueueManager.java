@@ -33,8 +33,8 @@ import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -56,7 +56,7 @@ public abstract class AbstractQueueManager implements PwmService {
     long maxErrorWaitTimeMS = 5 * 60 * 1000;
 
     HealthRecord lastSendFailure;
-    PwmDBStoredQueue sendQueue;
+    LocalDBStoredQueue sendQueue;
 
     public STATUS status() {
         return status;
@@ -102,15 +102,15 @@ public abstract class AbstractQueueManager implements PwmService {
         return false;
     }
 
-    public void init(final PwmApplication pwmApplication, final PwmDB.DB DB)
+    public void init(final PwmApplication pwmApplication, final LocalDB.DB DB)
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
         this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
 
-        final PwmDB pwmDB = this.pwmApplication.getPwmDB();
+        final LocalDB pwmDB = this.pwmApplication.getLocalDB();
 
-        if (pwmDB == null || pwmDB.status() != PwmDB.Status.OPEN) {
+        if (pwmDB == null || pwmDB.status() != LocalDB.Status.OPEN) {
             status = STATUS.CLOSED;
             lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, LocalDB is not open");
             return;
@@ -122,7 +122,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        sendQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, DB);
+        sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, DB);
 
         {
             final QueueThread emailSendThread = new QueueThread();

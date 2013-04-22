@@ -434,10 +434,10 @@ public class ResourceFileServlet extends HttpServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException {
         if (requestURI != null) {
-            if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/pwmStyle.css")) {
+            if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/style.css")) {
                 writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response);
                 return true;
-            } else if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/pwmMobileStyle.css")) {
+            } else if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/mobileStyle.css")) {
                 writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response);
                 return true;
             }

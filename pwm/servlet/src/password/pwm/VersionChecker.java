@@ -36,8 +36,8 @@ import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -63,14 +63,14 @@ public class VersionChecker implements PwmService {
 
     public void init(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
+        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
-                final String versionChkInfoJson = pwmApplication.getPwmDB().get(PwmDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
+                final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
                     final Gson gson = new Gson();
                     versionCheckInfoCache = gson.fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
-            } catch (PwmDBException e) {
+            } catch (LocalDBException e) {
                 LOGGER.error("error reading version check info out of PwmDB: " + e.getMessage());
             }
         }
@@ -146,12 +146,12 @@ public class VersionChecker implements PwmService {
             versionCheckInfoCache = new VersionCheckInfoCache(errorInformation,"","");
         }
 
-        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
+        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
                 final Gson gson = new Gson();
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
-                pwmApplication.getPwmDB().put(PwmDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
-            } catch (PwmDBException e) {
+                pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
+            } catch (LocalDBException e) {
                 LOGGER.error("error writing version check info out of PwmDB: " + e.getMessage());
             }
         }

@@ -20,9 +20,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.util.PwmDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogEvent" %>
-<%@ page import="password.pwm.util.PwmLogLevel" %>
+<%@ page import="password.pwm.util.LocalDBLogger" %>
+<%@ page import="password.pwm.util.*" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -30,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
+<% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
 <body onload="pwmPageLoadHandler();">
 <div style="width: 100%; text-align:center;">
 <a href="<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog">refresh</a>
@@ -39,10 +38,10 @@
 </div>
 <%
     final PwmLogLevel logLevel = PwmLogLevel.TRACE;
-    final PwmDBLogger.EventType logType = PwmDBLogger.EventType.Both;
+    final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     final int eventCount = 1000;
     final long maxTime = 10000;
-    final PwmDBLogger.SearchResults searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, "", "", maxTime, logType);
+    final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, "", "", maxTime, logType);
 %>
 <pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
 </body>

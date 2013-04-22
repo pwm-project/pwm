@@ -36,7 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -74,7 +74,7 @@ public class EmailQueueManager extends AbstractQueueManager {
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
-        super.init(pwmApplication, PwmDB.DB.EMAIL_QUEUE);
+        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE);
         this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
     }
 

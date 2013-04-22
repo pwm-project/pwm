@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
 import password.pwm.util.PwmLogger;
@@ -33,15 +33,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class PwmDBAdaptor implements PwmDB {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmDBAdaptor.class);
+public class LocalDBAdaptor implements LocalDB {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBAdaptor.class);
 
-    private final PwmDBProvider innerDB;
+    private final LocalDBProvider innerDB;
 
     private final SizeCacheManager SIZE_CACHE_MANAGER = new SizeCacheManager();
     private final PwmApplication pwmApplication;
 
-    PwmDBAdaptor(final PwmDBProvider innerDB, final PwmApplication pwmApplication) {
+    LocalDBAdaptor(final LocalDBProvider innerDB, final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
         if (innerDB == null) {
             throw new IllegalArgumentException("innerDB can not be null");
@@ -56,11 +56,11 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public void close() throws PwmDBException {
+    public void close() throws LocalDBException {
         innerDB.close();
     }
 
-    public boolean contains(final DB db, final String key) throws PwmDBException {
+    public boolean contains(final DB db, final String key) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
@@ -70,7 +70,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
 
-    public String get(final DB db, final String key) throws PwmDBException {
+    public String get(final DB db, final String key) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
@@ -80,11 +80,11 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, boolean readOnly) throws PwmDBException {
+    public void init(final File dbDirectory, final Map<String, String> initParameters, boolean readOnly) throws LocalDBException {
         innerDB.init(dbDirectory, initParameters, readOnly);
     }
 
-    public PwmDBIterator<String> iterator(final DB db) throws PwmDBException {
+    public PwmDBIterator<String> iterator(final DB db) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         final PwmDBIterator<String> innerIterator = innerDB.iterator(db);
         return new SizeIterator<String>(db, innerIterator);
@@ -125,7 +125,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public void putAll(final DB db, final Map<String, String> keyValueMap) throws PwmDBException {
+    public void putAll(final DB db, final Map<String, String> keyValueMap) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         for (final String loopKey : keyValueMap.keySet()) {
             try {
@@ -148,7 +148,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public boolean put(final DB db, final String key, final String value) throws PwmDBException {
+    public boolean put(final DB db, final String key, final String value) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
         ParameterValidator.validateValueValue(value);
@@ -163,7 +163,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public boolean remove(final DB db, final String key) throws PwmDBException {
+    public boolean remove(final DB db, final String key) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         ParameterValidator.validateKeyValue(key);
 
@@ -177,7 +177,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     @WriteOperation
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
+    public void removeAll(final DB db, final Collection<String> keys) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         for (final String loopKey : keys) {
             try {
@@ -189,24 +189,28 @@ public class PwmDBAdaptor implements PwmDB {
             }
         }
 
-        innerDB.removeAll(db, keys);
-
-        try {
-            innerDB.removeAll(db, keys);
-        } finally {
-            SIZE_CACHE_MANAGER.clearSize(db);
+        if (keys.size() > 1) {
+            try {
+                innerDB.removeAll(db, keys);
+            } finally {
+                SIZE_CACHE_MANAGER.clearSize(db);
+            }
+        } else {
+            for (final String key : keys) {
+                remove(db,key);
+            }
         }
 
         markWrite(keys.size());
     }
 
-    public int size(final DB db) throws PwmDBException {
+    public int size(final DB db) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         return SIZE_CACHE_MANAGER.getSizeForDB(db, innerDB);
     }
 
     @WriteOperation
-    public void truncate(final DB db) throws PwmDBException {
+    public void truncate(final DB db) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
         try {
             innerDB.truncate(db);
@@ -268,7 +272,7 @@ public class PwmDBAdaptor implements PwmDB {
             sizeCache.put(db, CACHE_DIRTY);
         }
 
-        private int getSizeForDB(final DB db, final PwmDBProvider pwmDBProvider) throws PwmDBException {
+        private int getSizeForDB(final DB db, final LocalDBProvider pwmDBProvider) throws LocalDBException {
             // get the cached size out of the cache store
             final Integer cachedSize = sizeCache.get(db);
 
@@ -302,7 +306,7 @@ public class PwmDBAdaptor implements PwmDB {
     }
 
     private static class ParameterValidator {
-        private static void validateDBValue(final PwmDB.DB db) {
+        private static void validateDBValue(final LocalDB.DB db) {
             if (db == null) {
                 throw new NullPointerException("db cannot be null");
             }
@@ -317,8 +321,8 @@ public class PwmDBAdaptor implements PwmDB {
                 throw new IllegalArgumentException("key length cannot be zero length");
             }
 
-            if (key.length() > PwmDB.MAX_KEY_LENGTH) {
-                throw new IllegalArgumentException("key length " + key.length() + " is greater than max " + PwmDB.MAX_KEY_LENGTH);
+            if (key.length() > LocalDB.MAX_KEY_LENGTH) {
+                throw new IllegalArgumentException("key length " + key.length() + " is greater than max " + LocalDB.MAX_KEY_LENGTH);
             }
         }
 
@@ -327,8 +331,8 @@ public class PwmDBAdaptor implements PwmDB {
                 throw new NullPointerException("value cannot be null");
             }
 
-            if (value.length() > PwmDB.MAX_VALUE_LENGTH) {
-                throw new IllegalArgumentException("value length " + value.length() + " is greater than max " + PwmDB.MAX_VALUE_LENGTH);
+            if (value.length() > LocalDB.MAX_VALUE_LENGTH) {
+                throw new IllegalArgumentException("value length " + value.length() + " is greater than max " + LocalDB.MAX_VALUE_LENGTH);
             }
         }
     }

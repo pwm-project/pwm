@@ -25,7 +25,7 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.pwmdb.PwmDB;
+import password.pwm.util.localdb.LocalDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +38,10 @@ public class PwmDBHealthChecker implements HealthChecker {
 
         final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
 
-        final PwmDB pwmDB = pwmApplication.getPwmDB();
+        final LocalDB pwmDB = pwmApplication.getLocalDB();
 
         if (pwmDB == null) {
-            final String detailedError = pwmApplication.getLastPwmDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastPwmDBFailure().toDebugStr();
+            final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",
@@ -50,7 +50,7 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (PwmDB.Status.NEW == pwmDB.status()) {
+        if (LocalDB.Status.NEW == pwmDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",
@@ -59,7 +59,7 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (PwmDB.Status.CLOSED == pwmDB.status()) {
+        if (LocalDB.Status.CLOSED == pwmDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",

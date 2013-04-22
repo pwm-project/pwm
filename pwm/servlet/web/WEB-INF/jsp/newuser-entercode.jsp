@@ -48,19 +48,22 @@
                        name="search"
                        value="<pwm:Display key="Button_CheckCode"/>"
                        id="submitBtn"/>
-                <input type="reset" class="btn"
-                       name="reset"
-                       value="<pwm:Display key="Button_Reset"/>"/>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
+        <div style="text-align: center">
+            <form action="<%=request.getContextPath()%>/public/<pwm:url url='NewUser'/>" method="post"
+                  enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="processAction" value="reset"/>
+                <input type="submit" name="button" class="btn"
+                       value="<pwm:Display key="Button_Cancel"/>"
+                       id="button_reset"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+        </div>
     </div>
+</div>
     <br class="clear"/>
 </div>
 <%@ include file="fragment/footer.jsp" %>

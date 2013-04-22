@@ -42,8 +42,8 @@ import password.pwm.health.HealthStatus;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -56,7 +56,7 @@ public class AuditManager implements PwmService {
 
     private STATUS status = STATUS.NEW;
     private PwmApplication pwmApplication;
-    private PwmDBStoredQueue auditDB;
+    private LocalDBStoredQueue auditDB;
 
     private TimeDuration maxRecordAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 30);
     private Date oldestRecord = null;
@@ -78,8 +78,8 @@ public class AuditManager implements PwmService {
         this.pwmApplication = pwmApplication;
         this.maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
 
-        if (pwmApplication.getPwmDB() != null && pwmApplication.getPwmDB().status() == PwmDB.Status.OPEN) {
-            this.auditDB = PwmDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getPwmDB(), PwmDB.DB.AUDIT_EVENTS);
+        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
+            this.auditDB = LocalDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getLocalDB(), LocalDB.DB.AUDIT_EVENTS);
             this.status = STATUS.OPEN;
         } else {
             this.status = STATUS.CLOSED;

@@ -23,9 +23,9 @@
 package password.pwm.tests;
 
 import junit.framework.TestCase;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBFactory;
-import password.pwm.util.pwmdb.PwmDBStoredQueue;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.File;
 
@@ -33,8 +33,8 @@ public class PwmDBStoredQueueTest extends TestCase {
 
     private static final int SIZE = 5;
 
-    private PwmDBStoredQueue storedQueue;
-    private PwmDB pwmDB;
+    private LocalDBStoredQueue storedQueue;
+    private LocalDB pwmDB;
 
     @Override
     protected void setUp() throws Exception {
@@ -42,11 +42,11 @@ public class PwmDBStoredQueueTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = PwmDBFactory.getInstance(fileLocation, null, null, false, null);
-        storedQueue = PwmDBStoredQueue.createPwmDBStoredQueue(pwmDB, PwmDB.DB.TEMP);
+        pwmDB = LocalDBFactory.getInstance(fileLocation, null, null, false, null);
+        storedQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.TEMP);
     }
 
-    private void populatedQueue(final int n, final PwmDBStoredQueue storedQueue) {
+    private void populatedQueue(final int n, final LocalDBStoredQueue storedQueue) {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
         for (int i = 0; i < n; ++i)

@@ -38,8 +38,8 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 import password.pwm.wordlist.WordlistManager;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
@@ -257,7 +257,7 @@ public abstract class CrUtility {
             LOGGER.debug(pwmSession, debugMsg);
         }
         final String userGUID;
-        if (readPreferences.contains(Configuration.STORAGE_METHOD.DB) || readPreferences.contains(Configuration.STORAGE_METHOD.PWMDB)) {
+        if (readPreferences.contains(Configuration.STORAGE_METHOD.DB) || readPreferences.contains(Configuration.STORAGE_METHOD.LOCALDB)) {
             userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
         } else {
             userGUID = null;
@@ -273,8 +273,8 @@ public abstract class CrUtility {
                     readResponses = ResponseReaders.readResponsesFromDatabase(pwmSession, databaseAccessor, theUser, userGUID);
                     break;
 
-                case PWMDB:
-                    final PwmDB pwmDB = pwmApplication.getPwmDB();
+                case LOCALDB:
+                    final LocalDB pwmDB = pwmApplication.getLocalDB();
                     readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, pwmDB, theUser, userGUID);
                     break;
 
@@ -301,7 +301,7 @@ public abstract class CrUtility {
 
         private static ResponseSet readResponsesFromPwmDB(
                 final PwmSession pwmSession,
-                final PwmDB pwmDB,
+                final LocalDB pwmDB,
                 final ChaiUser theUser,
                 final String userGUID
         )
@@ -320,13 +320,13 @@ public abstract class CrUtility {
             }
 
             try {
-                final String responseStringBlob = pwmDB.get(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                final String responseStringBlob = pwmDB.get(LocalDB.DB.RESPONSE_STORAGE, userGUID);
                 if (responseStringBlob != null && responseStringBlob.length() > 0) {
                     final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
                     LOGGER.debug(pwmSession, "found user responses in pwmDB: " + userResponseSet.toString());
                     return userResponseSet;
                 }
-            } catch (PwmDBException e) {
+            } catch (LocalDBException e) {
                 final String errorMsg = "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
@@ -540,23 +540,23 @@ public abstract class CrUtility {
                 }
                 break;
 
-                case PWMDB: {
+                case LOCALDB: {
                     attempts++;
                     if (userGUID == null || userGUID.length() < 1) {
                         throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
                     }
 
-                    if (pwmApplication.getPwmDB() == null) {
+                    if (pwmApplication.getLocalDB() == null) {
                         final String errorMsg = "pwmDB is not available, unable to write user responses";
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                         throw new PwmOperationalException(errorInformation);
                     }
 
                     try {
-                        pwmApplication.getPwmDB().put(PwmDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue());
+                        pwmApplication.getLocalDB().put(LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue());
                         LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
                         successes++;
-                    } catch (PwmDBException e) {
+                    } catch (LocalDBException e) {
                         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
@@ -695,23 +695,23 @@ public abstract class CrUtility {
                 }
                 break;
 
-                case PWMDB: {
+                case LOCALDB: {
                     attempts++;
                     if (userGUID == null || userGUID.length() < 1) {
                         throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to pwmDB, user does not have a pwmGUID"));
                     }
 
-                    if (pwmApplication.getPwmDB() == null) {
+                    if (pwmApplication.getLocalDB() == null) {
                         final String errorMsg = "pwmDB is not available, unable to write user responses";
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                         throw new PwmOperationalException(errorInformation);
                     }
 
                     try {
-                        pwmApplication.getPwmDB().remove(PwmDB.DB.RESPONSE_STORAGE, userGUID);
+                        pwmApplication.getLocalDB().remove(LocalDB.DB.RESPONSE_STORAGE, userGUID);
                         LOGGER.info(pwmSession, "cleared responses for user in local pwmDB");
                         successes++;
-                    } catch (PwmDBException e) {
+                    } catch (LocalDBException e) {
                         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected pwmDB error clearing responses to pwmDB: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);

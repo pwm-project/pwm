@@ -38,6 +38,7 @@ public class ConfigManagerBean implements PwmSessionBean {
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle;
     private boolean passwordVerified;
+    private boolean passwordRequired;
 
     public ConfigManagerBean() {
     }
@@ -104,5 +105,13 @@ public class ConfigManagerBean implements PwmSessionBean {
 
     public void setPasswordVerified(boolean passwordVerified) {
         this.passwordVerified = passwordVerified;
+    }
+
+    public boolean isPasswordRequired() {
+        return passwordRequired;
+    }
+
+    public void setPasswordRequired(boolean passwordRequired) {
+        this.passwordRequired = passwordRequired;
     }
 }

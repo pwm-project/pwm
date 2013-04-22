@@ -426,7 +426,7 @@ public enum PwmSetting {
             "events.pwmDB.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     EVENTS_PWMDB_MAX_AGE(
             "events.pwmDB.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
-    EVENTS_PWMDB_LOG_LEVEL(
+    EVENTS_LOCALDB_LOG_LEVEL(
             "events.pwmDB.logLevel", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
@@ -836,6 +836,9 @@ public enum PwmSetting {
 
     public String getLabel(final Locale locale) {
         final Element settingElement = readSettingXml(this);
+        if (settingElement == null) {
+            throw new IllegalStateException("missing Setting value for setting " + this.getKey());
+        }
         final Element labelElement = settingElement.getChild("label");
         return labelElement.getText();
     }

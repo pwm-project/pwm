@@ -54,7 +54,7 @@ public class ParamValueTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();
-            final String paramValue = ssBean.getLastParameterValues().getProperty(name);
+            final String paramValue = ssBean.getLastParameterValues().get(name);
             if (paramValue != null && paramValue.length() > 0) {
                 final String escapedValue = StringEscapeUtils.escapeHtml(paramValue);
                 pageContext.getOut().write(escapedValue);

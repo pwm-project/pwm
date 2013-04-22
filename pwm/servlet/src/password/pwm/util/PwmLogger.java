@@ -26,8 +26,8 @@ import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.util.Date;
 
@@ -37,7 +37,7 @@ import java.util.Date;
 public class PwmLogger {
 // ------------------------------ FIELDS ------------------------------
 
-    private static PwmDBLogger pwmDBLogger;
+    private static LocalDBLogger localDBLogger;
     private static PwmLogLevel minimumDbLogLevel;
     private static PwmApplication pwmApplication;
 
@@ -64,22 +64,22 @@ public class PwmLogger {
     }
 
 
-    public static PwmDBLogger initPwmApplication(
-            final PwmDB pwmDB,
+    public static LocalDBLogger initPwmApplication(
+            final LocalDB pwmDB,
             final int maxEvents,
             final long maxAgeMS,
             final PwmLogLevel minimumDbLogLevel,
             final PwmApplication pwmApplication
     ) {
         try {
-            PwmLogger.pwmDBLogger = new PwmDBLogger(pwmDB, maxEvents, maxAgeMS);
-        } catch (PwmDBException e) {
+            PwmLogger.localDBLogger = new LocalDBLogger(pwmDB, maxEvents, maxAgeMS);
+        } catch (LocalDBException e) {
             //nothing to do;
         }
 
         PwmLogger.minimumDbLogLevel = minimumDbLogLevel;
         PwmLogger.pwmApplication = pwmApplication;
-        return PwmLogger.pwmDBLogger;
+        return PwmLogger.localDBLogger;
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -209,9 +209,9 @@ public class PwmLogger {
                     level
             );
 
-            if (pwmDBLogger != null && !pwmDBdisabled) {
+            if (localDBLogger != null && !pwmDBdisabled) {
                 if (minimumDbLogLevel == null || level.compareTo(minimumDbLogLevel) >= 0) {
-                    pwmDBLogger.writeEvent(logEvent);
+                    localDBLogger.writeEvent(logEvent);
                 }
             }
 

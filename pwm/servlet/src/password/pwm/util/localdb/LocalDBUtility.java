@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -35,24 +35,24 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class PwmDBUtility {
+public class LocalDBUtility {
 
-    final static List<PwmDB.DB> BACKUP_IGNORE_DBs;
-    private final PwmDB pwmDB;
+    final static List<LocalDB.DB> BACKUP_IGNORE_DBs;
+    private final LocalDB pwmDB;
     private int exportLineCounter;
     private int importLineCounter;
 
     static {
-        final PwmDB.DB[] ignoredDBsArray = {
-                PwmDB.DB.SEEDLIST_META,
-                PwmDB.DB.SEEDLIST_WORDS,
-                PwmDB.DB.WORDLIST_META,
-                PwmDB.DB.WORDLIST_WORDS,
+        final LocalDB.DB[] ignoredDBsArray = {
+                LocalDB.DB.SEEDLIST_META,
+                LocalDB.DB.SEEDLIST_WORDS,
+                LocalDB.DB.WORDLIST_META,
+                LocalDB.DB.WORDLIST_WORDS,
         };
         BACKUP_IGNORE_DBs = Collections.unmodifiableList(Arrays.asList(ignoredDBsArray));
     }
 
-    public PwmDBUtility(PwmDB pwmDB) {
+    public LocalDBUtility(LocalDB pwmDB) {
         this.pwmDB = pwmDB;
     }
 
@@ -70,7 +70,7 @@ public class PwmDBUtility {
 
         writeStringToOut(out,"counting lines...");
         exportLineCounter = 0;
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
                 exportLineCounter += pwmDB.size(loopDB);
             }
@@ -96,7 +96,7 @@ public class PwmDBUtility {
         CsvWriter csvWriter = null;
         try {
             csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputFile))),',');
-            for (PwmDB.DB loopDB : PwmDB.DB.values()) {
+            for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
                     for (final Iterator<String> iter = pwmDB.iterator(loopDB); iter.hasNext();) {
                         final String key = iter.next();
@@ -136,7 +136,7 @@ public class PwmDBUtility {
         }
 
         writeStringToOut(out, "clearing PwmDB...");
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             writeStringToOut(out, " truncating " + loopDB.toString());
             pwmDB.truncate(loopDB);
         }
@@ -171,26 +171,26 @@ public class PwmDBUtility {
             }
         },15 * 1000, 30 * 1000);
 
-        final Map<PwmDB.DB,Map<String,String>> transactionMap = new HashMap<PwmDB.DB, Map<String, String>>();
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+        final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<LocalDB.DB, Map<String, String>>();
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             transactionMap.put(loopDB,new HashMap<String, String>());
         }
 
         try {
             csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
             while (csvReader.readRecord()) {
-                final PwmDB.DB db = PwmDB.DB.valueOf(csvReader.get(0));
+                final LocalDB.DB db = LocalDB.DB.valueOf(csvReader.get(0));
                 final String key = csvReader.get(1);
                 final String value = csvReader.get(2);
                 pwmDB.put(db, key, value);
                 transactionMap.get(db).put(key,value);
                 int cachedTransactions = 0;
-                for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+                for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                     cachedTransactions += transactionMap.get(loopDB).keySet().size();
                 }
                 if (cachedTransactions >= transactionCalculator.getTransactionSize()) {
                     final long startTxnTime = System.currentTimeMillis();
-                    for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+                    for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                         pwmDB.putAll(loopDB,transactionMap.get(loopDB));
                         importLineCounter += transactionMap.get(loopDB).size();
                         transactionMap.get(loopDB).clear();
@@ -203,7 +203,7 @@ public class PwmDBUtility {
             if (csvReader != null) {csvReader.close();}
         }
 
-        for (final PwmDB.DB loopDB : PwmDB.DB.values()) {
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             pwmDB.putAll(loopDB,transactionMap.get(loopDB));
             transactionMap.get(loopDB).clear();
         }

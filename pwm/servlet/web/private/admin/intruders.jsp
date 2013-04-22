@@ -44,7 +44,7 @@
         <%@ include file="admin-nav.jsp" %>
         <%
             final List<Map<String,Object>> userGridData = new ArrayList<Map<String, Object>>();
-            IntruderManager.RecordIterator<IntruderManager.IntruderRecord> userIterator;
+            final IntruderManager.RecordIterator userIterator;
             for (userIterator = pwmApplicationHeader.getIntruderManager().userRecordIterator(); userIterator.hasNext() && userGridData.size() < PwmConstants.INTRUDER_TABLE_SIZE_VIEW_MAX; ) {
                 final IntruderManager.IntruderRecord intruderRecord = userIterator.next();
                 if (intruderRecord != null) {
@@ -63,7 +63,7 @@
             }
             userIterator.close();
             final List<Map<String,Object>> addressGridData = new ArrayList<Map<String, Object>>();
-            IntruderManager.RecordIterator<IntruderManager.IntruderRecord> addressIterator;
+            final IntruderManager.RecordIterator addressIterator;
             for (addressIterator = pwmApplicationHeader.getIntruderManager().addressRecordIterator(); addressIterator.hasNext() && addressGridData.size() < PwmConstants.INTRUDER_TABLE_SIZE_VIEW_MAX; ) {
                 final IntruderManager.IntruderRecord intruderRecord = addressIterator.next();
                 if (intruderRecord != null) {

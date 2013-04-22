@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.pwmdb;
+package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -30,35 +30,35 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static password.pwm.util.pwmdb.PwmDB.DB;
+import static password.pwm.util.localdb.LocalDB.DB;
 
 
 /**
  * @author Jason D. Rivard
  */
-public class Memory_PwmDb implements PwmDBProvider {
+public class Memory_LocalDB implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
-    private PwmDB.Status state = PwmDB.Status.NEW;
+    private LocalDB.Status state = LocalDB.Status.NEW;
     private Map<DB, Map<String, String>> maps = new HashMap<DB, Map<String, String>>();
 
 // -------------------------- STATIC METHODS --------------------------
 
-    private static void checkFreeMem() throws PwmDBException {
+    private static void checkFreeMem() throws LocalDBException {
         final long currentFreeMem = Runtime.getRuntime().freeMemory();
         if (currentFreeMem < MIN_FREE_MEMORY) {
             System.gc();
             Helper.pause(100);
             System.gc();
             if (currentFreeMem < MIN_FREE_MEMORY) {
-                throw new PwmDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"out of memory, unable to add new records"));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"out of memory, unable to add new records"));
             }
         }
     }
 
-    private void opertationPreCheck() throws PwmDBException {
-        if (state != PwmDB.Status.OPEN) {
+    private void opertationPreCheck() throws LocalDBException {
+        if (state != LocalDB.Status.OPEN) {
             throw new IllegalStateException("db is not open");
         }
         checkFreeMem();
@@ -66,8 +66,8 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Memory_PwmDb() {
-        for (final DB db : PwmDB.DB.values()) {
+    public Memory_LocalDB() {
+        for (final DB db : LocalDB.DB.values()) {
             final Map<String, String> newMap = new ConcurrentHashMap<String, String>();
             maps.put(db, newMap);
         }
@@ -78,51 +78,51 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // --------------------- Interface PwmDB ---------------------
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public void close()
-            throws PwmDBException {
-        state = PwmDB.Status.CLOSED;
-        for (final DB db : PwmDB.DB.values()) {
+            throws LocalDBException {
+        state = LocalDB.Status.CLOSED;
+        for (final DB db : LocalDB.DB.values()) {
             maps.get(db).clear();
         }
     }
 
     public boolean contains(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
         final Map<String, String> map = maps.get(db);
         return map.containsKey(key);
     }
 
     public String get(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
         final Map<String, String> map = maps.get(db);
         return map.get(key);
     }
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
-            throws PwmDBException {
+            throws LocalDBException {
         if (readOnly) {
             maps = Collections.unmodifiableMap(maps);
         }
-        if (state == PwmDB.Status.OPEN) {
+        if (state == LocalDB.Status.OPEN) {
             throw new IllegalStateException("cannot init db more than one time");
         }
-        if (state == PwmDB.Status.CLOSED) {
+        if (state == LocalDB.Status.CLOSED) {
             throw new IllegalStateException("db is closed");
         }
-        state = PwmDB.Status.OPEN;
+        state = LocalDB.Status.OPEN;
     }
 
-    public PwmDB.PwmDBIterator<String> iterator(final DB db) throws PwmDBException {
+    public LocalDB.PwmDBIterator<String> iterator(final DB db) throws LocalDBException {
         return new DbIterator(db);
     }
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public void putAll(final DB db, final Map<String, String> keyValueMap)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
 
         if (keyValueMap != null) {
@@ -131,51 +131,51 @@ public class Memory_PwmDb implements PwmDBProvider {
         }
     }
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public boolean put(final DB db, final String key, final String value)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
         return null != map.put(key, value);
     }
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public boolean remove(final DB db, final String key)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
         return null != map.remove(key);
     }
 
-    public void returnIterator(final DB db) throws PwmDBException {
+    public void returnIterator(final DB db) throws LocalDBException {
     }
 
     public int size(final DB db)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
         return map.size();
     }
 
-    @PwmDB.WriteOperation
+    @LocalDB.WriteOperation
     public void truncate(final DB db)
-            throws PwmDBException {
+            throws LocalDBException {
         opertationPreCheck();
 
         final Map<String, String> map = maps.get(db);
         map.clear();
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws PwmDBException {
+    public void removeAll(final DB db, final Collection<String> keys) throws LocalDBException {
         opertationPreCheck();
 
         maps.get(db).keySet().removeAll(keys);
     }
 
-    public PwmDB.Status getStatus() {
+    public LocalDB.Status getStatus() {
         return state;
     }
 
@@ -184,7 +184,7 @@ public class Memory_PwmDb implements PwmDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements PwmDB.PwmDBIterator<String> {
+    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
         private final Iterator<String> iterator;
 
         private DbIterator(final DB db) {

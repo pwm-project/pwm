@@ -22,9 +22,13 @@
 
 package password.pwm.util;
 
+import password.pwm.PwmConstants;
+import password.pwm.i18n.Display;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * An immutable class representing a time period.  The internal value of the time period is
@@ -269,56 +273,45 @@ public class TimeDuration implements Comparable, Serializable {
     }
 
     public String asLongString() {
+        return asLongString(PwmConstants.DEFAULT_LOCALE);
+    }
+
+    public String asLongString(final Locale locale) {
         final TimeDetail timeDetail = getTimeDetail();
 
         final StringBuilder sb = new StringBuilder(16);
 
         //output number of days
         if (timeDetail.days > 0) {
-            sb.append(this.getDaysString());
+            sb.append(timeDetail.days);
+            sb.append(" ");
+            sb.append(timeDetail.days == 1 ? Display.getLocalizedMessage(locale,"Display_Day",null) : Display.getLocalizedMessage(locale,"Display_Days",null));
             sb.append(", ");
         }
 
         //output number of hours
         if (timeDetail.hours > 0) {
-            sb.append(this.getHoursString());
+            sb.append(timeDetail.hours);
+            sb.append(" ");
+            sb.append(timeDetail.hours == 1 ? Display.getLocalizedMessage(locale,"Display_Hour",null) : Display.getLocalizedMessage(locale,"Display_Hours",null));
             sb.append(", ");
         }
 
         //output number of minutes
         if (timeDetail.days > 0 || timeDetail.hours > 0 || timeDetail.minutes > 0) {
             sb.append(timeDetail.minutes);
-            sb.append(timeDetail.minutes == 1 ? " Minute, " : " Minutes, ");
+            sb.append(" ");
+            sb.append(timeDetail.minutes == 1 ? Display.getLocalizedMessage(locale,"Display_Minute",null) : Display.getLocalizedMessage(locale,"Display_Minutes",null));
+            sb.append(", ");
         }
 
         //seconds
         {
             sb.append(timeDetail.seconds);
-            sb.append(timeDetail.seconds == 1 ? " Second" : " Seconds");
+            sb.append(" ");
+            sb.append(timeDetail.seconds == 1 ? Display.getLocalizedMessage(locale,"Display_Second",null) : Display.getLocalizedMessage(locale,"Display_Seconds",null));
         }
 
-        return sb.toString();
-    }
-
-    public String getDaysString() {
-        final TimeDetail timeDetail = getTimeDetail();
-        final StringBuilder sb = new StringBuilder(3);
-        sb.append(timeDetail.days);
-        sb.append(" Day");
-        if (timeDetail.days != 1) {
-            sb.append('s');
-        }
-        return sb.toString();
-    }
-
-    public String getHoursString() {
-        final TimeDetail timeDetail = getTimeDetail();
-        final StringBuilder sb = new StringBuilder(3);
-        sb.append(timeDetail.hours);
-        sb.append(" Hour");
-        if (timeDetail.hours != 1) {
-            sb.append('s');
-        }
         return sb.toString();
     }
 

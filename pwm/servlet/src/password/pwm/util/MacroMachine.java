@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PwmMacroMachine {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmMacroMachine.class);
+public class MacroMachine {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(MacroMachine.class);
 
     private static final List<MacroImplementation> MACROS = new ArrayList<MacroImplementation>();
     static {
@@ -54,7 +54,7 @@ public class PwmMacroMachine {
         MACROS.add(new PwmSiteHostMacro());
     }
 
-    private PwmMacroMachine() {
+    private MacroMachine() {
     }
 
     private interface MacroImplementation {

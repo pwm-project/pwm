@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.util.PwmDBLogger" %>
+<%@ page import="password.pwm.util.LocalDBLogger" %>
 <%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="java.text.NumberFormat" %>
@@ -35,7 +35,7 @@
 <% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmDBLogger pwmDBLogger = ContextManager.getPwmApplication(session).getPwmDBLogger(); %>
+<% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -140,7 +140,7 @@
 <br/>
 <%
     PwmLogLevel logLevel = PwmLogLevel.INFO;
-    PwmDBLogger.EventType logType = PwmDBLogger.EventType.Both;
+    LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     int eventCount = 100;
     long maxTime = 10000;
     final String username = password.pwm.Validator.readStringFromRequest(request, "username");
@@ -151,7 +151,7 @@
     } catch (Exception e) {
     }
     try {
-        logType = PwmDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request, "type"));
+        logType = LocalDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request, "type"));
     } catch (Exception e) {
     }
     try {
@@ -163,9 +163,9 @@
     } catch (Exception e) {
     }
 
-    PwmDBLogger.SearchResults searchResults = null;
+    LocalDBLogger.SearchResults searchResults = null;
     try {
-        searchResults = pwmDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+        searchResults = localDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
     } catch (Exception e) {
         out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");
     }
@@ -201,7 +201,7 @@
         }
     %>
 </script>
-    <div id="grid">
+    <div id="dgrid">
     </div>
     <script>
         function startupPage() {
@@ -224,7 +224,7 @@
                         // have the features we added!
                         var grid = new CustomGrid({
                             columns: columnHeaders
-                        }, "grid");
+                        }, "dgrid");
                         grid.set("sort","timestamp");
                         grid.renderArray(data);
                     });
@@ -261,12 +261,12 @@
     record of events, see the application server's log file.
     All times listed are in
     the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-    timezone. The LocalDB contains <%=numberFormat.format(pwmDBLogger.getStoredEventCount())%> events. The oldest event is from
-    <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getPwmDBLogger().getTailDate()) %>
+    timezone. The LocalDB contains <%=numberFormat.format(localDBLogger.getStoredEventCount())%> events. The oldest event is from
+    <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %>
     .
     </p><p>
     The LocalDB is configured to capture events of level
-    <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_PWMDB_LOG_LEVEL)%>
+    <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
     </b> and higher.
 </p>
 </div>

@@ -26,12 +26,12 @@
 <html dir="<pwm:LocaleOrientation/>">
 <head>
     <title>REST Web Services Reference</title>
-    <link href="/sspr/public/resources/pwmStyle.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="/sspr/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
+    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link href="<%=request.getContextPath()%>/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
-    <script defer data-dojo-config="async: true" type="text/javascript" src="/sspr/public/resources/dojo/dojo/dojo.js"></script>
-    <script defer type="text/javascript" src="/sspr/public/resources/pwmHelper.js"></script>
-    <script defer type="text/javascript" src="/sspr/public/jsClientValues.jsp"></script>
+    <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%>/public/resources/dojo/dojo/dojo.js"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/resources/js/main.js"></script>
+    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/jsClientValues.jsp"></script>
 </head>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
@@ -51,9 +51,11 @@
         <li><a href="#challenges">challenges</a></li>
         <li><a href="#checkpassword">checkpassword</a></li>
         <li><a href="#health">health</a></li>
+        <li><a href="#profile">profile</a></li>
         <li><a href="#randompassword">randompassword</a></li>
         <li><a href="#setpassword">setpassword</a></li>
         <li><a href="#statistics">statistics</a></li>
+        <li><a href="#status">status</a></li>
         <li><a href="#verifyresponses">verifyresponses</a></li>
     </ol>
 </div>
@@ -112,10 +114,10 @@
         <td>Required</td>
     </tr>
     <tr>
-        <td class="key">Locale Header</td>
+        <td class="key">Accept-Language Header</td>
         <td>en
             <br/>
-            <i>The request will be processed in the context of the specified locale</i>
+            <i>The request will be processed in the context of the specified language</i>
         </td>
     </tr>
     <tr>
@@ -213,7 +215,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/challenges?answers=true&helpdesk=true HTTP/1.1
 Accept: application/json
-Location: en
+Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                                     </pre>
         </td>
@@ -334,10 +336,10 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td>Required</td>
             </tr>
             <tr>
-                <td class="key">Locale Header</td>
+                <td class="key">Accept-Language Header</td>
                 <td>en
                     <br/>
-                    <i>The request will be processed in the context of the specified locale</i>
+                    <i>The request will be processed in the context of the specified language</i>
                 </td>
             </tr>
             <tr>
@@ -358,7 +360,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -455,7 +457,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -524,7 +526,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 DELETE <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -571,10 +573,10 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td>Required</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -612,7 +614,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/checkpassword HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -652,7 +654,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/checkpassword HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -708,10 +710,10 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
                         <td>Not Required</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -740,7 +742,7 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/health HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
                                     </pre>
                         </td>
@@ -807,7 +809,7 @@ Accept: application/json
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/health&refreshImmediate=true HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: text/plain
                                     </pre>
                         </td>
@@ -824,6 +826,207 @@ GOOD
             </td>
         </tr>
     </table>
+</div>
+<br/>
+<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
+<h1 style="text-align: center"><a name="profile" href="#toc">profile</a></h1>
+<table >
+<tr>
+    <td class="key" style="width:50px">url</td>
+    <td><a href="<%=request.getContextPath()%>/public/rest/profile"><%=request.getContextPath()%>/public/rest/profile</a></td>
+</tr>
+<tr>
+<td class="key" style="width:50px">GET Method</td>
+<td>
+<table>
+    <tr>
+        <td class="key">Description</td>
+        <td>Retrieve users profile data</td>
+    </tr>
+    <tr>
+        <td class="key">Authentication</td>
+        <td>Required</td>
+    </tr>
+    <tr>
+        <td class="key">Accept-Language Header</td>
+        <td>en
+            <br/>
+            <i>The request will be processed in the context of the specified language</i>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">Accept Header</td>
+        <td>application/json</td>
+    </tr>
+</table>
+<table style="max-width: 100%">
+    <tr>
+        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+    </tr>
+    <tr>
+        <td class="key">Request</td>
+        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+GET <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
+Accept: application/json
+Accept-Language: en
+Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+                                    </pre>
+        </td>
+    </tr>
+    <tr>
+        <td class="key">Response</td>
+        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+{
+  "error": false,
+  "errorCode": 0,
+  "data": {
+    "profile": {
+      "title": "Genious",
+      "description": "Genious User",
+      "telephoneNumber": "555-1212"
+    },
+    "formDefinition": [
+      {
+        "name": "telephoneNumber",
+        "minimumLength": 3,
+        "maximumLength": 15,
+        "type": "text",
+        "required": true,
+        "confirmationRequired": false,
+        "readonly": false,
+        "labels": {
+          "": "Telephone Number"
+        },
+        "regexErrors": {
+          "": ""
+        },
+        "description": {
+          "": ""
+        },
+        "selectOptions": {
+
+        }
+      },
+      {
+        "name": "title",
+        "minimumLength": 2,
+        "maximumLength": 15,
+        "type": "text",
+        "required": true,
+        "confirmationRequired": false,
+        "readonly": false,
+        "labels": {
+          "": "Title"
+        },
+        "regexErrors": {
+          "": ""
+        },
+        "description": {
+          "": ""
+        },
+        "selectOptions": {
+
+        }
+      },
+      {
+        "name": "description",
+        "minimumLength": 1,
+        "maximumLength": 50,
+        "type": "hidden",
+        "required": false,
+        "confirmationRequired": false,
+        "readonly": false,
+        "labels": {
+          "": "Descr"
+        },
+        "regexErrors": {
+          "": ""
+        },
+        "description": {
+          "": ""
+        },
+        "selectOptions": {
+
+        }
+      }
+    ]
+  }
+}
+                                    </pre>
+        </td>
+    </tr>
+</table>
+</td>
+</tr>
+<tr>
+    <td class="key" style="width:50px">POST Method</td>
+    <td>
+        <table>
+            <tr>
+                <td class="key">Description</td>
+                <td>Set profile data</td>
+            </tr>
+            <tr>
+                <td class="key">Authentication</td>
+                <td>Required</td>
+            </tr>
+            <tr>
+                <td class="key">Accept-Language Header</td>
+                <td>en
+                    <br/>
+                    <i>The request will be processed in the context of the specified language</i>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Accept Header</td>
+                <td>application/json</td>
+            </tr>
+            <tr>
+                <td class="key">Content-Type Header</td>
+                <td>application/json</td>
+            </tr>
+        </table>
+        <table style="max-width: 100%">
+            <tr>
+                <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+            </tr>
+            <tr>
+                <td class="key">Request</td>
+                <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+POST <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
+Accept-Language: en
+Accept: application/json
+Content-Type: application/json
+Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+
+{
+   "profile":{
+      "title":"Genious",
+      "description":"Genious User",
+      "telephoneNumber":"555-1212"
+   }
+}                                    </pre>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Response</td>
+                <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+{
+   "error":false,
+   "errorCode":0,
+   "successMessage":"Your user information has been successfully updated."
+}
+                                    </pre>
+                </td>
+            </tr>
+        </table>
+    </td>
+</tr>
+</table>
 </div>
 <br/>
 <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
@@ -848,10 +1051,10 @@ GOOD
                         <td>Optional</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -902,7 +1105,7 @@ GOOD
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/randompassword HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: text/plain
                                     </pre>
                         </td>
@@ -931,10 +1134,10 @@ cLi2mbers
                         <td>Optional</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -991,7 +1194,7 @@ cLi2mbers
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/randompassword HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 
@@ -1044,10 +1247,10 @@ Content-Type: application/json
                         <td>Required</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -1090,7 +1293,7 @@ Content-Type: application/json
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/setpassword HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -1137,10 +1340,10 @@ cLi2mbers
                         <td>Not Required</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -1191,7 +1394,7 @@ cLi2mbers
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/statistics?days=14&statName=PASSWORD_CHANGES HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                                     </pre>
@@ -1255,6 +1458,128 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </div>
 <br/>
 <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
+    <h1 style="text-align: center"><a name="status" href="#toc">status</a></h1>
+    <table >
+        <tr>
+            <td class="key" style="width:50px">url</td>
+            <td><a href="<%=request.getContextPath()%>/public/rest/status"><%=request.getContextPath()%>/public/rest/status</a></td>
+        </tr>
+        <tr>
+            <td class="key" style="width:50px">GET Method</td>
+            <td>
+                <table>
+                    <tr>
+                        <td class="key">Description</td>
+                        <td>Read users status data</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Authentication</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept-Language Header</td>
+                        <td>en
+                            <br/>
+                            <i>The request will be processed in the context of the specified language</i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept Header</td>
+                        <td>application/json</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Parameter username</td>
+                        <td>
+                            username=user1234
+                            <br/>
+                            <i>Optional username or ldap DN of a user on which to set the password.</i>
+                        </td>
+                    </tr>
+                </table>
+                <table style="max-width: 100%">
+                    <tr>
+                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Request</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+GET <%=request.getContextPath()%>/public/rest/status HTTP/1.1
+Accept: application/json
+Accept-Language: fr
+Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+                                    </pre>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Response</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                                    <pre>
+{
+  "error": false,
+  "errorCode": 0,
+  "data": {
+    "userDN": "cn=user,ou=users,o=data",
+    "userID": "user",
+    "userEmailAddress": "user@example.com",
+    "passwordLastModifiedTime": "Apr 1, 1970 6:59:43 PM",
+    "passwordStatus": {
+      "expired": false,
+      "preExpired": false,
+      "violatesPolicy": false,
+      "warnPeriod": false
+    },
+    "passwordPolicy": {
+      "MaximumNumeric": "0",
+      "MinimumSpecial": "0",
+      "AllowLastCharSpecial": "true",
+      "ADComplexity": "false",
+      "RegExNoMatch": ".*%.*",
+      "AllowSpecial": "true",
+      "MaximumSpecial": "0",
+      "MinimumLowerCase": "0",
+      "MinimumUnique": "0",
+      "MinimumNumeric": "0",
+      "MinimumLength": "2",
+      "DisallowedValues": "test\npassword",
+      "CaseSensitive": "true",
+      "RegExMatch": "",
+      "DisallowCurrent": "true",
+      "AllowFirstCharSpecial": "true",
+      "MinimumLifetime": "0",
+      "ExpirationInterval": "0",
+      "UniqueRequired": "false",
+      "MaximumSequentialRepeat": "0",
+      "AllowNumeric": "true",
+      "AllowFirstCharNumeric": "true",
+      "EnableWordlist": "false",
+      "MaximumLength": "64",
+      "DisallowedAttributes": "sn\ncn\ngivenName",
+      "AllowLastCharNumeric": "true",
+      "PolicyEnabled": "true",
+      "MaximumUpperCase": "0",
+      "MinimumUpperCase": "0",
+      "ChangeMessage": "sdsadasd\ndsadsadsa\nddsadsa\ndsadsad\nsadasda",
+      "MaximumLowerCase": "0"
+    },
+    "passwordRules": [
+      "Le mot de passe est sensible à la casse",
+      "Doit comporter au moins 2 caractère",
+      "Ne peut contenir l’une des valeurs suivantes:  test password",
+      "Ne doit pas contenir une partie de votre nom ou  identifiant."
+    ]
+  }
+}
+                            </pre>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+<br/>
+<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
     <h1 style="text-align: center"><a name="verifyresponses" href="#toc">verifyresponses</a></h1>
     <table>
         <tr>
@@ -1276,10 +1601,10 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td>Required</td>
                     </tr>
                     <tr>
-                        <td class="key">Locale Header</td>
+                        <td class="key">Accept-Language Header</td>
                         <td>en
                             <br/>
-                            <i>The request will be processed in the context of the specified locale</i>
+                            <i>The request will be processed in the context of the specified language</i>
                         </td>
                     </tr>
                     <tr>
@@ -1321,7 +1646,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/verifyresponses HTTP/1.1
-Location: en
+Accept-Language: en
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -1372,6 +1697,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
             </td>
         </tr>
     </table>
+</div>
 </div>
 </div>
 </body>

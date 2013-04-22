@@ -94,7 +94,7 @@ public class ContextManager implements Serializable {
             if (startupErrorInformation != null) {
                 errorInformation = startupErrorInformation;
             } else {
-                errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"application is not yet available");
+                errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,"application is not yet available");
             }
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -108,8 +108,8 @@ public class ContextManager implements Serializable {
         try {
             Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
         } catch (Exception e) {
-            System.err.println("Unable to set default PWM locale as Java machine default locale: " + e.getMessage());
-            System.out.println("Unable to set default PWM locale as Java machine default locale: " + e.getMessage());
+            System.err.println("Unable to set default locale as Java machine default locale: " + e.getMessage());
+            System.out.println("Unable to set default locale as Java machine default locale: " + e.getMessage());
         }
 
         final EnvironmentTest[] tests = new EnvironmentTest[]{
@@ -134,8 +134,8 @@ public class ContextManager implements Serializable {
                 startupErrorInformation = configReader.getConfigFileError();
             }
             if (PwmApplication.MODE.ERROR == mode) {
-                System.err.println("PWM Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
-                System.out.println("PWM Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
+                System.err.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
+                System.out.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
             }
             pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath);
         } catch (OutOfMemoryError e) {

@@ -44,9 +44,9 @@ import password.pwm.event.AuditManager;
 import password.pwm.health.HealthMonitor;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.pwmdb.PwmDB;
-import password.pwm.util.pwmdb.PwmDBException;
-import password.pwm.util.pwmdb.PwmDBFactory;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.stats.Statistic;
@@ -83,8 +83,8 @@ public class PwmApplication {
     private String autoSiteUrl;
     private final Configuration configuration;
 
-    private PwmDB pwmDB;
-    private PwmDBLogger pwmDBLogger;
+    private LocalDB localDB;
+    private LocalDBLogger localDBLogger;
     private volatile ChaiProvider proxyChaiProvider;
 
     private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
@@ -92,7 +92,7 @@ public class PwmApplication {
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private ErrorInformation lastLdapFailure = null;
-    private ErrorInformation lastPwmDBFailure = null;
+    private ErrorInformation lastLocalDBFailure = null;
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
     private MODE applicationMode;
@@ -152,8 +152,8 @@ public class PwmApplication {
         return proxyChaiProvider;
     }
 
-    public PwmDBLogger getPwmDBLogger() {
-        return pwmDBLogger;
+    public LocalDBLogger getLocalDBLogger() {
+        return localDBLogger;
     }
 
     public HealthMonitor getHealthMonitor() {
@@ -162,7 +162,7 @@ public class PwmApplication {
 
     public List<PwmService> getPwmServices() {
         final List<PwmService> pwmServices = new ArrayList<PwmService>();
-        pwmServices.add(this.pwmDBLogger);
+        pwmServices.add(this.localDBLogger);
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
         return Collections.unmodifiableList(pwmServices);
@@ -231,23 +231,23 @@ public class PwmApplication {
         return lastLdapFailure;
     }
 
-    public ErrorInformation getLastPwmDBFailure() {
-        return lastPwmDBFailure;
+    public ErrorInformation getLastLocalDBFailure() {
+        return lastLocalDBFailure;
     }
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
         this.lastLdapFailure = errorInformation;
-        if (pwmDB != null) {
+        if (localDB != null) {
             try {
                 if (errorInformation == null) {
-                    pwmDB.remove(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR);
+                    localDB.remove(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 } else {
                     final Gson gson = new Gson();
                     final String jsonString = gson.toJson(errorInformation);
-                    pwmDB.put(PwmDB.DB.PWM_META,DB_KEY_LAST_LDAP_ERROR,jsonString);
+                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR, jsonString);
                 }
-            } catch (PwmDBException e) {
-                LOGGER.error("error writing lastLdapFailure time to pwmDB: " + e.getMessage());
+            } catch (LocalDBException e) {
+                LOGGER.error("error writing lastLdapFailure time to localDB: " + e.getMessage());
             }
         }
     }
@@ -313,16 +313,16 @@ public class PwmApplication {
                     break;
 
                 case ERROR:
-                    LOGGER.fatal("PWM starting up in ERROR mode! Check log or health check information for cause");
+                    LOGGER.fatal("starting up in ERROR mode! Check log or health check information for cause");
                     break;
 
                 default:
-                    LOGGER.trace("setting log level to TRACE because PWM is not in RUNNING mode.");
+                    LOGGER.trace("setting log level to TRACE because mode is not RUNNING.");
                     break;
             }
         }
 
-        PwmInitializer.initializePwmDB(this);
+        PwmInitializer.initializeLocalDB(this);
         PwmInitializer.initializePwmDBLogger(this);
 
         LOGGER.info("initializing pwm");
@@ -331,14 +331,14 @@ public class PwmApplication {
         LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));
 
         // get the pwm servlet instance id
-        instanceID = fetchInstanceID(pwmDB, this);
-        LOGGER.info("using '" + getInstanceID() + "' for this pwm instance's ID (instanceID)");
+        instanceID = fetchInstanceID(localDB, this);
+        LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
 
         // read the lastLoginTime
-        lastLastLdapFailure(pwmDB, this);
+        lastLastLdapFailure(localDB, this);
 
         // get the pwm installation date
-        installTime = fetchInstallDate(pwmDB, startupTime);
+        installTime = fetchInstallDate(localDB, startupTime);
         LOGGER.debug("this pwm instance first installed on " + installTime.toString());
 
         LOGGER.info(logEnvironment());
@@ -376,11 +376,11 @@ public class PwmApplication {
 
         // detect if config has been modified since previous startup
         try {
-            if (pwmDB != null) {
-                final String previousHash = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH);
+            if (localDB != null) {
+                final String previousHash = localDB.get(LocalDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH);
                 final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
                 if (previousHash == null || !previousHash.equals(currentHash)) {
-                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
+                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
                     LOGGER.warn("pwm configuration has been modified since last startup");
                     AlertHandler.alertConfigModify(this, configuration);
                 }
@@ -393,23 +393,23 @@ public class PwmApplication {
 
     }
 
-    private static Date fetchInstallDate(final PwmDB pwmDB, final Date startupTime) {
+    private static Date fetchInstallDate(final LocalDB pwmDB, final Date startupTime) {
         if (pwmDB != null) {
             try {
-                final String storedDateStr = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
+                final String storedDateStr = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    pwmDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
                 } else {
                     return new Date(Long.parseLong(storedDateStr));
                 }
             } catch (Exception e) {
-                LOGGER.error("error retrieving installation date from pwmDB: " + e.getMessage());
+                LOGGER.error("error retrieving installation date from localDB: " + e.getMessage());
             }
         }
         return new Date();
     }
 
-    private static String fetchInstanceID(final PwmDB pwmDB, final PwmApplication pwmApplication) {
+    private static String fetchInstanceID(final LocalDB pwmDB, final PwmApplication pwmApplication) {
         String newInstanceID = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {
@@ -418,10 +418,10 @@ public class PwmApplication {
 
         if (pwmDB != null) {
             try {
-                newInstanceID = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
-                LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from pwmDB");
+                newInstanceID = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
+                LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from localDB");
             } catch (Exception e) {
-                LOGGER.warn("error retrieving instanceID from pwmDB: " + e.getMessage(), e);
+                LOGGER.warn("error retrieving instanceID from localDB: " + e.getMessage(), e);
             }
         }
 
@@ -431,10 +431,10 @@ public class PwmApplication {
 
             if (pwmDB != null) {
                 try {
-                    pwmDB.put(PwmDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
-                    LOGGER.debug("saved instanceID " + newInstanceID + "" + " to pwmDB");
+                    pwmDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
+                    LOGGER.debug("saved instanceID " + newInstanceID + "" + " to localDB");
                 } catch (Exception e) {
-                    LOGGER.warn("error saving instanceID to pwmDB: " + e.getMessage(), e);
+                    LOGGER.warn("error saving instanceID to localDB: " + e.getMessage(), e);
                 }
             }
         }
@@ -446,16 +446,16 @@ public class PwmApplication {
         return newInstanceID;
     }
 
-    private static void lastLastLdapFailure(final PwmDB pwmDB, final PwmApplication pwmApplication) {
+    private static void lastLastLdapFailure(final LocalDB pwmDB, final PwmApplication pwmApplication) {
         if (pwmDB != null) {
             try {
-                final String lastLdapFailureStr = pwmDB.get(PwmDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
+                final String lastLdapFailureStr = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
                     final Gson gson = new Gson();
                     pwmApplication.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
                 }
             } catch (Exception e) {
-                LOGGER.error("error reading lastLdapFailure from pwmDB: " + e.getMessage(), e);
+                LOGGER.error("error reading lastLdapFailure from localDB: " + e.getMessage(), e);
             }
         }
     }
@@ -495,11 +495,11 @@ public class PwmApplication {
         }
 
         final EmailItemBean expandedEmailItem = new EmailItemBean(
-                PwmMacroMachine.expandMacros(emailItem.getTo(), this, uiBean),
-                PwmMacroMachine.expandMacros(emailItem.getFrom(), this, uiBean),
-                PwmMacroMachine.expandMacros(emailItem.getSubject(), this, uiBean),
-                PwmMacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean),
-                PwmMacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean)
+                MacroMachine.expandMacros(emailItem.getTo(), this, uiBean),
+                MacroMachine.expandMacros(emailItem.getFrom(), this, uiBean),
+                MacroMachine.expandMacros(emailItem.getSubject(), this, uiBean),
+                MacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean),
+                MacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean)
         );
 
         try {
@@ -517,9 +517,9 @@ public class PwmApplication {
         }
 
         final SmsItemBean rewrittenSmsItem = new SmsItemBean(
-                PwmMacroMachine.expandMacros(smsItem.getTo(), this, uiBean),
-                PwmMacroMachine.expandMacros(smsItem.getFrom(), this, uiBean),
-                PwmMacroMachine.expandMacros(smsItem.getMessage(), this, uiBean),
+                MacroMachine.expandMacros(smsItem.getTo(), this, uiBean),
+                MacroMachine.expandMacros(smsItem.getFrom(), this, uiBean),
+                MacroMachine.expandMacros(smsItem.getMessage(), this, uiBean),
                 smsItem.getPartlength(),
                 smsItem.getLocale()
         );
@@ -552,22 +552,22 @@ public class PwmApplication {
             }
         }
 
-        if (pwmDBLogger != null) {
+        if (localDBLogger != null) {
             try {
-                pwmDBLogger.close();
+                localDBLogger.close();
             } catch (Exception e) {
-                LOGGER.error("error closing pwmDBLogger: " + e.getMessage(),e);
+                LOGGER.error("error closing localDBLogger: " + e.getMessage(),e);
             }
-            pwmDBLogger = null;
+            localDBLogger = null;
         }
 
-        if (pwmDB != null) {
+        if (localDB != null) {
             try {
-                pwmDB.close();
+                localDB.close();
             } catch (Exception e) {
-                LOGGER.fatal("error closing pwmDB: " + e, e);
+                LOGGER.fatal("error closing localDB: " + e, e);
             }
-            pwmDB = null;
+            localDB = null;
         }
 
         closeProxyChaiProvider();
@@ -598,8 +598,8 @@ public class PwmApplication {
         return installTime;
     }
 
-    public PwmDB getPwmDB() {
-        return pwmDB;
+    public LocalDB getLocalDB() {
+        return localDB;
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -648,7 +648,7 @@ public class PwmApplication {
                     casPackageLogger.setLevel(level);
                     LOGGER.debug("successfully initialized default log4j config at log level " + level.toString());
                 } else {
-                    LOGGER.debug("skipping stdout log4j initializtion due to blank setting for log level");
+                    LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
                 }
             }
 
@@ -662,9 +662,9 @@ public class PwmApplication {
             java.util.logging.LogManager.getLogManager().getLogger("com.sun.jersey.spi.container.servlet.WebComponent").setLevel(java.util.logging.Level.OFF);
         }
 
-        public static void initializePwmDB(final PwmApplication pwmApplication) {
+        public static void initializeLocalDB(final PwmApplication pwmApplication) {
             if (pwmApplication.getApplicationMode() == MODE.ERROR || pwmApplication.getApplicationMode() == MODE.NEW) {
-                LOGGER.warn("skipping pwmDB open due to application mode " + pwmApplication.getApplicationMode());
+                LOGGER.warn("skipping LocalDB open due to application mode " + pwmApplication.getApplicationMode());
                 return;
             }
 
@@ -675,40 +675,40 @@ public class PwmApplication {
                 final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
                 databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.pwmApplicationPath);
             } catch (Exception e) {
-                pwmApplication.lastPwmDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
-                LOGGER.warn(pwmApplication.lastPwmDBFailure.toDebugStr());
+                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
+                LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
                 return;
             }
 
             LOGGER.debug("using localDB path " + databaseDirectory);
 
-            // initialize the pwmDB
+            // initialize the localDB
             try {
                 final String classname = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
                 final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
                 final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
-                pwmApplication.pwmDB = PwmDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly, pwmApplication);
+                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly, pwmApplication);
             } catch (Exception e) {
-                pwmApplication.lastPwmDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
-                LOGGER.warn(pwmApplication.lastPwmDBFailure.toDebugStr());
+                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
+                LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
             }
         }
 
         public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
             if (pwmApplication.getApplicationMode() == MODE.READ_ONLY) {
-                LOGGER.trace("skipping pwmDBLogger due to read-only mode");
+                LOGGER.trace("skipping localDBLogger due to read-only mode");
                 return;
             }
 
-            // initialize the pwmDBLogger
+            // initialize the localDBLogger
             try {
                 final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
                 final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalLevel();
-                pwmApplication.pwmDBLogger = PwmLogger.initPwmApplication(pwmApplication.pwmDB, maxEvents, maxAgeMS, localLogLevel, pwmApplication);
+                pwmApplication.localDBLogger = PwmLogger.initPwmApplication(pwmApplication.localDB, maxEvents, maxAgeMS, localLogLevel, pwmApplication);
             } catch (Exception e) {
-                LOGGER.warn("unable to initialize pwmDBLogger: " + e.getMessage());
+                LOGGER.warn("unable to initialize localDBLogger: " + e.getMessage());
             }
         }
     }

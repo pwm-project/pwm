@@ -26,6 +26,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 public class ActionConfiguration implements Serializable {
 
@@ -39,6 +41,7 @@ public class ActionConfiguration implements Serializable {
 
     private WebMethod method = WebMethod.get;
     //private boolean clientSide;
+    private Map<String,String> headers;
     private String url;
     private String body;
 
@@ -63,6 +66,10 @@ public class ActionConfiguration implements Serializable {
 
     public String getUrl() {
         return url;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
     public String getBody() {
