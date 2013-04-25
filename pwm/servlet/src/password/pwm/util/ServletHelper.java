@@ -325,7 +325,10 @@ public class ServletHelper {
 
     public static void addPwmResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp, boolean includeXAmb) {
         if (!resp.isCommitted()) {
-            resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Version", PwmConstants.SERVLET_VERSION);
+            if (includeXAmb && PwmConstants.INCLUDE_X_VERSION_HEADER) {
+                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Version", PwmConstants.SERVLET_VERSION);
+            }
+
             resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
 
             if (includeXAmb && PwmConstants.INCLUDE_X_AMB_HEADER) {

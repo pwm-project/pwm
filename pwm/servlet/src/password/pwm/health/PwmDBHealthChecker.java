@@ -38,9 +38,9 @@ public class PwmDBHealthChecker implements HealthChecker {
 
         final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
 
-        final LocalDB pwmDB = pwmApplication.getLocalDB();
+        final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if (pwmDB == null) {
+        if (localDB == null) {
             final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
@@ -50,7 +50,7 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (LocalDB.Status.NEW == pwmDB.status()) {
+        if (LocalDB.Status.NEW == localDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",
@@ -59,7 +59,7 @@ public class PwmDBHealthChecker implements HealthChecker {
             return healthRecords;
         }
 
-        if (LocalDB.Status.CLOSED == pwmDB.status()) {
+        if (LocalDB.Status.CLOSED == localDB.status()) {
             healthRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     "LocalDB",

@@ -108,9 +108,9 @@ public abstract class AbstractQueueManager implements PwmService {
         this.pwmApplication = pwmApplication;
         this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
 
-        final LocalDB pwmDB = this.pwmApplication.getLocalDB();
+        final LocalDB localDB = this.pwmApplication.getLocalDB();
 
-        if (pwmDB == null || pwmDB.status() != LocalDB.Status.OPEN) {
+        if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             status = STATUS.CLOSED;
             lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, LocalDB is not open");
             return;
@@ -122,7 +122,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, DB);
+        sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, DB);
 
         {
             final QueueThread emailSendThread = new QueueThread();

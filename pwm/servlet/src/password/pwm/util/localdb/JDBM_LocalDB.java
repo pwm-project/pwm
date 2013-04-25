@@ -80,9 +80,9 @@ public class JDBM_LocalDB implements LocalDBProvider {
             recman.commit();
             recman.close();
             recman = null;
-            LOGGER.info("pwmDB closed in " + TimeDuration.fromCurrent(startTime).asCompactString());
+            LOGGER.info("LocalDB closed in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } catch (Exception e) {
-            LOGGER.error("error while closing pwmDB: " + e.getMessage(), e);
+            LOGGER.error("error while closing LocalDB: " + e.getMessage(), e);
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
@@ -134,7 +134,7 @@ public class JDBM_LocalDB implements LocalDBProvider {
             final String dbFileName = dbDirectory.getAbsolutePath() + File.separator + FILE_NAME;
             recman = RecordManagerFactory.createRecordManager(dbFileName, new Properties());
 
-            LOGGER.info("pwmDB opened in " + TimeDuration.fromCurrent(startTime).asCompactString());
+            LOGGER.info("LocalDB opened in " + TimeDuration.fromCurrent(startTime).asCompactString());
             status = LocalDB.Status.OPEN;
         } catch (Exception e) {
             LOGGER.error("error while opening pwmDB: " + e.getMessage(), e);

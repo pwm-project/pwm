@@ -226,8 +226,18 @@ public class NewUserServlet extends TopServlet {
                         null,
                         uiBean,
                         userValues.get("password1"),
-                        userValues.get("password2")
+                        userValues.get("password2"),
+                        pwmSession.getSessionManager()
                 );
+                if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
+                    passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
+                            Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_NEWUSER_FORM,pwmApplication.getConfig()),
+                            passwordCheckInfo.isPassed(),
+                            passwordCheckInfo.getStrength(),
+                            passwordCheckInfo.getMatch(),
+                            passwordCheckInfo.getErrorCode()
+                    );
+                }
                 final RestCheckPasswordServer.JsonData jsonData = RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo);
                 final RestResultBean restResultBean = new RestResultBean();
                 restResultBean.setData(jsonData);
@@ -449,7 +459,13 @@ public class NewUserServlet extends TopServlet {
 
         // check unique fields against ldap
         try {
-            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES),userLocale);
+            Validator.validateAttributeUniqueness(
+                    pwmApplication,
+                    pwmApplication.getProxyChaiProvider(),
+                    formValues,
+                    userLocale,
+                    pwmSession.getSessionManager()
+            );
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,userMessage));
@@ -573,15 +589,18 @@ public class NewUserServlet extends TopServlet {
 
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
-        final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
 
         boolean usernameIsGenerated = isUsernameRandomGenerated(configuration);
 
         {
             boolean namingIsInForm = false;
+            boolean namingIsUnique = false;
             for (final FormConfiguration formItem : formItems) {
                 if (ldapNamingattribute.equalsIgnoreCase(formItem.getName())) {
                     namingIsInForm = true;
+                    if (formItem.isUnique()) {
+                        namingIsUnique = true;
+                    }
                 }
             }
 
@@ -594,23 +613,14 @@ public class NewUserServlet extends TopServlet {
                 errorMsg.append(", but is required because it is the ldap naming attribute and the username is not being automatically generated.");
                 returnRecords.add(new HealthRecord(HealthStatus.WARN,"Configuration",errorMsg.toString()));
             }
-        }
 
-        {
-            boolean namingIsInUnique = false;
-            for (final String uniqueAttr : uniqueAttributes) {
-                if (ldapNamingattribute.equalsIgnoreCase(uniqueAttr)) {
-                    namingIsInUnique = true;
-                }
-            }
-
-            if (!namingIsInUnique && !usernameIsGenerated) {
+            if (!namingIsUnique && !usernameIsGenerated) {
                 final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(PwmSetting.NEWUSER_FORM.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
                 errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES.getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" does not contain the ldap naming attribute '").append(ldapNamingattribute).append("'");
-                errorMsg.append(", but is required because it is the ldap naming attribute and the username is not being automatically generated.");
+                errorMsg.append(PwmSetting.NEWUSER_FORM.getLabel(PwmConstants.DEFAULT_LOCALE));
+                errorMsg.append(" the ldap naming attribute '").append(ldapNamingattribute).append("'");
+                errorMsg.append(", must be configured with the unique flag enabled.");
                 returnRecords.add(new HealthRecord(HealthStatus.WARN,"Configuration",errorMsg.toString()));
             }
         }

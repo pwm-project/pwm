@@ -70,7 +70,7 @@ class Populator {
 
     private final LocalDB.DB wordlistDB;
     private final LocalDB.DB wordlistMetaDB;
-    private final LocalDB pwmDB;
+    private final LocalDB localDB;
 
     private final String DEBUG_LABEL;
 
@@ -92,7 +92,7 @@ class Populator {
             throws Exception
     {
         this.zipFileReader = zipFileReader;
-        this.pwmDB = rootWordlist.pwmDB;
+        this.localDB = rootWordlist.localDB;
         this.wordlistDB = rootWordlist.WORD_DB;
         this.wordlistMetaDB = rootWordlist.META_DB;
         this.sleeper = sleeper;
@@ -117,14 +117,14 @@ class Populator {
 
         if (abortFlag) return;
 
-        final Object lastLineValue = pwmDB.get(wordlistMetaDB, WordlistManager.KEY_LASTLINE);
+        final Object lastLineValue = localDB.get(wordlistMetaDB, WordlistManager.KEY_LASTLINE);
         if (lastLineValue != null) {
             final int startLine = Integer.parseInt(lastLineValue.toString());
             while (startLine > overallStats.getLines()) {
                 overallStats.incrementLines();
             }
 
-            final Object elapsedSecondsValue = pwmDB.get(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS);
+            final Object elapsedSecondsValue = localDB.get(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS);
             if (elapsedSecondsValue != null) {
                 final int elapsedSeconds = Integer.parseInt(elapsedSecondsValue.toString());
                 overallStats.incrementElapsedSeconds(elapsedSeconds);
@@ -135,7 +135,7 @@ class Populator {
             LOGGER.info(DEBUG_LABEL + " source ZIP has " + totalLines + " lines");
         }
 
-        pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.DIRTY.toString());
+        localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.DIRTY.toString());
 
         if (overallStats.getLines() > 0) {
             for (int i = 0; i < overallStats.getLines(); i++) {
@@ -186,8 +186,8 @@ class Populator {
         LOGGER.info(DEBUG_LABEL + " pausing population (" + percentComplete() + ") elapsed time " + TimeDuration.asCompactString(overallStats.getElapsedSeconds() * 1000));
 
         try {
-            pwmDB.put(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS, String.valueOf(overallStats.getElapsedSeconds()));
-            pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
+            localDB.put(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS, String.valueOf(overallStats.getElapsedSeconds()));
+            localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
         } catch (Exception e) {
             LOGGER.warn(DEBUG_LABEL + " unable to cleanly pause wordlist population: " + e.getMessage());
         }
@@ -286,10 +286,10 @@ class Populator {
         final long startTime = System.currentTimeMillis();
 
         //add the elements
-        pwmDB.putAll(wordlistDB, bufferedWords);
+        localDB.putAll(wordlistDB, bufferedWords);
 
         //update the src ZIP line counter in the localdb.
-        pwmDB.put(wordlistMetaDB, WordlistManager.KEY_LASTLINE, String.valueOf(overallStats.getLines()));
+        localDB.put(wordlistMetaDB, WordlistManager.KEY_LASTLINE, String.valueOf(overallStats.getLines()));
 
         if (abortFlag) {
             return;
@@ -320,13 +320,13 @@ class Populator {
             throws LocalDBException, PwmUnrecoverableException
     {
         flushBuffer();
-        pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
+        localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
         LOGGER.info(makeStatString());
         LOGGER.trace("beginning wordlist size query");
-        final int wordlistSize = pwmDB.size(wordlistDB);
+        final int wordlistSize = localDB.size(wordlistDB);
         if (wordlistSize > 0) {
-            pwmDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
-            pwmDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
+            localDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
+            localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
         } else {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, DEBUG_LABEL + " population completed, but no words stored"));
         }

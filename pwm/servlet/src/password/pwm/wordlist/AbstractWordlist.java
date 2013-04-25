@@ -46,7 +46,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected WordlistConfiguration wordlistConfiguration;
 
     protected volatile STATUS wlStatus = STATUS.NEW;
-    protected LocalDB pwmDB;
+    protected LocalDB localDB;
     protected Populator populator;
 
     protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
@@ -62,13 +62,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected AbstractWordlist() {
     }
 
-    protected final void startup(final LocalDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
+    protected final void startup(final LocalDB localDB, final WordlistConfiguration wordlistConfiguration) {
         this.wordlistConfiguration = wordlistConfiguration;
-        this.pwmDB = pwmDB;
+        this.localDB = localDB;
         final long startTime = System.currentTimeMillis();
         wlStatus = STATUS.OPENING;
 
-        if (pwmDB == null) {
+        if (localDB == null) {
             final String errorMsg = "LocalDB is not available, " + DEBUG_LABEL + " will remain closed";
             LOGGER.warn(errorMsg);
             lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
@@ -114,7 +114,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         //read stored size
         try {
-            final String storedSizeStr = pwmDB.get(META_DB, KEY_SIZE);
+            final String storedSizeStr = localDB.get(META_DB, KEY_SIZE);
             storedSize = Integer.valueOf(storedSizeStr);
         } catch (LocalDBException e) {
             final String errorMsg = DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage();
@@ -167,7 +167,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         LOGGER.trace("checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
 
         final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString);
-        final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS)));
+        final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS)));
 
         if (!clearRequired && isComplete) {
             return;
@@ -196,7 +196,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             throws Exception {
         LOGGER.trace("checking wordlist file checksum stored in LocalDB");
 
-        final Object checksumInDb = pwmDB.get(META_DB, KEY_CHECKSUM);
+        final Object checksumInDb = localDB.get(META_DB, KEY_CHECKSUM);
         final boolean result = checksum.equals(checksumInDb);
 
         if (!result) {
@@ -212,7 +212,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             throws Exception {
         LOGGER.trace("checking " + DEBUG_LABEL + " db status");
 
-        final VALUE_STATUS statusInDb = VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS));
+        final VALUE_STATUS statusInDb = VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS));
 
         if (statusInDb == null || statusInDb.equals(VALUE_STATUS.DIRTY)) {
             LOGGER.info("existing db was not shut down cleanly during population, clearing db");
@@ -227,7 +227,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             throws Exception {
         LOGGER.trace("checking version number stored in LocalDB");
 
-        final Object versionInDB = pwmDB.get(META_DB, KEY_VERSION);
+        final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
         final boolean result = VALUE_VERSION.equals(versionInDB);
 
         if (!result) {
@@ -241,15 +241,15 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private void resetDB(final String checksum)
             throws Exception {
-        pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
+        localDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
 
         for (final LocalDB.DB db : new LocalDB.DB[]{META_DB, WORD_DB}) {
             LOGGER.debug("clearing " + db);
-            pwmDB.truncate(db);
+            localDB.truncate(db);
         }
 
-        pwmDB.put(META_DB, KEY_VERSION, VALUE_VERSION);
-        pwmDB.put(META_DB, KEY_CHECKSUM, checksum);
+        localDB.put(META_DB, KEY_VERSION, VALUE_VERSION);
+        localDB.put(META_DB, KEY_CHECKSUM, checksum);
     }
 
     public boolean containsWord(final String word) {
@@ -279,7 +279,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             boolean result = false;
             for (final String t : testWords) {
                 if (!result) { // stop checking once found
-                    if (pwmDB.contains(WORD_DB, t)) {
+                    if (localDB.contains(WORD_DB, t)) {
                         result = true;
                     }
                 }
@@ -324,7 +324,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         }
 
         wlStatus = STATUS.CLOSED;
-        pwmDB = null;
+        localDB = null;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

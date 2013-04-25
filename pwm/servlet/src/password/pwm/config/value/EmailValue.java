@@ -62,7 +62,7 @@ public class EmailValue implements StoredValue {
                 final Element loopValueElement = (Element) loopValue;
                 final String value = loopValueElement.getText();
                 if (value != null && value.length() > 0) {
-                    String localeValue = settingElement.getAttribute("locale") == null ? "" : settingElement.getAttribute("locale").getValue();
+                    String localeValue = loopValueElement.getAttribute("locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
                     values.put(localeValue, gson.fromJson(value, EmailItemBean.class));
                 }
             }

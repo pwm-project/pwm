@@ -237,7 +237,7 @@ public class PwmApplication {
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
         this.lastLdapFailure = errorInformation;
-        if (localDB != null) {
+        if (localDB != null && localDB.status() == LocalDB.Status.OPEN) {
             try {
                 if (errorInformation == null) {
                     localDB.remove(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
@@ -393,12 +393,12 @@ public class PwmApplication {
 
     }
 
-    private static Date fetchInstallDate(final LocalDB pwmDB, final Date startupTime) {
-        if (pwmDB != null) {
+    private static Date fetchInstallDate(final LocalDB localDB, final Date startupTime) {
+        if (localDB != null) {
             try {
-                final String storedDateStr = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
+                final String storedDateStr = localDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    pwmDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
                 } else {
                     return new Date(Long.parseLong(storedDateStr));
                 }
@@ -409,16 +409,16 @@ public class PwmApplication {
         return new Date();
     }
 
-    private static String fetchInstanceID(final LocalDB pwmDB, final PwmApplication pwmApplication) {
+    private static String fetchInstanceID(final LocalDB localDB, final PwmApplication pwmApplication) {
         String newInstanceID = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {
             return newInstanceID;
         }
 
-        if (pwmDB != null) {
+        if (localDB != null) {
             try {
-                newInstanceID = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
+                newInstanceID = localDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
                 LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from localDB");
             } catch (Exception e) {
                 LOGGER.warn("error retrieving instanceID from localDB: " + e.getMessage(), e);
@@ -429,9 +429,9 @@ public class PwmApplication {
             newInstanceID = Long.toHexString(PwmRandom.getInstance().nextLong()).toUpperCase();
             LOGGER.info("generated new random instanceID " + newInstanceID);
 
-            if (pwmDB != null) {
+            if (localDB != null) {
                 try {
-                    pwmDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
+                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
                     LOGGER.debug("saved instanceID " + newInstanceID + "" + " to localDB");
                 } catch (Exception e) {
                     LOGGER.warn("error saving instanceID to localDB: " + e.getMessage(), e);
@@ -446,10 +446,10 @@ public class PwmApplication {
         return newInstanceID;
     }
 
-    private static void lastLastLdapFailure(final LocalDB pwmDB, final PwmApplication pwmApplication) {
-        if (pwmDB != null) {
+    private static void lastLastLdapFailure(final LocalDB localDB, final PwmApplication pwmApplication) {
+        if (localDB != null) {
             try {
-                final String lastLdapFailureStr = pwmDB.get(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
+                final String lastLdapFailureStr = localDB.get(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
                     final Gson gson = new Gson();
                     pwmApplication.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);

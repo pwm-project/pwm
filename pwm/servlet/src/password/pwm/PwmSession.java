@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.jasig.cas.client.util.AbstractCasFilter;
 import password.pwm.bean.*;
 import password.pwm.error.ErrorInformation;
@@ -37,6 +38,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Jason D. Rivard

@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -36,6 +37,8 @@ import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -57,6 +60,9 @@ public class SessionManager implements Serializable {
     final private transient HttpSession session;
 
     final Lock providerLock = new ReentrantLock();
+
+    private transient ConcurrentMap<Serializable,Serializable> lruTypingCache;
+
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -139,6 +145,7 @@ public class SessionManager implements Serializable {
 
     public void closeConnections() {
         closeConnectionImpl();
+        lruTypingCache = null;
     }
 
     private void closeConnectionImpl() {
@@ -178,5 +185,28 @@ public class SessionManager implements Serializable {
         } finally {
             providerLock.unlock();
         }
+    }
+
+    private Map<Serializable, Serializable> getLruTypingCache() {
+        if (lruTypingCache == null) {
+            final ConcurrentMap newCache = new ConcurrentLinkedHashMap.Builder<Serializable, Serializable>()
+                    .maximumWeightedCapacity(PwmConstants.SERVER_AJAX_TYPING_CACHE_SIZE)
+                    .build();
+            lruTypingCache = newCache;
+            return newCache;
+        }
+        return lruTypingCache;
+    }
+
+    public Serializable getTypingCacheValue(final Serializable key) {
+
+        return PwmConstants.SERVER_AJAX_TYPING_CACHE_SIZE < 1 ? null : getLruTypingCache().get(key);
+    }
+
+    public void putLruTypingCacheValue(final Serializable key, final Serializable value) {
+        if (PwmConstants.SERVER_AJAX_TYPING_CACHE_SIZE < 1) {
+            return;
+        }
+        getLruTypingCache().put(key,value);
     }
 }

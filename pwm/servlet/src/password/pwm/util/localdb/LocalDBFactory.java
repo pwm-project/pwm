@@ -78,20 +78,20 @@ public class LocalDBFactory {
 
     private static LocalDBProvider createInstance(final String className)
             throws Exception {
-        final LocalDBProvider pwmDB;
+        final LocalDBProvider localDB;
         try {
             final Class c = Class.forName(className);
             final Object impl = c.newInstance();
             if (!(impl instanceof LocalDBProvider)) {
                 throw new Exception("unable to createSharedHistoryManager new LocalDB, " + className + " is not instance of " + LocalDBProvider.class.getName());
             }
-            pwmDB = (LocalDBProvider) impl;
+            localDB = (LocalDBProvider) impl;
         } catch (Exception e) {
             LOGGER.warn("error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage());
             throw new Exception("Messages instantiating new LocalDB instance: " + e.getMessage(), e);
         }
 
-        return pwmDB;
+        return localDB;
     }
 
     private static void initInstance(final LocalDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass, final boolean readonly)

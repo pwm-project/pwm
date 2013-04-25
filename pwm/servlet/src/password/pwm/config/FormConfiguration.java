@@ -52,6 +52,7 @@ public class FormConfiguration implements Serializable {
     private boolean required;
     private boolean confirmationRequired;
     private boolean readonly;
+    private boolean unique;
     private Map<String,String> labels = Collections.singletonMap("", "");
     private Map<String,String> regexErrors = Collections.singletonMap("","");
     private Map<String,String> description = Collections.singletonMap("","");
@@ -186,6 +187,10 @@ public class FormConfiguration implements Serializable {
 
     public boolean isReadonly() {
         return readonly;
+    }
+
+    public boolean isUnique() {
+        return unique;
     }
 
     public String getRegex() {

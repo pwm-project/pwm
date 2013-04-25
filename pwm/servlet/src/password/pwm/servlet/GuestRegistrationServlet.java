@@ -165,8 +165,13 @@ public class GuestRegistrationServlet extends TopServlet {
             }
 
             // check unique fields against ldap
-            final List<String> uniqueAttributes = config.readSettingAsStringArray(PwmSetting.NEWUSER_UNIQUE_ATTRIBUES);
-            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, uniqueAttributes, ssBean.getLocale());
+            Validator.validateAttributeUniqueness(
+                    pwmApplication,
+                    pwmApplication.getProxyChaiProvider(),
+                    formValues,
+                    ssBean.getLocale(),
+                    pwmSession.getSessionManager()
+            );
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
@@ -333,9 +338,6 @@ public class GuestRegistrationServlet extends TopServlet {
 
             // see if the values meet form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, locale);
-
-            // check unique fields against ldap
-            Validator.validateAttributeUniqueness(pwmApplication, pwmApplication.getProxyChaiProvider(), formValues, config.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES),locale);
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);
@@ -522,7 +524,6 @@ public class GuestRegistrationServlet extends TopServlet {
     {
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
-        final List<String> uniqueAttributes = configuration.readSettingAsStringArray(PwmSetting.GUEST_UNIQUE_ATTRIBUTES);
 
         {
             boolean namingIsInForm = false;
@@ -534,21 +535,6 @@ public class GuestRegistrationServlet extends TopServlet {
 
             if (!namingIsInForm) {
                 final String errorMsg = "ldap naming attribute '" + ldapNamingattribute + "' is not in form configuration, but is required";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, new String[]{ldapNamingattribute});
-                throw new PwmUnrecoverableException(errorInformation);
-            }
-        }
-
-        {
-            boolean namingIsInUnique = false;
-            for (final String uniqueAttr : uniqueAttributes) {
-                if (ldapNamingattribute.equalsIgnoreCase(uniqueAttr)) {
-                    namingIsInUnique = true;
-                }
-            }
-
-            if (!namingIsInUnique) {
-                final String errorMsg = "ldap naming attribute '" + ldapNamingattribute + "' is not in unique attribute configuration, but is required";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg, new String[]{ldapNamingattribute});
                 throw new PwmUnrecoverableException(errorInformation);
             }

@@ -366,7 +366,7 @@ public class MainClass {
         final File outputFile = new File(args[1]);
         final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
         try {
-            pwmDBUtility.exportPwmDB(outputFile, System.out);
+            pwmDBUtility.exportLocalDB(outputFile, System.out);
         } catch (PwmOperationalException e) {
             out("error during export: " + e.getMessage());
         }
@@ -398,7 +398,7 @@ public class MainClass {
         final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
         final File inputFile = new File(args[1]);
         try {
-            pwmDBUtility.importPwmDB(inputFile, System.out);
+            pwmDBUtility.importLocalDB(inputFile, System.out);
         } catch (PwmOperationalException e) {
             out("error during import: " + e.getMessage());
         }

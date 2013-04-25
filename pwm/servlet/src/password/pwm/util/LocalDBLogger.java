@@ -53,7 +53,7 @@ public class LocalDBLogger implements PwmService {
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
 
-    private final LocalDB pwmDB;
+    private final LocalDB localDB;
 
     private volatile long tailTimestampMs = -1L;
     private long lastQueueFlushTimestamp = System.currentTimeMillis();
@@ -73,13 +73,13 @@ public class LocalDBLogger implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public LocalDBLogger(final LocalDB pwmDB, final int maxEvents, final long maxAgeMS)
+    public LocalDBLogger(final LocalDB localDB, final int maxEvents, final long maxAgeMS)
             throws LocalDBException {
         final long startTime = System.currentTimeMillis();
         status = STATUS.OPENING;
-        this.pwmDB = pwmDB;
+        this.localDB = localDB;
         this.setting_maxAgeMs = maxAgeMS;
-        this.pwmDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.EVENTLOG_EVENTS);
+        this.pwmDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents set to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
@@ -94,7 +94,7 @@ public class LocalDBLogger implements PwmService {
             this.setting_maxEvents = maxEvents;
         }
 
-        if (pwmDB == null) {
+        if (localDB == null) {
             throw new IllegalArgumentException("pwmDB cannot be null");
         }
 
@@ -131,7 +131,7 @@ public class LocalDBLogger implements PwmService {
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
         sb.append(", maxEvents=").append(setting_maxEvents);
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
-        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
+        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
 
@@ -160,10 +160,10 @@ public class LocalDBLogger implements PwmService {
         }
 
         if (!eventQueue.isEmpty()) {
-            LOGGER.warn("abandoning " + eventQueue.size() + " events waiting to be written to pwmDB log");
+            LOGGER.warn("abandoning " + eventQueue.size() + " events waiting to be written to LocalDB log");
         }
 
-        LOGGER.debug("PwmDBLogger close completed (" + debugStats() + ")");
+        LOGGER.debug("LocalDBLogger close completed (" + debugStats() + ")");
     }
 
     public int getTransactionSize() {

@@ -55,7 +55,14 @@ public class RestProfileServer {
             }
 
             final FormMap formData = new FormMap();
-            UpdateProfileServlet.populateFormFromLdap(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),formData);
+            {
+                final Map<FormConfiguration,String> formConfigs = new HashMap<FormConfiguration,String>();
+                UpdateProfileServlet.populateFormFromLdap(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),formConfigs);
+                for (FormConfiguration formConfig : formConfigs.keySet()) {
+                    formData.put(formConfig.getName(),formConfigs.get(formConfig));
+                }
+            }
+
             final RestResultBean restResultBean = new RestResultBean();
             JsonProfileData outputData = new JsonProfileData();
             outputData.profile = formData;

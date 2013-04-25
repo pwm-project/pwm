@@ -537,8 +537,6 @@ public enum PwmSetting {
             "display.newuser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.NEWUSER),
     NEWUSER_FORM(
             "newUser.form", PwmSettingSyntax.FORM, Category.NEWUSER),
-    NEWUSER_UNIQUE_ATTRIBUES(
-            "newUser.creationUniqueAttributes", PwmSettingSyntax.STRING_ARRAY, Category.NEWUSER),
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", PwmSettingSyntax.ACTION, Category.NEWUSER),
     NEWUSER_DELETE_ON_FAIL(
@@ -568,8 +566,6 @@ public enum PwmSetting {
             "guest.form", PwmSettingSyntax.FORM, Category.GUEST),
     GUEST_UPDATE_FORM(
             "guest.update.form", PwmSettingSyntax.FORM, Category.GUEST),
-    GUEST_UNIQUE_ATTRIBUTES(
-            "guest.creationUniqueAttributes", PwmSettingSyntax.STRING_ARRAY, Category.GUEST),
     GUEST_WRITE_ATTRIBUTES(
             "guest.writeAttributes", PwmSettingSyntax.ACTION, Category.GUEST),
     GUEST_ADMIN_ATTRIBUTE(

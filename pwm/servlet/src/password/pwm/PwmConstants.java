@@ -85,6 +85,7 @@ public abstract class PwmConstants {
     public static final boolean CLEAR_SESSIONS_ON_RESTART = Boolean.parseBoolean(readPwmConstantsBundle("clearSessionsOnRestart"));
     public static final boolean ALLOW_HTML_IN_ERROR_MESSAGES = Boolean.parseBoolean(readPwmConstantsBundle("allowHtmlInErrorMessages"));
     public static final boolean INCLUDE_X_AMB_HEADER = Boolean.parseBoolean(readPwmConstantsBundle("includeXAmbHeader"));
+    public static final boolean INCLUDE_X_VERSION_HEADER = Boolean.parseBoolean(readPwmConstantsBundle("includeXVersionHeader"));
 
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
@@ -100,6 +101,7 @@ public abstract class PwmConstants {
 
     public static final int CLIENT_AJAX_TYPING_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingTimeout"));
     public static final int CLIENT_AJAX_TYPING_WAIT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingWait"));
+    public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
 
     public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
     public static final long INTRUDER_RETENTION_TIME_MS = Long.parseLong(readPwmConstantsBundle("intruderRetentionTimeMS"));

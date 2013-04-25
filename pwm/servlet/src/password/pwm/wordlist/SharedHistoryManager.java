@@ -61,7 +61,7 @@ public class SharedHistoryManager implements Wordlist {
 
     private volatile Timer cleanerTimer = null;
 
-    private LocalDB pwmDB;
+    private LocalDB localDB;
     private String salt;
     private long oldestEntry;
     private long maxAgeMs;
@@ -82,7 +82,7 @@ public class SharedHistoryManager implements Wordlist {
         if (cleanerTimer != null) {
             cleanerTimer.cancel();
         }
-        pwmDB = null;
+        localDB = null;
     }
 
     public boolean containsWord(final String word) {
@@ -101,9 +101,9 @@ public class SharedHistoryManager implements Wordlist {
 
         try {
             final String hashedWord = hashWord(testWord);
-            final boolean inDB = pwmDB.contains(WORDS_DB, hashedWord);
+            final boolean inDB = localDB.contains(WORDS_DB, hashedWord);
             if (inDB) {
-                final long timeStamp = Long.parseLong(pwmDB.get(WORDS_DB, hashedWord));
+                final long timeStamp = Long.parseLong(localDB.get(WORDS_DB, hashedWord));
                 final long entryAge = System.currentTimeMillis() - timeStamp;
                 if (entryAge < maxAgeMs) {
                     result = true;
@@ -131,9 +131,9 @@ public class SharedHistoryManager implements Wordlist {
     }
 
     public int size() {
-        if (pwmDB != null) {
+        if (localDB != null) {
             try {
-                return pwmDB.size(WORDS_DB);
+                return localDB.size(WORDS_DB);
             } catch (Exception e) {
                 LOGGER.error("error checking wordlist size: " + e.getMessage());
                 return 0;
@@ -146,13 +146,13 @@ public class SharedHistoryManager implements Wordlist {
 
     private void checkSalt()
             throws Exception {
-        salt = pwmDB.get(META_DB, KEY_SALT);
+        salt = localDB.get(META_DB, KEY_SALT);
         if (salt == null || salt.length() < 1) {
             LOGGER.info("no salt found in DB, creating new salt and clearing global history");
-            pwmDB.truncate(WORDS_DB);
+            localDB.truncate(WORDS_DB);
             salt = PwmRandom.getInstance().alphaNumericString(64);
-            pwmDB.put(META_DB, KEY_SALT, salt);
-            pwmDB.remove(META_DB, KEY_OLDEST_ENTRY);
+            localDB.put(META_DB, KEY_SALT, salt);
+            localDB.remove(META_DB, KEY_OLDEST_ENTRY);
         }
     }
 
@@ -160,15 +160,15 @@ public class SharedHistoryManager implements Wordlist {
             throws Exception {
         LOGGER.trace("checking version number stored in pwmDB");
 
-        final Object versionInDB = pwmDB.get(META_DB, KEY_VERSION);
+        final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
         final String pwmVersion = "version=" + VALUE_VERSION + ", caseSensitive=" + String.valueOf(caseSensitive);
         final boolean result = pwmVersion.equals(versionInDB);
 
         if (!result) {
             LOGGER.info("existing db version does not match current db version db=(" + versionInDB + ")  pwm=(" + pwmVersion + "), clearing db");
-            pwmDB.truncate(WORDS_DB);
-            pwmDB.put(META_DB, KEY_VERSION, pwmVersion);
-            pwmDB.remove(META_DB, KEY_OLDEST_ENTRY);
+            localDB.truncate(WORDS_DB);
+            localDB.put(META_DB, KEY_VERSION, pwmVersion);
+            localDB.remove(META_DB, KEY_OLDEST_ENTRY);
         } else {
             LOGGER.trace("existing db version matches current db version db=(" + versionInDB + ")  pwm=(" + pwmVersion + ")");
         }
@@ -198,7 +198,7 @@ public class SharedHistoryManager implements Wordlist {
         }
 
         try {
-            final String oldestEntryStr = pwmDB.get(META_DB, KEY_OLDEST_ENTRY);
+            final String oldestEntryStr = localDB.get(META_DB, KEY_OLDEST_ENTRY);
             if (oldestEntryStr == null || oldestEntryStr.length() < 1) {
                 oldestEntry = 0;
                 LOGGER.trace("no oldestEntry timestamp stored, will rescan");
@@ -213,7 +213,7 @@ public class SharedHistoryManager implements Wordlist {
         }
 
         try {
-            final int size = pwmDB.size(WORDS_DB);
+            final int size = localDB.size(WORDS_DB);
             final StringBuilder sb = new StringBuilder();
             sb.append("open with ").append(size).append(" words (");
             sb.append(new TimeDuration(System.currentTimeMillis(), startTime).asCompactString()).append(")");
@@ -302,8 +302,8 @@ public class SharedHistoryManager implements Wordlist {
         try {
             final String hashedWord = hashWord(addWord);
 
-            final boolean preExisting = pwmDB.contains(WORDS_DB, hashedWord);
-            pwmDB.put(WORDS_DB, hashedWord, Long.toString(System.currentTimeMillis()));
+            final boolean preExisting = localDB.contains(WORDS_DB, hashedWord);
+            localDB.put(WORDS_DB, hashedWord, Long.toString(System.currentTimeMillis()));
 
             {
                 final StringBuilder logOutput = new StringBuilder();
@@ -367,15 +367,15 @@ public class SharedHistoryManager implements Wordlist {
 
             LocalDB.PwmDBIterator<String> keyIterator = null;
             try {
-                keyIterator = pwmDB.iterator(WORDS_DB);
+                keyIterator = localDB.iterator(WORDS_DB);
                 while (status == STATUS.OPEN && keyIterator.hasNext()) {
                     final String key = keyIterator.next();
-                    final String value = pwmDB.get(WORDS_DB, key);
+                    final String value = localDB.get(WORDS_DB, key);
                     final long timeStamp = Long.parseLong(value);
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 
                     if (entryAge > maxAgeMs) {
-                        pwmDB.remove(WORDS_DB, key);
+                        localDB.remove(WORDS_DB, key);
                         removeCount++;
 
                         if (removeCount % 1000 == 0) {
@@ -392,14 +392,14 @@ public class SharedHistoryManager implements Wordlist {
                         keyIterator.close();
                     }
                 } catch (Exception e) {
-                    LOGGER.warn("error returning pwmDB iterator: " + e.getMessage());
+                    LOGGER.warn("error returning LocalDB iterator: " + e.getMessage());
                 }
             }
 
             //update the oldest entry
             if (status == STATUS.OPEN) {
                 oldestEntry = localOldestEntry;
-                pwmDB.put(META_DB, KEY_OLDEST_ENTRY, Long.toString(oldestEntry));
+                localDB.put(META_DB, KEY_OLDEST_ENTRY, Long.toString(oldestEntry));
             }
 
             final StringBuilder sb = new StringBuilder();
@@ -421,10 +421,10 @@ public class SharedHistoryManager implements Wordlist {
     {
         this.maxAgeMs = 1000 *  pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE); // convert to MS;
         this.caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-        this.pwmDB = pwmApplication.getLocalDB();
+        this.localDB = pwmApplication.getLocalDB();
 
-        if (pwmDB == null) {
-            LOGGER.info("pwmDB is not available, will remain closed");
+        if (localDB == null) {
+            LOGGER.info("LocalDB is not available, will remain closed");
             status = STATUS.CLOSED;
             return;
         }
@@ -436,7 +436,7 @@ public class SharedHistoryManager implements Wordlist {
                 public void run() {
                     LOGGER.trace("clearing wordlist");
                     try {
-                        pwmDB.truncate(WORDS_DB);
+                        localDB.truncate(WORDS_DB);
                     } catch (Exception e) {
                         LOGGER.error("error during wordlist truncate", e);
                     }

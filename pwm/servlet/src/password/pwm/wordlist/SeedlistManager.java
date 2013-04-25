@@ -72,7 +72,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
             final int seedCount = size();
             if (seedCount > 1000) {
                 final int randomKey = PwmRandom.getInstance().nextInt(size());
-                final Object obj = pwmDB.get(WORD_DB, String.valueOf(randomKey));
+                final Object obj = localDB.get(WORD_DB, String.valueOf(randomKey));
                 if (obj != null) {
                     returnValue = obj.toString();
                 }
@@ -94,11 +94,11 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
     @Override
     protected void checkPopulation() throws Exception {
-        final boolean isComplete = VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(pwmDB.get(META_DB, KEY_STATUS)));
+        final boolean isComplete = VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS)));
         if (!isComplete) {
             LOGGER.info(DEBUG_LABEL + " prior population did not complete, clearing wordlist");
-            pwmDB.truncate(META_DB);
-            pwmDB.truncate(WORD_DB);
+            localDB.truncate(META_DB);
+            localDB.truncate(WORD_DB);
         }
         super.checkPopulation();
     }

@@ -28,7 +28,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler(); startupChangePasswordPage('<pwm:Display key="Display_PasswordPrompt"/>');" class="nihilo">
-<script type="text/javascript"
+<script type="text/javascript" defer="defer"
         src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

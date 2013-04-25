@@ -568,9 +568,10 @@ MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, i
 
 var FormTableHandler = {};
 
-FormTableHandler.init = function(keyName) {
+FormTableHandler.init = function(keyName,options) {
     console.log('FormTableHandler init for ' + keyName);
     var parentDiv = 'table_setting_' + keyName;
+    clientSettingCache[keyName + '_options'] = options;
     clearDivElements(parentDiv, true);
     readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
@@ -762,8 +763,14 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Confirm</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Read Only</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
-        bodyText += '</tr><tr>';
+        if (clientSettingCache[keyName + '_options']['readonly'] == 'show') {
+            bodyText += '<td style="border:0; text-align: right">Read Only</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
+            bodyText += '</tr><tr>';
+        }
+        if (clientSettingCache[keyName + '_options']['unique'] == 'show') {
+            bodyText += '<td style="border:0; text-align: right">Unique</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
+            bodyText += '</tr><tr>';
+        }
         bodyText += '<td style="border:0; text-align: right">Minimum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Maximum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
@@ -817,11 +824,21 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             onChange: function(){clientSettingCache[keyName][iteration]['confirmationRequired'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "confirmationRequired");
 
+        if (clientSettingCache[keyName + '_options']['readonly'] == 'show') {
         clearDijitWidget(inputID + "readonly");
         new dijit.form.CheckBox({
             checked: clientSettingCache[keyName][iteration]['readonly'],
             onChange: function(){clientSettingCache[keyName][iteration]['readonly'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "readonly");
+        }
+
+        if (clientSettingCache[keyName + '_options']['unique'] == 'show') {
+            clearDijitWidget(inputID + "unique");
+            new dijit.form.CheckBox({
+                checked: clientSettingCache[keyName][iteration]['unique'],
+                onChange: function(){clientSettingCache[keyName][iteration]['unique'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
+            },inputID + "unique");
+        }
 
         clearDijitWidget(inputID + "minimumLength");
         new dijit.form.NumberSpinner({

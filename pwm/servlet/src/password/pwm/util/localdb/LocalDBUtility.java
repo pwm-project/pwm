@@ -38,7 +38,7 @@ import java.util.zip.GZIPOutputStream;
 public class LocalDBUtility {
 
     final static List<LocalDB.DB> BACKUP_IGNORE_DBs;
-    private final LocalDB pwmDB;
+    private final LocalDB localDB;
     private int exportLineCounter;
     private int importLineCounter;
 
@@ -52,19 +52,19 @@ public class LocalDBUtility {
         BACKUP_IGNORE_DBs = Collections.unmodifiableList(Arrays.asList(ignoredDBsArray));
     }
 
-    public LocalDBUtility(LocalDB pwmDB) {
-        this.pwmDB = pwmDB;
+    public LocalDBUtility(LocalDB localDB) {
+        this.localDB = localDB;
     }
 
-    public void exportPwmDB(final File outputFile, final PrintStream out)
+    public void exportLocalDB(final File outputFile, final PrintStream out)
             throws PwmOperationalException, IOException
     {
         if (outputFile == null) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportPwmDB cannot be null");
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportLocalDB cannot be null");
         }
 
         if (outputFile.exists()) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportPwmDB cannot already exist");
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportLocalDB cannot already exist");
         }
 
 
@@ -72,7 +72,7 @@ public class LocalDBUtility {
         exportLineCounter = 0;
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
-                exportLineCounter += pwmDB.size(loopDB);
+                exportLineCounter += localDB.size(loopDB);
             }
         }
         final int totalLines = exportLineCounter;
@@ -98,9 +98,9 @@ public class LocalDBUtility {
             csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputFile))),',');
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
-                    for (final Iterator<String> iter = pwmDB.iterator(loopDB); iter.hasNext();) {
+                    for (final Iterator<String> iter = localDB.iterator(loopDB); iter.hasNext();) {
                         final String key = iter.next();
-                        final String value = pwmDB.get(loopDB, key);
+                        final String value = localDB.get(loopDB, key);
                         csvWriter.writeRecord(new String[] {loopDB.toString(),key,value});
                         exportLineCounter++;
                     }
@@ -124,23 +124,23 @@ public class LocalDBUtility {
         out.println(string);
     }
 
-    public void importPwmDB(final File inputFile, final PrintStream out)
+    public void importLocalDB(final File inputFile, final PrintStream out)
             throws PwmOperationalException, IOException
     {
         if (inputFile == null) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importPwmDB cannot be null");
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB cannot be null");
         }
 
         if (!inputFile.exists()) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importPwmDB does not exist");
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB does not exist");
         }
 
-        writeStringToOut(out, "clearing PwmDB...");
+        writeStringToOut(out, "clearing LocalDB...");
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             writeStringToOut(out, " truncating " + loopDB.toString());
-            pwmDB.truncate(loopDB);
+            localDB.truncate(loopDB);
         }
-        writeStringToOut(out, "PwmDB cleared");
+        writeStringToOut(out, "LocalDB cleared");
 
         writeStringToOut(out, "counting lines...");
         importLineCounter = 0;
@@ -182,7 +182,7 @@ public class LocalDBUtility {
                 final LocalDB.DB db = LocalDB.DB.valueOf(csvReader.get(0));
                 final String key = csvReader.get(1);
                 final String value = csvReader.get(2);
-                pwmDB.put(db, key, value);
+                localDB.put(db, key, value);
                 transactionMap.get(db).put(key,value);
                 int cachedTransactions = 0;
                 for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
@@ -191,7 +191,7 @@ public class LocalDBUtility {
                 if (cachedTransactions >= transactionCalculator.getTransactionSize()) {
                     final long startTxnTime = System.currentTimeMillis();
                     for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-                        pwmDB.putAll(loopDB,transactionMap.get(loopDB));
+                        localDB.putAll(loopDB, transactionMap.get(loopDB));
                         importLineCounter += transactionMap.get(loopDB).size();
                         transactionMap.get(loopDB).clear();
                     }
@@ -204,7 +204,7 @@ public class LocalDBUtility {
         }
 
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            pwmDB.putAll(loopDB,transactionMap.get(loopDB));
+            localDB.putAll(loopDB, transactionMap.get(loopDB));
             transactionMap.get(loopDB).clear();
         }
 

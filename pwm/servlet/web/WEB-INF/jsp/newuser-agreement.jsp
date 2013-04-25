@@ -83,8 +83,10 @@
     <br class="clear"/>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
-        dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
+            dojoParser.parse();
+        });
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

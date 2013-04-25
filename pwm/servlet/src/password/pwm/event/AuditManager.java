@@ -53,6 +53,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AuditManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuditManager.class);
+    private static final int MAX_REMOVALS_PER_ADD = 100;
+
 
     private STATUS status = STATUS.NEW;
     private PwmApplication pwmApplication;
@@ -78,13 +80,13 @@ public class AuditManager implements PwmService {
         this.pwmApplication = pwmApplication;
         this.maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
 
-        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
-            this.auditDB = LocalDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getLocalDB(), LocalDB.DB.AUDIT_EVENTS);
-            this.status = STATUS.OPEN;
-        } else {
+        if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
             this.status = STATUS.CLOSED;
+            LOGGER.warn("unable to start - LocalDB is not available");
+            return;
         }
 
+        this.auditDB = LocalDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getLocalDB(), LocalDB.DB.AUDIT_EVENTS);
         final List<String> syslogConfigStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
         if (!syslogConfigStrings.isEmpty()) {
             try {
@@ -94,6 +96,7 @@ public class AuditManager implements PwmService {
                 LOGGER.error(errorInformation.toDebugStr());
             }
         }
+        this.status = STATUS.OPEN;
     }
 
     @Override
@@ -176,6 +179,11 @@ public class AuditManager implements PwmService {
     {
         final String gsonRecord = new Gson().toJson(auditRecord);
 
+        if (status != STATUS.OPEN) {
+            LOGGER.warn("discarding audit event (AuditManager is not open), " + gsonRecord);
+            return;
+        }
+
         // add to debug log
         LOGGER.info("audit event: " + gsonRecord);
 
@@ -212,7 +220,7 @@ public class AuditManager implements PwmService {
         }
 
         int workActions = 0;
-        while (workActions < 3 && !auditDB.isEmpty()) {
+        while (workActions < MAX_REMOVALS_PER_ADD && !auditDB.isEmpty()) {
             final String stringFirstRecord = auditDB.getFirst();
             final AuditRecord firstRecord = new Gson().fromJson(stringFirstRecord,AuditRecord.class);
             oldestRecord = firstRecord.getTimestamp();

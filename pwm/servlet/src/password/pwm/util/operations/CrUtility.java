@@ -274,8 +274,8 @@ public abstract class CrUtility {
                     break;
 
                 case LOCALDB:
-                    final LocalDB pwmDB = pwmApplication.getLocalDB();
-                    readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, pwmDB, theUser, userGUID);
+                    final LocalDB localDB = pwmApplication.getLocalDB();
+                    readResponses = ResponseReaders.readResponsesFromPwmDB(pwmSession, localDB, theUser, userGUID);
                     break;
 
                 case LDAP:
@@ -301,7 +301,7 @@ public abstract class CrUtility {
 
         private static ResponseSet readResponsesFromPwmDB(
                 final PwmSession pwmSession,
-                final LocalDB pwmDB,
+                final LocalDB localDB,
                 final ChaiUser theUser,
                 final String userGUID
         )
@@ -313,25 +313,25 @@ public abstract class CrUtility {
                 throw new PwmUnrecoverableException(errorInformation);
             }
 
-            if (pwmDB == null) {
-                final String errorMsg = "pwmDB is not available, unable to search for user responses";
+            if (localDB == null) {
+                final String errorMsg = "LocalDB is not available, unable to search for user responses";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
             }
 
             try {
-                final String responseStringBlob = pwmDB.get(LocalDB.DB.RESPONSE_STORAGE, userGUID);
+                final String responseStringBlob = localDB.get(LocalDB.DB.RESPONSE_STORAGE, userGUID);
                 if (responseStringBlob != null && responseStringBlob.length() > 0) {
                     final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
-                    LOGGER.debug(pwmSession, "found user responses in pwmDB: " + userResponseSet.toString());
+                    LOGGER.debug(pwmSession, "found user responses in LocalDB: " + userResponseSet.toString());
                     return userResponseSet;
                 }
             } catch (LocalDBException e) {
-                final String errorMsg = "unexpected pwmDB error reading responses from pwmDB: " + e.getMessage();
+                final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
             } catch (ChaiException e) {
-                final String errorMsg = "unexpected chai error reading responses from pwmDB: " + e.getMessage();
+                final String errorMsg = "unexpected chai error reading responses from LocalDB: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
             }
@@ -547,22 +547,22 @@ public abstract class CrUtility {
                     }
 
                     if (pwmApplication.getLocalDB() == null) {
-                        final String errorMsg = "pwmDB is not available, unable to write user responses";
+                        final String errorMsg = "LocalDB is not available, unable to write user responses";
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                         throw new PwmOperationalException(errorInformation);
                     }
 
                     try {
                         pwmApplication.getLocalDB().put(LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue());
-                        LOGGER.info(pwmSession, "saved responses for user in local pwmDB");
+                        LOGGER.info(pwmSession, "saved responses for user in LocalDB");
                         successes++;
                     } catch (LocalDBException e) {
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to pwmDB: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
                         throw pwmOE;
                     } catch (ChaiOperationException e) {
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected pwmDB error saving responses to pwmDB: " + e.getMessage());
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to pwmDB: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
                         throw pwmOE;
@@ -702,17 +702,17 @@ public abstract class CrUtility {
                     }
 
                     if (pwmApplication.getLocalDB() == null) {
-                        final String errorMsg = "pwmDB is not available, unable to write user responses";
+                        final String errorMsg = "LocalDB is not available, unable to write user responses";
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
                         throw new PwmOperationalException(errorInformation);
                     }
 
                     try {
                         pwmApplication.getLocalDB().remove(LocalDB.DB.RESPONSE_STORAGE, userGUID);
-                        LOGGER.info(pwmSession, "cleared responses for user in local pwmDB");
+                        LOGGER.info(pwmSession, "cleared responses for user in local LocalDB");
                         successes++;
                     } catch (LocalDBException e) {
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected pwmDB error clearing responses to pwmDB: " + e.getMessage());
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected LocalDB error clearing responses: " + e.getMessage());
                         final PwmOperationalException pwmOE = new PwmOperationalException(errorInfo);
                         pwmOE.initCause(e);
                         throw pwmOE;

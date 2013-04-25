@@ -278,7 +278,7 @@ public class PasswordUtility {
                     chaiUser.getEntryDN(),
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
-                    );
+            );
             pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
         }
 
@@ -586,7 +586,8 @@ public class PasswordUtility {
             final ChaiUser user,
             final UserInfoBean userInfoBean,
             final String password,
-            final String confirmPassword
+            final String confirmPassword,
+            final SessionManager sessionManager
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
@@ -595,39 +596,60 @@ public class PasswordUtility {
         }
 
         boolean pass = false;
-        String userMessage;
+        String userMessage = "";
         int errorCode = 0;
 
         final boolean passwordIsCaseSensitive = userInfoBean.getPasswordPolicy() == null || userInfoBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive);
-        final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
 
         if (password.length() < 0) {
             userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(locale, pwmApplication.getConfig());
         } else {
+            final Boolean NEGATIVE_CACHE_HIT = Boolean.FALSE;
+            final String cacheKey = "passwordCheck_" + (user == null ? "" : user.getEntryDN()) + "_" + password;
             try {
-                final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
-                final String oldPassword = userInfoBean.getUserCurrentPassword();
-                pwmPasswordRuleValidator.testPassword(password, oldPassword, userInfoBean, user);
-                pass = true;
-
-                switch (matchStatus) {
-                    case EMPTY:
-                        userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(locale, pwmApplication.getConfig());
-                        break;
-                    case MATCH:
-                        userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(locale, pwmApplication.getConfig());
-                        break;
-                    case NO_MATCH:
-                        userMessage = new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH).toUserStr(locale, pwmApplication.getConfig());
-                        break;
-                    default:
-                        userMessage = "";
+                if (sessionManager != null) {
+                    final Object cachedValue = sessionManager.getTypingCacheValue(cacheKey);
+                    if (cachedValue != null) {
+                        if (NEGATIVE_CACHE_HIT.equals(cachedValue)) {
+                            pass = true;
+                        } else {
+                            throw new PwmDataValidationException((ErrorInformation)cachedValue);
+                        }
+                    }
                 }
-
+                if (!pass) {
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
+                    final String oldPassword = userInfoBean.getUserCurrentPassword();
+                    pwmPasswordRuleValidator.testPassword(password, oldPassword, userInfoBean, user);
+                    pass = true;
+                    if (sessionManager != null) {
+                        sessionManager.putLruTypingCacheValue(cacheKey,NEGATIVE_CACHE_HIT);
+                    }
+                }
             } catch (PwmDataValidationException e) {
                 errorCode = e.getError().getErrorCode();
                 userMessage = e.getErrorInformation().toUserStr(locale, pwmApplication.getConfig());
                 pass = false;
+                if (sessionManager != null) {
+                    sessionManager.putLruTypingCacheValue(cacheKey,e.getErrorInformation());
+                }
+            }
+        }
+
+        final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
+        if (pass == true) {
+            switch (matchStatus) {
+                case EMPTY:
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(locale, pwmApplication.getConfig());
+                    break;
+                case MATCH:
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_MEETS_RULES).toUserStr(locale, pwmApplication.getConfig());
+                    break;
+                case NO_MATCH:
+                    userMessage = new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH).toUserStr(locale, pwmApplication.getConfig());
+                    break;
+                default:
+                    userMessage = "";
             }
         }
 

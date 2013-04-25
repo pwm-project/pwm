@@ -626,7 +626,7 @@
         <label>Activation Email</label>
         <description><![CDATA[Email sent to a user just after a successful activation.]]></description>
         <default>
-            <value>{"from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account.\u003c/b\u003e"}</value>
+            <value>{"from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.activation.token" level="0">
@@ -1860,19 +1860,13 @@
         <label>New User Form</label>
         <description><![CDATA[New User form creation attributes/fields.]]></description>
         <default>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-    </setting>
-    <setting key="newUser.creationUniqueAttributes" level="0">
-        <label>Unique Attributes</label>
-        <description><![CDATA[Attributes that must be unique in the directory for the user to be created.  For example,if the 'mail' attribute is listed here (and is in the newUser.attributes setting), then the new user will not be able to be created if the value for the mail attribute already exists on any other user object.  This would result in all userIDs having unique email addresses.]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
-        <default>
-            <value><![CDATA[cn]]></value>
-            <value><![CDATA[mail]]></value>
-        </default>
+        <options>
+            <option value="unique">show</option>
+        </options>
     </setting>
     <setting key="newUser.writeAttributes" level="0">
         <label>New User Actions</label>
@@ -1953,12 +1947,15 @@
         <label>New Guest Form</label>
         <description><![CDATA[New Guest form creation attributes/fields.]]></description>
         <default>
-            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="unique">show</option>
+        </options>
     </setting>
     <setting key="guest.update.form" level="0" required="true">
         <label>Update Guest Form</label>
@@ -2127,6 +2124,9 @@
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="readonly">show</option>
+        </options>
     </setting>
     <setting key="updateAttributes.check.queryMatch" level="0">
         <label>Update Check Query Match</label>
@@ -2193,7 +2193,7 @@
     </setting>
     <setting key="peopleSearch.result.form" level="0" required="true">
         <label>PeopleSearch Result Form</label>
-        <description><![CDATA[Field(s) to be shown as a result to searches.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <description><![CDATA[Field(s) to be shown as a result to searches.]]></description>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2204,7 +2204,7 @@
     </setting>
     <setting key="peopleSearch.detail.form" level="0" required="true">
         <label>PeopleSearch Detail Form</label>
-        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.]]></description>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2334,7 +2334,7 @@
     </setting>
     <setting key="helpdesk.result.form" level="0" required="true">
         <label>Helpdesk Search Form</label>
-        <description><![CDATA[Field(s) to be shown as a result to searches.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <description><![CDATA[Field(s) to be shown as a result to searches.]]></description>
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2359,7 +2359,7 @@
     </setting>
     <setting key="helpdesk.detail.form" level="0" required="true">
         <label>Helpdesk Detail Form</label>
-        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.  (Fields will always be read-only, regardless of configuration.)]]></description>
+        <description><![CDATA[Field(s) to be shown during the detail view of of an individual.]]></description>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2605,7 +2605,7 @@
     </category>
     <category key="SECURITY">
         <label>Security</label>
-        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directorie's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
+        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
     </category>
     <category key="TOKEN">
         <label>Tokens</label>

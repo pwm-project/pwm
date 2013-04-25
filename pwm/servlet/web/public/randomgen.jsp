@@ -26,8 +26,8 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
-<script type="text/javascript"
+<body class="nihilo" onload="pwmPageLoadHandler();">
+<script type="text/javascript" defer="defer"
         src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -76,12 +76,13 @@
             fetchRandoms(randomConfig);
         }
 
-
-        require(["dojo/ready"],function(){
-            makeTable();
-            window.onresize = function(event) {
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/ready"],function(){
                 makeTable();
-            }
+                window.onresize = function(event) {
+                    makeTable();
+                }
+            });
         });
     </script>
 </div>

@@ -45,8 +45,8 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
-            <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-            <% final String expandedText = MacroMachine.expandMacros(agreementText, ContextManager.getPwmApplication(session), PwmSession.getPwmSession(session).getUserInfoBean()); %>
+        <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+        <% final String expandedText = MacroMachine.expandMacros(agreementText, ContextManager.getPwmApplication(session), PwmSession.getPwmSession(session).getUserInfoBean()); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
@@ -80,8 +80,10 @@
     <br class="clear"/>
 </div>
 <script type="text/javascript">
-    require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
-        dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
+            dojoParser.parse();
+        });
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

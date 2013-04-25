@@ -729,7 +729,7 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
                         <td>
                             refreshImmediate=true
                             <br/>
-                            <i>Indicates if the server should refresh the health status before calling this service.</i>
+                            <i>Indicates if the server should refresh the health status before calling this service.  Only available if logged in with administrative rights.</i>
                         </td>
                     </tr>
                 </table>

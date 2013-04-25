@@ -27,6 +27,7 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
@@ -94,7 +95,7 @@ public class UpdateProfileServlet extends TopServlet {
         if (actionParam != null && actionParam.length() > 0) {
             Validator.validatePwmFormID(req);
             if ("updateProfile".equalsIgnoreCase(actionParam)) {
-                handleUpdateRequest(req);
+                handleUpdateRequest(pwmApplication,pwmSession,updateProfileBean,req);
             } else if ("agree".equalsIgnoreCase(actionParam)) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted update profile agreement");
                 updateProfileBean.setAgreementPassed(true);
@@ -105,7 +106,7 @@ public class UpdateProfileServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "user requested to 'go back' and re-edit profile data");
                 handleUnconfirm(updateProfileBean);
             } else if ("validate".equalsIgnoreCase(actionParam)) {       // go back and edit data
-                handleValidateForm(req,resp);
+                restValidateForm(pwmApplication, pwmSession, updateProfileBean, req, resp);
                 return;
             }
         }
@@ -113,25 +114,27 @@ public class UpdateProfileServlet extends TopServlet {
         advanceToNextStep(pwmApplication, pwmSession, updateProfileBean, req, resp);
     }
 
-    protected static void handleValidateForm(
+    protected static void restValidateForm(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UpdateProfileBean updateProfileBean,
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-
         boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UPDATE_FORM, pwmApplication.getConfig());
 
         try {
             // read in the responses from the request
-            final Map<FormConfiguration, String> formMap = readFromJsonRequest(req, pwmApplication, pwmSession);
+            readFromJsonRequest(pwmApplication, pwmSession, updateProfileBean, req);
 
             // see if the values meet requirements.
-            Validator.validateParmValuesMeetRequirements(formMap, pwmSession.getSessionStateBean().getLocale());
-
+            Validator.validateParmValuesMeetRequirements(
+                    updateProfileBean.getFormData(),
+                    pwmSession.getSessionStateBean().getLocale()
+            );
         } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
@@ -175,8 +178,8 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         if (!updateProfileBean.isFormSubmitted()) {
-            final FormMap formProps = pwmSession.getSessionStateBean().getLastParameterValues();
-            populateFormFromLdap(pwmApplication, pwmSession, formProps);
+            final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
+            populateFormFromLdap(pwmApplication, pwmSession, formMap);
             forwardToJSP(req,resp);
             return;
         }
@@ -225,85 +228,74 @@ public class UpdateProfileServlet extends TopServlet {
     public static void populateFormFromLdap(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final FormMap formMap
+            final Map<FormConfiguration, String> formMap
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
 
+
         for (final FormConfiguration formItem : formFields) {
             final String attrName = formItem.getName();
             if (!formMap.containsKey(attrName)) {
                 final String userCurrentValue = currentUserAttributes.get(attrName);
                 if (userCurrentValue != null) {
-                    formMap.put(attrName, userCurrentValue);
+                    formMap.put(formItem, userCurrentValue);
                 }
             }
         }
     }
 
 
-    private Map<FormConfiguration,String> readFormParametersFromRequest(
+    private void readFormParametersFromRequest(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
+            final UpdateProfileBean updateProfileBean,
             final HttpServletRequest req
     )
             throws PwmUnrecoverableException, PwmDataValidationException, ChaiUnavailableException
     {
         final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
-        // remove read-only fields
-        for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
-            FormConfiguration loopFormConfig = iterator.next();
-            if (loopFormConfig.isReadonly()) {
-                iterator.remove();
-            }
-        }
+        final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
 
         //read the values from the request
-        return Validator.readFormValuesFromRequest(req, formFields, pwmSession.getSessionStateBean().getLocale());
+        existingForm.putAll(Validator.readFormValuesFromRequest(req, formFields, pwmSession.getSessionStateBean().getLocale()));
     }
 
-    private static Map<FormConfiguration, String> readFromJsonRequest(
-            final HttpServletRequest req,
+    private static void readFromJsonRequest(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final UpdateProfileBean updateProfileBean,
+            final HttpServletRequest req
     )
             throws PwmDataValidationException, PwmUnrecoverableException, IOException
     {
         final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-
-        // remove read-only fields
-        for (Iterator<FormConfiguration> iterator = formFields.iterator(); iterator.hasNext(); ) {
-            FormConfiguration loopFormConfig = iterator.next();
-            if (loopFormConfig.isReadonly()) {
-                iterator.remove();
-            }
-        }
+        final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
 
         final String bodyString = ServletHelper.readRequestBody(req);
         final Map<String, String> clientValues = new Gson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
-        if (clientValues == null) {
-            return null;
-        }
 
-        return Validator.readFormValuesFromMap(clientValues, formFields,  pwmSession.getSessionStateBean().getLocale());
+        if (clientValues != null) {
+            existingForm.putAll(Validator.readFormValuesFromMap(clientValues, formFields,  pwmSession.getSessionStateBean().getLocale()));
+        }
     }
 
 
-    private void handleUpdateRequest(final HttpServletRequest req)
+    private void handleUpdateRequest(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UpdateProfileBean updateProfileBean,
+            final HttpServletRequest req
+    )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
-        updateProfileBean.setFormData(null);
 
         try {
-            final Map<FormConfiguration,String> formData = readFormParametersFromRequest(pwmApplication, pwmSession, req);
-            updateProfileBean.setFormData(formData);
+            readFormParametersFromRequest(pwmApplication, pwmSession, updateProfileBean, req);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());

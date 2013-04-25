@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -37,6 +38,7 @@ import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -114,9 +116,6 @@ public class Validator {
         }
 
         final Map<FormConfiguration, String> returnMap = new LinkedHashMap<FormConfiguration,String>();
-        for (final FormConfiguration formItem : formItems) {
-            returnMap.put(formItem,"");
-        }
 
         if (inputMap == null) {
             return returnMap;
@@ -142,7 +141,7 @@ public class Validator {
                     throw new PwmDataValidationException(error);
                 }
             }
-            if (value != null) {
+            if (value != null && !formItem.isReadonly()) {
                 returnMap.put(formItem,value);
             }
         }
@@ -316,15 +315,17 @@ public class Validator {
             final PwmApplication pwmApplication,
             final ChaiProvider chaiProvider,
             final Map<FormConfiguration,String> formValues,
-            final List<String> uniqueAttributes,
-            final Locale locale
+            final Locale locale,
+            final SessionManager sessionManager
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
         final Map<String, String> filterClauses = new HashMap<String, String>();
         final Map<String,String> labelMap = new HashMap<String,String>();
+        final List<String> uniqueAttributes = new ArrayList();
         for (final FormConfiguration formItem : formValues.keySet()) {
-            if (uniqueAttributes.contains(formItem.getName())) {
+            if (formItem.isUnique()) {
+                uniqueAttributes.add(formItem.getName());
                 final String value = formValues.get(formItem);
                 if (value != null && value.length() > 0) {
                     filterClauses.put(formItem.getName(), value);
@@ -359,6 +360,19 @@ public class Validator {
             filter.append(")");
         }
 
+        final Boolean NEGATIVE_CACHE_HIT = Boolean.TRUE;
+        final String cacheKey = "attr_unique_check_" + filter.toString();
+        if (sessionManager != null) {
+            final Object cacheValue = sessionManager.getTypingCacheValue(cacheKey);
+            if (cacheValue != null) {
+                if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
+                    return;
+                } else {
+                    throw new PwmDataValidationException((ErrorInformation)cacheValue);
+                }
+            }
+        }
+
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setFilterAnd(filterClauses);
 
@@ -368,10 +382,11 @@ public class Validator {
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration,1,Collections.<String>emptyList());
+            final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration,2,Collections.<String>emptyList());
             if (!results.isEmpty()) {
                 if (labelMap.size() == 1) { // since only one value searched, it must be that one value
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.values().iterator().next()});
+                    //System.out.println("----size=1," + (new Gson().toJson(error)));
                     throw new PwmDataValidationException(error);
                 }
 
@@ -380,17 +395,26 @@ public class Validator {
                 for (final String name : filterClauses.keySet()) {
                     final String value = filterClauses.get(name);
                     if (theUser.compareStringAttribute(name,value)) {
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.get(name)});
+                        final String label = labelMap.get(name);
+                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{label});
+                        //System.out.println("----compare-loop-name=," + name + ", value=" + value + ", label=" + label + ", " + (new Gson().toJson(error)));
                         throw new PwmDataValidationException(error);
                     }
                 }
 
-                // user didn't match on the compare.. shouldn't get here but just in came
+                // user didn't match on the compare.. shouldn't get here but just in case
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
+                //System.out.println("----failsafe, " + (new Gson().toJson(error)));
                 throw new PwmDataValidationException(error);
             }
         } catch (PwmOperationalException e) {
-            throw new PwmDataValidationException(e.getError());
+            if (sessionManager != null) {
+                sessionManager.putLruTypingCacheValue(cacheKey,e.getErrorInformation());
+            }
+            throw new PwmDataValidationException(e.getErrorInformation());
+        }
+        if (sessionManager != null) {
+            sessionManager.putLruTypingCacheValue(cacheKey,NEGATIVE_CACHE_HIT);
         }
     }
 
@@ -409,6 +433,5 @@ public class Validator {
         }
         return tempMap;
     }
-
 }
 

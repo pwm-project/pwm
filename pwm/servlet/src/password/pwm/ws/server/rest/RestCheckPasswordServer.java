@@ -104,28 +104,29 @@ public class RestCheckPasswordServer {
     )
             throws PwmUnrecoverableException
     {
-        return doOperation(password1,password2,username);
+        final JsonInput jsonInput = new JsonInput();
+        jsonInput.password1 = password1;
+        jsonInput.password2 = password2;
+        jsonInput.username = username;
+
+        return doOperation(jsonInput);
     }
 
     @POST
-	@Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String doPasswordRuleCheckJsonPost(JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
-        return doOperation(jsonInput.password1, jsonInput.password2, jsonInput.username);
+        return doOperation(jsonInput);
     }
 
-    public String doOperation(
-            final @FormParam("password1") String password1,
-            final @FormParam("password2") String password2,
-            final @FormParam("username") String username
-    )
+    public String doOperation(JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, true, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         }
@@ -133,7 +134,7 @@ public class RestCheckPasswordServer {
         try {
             final String userDN;
             final UserInfoBean uiBean;
-            if (username != null && username.length() > 0) { // check for another user
+            if (jsonInput.username != null && jsonInput.username.length() > 0) { // check for another user
                 userDN = restRequestBean.getUserDN();
                 uiBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(
@@ -150,15 +151,10 @@ public class RestCheckPasswordServer {
                 uiBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
 
-            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, password1, password2, uiBean);
+            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, jsonInput.password1, jsonInput.password2, uiBean);
 
             final JsonData jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
-            if (!restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
-            }
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(jsonData);
-            return restResultBean.toJson();
+            return outputSuccess(restRequestBean, jsonData);
         } catch (PwmException e) {
             return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         } catch (Exception e) {
@@ -166,6 +162,15 @@ public class RestCheckPasswordServer {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
             return RestServerHelper.outputJsonErrorResult(errorInformation, request);
         }
+    }
+
+    private static String outputSuccess(RestRequestBean restRequestBean, JsonData jsonData) {
+        if (!restRequestBean.isExternal()) {
+            restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
+        }
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(jsonData);
+        return restResultBean.toJson();
     }
 
     private static class PasswordCheckRequest {
@@ -199,7 +204,7 @@ public class RestCheckPasswordServer {
     }
 
 
-	public JsonData doPasswordRuleCheck(PwmApplication pwmApplication, PwmSession pwmSession, PasswordCheckRequest checkRequest)
+    public JsonData doPasswordRuleCheck(PwmApplication pwmApplication, PwmSession pwmSession, PasswordCheckRequest checkRequest)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
@@ -210,7 +215,8 @@ public class RestCheckPasswordServer {
                 user,
                 checkRequest.getUserInfoBean(),
                 checkRequest.getPassword1(),
-                checkRequest.getPassword2()
+                checkRequest.getPassword2(),
+                pwmSession.getSessionManager()
         );
 
         final JsonData result = JsonData.fromPasswordCheckInfo(passwordCheckInfo);
@@ -226,7 +232,7 @@ public class RestCheckPasswordServer {
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
         return result;
-	}
+    }
 }
 
 

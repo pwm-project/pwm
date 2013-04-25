@@ -99,10 +99,10 @@ public class ConfigManagerServlet extends TopServlet {
 
         if (!configManagerBean.isPasswordRequired() || configManagerBean.isPasswordVerified()) {
             if ("readSetting".equalsIgnoreCase(processActionParam)) {
-                this.readSetting(req, resp);
+                this.restReadSetting(req, resp);
                 return;
             } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
-                this.writeSetting(req, resp);
+                this.restWriteSetting(req, resp);
                 return;
             } else if ("resetSetting".equalsIgnoreCase(processActionParam)) {
                 this.resetSetting(req);
@@ -296,7 +296,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
-    private void readSetting(
+    private void restReadSetting(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -332,7 +332,7 @@ public class ConfigManagerServlet extends TopServlet {
         } else if (theSetting == null) {
             LOGGER.warn("readSettingAsString request for unknown key: " + key);
             returnMap.put("key", key);
-            returnMap.put("isDefault", "false");
+            returnMap.put("isDefault", false);
             returnValue = "UNKNOWN KEY";
         } else {
             switch (theSetting.getSyntax()) {
@@ -348,6 +348,7 @@ public class ConfigManagerServlet extends TopServlet {
                     returnValue = storedConfig.readSetting(theSetting).toNativeObject();
             }
             returnMap.put("key", key);
+            returnMap.put("options",theSetting.getOptions());
             returnMap.put("category", theSetting.getCategory().toString());
             returnMap.put("syntax", theSetting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
@@ -359,7 +360,7 @@ public class ConfigManagerServlet extends TopServlet {
         resp.getWriter().print(outputString);
     }
 
-    private void writeSetting(
+    private void restWriteSetting(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )

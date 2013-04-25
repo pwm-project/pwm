@@ -28,6 +28,7 @@
 <%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="com.google.gson.Gson" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
@@ -43,7 +44,7 @@
 <%= category.getDescription(locale)%>
 </div>
 <% } %>
-<% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true")) { %>
+<% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true") && level < 1) { %>
 <div style="font-size: small">
     <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
     <pwm:Display key="Warning_ShowAdvanced" bundle="Config"/>
@@ -143,7 +144,7 @@
     </table>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            FormTableHandler.init('<%=loopSetting.getKey()%>');
+            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=new Gson().toJson(loopSetting.getOptions())%>);
         });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>

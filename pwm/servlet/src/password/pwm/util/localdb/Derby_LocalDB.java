@@ -556,11 +556,11 @@ public class Derby_LocalDB implements LocalDBProvider {
 
     private void preCheck(final boolean write) throws LocalDBException {
         if (status != LocalDB.Status.OPEN) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"pwmDB is not open, cannot begin a new transaction"));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"LocalDB is not open, cannot begin a new transaction"));
         }
 
         if (write && readOnly) {
-            throw new IllegalStateException("cannot allow mutator operation; pwmDB is in read-only mode");
+            throw new IllegalStateException("cannot allow mutation operation; LocalDB is in read-only mode");
         }
     }
 }
