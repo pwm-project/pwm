@@ -68,10 +68,8 @@ public class GuestRegistrationServlet extends TopServlet {
 
     protected void processRequest(
             final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
-    {
+            final HttpServletResponse resp) throws ServletException, 
+            	ChaiUnavailableException, IOException, PwmUnrecoverableException {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
