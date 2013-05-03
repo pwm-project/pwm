@@ -42,16 +42,17 @@
             <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
             <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
             <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
-            <script type="text/javascript">
-                var RecaptchaOptions = { theme : 'white' };
+            <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+            <% final String country = pwmApplicationHeader.getConfig().getKnownLocaleFlagMap().get(locale); %>            <script type="text/javascript">
+                var RecaptchaOptions = { theme : 'white', lang : '<%=locale%>' };
             </script>
             <div style="margin-left: auto; margin-right: auto; width: 322px">
                 <script type="text/javascript"
-                        src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>">
+                        src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>&hl=<%=locale%>_<%=country%>">
                 </script>
             </div>
             <noscript>
-                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProtocol%>"
+                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProtocol%>&hl=<%=locale%>_<%=country%>"
                         height="300" width="500" frameborder="0"></iframe>
                 <br>
                 <textarea name="recaptcha_challenge_field" rows="3" cols="40">
