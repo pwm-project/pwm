@@ -283,7 +283,7 @@ public class FormConfiguration implements Serializable {
             throw new PwmDataValidationException(error);
         }
 
-        if (value != null && this.getRegex() != null && this.getRegex().length() > 0) {
+        if (value != null && value.length() > 0 && this.getRegex() != null && this.getRegex().length() > 0) {
             if (!value.matches(this.getRegex())) {
                 final String configuredErrorMessage = this.getRegexError(locale);
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REGEX_NOMATCH, null, configuredErrorMessage, new String[]{getLabel(locale)});
